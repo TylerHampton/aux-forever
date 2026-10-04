@@ -73,7 +73,7 @@ function SlashCmdList.AUX(command)
         aux.print('So posting at the cheapest price sells just as fast as going below it, and keeps prices from sliding.')
         aux.print('auxForever matches the cheapest price by default. Undercut mode (the goblin on the Post tab) goes one step below it.')
         aux.print('This is known for trade goods. For gear, buyers pick the listing themselves.')
-        aux.print('Undercut mode [' .. status(aux.account_data.post_undercut) .. '] - /aux undercut on|off')
+        aux.print('Undercut mode [' .. status(aux.account_data.post_undercut) .. '] - /aux undercut on|off (it starts off each time the auction house opens)')
     elseif arguments[1] == 'clear' and arguments[2] == 'post' then
         aux.faction_data.post = {}
         aux.print('Post data cleared.')

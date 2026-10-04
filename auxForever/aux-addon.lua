@@ -244,6 +244,8 @@ function AUCTION_HOUSE_SHOW()
     end
     frame:Show()
     set_tab(1)
+    -- auxForever: undercut mode is a choice for the moment, so it starts off every visit
+    post.set_undercut_mode(false)
     query_owned_auctions()
     query_bids()
 end

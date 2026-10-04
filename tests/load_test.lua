@@ -318,6 +318,9 @@ try('undercut mode', function()
   local post = require 'aux.tabs.post'
   local post_env = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
   check('undercut mode is off by default', aux.account_data.post_undercut == false)
+  post.set_undercut_mode(true)
+  fire('AUCTION_HOUSE_SHOW')
+  check('undercut mode starts off every time the auction house opens', aux.account_data.post_undercut == false)
 
   post_env.selected_item = {commodity = true, key = '2447:0'}
   check('trade goods: default matches the cheapest price', post.undercut({unit_price = 88}, 1) == 88)

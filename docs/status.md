@@ -28,7 +28,17 @@ Last updated at the end of the first session (2026-10-04).
 5. Later: Tyler sends Simon (shirsig) the project to review before it goes public. The GitHub
    repository can optionally be renamed to auxForever.
 
-## Quick searches (built, needs testing in game)
+## Repository
+
+Public since 2026-10-04. All work is on `claude/modest-volta-4mgmsb` (PR #1); `main` still holds
+only the initial commit until Tyler merges, so a download of `main` is not auxForever yet.
+
+## Recent decisions
+
+- Undercut mode starts off every time the auction house opens (Tyler: never remembered).
+- Quick searches, the gold finished-search bar and the fading history arrows tested fine in game.
+
+## Quick searches (built, tested in game)
 
 Clock button next to "<" on the Search tab (tabs/search/quick.lua): pinned searches (aux's
 favorites) and recent searches, with icon, cheapest price seen and time. Mockup:

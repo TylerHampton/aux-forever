@@ -91,7 +91,7 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
 - [ ] The bar at the bottom left is dim gray when nothing is loading, amber while searching.
 - [ ] When a search finishes, that bar turns gold with an amber edge. It goes back to gray on a new
       search, Clear, < or >, Saved Searches, Filter Builder or another tab.
-- [ ] The setting is remembered after `/reload`.
+- [ ] Undercut is off again every time you open the auction house, even if you left it on.
 - [ ] Top right of the Post tab: "How undercutting works on Forever: /aux undercut". Typing that
       prints the explanation; `/aux undercut on` and `/aux undercut off` switch the mode.
 - [ ] The Duration dropdown can be changed to 2, 8 and 24 hours, and the deposit updates.
