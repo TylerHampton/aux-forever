@@ -271,5 +271,28 @@ try('restyle', function()
   check('a font is always set', type(gui.font) == 'string' and type(gui.font_bold) == 'string')
 end)
 
+-- Dropdowns: on the modern client the edit box loses focus as soon as an option is pressed
+try('dropdown option click', function()
+  local require = loadstring("select(2, ...) 'aux.test5'; return require")('auxForever', addon)
+  local gui = require 'aux.gui'
+  local dropdown = gui.dropdown(new_frame())
+  dropdown:SetOptions{'2 Hours', '8 Hours', '24 Hours'}
+  dropdown:SetIndex(2)
+  dropdown.focus_gain()
+  local menu = gui.dropdown_menu
+  check('menu opens', menu.__shown)
+  rawset(menu, 'IsMouseOver', function() return true end)
+  dropdown.focus_loss() -- the press on an option takes focus first
+  check('menu stays open while an option is being clicked', menu.__shown)
+  local option = gui.dropdown_items[3]
+  option.__scripts.OnMouseDown(option)
+  check('clicked option is selected', dropdown:GetIndex() == 3)
+  check('menu closes after the click', not menu.__shown)
+  rawset(menu, 'IsMouseOver', function() return false end)
+  dropdown.focus_gain()
+  dropdown.focus_loss()
+  check('menu closes when focus leaves elsewhere', not menu.__shown)
+end)
+
 fire('AUCTION_HOUSE_CLOSED')
 print('done, errors: ' .. errors)

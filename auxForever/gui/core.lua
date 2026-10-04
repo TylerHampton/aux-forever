@@ -22,6 +22,10 @@ local bold_font = usable_font[[Interface\AddOns\auxForever\fonts\BarlowSemiConde
 M.font = regular_font or game_font
 M.font_bold = bold_font or regular_font or game_font
 M.bundled_font_loaded = regular_font ~= nil
+-- checked again at login: tells a file the game cannot read apart from one that loads late
+function M.bundled_font_available_now()
+    return usable_font[[Interface\AddOns\auxForever\fonts\BarlowSemiCondensed-Medium.ttf]] ~= nil
+end
 
 M.font_size = aux.immutable-{
     small = 13,
@@ -515,6 +519,15 @@ do
     dropdown_frame:SetFrameStrata('FULLSCREEN_DIALOG')
     dropdown_frame:SetHeight(1)
     local dropdown_item_buttons = {}
+    M.dropdown_menu, M.dropdown_items = dropdown_frame, dropdown_item_buttons
+    -- auxForever: the modern client takes focus from an edit box on any mouse press, so clicking an
+    -- option takes focus from the dropdown before the option gets the click. The menu stays open
+    -- while the mouse is over it and closes once neither the dropdown nor the menu is in use.
+    dropdown_frame:SetScript('OnUpdate', function(self)
+        if not (self.owner and self.owner:HasFocus()) and not self:IsMouseOver() then
+            self:Hide()
+        end
+    end)
 
     function M.dropdown(parent, text_height)
         text_height = text_height or font_size.medium
@@ -563,6 +576,7 @@ do
                 return
             end
 
+            dropdown_frame.owner = editbox
             dropdown_frame:SetScale(editbox:GetEffectiveScale())
             dropdown_frame:ClearAllPoints()
             local width = editbox:GetWidth() + 4
@@ -594,9 +608,10 @@ do
                     else
                         item_button:SetPoint('TOP', dropdown_item_buttons[i - 1], 'BOTTOM', 0, -2)
                     end
-                    item_button:SetScript('OnClick', function()
+                    item_button:SetScript('OnMouseDown', function()
                         set_index(i)
                         editbox:ClearFocus()
+                        dropdown_frame:Hide()
                     end)
                     if index == i then
                         item_button:LockHighlight()
@@ -630,7 +645,9 @@ do
 
         editbox.focus_loss = function()
             set_index(index)
-            dropdown_frame:Hide()
+            if not dropdown_frame:IsMouseOver() then
+                dropdown_frame:Hide()
+            end
         end
 
         function editbox:SetOptions(new_options, new_color_table)
