@@ -420,8 +420,42 @@ do
 	label:SetPoint('TOPLEFT', unit_buyout_price_input, 'BOTTOMLEFT', 0, -24)
 	deposit = label
 end
+do
+    -- auxForever: undercut mode, off by default (see undercut in core.lua)
+    local checkbox = gui.checkbox(frame.parameters)
+    checkbox:SetPoint('BOTTOMRIGHT', unit_buyout_price_input, 'TOPRIGHT', -40, 2)
+    checkbox:SetScript('OnClick', function(self)
+        set_undercut_mode(self:GetChecked())
+    end)
+    local label = gui.label(checkbox, gui.font_size.small)
+    label:SetPoint('LEFT', checkbox, 'RIGHT', 4, 0)
+    label:SetText('Undercut')
+    local icon = checkbox:CreateTexture(nil, 'ARTWORK')
+    icon:SetTexture([[Interface\AddOns\auxForever\textures\goblin.tga]])
+    icon:SetSize(18, 18)
+    icon:SetPoint('RIGHT', checkbox, 'LEFT', -3, 0)
+    local function show_tooltip(owner)
+        GameTooltip:SetOwner(owner, 'ANCHOR_RIGHT')
+        GameTooltip:AddLine('Undercut mode')
+        GameTooltip:AddLine('Off: price at the cheapest listing. On Forever the newest listing at a price sells first, so matching sells just as fast.', 1, 1, 1, true)
+        GameTooltip:AddLine('On: price one step below the cheapest listing.', 1, 1, 1, true)
+        GameTooltip:AddLine('/aux undercut for more', .6, .6, .6)
+        GameTooltip:Show()
+    end
+    checkbox:SetScript('OnEnter', show_tooltip)
+    checkbox:SetScript('OnLeave', function() GameTooltip:Hide() end)
+    undercut_checkbox = checkbox
+end
+do
+    local label = gui.label(frame.parameters, gui.font_size.small)
+    label:SetPoint('TOPRIGHT', -10, -30)
+    label:SetJustifyH('RIGHT')
+    label:SetTextColor(aux.color.label.disabled())
+    label:SetText('How undercutting works on Forever: /aux undercut')
+end
 
 function aux.event.AUX_LOADED()
+	undercut_checkbox:SetChecked(aux.account_data.post_undercut)
 	if aux.account_data.post_bid then
         frame.bid_listing:Show()
         bid_listing:SetColInfo{

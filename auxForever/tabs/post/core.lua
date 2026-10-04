@@ -458,8 +458,10 @@ function M.round_price(amount)
     return max(100, floor(amount / 100) * 100)
 end
 
-function undercut(record, stack_size, bid)
-    if record.historical_value or record.own then
+-- auxForever: on Forever the newest listing at a price sells first, so by default aux matches the
+-- cheapest price. Undercut mode (the goblin toggle) goes one step below it, like aux on Classic.
+function M.undercut(record, stack_size, bid)
+    if record.historical_value or record.own or not aux.account_data.post_undercut then
         return record.unit_price
     elseif selected_item and selected_item.commodity then
         local step = C_AuctionHouse.SupportsCopperValues() and 1 or 100
@@ -657,6 +659,13 @@ function on_update()
         update_auction_listings()
     end
     validate_parameters()
+end
+
+function M.set_undercut_mode(enabled)
+    aux.account_data.post_undercut = enabled and true or false
+    undercut_checkbox:SetChecked(aux.account_data.post_undercut)
+    price_update()
+    refresh = true
 end
 
 function duration_selection_change()

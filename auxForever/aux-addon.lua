@@ -39,7 +39,8 @@ do
             local gui = require 'aux.gui'
             if not gui.bundled_font_loaded then
                 print('the auxForever font could not be loaded, so the game font is used. After installing or updating auxForever, exit the game fully and start it again.'
-                    .. (gui.bundled_font_available_now() and ' (font check: loads late)' or ' (font check: not readable)'))
+                    .. (gui.bundled_font_available_now() and ' (font check: loads late' or ' (font check: not readable')
+                    .. '; ' .. gui.font_diagnostics() .. ')')
             end
 		else
 			_M[event](arg1, ...)
@@ -63,6 +64,7 @@ function event.AUX_LOADED()
         post_full_scan = nil,
         post_bid = nil,
         post_duration = post.DURATION_8,
+        post_undercut = false,
         replicate_time = 0,
         window = {},
         items = {},

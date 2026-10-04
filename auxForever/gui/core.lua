@@ -26,6 +26,17 @@ M.bundled_font_loaded = regular_font ~= nil
 function M.bundled_font_available_now()
     return usable_font[[Interface\AddOns\auxForever\fonts\BarlowSemiCondensed-Medium.ttf]] ~= nil
 end
+-- what SetFont answers and what height the text gets, for the bundled font and a game font
+function M.font_diagnostics()
+    local function check(path)
+        local probe = CreateFrame'Frame':CreateFontString()
+        local ok = probe:SetFont(path, 12, '')
+        local _, height = probe:GetFont()
+        return tostring(ok) .. '/' .. tostring(height and floor(height + .5))
+    end
+    return 'auxForever ' .. check[[Interface\AddOns\auxForever\fonts\BarlowSemiCondensed-Medium.ttf]]
+        .. ', game ' .. check[[Fonts\FRIZQT__.TTF]]
+end
 
 M.font_size = aux.immutable-{
     small = 13,

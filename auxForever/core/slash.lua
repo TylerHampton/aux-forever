@@ -65,6 +65,15 @@ function SlashCmdList.AUX(command)
         aux.account_data.unused_item_ids = {}
         aux.account_data.auctionable_items = {}
         aux.print('Item cache cleared.')
+    elseif arguments[1] == 'undercut' then
+        if arguments[2] == 'on' or arguments[2] == 'off' then
+            post.set_undercut_mode(arguments[2] == 'on')
+        end
+        aux.print('Undercutting on Forever: when several listings share a price, the newest one sells first.')
+        aux.print('So posting at the cheapest price sells just as fast as going below it, and keeps prices from sliding.')
+        aux.print('auxForever matches the cheapest price by default. Undercut mode (the goblin on the Post tab) goes one step below it.')
+        aux.print('This is known for trade goods. For gear, buyers pick the listing themselves.')
+        aux.print('Undercut mode [' .. status(aux.account_data.post_undercut) .. '] - /aux undercut on|off')
     elseif arguments[1] == 'clear' and arguments[2] == 'post' then
         aux.faction_data.post = {}
         aux.print('Post data cleared.')
@@ -76,6 +85,7 @@ function SlashCmdList.AUX(command)
         aux.print('- post full scan [' .. status(aux.account_data.post_full_scan) .. ']')
         aux.print('- post bid [' .. aux.color.blue(aux.account_data.post_bid or 'off') .. ']')
         aux.print('- post duration [' .. aux.color.blue(info.duration_hours(aux.account_data.post_duration) .. 'h') .. ']')
+        aux.print('- undercut [' .. status(aux.account_data.post_undercut) .. ']')
         aux.print('- crafting cost [' .. status(aux.account_data.crafting_cost) .. ']')
 		aux.print('- tooltip value [' .. status(tooltip_settings.value) .. ']')
 		aux.print('- tooltip daily [' .. status(tooltip_settings.daily) .. ']')

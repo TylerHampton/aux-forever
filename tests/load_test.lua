@@ -294,5 +294,19 @@ try('dropdown option click', function()
   check('menu closes when focus leaves elsewhere', not menu.__shown)
 end)
 
+-- Posting: match the cheapest price by default, one step below it in undercut mode
+try('undercut mode', function()
+  local require = loadstring("select(2, ...) 'aux.test6'; return require")('auxForever', addon)
+  local aux = require 'aux'
+  local post = require 'aux.tabs.post'
+  check('undercut mode is off by default', aux.account_data.post_undercut == false)
+  check('default matches the cheapest price', post.undercut({unit_price = 88}, 1) == 88)
+  post.set_undercut_mode(true)
+  check('undercut mode goes one step below', post.undercut({unit_price = 88}, 1) == 87)
+  check('own listing is never undercut', post.undercut({unit_price = 88, own = true}, 1) == 88)
+  post.set_undercut_mode(false)
+  check('turning it off matches again', post.undercut({unit_price = 88}, 1) == 88 and aux.account_data.post_undercut == false)
+end)
+
 fire('AUCTION_HOUSE_CLOSED')
 print('done, errors: ' .. errors)

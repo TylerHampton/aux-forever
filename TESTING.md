@@ -82,6 +82,16 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
 - [ ] Trade goods with several sellers at one price say "N sellers" instead of "?".
 - [ ] All four tabs, Saved Searches and Filter Builder look right, also at a large window size.
 
+## 10. Undercut mode and duration
+- [ ] Post tab: pick an item. The buyout price equals the cheapest listing (no undercut).
+- [ ] The goblin "Undercut" checkbox above Unit Buyout Price is off. Hovering it explains it.
+- [ ] Tick it. The price drops one step below the cheapest listing. Untick it, it matches again.
+- [ ] The setting is remembered after `/reload`.
+- [ ] Top right of the Post tab: "How undercutting works on Forever: /aux undercut". Typing that
+      prints the explanation; `/aux undercut on` and `/aux undercut off` switch the mode.
+- [ ] The Duration dropdown can be changed to 2, 8 and 24 hours, and the deposit updates.
+- [ ] Filter Builder dropdowns (class, subclass, slot, quality) can be changed.
+
 ## Things to note even without errors
 - Anything that looks different from how aux worked on Classic.
 - Anything slow (searches will be slower than Classic for broad searches, that is expected).
