@@ -38,6 +38,23 @@ only the initial commit until Tyler merges, so a download of `main` is not auxFo
 - Undercut mode starts off every time the auction house opens (Tyler: never remembered).
 - Quick searches, the gold finished-search bar and the fading history arrows tested fine in game.
 
+## Post tab facelift (mockup, waiting for Tyler's go)
+
+https://claude.ai/artifact/9gx3SMqfU46WMGbZ11iwKv : Match lowest / Undercut switch with the goblin,
+a "?" for the undercut hint, bigger price box with a "% of usual" badge, a summary row (items,
+total, deposit, "you get" after the 5% cut, Post button), steppers with Max, duration as 2h/8h/24h
+buttons, "Hide from this list" next to the item name.
+
+Auction house cut: 5% (Tyler's research; retail value). Keep it one constant. Deposits come from the
+game's own CalculateItemDeposit / CalculateCommodityDeposit, not a formula, so a server-side
+deposit change shows up by itself. Tyler's notes also claimed a flat 1 silver deposit minimum, but
+his own Post tab showed a 1c deposit for Minor Mana Potion, so that claim is not trusted.
+
+## Background opacity (built)
+
+Gear in the top bar, 70% to 100%, only backgrounds fade (gui.register_background). Light mode was
+considered and turned down: game item colors are made for dark backgrounds and it doubles UI work.
+
 ## Quick searches (built, tested in game)
 
 Clock button next to "<" on the Search tab (tabs/search/quick.lua): pinned searches (aux's

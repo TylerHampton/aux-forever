@@ -110,6 +110,13 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
       faded and does nothing; the other buttons never shift.
 - [ ] Clicking anywhere outside the menu closes it. Switching tabs or closing the window too.
 
+## 12. Background opacity
+- [ ] A gear button sits left of Full scan. Click it: a small Settings box opens.
+- [ ] Background - / +: steps of 5%. The window and panels let the game show through; text,
+      buttons, price boxes and the buy bar stay solid. It stops at 70% and at 100%.
+- [ ] The setting is kept after `/reload`. `/aux opacity 85` sets it from chat.
+- [ ] Clicking anywhere else closes the Settings box.
+
 ## Things to note even without errors
 - Anything that looks different from how aux worked on Classic.
 - Anything slow (searches will be slower than Classic for broad searches, that is expected).

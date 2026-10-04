@@ -140,9 +140,35 @@ function M.add_highlight(frame, radius, r, g, b, a)
     return shape
 end
 
+-- auxForever: background opacity. The main window and the panels made by gui.panel are registered,
+-- and only their fill fades: text, buttons, inputs and the buy bar stay solid. Never below 70%.
+local backgrounds = {}
+local background_opacity = 1
+M.MIN_BACKGROUND_OPACITY = .7
+
+local function paint_background(frame)
+    local r, g, b, a = frame.aux_background_color()
+    frame:SetBackdropColor(r, g, b, a * background_opacity)
+end
+
+function M.register_background(frame, color)
+    frame.aux_background_color = color
+    tinsert(backgrounds, frame)
+    paint_background(frame)
+end
+
+function M.set_background_opacity(opacity)
+    background_opacity = aux.bounded(MIN_BACKGROUND_OPACITY, 1, opacity or 1)
+    for _, frame in ipairs(backgrounds) do
+        paint_background(frame)
+    end
+    return background_opacity
+end
+
 function M.panel(parent)
     local panel = CreateFrame('Frame', nil, parent, 'BackdropTemplate')
     set_panel_style(panel)
+    register_background(panel, aux.color.panel.background)
     return panel
 end
 

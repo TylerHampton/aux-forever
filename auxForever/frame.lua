@@ -10,6 +10,7 @@ function event.AUX_LOADED()
 		tabs:create_tab(v.name)
 	end
 	restore_window()
+	account_data.background_opacity = gui.set_background_opacity(account_data.background_opacity)
 end
 
 -- Forever: the window can be resized from its bottom right corner (double-click the corner for the
@@ -57,6 +58,7 @@ do
 	local frame = CreateFrame('Frame', 'aux_frame', UIParent, 'BackdropTemplate')
 	tinsert(UISpecialFrames, 'aux_frame')
 	gui.set_window_style(frame)
+	gui.register_background(frame, color.window.background)
 	-- Forever: wider, and resizable (see restore_window)
 	gui.set_size(frame, DEFAULT_WIDTH, DEFAULT_HEIGHT)
 	frame:SetPoint('LEFT', 100, 0)
@@ -224,6 +226,99 @@ do
         }
     end)
     scan_button = btn
+end
+do
+    -- auxForever: settings (for now the background opacity), behind a gear in the top bar
+    local btn = gui.button(frame)
+    btn:SetPoint('RIGHT', scan_button, 'LEFT', -6, 0)
+    gui.set_size(btn, 28, 26)
+    local icon = btn:CreateTexture(nil, 'ARTWORK')
+    icon:SetTexture([[Interface\AddOns\auxForever\textures\gear.tga]])
+    icon:SetSize(15, 15)
+    icon:SetPoint('CENTER')
+    icon:SetVertexColor(color.label.enabled())
+    btn:SetScript('OnEnter', function(self)
+        GameTooltip:SetOwner(self, 'ANCHOR_BOTTOM')
+        GameTooltip:AddLine('Settings')
+        GameTooltip:Show()
+    end)
+    btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
+    settings_button = btn
+
+    local popup = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
+    gui.set_frame_style(popup, color.content.background, color.input.border, nil, nil, nil, nil, 8)
+    popup:SetFrameStrata('DIALOG')
+    gui.set_size(popup, 240, 76)
+    popup:SetPoint('TOPRIGHT', btn, 'BOTTOMRIGHT', 0, -4)
+    popup:EnableMouse(true)
+    popup:Hide()
+    settings_popup = popup
+
+    local title = gui.label(popup, gui.font_size.small)
+    title:SetPoint('TOPLEFT', 12, -10)
+    title:SetText('SETTINGS')
+    title:SetTextColor(color.accent.background())
+
+    local label = gui.label(popup, gui.font_size.medium)
+    label:SetPoint('TOPLEFT', 12, -40)
+    label:SetText('Background')
+    label:SetTextColor(color.text.enabled())
+
+    local plus = gui.button(popup, gui.font_size.large)
+    gui.set_size(plus, 26, 24)
+    plus:SetPoint('TOPRIGHT', -10, -35)
+    plus:SetText('+')
+    local value = gui.label(popup, gui.font_size.medium)
+    value:SetWidth(46)
+    value:SetJustifyH('CENTER')
+    value:SetPoint('RIGHT', plus, 'LEFT', -2, 0)
+    value:SetTextColor(color.text.enabled())
+    local minus = gui.button(popup, gui.font_size.large)
+    gui.set_size(minus, 26, 24)
+    minus:SetPoint('RIGHT', value, 'LEFT', -2, 0)
+    minus:SetText('-')
+
+    local function refresh()
+        local opacity = account_data.background_opacity
+        value:SetText(floor(opacity * 100 + .5) .. '%')
+        if opacity > gui.MIN_BACKGROUND_OPACITY + .001 then minus:Enable() else minus:Disable() end
+        if opacity < .999 then plus:Enable() else plus:Disable() end
+    end
+    function M.set_background_opacity(opacity)
+        account_data.background_opacity = gui.set_background_opacity(opacity)
+        refresh()
+    end
+    minus:SetScript('OnClick', function() set_background_opacity(account_data.background_opacity - .05) end)
+    plus:SetScript('OnClick', function() set_background_opacity(account_data.background_opacity + .05) end)
+    for _, b in ipairs{minus, plus} do
+        b:SetScript('OnEnter', function(self)
+            GameTooltip:SetOwner(self, 'ANCHOR_BOTTOM')
+            GameTooltip:AddLine('Background opacity')
+            GameTooltip:AddLine('How much of the game shows through. Text and buttons stay solid; 70% is the lowest.', 1, 1, 1, true)
+            GameTooltip:Show()
+        end)
+        b:SetScript('OnLeave', function() GameTooltip:Hide() end)
+    end
+
+    popup:SetScript('OnShow', function()
+        refresh()
+        btn:SetBackdropColor(color.accent.selected())
+        btn:SetBackdropBorderColor(color.accent.background())
+    end)
+    popup:SetScript('OnHide', function()
+        btn:SetBackdropColor(color.content.background())
+        btn:SetBackdropBorderColor(color.content.border())
+    end)
+    -- a click anywhere else closes it
+    pcall(popup.RegisterEvent, popup, 'GLOBAL_MOUSE_DOWN')
+    popup:SetScript('OnEvent', function(self)
+        if self:IsShown() and not self:IsMouseOver() and not btn:IsMouseOver() then
+            self:Hide()
+        end
+    end)
+    btn:SetScript('OnClick', function()
+        if popup:IsShown() then popup:Hide() else popup:Show() end
+    end)
 end
 do
     -- auxForever: credit to aux's creator, shown on every tab

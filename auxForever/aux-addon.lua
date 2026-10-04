@@ -61,6 +61,7 @@ function event.AUX_LOADED()
         post_undercut = false,
         replicate_time = 0,
         window = {},
+        background_opacity = 1,
         items = {},
         item_ids = {},
         unused_item_ids = {},

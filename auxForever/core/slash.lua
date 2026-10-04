@@ -65,6 +65,9 @@ function SlashCmdList.AUX(command)
         aux.account_data.unused_item_ids = {}
         aux.account_data.auctionable_items = {}
         aux.print('Item cache cleared.')
+    elseif arguments[1] == 'opacity' and tonumber(arguments[2]) then
+        aux.set_background_opacity(tonumber(arguments[2]) / 100)
+        aux.print('background opacity ' .. aux.color.blue(floor(aux.account_data.background_opacity * 100 + .5) .. '%') .. ' (70% to 100%)')
     elseif arguments[1] == 'undercut' then
         if arguments[2] == 'on' or arguments[2] == 'off' then
             post.set_undercut_mode(arguments[2] == 'on')
@@ -86,6 +89,7 @@ function SlashCmdList.AUX(command)
         aux.print('- post bid [' .. aux.color.blue(aux.account_data.post_bid or 'off') .. ']')
         aux.print('- post duration [' .. aux.color.blue(info.duration_hours(aux.account_data.post_duration) .. 'h') .. ']')
         aux.print('- undercut [' .. status(aux.account_data.post_undercut) .. ']')
+        aux.print('- opacity [' .. aux.color.blue(floor(aux.account_data.background_opacity * 100 + .5) .. '%') .. ']')
         aux.print('- crafting cost [' .. status(aux.account_data.crafting_cost) .. ']')
 		aux.print('- tooltip value [' .. status(tooltip_settings.value) .. ']')
 		aux.print('- tooltip daily [' .. status(tooltip_settings.daily) .. ']')

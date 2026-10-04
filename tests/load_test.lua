@@ -472,5 +472,30 @@ try('history arrows', function()
   end
 end)
 
+-- Background opacity: only backgrounds fade, never below 70%
+try('background opacity', function()
+  local require = loadstring("select(2, ...) 'aux.test9'; return require")('auxForever', addon)
+  local aux = require 'aux'
+  local gui = require 'aux.gui'
+  local panel = gui.panel(new_frame())
+  local alpha
+  rawset(panel, 'SetBackdropColor', function(_, r, g, b, a) alpha = a end)
+  aux.set_background_opacity(.85)
+  check('opacity is saved', math.abs(aux.account_data.background_opacity - .85) < .001)
+  check('panel background fades', math.abs(alpha - .85) < .001)
+  aux.set_background_opacity(.2)
+  check('opacity never goes below 70%', math.abs(aux.account_data.background_opacity - .7) < .001 and math.abs(alpha - .7) < .001)
+  aux.set_background_opacity(1.5)
+  check('opacity never goes above 100%', aux.account_data.background_opacity == 1)
+  SlashCmdList.AUX('opacity 80')
+  check('/aux opacity 80 sets 80%', math.abs(aux.account_data.background_opacity - .8) < .001)
+  local button = gui.button(new_frame())
+  local button_alpha
+  rawset(button, 'SetBackdropColor', function(_, r, g, b, a) button_alpha = a end)
+  aux.set_background_opacity(.7)
+  check('buttons are not faded', button_alpha == nil)
+  aux.set_background_opacity(1)
+end)
+
 fire('AUCTION_HOUSE_CLOSED')
 print('done, errors: ' .. errors)
