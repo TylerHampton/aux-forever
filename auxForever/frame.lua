@@ -202,7 +202,7 @@ do
     -- auxForever: credit to aux's creator, shown on every tab
     local label = gui.label(frame, gui.font_size.small)
     label:SetPoint('RIGHT', scan_button, 'LEFT', -12, 0)
-    label:SetText('aux by shirsig \194\183 Forever edition by Tyler')
+    label:SetText('aux by shirsig, granted immortality by Tyler')
     label:SetTextColor(.55, .55, .55)
     credit_label = label
 end

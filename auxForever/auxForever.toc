@@ -2,7 +2,7 @@
 ## Author: shirsig
 ## Title: auxForever
 ## Version: forever-0.1.0
-## Notes: aux by shirsig, rebuilt for WoW Forever by Tyler
+## Notes: aux by shirsig, granted immortality by Tyler
 ## SavedVariables: aux
 
 libs\package.lua
