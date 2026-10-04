@@ -3,9 +3,21 @@ select(2, ...) 'aux.gui'
 local aux = require 'aux'
 local completion = require 'aux.util.completion'
 
--- auxForever: Barlow Semi Condensed (SIL Open Font License, see fonts/OFL.txt)
-M.font = [[Interface\AddOns\auxForever\fonts\BarlowSemiCondensed-Medium.ttf]]
-M.font_bold = [[Interface\AddOns\auxForever\fonts\BarlowSemiCondensed-Bold.ttf]]
+-- auxForever: Barlow Semi Condensed (SIL Open Font License, see fonts/OFL.txt). The game only
+-- sees files added to an addon after a full restart, so until then fall back to the game's font.
+local function usable_font(path)
+    local probe = CreateFrame'Frame':CreateFontString()
+    probe:SetFont(path, 12, '')
+    local _, height = probe:GetFont()
+    return height and height > 0 and path or nil
+end
+local game_font = (function()
+    local font = CreateFrame'Frame':CreateFontString()
+    font:SetFontObject(NumberFont_Normal_Med)
+    return font:GetFont()
+end)()
+M.font = usable_font[[Interface\AddOns\auxForever\fonts\BarlowSemiCondensed-Medium.ttf]] or game_font
+M.font_bold = usable_font[[Interface\AddOns\auxForever\fonts\BarlowSemiCondensed-Bold.ttf]] or M.font
 
 M.font_size = aux.immutable-{
     small = 13,
@@ -197,7 +209,9 @@ function M.set_primary(button)
     button:SetBackdropColor(aux.color.accent.background())
     button:SetBackdropBorderColor(aux.color.accent.background())
     button:GetFontString():SetTextColor(aux.color.accent.text())
-    button:GetFontString():SetFont(font_bold, select(2, button:GetFontString():GetFont()))
+    local label = button:GetFontString()
+    local _, size = label:GetFont()
+    label:SetFont(font_bold, size and size > 0 and size or font_size.large)
 end
 
 do

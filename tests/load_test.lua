@@ -240,6 +240,17 @@ try('restyle', function()
   check('named seller shown', auction_listing.seller_text{owner = 'Violet Toes'} == 'Violet Toes')
   check('several sellers counted', auction_listing.seller_text{seller_count = 12}:find('12 sellers') ~= nil)
   check('unknown seller', auction_listing.seller_text{seller_count = 1} == '?')
+
+  -- after a /reload the new font file is not available yet and a label reports height 0;
+  -- the game errors on SetFont with height 0, so set_primary must never pass it on
+  local heights = {}
+  local label = new_frame()
+  rawset(label, 'GetFont', function() return nil, 0 end)
+  rawset(label, 'SetFont', function(_, _, h) heights[#heights + 1] = h end)
+  local primary = gui.button(new_frame())
+  rawset(primary, 'GetFontString', function() return label end)
+  gui.set_primary(primary)
+  check('primary button font height is never 0', #heights == 1 and heights[1] > 0)
 end)
 
 fire('AUCTION_HOUSE_CLOSED')
