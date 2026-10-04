@@ -8,6 +8,7 @@ local scan = require 'aux.core.scan'
 local gui = require 'aux.gui'
 local listing = require 'aux.gui.listing'
 local auction_listing = require 'aux.gui.auction_listing'
+local commodity_bar = require 'aux.gui.commodity_bar'
 
 FILTER_SPACING = 27
 
@@ -184,7 +185,9 @@ do
         while tremove(current_search().records) do end
         current_search().table:SetDatabase()
     end)
+    clear_button = btn
 end
+commodity_bar.create(frame.results, aux.status_bar)
 do
     local btn = gui.button(frame.saved)
     btn:SetPoint('LEFT', aux.status_bar, 'RIGHT', 5, 0)

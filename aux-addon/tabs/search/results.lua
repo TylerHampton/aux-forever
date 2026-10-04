@@ -4,7 +4,7 @@ local aux = require 'aux'
 local info = require 'aux.util.info'
 local filter_util = require 'aux.util.filter'
 local scan = require 'aux.core.scan'
-local commodity_dialog = require 'aux.gui.commodity_dialog'
+local commodity_bar = require 'aux.gui.commodity_bar'
 
 StaticPopupDialogs.AUX_SCAN_ALERT = {
     text = 'One of your alert queries matched!',
@@ -328,7 +328,7 @@ end
 -- Forever: every record carries its auction ID, so the selected auction can be bought or bid on
 -- right away instead of first being found again by a scan as in Classic aux.
 -- Item rows are buckets of identical auctions priced per item: Buyout buys one, like buying one
--- single-item auction in Classic. Commodities are bought by quantity through commodity_dialog.
+-- single-item auction in Classic. Commodities are bought by quantity from the bottom bar (gui/commodity_bar.lua).
 do
     local selected, checked
 
@@ -439,40 +439,25 @@ do
         search.table:SetDatabase()
     end
 
-    local function buy_commodity(search, record)
-        local tiers = commodity_tiers(search, record.item_id)
-        local max_quantity = 0
-        for _, tier in ipairs(tiers) do
-            if tier.commodity_unit_price <= record.commodity_unit_price then
-                max_quantity = max_quantity + tier.count
-            end
-        end
-        if max_quantity == 0 then return end
-        commodity_dialog.open{
+    local function show_commodity_bar(search, record)
+        local item_info = info.item(record.item_id)
+        commodity_bar.show{
             item_id = record.item_id,
-            name = record.link or record.name,
-            unit_price = record.commodity_unit_price,
-            max_quantity = max_quantity,
-            quantity = min(record.count, max_quantity),
-            expected_total = function(n)
-                local total, remaining = 0, n
-                for _, tier in ipairs(tiers) do
-                    if remaining <= 0 then break end
-                    local taken = min(remaining, tier.count)
-                    total = total + taken * tier.commodity_unit_price
-                    remaining = remaining - taken
-                end
-                return total
-            end,
-            on_success = function(n)
-                consume_commodity(search, record.item_id, n)
-            end,
+            max_stack = item_info and item_info.max_stack or 1,
+            tiers = function() return commodity_tiers(search, record.item_id) end,
+            on_success = function(n) consume_commodity(search, record.item_id, n) end,
         }
     end
 
     function find_auction(record)
         local search = current_search()
         selected, checked = nil, record
+        -- Forever: commodities are bought by quantity from the bottom bar, whichever row is selected
+        if record.commodity and search.table:ContainsRecord(record) then
+            show_commodity_bar(search, record)
+            return
+        end
+        commodity_bar.hide()
         if not search.table:ContainsRecord(record) or info.is_player(record.owner) or record.own then
             return
         end
@@ -495,13 +480,9 @@ do
 
         buyout_button:SetScript('OnClick', function()
             if search.table:ContainsRecord(record) and not record.syncing then
-                if record.commodity then
-                    buy_commodity(search, record)
-                else
-                    aux.place_bid(record.auction_id, record.buyout_price, function()
-                        sync_bucket(search, record)
-                    end, failure(search, record))
-                end
+                aux.place_bid(record.auction_id, record.buyout_price, function()
+                    sync_bucket(search, record)
+                end, failure(search, record))
             end
         end)
     end
@@ -510,16 +491,26 @@ do
         local selection = current_search().table:GetSelection()
         if selection and selection.record ~= checked then
             find_auction(selection.record)
+        elseif not selection and checked then
+            checked = nil
+            commodity_bar.hide()
         end
+
+        -- the commodity bar takes the place of the Bid, Buyout and Clear buttons
+        local bar = commodity_bar.shown()
+        for _, button in ipairs{bid_button, buyout_button, clear_button} do
+            if bar then button:Hide() else button:Show() end
+        end
+
         local record = selection and selected == selection.record and selected
-        local busy = not record or record.syncing or aux.bid_in_progress() or commodity_dialog.in_progress()
+        local busy = not record or record.syncing or aux.bid_in_progress()
 
         if not busy and not record.commodity and not record.high_bidder then
             bid_button:Enable()
         else
             bid_button:Disable()
         end
-        if not busy and record.buyout_price > 0 then
+        if not busy and not record.commodity and record.buyout_price > 0 then
             buyout_button:Enable()
         else
             buyout_button:Disable()

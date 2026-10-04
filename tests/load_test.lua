@@ -1,6 +1,7 @@
 -- Run from the aux-addon folder: lua5.1 ../tests/load_test.lua
 -- Load test: stub the WoW API, load every file in TOC order, then fire the startup events
--- (ADDON_LOADED, PLAYER_LOGIN), open the auction house and run OnUpdate scripts a few times.
+-- (ADDON_LOADED, PLAYER_LOGIN), open the auction house, run OnUpdate scripts a few times and
+-- walk through a commodity purchase.
 local G = _G
 local frames = {}
 local NUMERIC = { GetRight=1, GetLeft=1, GetTop=1, GetBottom=1, GetWidth=1, GetHeight=1, GetNumber=1, GetScale=1, GetEffectiveScale=1, GetAlpha=1, GetID=1, GetNumPoints=1, GetVerticalScroll=1, GetHorizontalScroll=1, GetCursorPosition=1, GetStringWidth=1, GetTextWidth=1, GetFrameLevel=1, GetValue=1 }
@@ -75,5 +76,54 @@ for i = 1, 5 do
     if f.__shown and f.__scripts.OnUpdate then try('OnUpdate', f.__scripts.OnUpdate, f, 0.1) end
   end
 end
+-- Commodity purchase flow (gui/commodity_bar.lua). The stub editbox always reads 10.
+local function check(label, ok)
+  if not ok then errors = errors + 1; print('FAIL', label) end
+end
+try('commodity purchase', function()
+  local require = loadstring("select(2, ...) 'aux.test'; return require")('aux-addon', addon)
+  local bar = require 'aux.gui.commodity_bar'
+  local calls = {}
+  C_AuctionHouse.StartCommoditiesPurchase = function(id, n) tinsert(calls, 'start ' .. id .. ' ' .. n) end
+  C_AuctionHouse.ConfirmCommoditiesPurchase = function(id, n) tinsert(calls, 'confirm ' .. id .. ' ' .. n) end
+  C_AuctionHouse.CancelCommoditiesPurchase = function() tinsert(calls, 'cancel') end
+  C_AuctionHouse.GetQuoteDurationRemaining = function() return 30 end
+  local tiers = {{count = 6, commodity_unit_price = 6}, {count = 100, commodity_unit_price = 7}}
+  local bought
+  bar.show{item_id = 123, max_stack = 20, tiers = function() return tiers end, on_success = function(n) bought = n end}
+  local button
+  for _, f in ipairs(frames) do
+    if f.__text == 'Buy' and f.__scripts.OnClick then button = f end
+  end
+  check('buy button exists', button)
+
+  -- 10 units, cheapest first: 6 x 6c + 4 x 7c = 64c
+  button.__scripts.OnClick(button)
+  check('quote requested for 10', calls[1] == 'start 123 10')
+  fire('COMMODITY_PRICE_UPDATED', 6, 64)
+  check('confirm offered at the estimate', button.__text == 'Confirm')
+  check('nothing confirmed before the click', #calls == 1)
+  button.__scripts.OnClick(button)
+  check('confirmed after the click', calls[2] == 'confirm 123 10')
+  fire('COMMODITY_PURCHASE_SUCCEEDED')
+  check('success reported for 10', bought == 10)
+  check('back to Buy', button.__text == 'Buy')
+
+  -- a server price above the estimate is cancelled, never confirmed
+  calls = {}
+  button.__scripts.OnClick(button)
+  fire('COMMODITY_PRICE_UPDATED', 7, 65)
+  check('higher price cancelled', calls[2] == 'cancel')
+  check('higher price not confirmed', #calls == 2)
+  check('higher price returns to Buy', button.__text == 'Buy')
+
+  -- Escape while a price is shown cancels it
+  calls = {}
+  button.__scripts.OnClick(button)
+  fire('COMMODITY_PRICE_UPDATED', 6, 60)
+  bar.hide()
+  check('hiding the bar cancels the quote', calls[2] == 'cancel')
+end)
+
 fire('AUCTION_HOUSE_CLOSED')
 print('done, errors: ' .. errors)

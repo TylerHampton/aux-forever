@@ -23,10 +23,13 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
       Alt-click does the same. With the chat box open, Shift-click still links into chat.
 - [ ] Gear or bags: select a cheap row and click Buyout. **One** item is bought, the
       "Auctions" count drops by one, and clicking Buyout again buys the next one.
-- [ ] Trade goods (cloth, herbs, ore): select a row and click Buyout. A small window asks how
-      many. Type a small number and press Buy (or Enter). It shows the exact price. Nothing is
-      bought until you press Confirm (or Enter again). Cancel or Escape stops it.
-- [ ] In that window, try a quantity above the maximum: Buy stays disabled.
+- [ ] Trade goods (cloth, herbs, ore): select any row. The Bid/Buyout/Clear buttons are replaced
+      by a quantity box (starting at one stack), a Buy button and a line like
+      "20 for 1s 26c / avg 6c, max 7c". Change the quantity: the cost updates.
+- [ ] Press Buy (or Enter). It shows "Server price ... Confirm?". Nothing is bought yet.
+      Press Confirm (or Enter again). It shows "Bought N for ...".
+- [ ] Press Buy, then Escape instead of Confirm: "Cancelled, nothing bought".
+- [ ] Type more than is for sale: it says "Only N for sale" and Buy stays disabled.
 - [ ] Check your mailbox: you got exactly the quantity you confirmed, for the price shown.
 - [ ] Stop a long search with the stop button, then resume it.
 - [ ] Toggle real time mode (the button left of the search box) and run a search. It repeats.
