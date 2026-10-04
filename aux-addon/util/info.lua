@@ -105,7 +105,13 @@ end
 
 -- Forever: auction records are built from C_AuctionHouse results instead of GetAuctionItemInfo.
 -- They keep the field names of Classic aux so the listings, filters and history work unchanged.
--- New fields: auction_id (used to bid/buy directly), commodity (bought by quantity, cheapest first).
+-- See docs/forever-auction-house.md for how the modern auction house reports listings.
+-- New fields:
+--   auction_id     used to bid/buy directly
+--   auction_count  how many identical auctions the record stands for (an item search row is a
+--                  bucket of identical auctions, each priced per item)
+--   commodity      bought by quantity, cheapest units first
+--   item_search_key  the item key the record was searched with (to re-read its bucket)
 
 local record_mt = {
     __index = function(record, key)
@@ -181,15 +187,35 @@ local function set_prices(record, min_bid, bid_amount, buyout)
     record.unit_buyout_price = buyout / count
 end
 
--- One listing of a non-commodity item (C_AuctionHouse.GetItemSearchResultInfo)
+-- The player's own entry in an owners list is the string "player"
+local function seller(result, own)
+    if own then
+        return UnitName'player'
+    elseif #result.owners == 1 and result.owners[1] ~= 'player' then
+        return result.owners[1]
+    end
+end
+
+-- Same rule as Blizzard's AuctionHouseUtil.IsOwnedAuction: every auction in the row is the player's
+local function owned_row(result)
+    return (#result.owners == 1 and (result.containsOwnerItem or result.containsAccountItem))
+        or (#result.owners == 2 and result.containsOwnerItem and result.containsAccountItem)
+        or false
+end
+
+-- One row of an item search (C_AuctionHouse.GetItemSearchResultInfo). The row is a bucket of
+-- result.quantity identical auctions; its prices are for one item and PlaceBid buys one auction.
 function M.item_search_record(result)
-    local record = new_record(result.itemKey.itemID, result.itemLink, result.quantity)
+    local record = new_record(result.itemKey.itemID, result.itemLink, 1)
     if not record then return end
     record.auction_id = result.auctionID
+    record.auction_count = max(1, result.quantity or 1)
+    record.item_search_key = result.itemKey
+    record.raw_min_bid, record.raw_bid, record.raw_buyout = result.minBid or 0, result.bidAmount or 0, result.buyoutAmount or 0
     set_prices(record, result.minBid, result.bidAmount, result.buyoutAmount)
     record.high_bidder = result.bidder and result.bidder == player_guid() or nil
-    record.owner = result.containsOwnerItem and UnitName'player' or (result.totalNumberOfOwners == 1 and result.owners[1] or nil)
-    record.own = result.containsOwnerItem
+    record.own = owned_row(result)
+    record.owner = seller(result, record.own)
     record.duration = result.timeLeftSeconds and duration_from_seconds(result.timeLeftSeconds) or duration_from_band(result.timeLeft)
     record.sale_status = 0
     signatures(record)
@@ -197,20 +223,32 @@ function M.item_search_record(result)
 end
 
 -- One price tier of a commodity (C_AuctionHouse.GetCommoditySearchResultInfo).
--- Commodities have no bids; buying a quantity always takes the cheapest listings.
+-- Commodities have no bids; buying a quantity always takes the cheapest listings and skips the
+-- player's own, so the record's count is what the player can actually buy at this price.
 function M.commodity_record(result)
-    local record = new_record(result.itemID, nil, result.quantity)
+    local available = result.quantity - (result.numOwnerItems or 0)
+    local own = available <= 0
+    local count = own and result.quantity or available
+    local record = new_record(result.itemID, nil, count)
     if not record then return end
     record.commodity = true
     record.auction_id = result.auctionID
-    set_prices(record, 0, 0, result.unitPrice * result.quantity)
-    record.owner = result.containsOwnerItem and UnitName'player' or (result.totalNumberOfOwners == 1 and result.owners[1] or nil)
-    record.own = result.containsOwnerItem
+    record.commodity_unit_price = result.unitPrice
+    set_prices(record, 0, 0, result.unitPrice * count)
+    record.own = own
     record.own_count = result.numOwnerItems
+    record.owner = seller(result, own)
     record.duration = duration_from_seconds(result.timeLeftSeconds)
     record.sale_status = 0
     signatures(record)
     return record
+end
+
+-- After part of a commodity tier was bought
+function M.set_commodity_count(record, count)
+    record.count = count
+    set_prices(record, 0, 0, record.commodity_unit_price * count)
+    signatures(record)
 end
 
 -- One listing from a full scan (C_AuctionHouse.GetReplicateItemInfo, 0-based index)
@@ -243,8 +281,12 @@ function M.owned_record(owned)
         return
     end
     record.auction_id = owned.auctionID
-    set_prices(record, 0, owned.bidAmount, owned.buyoutAmount)
-    record.start_price = owned.bidAmount or owned.buyoutAmount or 0
+    -- like every other modern auction house price, these are per unit
+    local quantity = max(1, owned.quantity or 1)
+    local buyout = owned.buyoutAmount and owned.buyoutAmount * quantity or 0
+    local bid = owned.bidAmount and owned.bidAmount * quantity or 0
+    set_prices(record, 0, bid, buyout)
+    record.start_price = bid > 0 and bid or buyout
     record.high_bidder = owned.bidder
     record.owner = UnitName'player'
     record.sale_status = owned.status == Enum.AuctionStatus.Sold and 1 or 0

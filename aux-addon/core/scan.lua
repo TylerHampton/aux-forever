@@ -114,7 +114,8 @@ function check_aborted(scan_state)
 end
 
 -- Starts listening for any of the given events before a request is sent; the returned
--- function waits until one arrives (and passes the optional predicate) or the timeout runs out.
+-- function waits until one arrives (and passes the optional predicate), the optional stop
+-- function returns true, or the timeout runs out.
 function listen(events, predicate)
     local received
     local ids = {}
@@ -127,9 +128,9 @@ function listen(events, predicate)
         ids[id] = true
         state.listener_ids[id] = true
     end
-    return function(timeout)
+    return function(timeout, stop)
         local t0 = GetTime()
-        while not received and GetTime() - t0 < (timeout or TIMEOUT) do
+        while not received and GetTime() - t0 < (timeout or TIMEOUT) and not (stop and stop(GetTime() - t0)) do
             aux.coro_wait()
         end
         for id in pairs(ids) do
@@ -138,6 +139,34 @@ function listen(events, predicate)
         end
         return received
     end
+end
+
+-- Sends a request and waits for its answer; returns the event that answered it (or true when
+-- cached results were used). A request the throttle system drops is sent again. The client does
+-- not always fire the results event again for results it already holds, so if no event arrives
+-- within a second but cached() reports results, those are used.
+function request(send, events, match, cached)
+    for _ = 1, 3 do
+        wait_throttle()
+        local dropped
+        local drop_id = aux.event_listener('AUCTION_HOUSE_THROTTLED_MESSAGE_DROPPED', function()
+            dropped = true
+        end)
+        state.listener_ids[drop_id] = true
+        local wait = listen(events, match)
+        send()
+        local received = wait(TIMEOUT, function(elapsed)
+            return dropped or (cached and elapsed > 1 and cached())
+        end)
+        aux.kill_listener(drop_id)
+        state.listener_ids[drop_id] = nil
+        if received then
+            return received
+        elseif not dropped then
+            return cached and cached() or false
+        end
+    end
+    return false
 end
 
 function wait_throttle()
@@ -218,19 +247,14 @@ end
 -- Returns the list of item keys matching the query, or nil if the auction house did not answer.
 function browse(blizzard_query)
     local events = {'AUCTION_HOUSE_BROWSE_RESULTS_UPDATED', 'AUCTION_HOUSE_BROWSE_RESULTS_ADDED', 'AUCTION_HOUSE_BROWSE_FAILURE'}
-    wait_throttle()
-    local wait = listen(events)
-    C_AuctionHouse.SendBrowseQuery(browse_query(blizzard_query))
-    local event = wait()
-    if not event or event == 'AUCTION_HOUSE_BROWSE_FAILURE' then
+    local query = browse_query(blizzard_query)
+    local answer = request(function() C_AuctionHouse.SendBrowseQuery(query) end, events)
+    if not answer or answer == 'AUCTION_HOUSE_BROWSE_FAILURE' then
         return
     end
     while not C_AuctionHouse.HasFullBrowseResults() do
-        wait_throttle()
-        wait = listen(events)
-        C_AuctionHouse.RequestMoreBrowseResults()
-        event = wait()
-        if not event or event == 'AUCTION_HOUSE_BROWSE_FAILURE' then
+        answer = request(function() C_AuctionHouse.RequestMoreBrowseResults() end, events)
+        if not answer or answer == 'AUCTION_HOUSE_BROWSE_FAILURE' then
             break
         end
     end
@@ -254,17 +278,16 @@ function search(item_key)
         local item_id = item_key.itemID
         local function match(id) return id == item_id end
         local events = {'COMMODITY_SEARCH_RESULTS_UPDATED', 'COMMODITY_SEARCH_RESULTS_ADDED'}
-        wait_throttle()
-        local wait = listen(events, match)
-        C_AuctionHouse.SendSearchQuery(item_key, SEARCH_SORTS, true)
-        if not wait() then
+        local function cached()
+            return C_AuctionHouse.HasFullCommoditySearchResults(item_id) or C_AuctionHouse.GetCommoditySearchResultsQuantity(item_id) > 0
+        end
+        if not request(function() C_AuctionHouse.SendSearchQuery(item_key, SEARCH_SORTS, true) end, events, match, cached) then
             return
         end
         while not C_AuctionHouse.HasFullCommoditySearchResults(item_id) do
-            wait_throttle()
-            wait = listen(events, match)
-            C_AuctionHouse.RequestMoreCommoditySearchResults(item_id)
-            if not wait() then break end
+            if not request(function() C_AuctionHouse.RequestMoreCommoditySearchResults(item_id) end, events, match) then
+                break
+            end
         end
         for i = 1, C_AuctionHouse.GetNumCommoditySearchResults(item_id) do
             local result = C_AuctionHouse.GetCommoditySearchResultInfo(item_id, i)
@@ -276,17 +299,17 @@ function search(item_key)
     else
         local function match(key) return same_item_key(key, item_key) end
         local events = {'ITEM_SEARCH_RESULTS_UPDATED', 'ITEM_SEARCH_RESULTS_ADDED'}
-        wait_throttle()
-        local wait = listen(events, match)
-        C_AuctionHouse.SendSearchQuery(item_key, SEARCH_SORTS, true)
-        if not wait() then
+        local function cached()
+            return C_AuctionHouse.HasSearchResults(item_key)
+                and (C_AuctionHouse.HasFullItemSearchResults(item_key) or C_AuctionHouse.GetItemSearchResultsQuantity(item_key) > 0)
+        end
+        if not request(function() C_AuctionHouse.SendSearchQuery(item_key, SEARCH_SORTS, true) end, events, match, cached) then
             return
         end
         while not C_AuctionHouse.HasFullItemSearchResults(item_key) do
-            wait_throttle()
-            wait = listen(events, match)
-            C_AuctionHouse.RequestMoreItemSearchResults(item_key)
-            if not wait() then break end
+            if not request(function() C_AuctionHouse.RequestMoreItemSearchResults(item_key) end, events, match) then
+                break
+            end
         end
         for i = 1, C_AuctionHouse.GetNumItemSearchResults(item_key) do
             local result = C_AuctionHouse.GetItemSearchResultInfo(item_key, i)

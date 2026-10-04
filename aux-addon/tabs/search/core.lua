@@ -32,8 +32,11 @@ function tab.CLOSE()
 end
 
 function tab.USE_ITEM(item_id)
-	set_filter(strlower(info.item(item_id).name) .. '/exact')
-	execute(nil, false)
+	local item_info = info.item(item_id)
+	if item_info then
+		set_filter(strlower(item_info.name) .. '/exact')
+		execute(nil, false)
+	end
 end
 
 function set_subtab(tab)

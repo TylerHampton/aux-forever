@@ -4,6 +4,7 @@ local aux = require 'aux'
 local info = require 'aux.util.info'
 local filter_util = require 'aux.util.filter'
 local scan = require 'aux.core.scan'
+local commodity_dialog = require 'aux.gui.commodity_dialog'
 
 StaticPopupDialogs.AUX_SCAN_ALERT = {
     text = 'One of your alert queries matched!',
@@ -326,29 +327,105 @@ end
 
 -- Forever: every record carries its auction ID, so the selected auction can be bought or bid on
 -- right away instead of first being found again by a scan as in Classic aux.
+-- Item rows are buckets of identical auctions priced per item: Buyout buys one, like buying one
+-- single-item auction in Classic. Commodities are bought by quantity through commodity_dialog.
 do
     local selected, checked
 
     local function failure(search, record)
         return function(error)
-            if error == Enum.AuctionHouseError.ItemNotFound or error == Enum.AuctionHouseError.ItemNotAvailable or error == 'unavailable' then
+            if error == Enum.AuctionHouseError.ItemNotFound or error == Enum.AuctionHouseError.ItemNotAvailable then
                 search.table:RemoveAuctionRecord(record)
             end
         end
     end
 
-    -- A commodity purchase takes the cheapest listings first (never the player's own), so update the
-    -- displayed tiers the same way instead of just removing the selected row.
-    local function consume_commodity(search, record)
-        local tiers = {}
-        for _, r in ipairs(search.records) do
-            if r.commodity and r.item_id == record.item_id and not r.own then
-                tinsert(tiers, r)
+    local function same_bucket(result, record)
+        return result.itemLink == record.link
+            and (result.buyoutAmount or 0) == record.raw_buyout
+            and (result.bidAmount or 0) == record.raw_bid
+            and not (#result.owners == 1 and result.containsOwnerItem)
+    end
+
+    local function find_bucket(record)
+        local key = record.item_search_key
+        for i = 1, C_AuctionHouse.GetNumItemSearchResults(key) do
+            local result = C_AuctionHouse.GetItemSearchResultInfo(key, i)
+            if result and same_bucket(result, record) then
+                return result
             end
         end
-        sort(tiers, function(a, b) return a.unit_buyout_price < b.unit_buyout_price end)
-        local remaining = record.count
-        for _, tier in ipairs(tiers) do
+    end
+
+    -- One auction of a bucket was bought (or bid on). The bucket carries on under a new auction
+    -- ID, so re-read the item's results to pick it up before the next purchase.
+    local function sync_bucket(search, record)
+        record.auction_count = record.auction_count - 1
+        if record.auction_count <= 0 then
+            search.table:RemoveAuctionRecord(record)
+            return
+        end
+        record.syncing = true
+        search.table:SetDatabase()
+        local key, old_id = record.item_search_key, record.auction_id
+        aux.coro_thread(function()
+            local updated
+            local listener_id = aux.event_listener('ITEM_SEARCH_RESULTS_UPDATED', function(item_key)
+                if item_key and item_key.itemID == key.itemID then
+                    updated = true
+                end
+            end)
+            local t0 = GetTime()
+            while not updated and GetTime() - t0 < 1.5 do
+                -- the update may already have arrived before this started listening
+                local bucket = find_bucket(record)
+                if bucket and bucket.auctionID ~= old_id then
+                    updated = true
+                    break
+                end
+                aux.coro_wait()
+            end
+            if not updated then
+                -- the client no longer holds this item's results; ask for them again
+                scan.abort()
+                while not C_AuctionHouse.IsThrottledMessageSystemReady() do
+                    aux.coro_wait()
+                end
+                C_AuctionHouse.SendSearchQuery(key, {{sortOrder = Enum.AuctionHouseSortOrder.Price, reverseSort = false}}, true)
+                t0 = GetTime()
+                while not updated and GetTime() - t0 < 5 do
+                    aux.coro_wait()
+                end
+            end
+            aux.kill_listener(listener_id)
+            local bucket = find_bucket(record)
+            record.syncing = nil
+            if bucket and (bucket.auctionID ~= old_id or updated) then
+                record.auction_id = bucket.auctionID
+                record.auction_count = max(1, bucket.quantity or 1)
+                search.table:SetDatabase()
+            else
+                search.table:RemoveAuctionRecord(record)
+            end
+        end)
+    end
+
+    -- The tiers of a commodity the player can buy, cheapest first
+    local function commodity_tiers(search, item_id)
+        local tiers = {}
+        for _, record in ipairs(search.records) do
+            if record.commodity and record.item_id == item_id and not record.own then
+                tinsert(tiers, record)
+            end
+        end
+        sort(tiers, function(a, b) return a.commodity_unit_price < b.commodity_unit_price end)
+        return tiers
+    end
+
+    -- A purchase took the cheapest units first, so update the displayed tiers the same way
+    local function consume_commodity(search, item_id, quantity)
+        local remaining = quantity
+        for _, tier in ipairs(commodity_tiers(search, item_id)) do
             if remaining <= 0 then break end
             local taken = min(remaining, tier.count)
             remaining = remaining - taken
@@ -356,14 +433,41 @@ do
                 local index = aux.key(search.records, tier)
                 if index then tremove(search.records, index) end
             else
-                local unit_price = tier.unit_buyout_price
-                tier.count = tier.count - taken
-                tier.buyout_price = unit_price * tier.count
-                tier.bid_price, tier.start_price, tier.blizzard_bid = tier.buyout_price, tier.buyout_price, tier.buyout_price
-                info.signatures(tier)
+                info.set_commodity_count(tier, tier.count - taken)
             end
         end
         search.table:SetDatabase()
+    end
+
+    local function buy_commodity(search, record)
+        local tiers = commodity_tiers(search, record.item_id)
+        local max_quantity = 0
+        for _, tier in ipairs(tiers) do
+            if tier.commodity_unit_price <= record.commodity_unit_price then
+                max_quantity = max_quantity + tier.count
+            end
+        end
+        if max_quantity == 0 then return end
+        commodity_dialog.open{
+            item_id = record.item_id,
+            name = record.link or record.name,
+            unit_price = record.commodity_unit_price,
+            max_quantity = max_quantity,
+            quantity = min(record.count, max_quantity),
+            expected_total = function(n)
+                local total, remaining = 0, n
+                for _, tier in ipairs(tiers) do
+                    if remaining <= 0 then break end
+                    local taken = min(remaining, tier.count)
+                    total = total + taken * tier.commodity_unit_price
+                    remaining = remaining - taken
+                end
+                return total
+            end,
+            on_success = function(n)
+                consume_commodity(search, record.item_id, n)
+            end,
+        }
     end
 
     function find_auction(record)
@@ -375,22 +479,28 @@ do
         selected = record
 
         bid_button:SetScript('OnClick', function()
-            if search.table:ContainsRecord(record) then
-                aux.place_bid(record.auction_id, record.bid_price, record.bid_price < record.buyout_price and function()
-                    info.bid_update(record)
-                    search.table:SetDatabase()
-                end or function() search.table:RemoveAuctionRecord(record) end, failure(search, record))
+            if search.table:ContainsRecord(record) and not record.syncing then
+                aux.place_bid(record.auction_id, record.bid_price, function()
+                    if record.auction_count and record.auction_count > 1 then
+                        sync_bucket(search, record)
+                    elseif record.bid_price < record.buyout_price then
+                        info.bid_update(record)
+                        search.table:SetDatabase()
+                    else
+                        search.table:RemoveAuctionRecord(record)
+                    end
+                end, failure(search, record))
             end
         end)
 
         buyout_button:SetScript('OnClick', function()
-            if search.table:ContainsRecord(record) then
+            if search.table:ContainsRecord(record) and not record.syncing then
                 if record.commodity then
-                    aux.buy_commodity(record.item_id, record.count, record.buyout_price, function()
-                        consume_commodity(search, record)
-                    end, failure(search, record))
+                    buy_commodity(search, record)
                 else
-                    aux.place_bid(record.auction_id, record.buyout_price, function() search.table:RemoveAuctionRecord(record) end, failure(search, record))
+                    aux.place_bid(record.auction_id, record.buyout_price, function()
+                        sync_bucket(search, record)
+                    end, failure(search, record))
                 end
             end
         end)
@@ -402,14 +512,14 @@ do
             find_auction(selection.record)
         end
         local record = selection and selected == selection.record and selected
-        local busy = aux.bid_in_progress() or aux.commodity_purchase_in_progress()
+        local busy = not record or record.syncing or aux.bid_in_progress() or commodity_dialog.in_progress()
 
-        if record and not busy and not record.commodity and not record.high_bidder then
+        if not busy and not record.commodity and not record.high_bidder then
             bid_button:Enable()
         else
             bid_button:Disable()
         end
-        if record and not busy and record.buyout_price > 0 then
+        if not busy and record.buyout_price > 0 then
             buyout_button:Enable()
         else
             buyout_button:Disable()

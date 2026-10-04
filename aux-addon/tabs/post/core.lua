@@ -629,7 +629,7 @@ function M.record_auction(auction)
 	        entry =  { stack_size = auction.count, unit_price = auction.unit_blizzard_bid, duration = auction.duration, own = info.is_player(auction.owner), count = 0 }
 	        tinsert(bid_records[auction.item_key], entry)
 	    end
-	    entry.count = entry.count + 1
+	    entry.count = entry.count + (auction.auction_count or 1)
     end
     buyout_records[auction.item_key] = buyout_records[auction.item_key] or {}
     if auction.unit_buyout_price == 0 then return end
@@ -644,7 +644,7 @@ function M.record_auction(auction)
 		    entry = { stack_size = auction.count, unit_price = auction.unit_buyout_price, duration = auction.duration, own = info.is_player(auction.owner), count = 0 }
 		    tinsert(buyout_records[auction.item_key], entry)
 	    end
-	    entry.count = entry.count + 1
+	    entry.count = entry.count + (auction.auction_count or 1)
     end
 end
 

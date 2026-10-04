@@ -14,12 +14,20 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
 - [ ] Press Escape with the auction house open. It closes.
 
 ## 3. Search tab
-- [ ] Search for something common by name, e.g. `linen cloth`. Results fill in and the status bar moves.
+- [ ] Search for something by name, e.g. `bag`. Results fill in and the status bar moves.
+- [ ] Prices now make sense per item: a Linen Bag row shows Stack Size 1, the price of one bag,
+      and the number of bags available in "Auctions". "% Hist. Value" looks reasonable.
 - [ ] Search with a filter, e.g. `armor/cloth/45/50/uncommon`.
 - [ ] Exact search: right-click an item in the results. It searches that exact item.
-- [ ] Select a gear row (not a trade good). The Bid and Buyout buttons light up. Buy something cheap.
-- [ ] Select a trade good row (cloth, herbs, ore). Only Buyout lights up. Buy the cheapest row.
-      The quantity shown should land in your mailbox and the gold should match.
+- [ ] Shift-click an item in your bags while the Search tab is open. aux searches for it.
+      Alt-click does the same. With the chat box open, Shift-click still links into chat.
+- [ ] Gear or bags: select a cheap row and click Buyout. **One** item is bought, the
+      "Auctions" count drops by one, and clicking Buyout again buys the next one.
+- [ ] Trade goods (cloth, herbs, ore): select a row and click Buyout. A small window asks how
+      many. Type a small number and press Buy (or Enter). It shows the exact price. Nothing is
+      bought until you press Confirm (or Enter again). Cancel or Escape stops it.
+- [ ] In that window, try a quantity above the maximum: Buy stays disabled.
+- [ ] Check your mailbox: you got exactly the quantity you confirmed, for the price shown.
 - [ ] Stop a long search with the stop button, then resume it.
 - [ ] Toggle real time mode (the button left of the search box) and run a search. It repeats.
 
@@ -30,6 +38,7 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
 
 ## 5. Post tab
 - [ ] Your auctionable bag items are listed on the left.
+- [ ] Shift-click an item in your bags while the Post tab is open. aux selects it.
 - [ ] Pick a trade good. Only the buyout price box shows. Existing auctions load on the right.
 - [ ] Post a small amount. It appears on the auction house.
 - [ ] Pick a piece of gear. Starting price and buyout both show. Post it.

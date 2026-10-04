@@ -1,7 +1,6 @@
 select(2, ...) 'aux'
 
 local post = require 'aux.tabs.post'
-local money = require 'aux.util.money'
 
 function M.print(...)
 	DEFAULT_CHAT_FRAME:AddMessage(LIGHTYELLOW_FONT_COLOR_CODE .. '<aux> ' .. join(map({...}, tostring), ' '))
@@ -192,79 +191,6 @@ do
 			end
 		end)
 	end
-end
-
-do
-	local pending
-
-	function M.commodity_purchase_in_progress()
-		return pending
-	end
-
-	-- Forever: commodities (stackable trade goods etc.) are bought by quantity, always from the
-	-- cheapest listings first. The purchase is confirmed only if the server quote does not exceed
-	-- max_total, so a stale listing can never make us pay more than what was shown.
-	-- Must be called from a click handler (hardware event).
-	function M.buy_commodity(item_id, quantity, max_total, on_success, on_failure)
-		if pending then
-			return
-		end
-		if GetMoney() < max_total then
-			UIErrorsFrame:AddExternalErrorMessage(ERR_NOT_ENOUGH_MONEY)
-			return
-		end
-		pending = true
-		local result, confirmed
-		local listeners
-		listeners = {
-			event_listener('COMMODITY_PRICE_UPDATED', function(_, total)
-				if confirmed then return end
-				if total <= max_total then
-					confirmed = true
-					C_AuctionHouse.ConfirmCommoditiesPurchase(item_id, quantity)
-				else
-					C_AuctionHouse.CancelCommoditiesPurchase()
-					print('price changed: buying ' .. quantity .. ' would now cost ' .. money.to_string(total, true) .. ', cancelled.')
-					result = 'price'
-				end
-			end),
-			event_listener('COMMODITY_PRICE_UNAVAILABLE', function()
-				result = 'unavailable'
-			end),
-			event_listener('COMMODITY_PURCHASE_SUCCEEDED', function()
-				result = true
-			end),
-			event_listener('COMMODITY_PURCHASE_FAILED', function()
-				result = 'failed'
-			end),
-			event_listener('AUCTION_HOUSE_SHOW_ERROR', function(error)
-				result = result or error
-			end),
-		}
-		C_AuctionHouse.StartCommoditiesPurchase(item_id, quantity)
-		coro_thread(function()
-			local t0 = GetTime()
-			while result == nil and GetTime() - t0 < 10 do
-				coro_wait()
-			end
-			for _, listener_id in ipairs(listeners) do
-				kill_listener(listener_id)
-			end
-			if result == nil and not confirmed then
-				C_AuctionHouse.CancelCommoditiesPurchase()
-			end
-			pending = false
-			if result == true then
-				do (on_success or pass)() end
-			else
-				do (on_failure or pass)(result) end
-			end
-		end)
-	end
-end
-
-function event.PLAYER_LOGIN()
-	frame:SetScale(account_data.scale)
 end
 
 -- Forever: Blizzard's AuctionHouseFrame must stay "shown" while the auction house is open,

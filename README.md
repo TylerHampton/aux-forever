@@ -26,18 +26,22 @@ The look, the tabs, the search filter language, saved searches and price history
    its "Open Folder" option. Otherwise, in the Battle.net app use the gear next to Play, then
    "Show in Explorer", open the Forever game folder (its name starts and ends with an underscore)
    and then `Interface\AddOns`.
+   On a default install that is
+   `C:\Program Files (x86)\World of Warcraft\_classic_beta_\Interface\AddOns`.
 3. Copy the `aux-addon` folder into that `AddOns` folder. The folder name must stay `aux-addon`.
 4. Start the game, make sure "aux" is enabled in the AddOns list, and keep BugSack enabled.
 
 ## Status
 
-First version, not yet tested in game. See `TESTING.md` for what to check.
+In testing. Searching works in game. See `TESTING.md` for what to check and
+`docs/forever-auction-house.md` for how Forever's auction house works.
 
 Known gaps:
 
 - Crafting cost in the profession window is not shown (Forever uses a different profession UI).
-- When buying a commodity row, the purchase takes the cheapest units on the auction house. aux
-  only confirms if the total is not higher than the row you clicked.
+- Buying trade goods ("commodities") opens a small window: pick a quantity, see the exact price
+  from the server, then confirm. The game always sells the cheapest units first; aux never lets a
+  purchase cost more per unit than the row you picked.
 
 ## Layout
 

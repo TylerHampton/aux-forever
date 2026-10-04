@@ -716,16 +716,17 @@ local methods = {
             local prevRecord = records[i - 1]
             if prevRecord and record.search_signature == prevRecord.search_signature then
                 -- it's an identical auction to the previous row so increment the number of auctions
-                self.rowInfo[#self.rowInfo].children[#self.rowInfo[#self.rowInfo].children].count = self.rowInfo[#self.rowInfo].children[#self.rowInfo[#self.rowInfo].children].count + 1
+                -- Forever: one record can stand for a bucket of identical auctions (auction_count)
+                self.rowInfo[#self.rowInfo].children[#self.rowInfo[#self.rowInfo].children].count = self.rowInfo[#self.rowInfo].children[#self.rowInfo[#self.rowInfo].children].count + (record.auction_count or 1)
             elseif not self.rowInfo.single_item and prevRecord and record.item_key == prevRecord.item_key then
                 -- it's the same base item as the previous row so insert a new auction
-                tinsert(self.rowInfo[#self.rowInfo].children, { count = 1, record = record })
+                tinsert(self.rowInfo[#self.rowInfo].children, { count = record.auction_count or 1, record = record })
                 if self.expanded[self.rowInfo[#self.rowInfo].expandKey] then
                     self.rowInfo.numDisplayRows = self.rowInfo.numDisplayRows + 1
                 end
             else
                 -- it's a different base item from the previous row
-                tinsert(self.rowInfo, { item_key = record.item_key, expandKey = record.item_key, children = {{ count = 1, record = record }} })
+                tinsert(self.rowInfo, { item_key = record.item_key, expandKey = record.item_key, children = {{ count = record.auction_count or 1, record = record }} })
                 self.rowInfo.numDisplayRows = self.rowInfo.numDisplayRows + 1
             end
         end
