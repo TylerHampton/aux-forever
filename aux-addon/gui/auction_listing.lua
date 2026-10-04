@@ -8,7 +8,9 @@ local history = require 'aux.core.history'
 local gui = require 'aux.gui'
 local tooltip = require 'aux.core.tooltip'
 
-price_per_unit, percentage_for_bid = false, false
+-- Forever: prices default to per item. Item rows are single items anyway, and a commodity row's
+-- "stack" is everything listed at that price, so its total is rarely what you want to compare.
+price_per_unit, percentage_for_bid = true, false
 
 local HEAD_HEIGHT = 27
 local HEAD_SPACE = 2
@@ -167,6 +169,11 @@ M.search_columns = {
         align = 'RIGHT',
         toggle = 'price_per_unit',
         fill = function(cell, record)
+            -- Forever: commodities cannot be bid on
+            if record.commodity then
+                cell.text:SetText('---')
+                return
+            end
             local price_color
             if record.high_bidder then
 	            price_color = aux.color.green

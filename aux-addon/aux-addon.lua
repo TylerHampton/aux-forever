@@ -97,6 +97,12 @@ function event.AUX_LOADED()
             history = {},
             post = {},
         })
+        -- Forever: the first test version recorded item prices divided by the number of auctions
+        -- in a search row, which made recorded values far too low. Start the price history over.
+        if M.faction_data.history_version ~= 2 then
+            M.faction_data.history = {}
+            M.faction_data.history_version = 2
+        end
     end
 end
 
