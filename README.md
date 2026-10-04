@@ -1,6 +1,9 @@
-# aux-forever
+# auxForever
 
-A port of [aux](https://github.com/shirsig/aux-addon) by shirsig to World of Warcraft: Forever.
+aux by shirsig, rebuilt for WoW Forever by Tyler.
+
+auxForever brings [aux](https://github.com/shirsig/aux-addon), the auction house addon by shirsig,
+to World of Warcraft: Forever.
 
 ## Credit
 
@@ -43,8 +46,9 @@ The look, the tabs, the search filter language, saved searches and price history
    and then `Interface\AddOns`.
    On a default install that is
    `C:\Program Files (x86)\World of Warcraft\_classic_beta_\Interface\AddOns`.
-3. Copy the `aux-addon` folder into that `AddOns` folder. The folder name must stay `aux-addon`.
-4. Start the game, make sure "aux" is enabled in the AddOns list, and keep BugSack enabled.
+3. Copy the `auxForever` folder into that `AddOns` folder. The folder name must stay `auxForever`.
+   If an older test copy named `aux-addon` is there, delete it so the two don't load together.
+4. Start the game, make sure "auxForever" is enabled in the AddOns list, and keep BugSack enabled.
 
 ## Status
 
@@ -62,7 +66,7 @@ Known gaps:
 
 ## Layout
 
-- `aux-addon/` is the addon. The first commit in this repository is the unmodified upstream code,
+- `auxForever/` is the addon (named `aux-addon` in the early commits). The first commit in this repository is the unmodified upstream code,
   so `git diff` against it shows every change made for Forever.
-- `aux-addon/compat.lua` maps old Classic function names to their Forever replacements.
-- `aux-addon/core/scan.lua` is the rewritten scan engine.
+- `auxForever/compat.lua` maps old Classic function names to their Forever replacements.
+- `auxForever/core/scan.lua` is the rewritten scan engine.

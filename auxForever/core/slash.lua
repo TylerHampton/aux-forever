@@ -10,6 +10,7 @@ function status(enabled)
 end
 
 _G.SLASH_AUX1 = '/aux'
+_G.SLASH_AUX2 = '/auxforever'
 function SlashCmdList.AUX(command)
 	if not command then return end
 	local arguments = aux.tokenize(command)

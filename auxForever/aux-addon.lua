@@ -3,7 +3,7 @@ select(2, ...) 'aux'
 local post = require 'aux.tabs.post'
 
 function M.print(...)
-	DEFAULT_CHAT_FRAME:AddMessage(LIGHTYELLOW_FONT_COLOR_CODE .. '<aux> ' .. join(map({...}, tostring), ' '))
+	DEFAULT_CHAT_FRAME:AddMessage(LIGHTYELLOW_FONT_COLOR_CODE .. '<auxForever> ' .. join(map({...}, tostring), ' '))
 end
 
 local event_frame = CreateFrame'Frame'
@@ -27,7 +27,7 @@ do
     end
 	event_frame:SetScript('OnEvent', function(_, event, arg1, ...)
 		if event == 'ADDON_LOADED' then
-            if arg1 == 'aux-addon' then
+            if arg1 == 'auxForever' then
                 for _, f in ipairs(handlers) do f(arg1, ...) end
             elseif arg1 == 'Blizzard_AuctionHouseUI' then
                 for _, f in ipairs(handlers3) do f(arg1, ...) end
@@ -35,7 +35,7 @@ do
 		elseif event == 'PLAYER_LOGIN' then
 			for _, f in ipairs(handlers2) do f(arg1, ...) end
             sort(account_data.auctionable_items, function(a, b) return strlen(a) < strlen(b) or (strlen(a) == strlen(b) and a < b) end)
-            print('loaded - /aux')
+            print('loaded. aux by shirsig, rebuilt for WoW Forever by Tyler. /aux for help')
 		else
 			_M[event](arg1, ...)
 		end

@@ -1,4 +1,4 @@
--- Run from the aux-addon folder: lua5.1 ../tests/load_test.lua
+-- Run from the auxForever folder: lua5.1 ../tests/load_test.lua
 -- Load test: stub the WoW API, load every file in TOC order, then fire the startup events
 -- (ADDON_LOADED, PLAYER_LOGIN), open the auction house, run OnUpdate scripts a few times and
 -- walk through a commodity purchase.
@@ -59,10 +59,10 @@ local function try(label, f, ...)
   if not ok then errors = errors + 1; print('ERROR', label, err) end
 end
 local addon = {}
-for line in io.lines('aux-addon.toc') do
+for line in io.lines('auxForever.toc') do
   if not line:match('^##') and line:match('%S') then
     local file = line:gsub('\\','/'):gsub('%s+$','')
-    try('load ' .. file, assert(loadfile(file)), 'aux-addon', addon)
+    try('load ' .. file, assert(loadfile(file)), 'auxForever', addon)
   end
 end
 local function fire(event, ...)
@@ -70,7 +70,7 @@ local function fire(event, ...)
     if f.__events[event] and f.__scripts.OnEvent then try(event, f.__scripts.OnEvent, f, event, ...) end
   end
 end
-fire('ADDON_LOADED', 'aux-addon')
+fire('ADDON_LOADED', 'auxForever')
 fire('PLAYER_LOGIN')
 fire('ADDON_LOADED', 'Blizzard_AuctionHouseUI')
 fire('AUCTION_HOUSE_SHOW')
@@ -96,7 +96,7 @@ local function same(a, b)
   return true
 end
 try('buy bar', function()
-  local require = loadstring("select(2, ...) 'aux.test'; return require")('aux-addon', addon)
+  local require = loadstring("select(2, ...) 'aux.test'; return require")('auxForever', addon)
   local bar = require 'aux.gui.buy_bar'
 
   -- quantity buttons follow the stack size, the full stack being the largest
@@ -167,7 +167,7 @@ end)
 
 -- Listings sized by anchors have no size until the first layout pass (Post tab price lists).
 try('listing before layout', function()
-  local require = loadstring("select(2, ...) 'aux.test2'; return require")('aux-addon', addon)
+  local require = loadstring("select(2, ...) 'aux.test2'; return require")('auxForever', addon)
   local listing = require 'aux.gui.listing'
   G.__geometry = {size = 0, edge = nil}
   local st = listing.new(new_frame())
@@ -182,7 +182,7 @@ end)
 
 -- Resizable window: lists show as many rows as fit and keep up when the window changes size.
 try('lists follow the window size', function()
-  local require = loadstring("select(2, ...) 'aux.test3'; return require")('aux-addon', addon)
+  local require = loadstring("select(2, ...) 'aux.test3'; return require")('auxForever', addon)
   local auction_listing = require 'aux.gui.auction_listing'
   local item_listing = require 'aux.gui.item_listing'
   G.__geometry = {size = 0, edge = nil}

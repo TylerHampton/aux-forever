@@ -770,7 +770,7 @@ local methods = {
 
         for _, cell in pairs(self.headCells) do
             local tex = cell:GetNormalTexture()
-            tex:SetTexture[[Interface\AddOns\aux-AddOn\WorldStateFinalScore-Highlight]]
+            tex:SetTexture[[Interface\AddOns\auxForever\WorldStateFinalScore-Highlight]]
             tex:SetTexCoord(.017, 1, .083, .909)
             tex:SetAlpha(.5)
         end
@@ -1117,7 +1117,7 @@ function M.new(parent, row_height, columns)
 
         local tex = cell:CreateTexture()
         tex:SetAllPoints()
-        tex:SetTexture([[Interface\AddOns\aux-AddOn\WorldStateFinalScore-Highlight]])
+        tex:SetTexture([[Interface\AddOns\auxForever\WorldStateFinalScore-Highlight]])
         tex:SetTexCoord(.017, 1, .083, .909)
         tex:SetAlpha(.5)
         cell:SetNormalTexture(tex)

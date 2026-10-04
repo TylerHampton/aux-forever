@@ -1,8 +1,8 @@
 ## Interface: 16001
 ## Author: shirsig
-## Title: aux
+## Title: auxForever
 ## Version: forever-0.1.0
-## Notes: Auction House replacement (WoW Forever port)
+## Notes: aux by shirsig, rebuilt for WoW Forever by Tyler
 ## SavedVariables: aux
 
 libs\package.lua

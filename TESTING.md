@@ -4,8 +4,10 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
 (BugSack lets you select it) and send it over. One error at a time is fine.
 
 ## 1. Loading
-- [ ] Log in. Chat shows `<aux> loaded - /aux`.
-- [ ] Type `/aux`. A list of settings prints in chat.
+- [ ] Log in. Chat shows `<auxForever> loaded. aux by shirsig, rebuilt for WoW Forever by Tyler. /aux for help`.
+- [ ] The AddOns list shows "auxForever" by shirsig. Hovering it shows the credit line.
+- [ ] Type `/aux`, then `/auxforever`. Both print the list of settings in chat.
+- [ ] The bottom of the window shows "aux by shirsig · Forever edition by Tyler" next to Scan.
 
 ## 2. Opening the auction house
 - [ ] Talk to an auctioneer. The aux window opens and the Blizzard window does not appear.
