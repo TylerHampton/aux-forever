@@ -216,6 +216,7 @@ function M.item_search_record(result)
     record.high_bidder = result.bidder and result.bidder == player_guid() or nil
     record.own = owned_row(result)
     record.owner = seller(result, record.own)
+    record.seller_count = result.totalNumberOfOwners or #result.owners
     record.duration = result.timeLeftSeconds and duration_from_seconds(result.timeLeftSeconds) or duration_from_band(result.timeLeft)
     record.sale_status = 0
     signatures(record)
@@ -238,6 +239,7 @@ function M.commodity_record(result)
     record.own = own
     record.own_count = result.numOwnerItems
     record.owner = seller(result, own)
+    record.seller_count = result.totalNumberOfOwners or #result.owners
     record.duration = duration_from_seconds(result.timeLeftSeconds)
     record.sale_status = 0
     signatures(record)

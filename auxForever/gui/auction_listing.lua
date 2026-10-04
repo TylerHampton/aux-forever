@@ -23,6 +23,18 @@ local TIME_LEFT_STRINGS = {
     aux.color.blue(info.time_left_label(4)), -- Very Long
 }
 
+-- auxForever: Forever names the seller only when one player sells at a row's price
+function M.seller_text(record)
+    if info.is_player(record.owner) then
+        return aux.color.yellow(record.owner)
+    elseif record.owner then
+        return record.owner
+    elseif (record.seller_count or 0) > 1 then
+        return aux.color.label.enabled(record.seller_count .. ' sellers')
+    end
+    return '?'
+end
+
 function item_column_init(rt, cell)
     local spacer = CreateFrame('Frame', nil, cell)
     spacer:SetPoint('TOPLEFT', 0, 0)
@@ -149,7 +161,7 @@ M.search_columns = {
         width = .13,
         align = 'CENTER',
         fill = function(cell, record)
-            cell.text:SetText(info.is_player(record.owner) and (aux.color.yellow(record.owner)) or (record.owner or '?'))
+            cell.text:SetText(seller_text(record))
         end,
         cmp = function(record_a, record_b, desc)
             if not record_a.owner and not record_b.owner then
@@ -504,7 +516,7 @@ M.bids_columns = {
         width = .13,
         align = 'CENTER',
         fill = function(cell, record)
-            cell.text:SetText(info.is_player(record.owner) and (aux.color.yellow(record.owner)) or (record.owner or '?'))
+            cell.text:SetText(seller_text(record))
         end,
         cmp = function(record_a, record_b, desc)
             if not record_a.owner and not record_b.owner then
@@ -770,17 +782,15 @@ local methods = {
 
         for _, cell in pairs(self.headCells) do
             local tex = cell:GetNormalTexture()
-            tex:SetTexture[[Interface\AddOns\auxForever\WorldStateFinalScore-Highlight]]
-            tex:SetTexCoord(.017, 1, .083, .909)
-            tex:SetAlpha(.5)
+            tex:SetColorTexture(aux.color.header.background())
         end
 
         if #self.sorts > 0 then
             local last_sort = self.sorts[1]
             if last_sort.descending then
-                self.headCells[last_sort.index]:GetNormalTexture():SetColorTexture(.8, .6, 1, .8)
+                self.headCells[last_sort.index]:GetNormalTexture():SetColorTexture(.89, .64, .23, .3)
             else
-                self.headCells[last_sort.index]:GetNormalTexture():SetColorTexture(.6, .8, 1, .8)
+                self.headCells[last_sort.index]:GetNormalTexture():SetColorTexture(.42, .6, .85, .3)
             end
         end
 
@@ -974,7 +984,7 @@ local function create_row(rt, i)
     row:SetPoint('TOPRIGHT', 0, -(HEAD_HEIGHT + HEAD_SPACE + (i - 1) * rt.ROW_HEIGHT))
     local highlight = row:CreateTexture()
     highlight:SetAllPoints()
-    highlight:SetColorTexture(1, .9, 0, .5)
+    highlight:SetColorTexture(aux.color.selected())
     highlight:Hide()
     row.highlight = highlight
 
@@ -1001,7 +1011,7 @@ local function create_row(rt, i)
         if mod(j, 2) == 1 then
             local tex = cell:CreateTexture()
             tex:SetAllPoints()
-            tex:SetColorTexture(.3, .3, .3, .2)
+            tex:SetColorTexture(1, 1, 1, .025)
         end
 
         if column.init then
@@ -1014,7 +1024,7 @@ local function create_row(rt, i)
     if mod(i, 2) == 0 then
         local tex = row:CreateTexture()
         tex:SetAllPoints()
-        tex:SetColorTexture(.3, .3, .3, .3)
+        tex:SetColorTexture(1, 1, 1, .035)
     end
 
     row:Hide()
@@ -1085,7 +1095,7 @@ function M.new(parent, row_height, columns)
     scrollBar:SetWidth(10)
     local thumbTex = scrollBar:GetThumbTexture()
     thumbTex:SetPoint('CENTER', 0, 0)
-    thumbTex:SetColorTexture(aux.color.content.background())
+    thumbTex:SetColorTexture(aux.color.content.border())
     thumbTex:SetHeight(150)
     thumbTex:SetWidth(scrollBar:GetWidth())
     _G[scrollBar:GetName() .. 'ScrollUpButton']:Hide()
@@ -1117,9 +1127,7 @@ function M.new(parent, row_height, columns)
 
         local tex = cell:CreateTexture()
         tex:SetAllPoints()
-        tex:SetTexture([[Interface\AddOns\auxForever\WorldStateFinalScore-Highlight]])
-        tex:SetTexCoord(.017, 1, .083, .909)
-        tex:SetAlpha(.5)
+        tex:SetColorTexture(aux.color.header.background())
         cell:SetNormalTexture(tex)
 
         local tex = cell:CreateTexture()

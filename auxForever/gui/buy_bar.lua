@@ -360,7 +360,7 @@ local function show_common(params)
     local color = ITEM_QUALITY_COLORS[params.quality or 1] or ITEM_QUALITY_COLORS[1]
     name_label:SetText(params.name or '')
     name_label:SetTextColor(color.r, color.g, color.b)
-    for _, widget in ipairs{icon, name_label, sub_label, line1, line2, primary_button} do
+    for _, widget in ipairs{icon:GetParent(), icon, name_label, sub_label, line1, line2, primary_button} do
         widget:Show()
     end
 end
@@ -413,11 +413,16 @@ function M.clear()
     mode = NONE
     current = nil
     for _, chip in ipairs(chips) do chip:Hide() end
-    for _, widget in ipairs{icon, name_label, sub_label, other_input, cancel_button, bid_button, primary_button, line2} do
+    for _, widget in ipairs{icon:GetParent(), icon, name_label, sub_label, other_input, cancel_button, bid_button, primary_button} do
         widget:Hide()
     end
+    -- auxForever: with nothing selected the bar explains itself instead of showing an empty icon
+    anchor_lines(icon:GetParent(), -38)
     line1:Show()
-    line1:SetText('Select an auction to buy it')
+    line1:SetText('Select a row to buy it')
+    line2:Show()
+    line2:SetTextColor(aux.color.label.enabled())
+    line2:SetText('Gear is bought one at a time. Trade goods are bought cheapest first, in the amount you pick.')
 end
 
 function M.busy()

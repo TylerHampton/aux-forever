@@ -72,6 +72,16 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
 - [ ] Move and resize the window, `/reload`, open the auction house. Same size and place.
 - [ ] Double-click the corner grip. The window goes back to the default size.
 
+## 9. New look
+- [ ] A bar across the top shows "auxForever", the Search / Post / Auctions / Bids tabs, Full scan,
+      Blizzard UI and an × that closes the window. The old tabs under the window are gone.
+- [ ] Panels and buttons have rounded corners, and nothing looks cut off or square-cornered.
+- [ ] Text uses the new font everywhere (narrow, clean). Nothing overflows its button.
+- [ ] Search is an amber button. Selected rows are tinted amber.
+- [ ] With nothing selected, the buy bar shows a short explanation instead of an empty box.
+- [ ] Trade goods with several sellers at one price say "N sellers" instead of "?".
+- [ ] All four tabs, Saved Searches and Filter Builder look right, also at a large window size.
+
 ## Things to note even without errors
 - Anything that looks different from how aux worked on Classic.
 - Anything slow (searches will be slower than Classic for broad searches, that is expected).

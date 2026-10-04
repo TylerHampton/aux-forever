@@ -225,5 +225,22 @@ try('lists follow the window size', function()
   G.__geometry = nil
 end)
 
+-- Visual refresh: rounded styling keeps the old backdrop color calls working; seller column text
+try('restyle', function()
+  local require = loadstring("select(2, ...) 'aux.test4'; return require")('auxForever', addon)
+  local gui = require 'aux.gui'
+  local auction_listing = require 'aux.gui.auction_listing'
+  local colored = {}
+  local button = gui.button(new_frame())
+  check('button has a rounded fill', button.aux_fill and #button.aux_fill.pieces == 7)
+  check('button has a rounded outline', button.aux_border and #button.aux_border.pieces == 8)
+  for _, t in ipairs(button.aux_fill.pieces) do rawset(t, 'SetVertexColor', function(_, r) colored[#colored + 1] = r end) end
+  button:SetBackdropColor(.5, .5, .5, 1)
+  check('SetBackdropColor recolors every fill piece', #colored == 7 and colored[1] == .5)
+  check('named seller shown', auction_listing.seller_text{owner = 'Violet Toes'} == 'Violet Toes')
+  check('several sellers counted', auction_listing.seller_text{seller_count = 12}:find('12 sellers') ~= nil)
+  check('unknown seller', auction_listing.seller_text{seller_count = 1} == '?')
+end)
+
 fire('AUCTION_HOUSE_CLOSED')
 print('done, errors: ' .. errors)

@@ -9,7 +9,7 @@ local item_listing = require 'aux.gui.item_listing'
 local search_tab = require 'aux.tabs.search'
 
 frame = CreateFrame('Frame', nil, aux.frame)
-frame:SetAllPoints()
+frame:SetAllPoints(aux.frame.body)
 frame:SetScript('OnUpdate', on_update)
 frame:Hide()
 

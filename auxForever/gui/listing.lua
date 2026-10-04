@@ -200,9 +200,7 @@ local methods = {
 
 	    local tex = col:CreateTexture()
 	    tex:SetAllPoints()
-	    tex:SetTexture([[Interface\AddOns\auxForever\WorldStateFinalScore-Highlight]])
-	    tex:SetTexCoord(.017, 1, .083, .909)
-	    tex:SetAlpha(.5)
+	    tex:SetColorTexture(aux.color.header.background())
 
         tinsert(self.headCols, col)
         
@@ -251,7 +249,7 @@ local methods = {
         end
         local highlight = row:CreateTexture()
         highlight:SetAllPoints()
-        highlight:SetColorTexture(1, .9, 0, .4)
+        highlight:SetColorTexture(aux.color.selected())
         highlight:Hide()
         row.highlight = highlight
         row.st = self
@@ -306,7 +304,7 @@ function M.new(parent)
     scroll_bar:SetWidth(10)
     local thumbTex = scroll_bar:GetThumbTexture()
     thumbTex:SetPoint('CENTER', 0, 0)
-    thumbTex:SetColorTexture(aux.color.content.background())
+    thumbTex:SetColorTexture(aux.color.content.border())
     thumbTex:SetHeight(150)
     thumbTex:SetWidth(scroll_bar:GetWidth())
     _G[scroll_bar:GetName() .. 'ScrollUpButton']:Hide()

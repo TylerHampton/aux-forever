@@ -14,8 +14,10 @@ end
 
 -- Forever: the window can be resized from its bottom right corner (double-click the corner for the
 -- default size), and it remembers its size and position.
-local DEFAULT_WIDTH, DEFAULT_HEIGHT = 1100, 620
-local MIN_WIDTH, MIN_HEIGHT = 1000, 509
+local DEFAULT_WIDTH, DEFAULT_HEIGHT = 1100, 660
+local MIN_WIDTH, MIN_HEIGHT = 1000, 549
+-- auxForever: the logo, tabs, full scan, Blizzard UI and close sit in a bar across the top
+local TOP_BAR_HEIGHT = 40
 
 local function max_size()
 	local scale = frame:GetEffectiveScale() / UIParent:GetEffectiveScale()
@@ -56,7 +58,7 @@ do
 	tinsert(UISpecialFrames, 'aux_frame')
 	gui.set_window_style(frame)
 	-- Forever: wider, and resizable (see restore_window)
-	gui.set_size(frame, 1100, 620)
+	gui.set_size(frame, DEFAULT_WIDTH, DEFAULT_HEIGHT)
 	frame:SetPoint('LEFT', 100, 0)
 	frame:SetToplevel(true)
 	frame:SetMovable(true)
@@ -73,9 +75,18 @@ do
 --	frame:CreateTitleRegion():SetAllPoints() TODO classic why
 	frame:SetScript('OnShow', function() PlaySound(SOUNDKIT.AUCTION_WINDOW_OPEN) end)
 	frame:SetScript('OnHide', function() PlaySound(SOUNDKIT.AUCTION_WINDOW_CLOSE); C_AuctionHouse.CloseAuctionHouse() end)
+	-- everything under the top bar; each tab's frame fills it
+	frame.body = CreateFrame('Frame', nil, frame)
+	frame.body:SetPoint('TOPLEFT', 0, -TOP_BAR_HEIGHT)
+	frame.body:SetPoint('BOTTOMRIGHT', 0, 0)
 	frame.content = CreateFrame('Frame', nil, frame)
-	frame.content:SetPoint('TOPLEFT', 4, -80)
+	frame.content:SetPoint('TOPLEFT', frame.body, 'TOPLEFT', 4, -80)
 	frame.content:SetPoint('BOTTOMRIGHT', -4, 35)
+	local divider = frame:CreateTexture(nil, 'BORDER')
+	divider:SetColorTexture(color.panel.border())
+	divider:SetHeight(1)
+	divider:SetPoint('TOPLEFT', 2, -TOP_BAR_HEIGHT)
+	divider:SetPoint('TOPRIGHT', -2, -TOP_BAR_HEIGHT)
 	frame:Hide()
 	M.frame = frame
 end
@@ -88,7 +99,14 @@ do
     M.status_bar = status_bar
 end
 do
-	tabs = gui.tabs(frame, 'DOWN')
+	local logo = gui.label(frame, 20)
+	logo:SetFont(gui.font_bold, 20)
+	logo:SetPoint('LEFT', frame, 'TOPLEFT', 14, -TOP_BAR_HEIGHT / 2)
+	logo:SetText(color.accent.background'aux' .. color.text.enabled'Forever')
+	logo_label = logo
+end
+do
+	tabs = gui.tabs(frame, 'BAR', logo_label)
 	tabs._on_select = on_tab_click
 	function M.set_tab(id) tabs:select(id) end
 end
@@ -123,17 +141,26 @@ do
 	resize_grip = grip
 end
 do
-	local btn = gui.button(frame)
-	btn:SetPoint('BOTTOMRIGHT', -22, 5)
-	gui.set_size(btn, 60, 24)
-	btn:SetText('Close')
+	local btn = gui.button(frame, 22)
+	btn:SetPoint('RIGHT', frame, 'TOPRIGHT', -8, -TOP_BAR_HEIGHT / 2)
+	gui.set_size(btn, 28, 26)
+	btn:SetText('\195\151')
+	btn:SetBackdropColor(0, 0, 0, 0)
+	btn:SetBackdropBorderColor(0, 0, 0, 0)
+	btn:GetFontString():SetTextColor(color.label.enabled())
 	btn:SetScript('OnClick', function() frame:Hide() end)
+	btn:SetScript('OnEnter', function(self)
+		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOM')
+		GameTooltip:AddLine('Close')
+		GameTooltip:Show()
+	end)
+	btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
 	close_button = btn
 end
 do
 	local btn = gui.button(frame, gui.font_size.small)
-	btn:SetPoint('RIGHT', close_button, 'LEFT' , -5, 0)
-	gui.set_size(btn, 60, 24)
+	btn:SetPoint('RIGHT', close_button, 'LEFT' , -8, 0)
+	gui.set_size(btn, 80, 26)
 	btn:SetText(color.blizzard'Blizzard UI')
 	btn:SetScript('OnClick',function()
 		set_blizzard_frame_shown(not blizzard_frame_shown())
@@ -142,9 +169,9 @@ do
 end
 do
     local btn = gui.button(frame)
-    btn:SetPoint('RIGHT', blizzard_button, 'LEFT' , -5, 0)
-    gui.set_size(btn, 60, 24)
-    btn:SetText('Scan')
+    btn:SetPoint('RIGHT', blizzard_button, 'LEFT' , -6, 0)
+    gui.set_size(btn, 80, 26)
+    btn:SetText('Full scan')
     -- Forever: a full scan uses C_AuctionHouse.ReplicateItems, which the server allows once every 15 minutes
     local function seconds_until_scan()
         return max(0, account_data.replicate_time + scan.REPLICATE_COOLDOWN - time())
@@ -201,7 +228,7 @@ end
 do
     -- auxForever: credit to aux's creator, shown on every tab
     local label = gui.label(frame, gui.font_size.small)
-    label:SetPoint('RIGHT', scan_button, 'LEFT', -12, 0)
+    label:SetPoint('BOTTOMRIGHT', -24, 12)
     label:SetText('aux by shirsig, granted immortality by Tyler')
     label:SetTextColor(.55, .55, .55)
     credit_label = label

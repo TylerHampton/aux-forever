@@ -19,13 +19,18 @@ end
 
 M.color = immutable-{
 	none = setmetatable({}, {__metatable=false, __newindex=pass, __call=function(_, v) return v end, __concat=function(_, v) return v end}),
-	text = immutable-{enabled = C(255, 254, 250, 1), disabled = C(147, 151, 139, 1)},
-	label = immutable-{enabled = C(216, 225, 211, 1), disabled = C(150, 148, 140, 1)},
+	-- auxForever palette (see the redesign mockup): warm text on dark slate, amber accent
+	text = immutable-{enabled = C(243, 239, 230, 1), disabled = C(125, 122, 115, 1)},
+	label = immutable-{enabled = C(168, 164, 155, 1), disabled = C(110, 107, 100, 1)},
 	link = C(153, 255, 255, 1),
-	window = immutable-{background = C(24, 24, 24, .93), border = C(30, 30, 30, 1)},
-	panel = immutable-{background = C(24, 24, 24, 1), border = C(255, 255, 255, .03)},
-	content = immutable-{background = C(42, 42, 42, 1), border = C(0, 0, 0, 0)},
-	state = immutable-{enabled = C(70, 140, 70, 1), disabled = C(140, 70, 70, 1)},
+	window = immutable-{background = C(22, 24, 27, .97), border = C(43, 47, 53, 1)},
+	panel = immutable-{background = C(24, 26, 29, 1), border = C(38, 42, 47, 1)},
+	content = immutable-{background = C(29, 32, 36, 1), border = C(47, 52, 58, 1)},
+	input = immutable-{background = C(15, 17, 19, 1), border = C(58, 63, 70, 1)},
+	header = immutable-{background = C(29, 32, 36, 1), text = C(142, 138, 129, 1)},
+	state = immutable-{enabled = C(63, 174, 106, 1), disabled = C(122, 58, 52, 1)},
+	accent = immutable-{background = C(227, 164, 59, 1), text = C(26, 20, 8, 1), selected = C(58, 46, 21, 1)},
+	selected = C(227, 164, 59, .22),
 
 	tooltip = immutable-{
 		value = C(255, 255, 154, 1),

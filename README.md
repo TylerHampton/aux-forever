@@ -24,6 +24,9 @@ to him. For aux on Classic Era, see [shirsig/aux-addon](https://github.com/shirs
 The original aux code has no license file; it is used here with Simon's permission above. The
 MIT license in this repository covers only the changes made here, not aux itself.
 
+The bundled font, Barlow Semi Condensed (`auxForever/fonts/`), is by The Barlow Project Authors
+and is licensed under the SIL Open Font License 1.1 (`auxForever/fonts/OFL.txt`).
+
 ## Why a port is needed
 
 aux was written for Classic Era, which uses the old auction house (pages of 50 auctions, bought by

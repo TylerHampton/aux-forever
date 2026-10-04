@@ -13,7 +13,7 @@ local buy_bar = require 'aux.gui.buy_bar'
 FILTER_SPACING = 27
 
 frame = CreateFrame('Frame', nil, aux.frame)
-frame:SetAllPoints()
+frame:SetAllPoints(aux.frame.body)
 frame:SetScript('OnUpdate', on_update)
 frame:Hide()
 
@@ -78,6 +78,7 @@ do
     btn:SetHeight(25)
     btn:SetPoint('TOPRIGHT', -5, -8)
     btn:SetText('Search')
+    gui.set_primary(btn)
     btn:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
     btn:SetScript('OnClick', function(_, button)
         if button == 'RightButton' then
