@@ -15,11 +15,9 @@ Last updated at the end of the first session (2026-10-04).
 
 ## Open
 
-1. **Font.** Forever rejected `BarlowSemiCondensed-Medium.ttf` (`SetFont` returned false; the game
-   font loaded fine). The latest zip tries three candidates in order: Barlow, a basic rebuild of
-   Barlow (`BarlowBasic-*`, no hinting or layout tables), and PT Sans Narrow. At login, chat
-   prints which one was used, with a result per candidate. Ask Tyler for that line. If all fail,
-   Forever may block addon fonts entirely; then drop the bundled fonts.
+1. Done: Forever rejected all three bundled fonts (Barlow, a basic rebuild, PT Sans Narrow), so
+   they were removed and the game font is used. Cancel on the buy bar was fixed (it was hidden
+   and re-shown every frame, which drops clicks); needs checking in game.
 2. Done: the status bar is dim gray when idle (Tyler agreed). Gear is now priced in whole silver
    and undercut by 1 silver; needs checking in game (post a green item in undercut mode).
 3. Parts of the mockup not built yet: "Results N" count, the summary line next to the sub tabs

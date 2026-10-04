@@ -10,9 +10,8 @@ and give a ready-to-install zip after every change. Current status and open item
   `World of Warcraft\_classic_beta_\Interface\AddOns`.
 - Develop on the branch the session names (so far `claude/modest-volta-4mgmsb`, PR #1). Do not push
   to `main` or merge without being asked.
-- Tests: from `auxForever/`, run `lua5.1 ../tests/load_test.lua`, and again with
-  `AUX_TEST_FONT_FAIL=1`, `AUX_TEST_FONT_FAIL=BarlowSemiCondensed` and `AUX_TEST_FONT_FAIL=Barlow`.
-  All must end with `done, errors: 0`. Also `luac5.1 -p` every Lua file. Add a test for each bug
+- Tests: from `auxForever/`, run `lua5.1 ../tests/load_test.lua`. It must end with
+  `done, errors: 0`. Also `luac5.1 -p` every Lua file. Add a test for each bug
   fixed, and check it fails without the fix.
 - Zip for Tyler: `zip -qr <scratchpad>/auxForever.zip auxForever -x '*.git*'`, then send it.
 - New files (fonts, textures, Lua files) are only seen by the game after a full restart, not
@@ -31,6 +30,10 @@ and give a ready-to-install zip after every change. Current status and open item
   the frame, so old callers recolor the rounded shape.
 - Forever auction house facts are in `docs/forever-auction-house.md` (items vs commodities,
   buckets, the "player" owner string, throttles, the 15 minute full scan).
+- Forever does not load fonts from addons (it rejected three TTF files while its own loaded), so
+  the game font is used. Textures (`.tga`) from the addon folder do load.
+- The buy bar redraws every frame: never hide and re-show a button each frame, the game drops
+  clicks on it (this broke Cancel). Show or hide only when the state changes.
 - Buying must never spend more than the player saw: the buy bar confirms only quotes at or below
   the shown price. Keep that guarantee.
 

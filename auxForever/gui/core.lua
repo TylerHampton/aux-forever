@@ -3,73 +3,14 @@ select(2, ...) 'aux.gui'
 local aux = require 'aux'
 local completion = require 'aux.util.completion'
 
--- auxForever: bundled fonts (SIL Open Font License, see fonts/). Forever rejected the Barlow file
--- as downloaded, so several candidates are tried in order and the first the game accepts is used:
--- Barlow, Barlow rebuilt with only the basic TrueType tables, and PT Sans Narrow (bundled by other
--- addons, so known to load in WoW). If none loads (e.g. right after installing, before a full
--- restart), the game's own font is used.
-local FONT_DIR = [[Interface\AddOns\auxForever\fonts\]]
-local FONT_CANDIDATES = {
-    {name = 'Barlow', regular = 'BarlowSemiCondensed-Medium.ttf', bold = 'BarlowSemiCondensed-Bold.ttf'},
-    {name = 'Barlow basic', regular = 'BarlowBasic-Medium.ttf', bold = 'BarlowBasic-Bold.ttf'},
-    {name = 'PT Sans Narrow', regular = 'PTSansNarrow-Regular.ttf', bold = 'PTSansNarrow-Bold.ttf'},
-}
-
--- what SetFont answers and the height the text gets
-local function font_check(path)
-    local probe = CreateFrame'Frame':CreateFontString()
-    local ok = probe:SetFont(path, 12, '')
-    local _, height = probe:GetFont()
-    return ok, height
-end
-
-local function usable_font(path)
-    local ok, height = font_check(path)
-    return ok ~= false and height and height > 0 and path or nil
-end
-
-local game_font = (function()
+-- auxForever: Forever does not load fonts from addons (it rejected Barlow, a basic rebuild of it and
+-- PT Sans Narrow, while its own fonts load), so aux's original game font is used.
+M.font = (function()
     local font = CreateFrame'Frame':CreateFontString()
     font:SetFontObject(NumberFont_Normal_Med)
     return font:GetFont()
 end)()
-
--- (local variables: reading a value back through M gives nil)
-local regular_font, bold_font, font_name
-for _, candidate in ipairs(FONT_CANDIDATES) do
-    regular_font = usable_font(FONT_DIR .. candidate.regular)
-    if regular_font then
-        bold_font = usable_font(FONT_DIR .. candidate.bold)
-        font_name = candidate.name
-        break
-    end
-end
-M.font = regular_font or game_font
-M.font_bold = bold_font or regular_font or game_font
-M.bundled_font_loaded = regular_font ~= nil
-M.bundled_font_name = font_name
-
--- checked again at login: tells a file the game cannot read apart from one that loads late
-function M.bundled_font_available_now()
-    for _, candidate in ipairs(FONT_CANDIDATES) do
-        if usable_font(FONT_DIR .. candidate.regular) then return true end
-    end
-    return false
-end
-
--- one entry per candidate plus a game font, e.g. "Barlow false/0, Barlow basic true/12, game true/12"
-function M.font_diagnostics()
-    local parts = {}
-    local function add(name, path)
-        local ok, height = font_check(path)
-        tinsert(parts, name .. ' ' .. tostring(ok) .. '/' .. tostring(height and floor(height + .5)))
-    end
-    for _, candidate in ipairs(FONT_CANDIDATES) do
-        add(candidate.name, FONT_DIR .. candidate.regular)
-    end
-    add('game', [[Fonts\FRIZQT__.TTF]])
-    return table.concat(parts, ', ')
-end
+M.font_bold = font
 
 M.font_size = aux.immutable-{
     small = 13,

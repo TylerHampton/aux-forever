@@ -169,7 +169,9 @@ local function update_commodity()
     local custom = not aux.key(current.quantities, n)
     other_input:SetBackdropBorderColor((custom and ACCENT or {.23, .25, .27})[1], (custom and ACCENT or {.23, .25, .27})[2], (custom and ACCENT or {.23, .25, .27})[3], 1)
 
-    cancel_button:Hide()
+    -- the bar redraws every frame: a button hidden and shown again each frame drops any click
+    -- that started before the hide, so Cancel is only shown or hidden when that changes
+    if state == QUOTED then cancel_button:Show() else cancel_button:Hide() end
     bid_button:Hide()
     if state == IDLE then
         if message and GetTime() < message_until then
@@ -198,7 +200,6 @@ local function update_commodity()
         set_lines('Server price: ' .. money.to_string(current.quote_total, true) .. ' for ' .. current.quote_quantity, 'Nothing is bought until you confirm', aux.color.green)
         primary_button:SetText('Confirm ' .. plain_money(current.quote_total))
         style_button(primary_button, CONFIRM, CONFIRM_TEXT, current.quote_total <= GetMoney())
-        cancel_button:Show()
     elseif state == BUYING then
         set_lines('Buying...', 'Waiting for the auction house')
         primary_button:SetText('Buying...')

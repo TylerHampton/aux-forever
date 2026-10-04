@@ -1,6 +1,4 @@
 -- Run from the auxForever folder: lua5.1 ../tests/load_test.lua
--- and with fonts failing to load: AUX_TEST_FONT_FAIL=1 (all bundled fonts),
--- AUX_TEST_FONT_FAIL=BarlowSemiCondensed or AUX_TEST_FONT_FAIL=Barlow (some of them)
 -- Load test: stub the WoW API, load every file in TOC order, then fire the startup events
 -- (ADDON_LOADED, PLAYER_LOGIN), open the auction house, run OnUpdate scripts a few times and
 -- walk through a commodity purchase.
@@ -22,16 +20,12 @@ local function new_frame(name)
     if k == 'IsShown' or k == 'IsVisible' then return function(self) return self.__shown end end
     if k == 'SetText' then return function(self, x) self.__text = x end end
     if k == 'GetText' then return function(self) return self.__text end end
-    -- like the game: SetFont needs a font file and a height above 0. With AUX_TEST_FONT_FAIL set,
-    -- the bundled font cannot be loaded (as after a /reload right after installing)
+    -- like the game: SetFont needs a font file and a height above 0
     if k == 'SetFont' then return function(self, a, b, c, d)
       local path, height = a, b
       if a == 'p' or a == 'h1' or a == 'h2' or a == 'h3' then path, height = b, c end -- SimpleHTML
       if type(path) ~= 'string' then error("bad argument #1 to 'SetFont'", 2) end
       if not height or height <= 0 then error('Invalid font height', 2) end
-      local fail = os.getenv('AUX_TEST_FONT_FAIL') -- '1': every bundled font, otherwise a file name part
-      if fail == '' then fail = nil end
-      if fail and path:find('auxForever') and (fail == '1' or path:find(fail, 1, true)) then self.__font, self.__height = nil, 0; return false end
       self.__font, self.__height = path, height
       return true
     end end
@@ -161,6 +155,25 @@ try('buy bar', function()
   check('higher price refreshes listings', refreshed)
   check('higher price returns to Buy', bar.primary_label():find('^Buy') ~= nil)
 
+  -- the Cancel button next to Confirm cancels the quote and buys nothing
+  local cancel_button
+  for _, f in ipairs(frames) do if f.__text == 'Cancel' and not cancel_button then cancel_button = f end end -- the buy bar's is created first
+  calls = {}
+  bar.primary_click()
+  fire('COMMODITY_PRICE_UPDATED', 6, 120)
+  tick()
+  check('Cancel button exists and is shown with a quote', cancel_button and cancel_button.__shown)
+  -- the bar redraws every frame; hiding the button between mouse press and release loses the click
+  local hides = 0
+  rawset(cancel_button, 'Hide', function(self) hides = hides + 1; self.__shown = false end)
+  tick(); tick()
+  rawset(cancel_button, 'Hide', nil)
+  check('Cancel button is not hidden while the quote is shown', hides == 0 and cancel_button.__shown)
+  cancel_button.__scripts.OnClick(cancel_button, 'LeftButton')
+  tick()
+  check('Cancel button cancels the quote', calls[2] == 'cancel' and #calls == 2)
+  check('Cancel button returns to Buy', bar.primary_label():find('^Buy') ~= nil)
+
   -- selecting something else while a price is shown cancels it
   calls = {}
   bar.primary_click()
@@ -270,16 +283,6 @@ try('restyle', function()
   rawset(primary, 'GetFontString', function() return label end)
   gui.set_primary(primary)
   check('primary button font height is never 0', #heights == 1 and heights[1] > 0)
-  local fail = os.getenv('AUX_TEST_FONT_FAIL')
-  if fail == '' then fail = nil end
-  check('bundled font status is reported', gui.bundled_font_loaded == (fail ~= '1'))
-  if fail == 'BarlowSemiCondensed' then
-    check('falls back to the basic Barlow', gui.bundled_font_name == 'Barlow basic' and gui.font:find('BarlowBasic') ~= nil)
-  elseif fail == 'Barlow' then
-    check('falls back to PT Sans Narrow', gui.bundled_font_name == 'PT Sans Narrow' and gui.font_bold:find('PTSansNarrow%-Bold') ~= nil)
-  elseif not fail then
-    check('uses Barlow when it loads', gui.bundled_font_name == 'Barlow')
-  end
   check('a font is always set', type(gui.font) == 'string' and type(gui.font_bold) == 'string')
 end)
 
