@@ -591,6 +591,17 @@ try('post auto price', function()
   post.update_item(item)
   post.on_update()
   check('loading the item again starts at the lowest again', post.get_unit_buyout_price() == 240)
+
+  -- the status bar is gold once the listings are in, and back to normal on leaving the tab
+  aux.set_tab(2)
+  post.update_item(item)
+  check('post: gold once the listings are in', aux.status_bar.done == true)
+  local plain = function(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  post.update_item_configuration()
+  check('deposit shown as money going out', plain(post.deposit.__text):find('^Deposit %-') ~= nil)
+  check('you get shown in green', post.net_summary.__text:find('You get ', 1, true) == 1 and post.net_summary.__text:upper():find('6FD39A', 1, true) ~= nil)
+  aux.set_tab(3)
+  check('post: leaving the tab ends gold', aux.status_bar.done == false)
   post.selected_item = nil
 end)
 

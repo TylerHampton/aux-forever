@@ -94,8 +94,11 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
       line under it says so. Click "Match lowest" to go back. Undercut is off again every time you
       open the auction house.
 - [ ] Hover the "?": it explains matching vs undercutting.
-- [ ] Bottom row: "Posting N items", Total, Deposit, "You get" (total minus 5%), and an amber
-      "Post N items" button. It fades when posting is not possible.
+- [ ] Bottom row: "Posting N items" and Total on the left; on the right, next to the amber
+      "Post N items" button, the deposit in red ("-25c") and "You get" in green (total minus 5%).
+      The Post button fades when posting is not possible.
+- [ ] The bar at the bottom left turns gold once the item's listings have loaded, and goes back
+      to gray when you switch tabs.
 - [ ] Pick a piece of gear: Count instead of Stack size, and two prices, Starting bid and Buyout.
 - [ ] Post something small. It appears on the auction house. Refresh is at the bottom left.
 - [ ] Filter Builder dropdowns (class, subclass, slot, quality) can be changed.

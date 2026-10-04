@@ -131,12 +131,23 @@ function tab.OPEN()
     frame:Show()
     update_inventory_records(true)
     refresh = true
+    update_post_done()
 end
 
 function tab.CLOSE()
     selected_item = nil
     ClearCursor()
     frame:Hide()
+    aux.status_bar:set_done(false)
+end
+
+-- auxForever: the status bar turns gold once the listings of the item being posted are in, like a
+-- finished search on the Search tab, and goes back to normal for another item or another tab.
+-- Only while the Post tab is shown, so it never changes the Search tab's bar.
+function M.update_post_done()
+    if frame:IsShown() then
+        aux.status_bar:set_done(selected_item and listings_ready[selected_item.key] and true or false)
+    end
 end
 
 function tab.USE_ITEM(item_id, suffix_id)
@@ -489,10 +500,12 @@ function update_item_configuration()
         posting_summary:SetText('Posting ' .. aux.color.text.enabled(quantity .. (quantity == 1 and ' item' or ' items')))
         total_summary:SetText((get_unit_buyout_price() > 0 and 'Total ' or 'Starting bids ') .. money.to_string(total, true))
         do
+            -- money going out in red (bright red when it is more than the player has), coming in green
             local amount = deposit_amount()
-            deposit:SetText('Deposit ' .. money.to_string(amount, true, nil, amount > GetMoney() and aux.color.red or nil))
+            local out = amount > GetMoney() and aux.color.red or aux.color.negative
+            deposit:SetText('Deposit ' .. out('-') .. money.to_string(amount, true, nil, out))
         end
-        net_summary:SetText('You get ' .. money.to_string(floor(total * (1 - AUCTION_CUT)), true))
+        net_summary:SetText('You get ' .. money.to_string(floor(total * (1 - AUCTION_CUT)), true, nil, aux.color.positive))
         post_button:SetText('Post ' .. quantity .. (quantity == 1 and ' item' or ' items'))
 
         refresh_button:Enable()
@@ -595,6 +608,7 @@ function update_item(item)
     else
         listings_ready[item.key] = true
     end
+    update_post_done()
 
     refresh = true
 end
@@ -675,6 +689,7 @@ function refresh_entries()
         set_buyout_selection()
         auto_price_key = item_key
         listings_ready[item_key] = nil
+        update_post_done()
         bid_records[item_key], buyout_records[item_key] = nil, nil
         local query = scan_util.item_query(selected_item.item_id)
 
@@ -708,6 +723,7 @@ function refresh_entries()
                 aux.status_bar:update_status(1, 1)
                 listings_ready[item_key] = true
                 refresh = true
+                update_post_done()
 			end,
 			on_complete = function()
                 aux.status_bar:update_status(1, 1)
@@ -715,6 +731,7 @@ function refresh_entries()
                 buyout_records[item_key] = buyout_records[item_key] or {}
                 listings_ready[item_key] = true
                 refresh = true
+                update_post_done()
             end,
 		}
 	end
@@ -723,6 +740,7 @@ end
 function M.clear_auctions()
     bid_records, buyout_records = {}, {}
     aux.wipe(listings_ready)
+    update_post_done()
 end
 
 function M.record_auction(auction)

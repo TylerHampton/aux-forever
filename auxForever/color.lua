@@ -31,6 +31,9 @@ M.color = immutable-{
 	state = immutable-{enabled = C(63, 174, 106, 1), disabled = C(122, 58, 52, 1)},
 	accent = immutable-{background = C(227, 164, 59, 1), text = C(26, 20, 8, 1), selected = C(58, 46, 21, 1)},
 	selected = C(227, 164, 59, .22),
+	-- money coming to the player (green) and going out (red), readable on the dark panels
+	positive = C(111, 211, 154, 1),
+	negative = C(255, 138, 126, 1),
 
 	tooltip = immutable-{
 		value = C(255, 255, 154, 1),

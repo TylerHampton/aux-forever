@@ -486,14 +486,17 @@ do
         label:SetTextColor(aux.color.label.enabled())
         return label
     end
+    -- what is posted on the left; the money right next to the Post button: the deposit going out
+    -- (red) and what the sale brings in after the auction house cut (green, larger)
     posting_summary = summary_label()
     posting_summary:SetPoint('LEFT', frame.parameters, 'TOPLEFT', 14, -190)
     total_summary = summary_label()
     total_summary:SetPoint('LEFT', posting_summary, 'RIGHT', 24, 0)
-    deposit = summary_label()
-    deposit:SetPoint('LEFT', total_summary, 'RIGHT', 24, 0)
     net_summary = summary_label()
-    net_summary:SetPoint('LEFT', deposit, 'RIGHT', 24, 0)
+    net_summary:SetFont(gui.font, gui.font_size.large)
+    net_summary:SetPoint('RIGHT', post_button, 'LEFT', -16, 0)
+    deposit = summary_label()
+    deposit:SetPoint('RIGHT', net_summary, 'LEFT', -22, 0)
 end
 
 -- trade goods: stack size, stacks and one price; gear: a count, a starting bid and a buyout
