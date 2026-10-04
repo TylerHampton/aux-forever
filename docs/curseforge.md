@@ -10,10 +10,10 @@ Project settings, modeled on shirsig's aux page:
 |---|---|
 | Name | auxForever |
 | Summary | The aux auction house addon by shirsig, brought to World of Warcraft: Forever. |
-| Logo (avatar) | `docs/images/logo.png` |
+| Logo (avatar) | `docs/images/logo.png` (1024 x 1024, made in Recraft, recolored to the addon gold; `logo.svg` is the vector) |
 | Categories | Auction & Economy (main), Tooltip |
 | Game version | Forever (interface 16001) |
-| License | All Rights Reserved (see the note in `docs/status.md`) |
+| License | All Rights Reserved. The download includes Simon's code, which has no open license. The GitHub repository stays MIT, which covers only the changes made there. |
 | Source link | https://github.com/TylerHampton/aux-forever |
 | Issues link | https://github.com/TylerHampton/aux-forever/issues |
 | Visibility | Unlisted for now |

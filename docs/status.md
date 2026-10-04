@@ -75,7 +75,10 @@ https://claude.ai/artifact/6eBC1KgzAvRCNfgmQDGxmB
 ## CurseForge page (in progress, version 0.1, unlisted)
 
 Draft description and project settings: `docs/curseforge.md`, modeled on shirsig's aux page.
-Logo options drawn (aux in the UI gold, an original infinity swirl inspired by the Forever logo,
-not traced from it); waiting on Tyler's pick, then `docs/images/logo.png` and `banner.png`.
-License field: All Rights Reserved, like Simon's page. MIT would wrongly suggest his code is MIT;
-the repository's MIT license covers only the changes made here.
+Logo: Tyler's Recraft design ("aux" with a looped x), cleaned up (transparent corners, stray specks
+removed) and recolored to the addon gold #E3A43B: `docs/images/logo.svg` and `logo.png`. Header
+image `docs/images/banner.png` (that aux plus FOREVER in Cinzel). Recraft's free plan keeps
+ownership of what it makes and allows no commercial use, so the logo must come from a paid plan.
+License field on CurseForge: All Rights Reserved, like Simon's page, since MIT there would wrongly
+suggest his code is MIT. The repository stays MIT (Tyler, 2026-10-04); it covers only the changes
+made here.
