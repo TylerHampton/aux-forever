@@ -66,6 +66,11 @@ local function style_button(button, colors, text_colors, enabled)
     end
 end
 
+-- Money for button labels: the coloured g/s/c of money.to_string vanish on the coloured buttons
+local function plain_money(amount)
+    return money.to_string(amount, true, nil, nil, true)
+end
+
 local function fit_width(button, min_width)
     button:SetWidth(max(min_width or 80, button:GetFontString():GetStringWidth() + 28))
 end
@@ -183,7 +188,7 @@ local function update_commodity()
             can_buy = false
             set_lines(n .. ' × ' .. current.name .. ' for ' .. money.to_string(total, true), 'Not enough money', aux.color.red)
         end
-        primary_button:SetText(can_buy and ('Buy ' .. n .. ' for ' .. money.to_string(total, true)) or 'Buy')
+        primary_button:SetText(can_buy and ('Buy ' .. n .. ' for ' .. plain_money(total)) or 'Buy')
         style_button(primary_button, ACCENT, ACCENT_TEXT, can_buy)
     elseif state == QUOTING then
         set_lines('Asking the auction house for the price...', 'Nothing is bought yet')
@@ -191,7 +196,7 @@ local function update_commodity()
         style_button(primary_button, ACCENT, ACCENT_TEXT, false)
     elseif state == QUOTED then
         set_lines('Server price: ' .. money.to_string(current.quote_total, true) .. ' for ' .. current.quote_quantity, 'Nothing is bought until you confirm', aux.color.green)
-        primary_button:SetText('Confirm ' .. money.to_string(current.quote_total, true))
+        primary_button:SetText('Confirm ' .. plain_money(current.quote_total))
         style_button(primary_button, CONFIRM, CONFIRM_TEXT, current.quote_total <= GetMoney())
         cancel_button:Show()
     elseif state == BUYING then
@@ -290,13 +295,13 @@ local function update_item()
     end
 
     local can_buy = can_buy_item()
-    primary_button:SetText(record.buyout_price > 0 and ('Buy for ' .. money.to_string(record.buyout_price, true)) or 'Buy')
+    primary_button:SetText(record.buyout_price > 0 and ('Buy for ' .. plain_money(record.buyout_price)) or 'Buy')
     style_button(primary_button, ACCENT, ACCENT_TEXT, can_buy)
     fit_width(primary_button, 130)
 
     if can_bid_item() then
         bid_button:Show()
-        bid_button:SetText('Bid ' .. money.to_string(record.bid_price, true))
+        bid_button:SetText('Bid ' .. plain_money(record.bid_price))
         fit_width(bid_button, 90)
         if busy or record.bid_price > GetMoney() then
             bid_button:Disable()
