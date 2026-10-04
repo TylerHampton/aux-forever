@@ -106,6 +106,8 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
 - [ ] Hover a recent row: a pin appears on the right. Click it: the row moves to Pinned, and it
       also shows on the Saved Searches tab. Click the lit pin to unpin it.
 - [ ] Scroll the mouse wheel over the menu to reach older searches.
+- [ ] The `<` and `>` arrows are always there. When you cannot go back or forward, that arrow is
+      faded and does nothing; the other buttons never shift.
 - [ ] Clicking anywhere outside the menu closes it. Switching tabs or closing the window too.
 
 ## Things to note even without errors

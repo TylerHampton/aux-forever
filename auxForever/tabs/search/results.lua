@@ -49,6 +49,16 @@ do
         return searches[search_index]
     end
 
+    function M.set_nav_enabled(button, enabled)
+        if enabled then
+            button:Enable()
+            button:SetAlpha(1)
+        else
+            button:Disable()
+            button:SetAlpha(.35)
+        end
+    end
+
     function update_search(index)
         searches[search_index].table:Hide()
         searches[search_index].table:SetSelectedRecord()
@@ -58,18 +68,11 @@ do
         searches[search_index].table:Show()
 
         search_box:SetText(searches[search_index].filter_string or '')
-        if search_index == 1 then
-            previous_button:Disable()
-        else
-            previous_button:Enable()
-        end
-        if search_index == #searches then
-            next_button:Hide()
-            mode_button:SetPoint('LEFT', history_button, 'RIGHT', 4, 0)
-        else
-            next_button:Show()
-            mode_button:SetPoint('LEFT', next_button, 'RIGHT', 4, 0)
-        end
+        -- auxForever: the arrows stay in place and fade when there is nowhere to go, so the row
+        -- of buttons never shifts
+        set_nav_enabled(previous_button, search_index > 1)
+        set_nav_enabled(next_button, search_index < #searches)
+        mode_button:SetPoint('LEFT', next_button, 'RIGHT', 4, 0)
         update_mode(searches[search_index].mode)
         update_start_stop()
         update_continuation()

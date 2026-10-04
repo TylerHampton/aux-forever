@@ -446,5 +446,28 @@ try('quick searches', function()
   check('menu closes with the search tab', not search.quick_menu.__shown)
 end)
 
+-- The back and forward arrows never disappear; they fade when there is nowhere to go
+try('history arrows', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local state = {}
+  for _, name in ipairs{'previous_button', 'next_button'} do
+    local b = search[name]
+    state[name] = {}
+    rawset(b, 'Enable', function() state[name].enabled = true end)
+    rawset(b, 'Disable', function() state[name].enabled = false end)
+    rawset(b, 'SetAlpha', function(_, a) state[name].alpha = a end)
+    rawset(b, 'Hide', function() state[name].hidden = true end)
+  end
+  search.new_search('copper ore/exact', search.NORMAL_MODE or 1)
+  search.new_search('light hide/exact', search.NORMAL_MODE or 1)
+  check('newest search: forward faded, not hidden', state.next_button.enabled == false and state.next_button.alpha < 1 and not state.next_button.hidden)
+  check('newest search: back works', state.previous_button.enabled == true and state.previous_button.alpha == 1)
+  search.previous_search()
+  check('after going back: forward works', state.next_button.enabled == true and state.next_button.alpha == 1)
+  for _, name in ipairs{'previous_button', 'next_button'} do
+    for _, k in ipairs{'Enable', 'Disable', 'SetAlpha', 'Hide'} do rawset(search[name], k, nil) end
+  end
+end)
+
 fire('AUCTION_HOUSE_CLOSED')
 print('done, errors: ' .. errors)
