@@ -180,5 +180,50 @@ try('listing before layout', function()
   G.__geometry = nil
 end)
 
+-- Resizable window: lists show as many rows as fit and keep up when the window changes size.
+try('lists follow the window size', function()
+  local require = loadstring("select(2, ...) 'aux.test3'; return require")('aux-addon', addon)
+  local auction_listing = require 'aux.gui.auction_listing'
+  local item_listing = require 'aux.gui.item_listing'
+  G.__geometry = {size = 0, edge = nil}
+  local rt = auction_listing.new(new_frame(), 19, auction_listing.search_columns)
+  check('auction list: no rows before layout', #rt.rows == 0)
+  G.__geometry = {size = 29 + 19 * 14, edge = 100}
+  rt.__scripts.OnSizeChanged(rt)
+  check('auction list: 14 rows fit', #rt.rows == 14)
+  for _, row in ipairs(rt.rows) do row:Show() end -- as if filled with auctions
+  G.__geometry.size = 29 + 19 * 9
+  rt.__scripts.OnSizeChanged(rt)
+  check('auction list: shrinks to 9 rows', #rt.rows == 9 and not rt.all_rows[10].__shown)
+  G.__geometry.size = 29 + 19 * 14
+  rt.__scripts.OnSizeChanged(rt)
+  check('auction list: grows back reusing rows', #rt.rows == 14 and #rt.all_rows == 14)
+
+  G.__geometry = {size = 0, edge = nil}
+  local il = item_listing.new(new_frame(), function() end, function() return false end)
+  item_listing.populate(il, {})
+  check('item list: no rows before layout', #il.rows == 0)
+  G.__geometry = {size = 400, edge = 100}
+  il.content_frame.__scripts.OnSizeChanged(il.content_frame)
+  check('item list: 10 rows fit', #il.rows == 10)
+  G.__geometry = nil
+
+  -- the window size is saved and restored within the screen
+  local aux = require 'aux'
+  local f, w, h = aux.frame
+  rawset(f, 'SetWidth', function(_, x) w = x end)
+  rawset(f, 'SetHeight', function(_, x) h = x end)
+  rawset(f, 'GetWidth', function() return w end)
+  rawset(f, 'GetHeight', function() return h end)
+  G.__geometry = {size = 3000, edge = 100}
+  aux.account_data.window = {width = 1300, height = 700}
+  aux.restore_window()
+  check('window restores its saved size', w == 1300 and h == 700)
+  aux.account_data.window = {width = 400, height = 9000}
+  aux.restore_window()
+  check('window size kept within bounds', w == 1000 and h == 3000)
+  G.__geometry = nil
+end)
+
 fire('AUCTION_HOUSE_CLOSED')
 print('done, errors: ' .. errors)

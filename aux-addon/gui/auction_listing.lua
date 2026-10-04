@@ -609,7 +609,9 @@ local methods = {
         for _, cell in pairs(self.headCells) do
             weight = weight + cell.info.width
         end
-        weight = (self.contentFrame:GetRight() - self.contentFrame:GetLeft()) / weight
+        local right, left = self.contentFrame:GetRight(), self.contentFrame:GetLeft()
+        if not right or not left then return end
+        weight = (right - left) / weight
         for i, cell in pairs(self.headCells) do
             local width = cell.info.width * weight
             cell:SetWidth(width)
@@ -957,10 +959,93 @@ local methods = {
     end,
 }
 
-function M.new(parent, rows, columns)
+-- Forever: the window can be resized, so a listing has a fixed row height and shows as many rows
+-- as fit. Rows are created when first needed and kept for when the window grows again.
+local function create_row(rt, i)
+    local row = CreateFrame('Button', nil, rt.contentFrame)
+    row.rt = rt
+    row:SetHeight(rt.ROW_HEIGHT)
+    row:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+    row:SetScript('OnEnter', rt.OnEnter)
+    row:SetScript('OnLeave', rt.OnLeave)
+    row:SetScript('OnClick', rt.OnClick)
+    row:SetScript('OnDoubleClick', rt.OnDoubleClick)
+    row:SetPoint('TOPLEFT', 0, -(HEAD_HEIGHT + HEAD_SPACE + (i - 1) * rt.ROW_HEIGHT))
+    row:SetPoint('TOPRIGHT', 0, -(HEAD_HEIGHT + HEAD_SPACE + (i - 1) * rt.ROW_HEIGHT))
+    local highlight = row:CreateTexture()
+    highlight:SetAllPoints()
+    highlight:SetColorTexture(1, .9, 0, .5)
+    highlight:Hide()
+    row.highlight = highlight
+
+    row.cells = {}
+    for j, column in ipairs(rt.columns) do
+        local cell = CreateFrame('Frame', nil, row)
+        local text = cell:CreateFontString()
+        cell.text = text
+        text:SetFont(gui.font, min(14, rt.ROW_HEIGHT))
+        text:SetJustifyH(column.align or 'LEFT')
+        text:SetJustifyV('MIDDLE')
+        text:SetPoint('TOPLEFT', 1, -1)
+        text:SetPoint('BOTTOMRIGHT', -1, 1)
+        cell:SetHeight(rt.ROW_HEIGHT)
+        cell.rt = rt
+        cell.row = row
+
+        if j == 1 then
+            cell:SetPoint('TOPLEFT', 0, 0)
+        else
+            cell:SetPoint('TOPLEFT', row.cells[j - 1], 'TOPRIGHT')
+        end
+
+        if mod(j, 2) == 1 then
+            local tex = cell:CreateTexture()
+            tex:SetAllPoints()
+            tex:SetColorTexture(.3, .3, .3, .2)
+        end
+
+        if column.init then
+            column.init(rt, cell)
+        end
+
+        tinsert(row.cells, cell)
+    end
+
+    if mod(i, 2) == 0 then
+        local tex = row:CreateTexture()
+        tex:SetAllPoints()
+        tex:SetColorTexture(.3, .3, .3, .3)
+    end
+
+    row:Hide()
+    return row
+end
+
+local function fit_rows(rt)
+    if not rt.all_rows then return end
+    local height = rt:GetHeight() or 0
+    if height <= 0 then return end
+    local count = max(floor((height - HEAD_HEIGHT - HEAD_SPACE) / rt.ROW_HEIGHT), 0)
+    if count == #rt.rows then
+        rt:ResizeColumns()
+        return
+    end
+    for i = count + 1, #rt.all_rows do
+        rt.all_rows[i]:Hide()
+    end
+    rt.rows = {}
+    for i = 1, count do
+        rt.all_rows[i] = rt.all_rows[i] or create_row(rt, i)
+        rt.rows[i] = rt.all_rows[i]
+    end
+    rt:ResizeColumns()
+    rt:UpdateRows()
+end
+
+function M.new(parent, row_height, columns)
     local rt = CreateFrame('Frame', nil, parent)
     rt.columns = columns
-    rt.ROW_HEIGHT = (parent:GetHeight() - HEAD_HEIGHT - HEAD_SPACE) / rows
+    rt.ROW_HEIGHT = row_height
     rt.expanded = {}
     rt.handlers = {}
     rt.sorts = {}
@@ -972,6 +1057,7 @@ function M.new(parent, rows, columns)
     end
 
     rt:SetScript('OnShow', function(self)
+        fit_rows(self)
         for _, cell in pairs(self.headCells) do
             if cell.info.toggle then
                 cell:SetText(cell.info.title[_M[cell.info.toggle] and 1 or 2])
@@ -990,7 +1076,7 @@ function M.new(parent, rows, columns)
     end)
     scrollFrame:SetAllPoints(contentFrame)
     rt.scrollFrame = scrollFrame
-    FauxScrollFrame_Update(rt.scrollFrame, 0, rows, rt.ROW_HEIGHT)
+    FauxScrollFrame_Update(rt.scrollFrame, 0, 0, rt.ROW_HEIGHT)
 
     local scrollBar = _G[scrollFrame:GetName() .. 'ScrollBar']
     scrollBar:ClearAllPoints()
@@ -1047,71 +1133,11 @@ function M.new(parent, rows, columns)
     end
 
     rt.rows = {}
-    for i = 1, rows do
-        local row = CreateFrame('Button', nil, rt.contentFrame)
-        row.rt = rt
-        row:SetHeight(rt.ROW_HEIGHT)
-        row:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
-        row:SetScript('OnEnter', rt.OnEnter)
-        row:SetScript('OnLeave', rt.OnLeave)
-        row:SetScript('OnClick', rt.OnClick)
-        row:SetScript('OnDoubleClick', rt.OnDoubleClick)
-        if i == 1 then
-	        row:SetPoint('TOPLEFT', 0, -(HEAD_HEIGHT + HEAD_SPACE))
-	        row:SetPoint('TOPRIGHT', 0, -(HEAD_HEIGHT + HEAD_SPACE))
-        else
-	        row:SetPoint('TOPLEFT', 0, -(HEAD_HEIGHT + HEAD_SPACE + (i - 1) * rt.ROW_HEIGHT))
-	        row:SetPoint('TOPRIGHT', 0, -(HEAD_HEIGHT + HEAD_SPACE + (i - 1) * rt.ROW_HEIGHT))
-        end
-        local highlight = row:CreateTexture()
-        highlight:SetAllPoints()
-        highlight:SetColorTexture(1, .9, 0, .5)
-        highlight:Hide()
-        row.highlight = highlight
-
-        row.cells = {}
-        for j, column in ipairs(rt.columns) do
-            local cell = CreateFrame('Frame', nil, row)
-            local text = cell:CreateFontString()
-            cell.text = text
-            text:SetFont(gui.font, min(14, rt.ROW_HEIGHT))
-            text:SetJustifyH(column.align or 'LEFT')
-            text:SetJustifyV('MIDDLE')
-            text:SetPoint('TOPLEFT', 1, -1)
-            text:SetPoint('BOTTOMRIGHT', -1, 1)
-            cell:SetHeight(rt.ROW_HEIGHT)
-            cell.rt = rt
-            cell.row = row
-
-            if j == 1 then
-                cell:SetPoint('TOPLEFT', 0, 0)
-            else
-                cell:SetPoint('TOPLEFT', row.cells[j - 1], 'TOPRIGHT')
-            end
-
-            if mod(j, 2) == 1 then
-                local tex = cell:CreateTexture()
-                tex:SetAllPoints()
-                tex:SetColorTexture(.3, .3, .3, .2)
-            end
-
-            if column.init then
-                column.init(rt, cell)
-            end
-
-            tinsert(row.cells, cell)
-        end
-
-        if mod(i, 2) == 0 then
-            local tex = row:CreateTexture()
-            tex:SetAllPoints()
-            tex:SetColorTexture(.3, .3, .3, .3)
-        end
-
-        tinsert(rt.rows, row)
-    end
+    rt.all_rows = {}
+    rt:SetScript('OnSizeChanged', fit_rows)
 
     rt:SetAllPoints()
+    fit_rows(rt)
     rt:ResizeColumns()
     return rt
 end

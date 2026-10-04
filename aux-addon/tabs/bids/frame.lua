@@ -16,7 +16,7 @@ frame.listing:SetPoint('TOP', frame, 'TOP', 0, -8)
 frame.listing:SetPoint('BOTTOMLEFT', aux.frame.content, 'BOTTOMLEFT', 0, 0)
 frame.listing:SetPoint('BOTTOMRIGHT', aux.frame.content, 'BOTTOMRIGHT', 0, 0)
 
-listing = auction_listing.new(frame.listing, 20, auction_listing.bids_columns)
+listing = auction_listing.new(frame.listing, 22, auction_listing.bids_columns)
 listing:SetSort(1, 2, 3, 4, 5, 6, 7, 8)
 listing:Reset()
 listing:SetHandler('OnClick', function(row, button)

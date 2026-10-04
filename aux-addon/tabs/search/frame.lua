@@ -36,14 +36,13 @@ frame.saved:SetScript('OnUpdate', function()
     end
 end)
 
+-- Forever: the two lists share the width, so they follow the window size
 frame.saved.favorite = gui.panel(frame.saved)
-frame.saved.favorite:SetWidth(393)
 frame.saved.favorite:SetPoint('TOPLEFT', 0, 0)
-frame.saved.favorite:SetPoint('BOTTOMLEFT', 0, 0)
+frame.saved.favorite:SetPoint('BOTTOMRIGHT', frame.saved, 'BOTTOM', -1.25, 0)
 
 frame.saved.recent = gui.panel(frame.saved)
-frame.saved.recent:SetWidth(364.5)
-frame.saved.recent:SetPoint('TOPRIGHT', 0, 0)
+frame.saved.recent:SetPoint('TOPLEFT', frame.saved, 'TOP', 1.25, 0)
 frame.saved.recent:SetPoint('BOTTOMRIGHT', 0, 0)
 
 do
@@ -445,9 +444,8 @@ do
 end
 do
     local scroll_frame = CreateFrame('ScrollFrame', nil, frame.filter, 'BackdropTemplate')
-    scroll_frame:SetWidth(395)
-    scroll_frame:SetHeight(270)
     scroll_frame:SetPoint('TOPLEFT', 348.5, -47)
+    scroll_frame:SetPoint('BOTTOMRIGHT', -16, 16)
     scroll_frame:EnableMouse(true)
     scroll_frame:EnableMouseWheel(true)
     scroll_frame:SetScript('OnMouseWheel', function(self, arg1)
@@ -488,7 +486,7 @@ end
 
 tables = {}
 for _ = 1, 5 do
-    local table = auction_listing.new(frame.results.list, 16, auction_listing.search_columns)
+    local table = auction_listing.new(frame.results.list, 19, auction_listing.search_columns)
     table:SetHandler('OnClick', function(row, button)
 	    if IsAltKeyDown() and aux.account_data.action_shortcuts then
 		    if current_search().table:GetSelection().record == row.record then

@@ -9,21 +9,66 @@ function event.AUX_LOADED()
 	for _, v in ipairs(tab_info) do
 		tabs:create_tab(v.name)
 	end
+	restore_window()
+end
+
+-- Forever: the window can be resized from its bottom right corner (double-click the corner for the
+-- default size), and it remembers its size and position.
+local DEFAULT_WIDTH, DEFAULT_HEIGHT = 1100, 620
+local MIN_WIDTH, MIN_HEIGHT = 1000, 509
+
+local function max_size()
+	local scale = frame:GetEffectiveScale() / UIParent:GetEffectiveScale()
+	return max(MIN_WIDTH, UIParent:GetWidth() / scale), max(MIN_HEIGHT, UIParent:GetHeight() / scale)
+end
+
+local function set_resize_bounds()
+	local max_width, max_height = max_size()
+	if frame.SetResizeBounds then
+		frame:SetResizeBounds(MIN_WIDTH, MIN_HEIGHT, max_width, max_height)
+	else
+		frame:SetMinResize(MIN_WIDTH, MIN_HEIGHT)
+		frame:SetMaxResize(max_width, max_height)
+	end
+end
+
+function save_window()
+	local window = account_data.window
+	window.width, window.height = frame:GetWidth(), frame:GetHeight()
+	local point, _, relative_point, x, y = frame:GetPoint(1)
+	window.point, window.relative_point, window.x, window.y = point, relative_point, x, y
+end
+
+function M.restore_window()
+	local window = account_data.window
+	local max_width, max_height = max_size()
+	local width = bounded(MIN_WIDTH, max_width, window.width or DEFAULT_WIDTH)
+	local height = bounded(MIN_HEIGHT, max_height, window.height or DEFAULT_HEIGHT)
+	gui.set_size(frame, width, height)
+	if window.point then
+		frame:ClearAllPoints()
+		frame:SetPoint(window.point, UIParent, window.relative_point, window.x, window.y)
+	end
 end
 
 do
 	local frame = CreateFrame('Frame', 'aux_frame', UIParent, 'BackdropTemplate')
 	tinsert(UISpecialFrames, 'aux_frame')
 	gui.set_window_style(frame)
-	-- Forever: wider, and taller by the buy bar under the Search results
-	gui.set_size(frame, 1000, 447 + 62)
+	-- Forever: wider, and resizable (see restore_window)
+	gui.set_size(frame, 1100, 620)
 	frame:SetPoint('LEFT', 100, 0)
 	frame:SetToplevel(true)
 	frame:SetMovable(true)
+	frame:SetResizable(true)
+	if frame.SetDontSavePosition then frame:SetDontSavePosition(true) end
 	frame:EnableMouse(true)
     frame:RegisterForDrag('LeftButton')
     frame:SetScript('OnDragStart', frame.StartMoving)
-    frame:SetScript('OnDragStop', frame.StopMovingOrSizing)
+    frame:SetScript('OnDragStop', function(self)
+        self:StopMovingOrSizing()
+        save_window()
+    end)
 	frame:SetClampedToScreen(true)
 --	frame:CreateTitleRegion():SetAllPoints() TODO classic why
 	frame:SetScript('OnShow', function() PlaySound(SOUNDKIT.AUCTION_WINDOW_OPEN) end)
@@ -48,8 +93,38 @@ do
 	function M.set_tab(id) tabs:select(id) end
 end
 do
+	local grip = CreateFrame('Button', nil, frame)
+	grip:SetPoint('BOTTOMRIGHT', -2, 2)
+	gui.set_size(grip, 16, 16)
+	grip:SetNormalTexture([[Interface\ChatFrame\UI-ChatIM-SizeGrabber-Up]])
+	grip:SetHighlightTexture([[Interface\ChatFrame\UI-ChatIM-SizeGrabber-Highlight]])
+	grip:SetPushedTexture([[Interface\ChatFrame\UI-ChatIM-SizeGrabber-Down]])
+	grip:SetScript('OnMouseDown', function(_, button)
+		if button ~= 'LeftButton' then return end
+		set_resize_bounds()
+		frame:StartSizing('BOTTOMRIGHT')
+	end)
+	grip:SetScript('OnMouseUp', function()
+		frame:StopMovingOrSizing()
+		save_window()
+	end)
+	grip:SetScript('OnDoubleClick', function()
+		frame:StopMovingOrSizing()
+		gui.set_size(frame, DEFAULT_WIDTH, DEFAULT_HEIGHT)
+		save_window()
+	end)
+	grip:SetScript('OnEnter', function(self)
+		GameTooltip:SetOwner(self, 'ANCHOR_TOP')
+		GameTooltip:AddLine('Drag to resize')
+		GameTooltip:AddLine('Double-click for the default size', 1, 1, 1)
+		GameTooltip:Show()
+	end)
+	grip:SetScript('OnLeave', function() GameTooltip:Hide() end)
+	resize_grip = grip
+end
+do
 	local btn = gui.button(frame)
-	btn:SetPoint('BOTTOMRIGHT', -5, 5)
+	btn:SetPoint('BOTTOMRIGHT', -22, 5)
 	gui.set_size(btn, 60, 24)
 	btn:SetText('Close')
 	btn:SetScript('OnClick', function() frame:Hide() end)

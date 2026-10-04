@@ -60,6 +60,16 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
 ## 7. Bids tab
 - [ ] After bidding on something in step 3, it shows here.
 
+## 8. Window size
+- [ ] The window opens wider than before (1100 wide by default).
+- [ ] Drag the corner grip at the bottom right. The window grows and shrinks, and it stops at
+      the old size as its smallest.
+- [ ] While bigger, the Search results, Auctions, Bids and Post lists show more rows, and the
+      columns stretch to the new width.
+- [ ] Saved Searches: both lists share the width. Filter Builder: the filter text box stretches.
+- [ ] Move and resize the window, `/reload`, open the auction house. Same size and place.
+- [ ] Double-click the corner grip. The window goes back to the default size.
+
 ## Things to note even without errors
 - Anything that looks different from how aux worked on Classic.
 - Anything slow (searches will be slower than Classic for broad searches, that is expected).

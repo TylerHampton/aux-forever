@@ -59,6 +59,7 @@ function event.AUX_LOADED()
         post_bid = nil,
         post_duration = post.DURATION_8,
         replicate_time = 0,
+        window = {},
         items = {},
         item_ids = {},
         unused_item_ids = {},
