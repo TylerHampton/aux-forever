@@ -251,6 +251,7 @@ function price_update()
         end
         start_price_percentage:SetText(historical_value and gui.percentage_historical(aux.round(get_unit_start_price() / historical_value * 100)) or '---')
         buyout_price_percentage:SetText(historical_value and gui.percentage_historical(aux.round(get_unit_buyout_price() / historical_value * 100)) or '---')
+        price_note:SetText(price_note_text())
     end
 end
 
@@ -358,35 +359,79 @@ function post_auction()
     end)
 end
 
+-- auxForever: the line under the price saying how it was chosen
+function M.price_note_text()
+    local selection = get_buyout_selection() or get_bid_selection()
+    local note
+    if not selection then
+        return aux.color.label.enabled('Your own price')
+    elseif selection.historical_value then
+        note = aux.color.label.enabled('The usual price for this item')
+    elseif selection.own then
+        note = aux.color.label.enabled('Same as your own listing at ') .. money.to_string(selection.unit_price, true)
+    elseif aux.account_data.post_undercut then
+        local step = price_step() == 1 and '1 copper' or '1 silver'
+        note = aux.color.gold(step .. ' below the lowest listing (') .. money.to_string(selection.unit_price, true) .. aux.color.gold(')')
+        if price_step() > 1 then
+            note = note .. aux.color.gold('. Gear is priced in whole silver')
+        end
+    else
+        note = aux.color.label.enabled('Same as the lowest listing. On Forever the newest listing at a price sells first')
+    end
+    return note
+end
+
+-- the Post button fades when it cannot be used, since its amber color would otherwise look ready
+local function set_post_enabled(enabled)
+    if enabled then
+        post_button:Enable()
+        post_button:SetAlpha(1)
+    else
+        post_button:Disable()
+        post_button:SetAlpha(.45)
+    end
+end
+
 function validate_parameters()
     if posting or not selected_item then
-        post_button:Disable()
+        set_post_enabled(false)
         return
     end
     if get_unit_buyout_price() > 0 and get_unit_start_price() > get_unit_buyout_price() then
-        post_button:Disable()
+        set_post_enabled(false)
         return
     end
     if selected_item.commodity and get_unit_buyout_price() == 0 then
-        post_button:Disable()
+        set_post_enabled(false)
         return
     end
     if not selected_item.commodity and get_unit_start_price() == 0 then
-        post_button:Disable()
+        set_post_enabled(false)
         return
     end
     if stack_count_input:GetNumber() == 0 then
-        post_button:Disable()
+        set_post_enabled(false)
         return
     end
     if deposit_amount() > GetMoney() then
-        post_button:Disable()
+        set_post_enabled(false)
         return
     end
-    post_button:Enable()
+    set_post_enabled(true)
+end
+
+-- auxForever: how many units the current settings post (one auction per item for gear)
+function M.post_quantity()
+    if not selected_item then
+        return 0
+    elseif selected_item.commodity then
+        return stack_size_input:GetNumber() * stack_count_input:GetNumber()
+    end
+    return stack_count_input:GetNumber()
 end
 
 function update_item_configuration()
+    local summary = {posting_summary, total_summary, deposit, net_summary, price_note, price_caption, mode_switch}
 	if not selected_item then
         refresh_button:Disable()
 
@@ -394,30 +439,34 @@ function update_item_configuration()
         item.count:SetText()
         item.name:SetTextColor(aux.color.label.enabled())
         item.name:SetText('No item selected')
+        item_detail:SetText('Pick an item on the left, or drop one here')
 
         unit_start_price_input:Hide()
         unit_buyout_price_input:Hide()
         stack_size_input:Hide()
         stack_count_input:Hide()
-        deposit:Hide()
         duration_dropdown:Hide()
         hide_checkbox:Hide()
+        for _, region in ipairs(summary) do region:Hide() end
+        post_button:SetText('Post')
     else
-		-- Forever: commodities have no bids, only a buyout price per unit
+		-- Forever: commodities have no bids, only a buyout price per unit; gear is posted one per auction
 		if selected_item.commodity then
 			unit_start_price_input:Hide()
+			stack_size_input:Show()
 		else
 			unit_start_price_input:Show()
+			stack_size_input:Hide()
 		end
+        layout_parameters(selected_item.commodity)
         unit_buyout_price_input:Show()
-        stack_size_input:Show()
         stack_count_input:Show()
-        deposit:Show()
         duration_dropdown:Show()
         hide_checkbox:Show()
+        for _, region in ipairs(summary) do region:Show() end
 
         item.texture:SetTexture(selected_item.texture)
-        item.name:SetText('[' .. selected_item.name .. ']')
+        item.name:SetText(selected_item.name)
 		do
 	        local color = ITEM_QUALITY_COLORS[selected_item.quality]
 	        item.name:SetTextColor(color.r, color.g, color.b)
@@ -427,11 +476,19 @@ function update_item_configuration()
 		else
             item.count:SetText()
         end
+        item_detail:SetText(selected_item.count .. ' in your bags' .. ((selected_item.commodity and (selected_item.max_stack or 1) > 1) and ' · stack of ' .. selected_item.max_stack or ''))
 
+        local quantity = post_quantity()
+        local unit_price = get_unit_buyout_price() > 0 and get_unit_buyout_price() or get_unit_start_price()
+        local total = unit_price * quantity
+        posting_summary:SetText('Posting ' .. aux.color.text.enabled(quantity .. (quantity == 1 and ' item' or ' items')))
+        total_summary:SetText((get_unit_buyout_price() > 0 and 'Total ' or 'Starting bids ') .. money.to_string(total, true))
         do
             local amount = deposit_amount()
-            deposit:SetText('Deposit: ' .. money.to_string(amount, nil, nil, amount > GetMoney() and aux.color.red or aux.color.text.enabled))
+            deposit:SetText('Deposit ' .. money.to_string(amount, true, nil, amount > GetMoney() and aux.color.red or nil))
         end
+        net_summary:SetText('You get ' .. money.to_string(floor(total * (1 - AUCTION_CUT)), true))
+        post_button:SetText('Post ' .. quantity .. (quantity == 1 and ' item' or ' items'))
 
         refresh_button:Enable()
 	end
@@ -667,7 +724,7 @@ end
 
 function M.set_undercut_mode(enabled)
     aux.account_data.post_undercut = enabled and true or false
-    undercut_checkbox:SetChecked(aux.account_data.post_undercut)
+    mode_switch:SetChecked(aux.account_data.post_undercut)
     price_update()
     refresh = true
 end

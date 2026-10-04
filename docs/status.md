@@ -38,7 +38,7 @@ only the initial commit until Tyler merges, so a download of `main` is not auxFo
 - Undercut mode starts off every time the auction house opens (Tyler: never remembered).
 - Quick searches, the gold finished-search bar and the fading history arrows tested fine in game.
 
-## Post tab facelift (mockup, waiting for Tyler's go)
+## Post tab facelift (built from the mockup, needs testing in game)
 
 https://claude.ai/artifact/9gx3SMqfU46WMGbZ11iwKv : Match lowest / Undercut switch with the goblin,
 a "?" for the undercut hint, bigger price box with a "% of usual" badge, a summary row (items,

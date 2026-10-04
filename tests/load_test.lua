@@ -497,5 +497,71 @@ try('background opacity', function()
   aux.set_background_opacity(1)
 end)
 
+-- Post tab panel: summary, note under the price, duration buttons, mode switch
+try('post panel', function()
+  local require = loadstring("select(2, ...) 'aux.test10'; return require")('auxForever', addon)
+  local aux = require 'aux'
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local function text(region) return region.__text end
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+
+  post.selected_item = {commodity = true, key = '3385:0', item_id = 3385, name = 'Minor Mana Potion', quality = 1, count = 3, max_stack = 5}
+  post.stack_size_input:SetNumber(3); post.stack_size_input.__number = 3
+  rawset(post.stack_size_input, 'GetNumber', function() return 3 end)
+  rawset(post.stack_count_input, 'GetNumber', function() return 2 end)
+  post.set_unit_buyout_price(69)
+  post.update_item_configuration()
+  check('trade good: posts stack size x stacks', post.post_quantity() == 6)
+  check('item name without brackets', text(post.item.name) == 'Minor Mana Potion')
+  check('bags and stack shown', plain(text(post.item_detail)):find('3 in your bags') ~= nil and plain(text(post.item_detail)):find('stack of 5') ~= nil)
+  check('posting line', plain(text(post.posting_summary)) == 'Posting 6 items')
+  check('post button says what it posts', text(post.post_button) == 'Post 6 items')
+  check('total and what you get are shown', text(post.total_summary):find('^Total') ~= nil and text(post.net_summary):find('^You get') ~= nil)
+  check('the cut is 5%', post.AUCTION_CUT == .05)
+  local colors = {}
+  rawset(post.post_button, 'GetFontString', function(self) return self.label end)
+  rawset(post.post_button.label, 'SetTextColor', function(_, r) colors[#colors + 1] = r end)
+  post.post_button:Enable(); post.post_button:Disable()
+  check('post button keeps its dark text', colors[#colors] < .2 and colors[#colors - 1] < .2)
+
+  check('typed price note', plain(post.price_note_text()) == 'Your own price')
+  post.set_buyout_selection({unit_price = 69})
+  post.set_undercut_mode(false)
+  check('match note', plain(post.price_note_text()):find('^Same as the lowest listing') ~= nil)
+  post.set_undercut_mode(true)
+  check('undercut note for trade goods', plain(post.price_note_text()):find('^1 copper below') ~= nil)
+  post.selected_item.commodity = false
+  check('undercut note for gear', plain(post.price_note_text()):find('^1 silver below') ~= nil and plain(post.price_note_text()):find('whole silver') ~= nil)
+  post.set_undercut_mode(false)
+  post.set_buyout_selection({unit_price = 69, own = true})
+  check('own listing note', plain(post.price_note_text()):find('your own listing') ~= nil)
+  post.set_buyout_selection()
+
+  post.update_item_configuration()
+  check('gear posts one per count', post.post_quantity() == 2)
+  check('gear hides stack size', post.stack_size_input.__shown == false)
+  check('gear count caption', text(post.stack_count_input.caption) == 'Count')
+
+  local changed = 0
+  local original = post.duration_dropdown.selection_change
+  post.duration_dropdown.selection_change = function() changed = changed + 1 end
+  post.duration_dropdown:SetIndex(3)
+  check('duration buttons select', post.duration_dropdown:GetIndex() == 3 and changed == 1)
+  post.duration_dropdown:SetIndex(3)
+  check('same duration again changes nothing', changed == 1)
+  post.duration_dropdown.buttons[1].__scripts.OnClick(post.duration_dropdown.buttons[1])
+  check('clicking 2h selects it', post.duration_dropdown:GetIndex() == 1)
+  post.duration_dropdown.selection_change = original
+
+  local undercut_button = post.mode_switch.undercut_button
+  undercut_button.__scripts.OnClick(undercut_button)
+  check('switch turns undercut on', aux.account_data.post_undercut == true)
+  post.mode_switch.match_button.__scripts.OnClick(post.mode_switch.match_button)
+  check('switch turns it off', aux.account_data.post_undercut == false)
+  post.selected_item = nil
+  post.update_item_configuration()
+  check('no item: post button plain', text(post.post_button) == 'Post')
+end)
+
 fire('AUCTION_HOUSE_CLOSED')
 print('done, errors: ' .. errors)

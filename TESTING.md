@@ -82,19 +82,21 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
 - [ ] Trade goods with several sellers at one price say "N sellers" instead of "?".
 - [ ] All four tabs, Saved Searches and Filter Builder look right, also at a large window size.
 
-## 10. Undercut mode and duration
-- [ ] Post tab: pick an item. The buyout price equals the cheapest listing (no undercut).
-- [ ] The goblin "Undercut" checkbox above Unit Buyout Price is off. Hovering it explains it.
-- [ ] Tick it. The price drops one step below the cheapest listing: 1 copper for trade goods,
-      1 silver for gear. Untick it, it matches again.
-- [ ] Gear prices are always whole silver, also when typed with copper (it rounds down).
-- [ ] The bar at the bottom left is dim gray when nothing is loading, amber while searching.
-- [ ] When a search finishes, that bar turns gold with an amber edge. It goes back to gray on a new
-      search, Clear, < or >, Saved Searches, Filter Builder or another tab.
-- [ ] Undercut is off again every time you open the auction house, even if you left it on.
-- [ ] Top right of the Post tab: "How undercutting works on Forever: /aux undercut". Typing that
-      prints the explanation; `/aux undercut on` and `/aux undercut off` switch the mode.
-- [ ] The Duration dropdown can be changed to 2, 8 and 24 hours, and the deposit updates.
+## 10. Post tab (redesigned)
+- [ ] Pick a trade good: the item name and "N in your bags · stack of N" show at the top, with
+      "Hide from this list" at the top right.
+- [ ] Left: Stack size and Stacks with - / + / Max, and Duration as 2h / 8h / 24h buttons. The
+      chosen duration is amber and the deposit changes with it.
+- [ ] Right: "Match lowest" is selected. The price equals the cheapest listing and the line under
+      it says so. The badge says e.g. "100% of usual".
+- [ ] Click "Undercut" (goblin): the price drops 1 copper (trade goods) or 1 silver (gear), and the
+      line under it says so. Click "Match lowest" to go back. Undercut is off again every time you
+      open the auction house.
+- [ ] Hover the "?": it explains matching vs undercutting.
+- [ ] Bottom row: "Posting N items", Total, Deposit, "You get" (total minus 5%), and an amber
+      "Post N items" button. It fades when posting is not possible.
+- [ ] Pick a piece of gear: Count instead of Stack size, and two prices, Starting bid and Buyout.
+- [ ] Post something small. It appears on the auction house. Refresh is at the bottom left.
 - [ ] Filter Builder dropdowns (class, subclass, slot, quality) can be changed.
 
 ## 11. Quick searches
