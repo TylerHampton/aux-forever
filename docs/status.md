@@ -71,3 +71,11 @@ https://claude.ai/artifact/6eBC1KgzAvRCNfgmQDGxmB
 
 - Expand undercut mode beyond one step (start simple, iterate).
 - Remove the "/aux undercut" explanation once Forever players know the mechanic.
+
+## CurseForge page (in progress, version 0.1, unlisted)
+
+Draft description and project settings: `docs/curseforge.md`, modeled on shirsig's aux page.
+Logo options drawn (aux in the UI gold, an original infinity swirl inspired by the Forever logo,
+not traced from it); waiting on Tyler's pick, then `docs/images/logo.png` and `banner.png`.
+License field: All Rights Reserved, like Simon's page. MIT would wrongly suggest his code is MIT;
+the repository's MIT license covers only the changes made here.
