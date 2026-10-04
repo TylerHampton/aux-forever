@@ -97,6 +97,17 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
 - [ ] The Duration dropdown can be changed to 2, 8 and 24 hours, and the deposit updates.
 - [ ] Filter Builder dropdowns (class, subclass, slot, quality) can be changed.
 
+## 11. Quick searches
+- [ ] Next to `<` on the Search tab is a clock button with a small arrow. Click it: a menu opens
+      with Pinned and Recent, and the button turns amber.
+- [ ] Each recent row shows the item icon and name, and after a search finishes, "Cheapest ...,
+      Xm ago". Searches that cover several items show a funnel icon.
+- [ ] Click a row: the menu closes and that search runs.
+- [ ] Hover a recent row: a pin appears on the right. Click it: the row moves to Pinned, and it
+      also shows on the Saved Searches tab. Click the lit pin to unpin it.
+- [ ] Scroll the mouse wheel over the menu to reach older searches.
+- [ ] Clicking anywhere outside the menu closes it. Switching tabs or closing the window too.
+
 ## Things to note even without errors
 - Anything that looks different from how aux worked on Classic.
 - Anything slow (searches will be slower than Classic for broad searches, that is expected).

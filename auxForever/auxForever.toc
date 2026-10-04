@@ -39,6 +39,7 @@ tabs\search\results.lua
 tabs\search\saved.lua
 tabs\search\filter.lua
 tabs\search\frame.lua
+tabs\search\quick.lua
 
 tabs\post\core.lua
 tabs\post\frame.lua

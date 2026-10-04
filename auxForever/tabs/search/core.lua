@@ -29,6 +29,7 @@ end
 
 function tab.CLOSE()
     current_search().table:SetSelectedRecord()
+    hide_quick_menu()
     frame:Hide()
     update_done()
 end

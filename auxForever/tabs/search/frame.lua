@@ -55,8 +55,33 @@ do
     previous_button = btn
 end
 do
+    -- auxForever: opens the quick search menu (quick.lua)
     local btn = gui.button(frame, 25)
     btn:SetPoint('LEFT', previous_button, 'RIGHT', 4, 0)
+    btn:SetWidth(42)
+    btn:SetHeight(25)
+    local clock = btn:CreateTexture(nil, 'ARTWORK')
+    clock:SetTexture([[Interface\AddOns\auxForever\textures\clock.tga]])
+    clock:SetSize(16, 16)
+    clock:SetPoint('LEFT', 7, 0)
+    local chevron = btn:CreateTexture(nil, 'ARTWORK')
+    chevron:SetTexture([[Interface\AddOns\auxForever\textures\chevron.tga]])
+    chevron:SetSize(11, 11)
+    chevron:SetPoint('LEFT', clock, 'RIGHT', 3, 0)
+    btn.icons = {clock, chevron}
+    btn:SetScript('OnClick', function() toggle_quick_menu() end)
+    btn:SetScript('OnEnter', function(self)
+        GameTooltip:SetOwner(self, 'ANCHOR_BOTTOM')
+        GameTooltip:AddLine('Quick searches')
+        GameTooltip:AddLine('Your pinned and recent searches', 1, 1, 1)
+        GameTooltip:Show()
+    end)
+    btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
+    history_button = btn
+end
+do
+    local btn = gui.button(frame, 25)
+    btn:SetPoint('LEFT', history_button, 'RIGHT', 4, 0)
     btn:SetWidth(30)
     btn:SetHeight(25)
     btn:SetText('>')

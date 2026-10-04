@@ -65,7 +65,7 @@ do
         end
         if search_index == #searches then
             next_button:Hide()
-            mode_button:SetPoint('LEFT', previous_button, 'RIGHT', 4, 0)
+            mode_button:SetPoint('LEFT', history_button, 'RIGHT', 4, 0)
         else
             next_button:Show()
             mode_button:SetPoint('LEFT', next_button, 'RIGHT', 4, 0)
@@ -250,6 +250,7 @@ function start_search(queries, continuation)
             aux.status_bar:update_status(1, 1)
             search.complete = true
             update_done()
+            remember_search_result(search.filter_string, search.records)
 
             if current_search() == search and frame.results:IsVisible() and #search.records == 0 then
                 set_subtab(SAVED)

@@ -63,6 +63,7 @@ G.hooksecurefunc = function() end; G.FauxScrollFrame_Update = function() end; G.
 G.IsShiftKeyDown = function() return false end; G.IsAltKeyDown = G.IsShiftKeyDown; G.IsControlKeyDown = G.IsShiftKeyDown
 G.PlaySound = function() end; G.ClearCursor = function() end; G.StaticPopup_Show = function() end; G.StaticPopup_Hide = function() end
 for _, s in ipairs{'LIGHTYELLOW_FONT_COLOR_CODE','FONT_COLOR_CODE_CLOSE','GRAY_FONT_COLOR_CODE','HOURS','ITEM_SPELL_CHARGES'} do G[s] = s end
+for i, q in ipairs{'Poor', 'Common', 'Uncommon', 'Rare', 'Epic'} do G['ITEM_QUALITY' .. (i - 1) .. '_DESC'] = q end
 G.ITEM_SPELL_CHARGES = '%d Charges'; G.AUCTION_DURATION_ONE = '2 Hours'; G.AUCTION_DURATION_TWO = '8 Hours'; G.AUCTION_DURATION_THREE = '24 Hours'
 setmetatable(G, {__index=function(_, k) if type(k)=='string' and (k:match('Button$') or k:match('ScrollBar$') or k:match('Text$') or k:match('Icon$') or k:match('Count$') or k:match('Text[LR]%a+%d+$')) then return new_frame(k) end end})
 
@@ -382,6 +383,67 @@ try('status bar idle color', function()
   search.frame:Hide()
   search.update_done()
   check('leaving the search tab ends gold', not aux.status_bar.done)
+end)
+
+-- Quick search menu: pinned (favorites) and recent searches with the last price seen
+try('quick searches', function()
+  local require = loadstring("select(2, ...) 'aux.test8'; return require")('auxForever', addon)
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local recent, favorites = search.recent_searches, search.favorite_searches
+  while tremove(recent) do end
+  while tremove(favorites) do end
+  local copper = {filter_string = 'copper ore/exact', prettified = 'copper ore'}
+  local cloth = {filter_string = 'cloth/20/30', prettified = 'cloth 20-30'}
+  local hide = {filter_string = 'light hide/exact', prettified = 'light hide'}
+  tinsert(recent, copper); tinsert(recent, cloth); tinsert(recent, hide)
+
+  check('never searched shows a hint', search.quick_entry_detail(hide) == 'Search again to see prices')
+  search.remember_search_result('copper ore/exact', {
+    {item_id = 2770, unit_buyout_price = 300}, {item_id = 2770, unit_buyout_price = 277},
+    {item_id = 2770, unit_buyout_price = 100, own = true}})
+  check('cheapest price of other players is kept', copper.last_price == 277)
+  check('single item search keeps the item', copper.item_id == 2770 and copper.last_time ~= nil)
+  check('detail shows the cheapest price', search.quick_entry_detail(copper):find('^Cheapest') ~= nil)
+  search.remember_search_result('cloth/20/30', {{item_id = 2589, unit_buyout_price = 50}, {item_id = 2996, unit_buyout_price = 900}})
+  check('several items keep no item', cloth.item_id == nil and cloth.last_price == 50)
+  search.remember_search_result('light hide/exact', {})
+  check('nothing found has no price', hide.last_price == nil and hide.last_time ~= nil)
+
+  local now = time()
+  check('time: minutes', search.time_ago(now - 300) == '5m ago')
+  check('time: hours', search.time_ago(now - 7200) == '2h ago')
+  check('time: yesterday', search.time_ago(now - 90000) == 'yesterday')
+  check('time: days', search.time_ago(now - 3 * 86400) == '3 days ago')
+
+  search.frame:Show()
+  search.toggle_quick_menu()
+  check('menu opens', search.quick_menu.__shown)
+  local function shown_rows()
+    local n = 0
+    for _, row in ipairs(search.quick_menu_rows) do if row.__shown then n = n + 1 end end
+    return n
+  end
+  check('three recent rows', shown_rows() == 3)
+
+  search.pin_search(cloth)
+  check('pinned search is a favorite', favorites[1] == cloth and search.is_pinned(cloth))
+  check('pinned search is listed once', shown_rows() == 3)
+  search.pin_search(cloth)
+  check('pinning twice adds nothing', #favorites == 1)
+  search.unpin_search(cloth)
+  check('unpinned search is no longer a favorite', #favorites == 0 and not search.is_pinned(cloth))
+  local old = {filter_string = 'linen cloth/exact', prettified = 'linen cloth'}
+  tinsert(favorites, old)
+  search.unpin_search(old)
+  check('unpinning a search that is not recent keeps it in recent', recent[1] == old)
+
+  local row = search.quick_menu_rows[1]
+  row.__scripts.OnClick(row)
+  check('clicking a row closes the menu', not search.quick_menu.__shown)
+  check('clicking a row searches it', search.search_box:GetText() == row.entry.filter_string)
+  search.toggle_quick_menu()
+  search.frame:Hide()
+  check('menu closes with the search tab', not search.quick_menu.__shown)
 end)
 
 fire('AUCTION_HOUSE_CLOSED')

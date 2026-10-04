@@ -28,6 +28,12 @@ Last updated at the end of the first session (2026-10-04).
 5. Later: Tyler sends Simon (shirsig) the project to review before it goes public. The GitHub
    repository can optionally be renamed to auxForever.
 
+## Quick searches (built, needs testing in game)
+
+Clock button next to "<" on the Search tab (tabs/search/quick.lua): pinned searches (aux's
+favorites) and recent searches, with icon, cheapest price seen and time. Mockup:
+https://claude.ai/artifact/6eBC1KgzAvRCNfgmQDGxmB
+
 ## Ideas Tyler mentioned for later
 
 - Expand undercut mode beyond one step (start simple, iterate).
