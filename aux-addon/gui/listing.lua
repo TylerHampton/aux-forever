@@ -80,6 +80,16 @@ local methods = {
 		    self.headHeight = 0
 	    end
 
+	    -- Forever: the parent may be sized by anchors, which have no size until the first layout pass.
+	    -- Count rows from the current height and skip drawing until the frame has been laid out.
+	    local height = self:GetHeight() or 0
+	    if height > 0 then
+		    self.numRows = max(floor((height - HEAD_HEIGHT - HEAD_SPACE) / ROW_HEIGHT), 0)
+	    end
+	    if not self.contentFrame:GetRight() or not self.contentFrame:GetLeft() then
+		    return
+	    end
+
 	    if #(self.rowData or empty) > self.numRows then
 		    self.contentFrame:SetPoint('BOTTOMRIGHT', -15, 0)
 	    else
@@ -273,6 +283,9 @@ function M.new(parent)
     st:SetAllPoints()
 
     st.numRows = max(floor((parent:GetHeight() - HEAD_HEIGHT - HEAD_SPACE) / ROW_HEIGHT), 0)
+    st:SetScript('OnSizeChanged', function(self)
+        if self.colInfo then self:Update() end
+    end)
 
     local contentFrame = CreateFrame('Frame', nil, st)
     contentFrame:SetPoint('TOPLEFT', 0, 0)

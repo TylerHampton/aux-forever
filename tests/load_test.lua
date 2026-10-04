@@ -23,7 +23,11 @@ local function new_frame(name)
     if k == 'GetFont' then return function() return 'font', 12, '' end end
     if k == 'IsEnabled' then return function() return true end end
     if k == 'GetChecked' or k == 'IsMouseOver' or k == 'HasFocus' or k == 'IsForbidden' then return function() return false end end
-    if NUMERIC[k] then return function() return 10 end end
+    if NUMERIC[k] then return function()
+      if G.__geometry and (k == 'GetHeight' or k == 'GetWidth') then return G.__geometry.size end
+      if G.__geometry and (k == 'GetRight' or k == 'GetLeft' or k == 'GetTop' or k == 'GetBottom') then return G.__geometry.edge end
+      return 10
+    end end
     if k:match('^Get') or k:match('^Create') then return function() return new_frame() end end
     return function() end
   end })
@@ -159,6 +163,21 @@ try('buy bar', function()
   tick()
   bar.primary_click()
   check('own auction not bought', buys == 1)
+end)
+
+-- Listings sized by anchors have no size until the first layout pass (Post tab price lists).
+try('listing before layout', function()
+  local require = loadstring("select(2, ...) 'aux.test2'; return require")('aux-addon', addon)
+  local listing = require 'aux.gui.listing'
+  G.__geometry = {size = 0, edge = nil}
+  local st = listing.new(new_frame())
+  st:SetColInfo{{name = 'Price', width = .5}, {name = 'Count', width = .5}}
+  st:SetData{{cols = {{value = '1s'}, {value = '5'}}}}
+  check('no rows before layout', st.numRows == 0)
+  G.__geometry = {size = 200, edge = 100}
+  st.__scripts.OnSizeChanged(st)
+  check('rows appear after layout', st.numRows > 0 and #st.rows == st.numRows)
+  G.__geometry = nil
 end)
 
 fire('AUCTION_HOUSE_CLOSED')
