@@ -490,9 +490,12 @@ do
         function self:update_status(primary_status, secondary_status)
             if min(primary_status or 0, secondary_status or 0) < 1 then
                 self:SetScript('OnUpdate', update_alpha)
+                self.primary_status_bar:SetStatusBarColor(.89, .64, .23, .55)
             else
+                -- auxForever: dim gray when idle, amber only while something is loading
                 self:SetScript('OnUpdate', nil)
                 self:SetAlpha(1)
+                self.primary_status_bar:SetStatusBarColor(.30, .32, .35, .6)
             end
             if primary_status then
                 self.primary_status_bar:SetValue(primary_status)

@@ -85,7 +85,10 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
 ## 10. Undercut mode and duration
 - [ ] Post tab: pick an item. The buyout price equals the cheapest listing (no undercut).
 - [ ] The goblin "Undercut" checkbox above Unit Buyout Price is off. Hovering it explains it.
-- [ ] Tick it. The price drops one step below the cheapest listing. Untick it, it matches again.
+- [ ] Tick it. The price drops one step below the cheapest listing: 1 copper for trade goods,
+      1 silver for gear. Untick it, it matches again.
+- [ ] Gear prices are always whole silver, also when typed with copper (it rounds down).
+- [ ] The bar at the bottom left is dim gray when nothing is loading, amber while searching.
 - [ ] The setting is remembered after `/reload`.
 - [ ] Top right of the Post tab: "How undercutting works on Forever: /aux undercut". Typing that
       prints the explanation; `/aux undercut on` and `/aux undercut off` switch the mode.

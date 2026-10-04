@@ -144,7 +144,7 @@ end
 
 function set_unit_start_price(amount)
 	local settings = read_settings()
-	settings.start_price = amount
+	settings.start_price = amount > 0 and round_price(amount) or 0
 	write_settings(settings)
 end
 
@@ -154,7 +154,7 @@ end
 
 function set_unit_buyout_price(amount)
 	local settings = read_settings()
-	settings.buyout_price = amount
+	settings.buyout_price = amount > 0 and round_price(amount) or 0
 	write_settings(settings)
 end
 
@@ -450,12 +450,19 @@ function deposit_amount()
     return 0
 end
 
--- Forever: prices must be whole silver unless the auction house supports copper values
-function M.round_price(amount)
-    if C_AuctionHouse.SupportsCopperValues() then
-        return floor(amount)
+-- Forever: gear and other items that are not trade goods are priced in whole silver (no gear
+-- listing ever shows copper); trade goods ("commodities") can use copper when the auction house
+-- supports copper values. Prices are rounded down, so the price shown is the price posted.
+function M.price_step()
+    if selected_item and selected_item.commodity and C_AuctionHouse.SupportsCopperValues() then
+        return 1
     end
-    return max(100, floor(amount / 100) * 100)
+    return 100
+end
+
+function M.round_price(amount)
+    local step = price_step()
+    return max(step, floor(amount / step) * step)
 end
 
 -- auxForever: on Forever the newest listing at a price sells first, so by default aux matches the
@@ -463,13 +470,10 @@ end
 function M.undercut(record, stack_size, bid)
     if record.historical_value or record.own or not aux.account_data.post_undercut then
         return record.unit_price
-    elseif selected_item and selected_item.commodity then
-        local step = C_AuctionHouse.SupportsCopperValues() and 1 or 100
-        return max(step, record.unit_price - step)
     else
-        local stack_price = ceil(record.unit_price * (bid and aux.account_data.post_bid == 'stack' and record.stack_size or stack_size))
-        stack_price = stack_price - 1
-        return stack_price / stack_size
+        -- one step below: 1 copper for trade goods, 1 silver for gear
+        local step = price_step()
+        return max(step, round_price(record.unit_price) - step)
     end
 end
 

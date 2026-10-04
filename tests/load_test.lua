@@ -306,18 +306,50 @@ try('dropdown option click', function()
   check('menu closes when focus leaves elsewhere', not menu.__shown)
 end)
 
--- Posting: match the cheapest price by default, one step below it in undercut mode
+-- Posting: match the cheapest price by default, one step below it in undercut mode.
+-- Gear is priced in whole silver; trade goods can use copper.
 try('undercut mode', function()
   local require = loadstring("select(2, ...) 'aux.test6'; return require")('auxForever', addon)
   local aux = require 'aux'
   local post = require 'aux.tabs.post'
+  local post_env = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
   check('undercut mode is off by default', aux.account_data.post_undercut == false)
-  check('default matches the cheapest price', post.undercut({unit_price = 88}, 1) == 88)
+
+  post_env.selected_item = {commodity = true, key = '2447:0'}
+  check('trade goods: default matches the cheapest price', post.undercut({unit_price = 88}, 1) == 88)
   post.set_undercut_mode(true)
-  check('undercut mode goes one step below', post.undercut({unit_price = 88}, 1) == 87)
+  check('trade goods: undercut goes 1 copper below', post.undercut({unit_price = 88}, 1) == 87)
   check('own listing is never undercut', post.undercut({unit_price = 88, own = true}, 1) == 88)
+
+  post_env.selected_item = {commodity = false, key = '15248:0'}
+  check('gear: undercut goes 1 silver below', post.undercut({unit_price = 21000}, 1) == 20900)
+  check('gear: never below 1 silver', post.undercut({unit_price = 100}, 1) == 100)
+  check('gear: prices round down to whole silver', post.round_price(20947) == 20900 and post.round_price(40) == 100)
+  post.set_undercut_mode(false)
+  check('gear: default matches the cheapest price', post.undercut({unit_price = 21000}, 1) == 21000)
+
+  local copper = C_AuctionHouse.SupportsCopperValues
+  C_AuctionHouse.SupportsCopperValues = function() return false end
+  post_env.selected_item = {commodity = true, key = '2447:0'}
+  post.set_undercut_mode(true)
+  check('trade goods without copper: 1 silver below', post.undercut({unit_price = 8800}, 1) == 8700)
+  C_AuctionHouse.SupportsCopperValues = copper
   post.set_undercut_mode(false)
   check('turning it off matches again', post.undercut({unit_price = 88}, 1) == 88 and aux.account_data.post_undercut == false)
+  post_env.selected_item = nil
+end)
+
+-- The status bar is amber only while something loads, dim gray when idle
+try('status bar idle color', function()
+  local require = loadstring("select(2, ...) 'aux.test7'; return require")('auxForever', addon)
+  local gui = require 'aux.gui'
+  local bar = gui.status_bar(new_frame())
+  local color
+  rawset(bar.primary_status_bar, 'SetStatusBarColor', function(_, r) color = r end)
+  bar:update_status(0, 0)
+  check('amber while loading', color == .89)
+  bar:update_status(1, 1)
+  check('gray when idle', color == .30)
 end)
 
 fire('AUCTION_HOUSE_CLOSED')

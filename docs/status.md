@@ -20,8 +20,8 @@ Last updated at the end of the first session (2026-10-04).
    Barlow (`BarlowBasic-*`, no hinting or layout tables), and PT Sans Narrow. At login, chat
    prints which one was used, with a result per candidate. Ask Tyler for that line. If all fail,
    Forever may block addon fonts entirely; then drop the bundled fonts.
-2. The status bar at the bottom left is solid amber when idle and looks loud. Suggested a dim gray
-   when idle; Tyler has not answered.
+2. Done: the status bar is dim gray when idle (Tyler agreed). Gear is now priced in whole silver
+   and undercut by 1 silver; needs checking in game (post a green item in undercut mode).
 3. Parts of the mockup not built yet: "Results N" count, the summary line next to the sub tabs
    ("11 price levels, 6,180 for sale, searched 4s ago"), a search icon in the search box.
    Column names were kept as in aux on purpose.

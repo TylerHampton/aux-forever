@@ -94,6 +94,10 @@ visible confirmation, but gives no evidence. **Unverified**; needs an in-game te
   an item can be sold at all.
 - Deposits come from `CalculateItemDeposit` / `CalculateCommodityDeposit`.
 - Unless `SupportsCopperValues()` is true, prices must be whole silver.
+- **Observed in game (Tyler):** on Forever, gear and other non-commodity items are only ever
+  listed at whole silver amounts, while trade goods show copper prices (88c, 89c). auxForever
+  therefore prices items in whole silver and undercuts them by 1 silver; trade goods use copper
+  when `SupportsCopperValues()` allows it. Not confirmed from Blizzard's code.
 
 Durations: three options, durations 1-3 in the API. Auctionator's Forever build, WOW4E_AH_Trader
 and wow-artisan say 2, 8 and 24 hours; one guide site says 12, 24 and 48. The time-left bands in
