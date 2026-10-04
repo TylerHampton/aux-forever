@@ -1,30 +1,4 @@
-# CurseForge page for auxForever (draft for version 0.1)
-
-Everything below the line is the page description, written in Markdown. The ready-to-paste copy is
-`docs/curseforge-description.md`: the same text with the header image linked from this repository
-(the link points at the working branch; switch it to `main` once that is merged). Keep the two in
-step when editing.
-
-Project settings, modeled on shirsig's aux page:
-
-| Field | Value |
-|---|---|
-| Name | auxForever |
-| Summary | The aux auction house addon by shirsig, brought to World of Warcraft: Forever. |
-| Logo (avatar) | `docs/images/logo.png` (1024 x 1024, made in Recraft, recolored to the addon gold; `logo.svg` is the vector) |
-| Categories | Auction & Economy (main), Tooltip |
-| Game version | Forever (interface 16001) |
-| License | All Rights Reserved. The download includes Simon's code, which has no open license. The GitHub repository stays MIT, which covers only the changes made there. |
-| Source link | https://github.com/TylerHampton/aux-forever |
-| Issues link | https://github.com/TylerHampton/aux-forever/issues |
-| Visibility | Unlisted for now |
-
-First file: the `auxForever` folder zipped (the zip Claude sends), display name `auxForever 0.1`,
-release type Beta.
-
----
-
-[banner]
+![auxForever](https://raw.githubusercontent.com/TylerHampton/aux-forever/claude/modest-volta-4mgmsb/docs/images/banner.png)
 
 **aux by shirsig, granted immortality by Tyler.**
 
