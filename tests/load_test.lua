@@ -605,5 +605,74 @@ try('post auto price', function()
   post.selected_item = nil
 end)
 
+-- Post: per-item amount and the vendor warning under "You get"; deposit explained on mouse over
+try('post money details', function()
+  local require = loadstring("select(2, ...) 'aux.test12'; return require")('auxForever', addon)
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local plain = function(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  post.selected_item = {commodity = true, key = '765:0', item_id = 765, name = 'Silverleaf', quality = 1, count = 20, max_stack = 20, unit_vendor_price = 5}
+  rawset(post.stack_size_input, 'GetNumber', function() return 10 end)
+  rawset(post.stack_count_input, 'GetNumber', function() return 2 end)
+  post.set_unit_buyout_price(100)
+  post.update_item_configuration()
+  check('per item amount shown for several items', plain(post.net_detail.__text):find('each') ~= nil)
+  check('no vendor warning when the auction house pays more', plain(post.net_detail.__text):find('vendor') == nil)
+  post.set_unit_buyout_price(4)
+  post.update_item_configuration()
+  check('vendor warning when a vendor pays more', plain(post.net_detail.__text):find('a vendor pays') ~= nil)
+  check('you get turns red below vendor price', post.net_summary.__text:upper():find('FF0000', 1, true) ~= nil)
+  rawset(post.stack_count_input, 'GetNumber', function() return 1 end)
+  rawset(post.stack_size_input, 'GetNumber', function() return 1 end)
+  post.set_unit_buyout_price(100)
+  post.update_item_configuration()
+  check('no per item line for a single item', post.net_detail.__text == '')
+  rawset(post.stack_size_input, 'GetNumber', nil); rawset(post.stack_count_input, 'GetNumber', nil)
+  post.selected_item = nil
+end)
+
+-- Tables: level first, units for sale, and no Bid column when every row is a trade good
+try('table columns', function()
+  local require = loadstring("select(2, ...) 'aux.test13'; return require")('auxForever', addon)
+  local al = require 'aux.gui.auction_listing'
+  for name, columns in pairs{search = al.search_columns, auctions = al.auctions_columns, bids = al.bids_columns} do
+    check(name .. ': level is the first column', columns[1].title == 'Lvl')
+    check(name .. ': item is second', columns[2].title == 'Item')
+    local titles = {}
+    for _, c in ipairs(columns) do titles[#titles + 1] = type(c.title) == 'table' and c.title[1] or c.title end
+    local joined = table.concat(titles, '|')
+    check(name .. ': no Auctions or Stack Size column', not joined:find('Auctions|', 1, true) and not joined:find('Stack', 1, true))
+  end
+  check('search: For sale column', al.search_columns[3].title == 'For sale')
+  local cell = {text = new_frame()}
+  al.search_columns[3].fill(cell, {count = 1032}, 1032, 0, false)
+  check('for sale shows units', cell.text.__text == 1032)
+  al.search_columns[3].fill(cell, {count = 1}, 6, 2, false)
+  check('for sale shows your own units', tostring(cell.text.__text):find('(2)', 1, true) ~= nil)
+
+  local rt = al.new(new_frame(), 19, al.search_columns)
+  local function bid_hidden() return rt.hide_bid == true end
+  rt:SetDatabase({{commodity = true, count = 20, item_key = 'a', search_signature = 'a1', name = 'A', requirement = 0, unit_buyout_price = 7, buyout_price = 140, unit_bid_price = 0, bid_price = 0, duration = 2, sniping_signature = 'x'}})
+  check('bid column hidden for trade goods only', bid_hidden())
+  rt:SetDatabase({{commodity = true, count = 20, item_key = 'a', search_signature = 'a1', name = 'A', requirement = 0, unit_buyout_price = 7, buyout_price = 140, unit_bid_price = 0, bid_price = 0, duration = 2},
+                  {count = 1, auction_count = 3, item_key = 'b', search_signature = 'b1', name = 'B', requirement = 10, unit_buyout_price = 900, buyout_price = 900, unit_bid_price = 500, bid_price = 500, high_bid = 0, duration = 3}})
+  check('bid column shown when gear is in the results', not bid_hidden())
+end)
+
+-- Post price lists: units for sale, time left, price, % of usual
+try('post listing columns', function()
+  local require = loadstring("select(2, ...) 'aux.test14'; return require")('auxForever', addon)
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local data
+  rawset(post.buyout_listing, 'SetData', function(_, rows) data = rows end)
+  post.clear_auctions()
+  post.record_auction({item_key = '2589:0', commodity = true, unit_buyout_price = 40, count = 206, duration = 3, owner = 'Someone'})
+  post.selected_item = {commodity = true, key = '2589:0', item_id = 2589, name = 'Linen Cloth', quality = 1, count = 20, max_stack = 20}
+  post.update_auction_listings()
+  check('post list has four columns', data and data[1] and #data[1].cols == 4)
+  check('post list first column is units for sale', data and data[1] and data[1].cols[1].value == 206)
+  rawset(post.buyout_listing, 'SetData', nil)
+  post.selected_item = nil
+end)
+
 fire('AUCTION_HOUSE_CLOSED')
 print('done, errors: ' .. errors)

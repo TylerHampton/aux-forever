@@ -94,7 +94,7 @@ do
         aux.status_bar:update_status(1, 1)
 
         search.table = tables[#searches]
-        search.table:SetSort(1, 2, 3, 4, 5, 6, 7, 8, 9)
+        search.table:SetSort(1, 2, 3, 4, 5, 6, 7, 8)
         search.table:Reset()
         search.table:SetDatabase(search.records)
 

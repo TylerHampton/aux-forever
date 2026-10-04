@@ -94,12 +94,13 @@ bid_listing:SetHandler('OnDoubleClick', function(table, row_data, column, button
 end)
 
 buyout_listing = listing.new(frame.buyout_listing)
+-- auxForever: same structure as the other tables: units for sale (aux's Auctions and Stack Size
+-- in one), time left, price, and its share of the usual price
 buyout_listing:SetColInfo{
-    {name='Auctions', width=.15, align='CENTER'},
-    {name='Time Left', width=.15, align='CENTER'},
-    {name='Stack Size', width=.15, align='CENTER'},
-    {name='Auction Buyout (per item)', width=.4, align='RIGHT'},
-    {name='% Hist. Value', width=.15, align='CENTER'},
+    {name='For sale', width=.18, align='CENTER'},
+    {name='Time Left', width=.17, align='CENTER'},
+    {name='Auction Buyout (per item)', width=.45, align='RIGHT'},
+    {name='% Hist. Value', width=.2, align='CENTER'},
 }
 buyout_listing:SetSelection(function(data)
 	return selected_item and (data.record == get_buyout_selection() or data.record.historical_value and get_buyout_selection() and get_buyout_selection().historical_value)
@@ -494,9 +495,23 @@ do
     total_summary:SetPoint('LEFT', posting_summary, 'RIGHT', 24, 0)
     net_summary = summary_label()
     net_summary:SetFont(gui.font, gui.font_size.large)
-    net_summary:SetPoint('RIGHT', post_button, 'LEFT', -16, 0)
+    net_summary:SetPoint('BOTTOMRIGHT', post_button, 'LEFT', -16, -2)
+    -- under "You get": the amount per item, and a warning when a vendor pays more
+    net_detail = gui.label(frame.parameters, gui.font_size.small)
+    net_detail:SetPoint('TOPRIGHT', post_button, 'LEFT', -16, -1)
     deposit = summary_label()
     deposit:SetPoint('RIGHT', net_summary, 'LEFT', -22, 0)
+    -- the deposit explained on mouse over (a label cannot take the mouse, so a frame over it)
+    local hover = CreateFrame('Frame', nil, frame.parameters)
+    hover:SetAllPoints(deposit)
+    hover:EnableMouse(true)
+    hover:SetScript('OnEnter', function(self)
+        GameTooltip:SetOwner(self, 'ANCHOR_TOP')
+        GameTooltip:AddLine('Deposit')
+        GameTooltip:AddLine('Paid when you post. You get it back when the item sells; it is kept if the auction expires or you cancel it.', 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    hover:SetScript('OnLeave', function() GameTooltip:Hide() end)
 end
 
 -- trade goods: stack size, stacks and one price; gear: a count, a starting bid and a buyout
@@ -538,11 +553,10 @@ function aux.event.AUX_LOADED()
 	if aux.account_data.post_bid then
         frame.bid_listing:Show()
         bid_listing:SetColInfo{
-            {name='Auctions', width=.17, align='CENTER'},
-            {name='Time\nLeft', width=.11, align='CENTER'},
-            {name='Stack\nSize', width=.11, align='CENTER'},
-            {name='Auction Bid\n' .. (aux.account_data.post_bid == 'unit' and '(per item)' or '(per stack)'), width=.4, align='RIGHT'},
-            {name='% Hist.\nValue', width=.21, align='CENTER'},
+            {name='For sale', width=.2, align='CENTER'},
+            {name='Time\nLeft', width=.15, align='CENTER'},
+            {name='Auction Bid\n' .. (aux.account_data.post_bid == 'unit' and '(per item)' or '(per stack)'), width=.43, align='RIGHT'},
+            {name='% Hist.\nValue', width=.22, align='CENTER'},
         }
         -- side by side, each half of the space under the parameters
         frame.bid_listing:SetPoint('TOPRIGHT', frame.parameters, 'BOTTOM', -1.25, -2.5)
@@ -550,11 +564,10 @@ function aux.event.AUX_LOADED()
         frame.buyout_listing:SetPoint('TOPLEFT', frame.parameters, 'BOTTOM', 1.25, -2.5)
         frame.buyout_listing:SetPoint('BOTTOMRIGHT', 0, 0)
         buyout_listing:SetColInfo{
-            {name='Auctions', width=.17, align='CENTER'},
-            {name='Time\nLeft', width=.11, align='CENTER'},
-            {name='Stack\nSize', width=.12, align='CENTER'},
-            {name='Auction Buyout\n(per item)', width=.4, align='RIGHT'},
-            {name='% Hist.\nValue', width=.20, align='CENTER'},
+            {name='For sale', width=.2, align='CENTER'},
+            {name='Time\nLeft', width=.15, align='CENTER'},
+            {name='Auction Buyout\n(per item)', width=.43, align='RIGHT'},
+            {name='% Hist.\nValue', width=.22, align='CENTER'},
         }
 	end
 end

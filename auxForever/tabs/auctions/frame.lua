@@ -17,7 +17,7 @@ frame.listing:SetPoint('BOTTOMLEFT', aux.frame.content, 'BOTTOMLEFT', 0, 0)
 frame.listing:SetPoint('BOTTOMRIGHT', aux.frame.content, 'BOTTOMRIGHT', 0, 0)
 
 listing = auction_listing.new(frame.listing, 22, auction_listing.auctions_columns)
-listing:SetSort(1, 2, 3, 4, 5, 6, 7, 8)
+listing:SetSort(1, 2, 3, 4, 5, 6, 7)
 listing:Reset()
 listing:SetHandler('OnClick', function(row, button)
 	if IsAltKeyDown() and aux.account_data.action_shortcuts then

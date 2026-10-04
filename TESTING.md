@@ -103,6 +103,17 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
 - [ ] Post something small. It appears on the auction house. Refresh is at the bottom left.
 - [ ] Filter Builder dropdowns (class, subclass, slot, quality) can be changed.
 
+## 10b. Columns and money details
+- [ ] Search, Auctions and Bids tables: Lvl is a narrow first column, then Item. "For sale"
+      (Search) or "Quantity" (Auctions, Bids) replaces Auctions and Stack Size and shows units.
+- [ ] A search with only trade goods (Light Feather) has no Auction Bid column; a search with gear
+      has it.
+- [ ] Post tab lists: For sale, Time Left, price, % Hist. Value.
+- [ ] Post several items: under "You get" a small line shows the amount per item.
+- [ ] Post at a price below what a vendor pays: "You get" turns red and the line says "a vendor
+      pays ...".
+- [ ] Hover the deposit: a tooltip explains it comes back when the item sells.
+
 ## 11. Quick searches
 - [ ] Next to `<` on the Search tab is a clock button with a small arrow. Click it: a menu opens
       with Pinned and Recent, and the button turns amber.

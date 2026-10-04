@@ -191,11 +191,12 @@ function update_auction_listing(listing, records, reference)
 		for _, record in pairs(records[selected_item.key] or empty) do
 			local price_color = tonumber(tostring(undercut(record, stack_size_input:GetNumber(), listing == 'bid'))) < reference and aux.color.red
 			local price = record.unit_price * (listing == 'bid' and aux.account_data.post_bid == 'stack' and record.stack_size or 1)
+			-- units for sale at this price (yours in green)
+			local units = record.count * (record.stack_size or 1)
 			tinsert(rows, {
 				cols = {
-                { value = record.own and aux.color.green(record.count) or record.count },
+                { value = record.own and aux.color.green(units) or units },
 				{ value = al.time_left(record.duration) },
-				{ value = record.stack_size == stack_size and aux.color.green(record.stack_size) or record.stack_size },
 				{ value = money.to_string(price, true, nil, price_color) },
 				{ value = historical_value and gui.percentage_historical(aux.round(price / historical_value * 100)) or '---' },
             },
@@ -205,7 +206,6 @@ function update_auction_listing(listing, records, reference)
 		if historical_value then
 			tinsert(rows, {
 				cols = {
-				{ value = '---' },
 				{ value = '---' },
 				{ value = '---' },
 				{ value = money.to_string(historical_value * (listing == 'bid' and aux.account_data.post_bid == 'stack' and stack_size_input:GetNumber() or 1), true, nil, aux.color.green) },
@@ -447,7 +447,7 @@ function M.post_quantity()
 end
 
 function update_item_configuration()
-    local summary = {posting_summary, total_summary, deposit, net_summary, price_note, price_caption, mode_switch}
+    local summary = {posting_summary, total_summary, deposit, net_summary, net_detail, price_note, price_caption, mode_switch}
 	if not selected_item then
         refresh_button:Disable()
 
@@ -505,7 +505,21 @@ function update_item_configuration()
             local out = amount > GetMoney() and aux.color.red or aux.color.negative
             deposit:SetText('Deposit ' .. out('-') .. money.to_string(amount, true, nil, out))
         end
-        net_summary:SetText('You get ' .. money.to_string(floor(total * (1 - AUCTION_CUT)), true, nil, aux.color.positive))
+        do
+            -- what the sale brings in; red, with a note, when a vendor would pay more for these
+            local net = floor(total * (1 - AUCTION_CUT))
+            local vendor = (selected_item.unit_vendor_price or 0) * quantity
+            local below_vendor = vendor > 0 and net < vendor
+            local color = below_vendor and aux.color.red or aux.color.positive
+            net_summary:SetText('You get ' .. money.to_string(net, true, nil, color))
+            local each = quantity > 1 and (money.to_string(floor(unit_price * (1 - AUCTION_CUT)), true) .. aux.color.label.enabled(' each')) or ''
+            if below_vendor then
+                local vendor_text = aux.color.red('a vendor pays ') .. money.to_string(selected_item.unit_vendor_price, true, nil, aux.color.red) .. aux.color.red(quantity > 1 and ' each' or '')
+                net_detail:SetText(each ~= '' and (each .. aux.color.label.enabled(' · ') .. vendor_text) or vendor_text)
+            else
+                net_detail:SetText(each)
+            end
+        end
         post_button:SetText('Post ' .. quantity .. (quantity == 1 and ' item' or ' items'))
 
         refresh_button:Enable()

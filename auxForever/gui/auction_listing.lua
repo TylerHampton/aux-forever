@@ -87,7 +87,48 @@ function status_code(record)
     end
 end
 
+-- auxForever: columns shared by the tables. Level is a narrow first column everywhere. Quantity
+-- replaces aux's Auctions and Stack Size: on Forever a trade good row is one price tier and gear
+-- rows are identical single items, so the units for sale at that price is the useful number.
+local function level_column()
+    return {
+        title = 'Lvl',
+        width = .03,
+        align = 'CENTER',
+        fill = function(cell, record)
+            local requirement = record.requirement or 0
+            local display_level = max(requirement, 1)
+            display_level = UnitLevel'player' < requirement and aux.color.red(display_level) or display_level
+            cell.text:SetText(display_level)
+        end,
+        cmp = function(record_a, record_b, desc)
+            return sort_util.compare(record_a.requirement or 0, record_b.requirement or 0, desc)
+        end,
+    }
+end
+
+-- units: the units on this row (or of all rows of a collapsed item), own_units: the player's
+local function quantity_column(title)
+    return {
+        title = title,
+        width = .065,
+        align = 'CENTER',
+        fill = function(cell, record, units, own_units, expandable)
+            local text = units and units > 0 and units or '?'
+            text = expandable and aux.color.link(text) or text
+            if own_units and own_units > 0 then
+                text = text .. ' ' .. aux.color.yellow('(' .. own_units .. ')')
+            end
+            cell.text:SetText(text)
+        end,
+        cmp = function(record_a, record_b, desc)
+            return sort_util.compare(record_a.count * (record_a.auction_count or 1), record_b.count * (record_b.auction_count or 1), desc)
+        end,
+    }
+end
+
 M.search_columns = {
+    level_column(),
     {
         title = 'Item',
         width = .35,
@@ -97,54 +138,7 @@ M.search_columns = {
             return sort_util.compare(record_a.name, record_b.name, desc)
         end,
     },
-    {
-        title = 'Lvl',
-        width = .035,
-        align = 'CENTER',
-        fill = function(cell, record)
-            local display_level = max(record.requirement, 1)
-            display_level = UnitLevel'player' < record.requirement and aux.color.red(display_level) or display_level
-            cell.text:SetText(display_level)
-        end,
-        cmp = function(record_a, record_b, desc)
-            return sort_util.compare(record_a.requirement, record_b.requirement, desc)
-        end,
-    },
-    {
-        title = 'Auctions',
-        width = .06,
-        align = 'CENTER',
-        fill = function(cell, record, count, own, expandable)
-            local numAuctionsText = expandable and aux.color.link(count) or count
-            if own > 0 then
-                numAuctionsText = numAuctionsText .. (' ' .. aux.color.yellow('(' .. own .. ')'))
-            end
-            cell.text:SetText(numAuctionsText)
-        end,
-        cmp = function(record_a, record_b, desc)
-            return sort_util.EQ
---            if sortKey == 'numAuctions' then
---                if a.children then
---                    aVal = a.totalAuctions
---                    bVal = b.totalAuctions
---                else
---                    aVal = a.numAuctions
---                    bVal = b.numAuctions
---                end
---            end
-        end,
-    },
-    {
-        title = 'Stack\nSize',
-        width = .055,
-        align = 'CENTER',
-        fill = function(cell, record)
-            cell.text:SetText(record.count)
-        end,
-        cmp = function(record_a, record_b, desc)
-            return sort_util.compare(record_a.count, record_b.count, desc)
-        end,
-    },
+    quantity_column('For sale'),
     {
         title = 'Time\nLeft',
         width = .04,
@@ -177,6 +171,7 @@ M.search_columns = {
     },
     {
         title = {'Auction Bid\n(per item)', 'Auction Bid\n(per stack)'},
+        bid = true,
         width = .125,
         align = 'RIGHT',
         toggle = 'price_per_unit',
@@ -264,6 +259,7 @@ M.search_columns = {
 }
 
 M.auctions_columns = {
+    level_column(),
     {
         title = 'Item',
         width = .35,
@@ -273,59 +269,7 @@ M.auctions_columns = {
             return sort_util.compare(record_a.name, record_b.name, desc)
         end,
     },
-    {
-        title = 'Lvl',
-        width = .035,
-        align = 'CENTER',
-        fill = function(cell, record)
-            local display_level = max(record.requirement, 1)
-            display_level = UnitLevel('player') < record.requirement and aux.color.red(display_level) or display_level
-            cell.text:SetText(display_level)
-        end,
-        cmp = function(record_a, record_b, desc)
-            return sort_util.compare(record_a.requirement, record_b.requirement, desc)
-        end,
-    },
-    {
-        title = 'Auctions',
-        width = .06,
-        align = 'CENTER',
-        fill = function(cell, record, count, own, expandable)
-            local numAuctionsText = expandable and aux.color.link(count) or count
-            cell.text:SetText(numAuctionsText)
-        end,
-        cmp = function(record_a, record_b, desc)
-            return sort_util.EQ
-            --            if sortKey == 'numAuctions' then
-            --                if a.children then
-            --                    aVal = a.totalAuctions
-            --                    bVal = b.totalAuctions
-            --                else
-            --                    aVal = a.numAuctions
-            --                    bVal = b.numAuctions
-            --                end
-            --            end
-        end,
-    },
-    {
-        title = 'Stack\nSize',
-        width = .055,
-        align = 'CENTER',
-        fill = function(cell, record)
-            cell.text:SetText(record.count > 0 and record.count or '?')
-        end,
-        cmp = function(record_a, record_b, desc)
-            if record_a.sale_status == 1 and record_b.sale_status == 1 then
-                return sort_util.EQ
-            elseif record_a.sale_status == 1 then
-                return sort_util.GT
-            elseif record_b.sale_status == 1 then
-                return sort_util.LT
-            else
-                return sort_util.compare(record_a.count, record_b.count, desc)
-            end
-        end,
-    },
+    quantity_column('Quantity'),
     {
         title = 'Time\nLeft',
         width = .04,
@@ -351,6 +295,7 @@ M.auctions_columns = {
     },
     {
         title = {'Auction Bid\n(per item)', 'Auction Bid\n(per stack)'},
+        bid = true,
         width = .125,
         align = 'RIGHT',
         toggle = 'price_per_unit',
@@ -459,6 +404,7 @@ M.auctions_columns = {
 }
 
 M.bids_columns = {
+    level_column(),
     {
         title = 'Item',
         width = .35,
@@ -468,38 +414,7 @@ M.bids_columns = {
             return sort_util.compare(record_a.name, record_b.name, desc)
         end,
     },
-    {
-        title = 'Auctions',
-        width = .06,
-        align = 'CENTER',
-        fill = function(cell, record, count, own, expandable)
-            local numAuctionsText = expandable and aux.color.link(count) or count
-            cell.text:SetText(numAuctionsText)
-        end,
-        cmp = function(record_a, record_b, desc)
-            return sort_util.EQ
-            --            if sortKey == 'numAuctions' then
-            --                if a.children then
-            --                    aVal = a.totalAuctions
-            --                    bVal = b.totalAuctions
-            --                else
-            --                    aVal = a.numAuctions
-            --                    bVal = b.numAuctions
-            --                end
-            --            end
-        end,
-    },
-    {
-        title = 'Stack\nSize',
-        width = .055,
-        align = 'CENTER',
-        fill = function(cell, record)
-            cell.text:SetText(record.count)
-        end,
-        cmp = function(record_a, record_b, desc)
-            return sort_util.compare(record_a.count, record_b.count, desc)
-        end,
-    },
+    quantity_column('Quantity'),
     {
         title = 'Time\nLeft',
         width = .04,
@@ -532,6 +447,7 @@ M.bids_columns = {
     },
     {
         title = {'Auction Bid\n(per item)', 'Auction Bid\n(per stack)'},
+        bid = true,
         width = .125,
         align = 'RIGHT',
         toggle = 'price_per_unit',
@@ -617,18 +533,24 @@ end
 local methods = {
 
     ResizeColumns = function(self)
+        local function column_width(cell)
+            return (cell.info.bid and self.hide_bid) and 0 or cell.info.width
+        end
         local weight = 0
         for _, cell in pairs(self.headCells) do
-            weight = weight + cell.info.width
+            weight = weight + column_width(cell)
         end
         local right, left = self.contentFrame:GetRight(), self.contentFrame:GetLeft()
         if not right or not left then return end
         weight = (right - left) / weight
         for i, cell in pairs(self.headCells) do
-            local width = cell.info.width * weight
-            cell:SetWidth(width)
+            local width = column_width(cell) * weight
+            local shown = width > 0
+            cell:SetWidth(max(width, .001))
+            if shown then cell:Show() else cell:Hide() end
             for _, row in pairs(self.rows) do
-                row.cells[i]:SetWidth(width)
+                row.cells[i]:SetWidth(max(width, .001))
+                if shown then row.cells[i]:Show() else row.cells[i]:Hide() end
             end
         end
     end,
@@ -752,17 +674,29 @@ local methods = {
             end
         end
 
+	    -- auxForever: rows show units for sale (see quantity_column), so total units per item
 	    for _, v in ipairs(self.rowInfo) do
-            local totalAuctions, totalPlayerAuctions = 0, 0
+            local totalUnits, totalPlayerUnits = 0, 0
             for _, childInfo in pairs(v.children) do
-                totalAuctions = totalAuctions + childInfo.count
+                childInfo.units = childInfo.count * (childInfo.record.count or 1)
+                totalUnits = totalUnits + childInfo.units
                 if info.is_player(childInfo.record.owner) then
-                    totalPlayerAuctions = totalPlayerAuctions + childInfo.count
+                    totalPlayerUnits = totalPlayerUnits + childInfo.units
                 end
             end
-            v.totalAuctions = totalAuctions
-            v.totalPlayerAuctions = totalPlayerAuctions
+            v.totalUnits = totalUnits
+            v.totalPlayerUnits = totalPlayerUnits
 	    end
+
+	    -- auxForever: trade goods cannot be bid on, so the Bid column hides when every row is one
+	    local all_commodities = #records > 0
+	    for _, record in ipairs(records) do
+	        if not record.commodity then
+	            all_commodities = false
+	            break
+	        end
+	    end
+	    self.hide_bid = all_commodities
     end,
 
     UpdateRows = function(self)
@@ -833,17 +767,17 @@ local methods = {
         for _, v in ipairs(self.rowInfo) do
             if self.expanded[v.expandKey] then
                 for j, childInfo in ipairs(v.children) do
-                    self:SetRowInfo(rowIndex, childInfo.record, childInfo.count, 0, j > 1, false, v.expandKey)
+                    self:SetRowInfo(rowIndex, childInfo.record, childInfo.units, 0, j > 1, false, v.expandKey)
                     rowIndex = rowIndex + 1
                 end
             else
-                self:SetRowInfo(rowIndex, v.children[1].record, v.totalAuctions, #v.children > 1 and v.totalPlayerAuctions or 0, false, #v.children > 1, v.expandKey)
+                self:SetRowInfo(rowIndex, v.children[1].record, v.totalUnits, #v.children > 1 and v.totalPlayerUnits or 0, false, #v.children > 1, v.expandKey)
                 rowIndex = rowIndex + 1
             end
         end
     end,
 
-    SetRowInfo = function(self, rowIndex, record, totalAuctions, totalPlayerAuctions, indented, expandable, expandKey)
+    SetRowInfo = function(self, rowIndex, record, units, own_units, indented, expandable, expandKey)
         if rowIndex <= 0 or rowIndex > #self.rows then return end
         local row = self.rows[rowIndex]
         row:Show()
@@ -859,7 +793,7 @@ local methods = {
         row.expandKey = expandKey
 
         for i, column in pairs(self.columns) do
-	        column.fill(row.cells[i], record, totalAuctions, totalPlayerAuctions, expandable, indented)
+	        column.fill(row.cells[i], record, units, own_units, expandable, indented)
         end
     end,
 
