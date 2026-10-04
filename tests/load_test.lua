@@ -1,4 +1,5 @@
 -- Run from the auxForever folder: lua5.1 ../tests/load_test.lua
+-- and again without the bundled font: AUX_TEST_FONT_FAIL=1 lua5.1 ../tests/load_test.lua
 -- Load test: stub the WoW API, load every file in TOC order, then fire the startup events
 -- (ADDON_LOADED, PLAYER_LOGIN), open the auction house, run OnUpdate scripts a few times and
 -- walk through a commodity purchase.
@@ -20,7 +21,22 @@ local function new_frame(name)
     if k == 'IsShown' or k == 'IsVisible' then return function(self) return self.__shown end end
     if k == 'SetText' then return function(self, x) self.__text = x end end
     if k == 'GetText' then return function(self) return self.__text end end
-    if k == 'GetFont' then return function() return 'font', 12, '' end end
+    -- like the game: SetFont needs a font file and a height above 0. With AUX_TEST_FONT_FAIL set,
+    -- the bundled font cannot be loaded (as after a /reload right after installing)
+    if k == 'SetFont' then return function(self, a, b, c, d)
+      local path, height = a, b
+      if a == 'p' or a == 'h1' or a == 'h2' or a == 'h3' then path, height = b, c end -- SimpleHTML
+      if type(path) ~= 'string' then error("bad argument #1 to 'SetFont'", 2) end
+      if not height or height <= 0 then error('Invalid font height', 2) end
+      if os.getenv('AUX_TEST_FONT_FAIL') and path:find('auxForever') then self.__font, self.__height = nil, 0; return false end
+      self.__font, self.__height = path, height
+      return true
+    end end
+    if k == 'SetFontObject' then return function(self) self.__font, self.__height = [[Fonts\ARIALN.TTF]], 14 end end
+    if k == 'GetFont' then return function(self)
+      if self.__height then return self.__font, self.__height, '' end
+      return 'font', 12, ''
+    end end
     if k == 'IsEnabled' then return function() return true end end
     if k == 'GetChecked' or k == 'IsMouseOver' or k == 'HasFocus' or k == 'IsForbidden' then return function() return false end end
     if NUMERIC[k] then return function()
@@ -251,6 +267,8 @@ try('restyle', function()
   rawset(primary, 'GetFontString', function() return label end)
   gui.set_primary(primary)
   check('primary button font height is never 0', #heights == 1 and heights[1] > 0)
+  check('bundled font status is reported', gui.bundled_font_loaded == (os.getenv('AUX_TEST_FONT_FAIL') == nil))
+  check('a font is always set', type(gui.font) == 'string' and type(gui.font_bold) == 'string')
 end)
 
 fire('AUCTION_HOUSE_CLOSED')

@@ -16,8 +16,12 @@ local game_font = (function()
     font:SetFontObject(NumberFont_Normal_Med)
     return font:GetFont()
 end)()
-M.font = usable_font[[Interface\AddOns\auxForever\fonts\BarlowSemiCondensed-Medium.ttf]] or game_font
-M.font_bold = usable_font[[Interface\AddOns\auxForever\fonts\BarlowSemiCondensed-Bold.ttf]] or M.font
+-- (local variables: reading a value back through M gives nil)
+local regular_font = usable_font[[Interface\AddOns\auxForever\fonts\BarlowSemiCondensed-Medium.ttf]]
+local bold_font = usable_font[[Interface\AddOns\auxForever\fonts\BarlowSemiCondensed-Bold.ttf]]
+M.font = regular_font or game_font
+M.font_bold = bold_font or regular_font or game_font
+M.bundled_font_loaded = regular_font ~= nil
 
 M.font_size = aux.immutable-{
     small = 13,
