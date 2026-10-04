@@ -2,9 +2,24 @@
 
 A port of [aux](https://github.com/shirsig/aux-addon) by shirsig to World of Warcraft: Forever.
 
-aux is the work of shirsig. This repository adapts it to the Forever client and is kept private
-until shirsig has been asked about publishing it. The upstream code has no license file, so the
-MIT license in this repository only covers changes made here, not aux itself.
+## Credit
+
+aux was created and is maintained by [shirsig](https://github.com/shirsig) (Simon). The search
+filter language, saved searches, price history, the tabs and the whole idea of how aux works
+are his. This project only adapts his work to the Forever client and builds on it.
+
+Simon gave permission for this port by email in 2026:
+
+> "as far as I'm concerned you can feel free to use it, work on it and distribute it in any way
+> you please."
+
+He is not involved in the Forever version, so please report problems with it here rather than
+to him. For aux on Classic Era, see [shirsig/aux-addon](https://github.com/shirsig/aux-addon).
+
+## License
+
+The original aux code has no license file; it is used here with Simon's permission above. The
+MIT license in this repository covers only the changes made here, not aux itself.
 
 ## Why a port is needed
 
