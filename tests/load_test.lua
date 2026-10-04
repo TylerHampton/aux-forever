@@ -1,5 +1,6 @@
 -- Run from the auxForever folder: lua5.1 ../tests/load_test.lua
--- and again without the bundled font: AUX_TEST_FONT_FAIL=1 lua5.1 ../tests/load_test.lua
+-- and with fonts failing to load: AUX_TEST_FONT_FAIL=1 (all bundled fonts),
+-- AUX_TEST_FONT_FAIL=BarlowSemiCondensed or AUX_TEST_FONT_FAIL=Barlow (some of them)
 -- Load test: stub the WoW API, load every file in TOC order, then fire the startup events
 -- (ADDON_LOADED, PLAYER_LOGIN), open the auction house, run OnUpdate scripts a few times and
 -- walk through a commodity purchase.
@@ -28,7 +29,9 @@ local function new_frame(name)
       if a == 'p' or a == 'h1' or a == 'h2' or a == 'h3' then path, height = b, c end -- SimpleHTML
       if type(path) ~= 'string' then error("bad argument #1 to 'SetFont'", 2) end
       if not height or height <= 0 then error('Invalid font height', 2) end
-      if os.getenv('AUX_TEST_FONT_FAIL') and path:find('auxForever') then self.__font, self.__height = nil, 0; return false end
+      local fail = os.getenv('AUX_TEST_FONT_FAIL') -- '1': every bundled font, otherwise a file name part
+      if fail == '' then fail = nil end
+      if fail and path:find('auxForever') and (fail == '1' or path:find(fail, 1, true)) then self.__font, self.__height = nil, 0; return false end
       self.__font, self.__height = path, height
       return true
     end end
@@ -267,7 +270,16 @@ try('restyle', function()
   rawset(primary, 'GetFontString', function() return label end)
   gui.set_primary(primary)
   check('primary button font height is never 0', #heights == 1 and heights[1] > 0)
-  check('bundled font status is reported', gui.bundled_font_loaded == (os.getenv('AUX_TEST_FONT_FAIL') == nil))
+  local fail = os.getenv('AUX_TEST_FONT_FAIL')
+  if fail == '' then fail = nil end
+  check('bundled font status is reported', gui.bundled_font_loaded == (fail ~= '1'))
+  if fail == 'BarlowSemiCondensed' then
+    check('falls back to the basic Barlow', gui.bundled_font_name == 'Barlow basic' and gui.font:find('BarlowBasic') ~= nil)
+  elseif fail == 'Barlow' then
+    check('falls back to PT Sans Narrow', gui.bundled_font_name == 'PT Sans Narrow' and gui.font_bold:find('PTSansNarrow%-Bold') ~= nil)
+  elseif not fail then
+    check('uses Barlow when it loads', gui.bundled_font_name == 'Barlow')
+  end
   check('a font is always set', type(gui.font) == 'string' and type(gui.font_bold) == 'string')
 end)
 

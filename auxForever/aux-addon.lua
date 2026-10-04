@@ -39,8 +39,11 @@ do
             local gui = require 'aux.gui'
             if not gui.bundled_font_loaded then
                 print('the auxForever font could not be loaded, so the game font is used. After installing or updating auxForever, exit the game fully and start it again.'
-                    .. (gui.bundled_font_available_now() and ' (font check: loads late' or ' (font check: not readable')
-                    .. '; ' .. gui.font_diagnostics() .. ')')
+                    .. (gui.bundled_font_available_now() and ' (font check: loads late; ' or ' (font check: not readable; ')
+                    .. gui.font_diagnostics() .. ')')
+            elseif gui.bundled_font_name ~= 'Barlow' then
+                -- temporary while the font is being sorted out on Forever
+                print('font: using ' .. gui.bundled_font_name .. ' (' .. gui.font_diagnostics() .. ')')
             end
 		else
 			_M[event](arg1, ...)
