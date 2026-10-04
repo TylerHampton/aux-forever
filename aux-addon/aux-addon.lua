@@ -1,6 +1,7 @@
 select(2, ...) 'aux'
 
 local post = require 'aux.tabs.post'
+local money = require 'aux.util.money'
 
 function M.print(...)
 	DEFAULT_CHAT_FRAME:AddMessage(LIGHTYELLOW_FONT_COLOR_CODE .. '<aux> ' .. join(map({...}, tostring), ' '))
@@ -29,7 +30,7 @@ do
 		if event == 'ADDON_LOADED' then
             if arg1 == 'aux-addon' then
                 for _, f in ipairs(handlers) do f(arg1, ...) end
-            elseif arg1 == 'Blizzard_AuctionUI' then
+            elseif arg1 == 'Blizzard_AuctionHouseUI' then
                 for _, f in ipairs(handlers3) do f(arg1, ...) end
             end
 		elseif event == 'PLAYER_LOGIN' then
@@ -58,6 +59,7 @@ function event.AUX_LOADED()
         post_full_scan = nil,
         post_bid = nil,
         post_duration = post.DURATION_8,
+        replicate_time = 0,
         items = {},
         item_ids = {},
         unused_item_ids = {},
@@ -68,6 +70,7 @@ function event.AUX_LOADED()
         local key = format('%s|%s', GetRealmName(), UnitName'player')
         aux.character[key] = aux.character[key] or {}
         M.character_data = assign(aux.character[key], {
+            bid_auction_ids = {},
             tooltip = {
                 value = true,
                 merchant_sell = true,
@@ -142,37 +145,121 @@ do
         return locked
     end
 
-	function M.place_bid(type, index, amount, on_success)
-		if locked then
+	-- Forever: bids and buyouts go through C_AuctionHouse.PlaceBid with the auction's ID.
+	-- Must be called from a click handler (hardware event).
+	function M.place_bid(auction_id, amount, on_success, on_failure)
+		if locked or not auction_id then
             return
         end
-		local money = GetMoney()
-		PlaceAuctionBid(type, index, amount)
-		if money >= amount then
-			locked = true
-            local pending = true
-			local listener_id = event_listener('CHAT_MSG_SYSTEM', function(message)
-				if message == ERR_AUCTION_BID_PLACED then
-					pending = false
-				end
-			end)
-            coro_thread(function()
-                local t0 = GetTime()
-                local timeout = false
-                while pending do
-                    if GetTime() - t0 >= 5 then
-                        timeout = true
-                        break
-                    end
-                    coro_wait()
-                end
-                kill_listener(listener_id)
-                if not timeout then
-                    (on_success or pass)()
-                end
-                locked = false
-            end)
+		if GetMoney() < amount then
+			UIErrorsFrame:AddExternalErrorMessage(ERR_NOT_ENOUGH_MONEY)
+			return
 		end
+		C_AuctionHouse.PlaceBid(auction_id, amount)
+		locked = true
+		local result
+		local listeners = {
+			event_listener('AUCTION_HOUSE_PURCHASE_COMPLETED', function(id)
+				if id == auction_id then result = true end
+			end),
+			event_listener('BID_ADDED', function()
+				result = true
+			end),
+			event_listener('CHAT_MSG_SYSTEM', function(message)
+				if message == ERR_AUCTION_BID_PLACED then result = true end
+			end),
+			event_listener('AUCTION_HOUSE_SHOW_ERROR', function(error)
+				result = result or error
+			end),
+		}
+		coro_thread(function()
+			local t0 = GetTime()
+			while result == nil and GetTime() - t0 < 5 do
+				coro_wait()
+			end
+			for _, listener_id in ipairs(listeners) do
+				kill_listener(listener_id)
+			end
+			locked = false
+			if result == true then
+				tinsert(character_data.bid_auction_ids, auction_id)
+				while #character_data.bid_auction_ids > 200 do
+					tremove(character_data.bid_auction_ids, 1)
+				end
+				do (on_success or pass)() end
+			else
+				do (on_failure or pass)(result) end
+			end
+		end)
+	end
+end
+
+do
+	local pending
+
+	function M.commodity_purchase_in_progress()
+		return pending
+	end
+
+	-- Forever: commodities (stackable trade goods etc.) are bought by quantity, always from the
+	-- cheapest listings first. The purchase is confirmed only if the server quote does not exceed
+	-- max_total, so a stale listing can never make us pay more than what was shown.
+	-- Must be called from a click handler (hardware event).
+	function M.buy_commodity(item_id, quantity, max_total, on_success, on_failure)
+		if pending then
+			return
+		end
+		if GetMoney() < max_total then
+			UIErrorsFrame:AddExternalErrorMessage(ERR_NOT_ENOUGH_MONEY)
+			return
+		end
+		pending = true
+		local result, confirmed
+		local listeners
+		listeners = {
+			event_listener('COMMODITY_PRICE_UPDATED', function(_, total)
+				if confirmed then return end
+				if total <= max_total then
+					confirmed = true
+					C_AuctionHouse.ConfirmCommoditiesPurchase(item_id, quantity)
+				else
+					C_AuctionHouse.CancelCommoditiesPurchase()
+					print('price changed: buying ' .. quantity .. ' would now cost ' .. money.to_string(total, true) .. ', cancelled.')
+					result = 'price'
+				end
+			end),
+			event_listener('COMMODITY_PRICE_UNAVAILABLE', function()
+				result = 'unavailable'
+			end),
+			event_listener('COMMODITY_PURCHASE_SUCCEEDED', function()
+				result = true
+			end),
+			event_listener('COMMODITY_PURCHASE_FAILED', function()
+				result = 'failed'
+			end),
+			event_listener('AUCTION_HOUSE_SHOW_ERROR', function(error)
+				result = result or error
+			end),
+		}
+		C_AuctionHouse.StartCommoditiesPurchase(item_id, quantity)
+		coro_thread(function()
+			local t0 = GetTime()
+			while result == nil and GetTime() - t0 < 10 do
+				coro_wait()
+			end
+			for _, listener_id in ipairs(listeners) do
+				kill_listener(listener_id)
+			end
+			if result == nil and not confirmed then
+				C_AuctionHouse.CancelCommoditiesPurchase()
+			end
+			pending = false
+			if result == true then
+				do (on_success or pass)() end
+			else
+				do (on_failure or pass)(result) end
+			end
+		end)
 	end
 end
 
@@ -180,16 +267,66 @@ function event.PLAYER_LOGIN()
 	frame:SetScale(account_data.scale)
 end
 
-function event.AUCTION_HOUSE_LOADED()
-    _G.AuctionFrame_Show, AuctionFrame_Show = nil, _G.AuctionFrame_Show
-    AuctionFrame:SetScript('OnHide', nil)
+-- Forever: Blizzard's AuctionHouseFrame must stay "shown" while the auction house is open,
+-- because hiding it closes the auction house. Instead it is kept invisible behind aux.
+do
+    local blizzard_visible = false
+
+    function M.blizzard_frame_shown()
+        return blizzard_visible
+    end
+
+    function M.set_blizzard_frame_shown(shown)
+        if not AuctionHouseFrame then return end
+        blizzard_visible = shown
+        if shown then
+            AuctionHouseFrame:SetScale(1)
+            AuctionHouseFrame:SetAlpha(1)
+            AuctionHouseFrame:EnableMouse(true)
+        else
+            AuctionHouseFrame:SetScale(.01)
+            AuctionHouseFrame:SetAlpha(0)
+            AuctionHouseFrame:EnableMouse(false)
+        end
+    end
+
+    function event.AUCTION_HOUSE_LOADED()
+        AuctionHouseFrame:HookScript('OnShow', function(self)
+            set_blizzard_frame_shown(false)
+            -- aux handles posting confirmations itself; stop the hidden frame from popping its own dialog
+            self:UnregisterEvent('AUCTION_HOUSE_POST_WARNING')
+            self:UnregisterEvent('AUCTION_HOUSE_POST_ERROR')
+        end)
+        AuctionHouseFrame:HookScript('OnHide', function()
+            blizzard_visible = false
+        end)
+    end
 end
 
 function AUCTION_HOUSE_SHOW()
+    compat_load_auction_house_ui()
+    if AuctionHouseFrame and AuctionHouseFrame:IsShown() then
+        set_blizzard_frame_shown(false)
+    end
     frame:Show()
     set_tab(1)
-    GetOwnerAuctionItems()
-    GetBidderAuctionItems()
+    query_owned_auctions()
+    query_bids()
+end
+
+function M.query_owned_auctions()
+    C_AuctionHouse.QueryOwnedAuctions({{sortOrder = Enum.AuctionHouseSortOrder.Name, reverseSort = false}})
+end
+
+function M.query_bids()
+    local ids = {}
+    for _, id in ipairs(character_data.bid_auction_ids) do
+        tinsert(ids, id)
+    end
+    for _, id in ipairs(_G.g_activeBidAuctionIDs or empty) do
+        tinsert(ids, id)
+    end
+    C_AuctionHouse.QueryBids({{sortOrder = Enum.AuctionHouseSortOrder.Name, reverseSort = false}}, ids)
 end
 
 do

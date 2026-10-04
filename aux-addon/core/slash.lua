@@ -30,8 +30,9 @@ function SlashCmdList.AUX(command)
     elseif arguments[1] == 'post' and arguments[2] == 'bid' then
         aux.account_data.post_bid = ({ unit = 'unit', stack = 'stack' })[arguments[3]]
 	    aux.print('post bid ' .. aux.color.blue(aux.account_data.post_bid or 'off'))
-    elseif arguments[1] == 'post' and arguments[2] == 'duration' and  ({['2'] = post.DURATION_2, ['8'] = post.DURATION_8, ['24'] = post.DURATION_24})[arguments[3]] then
-        aux.account_data.post_duration = ({['2'] = post.DURATION_2, ['8'] = post.DURATION_8, ['24'] = post.DURATION_24})[arguments[3]]
+    elseif arguments[1] == 'post' and arguments[2] == 'duration' and post_duration_code(arguments[3]) then
+        -- Forever: accepts the hours of the auction house's options (e.g. 12, 24, 48)
+        aux.account_data.post_duration = post_duration_code(arguments[3])
         aux.print('post duration ' .. aux.color.blue(info.duration_hours(aux.account_data.post_duration) .. 'h'))
     elseif arguments[1] == 'crafting' and arguments[2] == 'cost' then
 		aux.account_data.crafting_cost = not aux.account_data.crafting_cost
@@ -84,5 +85,13 @@ function SlashCmdList.AUX(command)
         aux.print('- tooltip money icons [' .. status(tooltip_settings.money_icons) .. ']')
 		aux.print('- clear item cache')
         aux.print('- clear post')
+    end
+end
+
+function post_duration_code(hours)
+    for code = 1, 3 do
+        if tostring(info.duration_hours(code)) == hours then
+            return code
+        end
     end
 end

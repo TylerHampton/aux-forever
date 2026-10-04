@@ -3,7 +3,6 @@ select(2, ...) 'aux.tabs.search'
 local aux = require 'aux'
 local info = require 'aux.util.info'
 local filter_util = require 'aux.util.filter'
-local scan_util = require 'aux.util.scan'
 local scan = require 'aux.core.scan'
 
 StaticPopupDialogs.AUX_SCAN_ALERT = {
@@ -136,18 +135,18 @@ function update_start_stop()
     end
 end
 
-function start_live_scan(query, search, continuation)
+-- Forever: there are no result pages to watch, so real time mode repeats the whole search and
+-- replaces the table with the current listings. Alerts only fire for auctions not seen before.
+function start_live_scan(query, search)
+    search = search or current_search()
 
-    local ignore_page
-    if not search then
-        search = current_search()
-        query.blizzard_query.first_page = tonumber(continuation) or 0
-        query.blizzard_query.last_page = tonumber(continuation) or 0
-        ignore_page = not tonumber(continuation)
+    local seen = {}
+    for _, record in pairs(search.records) do
+        seen[record.sniping_signature] = true
     end
 
-    local next_page
     local new_records = {}
+    local alerted
     scan.start {
         type = 'list',
         sort_type = search.sort_type,
@@ -155,51 +154,29 @@ function start_live_scan(query, search, continuation)
         on_scan_start = function()
             aux.status_bar:update_status(.9999, .9999)
         end,
-        on_page_loaded = function(_, _, last_page)
-            next_page = last_page
-            if last_page == 0 then
-                ignore_page = false
-            end
-        end,
         on_auction = function(auction_record)
-            if not ignore_page then
-                if (search.alert_validator or pass)(auction_record) then
-                    StaticPopup_Show('AUX_SCAN_ALERT') -- TODO retail improve this
-                    FlashClientIcon()
-                end
-                tinsert(new_records, auction_record)
+            if not seen[auction_record.sniping_signature] and (search.alert_validator or pass)(auction_record) and not alerted then
+                alerted = true
+                StaticPopup_Show('AUX_SCAN_ALERT')
+                FlashClientIcon()
             end
+            tinsert(new_records, auction_record)
         end,
         on_complete = function()
-            local map = {}
-            for _, record in pairs(search.records) do
-                map[record.sniping_signature] = record
-            end
-            for _, record in pairs(new_records) do
-                map[record.sniping_signature] = record
-            end
-            new_records = aux.values(map)
-
             if #new_records > 2000 then
                 StaticPopup_Show('AUX_SEARCH_TABLE_FULL')
             else
                 search.records = new_records
                 search.table:SetDatabase(search.records)
             end
-
-            query.blizzard_query.first_page = next_page
-            query.blizzard_query.last_page = next_page
             start_live_scan(query, search)
         end,
         on_abort = function()
             aux.status_bar:update_status(1, 1)
-
-            search.continuation = next_page or not ignore_page and query.blizzard_query.first_page or true
-
+            search.continuation = true
             if current_search() == search then
                 update_continuation()
             end
-
             search.active = false
             update_start_stop()
         end,
@@ -341,106 +318,101 @@ function M.execute(_, resume, mode)
     search_box:ClearFocus()
     set_subtab(RESULTS)
     if mode == LIVE_MODE then
-        start_live_scan(queries[1], nil, continuation)
+        start_live_scan(queries[1])
     else
         start_search(queries, continuation)
     end
 end
 
+-- Forever: every record carries its auction ID, so the selected auction can be bought or bid on
+-- right away instead of first being found again by a scan as in Classic aux.
 do
-    local IDLE, SEARCHING, FOUND = aux.enum(3)
-    local state = IDLE
-    local found_index
+    local selected, checked
+
+    local function failure(search, record)
+        return function(error)
+            if error == Enum.AuctionHouseError.ItemNotFound or error == Enum.AuctionHouseError.ItemNotAvailable or error == 'unavailable' then
+                search.table:RemoveAuctionRecord(record)
+            end
+        end
+    end
+
+    -- A commodity purchase takes the cheapest listings first (never the player's own), so update the
+    -- displayed tiers the same way instead of just removing the selected row.
+    local function consume_commodity(search, record)
+        local tiers = {}
+        for _, r in ipairs(search.records) do
+            if r.commodity and r.item_id == record.item_id and not r.own then
+                tinsert(tiers, r)
+            end
+        end
+        sort(tiers, function(a, b) return a.unit_buyout_price < b.unit_buyout_price end)
+        local remaining = record.count
+        for _, tier in ipairs(tiers) do
+            if remaining <= 0 then break end
+            local taken = min(remaining, tier.count)
+            remaining = remaining - taken
+            if taken == tier.count then
+                local index = aux.key(search.records, tier)
+                if index then tremove(search.records, index) end
+            else
+                local unit_price = tier.unit_buyout_price
+                tier.count = tier.count - taken
+                tier.buyout_price = unit_price * tier.count
+                tier.bid_price, tier.start_price, tier.blizzard_bid = tier.buyout_price, tier.buyout_price, tier.buyout_price
+                info.signatures(tier)
+            end
+        end
+        search.table:SetDatabase()
+    end
 
     function find_auction(record)
         local search = current_search()
-
-        if not search.table:ContainsRecord(record) or info.is_player(record.owner) then
+        selected, checked = nil, record
+        if not search.table:ContainsRecord(record) or info.is_player(record.owner) or record.own then
             return
         end
+        selected = record
 
-        scan.abort()
-        state = SEARCHING
-        scan_util.find(search.sort_type,
-            record,
-            function()
-                state = IDLE
-            end,
-            function()
-                state = IDLE
-                search.table:RemoveAuctionRecord(record)
-            end,
-            function(index)
-                if search.table:GetSelection() and search.table:GetSelection().record ~= record then
-                    return
-                end
+        bid_button:SetScript('OnClick', function()
+            if search.table:ContainsRecord(record) then
+                aux.place_bid(record.auction_id, record.bid_price, record.bid_price < record.buyout_price and function()
+                    info.bid_update(record)
+                    search.table:SetDatabase()
+                end or function() search.table:RemoveAuctionRecord(record) end, failure(search, record))
+            end
+        end)
 
-                state = FOUND
-                found_index = index
-
-                if not record.high_bidder then
-                    bid_button:SetScript('OnClick', function()
-                        if scan_util.test('list', record, index) and search.table:ContainsRecord(record) then
-                            aux.place_bid('list', index, record.bid_price, record.bid_price < record.buyout_price and function()
-                                info.bid_update(record)
-                                search.table:SetDatabase()
-                            end or function() search.table:RemoveAuctionRecord(record) end)
-                        end
-                    end)
-                    bid_enabled = true
+        buyout_button:SetScript('OnClick', function()
+            if search.table:ContainsRecord(record) then
+                if record.commodity then
+                    aux.buy_commodity(record.item_id, record.count, record.buyout_price, function()
+                        consume_commodity(search, record)
+                    end, failure(search, record))
                 else
-                    bid_enabled = false
+                    aux.place_bid(record.auction_id, record.buyout_price, function() search.table:RemoveAuctionRecord(record) end, failure(search, record))
                 end
-
-                if record.buyout_price > 0 then
-                    buyout_button:SetScript('OnClick', function()
-                        if scan_util.test('list', record, index) and search.table:ContainsRecord(record) then
-                            aux.place_bid('list', index, record.buyout_price, function() search.table:RemoveAuctionRecord(record) end)
-                        end
-                    end)
-                    buyout_enabled = true
-                else
-                    buyout_enabled = false
-                end
-            end)
+            end
+        end)
     end
 
     function on_update()
-        if state == IDLE or state == SEARCHING then
-            bid_enabled = false
-            buyout_enabled = false
-        end
-
-        if state == SEARCHING then return end
-
         local selection = current_search().table:GetSelection()
-        if not selection then
-            state = IDLE
-        elseif selection and state == IDLE then
+        if selection and selection.record ~= checked then
             find_auction(selection.record)
-        elseif state == FOUND and not scan_util.test('list', selection.record, found_index) then
-            buyout_button:Disable()
-            bid_button:Disable()
-            if not aux.bid_in_progress() then
-                state = IDLE
-            end
         end
+        local record = selection and selected == selection.record and selected
+        local busy = aux.bid_in_progress() or aux.commodity_purchase_in_progress()
 
-        if CanSendAuctionQuery() then
-            if bid_enabled then
-                bid_button:Enable()
-            else
-                bid_button:Disable()
-            end
-            if buyout_enabled then
-                buyout_button:Enable()
-            else
-                buyout_button:Disable()
-            end
+        if record and not busy and not record.commodity and not record.high_bidder then
+            bid_button:Enable()
         else
             bid_button:Disable()
+        end
+        if record and not busy and record.buyout_price > 0 then
+            buyout_button:Enable()
+        else
             buyout_button:Disable()
         end
     end
 end
-

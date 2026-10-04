@@ -1,11 +1,12 @@
-## Interface: 11508
+## Interface: 16001
 ## Author: shirsig
 ## Title: aux
-## Version: @project-version@
-## Notes: Auction House replacement
+## Version: forever-0.1.0
+## Notes: Auction House replacement (WoW Forever port)
 ## SavedVariables: aux
 
 libs\package.lua
+compat.lua
 
 aux-addon.lua
 util.lua

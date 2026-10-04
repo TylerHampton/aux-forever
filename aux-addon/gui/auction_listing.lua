@@ -13,11 +13,12 @@ price_per_unit, percentage_for_bid = false, false
 local HEAD_HEIGHT = 27
 local HEAD_SPACE = 2
 
+-- Forever: labels come from the auction house's time left bands
 local TIME_LEFT_STRINGS = {
-    aux.color.red'30m', -- Short
-    aux.color.orange'2h', -- Medium
-    aux.color.yellow'8h', -- Long
-    aux.color.blue'24h', -- Very Long
+    aux.color.red(info.time_left_label(1)), -- Short
+    aux.color.orange(info.time_left_label(2)), -- Medium
+    aux.color.yellow(info.time_left_label(3)), -- Long
+    aux.color.blue(info.time_left_label(4)), -- Very Long
 }
 
 function item_column_init(rt, cell)

@@ -4,11 +4,46 @@ local aux = require 'aux'
 
 CreateFrame('GameTooltip', 'AuxTooltip', nil, 'GameTooltipTemplate')
 
+-- Forever: posting durations are indices 1-3 into the auction house's duration options.
+-- Their lengths are read from the client's own labels (AUCTION_DURATION_ONE..THREE), e.g. "12 Hours".
 do
-    local map = { [1] = 2, [2] = 8, [3] = 24 }
+    local fallback = { [1] = 12, [2] = 24, [3] = 48 }
+    local labels = { 'AUCTION_DURATION_ONE', 'AUCTION_DURATION_TWO', 'AUCTION_DURATION_THREE' }
     function M.duration_hours(duration_code)
-        return map[duration_code]
+        local label = _G[labels[duration_code] or '']
+        local hours = label and tonumber(strmatch(label, '(%d+)'))
+        return hours or fallback[duration_code]
     end
+end
+
+-- Forever: the auction house reports time left either as a band (Enum.AuctionHouseTimeLeftBand, 0-3)
+-- or in seconds. aux keeps the Classic convention of duration codes 1-4 (short .. very long).
+function M.duration_from_band(band)
+    return band and band + 1
+end
+
+-- Short label for a duration code, e.g. '30m', '2h', '12h', '48h' (upper end of the time left band)
+function M.time_left_label(duration_code)
+    local fallback = { '30m', '2h', '12h', '48h' }
+    local ok, _, max_seconds = pcall(C_AuctionHouse.GetTimeLeftBandInfo, duration_code - 1)
+    if ok and max_seconds and max_seconds > 0 then
+        if max_seconds < 3600 then
+            return floor(max_seconds / 60) .. 'm'
+        end
+        return floor(max_seconds / 3600) .. 'h'
+    end
+    return fallback[duration_code]
+end
+
+function M.duration_from_seconds(seconds)
+    if not seconds then return end
+    for band = 0, 3 do
+        local _, max_seconds = C_AuctionHouse.GetTimeLeftBandInfo(band)
+        if max_seconds and seconds <= max_seconds then
+            return band + 1
+        end
+    end
+    return 4
 end
 
 function M.container_item(bag, slot)
@@ -22,7 +57,11 @@ function M.container_item(bag, slot)
             local tooltip = tooltip('bag', bag, slot)
             local max_charges = max_item_charges(item_id)
             local charges = max_charges and item_charges(tooltip)
-            local auctionable = auctionable(tooltip) and durability == max_durability and charges == max_charges and not lootable
+            local auctionable = auctionable(tooltip) and durability == max_durability and charges == max_charges and not containerInfo.hasLoot
+            local item_location = ItemLocation:CreateFromBagAndSlot(bag, slot)
+            if auction_house_open() and item_location:IsValid() then
+                auctionable = C_AuctionHouse.IsSellItemValid(item_location, false)
+            end
             if max_charges and not charges then -- TODO find better fix
                 return
             end
@@ -47,78 +86,188 @@ function M.container_item(bag, slot)
                 auctionable = auctionable,
 
                 tooltip = tooltip,
+                item_location = item_location,
             }
         end
     end
 end
 
-function M.auction_sell_item()
-	for name, texture, count, quality, usable, vendor_price in GetAuctionSellItemInfo do
-        return {
-			name = name,
-			texture = texture,
-            quality = quality,
-			count = count,
-			usable = usable,
-            vendor_price = vendor_price,
-        }
-	end
+do
+    local open = false
+    function aux.event.AUX_LOADED()
+        aux.event_listener('AUCTION_HOUSE_SHOW', function() open = true end)
+        aux.event_listener('AUCTION_HOUSE_CLOSED', function() open = false end)
+    end
+    function M.auction_house_open()
+        return open
+    end
 end
 
-function M.auction(index, query_type)
-    query_type = query_type or 'list'
+-- Forever: auction records are built from C_AuctionHouse results instead of GetAuctionItemInfo.
+-- They keep the field names of Classic aux so the listings, filters and history work unchanged.
+-- New fields: auction_id (used to bid/buy directly), commodity (bought by quantity, cheapest first).
 
-    local name, texture, count, quality, usable, level, _, start_price, min_increment, buyout_price, high_bid, high_bidder, _, owner, _, sale_status, item_id, has_all_info = GetAuctionItemInfo(query_type, index)
-
---    local ignore_owner = get_state().params.ignore_owner or aux.account_data.ignore_owner TODO
-
-    if has_all_info and (aux.account_data.ignore_owner or owner) then
-        local link = GetAuctionItemLink(query_type, index)
-        if not link then
-            return
+local record_mt = {
+    __index = function(record, key)
+        -- the tooltip is only built when a filter actually needs it, which keeps scans fast
+        if key == 'tooltip' and record.link then
+            local tooltip = tooltip('link', record.link)
+            rawset(record, 'tooltip', tooltip)
+            return tooltip
         end
+    end,
+}
 
-        local item_id, suffix_id, unique_id, enchant_id = parse_link(link)
+local function player_guid()
+    return UnitGUID'player'
+end
 
-    	local duration = GetAuctionItemTimeLeft(query_type, index)
-        local tooltip = tooltip('auction', query_type, index)
-        local blizzard_bid = high_bid > 0 and high_bid or start_price
-        local bid_price = high_bid > 0 and (high_bid + min_increment) or start_price
-        return {
-            item_id = item_id,
-            suffix_id = suffix_id,
-            unique_id = unique_id,
-            enchant_id = enchant_id,
+function M.signatures(record)
+    local own = aux.account_data.ignore_owner and (is_player(record.owner) and 0 or 1) or (record.owner or '?')
+    record.search_signature = aux.join({record.item_id, record.suffix_id, record.enchant_id, record.start_price, record.buyout_price, record.bid_price, record.count, record.sale_status == 1 and 0 or (record.duration or 0), record.high_bidder and 1 or 0, record.sale_status or 0, own}, ':')
+    record.sniping_signature = aux.join({record.item_id, record.suffix_id, record.enchant_id, record.start_price, record.buyout_price, record.count, own, record.auction_id or 0}, ':')
+end
 
-            link = link,
-            item_key = item_id .. ':' .. suffix_id,
-            search_signature = aux.join({item_id, suffix_id, enchant_id, start_price, buyout_price, bid_price, count, sale_status == 1 and 0 or duration, query_type == 'owner' and high_bidder or (high_bidder and 1 or 0), sale_status, aux.account_data.ignore_owner and (is_player(owner) and 0 or 1) or (owner or '?')}, ':'),
-            sniping_signature = aux.join({item_id, suffix_id, enchant_id, start_price, buyout_price, count, aux.account_data.ignore_owner and (is_player(owner) and 0 or 1) or (owner or '?')}, ':'),
-
-            name = name,
-            texture = texture,
-            quality = quality,
-            requirement = level,
-
-            count = count,
-            start_price = start_price,
-            high_bid = high_bid,
-            min_increment = min_increment,
-            blizzard_bid = blizzard_bid,
-            bid_price = bid_price,
-            buyout_price = buyout_price,
-            unit_blizzard_bid = blizzard_bid / count,
-            unit_bid_price = bid_price / count,
-            unit_buyout_price = buyout_price / count,
-            high_bidder = high_bidder,
-            owner = owner,
-            sale_status = sale_status,
-            duration = duration,
-            usable = usable,
-
-            tooltip = tooltip,
-        }
+-- Returns name, texture, quality, requirement, usable for an item, or nil if the client has not cached it yet.
+function M.item_basics(item_id, link)
+    local name, item_link, quality, _, requirement, _, _, _, _, texture = GetItemInfo(link or item_id)
+    if name then
+        local usable = true
+        if C_PlayerInfo and C_PlayerInfo.CanUseItem then
+            usable = C_PlayerInfo.CanUseItem(item_id)
+        end
+        return name, texture, quality, requirement or 0, usable, item_link
     end
+end
+
+function M.request_item(item_id)
+    if C_Item.RequestLoadItemDataByID then
+        C_Item.RequestLoadItemDataByID(item_id)
+    end
+end
+
+local function new_record(item_id, link, count)
+    local record = setmetatable({}, record_mt)
+    local _, suffix_id, unique_id, enchant_id = parse_link(link or '')
+    local name, texture, quality, requirement, usable, item_link = item_basics(item_id, link)
+    if not name then return end
+    link = link or item_link
+    record.item_id = item_id
+    record.suffix_id = suffix_id
+    record.unique_id = unique_id
+    record.enchant_id = enchant_id
+    record.link = link
+    record.item_key = item_id .. ':' .. suffix_id
+    record.name = name
+    record.texture = texture
+    record.quality = quality
+    record.requirement = requirement
+    record.usable = usable
+    record.count = count
+    return record
+end
+
+local function set_prices(record, min_bid, bid_amount, buyout)
+    local count = max(record.count, 1)
+    min_bid, bid_amount, buyout = min_bid or 0, bid_amount or 0, buyout or 0
+    record.high_bid = bid_amount
+    record.bid_price = min_bid > 0 and min_bid or buyout
+    record.start_price = bid_amount > 0 and bid_amount or record.bid_price
+    record.min_increment = bid_amount > 0 and max(0, record.bid_price - bid_amount) or 0
+    record.blizzard_bid = bid_amount > 0 and bid_amount or record.bid_price
+    record.buyout_price = buyout
+    record.unit_blizzard_bid = record.blizzard_bid / count
+    record.unit_bid_price = record.bid_price / count
+    record.unit_buyout_price = buyout / count
+end
+
+-- One listing of a non-commodity item (C_AuctionHouse.GetItemSearchResultInfo)
+function M.item_search_record(result)
+    local record = new_record(result.itemKey.itemID, result.itemLink, result.quantity)
+    if not record then return end
+    record.auction_id = result.auctionID
+    set_prices(record, result.minBid, result.bidAmount, result.buyoutAmount)
+    record.high_bidder = result.bidder and result.bidder == player_guid() or nil
+    record.owner = result.containsOwnerItem and UnitName'player' or (result.totalNumberOfOwners == 1 and result.owners[1] or nil)
+    record.own = result.containsOwnerItem
+    record.duration = result.timeLeftSeconds and duration_from_seconds(result.timeLeftSeconds) or duration_from_band(result.timeLeft)
+    record.sale_status = 0
+    signatures(record)
+    return record
+end
+
+-- One price tier of a commodity (C_AuctionHouse.GetCommoditySearchResultInfo).
+-- Commodities have no bids; buying a quantity always takes the cheapest listings.
+function M.commodity_record(result)
+    local record = new_record(result.itemID, nil, result.quantity)
+    if not record then return end
+    record.commodity = true
+    record.auction_id = result.auctionID
+    set_prices(record, 0, 0, result.unitPrice * result.quantity)
+    record.owner = result.containsOwnerItem and UnitName'player' or (result.totalNumberOfOwners == 1 and result.owners[1] or nil)
+    record.own = result.containsOwnerItem
+    record.own_count = result.numOwnerItems
+    record.duration = duration_from_seconds(result.timeLeftSeconds)
+    record.sale_status = 0
+    signatures(record)
+    return record
+end
+
+-- One listing from a full scan (C_AuctionHouse.GetReplicateItemInfo, 0-based index)
+function M.replicate_record(index)
+    local name, texture, count, quality, usable, level, _, min_bid, min_increment, buyout_price, bid_amount, high_bidder, _, owner, _, sale_status, item_id, has_all_info = C_AuctionHouse.GetReplicateItemInfo(index)
+    if not has_all_info or not item_id then
+        return nil, item_id
+    end
+    local link = C_AuctionHouse.GetReplicateItemLink(index)
+    local record = new_record(item_id, link, count)
+    if not record then
+        return nil, item_id
+    end
+    set_prices(record, bid_amount > 0 and bid_amount + min_increment or min_bid, bid_amount, buyout_price)
+    record.min_increment = min_increment
+    record.high_bidder = (high_bidder == true or high_bidder == UnitName'player') or nil
+    record.owner = owner
+    record.duration = duration_from_band(C_AuctionHouse.GetReplicateItemTimeLeft(index))
+    record.sale_status = sale_status
+    signatures(record)
+    return record
+end
+
+-- One of the player's own auctions (C_AuctionHouse.GetOwnedAuctionInfo)
+function M.owned_record(owned)
+    local item_id = owned.itemKey.itemID
+    local record = new_record(item_id, owned.itemLink, owned.quantity)
+    if not record then
+        request_item(item_id)
+        return
+    end
+    record.auction_id = owned.auctionID
+    set_prices(record, 0, owned.bidAmount, owned.buyoutAmount)
+    record.start_price = owned.bidAmount or owned.buyoutAmount or 0
+    record.high_bidder = owned.bidder
+    record.owner = UnitName'player'
+    record.sale_status = owned.status == Enum.AuctionStatus.Sold and 1 or 0
+    record.duration = owned.timeLeftSeconds and duration_from_seconds(owned.timeLeftSeconds) or duration_from_band(owned.timeLeft)
+    signatures(record)
+    return record
+end
+
+-- One auction the player has bid on (C_AuctionHouse.GetBidInfo)
+function M.bid_record(bid)
+    local item_id = bid.itemKey.itemID
+    local record = new_record(item_id, bid.itemLink, 1)
+    if not record then
+        request_item(item_id)
+        return
+    end
+    record.auction_id = bid.auctionID
+    set_prices(record, bid.minBid, bid.bidAmount, bid.buyoutAmount)
+    record.high_bidder = bid.bidder and bid.bidder == player_guid() or nil
+    record.duration = duration_from_band(bid.timeLeft)
+    record.sale_status = 0
+    signatures(record)
+    return record
 end
 
 function M.bid_update(auction_record)
@@ -129,7 +278,7 @@ function M.bid_update(auction_record)
     auction_record.unit_blizzard_bid = auction_record.blizzard_bid / auction_record.count
     auction_record.unit_bid_price = auction_record.bid_price / auction_record.count
     auction_record.high_bidder = 1
-    auction_record.search_signature = aux.join({auction_record.item_id, auction_record.suffix_id, auction_record.enchant_id, auction_record.start_price, auction_record.buyout_price, auction_record.bid_price, auction_record.count, auction_record.sale_status == 1 and 0 or auction_record.duration, 1, 0, aux.account_data.ignore_owner and (is_player(auction_record.owner) and 0 or 1) or (auction_record.owner or '?')}, ':')
+    signatures(auction_record)
 end
 
 function M.set_tooltip(itemstring, owner, anchor)
@@ -179,9 +328,7 @@ end
 function M.tooltip(setter, arg1, arg2)
     AuxTooltip:SetOwner(UIParent, 'ANCHOR_NONE')
     AuxTooltip:ClearLines()
-    if setter == 'auction' then
-	    AuxTooltip:SetAuctionItem(arg1, arg2)
-    elseif setter == 'bag' then
+    if setter == 'bag' then
 	    AuxTooltip:SetBagItem(arg1, arg2)
     elseif setter == 'inventory' then
 	    AuxTooltip:SetInventoryItem(arg1, arg2)
@@ -251,9 +398,15 @@ function M.item_key(link)
     return item_id .. ':' .. suffix_id
 end
 
+-- item:itemID:enchantID:gem1:gem2:gem3:gem4:suffixID:uniqueID:...
 function M.parse_link(link)
-    local _, _, item_id, enchant_id, suffix_id, unique_id, name = strfind(link, '|Hitem:(%d*):(%d*):::::(%d*):(%d*)[:0-9]*|h%[(.-)%]|h')
-    return tonumber(item_id) or 0, tonumber(suffix_id) or 0, tonumber(unique_id) or 0, tonumber(enchant_id) or 0, name
+    local item_string = strmatch(link, 'item:([%-%d:]*)')
+    if not item_string then
+        return 0, 0, 0, 0, strmatch(link, '|h%[(.-)%]|h')
+    end
+    local fields = aux.split(item_string, ':')
+    local name = strmatch(link, '|h%[(.-)%]|h')
+    return tonumber(fields[1]) or 0, tonumber(fields[7]) or 0, tonumber(fields[8]) or 0, tonumber(fields[2]) or 0, name
 end
 
 function M.item(item_id, suffix_id)

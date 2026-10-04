@@ -6,7 +6,6 @@ local sort_util = require 'aux.util.sort'
 local persistence = require 'aux.util.persistence'
 local money = require 'aux.util.money'
 local scan_util = require 'aux.util.scan'
-local stack = require 'aux.core.stack'
 local scan = require 'aux.core.scan'
 local history = require 'aux.core.history'
 local item_listing = require 'aux.gui.item_listing'
@@ -19,6 +18,7 @@ local settings_schema = {'tuple', '#', {duration='number'}, {start_price='number
 
 local inventory_records, bid_records, buyout_records = {}, {}, {}
 
+-- Forever: duration options 1-3 of the auction house (see info.duration_hours for their lengths)
 M.DURATION_2, M.DURATION_8, M.DURATION_24 = 1, 2, 3
 
 refresh = true
@@ -39,7 +39,34 @@ function aux.event.AUCTION_HOUSE_LOADED()
     end
 end
 
+StaticPopupDialogs.AUX_POST_CONFIRM = {
+    text = '%s',
+    button1 = ACCEPT,
+    button2 = CANCEL,
+    OnAccept = function()
+        confirm_post()
+    end,
+    OnCancel = function()
+        pending_post = nil
+        posting = nil
+    end,
+    showAlert = 1,
+    timeout = 0,
+    hideOnEscape = 1,
+}
+
 function aux.event.AUX_LOADED()
+    -- Forever: the server can ask to confirm a post (e.g. a price far from the market); aux shows its own dialog
+    aux.event_listener('AUCTION_HOUSE_POST_WARNING', function()
+        if pending_post then
+            StaticPopup_Show('AUX_POST_CONFIRM', CONFIRM_AUCTION_POSTING_TEXT)
+        end
+    end)
+    aux.event_listener('AUCTION_HOUSE_POST_ERROR', function()
+        if pending_post then
+            StaticPopup_Show('AUX_POST_CONFIRM', AUCTION_POSTING_ERROR_TEXT)
+        end
+    end)
     aux.event_listener('BAG_UPDATE', function()
         if posting == 'single' then
             posting = nil
@@ -103,8 +130,6 @@ end
 
 function tab.CLOSE()
     selected_item = nil
-    ClearCursor()
-    ClickAuctionSellItemButton()
     ClearCursor()
     frame:Hide()
 end
@@ -229,37 +254,81 @@ function price_update()
     end
 end
 
-function post_auction()
-    local item_key = selected_item.key
-
-    local unit_start_price = get_unit_start_price()
-    local unit_buyout_price = get_unit_buyout_price()
-    local stack_size = stack_size_input:GetNumber()
-    local stack_count = stack_count_input:GetNumber()
-    local start_price = max(1, floor(get_unit_start_price() * stack_size))
-    local buyout_price = floor(get_unit_buyout_price() * stack_size)
-    local duration = duration_dropdown:GetIndex()
-
+-- Finds a bag slot holding the item that can be put up for auction
+function find_item_location(item_key)
     for slot in info.inventory() do
         local item_info = info.container_item(unpack(slot))
         if item_info and item_info.auctionable and not item_info.locked and item_info.item_key == item_key then
-            ClearCursor()
-            ClickAuctionSellItemButton()
-            ClearCursor()
-            C_Container.PickupContainerItem(unpack(slot))
-            ClickAuctionSellItemButton()
-            ClearCursor()
-            break
+            return item_info.item_location
         end
     end
+end
 
-    PostAuction(start_price, buyout_price, duration, stack_size, stack_count, true)
+function confirm_post()
+    last_post_update = GetTime()
+    if pending_post then
+        local post = pending_post
+        pending_post = nil
+        if post.commodity then
+            C_AuctionHouse.ConfirmPostCommodity(post.location, post.duration, post.quantity, post.unit_price)
+        else
+            C_AuctionHouse.ConfirmPostItem(post.location, post.duration, post.quantity, post.bid, post.buyout)
+        end
+    end
+end
 
-    posting = stack_count == 1 and 'single' or 'multi'
+-- Forever: commodities are posted as one listing of (stack size x stack count) units at a unit price;
+-- other items are posted as one auction per item.
+function post_auction()
+    local item_key = selected_item.key
+
+    local stack_size = stack_size_input:GetNumber()
+    local stack_count = stack_count_input:GetNumber()
+    local duration = duration_dropdown:GetIndex()
+
+    local location = find_item_location(item_key)
+    if not location then
+        return
+    end
+
+    StaticPopup_Hide('AUX_POST_CONFIRM')
+    local post
+    if selected_item.commodity then
+        post = {
+            commodity = true,
+            location = location,
+            duration = duration,
+            quantity = stack_size * stack_count,
+            unit_price = round_price(get_unit_buyout_price()),
+        }
+        pending_post = post
+        if not C_AuctionHouse.PostCommodity(post.location, post.duration, post.quantity, post.unit_price) then
+            pending_post = nil
+        end
+        posting = 'single'
+    else
+        local buyout = get_unit_buyout_price() > 0 and round_price(get_unit_buyout_price()) or nil
+        post = {
+            location = location,
+            duration = duration,
+            quantity = stack_count,
+            bid = round_price(max(1, get_unit_start_price())),
+            buyout = buyout,
+        }
+        pending_post = post
+        if not C_AuctionHouse.PostItem(post.location, post.duration, post.quantity, post.bid, post.buyout) then
+            pending_post = nil
+        end
+        posting = stack_count == 1 and 'single' or 'multi'
+    end
+
     aux.coro_thread(function()
         last_post_update = GetTime()
         while posting do
-            if GetTime() - last_post_update > 5 then
+            -- waits longer while a confirmation dialog is open
+            if GetTime() - last_post_update > (pending_post and 60 or 5) then
+                StaticPopup_Hide('AUX_POST_CONFIRM')
+                pending_post = nil
                 posting = nil
                 last_post_update = nil
                 break
@@ -298,7 +367,11 @@ function validate_parameters()
         post_button:Disable()
         return
     end
-    if get_unit_start_price() == 0 then
+    if selected_item.commodity and get_unit_buyout_price() == 0 then
+        post_button:Disable()
+        return
+    end
+    if not selected_item.commodity and get_unit_start_price() == 0 then
         post_button:Disable()
         return
     end
@@ -307,10 +380,6 @@ function validate_parameters()
         return
     end
     if deposit_amount() > GetMoney() then
-        post_button:Disable()
-        return
-    end
-    if not CanSendAuctionQuery() then
         post_button:Disable()
         return
     end
@@ -334,7 +403,12 @@ function update_item_configuration()
         duration_dropdown:Hide()
         hide_checkbox:Hide()
     else
-		unit_start_price_input:Show()
+		-- Forever: commodities have no bids, only a buyout price per unit
+		if selected_item.commodity then
+			unit_start_price_input:Hide()
+		else
+			unit_start_price_input:Show()
+		end
         unit_buyout_price_input:Show()
         stack_size_input:Show()
         stack_count_input:Show()
@@ -364,15 +438,32 @@ function update_item_configuration()
 end
 
 function deposit_amount()
-    local deposit_factor = UnitFactionGroup'npc' and .05 or .25
-    local duration_factor = info.duration_hours(duration_dropdown:GetIndex()) / 2
+    local duration = duration_dropdown:GetIndex()
     local stack_size, stack_count = stack_size_input:GetNumber(), stack_count_input:GetNumber()
-    return floor(selected_item.unit_vendor_price * deposit_factor * stack_size) * stack_count * duration_factor
+    if selected_item.commodity then
+        return C_AuctionHouse.CalculateCommodityDeposit(selected_item.item_id, duration, stack_size * stack_count) or 0
+    end
+    local location = selected_item.item_location
+    if location and location:IsValid() and C_Item.DoesItemExist(location) then
+        return C_AuctionHouse.CalculateItemDeposit(location, duration, stack_count) or 0
+    end
+    return 0
+end
+
+-- Forever: prices must be whole silver unless the auction house supports copper values
+function M.round_price(amount)
+    if C_AuctionHouse.SupportsCopperValues() then
+        return floor(amount)
+    end
+    return max(100, floor(amount / 100) * 100)
 end
 
 function undercut(record, stack_size, bid)
     if record.historical_value or record.own then
         return record.unit_price
+    elseif selected_item and selected_item.commodity then
+        local step = C_AuctionHouse.SupportsCopperValues() and 1 or 100
+        return max(step, record.unit_price - step)
     else
         local stack_price = ceil(record.unit_price * (bid and aux.account_data.post_bid == 'stack' and record.stack_size or stack_size))
         stack_price = stack_price - 1
@@ -383,10 +474,14 @@ end
 function quantity_update(maximize_count)
     if selected_item then
         local max_stack_count
-        if selected_item.suffix_id == 0 then
+        if selected_item.commodity then
             max_stack_count = floor(selected_item.count / stack_size_input:GetNumber())
         else
-            max_stack_count = 1
+            local location = selected_item.item_location
+            max_stack_count = selected_item.count
+            if location and location:IsValid() and C_Item.DoesItemExist(location) then
+                max_stack_count = min(max_stack_count, max(1, C_AuctionHouse.GetAvailablePostCount(location)))
+            end
         end
         stack_count_input.max_value = max_stack_count
         if maximize_count then
@@ -396,37 +491,10 @@ function quantity_update(maximize_count)
     refresh = true
 end
 
-function unit_vendor_price(item_key)
-    for slot in info.inventory() do
-        local item_info = info.container_item(unpack(slot))
-        if item_info and item_info.item_key == item_key and item_info.auctionable then
-            ClearCursor()
-            ClickAuctionSellItemButton()
-            ClearCursor()
-            C_Container.PickupContainerItem(unpack(slot))
-            ClickAuctionSellItemButton()
-            local auction_sell_item = info.auction_sell_item()
-            ClearCursor()
-            ClickAuctionSellItemButton()
-            ClearCursor()
-            if auction_sell_item then
-                return auction_sell_item.vendor_price / auction_sell_item.count
-            end
-        end
-    end
-end
-
 function update_item(item)
     local settings = read_settings(item.key)
 
-    item.unit_vendor_price = unit_vendor_price(item.key)
-    if not item.unit_vendor_price then
-        item.unit_vendor_price = 0
-        settings.hidden = true
-        write_settings(settings, item.key)
-        refresh = true
-        return
-    end
+    item.unit_vendor_price = select(11, GetItemInfo(item.item_id)) or 0
 
     scan.abort()
 
@@ -434,8 +502,8 @@ function update_item(item)
 
     do
         local options = {}
-        for _, i in ipairs{2, 8, 24} do
-            tinsert(options, aux.pluralize(i .. ' ' .. HOURS))
+        for i = 1, 3 do
+            tinsert(options, aux.pluralize(info.duration_hours(i) .. ' ' .. HOURS))
         end
         duration_dropdown:SetOptions(options)
     end
@@ -443,7 +511,7 @@ function update_item(item)
 
     hide_checkbox:SetChecked(settings.hidden)
 
-    local max_stack_size = min(item.max_stack, item.count)
+    local max_stack_size = item.commodity and min(item.max_stack, item.count) or 1
     stack_size_input.max_value = max_stack_size
     stack_size_input:SetNumber(max_stack_size)
     quantity_update(true)
@@ -475,6 +543,8 @@ function update_inventory_records(reset)
                     quality = item_info.quality,
                     count = item_info.count,
                     max_stack = item_info.max_stack,
+                    item_location = item_info.item_location,
+                    commodity = C_AuctionHouse.GetItemCommodityStatus(item_info.item_location) == Enum.ItemCommodityStatus.Commodity,
                 }
             else
                 local auctionable = auctionable_map[item_info.item_key]
@@ -548,7 +618,7 @@ end
 
 function M.record_auction(auction)
     bid_records[auction.item_key] = bid_records[auction.item_key] or {}
-    do
+    if not auction.commodity then
 	    local entry
 	    for _, record in pairs(bid_records[auction.item_key]) do
 	        if auction.unit_blizzard_bid == record.unit_price and auction.count == record.stack_size and auction.duration == record.duration and info.is_player(auction.owner) == record.own then

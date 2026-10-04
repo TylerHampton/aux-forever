@@ -9,57 +9,57 @@ local gui = require 'aux.gui'
 
 local UNKNOWN = GRAY_FONT_COLOR_CODE .. '?' .. FONT_COLOR_CODE_CLOSE
 
-local game_tooltip_hooks = {}
---local game_tooltip_money = 0
+
+-- Forever: item tooltips are built through TooltipDataProcessor, so one post-call replaces the
+-- per-method GameTooltip hooks of Classic aux. The quantity (used when Shift is held) is read from
+-- the call that filled the tooltip, where the item's stack size is known.
+local quantity_getters = {
+    GetBagItem = function(bag, slot)
+        local item = C_Container.GetContainerItemInfo(bag, slot)
+        return item and item.stackCount
+    end,
+    GetInventoryItem = function(unit, slot)
+        return GetInventoryItemCount(unit, slot)
+    end,
+    GetLootItem = function(slot)
+        return select(3, GetLootSlotInfo(slot))
+    end,
+    GetMerchantItem = function(slot)
+        return select(4, GetMerchantItemInfo(slot))
+    end,
+    GetBuybackItem = function(slot)
+        return select(4, GetBuybackItemInfo(slot))
+    end,
+}
+
+local function tooltip_quantity(tooltip)
+    local processing_info = tooltip.processingInfo
+    local getter = processing_info and quantity_getters[processing_info.getterName]
+    if getter and processing_info.getterArgs then
+        local ok, quantity = pcall(getter, unpack(processing_info.getterArgs, 1, processing_info.getterArgs.n or #processing_info.getterArgs))
+        if ok and type(quantity) == 'number' and quantity > 0 then
+            return quantity
+        end
+    end
+    return 1
+end
 
 function aux.event.AUX_LOADED()
     settings = aux.character_data.tooltip
---    do
---        local inside_hook = false
-    for name, f in pairs(game_tooltip_hooks) do
-        hooksecurefunc(GameTooltip, name, function(self, ...)
-            if not self:IsForbidden() then
-                f(...)
-            end
-        end)
-    end
-
-    ItemRefTooltip:HookScript('OnTooltipSetItem', function(self)
-        local _, link = self:GetItem()
-        if link then
-            extend_tooltip(self, link)
+    TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tooltip, data)
+        if tooltip ~= GameTooltip and tooltip ~= ItemRefTooltip then
+            return
         end
+        if tooltip.IsForbidden and tooltip:IsForbidden() then
+            return
+        end
+        local _, link = tooltip:GetItem()
+        link = link or data and data.hyperlink
+        if type(link) ~= 'string' or (issecretvalue and issecretvalue(link)) or not strfind(link, 'item:') then
+            return
+        end
+        extend_tooltip(tooltip, link, tooltip_quantity(tooltip))
     end)
-
---        for name, hook in pairs(game_tooltip_hooks) do
---            local name, f = name, f
---            aux.hook(name, GameTooltip, function(...)
---                game_tooltip_money = 0
---                inside_hook = true
---                local tmp = {aux.orig[GameTooltip][name](...)}
---                inside_hook = false
---                f(...)
---                return T.unpack(tmp)
---            end)
---        end
---        SetTooltipMoney = SetTooltipMoney
---        function _G.SetTooltipMoney(...)
---            if inside_hook then
---                game_tooltip_money = select(2, ...)
---            else
---                return SetTooltipMoney(...)
---            end
---        end
---    end
---    local orig = SetItemRef
---    function _G.SetItemRef(...)
---        local _, link = GetItemInfo(...)
---        local tmp = {orig(...)}
---        if link and not IsShiftKeyDown() and not IsControlKeyDown() then
---            extend_tooltip(ItemRefTooltip, link, 1)
---        end
---        return T.unpack(tmp)
---    end
 end
 
 function extend_tooltip(tooltip, link, quantity)
@@ -131,148 +131,4 @@ function extend_tooltip(tooltip, link, quantity)
 --        SetTooltipMoney(tooltip, game_tooltip_money)
 --    end
     tooltip:Show()
-end
-
-function game_tooltip_hooks.SetHyperlink(itemstring)
-    local _, link = GetItemInfo(itemstring)
-    if link then
-        extend_tooltip(GameTooltip, link, 1)
-    end
-end
-
-function game_tooltip_hooks.SetItemByID(itemId)
-    local _, link = GetItemInfo(itemId)
-    if link then
-        extend_tooltip(GameTooltip, link, 1)
-    end
-end
-
-function game_tooltip_hooks.SetAuctionItem(type, index)
-    local link = GetAuctionItemLink(type, index)
-    if link then
-        extend_tooltip(GameTooltip, link, select(3, GetAuctionItemInfo(type, index)))
-    end
-end
-
-function game_tooltip_hooks.SetLootItem(slot)
-    local link = GetLootSlotLink(slot)
-    if link then
-        extend_tooltip(GameTooltip, link, select(3, GetLootSlotInfo(slot)))
-    end
-end
-
-function game_tooltip_hooks.SetQuestItem(qtype, slot)
-    local link = GetQuestItemLink(qtype, slot)
-    if link then
-        extend_tooltip(GameTooltip, link, select(3, GetQuestItemInfo(qtype, slot)))
-    end
-end
-
-function game_tooltip_hooks.SetQuestLogItem(qtype, slot)
-    local link = GetQuestLogItemLink(qtype, slot)
-    if link then
-        extend_tooltip(GameTooltip, link, select(3, GetQuestLogRewardInfo(slot)))
-    end
-end
-
-function game_tooltip_hooks.SetBagItem(bag, slot)
-    local link = C_Container.GetContainerItemLink(bag, slot)
-    if link then
-        extend_tooltip(GameTooltip, link, C_Container.GetContainerItemInfo(bag, slot).stackCount)
-    end
-end
-
-function game_tooltip_hooks.SetInboxItem(index, itemIndex)
-    itemIndex = itemIndex or 1 -- TODO is this default correct?
-    local link = GetInboxItemLink(index, itemIndex)
-    if link then
-        extend_tooltip(GameTooltip, link, select(4, GetInboxItem(index, itemIndex)))
-    end
-end
-
-function game_tooltip_hooks.SetInventoryItem(unit, slot)
-    local link = GetInventoryItemLink(unit, slot)
-    if link then
-        extend_tooltip(GameTooltip, link, GetInventoryItemCount(unit, slot))
-    end
-end
-
-function game_tooltip_hooks.SetMerchantItem(slot)
-    local link = GetMerchantItemLink(slot)
-    if link then
-        local quantity = select(4, GetMerchantItemInfo(slot))
-        extend_tooltip(GameTooltip, link, quantity)
-    end
-end
-
-function game_tooltip_hooks.SetCraftItem(skill, slot)
-    local link, quantity
-    if slot then
-        link, quantity = GetCraftReagentItemLink(skill, slot), select(3, GetCraftReagentInfo(skill, slot))
-    else
-        link, quantity = GetCraftItemLink(skill), 1
-    end
-    if link then
-        extend_tooltip(GameTooltip, link, quantity)
-    end
-end
-
-function game_tooltip_hooks.SetCraftSpell(slot)
-    local link = GetCraftItemLink(slot)
-    if link then
-        extend_tooltip(GameTooltip, link, 1)
-    end
-end
-
-function game_tooltip_hooks.SetTradeSkillItem(skill, slot)
-    local link, quantity
-    if slot then
-        link, quantity = GetTradeSkillReagentItemLink(skill, slot), select(3, GetTradeSkillReagentInfo(skill, slot))
-    else
-        link, quantity = GetTradeSkillItemLink(skill), 1
-    end
-    if link then
-        extend_tooltip(GameTooltip, link, quantity)
-    end
-end
-
-function game_tooltip_hooks.SetAuctionSellItem()
-    local name, _, quantity = GetAuctionSellItemInfo()
-    if name then
-        for slot in info.inventory() do
-            local link = C_Container.GetContainerItemLink(unpack(slot))
-            if link and select(5, info.parse_link(link)) == name then
-                extend_tooltip(GameTooltip, link, quantity)
-                return
-            end
-        end
-    end
-end
-
-function game_tooltip_hooks.SetTradePlayerItem(index)
-    local link = GetTradePlayerItemLink(index)
-    if link then
-        extend_tooltip(GameTooltip, link, select(3, GetTradePlayerItemInfo(index)))
-    end
-end
-
-function game_tooltip_hooks.SetTradeTargetItem(index)
-    local link = GetTradeTargetItemLink(index)
-    if link then
-        extend_tooltip(GameTooltip, link, select(3, GetTradeTargetItemInfo(index)))
-    end
-end
-
-function game_tooltip_hooks.SetSendMailItem(sendMailIndex)
-    local link = GetSendMailItemLink(sendMailIndex)
-    if link then
-        extend_tooltip(GameTooltip, link, select(4, GetSendMailItem(sendMailIndex)))
-    end
-end
-
-function game_tooltip_hooks.SetBuybackItem(slot)
-    local link = GetBuybackItemLink(slot)
-    if link then
-        extend_tooltip(GameTooltip, link, select(4, GetBuybackItemInfo(slot)))
-    end
 end

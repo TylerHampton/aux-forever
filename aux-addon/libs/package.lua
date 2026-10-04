@@ -19,7 +19,16 @@ function pass() end
 
 empty = setmetatable({}, { __metatable=false, __newindex=pass })
 
-environment_mt = { __index = _G }
+-- Forever: look up compatibility shims (compat.lua) before falling back to _G
+local compat = {}
+addon_table.compat = compat
+environment_mt = { __index = function(_, k)
+    local v = compat[k]
+    if v == nil then
+        v = _G[k]
+    end
+    return v
+end }
 
 function require(name)
     if not interfaces[name] then

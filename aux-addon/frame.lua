@@ -26,7 +26,7 @@ do
 	frame:SetClampedToScreen(true)
 --	frame:CreateTitleRegion():SetAllPoints() TODO classic why
 	frame:SetScript('OnShow', function() PlaySound(SOUNDKIT.AUCTION_WINDOW_OPEN) end)
-	frame:SetScript('OnHide', function() PlaySound(SOUNDKIT.AUCTION_WINDOW_CLOSE); CloseAuctionHouse() end)
+	frame:SetScript('OnHide', function() PlaySound(SOUNDKIT.AUCTION_WINDOW_CLOSE); C_AuctionHouse.CloseAuctionHouse() end)
 	frame.content = CreateFrame('Frame', nil, frame)
 	frame.content:SetPoint('TOPLEFT', 4, -80)
 	frame.content:SetPoint('BOTTOMRIGHT', -4, 35)
@@ -60,11 +60,7 @@ do
 	gui.set_size(btn, 60, 24)
 	btn:SetText(color.blizzard'Blizzard UI')
 	btn:SetScript('OnClick',function()
-		if AuctionFrame:IsVisible() then
-            AuctionFrame_Hide()
-        else
-            AuctionFrame_Show()
-        end
+		set_blizzard_frame_shown(not blizzard_frame_shown())
 	end)
     blizzard_button = btn
 end
@@ -73,8 +69,12 @@ do
     btn:SetPoint('RIGHT', blizzard_button, 'LEFT' , -5, 0)
     gui.set_size(btn, 60, 24)
     btn:SetText('Scan')
+    -- Forever: a full scan uses C_AuctionHouse.ReplicateItems, which the server allows once every 15 minutes
+    local function seconds_until_scan()
+        return max(0, account_data.replicate_time + scan.REPLICATE_COOLDOWN - time())
+    end
     btn:SetScript('OnUpdate', function(self)
-        if select(2, CanSendAuctionQuery()) then
+        if seconds_until_scan() == 0 and not scan.is_scanning() then
             self:Enable()
             self:SetBackdropColor(color.state.enabled())
         else
@@ -82,12 +82,23 @@ do
             self:SetBackdropColor(color.content.background())
         end
     end)
+    btn:SetScript('OnEnter', function(self)
+        GameTooltip:SetOwner(self, 'ANCHOR_TOP')
+        GameTooltip:AddLine('Full scan')
+        local seconds = seconds_until_scan()
+        if seconds > 0 then
+            GameTooltip:AddLine(format('Available again in %d:%02d', floor(seconds / 60), seconds % 60), 1, 1, 1)
+        else
+            GameTooltip:AddLine('Records prices of everything on the auction house.', 1, 1, 1)
+        end
+        GameTooltip:Show()
+    end)
+    btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
+    btn:SetMotionScriptsWhileDisabled(true)
     btn:SetScript('OnClick', function()
-        local total
         local count = 0
         scan.start{
             type = 'list',
-            sort_type = 'unitprice',
             queries = {{blizzard_query = {}}},
             get_all = true,
             on_scan_start = function()
@@ -95,10 +106,7 @@ do
                 post.clear_auctions()
                 search.clear_selection()
             end,
-            on_page_loaded = function(_, _, _, page_size)
-                total = page_size
-            end,
-            on_auction = function(auction_record)
+            on_auction = function(auction_record, total)
                 count = count + 1
                 status_bar:update_status(count / total, 0)
                 post.record_auction(auction_record)
@@ -108,6 +116,7 @@ do
             end,
             on_complete = function()
                 status_bar:update_status(1, 1)
+                print('full scan complete: ' .. count .. ' auctions recorded')
             end,
         }
     end)
