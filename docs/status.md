@@ -38,7 +38,13 @@ only the initial commit until Tyler merges, so a download of `main` is not auxFo
 - Undercut mode starts off every time the auction house opens (Tyler: never remembered).
 - Quick searches, the gold finished-search bar and the fading history arrows tested fine in game.
 
-## Post tab facelift (built from the mockup, needs testing in game)
+## Post tab: auto price (built)
+
+When an item is loaded, once its listings are in, the price starts at the lowest listing (matched,
+or one step below in undercut mode), else the usual price. A clicked row or typed price still wins.
+Tyler: "99% of posts are matching the lowest price"; aux used to show the last price used.
+
+## Post tab facelift (built, tested in game)
 
 https://claude.ai/artifact/9gx3SMqfU46WMGbZ11iwKv : Match lowest / Undercut switch with the goblin,
 a "?" for the undercut hint, bigger price box with a "% of usual" badge, a summary row (items,
@@ -52,7 +58,7 @@ his own Post tab showed a 1c deposit for Minor Mana Potion, so that claim is not
 
 ## Background opacity (built)
 
-Gear in the top bar, 70% to 100%, only backgrounds fade (gui.register_background). Light mode was
+Gear in the top bar, 50% to 100% (Tyler lowered the floor from 70%), only backgrounds fade (gui.register_background). Light mode was
 considered and turned down: game item colors are made for dark backgrounds and it doubles UI work.
 
 ## Quick searches (built, tested in game)

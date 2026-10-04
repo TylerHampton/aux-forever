@@ -14,6 +14,11 @@ local gui = require 'aux.gui'
 
 local tab = aux.tab 'Post'
 
+-- auxForever: the item whose price is picked once its listings are in (auto_pick_price), and
+-- which items' listings are complete enough to pick from
+local auto_price_key
+local listings_ready = {}
+
 local settings_schema = {'tuple', '#', {duration='number'}, {start_price='number'}, {buyout_price='number'}, {hidden='boolean'}}
 
 local inventory_records, bid_records, buyout_records = {}, {}, {}
@@ -583,8 +588,12 @@ function update_item(item)
     unit_buyout_price_input:SetText(money.to_string(settings.buyout_price, true, nil, nil, true))
     write_settings(settings, item.key)
 
+    -- start from the lowest listing once the listings are in (auto_pick_price)
+    auto_price_key = item.key
     if not bid_records[item.key] then
         refresh_entries()
+    else
+        listings_ready[item.key] = true
     end
 
     refresh = true
@@ -632,11 +641,40 @@ function update_inventory_records(reset)
     end
 end
 
+-- auxForever: once an item's listings are in, start from the price most posts use: the lowest
+-- listing (matched, or one step below in undercut mode), else the item's usual price, so the
+-- player can post right away. Picking a row or typing a price afterwards still wins.
+function M.auto_pick_price()
+    if not selected_item or auto_price_key ~= selected_item.key or not listings_ready[selected_item.key] then
+        return
+    end
+    auto_price_key = nil
+    local cheapest
+    for _, record in pairs(buyout_records[selected_item.key] or empty) do
+        if not cheapest or record.unit_price < cheapest.unit_price or (record.unit_price == cheapest.unit_price and cheapest.own and not record.own) then
+            cheapest = record
+        end
+    end
+    if not cheapest then
+        local historical_value = history.value(selected_item.key)
+        if historical_value then
+            cheapest = { historical_value = true, stack_size = stack_size_input:GetNumber(), unit_price = historical_value }
+        end
+    end
+    if cheapest then
+        set_buyout_selection(cheapest)
+        set_bid_selection()
+        refresh = true
+    end
+end
+
 function refresh_entries()
 	if selected_item then
         local item_key = selected_item.key
 		set_bid_selection()
         set_buyout_selection()
+        auto_price_key = item_key
+        listings_ready[item_key] = nil
         bid_records[item_key], buyout_records[item_key] = nil, nil
         local query = scan_util.item_query(selected_item.item_id)
 
@@ -654,6 +692,7 @@ function refresh_entries()
             on_page_scanned = function()
                 bid_records[item_key] = bid_records[item_key] or {}
                 buyout_records[item_key] = buyout_records[item_key] or {}
+                listings_ready[item_key] = true
                 refresh = true
                 if not aux.account_data.post_full_scan and next(buyout_records[item_key]) then
                     scan.abort()
@@ -667,9 +706,15 @@ function refresh_entries()
 			end,
 			on_abort = function()
                 aux.status_bar:update_status(1, 1)
+                listings_ready[item_key] = true
+                refresh = true
 			end,
 			on_complete = function()
                 aux.status_bar:update_status(1, 1)
+                bid_records[item_key] = bid_records[item_key] or {}
+                buyout_records[item_key] = buyout_records[item_key] or {}
+                listings_ready[item_key] = true
+                refresh = true
             end,
 		}
 	end
@@ -677,6 +722,7 @@ end
 
 function M.clear_auctions()
     bid_records, buyout_records = {}, {}
+    aux.wipe(listings_ready)
 end
 
 function M.record_auction(auction)
@@ -712,6 +758,7 @@ function M.record_auction(auction)
 end
 
 function on_update()
+    auto_pick_price()
     if refresh then
         refresh = false
         price_update()

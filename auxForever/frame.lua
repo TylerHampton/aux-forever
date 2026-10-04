@@ -294,7 +294,7 @@ do
         b:SetScript('OnEnter', function(self)
             GameTooltip:SetOwner(self, 'ANCHOR_BOTTOM')
             GameTooltip:AddLine('Background opacity')
-            GameTooltip:AddLine('How much of the game shows through. Text and buttons stay solid; 70% is the lowest.', 1, 1, 1, true)
+            GameTooltip:AddLine('How much of the game shows through. Text and buttons stay solid; 50% is the lowest.', 1, 1, 1, true)
             GameTooltip:Show()
         end)
         b:SetScript('OnLeave', function() GameTooltip:Hide() end)

@@ -141,10 +141,10 @@ function M.add_highlight(frame, radius, r, g, b, a)
 end
 
 -- auxForever: background opacity. The main window and the panels made by gui.panel are registered,
--- and only their fill fades: text, buttons, inputs and the buy bar stay solid. Never below 70%.
+-- and only their fill fades: text, buttons, inputs and the buy bar stay solid. Never below 50%.
 local backgrounds = {}
 local background_opacity = 1
-M.MIN_BACKGROUND_OPACITY = .7
+M.MIN_BACKGROUND_OPACITY = .5
 
 local function paint_background(frame)
     local r, g, b, a = frame.aux_background_color()

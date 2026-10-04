@@ -67,7 +67,7 @@ function SlashCmdList.AUX(command)
         aux.print('Item cache cleared.')
     elseif arguments[1] == 'opacity' and tonumber(arguments[2]) then
         aux.set_background_opacity(tonumber(arguments[2]) / 100)
-        aux.print('background opacity ' .. aux.color.blue(floor(aux.account_data.background_opacity * 100 + .5) .. '%') .. ' (70% to 100%)')
+        aux.print('background opacity ' .. aux.color.blue(floor(aux.account_data.background_opacity * 100 + .5) .. '%') .. ' (50% to 100%)')
     elseif arguments[1] == 'undercut' then
         if arguments[2] == 'on' or arguments[2] == 'off' then
             post.set_undercut_mode(arguments[2] == 'on')

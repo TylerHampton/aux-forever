@@ -87,8 +87,9 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
       "Hide from this list" at the top right.
 - [ ] Left: Stack size and Stacks with - / + / Max, and Duration as 2h / 8h / 24h buttons. The
       chosen duration is amber and the deposit changes with it.
-- [ ] Right: "Match lowest" is selected. The price equals the cheapest listing and the line under
-      it says so. The badge says e.g. "100% of usual".
+- [ ] As soon as the listings load, the price is the cheapest listing (that row is highlighted)
+      and the line under it says so, even if you used another price for this item before.
+- [ ] Right: "Match lowest" is selected. The badge says e.g. "100% of usual".
 - [ ] Click "Undercut" (goblin): the price drops 1 copper (trade goods) or 1 silver (gear), and the
       line under it says so. Click "Match lowest" to go back. Undercut is off again every time you
       open the auction house.
@@ -115,7 +116,7 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
 ## 12. Background opacity
 - [ ] A gear button sits left of Full scan. Click it: a small Settings box opens.
 - [ ] Background - / +: steps of 5%. The window and panels let the game show through; text,
-      buttons, price boxes and the buy bar stay solid. It stops at 70% and at 100%.
+      buttons, price boxes and the buy bar stay solid. It stops at 50% and at 100%.
 - [ ] The setting is kept after `/reload`. `/aux opacity 85` sets it from chat.
 - [ ] Clicking anywhere else closes the Settings box.
 
