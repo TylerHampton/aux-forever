@@ -21,15 +21,21 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
 - [ ] Exact search: right-click an item in the results. It searches that exact item.
 - [ ] Shift-click an item in your bags while the Search tab is open. aux searches for it.
       Alt-click does the same. With the chat box open, Shift-click still links into chat.
-- [ ] Gear or bags: select a cheap row and click Buyout. **One** item is bought, the
-      "Auctions" count drops by one, and clicking Buyout again buys the next one.
-- [ ] Trade goods (cloth, herbs, ore): select any row. The Bid/Buyout/Clear buttons are replaced
-      by a quantity box (starting at one stack), a Buy button and a line like
-      "20 for 1s 26c / avg 6c, max 7c". Change the quantity: the cost updates.
-- [ ] Press Buy (or Enter). It shows "Server price ... Confirm?". Nothing is bought yet.
-      Press Confirm (or Enter again). It shows "Bought N for ...".
-- [ ] Press Buy, then Escape instead of Confirm: "Cancelled, nothing bought".
-- [ ] Type more than is for sale: it says "Only N for sale" and Buy stays disabled.
+- [ ] The window is wider and a buy bar sits under the results. With nothing selected it says
+      "Select an auction to buy it".
+- [ ] Gear or bags: select a cheap row. The bar shows the item, "6 for sale at this price" and a
+      button "Buy for 2g 10s". Click it: **one** item is bought, the count drops by one, and the
+      button is ready for the next one. A Bid button appears for auctions that take bids.
+- [ ] Your own auction: the bar says it is yours and Buy is disabled.
+- [ ] Trade goods (cloth, herbs, feathers): select any row. The bar shows quantity buttons sized to
+      the stack (e.g. 1, 5, 10, 20 stack), each with its total cost, plus an Other box. The full
+      stack is selected to start.
+- [ ] Click each quantity button: the text and the Buy button update ("Buy 20 for 1s 40c").
+- [ ] Type a number in Other: the buttons unselect and the cost updates.
+- [ ] Press Buy. The button turns green: "Confirm 1s 40c", with Cancel next to it. Nothing is
+      bought yet. Press Confirm: "Bought 20 × Light Feather for 1s 40c".
+- [ ] Press Buy, then Cancel: "Cancelled, nothing was bought".
+- [ ] Type more than is for sale: "Only N for sale" and Buy stays disabled.
 - [ ] Check your mailbox: you got exactly the quantity you confirmed, for the price shown.
 - [ ] Stop a long search with the stop button, then resume it.
 - [ ] Toggle real time mode (the button left of the search box) and run a search. It repeats.

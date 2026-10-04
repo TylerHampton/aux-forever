@@ -8,7 +8,7 @@ local scan = require 'aux.core.scan'
 local gui = require 'aux.gui'
 local listing = require 'aux.gui.listing'
 local auction_listing = require 'aux.gui.auction_listing'
-local commodity_bar = require 'aux.gui.commodity_bar'
+local buy_bar = require 'aux.gui.buy_bar'
 
 FILTER_SPACING = 27
 
@@ -22,6 +22,11 @@ frame.filter:SetAllPoints(aux.frame.content)
 
 frame.results = gui.panel(frame)
 frame.results:SetAllPoints(aux.frame.content)
+
+-- the results list sits above the buy bar
+frame.results.list = CreateFrame('Frame', nil, frame.results)
+frame.results.list:SetPoint('TOPLEFT', 0, 0)
+frame.results.list:SetPoint('BOTTOMRIGHT', 0, buy_bar.HEIGHT + 4)
 
 frame.saved = CreateFrame('Frame', nil, frame)
 frame.saved:SetAllPoints(aux.frame.content)
@@ -166,20 +171,6 @@ end
 do
     local btn = gui.button(frame.results)
     btn:SetPoint('LEFT', aux.status_bar, 'RIGHT', 5, 0)
-    btn:SetText('Bid')
-    btn:Disable()
-    bid_button = btn
-end
-do
-    local btn = gui.button(frame.results)
-    btn:SetPoint('TOPLEFT', bid_button, 'TOPRIGHT', 5, 0)
-    btn:SetText('Buyout')
-    btn:Disable()
-    buyout_button = btn
-end
-do
-    local btn = gui.button(frame.results)
-    btn:SetPoint('TOPLEFT', buyout_button, 'TOPRIGHT', 5, 0)
     btn:SetText('Clear')
     btn:SetScript('OnClick', function()
         while tremove(current_search().records) do end
@@ -187,7 +178,7 @@ do
     end)
     clear_button = btn
 end
-commodity_bar.create(frame.results, aux.status_bar)
+buy_bar.create(frame.results)
 do
     local btn = gui.button(frame.saved)
     btn:SetPoint('LEFT', aux.status_bar, 'RIGHT', 5, 0)
@@ -497,14 +488,14 @@ end
 
 tables = {}
 for _ = 1, 5 do
-    local table = auction_listing.new(frame.results, 16, auction_listing.search_columns)
+    local table = auction_listing.new(frame.results.list, 16, auction_listing.search_columns)
     table:SetHandler('OnClick', function(row, button)
 	    if IsAltKeyDown() and aux.account_data.action_shortcuts then
 		    if current_search().table:GetSelection().record == row.record then
 			    if button == 'LeftButton' then
-	                buyout_button:Click()
+	                buy_bar.primary_click()
 	            elseif button == 'RightButton' then
-	                bid_button:Click()
+	                buy_bar.bid_click()
 			    end
 		    end
 	    elseif button == 'RightButton' then
@@ -513,8 +504,6 @@ for _ = 1, 5 do
 	    end
     end)
     table:SetHandler('OnSelectionChanged', function(rt, datum)
-	    bid_button:Disable()
-        buyout_button:Disable()
         if not datum then return end
         find_auction(datum.record)
     end)

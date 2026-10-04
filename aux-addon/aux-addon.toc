@@ -32,7 +32,7 @@ core\shortcut.lua
 gui\listing.lua
 gui\auction_listing.lua
 gui\item_listing.lua
-gui\commodity_bar.lua
+gui\buy_bar.lua
 
 tabs\search\core.lua
 tabs\search\results.lua

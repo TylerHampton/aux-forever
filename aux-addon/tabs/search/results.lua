@@ -4,7 +4,7 @@ local aux = require 'aux'
 local info = require 'aux.util.info'
 local filter_util = require 'aux.util.filter'
 local scan = require 'aux.core.scan'
-local commodity_bar = require 'aux.gui.commodity_bar'
+local buy_bar = require 'aux.gui.buy_bar'
 
 StaticPopupDialogs.AUX_SCAN_ALERT = {
     text = 'One of your alert queries matched!',
@@ -328,9 +328,9 @@ end
 -- Forever: every record carries its auction ID, so the selected auction can be bought or bid on
 -- right away instead of first being found again by a scan as in Classic aux.
 -- Item rows are buckets of identical auctions priced per item: Buyout buys one, like buying one
--- single-item auction in Classic. Commodities are bought by quantity from the bottom bar (gui/commodity_bar.lua).
+-- single-item auction in Classic. Both are bought from the buy bar under the results (gui/buy_bar.lua).
 do
-    local selected, checked
+    local checked
 
     local function failure(search, record)
         return function(error)
@@ -439,32 +439,59 @@ do
         search.table:SetDatabase()
     end
 
-    local function show_commodity_bar(search, record)
-        local item_info = info.item(record.item_id)
-        commodity_bar.show{
-            item_id = record.item_id,
-            max_stack = item_info and item_info.max_stack or 1,
-            tiers = function() return commodity_tiers(search, record.item_id) end,
-            on_success = function(n) consume_commodity(search, record.item_id, n) end,
+    -- Re-read the listings of one commodity (after its price went up), replacing its rows
+    local function refresh_commodity(search, item_id)
+        local fresh = {}
+        scan.start{
+            type = 'list',
+            queries = {{item_keys = {C_AuctionHouse.MakeItemKey(item_id)}}},
+            on_auction = function(record)
+                tinsert(fresh, record)
+            end,
+            on_complete = function()
+                for i = #search.records, 1, -1 do
+                    if search.records[i].commodity and search.records[i].item_id == item_id then
+                        tremove(search.records, i)
+                    end
+                end
+                for _, record in ipairs(fresh) do
+                    tinsert(search.records, record)
+                end
+                search.table:SetDatabase()
+            end,
         }
     end
 
-    function find_auction(record)
-        local search = current_search()
-        selected, checked = nil, record
-        -- Forever: commodities are bought by quantity from the bottom bar, whichever row is selected
-        if record.commodity and search.table:ContainsRecord(record) then
-            show_commodity_bar(search, record)
-            return
-        end
-        commodity_bar.hide()
-        if not search.table:ContainsRecord(record) or info.is_player(record.owner) or record.own then
-            return
-        end
-        selected = record
+    local function show_commodity(search, record)
+        local item_info = info.item(record.item_id)
+        buy_bar.show_commodity{
+            item_id = record.item_id,
+            name = record.name,
+            texture = record.texture,
+            quality = record.quality,
+            max_stack = item_info and item_info.max_stack or 1,
+            tiers = function() return commodity_tiers(search, record.item_id) end,
+            on_success = function(n) consume_commodity(search, record.item_id, n) end,
+            on_refresh = function() refresh_commodity(search, record.item_id) end,
+        }
+    end
 
-        bid_button:SetScript('OnClick', function()
-            if search.table:ContainsRecord(record) and not record.syncing then
+    local function show_item(search, record)
+        buy_bar.show_item{
+            record = record,
+            name = record.name,
+            texture = record.texture,
+            quality = record.quality,
+            own = info.is_player(record.owner) or record.own,
+            busy = function()
+                return record.syncing or aux.bid_in_progress() or not search.table:ContainsRecord(record)
+            end,
+            on_buy = function()
+                aux.place_bid(record.auction_id, record.buyout_price, function()
+                    sync_bucket(search, record)
+                end, failure(search, record))
+            end,
+            on_bid = function()
                 aux.place_bid(record.auction_id, record.bid_price, function()
                     if record.auction_count and record.auction_count > 1 then
                         sync_bucket(search, record)
@@ -475,16 +502,21 @@ do
                         search.table:RemoveAuctionRecord(record)
                     end
                 end, failure(search, record))
-            end
-        end)
+            end,
+        }
+    end
 
-        buyout_button:SetScript('OnClick', function()
-            if search.table:ContainsRecord(record) and not record.syncing then
-                aux.place_bid(record.auction_id, record.buyout_price, function()
-                    sync_bucket(search, record)
-                end, failure(search, record))
-            end
-        end)
+    function find_auction(record)
+        local search = current_search()
+        checked = record
+        if not search.table:ContainsRecord(record) then
+            buy_bar.clear()
+        elseif record.commodity then
+            -- Forever: commodities are bought by quantity, whichever row is selected
+            show_commodity(search, record)
+        else
+            show_item(search, record)
+        end
     end
 
     function on_update()
@@ -493,27 +525,7 @@ do
             find_auction(selection.record)
         elseif not selection and checked then
             checked = nil
-            commodity_bar.hide()
-        end
-
-        -- the commodity bar takes the place of the Bid, Buyout and Clear buttons
-        local bar = commodity_bar.shown()
-        for _, button in ipairs{bid_button, buyout_button, clear_button} do
-            if bar then button:Hide() else button:Show() end
-        end
-
-        local record = selection and selected == selection.record and selected
-        local busy = not record or record.syncing or aux.bid_in_progress()
-
-        if not busy and not record.commodity and not record.high_bidder then
-            bid_button:Enable()
-        else
-            bid_button:Disable()
-        end
-        if not busy and not record.commodity and record.buyout_price > 0 then
-            buyout_button:Enable()
-        else
-            buyout_button:Disable()
+            buy_bar.clear()
         end
     end
 end

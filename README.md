@@ -39,10 +39,11 @@ In testing. Searching works in game. See `TESTING.md` for what to check and
 Known gaps:
 
 - Crafting cost in the profession window is not shown (Forever uses a different profession UI).
-- Trade goods ("commodities") cannot be bought by row on Forever: the game always sells the
-  cheapest units first. Selecting one shows a quantity box in the bottom bar (starting at one
-  stack) with the cost worked out from the listings. Buy asks the server for the real price and
-  nothing is bought until Confirm. A server price above the shown cost is cancelled.
+- Buying happens in the buy bar under the Search results. Gear and other single items are bought
+  one at a time at the price on the button. Trade goods ("commodities") cannot be bought by row on
+  Forever, since the game always sells the cheapest units first: the bar offers quantities sized to
+  the item's stack, each with its cost. Buy asks the server for the real price and nothing is
+  bought until Confirm. A server price above the shown cost is cancelled and the listings re-read.
 
 ## Layout
 

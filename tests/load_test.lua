@@ -76,53 +76,89 @@ for i = 1, 5 do
     if f.__shown and f.__scripts.OnUpdate then try('OnUpdate', f.__scripts.OnUpdate, f, 0.1) end
   end
 end
--- Commodity purchase flow (gui/commodity_bar.lua). The stub editbox always reads 10.
+-- Buy bar (gui/buy_bar.lua)
 local function check(label, ok)
   if not ok then errors = errors + 1; print('FAIL', label) end
 end
-try('commodity purchase', function()
+local function tick()
+  clock = clock + 0.1
+  for _, f in ipairs(frames) do
+    if f.__shown and f.__scripts.OnUpdate then try('OnUpdate', f.__scripts.OnUpdate, f, 0.1) end
+  end
+end
+local function same(a, b)
+  if #a ~= #b then return false end
+  for i = 1, #a do if a[i] ~= b[i] then return false end end
+  return true
+end
+try('buy bar', function()
   local require = loadstring("select(2, ...) 'aux.test'; return require")('aux-addon', addon)
-  local bar = require 'aux.gui.commodity_bar'
+  local bar = require 'aux.gui.buy_bar'
+
+  -- quantity buttons follow the stack size, the full stack being the largest
+  check('stack 20 -> 1 5 10 20', same(bar.quantities(20), {1, 5, 10, 20}))
+  check('stack 10 -> 1 5 10', same(bar.quantities(10), {1, 5, 10}))
+  check('stack 5 -> 1 5', same(bar.quantities(5), {1, 5}))
+  check('stack 200 -> 1 50 100 200', same(bar.quantities(200), {1, 50, 100, 200}))
+  check('no stack -> none', same(bar.quantities(1), {}))
+
   local calls = {}
   C_AuctionHouse.StartCommoditiesPurchase = function(id, n) tinsert(calls, 'start ' .. id .. ' ' .. n) end
   C_AuctionHouse.ConfirmCommoditiesPurchase = function(id, n) tinsert(calls, 'confirm ' .. id .. ' ' .. n) end
   C_AuctionHouse.CancelCommoditiesPurchase = function() tinsert(calls, 'cancel') end
   C_AuctionHouse.GetQuoteDurationRemaining = function() return 30 end
   local tiers = {{count = 6, commodity_unit_price = 6}, {count = 100, commodity_unit_price = 7}}
-  local bought
-  bar.show{item_id = 123, max_stack = 20, tiers = function() return tiers end, on_success = function(n) bought = n end}
-  local button
-  for _, f in ipairs(frames) do
-    if f.__text == 'Buy' and f.__scripts.OnClick then button = f end
-  end
-  check('buy button exists', button)
+  local bought, refreshed
+  bar.show_commodity{item_id = 123, name = 'Light Feather', max_stack = 20, tiers = function() return tiers end,
+    on_success = function(n) bought = n end, on_refresh = function() refreshed = true end}
+  tick()
+  check('starts at one stack: Buy 20', bar.primary_label():find('^Buy 20 for') ~= nil)
 
-  -- 10 units, cheapest first: 6 x 6c + 4 x 7c = 64c
-  button.__scripts.OnClick(button)
-  check('quote requested for 10', calls[1] == 'start 123 10')
-  fire('COMMODITY_PRICE_UPDATED', 6, 64)
-  check('confirm offered at the estimate', button.__text == 'Confirm')
+  -- 20 units, cheapest first: 6 x 6c + 14 x 7c = 1s 34c
+  bar.primary_click()
+  check('quote requested for 20', calls[1] == 'start 123 20')
+  fire('COMMODITY_PRICE_UPDATED', 7, 134)
+  tick()
+  check('confirm shows the price', bar.primary_label():find('^Confirm') ~= nil)
   check('nothing confirmed before the click', #calls == 1)
-  button.__scripts.OnClick(button)
-  check('confirmed after the click', calls[2] == 'confirm 123 10')
+  bar.primary_click()
+  check('confirmed after the click', calls[2] == 'confirm 123 20')
   fire('COMMODITY_PURCHASE_SUCCEEDED')
-  check('success reported for 10', bought == 10)
-  check('back to Buy', button.__text == 'Buy')
+  tick()
+  check('success reported for 20', bought == 20)
+  check('back to Buy', bar.primary_label():find('^Buy') ~= nil)
 
-  -- a server price above the estimate is cancelled, never confirmed
+  -- a server price above the estimate is cancelled, never confirmed, and the listings re-read
   calls = {}
-  button.__scripts.OnClick(button)
-  fire('COMMODITY_PRICE_UPDATED', 7, 65)
+  bar.primary_click()
+  fire('COMMODITY_PRICE_UPDATED', 7, 135)
+  tick()
   check('higher price cancelled', calls[2] == 'cancel')
   check('higher price not confirmed', #calls == 2)
-  check('higher price returns to Buy', button.__text == 'Buy')
+  check('higher price refreshes listings', refreshed)
+  check('higher price returns to Buy', bar.primary_label():find('^Buy') ~= nil)
 
-  -- Escape while a price is shown cancels it
+  -- selecting something else while a price is shown cancels it
   calls = {}
-  button.__scripts.OnClick(button)
-  fire('COMMODITY_PRICE_UPDATED', 6, 60)
-  bar.hide()
-  check('hiding the bar cancels the quote', calls[2] == 'cancel')
+  bar.primary_click()
+  fire('COMMODITY_PRICE_UPDATED', 6, 120)
+  bar.clear()
+  check('clearing the bar cancels the quote', calls[2] == 'cancel')
+
+  -- items: one per click at the price on the button; never your own
+  local buys = 0
+  local record = {buyout_price = 21000, bid_price = 15000, auction_count = 6}
+  bar.show_item{record = record, name = 'Heavy Brown Bag', busy = function() return false end,
+    on_buy = function() buys = buys + 1 end, on_bid = function() end}
+  tick()
+  check('item button shows its price', bar.primary_label():find('^Buy for') ~= nil)
+  bar.primary_click()
+  check('item bought once', buys == 1)
+  bar.show_item{record = {buyout_price = 21000, bid_price = 15000}, name = 'Heavy Brown Bag', own = true,
+    busy = function() return false end, on_buy = function() buys = buys + 1 end, on_bid = function() end}
+  tick()
+  bar.primary_click()
+  check('own auction not bought', buys == 1)
 end)
 
 fire('AUCTION_HOUSE_CLOSED')

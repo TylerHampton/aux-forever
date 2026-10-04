@@ -15,7 +15,8 @@ do
 	local frame = CreateFrame('Frame', 'aux_frame', UIParent, 'BackdropTemplate')
 	tinsert(UISpecialFrames, 'aux_frame')
 	gui.set_window_style(frame)
-	gui.set_size(frame, 768, 447)
+	-- Forever: wider, and taller by the buy bar under the Search results
+	gui.set_size(frame, 1000, 447 + 62)
 	frame:SetPoint('LEFT', 100, 0)
 	frame:SetToplevel(true)
 	frame:SetMovable(true)

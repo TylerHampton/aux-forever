@@ -28,14 +28,14 @@ frame.parameters:SetHeight(173)
 frame.parameters:SetPoint('TOPLEFT', frame.inventory, 'TOPRIGHT', 2.5, 0)
 frame.parameters:SetPoint('TOPRIGHT', 0, 0)
 
+-- Forever: the listings fill the height under the parameters, which grew with the window
 frame.bid_listing = gui.panel(frame.content)
-frame.bid_listing:SetHeight(228)
-frame.bid_listing:SetWidth(271.5)
+frame.bid_listing:SetPoint('TOPLEFT', frame.parameters, 'BOTTOMLEFT', 0, -2.5)
 frame.bid_listing:SetPoint('BOTTOMLEFT', frame.inventory, 'BOTTOMRIGHT', 2.5, 0)
 frame.bid_listing:Hide()
 
 frame.buyout_listing = gui.panel(frame.content)
-frame.buyout_listing:SetHeight(228)
+frame.buyout_listing:SetPoint('TOPLEFT', frame.parameters, 'BOTTOMLEFT', 0, -2.5)
 frame.buyout_listing:SetPoint('BOTTOMLEFT', frame.inventory, 'BOTTOMRIGHT', 2.5, 0)
 frame.buyout_listing:SetPoint('BOTTOMRIGHT', 0, 0)
 
@@ -431,8 +431,10 @@ function aux.event.AUX_LOADED()
             {name='Auction Bid\n' .. (aux.account_data.post_bid == 'unit' and '(per item)' or '(per stack)'), width=.4, align='RIGHT'},
             {name='% Hist.\nValue', width=.21, align='CENTER'},
         }
+        -- side by side, each half of the space under the parameters
+        frame.bid_listing:SetPoint('TOPRIGHT', frame.parameters, 'BOTTOM', -1.25, -2.5)
         frame.buyout_listing:ClearAllPoints()
-        frame.buyout_listing:SetWidth(271.5)
+        frame.buyout_listing:SetPoint('TOPLEFT', frame.parameters, 'BOTTOM', 1.25, -2.5)
         frame.buyout_listing:SetPoint('BOTTOMRIGHT', 0, 0)
         buyout_listing:SetColInfo{
             {name='Auctions', width=.17, align='CENTER'},
