@@ -428,16 +428,33 @@ do
             status_bar:SetStatusBarColor(.89, .64, .23, .55)
             self.primary_status_bar = status_bar
         end
-        function self:update_status(primary_status, secondary_status)
-            if min(primary_status or 0, secondary_status or 0) < 1 then
-                self:SetScript('OnUpdate', update_alpha)
+        -- auxForever: amber while loading, gold when a search has finished (set_done), dim gray
+        -- otherwise. The gold matches the selected quantity button of the buy bar.
+        local function paint(self)
+            if self.loading then
                 self.primary_status_bar:SetStatusBarColor(.89, .64, .23, .55)
+                self:SetBackdropBorderColor(aux.color.window.border())
+            elseif self.done then
+                self.primary_status_bar:SetStatusBarColor(.23, .18, .08, 1)
+                self:SetBackdropBorderColor(aux.color.accent.background())
             else
-                -- auxForever: dim gray when idle, amber only while something is loading
+                self.primary_status_bar:SetStatusBarColor(.30, .32, .35, .6)
+                self:SetBackdropBorderColor(aux.color.window.border())
+            end
+        end
+        function self:set_done(done)
+            self.done = done and true or false
+            paint(self)
+        end
+        function self:update_status(primary_status, secondary_status)
+            self.loading = min(primary_status or 0, secondary_status or 0) < 1
+            if self.loading then
+                self:SetScript('OnUpdate', update_alpha)
+            else
                 self:SetScript('OnUpdate', nil)
                 self:SetAlpha(1)
-                self.primary_status_bar:SetStatusBarColor(.30, .32, .35, .6)
             end
+            paint(self)
             if primary_status then
                 self.primary_status_bar:SetValue(primary_status)
             end

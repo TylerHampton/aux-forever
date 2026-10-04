@@ -24,11 +24,13 @@ function tab.OPEN()
     frame:Show()
     update_search_listings()
     update_filter_display()
+    update_done()
 end
 
 function tab.CLOSE()
     current_search().table:SetSelectedRecord()
     frame:Hide()
+    update_done()
 end
 
 function tab.USE_ITEM(item_id)
@@ -57,6 +59,7 @@ function set_subtab(tab)
         frame.filter:Show()
         new_filter_button:LockHighlight()
     end
+    update_done()
 end
 
 function M.set_filter(filter_string)

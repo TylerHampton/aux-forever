@@ -175,6 +175,8 @@ do
     btn:SetScript('OnClick', function()
         while tremove(current_search().records) do end
         current_search().table:SetDatabase()
+        current_search().complete = false
+        update_done()
     end)
     clear_button = btn
 end

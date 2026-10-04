@@ -73,6 +73,7 @@ do
         update_mode(searches[search_index].mode)
         update_start_stop()
         update_continuation()
+        update_done()
     end
 
     function new_search(filter_string, mode)
@@ -184,10 +185,19 @@ function start_live_scan(query, search)
     }
 end
 
+-- auxForever: the status bar turns gold while the results of a finished search are shown, and goes
+-- back to normal on a new search, another search in the history, Clear, another sub tab or tab.
+function M.update_done()
+    local search = current_search()
+    aux.status_bar:set_done(frame:IsShown() and frame.results:IsShown() and search and search.complete)
+end
+
 function start_search(queries, continuation)
     local current_query, current_page, total_queries, start_query, start_page
 
     local search = current_search()
+    search.complete = false
+    update_done()
 
     total_queries = #queries
 
@@ -238,6 +248,8 @@ function start_search(queries, continuation)
         end,
         on_complete = function()
             aux.status_bar:update_status(1, 1)
+            search.complete = true
+            update_done()
 
             if current_search() == search and frame.results:IsVisible() and #search.records == 0 then
                 set_subtab(SAVED)
