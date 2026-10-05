@@ -246,6 +246,41 @@ function M.commodity_record(result)
     return record
 end
 
+-- auxForever: one item of a browse list (fast mode): only the lowest price and how many are for
+-- sale are known, not the single auctions. The row stands for the whole item: count 1 at the lowest
+-- price, auction_count the units for sale. Opening it reads the real auctions (tabs/search).
+-- Returns nil if the client has not loaded the item yet.
+function M.browse_record(result)
+    local key = result.itemKey
+    local item_id = key.itemID
+    local name, texture, quality, requirement, usable, item_link = item_basics(item_id)
+    if not name then return end
+    local key_info = C_AuctionHouse.GetItemKeyInfo(key)
+    local record = setmetatable({}, record_mt)
+    record.fast = true
+    record.browse_key = key
+    record.item_id = item_id
+    record.suffix_id = key.itemSuffix or 0
+    record.unique_id = 0
+    record.enchant_id = 0
+    record.link = item_link
+    record.item_key = item_id .. ':' .. record.suffix_id
+    record.name = type(key_info) == 'table' and key_info.itemName or name
+    record.texture = type(key_info) == 'table' and key_info.iconFileID or texture
+    record.quality = type(key_info) == 'table' and key_info.quality or quality
+    record.is_commodity = type(key_info) == 'table' and key_info.isCommodity or nil
+    local key_requirement = C_AuctionHouse.GetItemKeyRequiredLevel and C_AuctionHouse.GetItemKeyRequiredLevel(key)
+    record.requirement = type(key_requirement) == 'number' and key_requirement > 0 and key_requirement or requirement
+    record.usable = usable
+    record.count = 1
+    record.auction_count = max(1, result.totalQuantity or 1)
+    set_prices(record, 0, 0, result.minPrice or 0)
+    record.contains_own = result.containsOwnerItem or nil
+    record.sale_status = 0
+    signatures(record)
+    return record
+end
+
 -- After part of a commodity tier was bought
 function M.set_commodity_count(record, count)
     record.count = count

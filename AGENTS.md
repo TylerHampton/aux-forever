@@ -101,7 +101,9 @@ Load order is the TOC (`auxForever/auxForever.toc`).
 - `color.lua`: the palette. `gui/core.lua`: widgets (button, label, editbox, dropdown, checkbox,
   status bar, rounded styling, `style_choice`, `set_primary`, background opacity).
 - `core/scan.lua`: the scan engine, rewritten for `C_AuctionHouse` (browse query, then one search
-  per item key; full scan with `ReplicateItems`). `util/scan.lua`, `util/info.lua`: helpers and
+  per item key; full scan with `ReplicateItems`). Fast mode (`params.fast`) stops at the browse
+  list: one row per item (`info.browse_record`, `record.fast`); `params.on_item_list` hands the raw
+  list to the Sniper. `util/scan.lua`, `util/info.lua`: helpers and
   item/auction records. `core/history.lua`: price history ("usual price").
 - `util/filter.lua`: aux's search language: parsing, the post filters and their validators.
 - `gui/auction_listing.lua`: the result tables (columns Lvl, Item, For sale, ...).
@@ -110,6 +112,8 @@ Load order is the TOC (`auxForever/auxForever.toc`).
   (favorites and recent), `quick.lua` (quick search menu), `filter.lua` (Filter Builder logic:
   condition tree, search text, "In words"), `frame.lua` (Search tab widgets),
   `builder.lua` (Filter Builder rows and menus).
+- `tabs/sniper/`: the Sniper tab (0.3): `core.lua` (rounds over the whole item list, the deal
+  rule `judge`, checking a candidate's real auctions, buying), `frame.lua` (controls and table).
 - `tabs/post/`: posting (auto price, undercut mode, deposit, "You get"). `tabs/auctions/`,
   `tabs/bids/`: the other tabs. `core/slash.lua`: `/aux` commands.
 - `textures/*.tga`: icons and rounded corners (addon textures load; addon fonts do not).

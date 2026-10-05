@@ -190,6 +190,27 @@ M.filters = {
     },
 }
 
+-- auxForever: conditions fast mode cannot check, because the item list only has each item's lowest
+-- price and how many are for sale. A search using one of them reads every auction (full mode).
+M.FULL_ONLY = {
+    ['left'] = 'time left',
+    ['seller'] = 'seller',
+    ['bid-price'] = 'bid',
+    ['bid-percent'] = 'bid',
+    ['bid-profit'] = 'bid',
+    ['bid-disenchant-profit'] = 'bid',
+    ['bid-vendor-profit'] = 'bid',
+    ['tooltip'] = 'tooltip text',
+}
+
+function M.full_reason(filter)
+    for _, component in ipairs(filter.post) do
+        if component[1] == 'filter' and FULL_ONLY[component[2]] then
+            return FULL_ONLY[component[2]]
+        end
+    end
+end
+
 function operator(str)
     local operator = str == 'not' and {'operator', 'not', 1}
     for name in aux.iter('and', 'or') do
@@ -342,6 +363,8 @@ function M.query(filter_string)
         blizzard_query = blizzard_query(filter),
         validator = validator(filter),
         prettified = prettified_filter_string(filter),
+        full_reason = full_reason(filter),
+        exact = filter.blizzard.exact and true or nil,
     }, _M.suggestions(filter)
 end
 

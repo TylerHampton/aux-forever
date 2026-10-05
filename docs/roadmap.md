@@ -67,6 +67,21 @@ Open for 0.2.x:
   Players can change the percentage and the minimum profit. A percentage scales from level 20 to
   60 on its own; the 5s floor only hides trivial finds.
 
+### Built (2026-10-05, first build for testing)
+
+- Fast mode as planned. Rows from the item list are not price history (the list's lowest price may
+  be a bid); opened items are. Conditions the list cannot check (seller, time left, bid, tooltip
+  text) make a search full, and the summary line says so (Tyler's choice).
+- Live mode kept as Simon's real time mode, made visible (Tyler: "make it work how it sounds"):
+  a round, then a 5 second countdown on the Live button, "Paused" only when paused, held while on
+  another tab.
+- Sniper: only while its tab is open (Tyler's choice). An item that looks like a deal on the list
+  is opened once to check its real auctions, so a bid shown as the lowest price never makes a
+  false deal. The minimum profit also applies to below-vendor deals, so 1 copper finds are hidden.
+  Known limit: profit is per item, so cheap trade goods (Wool Cloth 2s, usual 6s) rarely pass 5s
+  even when buying 80 would be worth it. To revisit after testing.
+- Fast mode and the Sniper were delivered together in one zip (Tyler's choice).
+
 ### Order
 
 1. Measure the whole-auction-house item list (time, number of items, number of requests).

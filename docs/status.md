@@ -82,7 +82,14 @@ download. Every agent: pull first, one agent per branch, update this file when d
   list. First try failed at once (a `pcall` around the waiting request, fixed in a7c9835); the
   rerun gave 7718 items in 8.5s, 16 requests.
 - Mockups for fast mode and the Sniper: https://claude.ai/artifact/Q5C3ScRtCLV9ohYCcuyuRA
-  (private to Tyler). Waiting for his answer before building.
+  (private to Tyler). Approved ("let's see the prototype").
+- 0.3 first build (TOC `forever-0.3.0-dev`, branch `claude/modest-volta-4mgmsb`, sent as a zip):
+  fast mode on Search (Fast / Full switch, click a row to read its auctions), Live mode with a
+  visible countdown and paused state, and the Sniper tab. Decisions and known limits:
+  `docs/roadmap.md`, "Built". In-game checks: `TESTING.md` section 15. Not tested in game yet.
+  Unknowns to watch: whether the item list's lowest price is ever a bid (`/aux debug` prints a
+  line when an opened item differs), whether item list names include suffixes, the Sniper's
+  round time over a long session, and whether the server minds rounds back to back.
 
 ## Releases
 

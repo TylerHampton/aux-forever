@@ -3,6 +3,21 @@
 What changed in each version, newest first. The text under each version is ready to paste into the
 CurseForge file's changelog box.
 
+## 0.3 (in testing, not released)
+
+- Fast searches: a search over many items lists each item once with its lowest price and how many
+  are for sale, read from the auction house's item list in seconds instead of minutes. Click an
+  item to see its auctions and buy. A Fast / Full switch next to Search; searches for one exact
+  item, or using seller, time left, bid or tooltip text, read every auction as before.
+- Live mode shows what it is doing: "Updating" during a round, then a countdown to the next one
+  ("Live 4s"), "Paused" when paused. It repeats the search every 5 seconds, holds while you are on
+  another tab and carries on when you come back.
+- New Sniper tab: watches the whole auction house round after round and lists deals: below vendor
+  price, or at most 60% of the usual price with at least 5s profit after the auction house cut
+  (both adjustable). Each deal is checked against the item's real auctions before it is shown.
+  A sound and a flashing game icon for new deals; ignore items you do not want.
+- Needs a full game restart after updating (new files).
+
 ## 0.2.1 (2026-10-05)
 
 First release since 0.1.1, so it also brings everything from 0.2: the new Filter Builder

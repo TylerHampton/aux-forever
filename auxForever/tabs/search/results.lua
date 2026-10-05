@@ -5,6 +5,8 @@ local info = require 'aux.util.info'
 local filter_util = require 'aux.util.filter'
 local scan = require 'aux.core.scan'
 local buy_bar = require 'aux.gui.buy_bar'
+local money = require 'aux.util.money'
+local gui = require 'aux.gui'
 
 StaticPopupDialogs.AUX_SCAN_ALERT = {
     text = 'One of your alert queries matched!',
@@ -28,11 +30,7 @@ end
 
 function update_mode(mode)
     _M.mode = mode
-    if mode == NORMAL_MODE then
-        mode_button:SetBackdropColor(aux.color.content.background())
-    else
-        mode_button:SetBackdropColor(aux.color.state.enabled())
-    end
+    update_live_button(true)
 end
 
 do
@@ -115,13 +113,29 @@ do
 end
 
 function update_continuation()
-    if current_search().continuation then
+    local search = current_search()
+    full_button:ClearAllPoints()
+    if search.continuation then
+        resume_button:SetText(search.mode == LIVE_MODE and 'Resume live' or 'Resume')
+        resume_button:SetWidth(search.mode == LIVE_MODE and 100 or 80)
         resume_button:Show()
-        search_box:SetPoint('RIGHT', resume_button, 'LEFT', -4, 0)
+        full_button:SetPoint('RIGHT', resume_button, 'LEFT', -4, 0)
     else
         resume_button:Hide()
-        search_box:SetPoint('RIGHT', start_button, 'LEFT', -4, 0)
+        full_button:SetPoint('RIGHT', start_button, 'LEFT', -4, 0)
     end
+    search_box:SetPoint('RIGHT', fast_button, 'LEFT', -4, 0)
+end
+
+-- auxForever: the Fast / Full switch next to Search; the choice is kept
+function M.set_full_search(full)
+    aux.account_data.full_search = full and true or false
+    update_fast_switch()
+end
+
+function M.update_fast_switch()
+    gui.style_choice(fast_button, not aux.account_data.full_search)
+    gui.style_choice(full_button, aux.account_data.full_search)
 end
 
 function discard_continuation()
@@ -140,10 +154,31 @@ function update_start_stop()
     end
 end
 
--- Forever: there are no result pages to watch, so real time mode repeats the whole search and
--- replaces the table with the current listings. Alerts only fire for auctions not seen before.
+-- auxForever: Live mode (aux's real time mode). Forever has no result pages to watch, so a round
+-- reads the whole search again and replaces the table with what is listed now. After a round the
+-- Live button counts down LIVE_INTERVAL seconds to the next one ("Live 4s"), and says "Updating"
+-- during a round. Pause stops it until Resume; leaving the Search tab holds it and coming back
+-- carries on. A new auction that matches one of your alert favorites brings up the alert.
+LIVE_INTERVAL = 5
+
+live_search = nil
+
+local function reselect(search, signature)
+    if not signature then return end
+    for _, record in ipairs(search.records) do
+        if record.search_signature == signature then
+            search.table:SetSelectedRecord(record)
+            return
+        end
+    end
+    search.table:SetSelectedRecord()
+end
+
 function start_live_scan(query, search)
     search = search or current_search()
+    search.live_query = query
+    search.live_next = nil
+    live_search = search
 
     local seen = {}
     for _, record in pairs(search.records) do
@@ -156,6 +191,8 @@ function start_live_scan(query, search)
         type = 'list',
         sort_type = search.sort_type,
         queries = { query },
+        fast = search.fast,
+        open = search.open,
         on_scan_start = function()
             aux.status_bar:update_status(.9999, .9999)
         end,
@@ -163,29 +200,186 @@ function start_live_scan(query, search)
             if not seen[auction_record.sniping_signature] and (search.alert_validator or pass)(auction_record) and not alerted then
                 alerted = true
                 StaticPopup_Show('AUX_SCAN_ALERT')
-                FlashClientIcon()
+                if type(FlashClientIcon) == 'function' then
+                    FlashClientIcon()
+                end
             end
             tinsert(new_records, auction_record)
         end,
         on_complete = function()
+            aux.status_bar:update_status(1, 1)
             if #new_records > 2000 then
                 StaticPopup_Show('AUX_SEARCH_TABLE_FULL')
             else
+                local selected = search.table.selected and search.table.selected.search_signature
                 search.records = new_records
                 search.table:SetDatabase(search.records)
+                if current_search() == search then
+                    reselect(search, selected)
+                end
             end
-            start_live_scan(query, search)
+            search.live_round = (search.live_round or 0) + 1
+            search.completed_at = time()
+            search.live_next = GetTime() + LIVE_INTERVAL
         end,
         on_abort = function()
             aux.status_bar:update_status(1, 1)
-            search.continuation = true
-            if current_search() == search then
-                update_continuation()
+            search.live_next = nil
+            -- stopped on purpose by the code below: a restart, leaving the tab, or Live turned off
+            if search.live_restarting or search.live_held or search.live_stopping then
+                return
             end
-            search.active = false
-            update_start_stop()
+            pause_live(search)
         end,
     }
+end
+
+function pause_live(search)
+    search.live_next = nil
+    search.active = false
+    search.continuation = true
+    if current_search() == search then
+        update_continuation()
+    end
+    update_start_stop()
+end
+
+-- a round right now (an item was opened, so its auctions show without waiting for the countdown)
+function restart_live(search)
+    search.live_restarting = true
+    if scan.is_scanning() then
+        scan.abort()
+    end
+    search.live_restarting = nil
+    start_live_scan(search.live_query, search)
+end
+
+-- Live turned off: the search keeps its last results
+function stop_live(search)
+    search.live_stopping = true
+    if scan.is_scanning() and live_search == search then
+        scan.abort()
+    end
+    search.live_stopping = nil
+    search.live_next = nil
+    search.active = false
+    search.continuation = nil
+    search.mode = NORMAL_MODE
+    search.complete = true
+    if live_search == search then
+        live_search = nil
+    end
+    update_continuation()
+    update_start_stop()
+    update_done()
+end
+
+-- the Pause button
+function M.pause()
+    local search = current_search()
+    if search.mode == LIVE_MODE and search.active then
+        if scan.is_scanning() then
+            scan.abort()
+        end
+        if search.active then
+            pause_live(search)
+        end
+    else
+        scan.abort()
+    end
+end
+
+-- the Live button: turning it on runs the search in the box live right away
+function M.toggle_live()
+    local search = current_search()
+    if _M.mode == LIVE_MODE then
+        update_mode(NORMAL_MODE)
+        if search.mode == LIVE_MODE and (search.active or search.continuation) then
+            stop_live(search)
+        end
+    else
+        update_mode(LIVE_MODE)
+        if aux.trim(search_box:GetText()) ~= '' and not search.active then
+            execute(nil, false, LIVE_MODE)
+        end
+    end
+end
+
+-- leaving the Search tab holds a live search; coming back carries on with a round
+function M.hold_live()
+    local search = live_search
+    if search and search.active and search.mode == LIVE_MODE then
+        search.live_held = true
+        if scan.is_scanning() then
+            scan.abort()
+        end
+        search.live_next = nil
+    end
+end
+
+function M.resume_held_live()
+    local search = live_search
+    if search and search.live_held then
+        search.live_held = nil
+        if search.active then
+            search.live_next = GetTime()
+        end
+    end
+end
+
+-- 'updating', 'waiting' (and the seconds left) or 'paused' for a live search, nil otherwise
+function M.live_status(search)
+    if not search or search.mode ~= LIVE_MODE then
+        return
+    elseif search.active then
+        if search.live_next then
+            return 'waiting', max(0, ceil(search.live_next - GetTime()))
+        end
+        return 'updating'
+    elseif search.continuation then
+        return 'paused'
+    end
+end
+
+do
+    local last_text, last_look
+    function M.update_live_button(force)
+        local status, seconds = live_status(current_search())
+        local text, look = 'Live', _M.mode == LIVE_MODE and 'on' or 'off'
+        if status == 'updating' then
+            text, look = 'Updating', 'on'
+        elseif status == 'waiting' then
+            text, look = 'Live ' .. seconds .. 's', 'on'
+        elseif status == 'paused' then
+            text, look = 'Paused', 'paused'
+        end
+        if force or text ~= last_text then
+            last_text = text
+            mode_button:SetText(text)
+        end
+        if force or look ~= last_look then
+            last_look = look
+            if look == 'on' then
+                mode_button:SetBackdropColor(aux.color.state.enabled())
+                mode_button:SetBackdropBorderColor(aux.color.state.enabled())
+            elseif look == 'paused' then
+                mode_button:SetBackdropColor(aux.color.accent.selected())
+                mode_button:SetBackdropBorderColor(aux.color.accent.background())
+            else
+                mode_button:SetBackdropColor(aux.color.content.background())
+                mode_button:SetBackdropBorderColor(aux.color.content.border())
+            end
+        end
+    end
+end
+
+-- every frame while the Search tab is shown: start the next live round when its countdown ends
+function M.update_live()
+    local search = live_search
+    if search and search.active and search.live_next and GetTime() >= search.live_next and not scan.is_scanning() then
+        start_live_scan(search.live_query, search)
+    end
+    update_live_button()
 end
 
 -- auxForever: the status bar turns gold while the results of a finished search are shown, and goes
@@ -244,7 +438,19 @@ function M.results_summary(search)
         text = thousands(levels) .. (levels == 1 and ' price level, ' or ' price levels, ')
     end
     text = text .. thousands(units) .. ' for sale'
-    if search.active then
+    if search.fast then
+        text = text .. ', fast'
+    elseif search.full_reason then
+        text = text .. ', full (uses ' .. search.full_reason .. ')'
+    end
+    local live, seconds = live_status(search)
+    if live == 'waiting' then
+        return text .. ', live: updated ' .. (search.completed_at and time_ago(search.completed_at) or 'just now') .. ', next in ' .. seconds .. 's'
+    elseif live == 'updating' then
+        return text .. ', live: updating'
+    elseif live == 'paused' then
+        return text .. ', live: paused'
+    elseif search.active then
         return text .. ', still searching'
     elseif search.complete and search.completed_at then
         return text .. ', searched ' .. time_ago(search.completed_at)
@@ -297,6 +503,8 @@ function start_search(queries, continuation)
         type = 'list',
         sort_type = search.sort_type,
         queries = queries,
+        fast = search.fast,
+        open = search.open,
         alert_validator = search.alert_validator,
         on_scan_start = function()
             aux.status_bar:update_status(0, 0)
@@ -339,6 +547,18 @@ function start_search(queries, continuation)
 
             search.active = false
             update_start_stop()
+
+            -- fast mode: an item clicked while the list was loading, or the only item found
+            if search.fast then
+                local pending = search.pending_open
+                search.pending_open = nil
+                if not pending and #search.records == 1 and search.records[1].fast then
+                    pending = search.records[1]
+                end
+                if pending and current_search() == search and search.table:ContainsRecord(pending) then
+                    open_item(search, pending)
+                end
+            end
         end,
         on_abort = function()
             aux.status_bar:update_status(1, 1)
@@ -356,6 +576,24 @@ function start_search(queries, continuation)
             update_start_stop()
         end,
     }
+end
+
+-- auxForever: fast mode reads only the item list (each item once, with its lowest price). A search
+-- for one exact item, or one using a condition the list does not have (seller, time left, bid,
+-- tooltip text), reads every auction as before; so does every search when Full is chosen.
+-- Returns whether the search is fast, and why not when a condition is the reason.
+function M.fast_choice(queries)
+    if aux.account_data.full_search then
+        return false
+    end
+    for _, query in ipairs(queries) do
+        if query.full_reason then
+            return false, query.full_reason
+        elseif query.exact then
+            return false
+        end
+    end
+    return true
 end
 
 function M.execute(_, resume, mode)
@@ -382,9 +620,19 @@ function M.execute(_, resume, mode)
         end
     end
 
-    if resume then
+    local fast, full_reason = fast_choice(queries)
+
+    if resume and current_search().fast then
+        -- a fast list is quick to read again from the start
+        resume = false
+        local search = current_search()
+        search.records = {}
+        search.table:Reset()
+        search.table:SetDatabase(search.records)
+    elseif resume then
         current_search().table:SetSelectedRecord()
-    else
+    end
+    if not resume then
         if filter_string ~= current_search().filter_string then
             if current_search().filter_string then
                 new_search(filter_string, mode)
@@ -400,6 +648,8 @@ function M.execute(_, resume, mode)
         end
         local search = current_search()
         search.mode = mode
+        search.fast, search.full_reason = fast, full_reason
+        search.open, search.pending_open = {}, nil
         if mode ~= LIVE_MODE then
             search.sort_type = 'unitprice'
         end
@@ -407,7 +657,14 @@ function M.execute(_, resume, mode)
     end
 
     local continuation = resume and current_search().continuation
+    local search = current_search()
+    if live_search and live_search ~= search and live_search.active then
+        -- one live search at a time: the old one stops where it is
+        stop_live(live_search)
+    end
+    search.live_stopping = true
     discard_continuation()
+    search.live_stopping = nil
     current_search().active = true
     update_start_stop()
     search_box:ClearFocus()
@@ -605,6 +862,8 @@ do
         checked = record
         if not search.table:ContainsRecord(record) then
             buy_bar.clear()
+        elseif record.fast then
+            open_item(search, record)
         elseif record.commodity then
             -- Forever: commodities are bought by quantity, whichever row is selected
             show_commodity(search, record)
@@ -613,7 +872,69 @@ do
         end
     end
 
+    -- auxForever: fast mode. The rows of an opened item replace its list row and stay expanded;
+    -- the cheapest one is selected for the buy bar.
+    function replace_item(search, fast_record, loaded)
+        for i = #search.records, 1, -1 do
+            local record = search.records[i]
+            if record.fast and record.item_key == fast_record.item_key then
+                tremove(search.records, i)
+            end
+        end
+        local cheapest
+        for _, record in ipairs(loaded) do
+            tinsert(search.records, record)
+            if not record.own and record.buyout_price > 0 and (not cheapest or record.unit_buyout_price < cheapest.unit_buyout_price) then
+                cheapest = record
+            end
+        end
+        if loaded[1] then
+            search.table.expanded[loaded[1].item_key] = true
+        end
+        search.table:SetDatabase()
+        if aux.account_data.debug_timing and cheapest and ceil(cheapest.unit_buyout_price) ~= ceil(fast_record.unit_buyout_price) then
+            aux.print(format('Fast list: %s lowest %s, its auctions: %s', fast_record.name, money.to_string(fast_record.unit_buyout_price, true), money.to_string(cheapest.unit_buyout_price, true)))
+        end
+        if current_search() ~= search then
+            return
+        end
+        if cheapest then
+            search.table:SetSelectedRecord(cheapest)
+        else
+            search.table:SetSelectedRecord()
+            checked = nil
+            buy_bar.show_note(fast_record.name, 'Nothing left to buy: it sold or was taken down')
+        end
+    end
+
+    -- auxForever: fast mode. Clicking an item reads its auctions (about half a second).
+    function M.open_item(search, record)
+        search.open = search.open or {}
+        search.open[record.item_key] = true
+        buy_bar.show_note(record.name, 'Reading its auctions...')
+        if search.mode == LIVE_MODE and search.active then
+            restart_live(search)
+            return
+        elseif search.active then
+            -- the item list is still loading; open it when it is done
+            search.pending_open = record
+            return
+        end
+        local loaded = {}
+        scan.start{
+            type = 'list',
+            queries = {{item_keys = {record.browse_key}, validator = record.validator}},
+            on_auction = function(auction_record)
+                tinsert(loaded, auction_record)
+            end,
+            on_complete = function()
+                replace_item(search, record, loaded)
+            end,
+        }
+    end
+
     function on_update()
+        update_live()
         update_results_summary()
         local selection = current_search().table:GetSelection()
         if selection and selection.record ~= checked then
