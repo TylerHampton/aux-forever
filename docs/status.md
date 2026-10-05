@@ -42,6 +42,11 @@ Last updated at the end of the first session (2026-10-04).
    far, off screen. On showing it, aux now scales such an anchor back
    (`fix_blizzard_frame_position` in `aux-addon.lua`), clamps it to the screen, raises it above
    aux, and lights the button while it is shown. Not confirmed in game yet.
+   Settings (Tyler, 2026-10-05): no explanation text in the menu; "Default duration" replaces
+   "Auction length" plus its note; a Scale row (70% to 150%, 5% steps, for 1440p screens) replaces
+   the slash-only `/aux scale`, whose saved value was never applied after a reload before. The
+   resize corner anchors the window by its top left before sizing: it started out anchored by its
+   left edge, and sizing from the corner then could jump to full screen on one click (Tyler).
 4. Not yet tested in game: Auctions tab cancel, Bids tab, full scan, posting gear with a bid,
    Filter Builder dropdowns after the dropdown fix. See `TESTING.md`.
 5. Later: Tyler sends Simon (shirsig) the project to review before it goes public. The GitHub

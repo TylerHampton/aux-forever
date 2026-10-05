@@ -959,4 +959,31 @@ try('blizzard ui button', function()
   rawset(a.blizzard_button, 'SetBackdropBorderColor', nil)
 end)
 
+-- Settings: scale from 70% to 150% that is kept, no explanation text; the resize corner anchors
+-- the window by its top left corner before sizing
+try('settings scale and resize corner', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local scaled
+  rawset(a.frame, 'SetScale', function(self, x) scaled = x end)
+  a.change_window_scale(1.2)
+  check('scale applied and kept', scaled == 1.2 and a.account_data.scale == 1.2)
+  a.scale_buttons[2].__scripts.OnClick(a.scale_buttons[2])
+  check('plus steps 5%', math.abs(a.account_data.scale - 1.25) < .001)
+  a.change_window_scale(5)
+  check('never above 150%', a.account_data.scale == 1.5)
+  a.change_window_scale(.1)
+  check('never below 70%', a.account_data.scale == .7)
+  a.change_window_scale(1)
+  check('scale values are cleaned up', a.clean_scale(1.31) == 1.3 and a.clean_scale('x') == 1)
+  a.change_window_scale(1)
+  rawset(a.frame, 'SetScale', nil)
+  local anchored
+  rawset(a.frame, 'SetPoint', function(self, point) anchored = point end)
+  rawset(a.frame, 'StartSizing', function() sized_after = anchored end)
+  sized_after = nil
+  a.resize_grip.__scripts.OnMouseDown(a.resize_grip, 'LeftButton')
+  check('resize corner anchors top left before sizing', sized_after == 'TOPLEFT')
+  rawset(a.frame, 'SetPoint', nil); rawset(a.frame, 'StartSizing', nil)
+end)
+
 print('done, errors: ' .. errors)

@@ -16,9 +16,8 @@ function SlashCmdList.AUX(command)
 	local arguments = aux.tokenize(command)
     local tooltip_settings = aux.character_data.tooltip
     if arguments[1] == 'scale' and tonumber(arguments[2]) then
-    	local scale = tonumber(arguments[2])
-	    aux.frame:SetScale(scale)
-	    aux.account_data.scale = scale
+	    aux.change_window_scale(tonumber(arguments[2]))
+	    aux.print('scale ' .. aux.color.blue(floor(aux.account_data.scale * 100 + .5) .. '%') .. ' (70% to 150%)')
     elseif arguments[1] == 'ignore' and arguments[2] == 'owner' then
 	    aux.account_data.ignore_owner = not aux.account_data.ignore_owner
         aux.print('ignore owner ' .. status(aux.account_data.ignore_owner))

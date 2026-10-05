@@ -12,6 +12,10 @@ CurseForge file's changelog box.
   magnifier.
 - Filter Builder: a Match All / Any switch is faded while it has fewer than two conditions under
   it, and the builder keeps your groups when you leave it and come back.
+- Settings: a Scale setting (70% to 150%), handy on large monitors, and the scale is now kept
+  after a reload. The settings menu has no explanation text; the auction length setting is now
+  called Default duration, like the Duration buttons on the Post tab.
+- The resize corner no longer makes the window jump to full screen on a single click.
 - Blizzard UI button: the Blizzard window could end up off screen after opening another game
   window (character sheet, spellbook, a vendor), so the button seemed to do nothing. It now
   always opens on screen and in front of aux, and the button is lit while it is shown.

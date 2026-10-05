@@ -189,6 +189,13 @@ Needs a full game restart (a new texture was added), not just `/reload`.
 - [ ] Shrink the window to its smallest: the line does not overlap the Filter Builder button
       (it may cut off at the end).
 
+Settings and window
+- [ ] Gear menu: Background, Scale and Default duration, with no explanation text under them.
+- [ ] Scale - and + change the whole window in 5% steps, from 70% to 150%. The window's top left
+      corner stays put. After `/reload` the scale, size and position are kept.
+- [ ] Single-click the resize corner (bottom right) several times, also right after logging in:
+      the window never jumps. Dragging it resizes, double-click goes back to the default size.
+
 Blizzard UI button
 - [ ] Click Blizzard UI several times, also right after clicking around in aux: the Blizzard
       window opens in front every time, and the button is lit while it is open. Click it again to
