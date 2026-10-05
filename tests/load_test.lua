@@ -1732,6 +1732,55 @@ try('per-frame work 0.4', function()
 end)
 
 
+try('per-frame work 0.4.1', function()
+  local aux_require = loadstring("select(2, ...) 'aux.test44'; return require")('auxForever', addon)
+  local aux = aux_require 'aux'
+  -- Saved Searches: the Alt key is only checked while a favorite is being dragged
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local real_alt, alt_checks = G.IsAltKeyDown, 0
+  G.IsAltKeyDown = function() alt_checks = alt_checks + 1 return false end
+  search.dragged_search = nil
+  for _ = 1, 20 do search.frame.saved.__scripts.OnUpdate(search.frame.saved) end
+  check('Saved Searches: no Alt check every frame while nothing is dragged', alt_checks == 0)
+  G.IsAltKeyDown = real_alt
+
+  -- Bids tab: its buttons follow the selection a few times a second, not every frame
+  local bids = loadstring("select(2, ...) 'aux.tabs.bids'; return _M")('auxForever', addon)
+  local real_get, gets = bids.listing.GetSelection, 0
+  rawset(bids.listing, 'GetSelection', function() gets = gets + 1 end)
+  bids.refresh, bids.next_refresh = false, GetTime() + 100
+  for _ = 1, 20 do bids.on_update() end
+  check('Bids tab: buttons not updated every frame', gets <= 1)
+  rawset(bids.listing, 'GetSelection', nil)
+
+  -- aux's item list at login: numbers the game says are no item are not asked about, and a
+  -- complete list is walked over many frames, not in one long one
+  local info = loadstring("select(2, ...) 'aux.util.info'; return _M")('auxForever', addon)
+  local real_items, real_unused = aux.account_data.items, aux.account_data.unused_item_ids
+  aux.account_data.items, aux.account_data.unused_item_ids = {}, {}
+  for id = 1, 30000 do aux.account_data.unused_item_ids[id] = true end
+  local real_exists, real_info, asked = C_Item.DoesItemExistByID, G.GetItemInfo, {}
+  rawset(C_Item, 'DoesItemExistByID', function(id) return id ~= 777 end)
+  G.GetItemInfo = function(x) asked[tonumber(tostring(x):match('%d+'))] = true end
+  -- a complete list: nothing to ask, still spread over frames
+  info.item_walk_done = nil
+  info.fetch_item_data()
+  check('item list: a complete list is not walked in one frame', not info.item_walk_done)
+  for _ = 1, 100 do tick() end
+  check('item list: a complete list is walked within a few frames', info.item_walk_done == true)
+  aux.account_data.unused_item_ids[777], aux.account_data.unused_item_ids[778] = nil, nil
+  info.item_walk_done = nil
+  info.fetch_item_data()
+  for _ = 1, 100 do tick() end
+  check('item list: done after some frames', info.item_walk_done == true)
+  check('item list: a number that is no item is not asked about', not asked[777] and asked[778])
+  local known, _, _, done = info.item_list_progress()
+  check('item list: progress for /aux memory', known == 0 and done == true)
+  rawset(C_Item, 'DoesItemExistByID', real_exists)
+  G.GetItemInfo = real_info
+  aux.account_data.items, aux.account_data.unused_item_ids = real_items, real_unused
+end)
+
 try('recipe search', function()
   local aux = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
   local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)

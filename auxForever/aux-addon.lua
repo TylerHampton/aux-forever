@@ -54,7 +54,6 @@ function event.AUX_LOADED()
         scale = 1,
         ignore_owner = true,
         action_shortcuts = false,
-        crafting_cost = true,
         post_full_scan = nil,
         post_bid = nil,
         post_duration = post.DURATION_8,

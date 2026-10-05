@@ -20,6 +20,8 @@ function M.memory_report()
         items = items + 1
     end
     local text = format('auxForever uses %.1f MB of memory; price history for %d items', kilobytes / 1024, items)
+    local known, _, left, done = info.item_list_progress()
+    text = text .. format('; item list %d items', known) .. (done and '' or format(', still checking (%d numbers left)', left))
     -- The game's number includes garbage (tables no longer used, such as each Sniper round's item
     -- list) that Lua frees a little at a time. One full cleanup, only when asked (a short pause),
     -- shows what aux really keeps.
@@ -66,9 +68,6 @@ function SlashCmdList.AUX(command)
         -- Forever: accepts the hours of the auction house's options (e.g. 12, 24, 48)
         aux.account_data.post_duration = post_duration_code(arguments[3])
         aux.print('post duration ' .. aux.color.blue(info.duration_hours(aux.account_data.post_duration) .. 'h'))
-    elseif arguments[1] == 'crafting' and arguments[2] == 'cost' then
-		aux.account_data.crafting_cost = not aux.account_data.crafting_cost
-		aux.print('crafting cost ' .. status(aux.account_data.crafting_cost))
     elseif arguments[1] == 'tooltip' and arguments[2] == 'value' then
 	    tooltip_settings.value = not tooltip_settings.value
         aux.print('tooltip value ' .. status(tooltip_settings.value))
@@ -121,7 +120,6 @@ function SlashCmdList.AUX(command)
         aux.print('- post duration [' .. aux.color.blue(info.duration_hours(aux.account_data.post_duration) .. 'h') .. ']')
         aux.print('- undercut [' .. status(aux.account_data.post_undercut) .. ']')
         aux.print('- opacity [' .. aux.color.blue(floor(aux.account_data.background_opacity * 100 + .5) .. '%') .. ']')
-        aux.print('- crafting cost [' .. status(aux.account_data.crafting_cost) .. ']')
 		aux.print('- tooltip value [' .. status(tooltip_settings.value) .. ']')
 		aux.print('- tooltip daily [' .. status(tooltip_settings.daily) .. ']')
 		aux.print('- tooltip merchant buy [' .. status(tooltip_settings.merchant_buy) .. ']')

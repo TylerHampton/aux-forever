@@ -168,7 +168,11 @@ local function create_row()
     -- the pin of a recent search shows while the mouse is over its row; alpha, not Hide, so a
     -- click that starts on it is never dropped
     row:SetScript('OnUpdate', function(self)
-        self.pin:SetAlpha((self.pinned or self:IsMouseOver()) and 1 or 0)
+        local shown = self.pinned or self:IsMouseOver()
+        if shown ~= self.pin_shown then
+            self.pin_shown = shown
+            self.pin:SetAlpha(shown and 1 or 0)
+        end
     end)
     row:SetScript('OnClick', function(self)
         menu:Hide()

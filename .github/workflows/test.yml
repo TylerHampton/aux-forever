@@ -6,6 +6,10 @@ on:
 
 jobs:
   test:
+    # one run per change: a pull request from a branch of this repository already has the run
+    # from the push of that branch (same commit), so its own copy is skipped. Pull requests from
+    # forks still run here.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

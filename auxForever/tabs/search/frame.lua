@@ -32,7 +32,8 @@ frame.results.list:SetPoint('BOTTOMRIGHT', 0, buy_bar.HEIGHT + 4)
 frame.saved = CreateFrame('Frame', nil, frame)
 frame.saved:SetAllPoints(aux.frame.content)
 frame.saved:SetScript('OnUpdate', function()
-    if not IsAltKeyDown() then
+    -- only while a favorite is being dragged with Alt held
+    if dragged_search and not IsAltKeyDown() then
         dragged_search = nil
     end
 end)

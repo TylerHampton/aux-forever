@@ -155,16 +155,39 @@ function process_item(item_id)
     end
 end
 
+-- aux's item list (names for autocompletion and exact searches): at login, every item number not
+-- known yet is asked for once. auxForever: numbers the game itself says do not exist are skipped
+-- (each used to cost a server request and 7 frames of waiting at every login), and the walk pauses
+-- every 500 numbers, so a list that is already complete costs no single long frame at login.
+local function item_exists(item_id)
+    if C_Item and C_Item.DoesItemExistByID then
+        return C_Item.DoesItemExistByID(item_id)
+    end
+    return true
+end
+
 function fetch_item_data()
     aux.coro_thread(function()
+        local items, unused = aux.account_data.items, aux.account_data.unused_item_ids
         for item_id = MIN_ITEM_ID, MAX_ITEM_ID do
-            if not aux.account_data.items[item_id] and not aux.account_data.unused_item_ids[item_id] and not process_item(item_id) then
+            if not items[item_id] and not unused[item_id] and item_exists(item_id) and not process_item(item_id) then
                 for i = 1, 7 do
                     aux.coro_wait()
                 end
+            elseif item_id % 500 == 0 then
+                aux.coro_wait()
             end
         end
+        item_walk_done = true
     end)
+end
+
+-- how far the item list is: items known, numbers known not to be items, numbers left to ask about
+function M.item_list_progress()
+    local known, unused = 0, 0
+    for _ in pairs(aux.account_data.items) do known = known + 1 end
+    for _ in pairs(aux.account_data.unused_item_ids) do unused = unused + 1 end
+    return known, unused, max(0, MAX_ITEM_ID - MIN_ITEM_ID + 1 - known - unused), item_walk_done
 end
 
 function on_get_item_info_received(item_id, success)

@@ -3,6 +3,15 @@
 What changed in each version, newest first. The text under each version is ready to paste into the
 CurseForge file's changelog box.
 
+## 0.4.1 (in progress)
+
+- Performance: aux's item list at login no longer asks the server about item numbers the game
+  says do not exist, and walks the list in steps instead of one long frame. Saved Searches, the
+  Bids tab and the quick search menu no longer do work every frame.
+- Removed the Classic-only crafting cost code and its `/aux crafting cost` setting; it never ran on
+  Forever (recipe search does this job since 0.4).
+- `/aux memory` also says how many items aux's item list knows, and whether it is still checking.
+
 ## 0.4 (2026-10-05)
 
 - Auctions tab: each of your auctions is compared with the other sellers: undercut (and by how

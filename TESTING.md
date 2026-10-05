@@ -341,6 +341,31 @@ Performance (0.4)
 - [ ] Hover many items in your bags and the bank: tooltips still show Value and Vendor.
 - [ ] Post tab: the Post button still turns on and off as you type prices.
 
+## 17. Version 0.4.1 (in progress): never confirmed before, and the 0.4.1 changes
+
+Never confirmed in game (from 0.3 and 0.4)
+- [ ] Recipe search: the cost line sits in the bottom bar right of Clear; the line next to the sub
+      tabs has only the counts. A narrow window cuts the cost line with "...", never over the
+      credit text.
+- [ ] Sniper: buy a deal from the buy bar (pick a cheap one). It arrives by mail at that price.
+- [ ] Post tab: an item that is only in the reagent bag is listed and can be posted.
+- [ ] Search with Fast on for gear with a suffix ("of the Owl"): does the row show the suffix?
+- [ ] Auctions tab: Cancel undercut on a real undercut auction; it comes back by mail.
+- [ ] Bids tab: bid on a cheap item; it shows on the Bids tab.
+- [ ] Full scan (top bar) once; it finishes and the usual prices fill in.
+- [ ] Post a green item with a bid price and a higher buyout.
+- [ ] Filter Builder: each dropdown opens and picks a value.
+- [ ] Shift-click a recipe in the profession window: only Blizzard's own action, no aux search.
+
+0.4.1 changes
+- [ ] Full game restart (a file was removed). `/aux` lists the settings without "crafting cost".
+- [ ] `/aux memory` right after login: the line ends with "item list N items" and maybe "still
+      checking (N numbers left)". Again after 10 minutes: send both lines.
+- [ ] `/aux memory` at Sniper round 10 and round 40: the "After a cleanup" numbers should match.
+- [ ] Saved Searches: Alt-drag a favorite to a new place still works.
+- [ ] Quick search menu: the pin shows when the mouse is over a recent row, also over the pin.
+- [ ] Bids tab: the Bid and Buyout buttons still turn on and off with the selected row.
+
 ## Things to note even without errors
 - Anything that looks different from how aux worked on Classic.
 - Anything slow (searches will be slower than Classic for broad searches, that is expected).

@@ -57,6 +57,10 @@ function on_update()
         scan_auctions()
     end
 
+    if GetTime() < (next_buttons or 0) then
+        return
+    end
+    next_buttons = GetTime() + .2
     local selection = listing:GetSelection()
     if selection then
         if aux.bid_in_progress() then
