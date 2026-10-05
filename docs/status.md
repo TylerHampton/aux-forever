@@ -1,6 +1,36 @@
 # Status
 
-Last updated at the end of the first session (2026-10-04).
+Last updated 2026-10-05 (before a context compaction of Claude's session).
+
+## Start here (where things stand right now)
+
+- Released: 0.3 and 0.3.1 (GitHub Releases `v0.3`, `v0.3.1`, uploaded to CurseForge by Tyler).
+  `main` is at the 0.3.1 merge (#6).
+- In progress: **0.4** on branch `claude/modest-volta-4mgmsb` (TOC `forever-0.4`), pushed. Tyler is
+  testing the 0.4 build in game (`TESTING.md` section 16) and will report back. Next steps:
+  1. Fix whatever his test turns up (each bug: fix plus a test that fails without it).
+  2. Read his two `/aux memory` numbers (login, and after 30+ minutes); compare with later builds.
+  3. When he says 0.4 is ready: changelog heading `## 0.4 (date)`, status, curseforge text
+     (features: Auctions tab undercut check, recipe search, Post next item), then a pull request
+     into `main`, wait for CI, merge, run the Release workflow, check the release zip, send it, and
+     give Tyler the CurseForge upload steps and changelog text (as done for 0.3 and 0.3.1).
+- 0.4 contents: Auctions tab (undercut / tied / lowest / sold, Cancel undercut one per click, check
+  on tab open, reused for 2 minutes unless an auction is unchecked), Post tab selects the next item
+  after posting everything of one, recipe search (`tabs/search/recipe.lua`: "Search in aux" button
+  on the profession window while aux is open, Alt-click a recipe; Shift-click is Blizzard's track
+  recipe, so not used), performance fixes (tooltip scan once per item, Post tab validation and buy
+  bar throttled, history unpacked only for new daily lows).
+- Mockups (private to Tyler): 0.3 https://claude.ai/artifact/Q5C3ScRtCLV9ohYCcuyuRA, 0.4
+  https://claude.ai/artifact/A6L3eNDURLpJUMBd1aVucY (Auctions tab approved; "Recipe" board is the
+  built design; "Recipes" sub tab board was rejected).
+- Tyler's standing priorities: performance and compute cost first (AGENTS.md, Performance); patch
+  versions (0.x.y) are fixes, speed and small things only; mockup before any visual change; he
+  trusts Claude's engineering judgment but wants honesty, not agreement.
+- Testers: two guild AH power users (Darkhorse, Hotpocket) asked for recipe search; their RAM
+  concern is why `/aux memory` exists.
+- Release mechanics that bit before: the session's git proxy refuses tag pushes, so releases go
+  through the Release workflow (`run_workflow` on `main`); after a merge, restart the branch from
+  `main` before new work; WoW chat lines are limited to 255 characters (keep /run test lines short).
 
 ## Working in game (tested by Tyler)
 
