@@ -84,7 +84,7 @@ download. Every agent: pull first, one agent per branch, update this file when d
   rerun gave 7718 items in 8.5s, 16 requests.
 - Mockups for fast mode and the Sniper: https://claude.ai/artifact/Q5C3ScRtCLV9ohYCcuyuRA
   (private to Tyler). Approved ("let's see the prototype").
-- 0.3 first build (TOC `forever-0.3.0-dev`, branch `claude/modest-volta-4mgmsb`, sent as a zip):
+- 0.3 first build (TOC `forever-0.3.0-dev`, later `forever-0.3`, branch `claude/modest-volta-4mgmsb`, sent as a zip):
   fast mode on Search (Fast / Full switch, click a row to read its auctions), Live mode with a
   visible countdown and paused state, and the Sniper tab. Decisions and known limits:
   `docs/roadmap.md`, "Built". In-game checks: `TESTING.md` section 15. Not tested in game yet.
@@ -117,6 +117,11 @@ download. Every agent: pull first, one agent per branch, update this file when d
   from 0.2, which was not released on its own. Its release text says "listed under 0.2 below",
   which only makes sense in the changelog file; the changelog wording is fixed for later
   releases.
+- 0.3 approved for release by Tyler on 2026-10-05 after testing fast mode, Live and the Sniper
+  (round times 8.4s). Released through a pull request into `main` and the Release workflow
+  (GitHub Release `v0.3`, pre-release). CurseForge upload by Tyler. Not confirmed in game at
+  release: buying from the Sniper, posting from the reagent bag, whether fast mode rows show
+  suffixes ("of the Owl"); these stay in `TESTING.md` section 15.
 - From 0.2.1 on, the Release workflow publishes the GitHub Release: Actions, Release, "Run
   workflow" on `main` (or a pushed `v<version>` tag). See AGENTS.md, Releases.
 

@@ -1,4 +1,4 @@
-# CurseForge page for auxForever (draft for version 0.1)
+# CurseForge page for auxForever
 
 Everything below the line is the page description, written in Markdown. The ready-to-paste copy is
 `docs/curseforge-description.md`: the same text with the header image linked from this repository
@@ -63,11 +63,16 @@ from aux on Classic:
 - Completely independent replacement for the Blizzard auction house window, one click away from
   the unaltered Blizzard interface.
 - A resizable window that remembers its size and position.
-- Settings behind the gear: background opacity and the default auction length.
+- Settings behind the gear: background opacity, window scale and the default auction length.
 - Many convenient shortcuts.
 
 **Search**
 
+- Fast searches: a search over many items lists each item once with its lowest price, read in
+  seconds. Click an item to see its auctions. Switch to Full to read every auction as aux always
+  did.
+- Live mode repeats a search every few seconds, with a countdown on the Live button, and alerts you
+  when a new auction matches one of your alert favorites.
 - Advanced search filters which can be combined with logical operators, with autocompletion.
 - A Filter Builder that writes those searches for you: conditions in plain words, Match All or
   Any, "not", and groups inside groups, read back in plain English as you build.
@@ -80,9 +85,19 @@ from aux on Classic:
   the search ran.
 - A buy bar under the results that never spends more than the price you saw.
 
+**Sniper**
+
+- Watches the whole auction house round after round and lists deals as they appear: items below
+  vendor price, or well under their usual price, with a minimum profit. You set the percentage and
+  the profit.
+- Every deal is checked against the item's real auctions before it is shown, and bought from the
+  same buy bar as on the Search tab.
+- A sound and a flashing game icon for new deals, deals that sell are marked gone, and items you
+  never want can be ignored.
+
 **Post**
 
-- Lists the auctionable items in your bags; hide the ones you never sell.
+- Lists the auctionable items in your bags, the reagent bag included; hide the ones you never sell.
 - Trade goods are posted as one listing of any quantity, up to everything you have.
 - Reads the existing auctions for the item and starts at the lowest price (or one step below in
   undercut mode). Click any listing to use its price instead.
@@ -114,6 +129,7 @@ from aux on Classic:
 - `/aux clear item cache` rebuilds the item list used for autocompletion.
 - `/aux debug` turns the search timing log on or off: after each search, chat says where the time
   went. Useful for bug reports about slow searches.
+- `/aux debug list` times the item list of the whole auction house.
 
 **Tooltip**
 
