@@ -3,7 +3,38 @@
 Set by Tyler on 2026-10-05. Version numbers are `0.MINOR.PATCH`, written `forever-0.2.1` in the
 TOC. Every release gets an entry in `docs/changelog.md`.
 
-## 0.2.x: everything that is there works (now)
+## 0.3.x: fixes after 0.3 (now)
+
+0.3 was released on 2026-10-05. 0.3.x is bug fixes, speed and other small things that come up,
+no new features (Tyler, 2026-10-05). To confirm in game: buying from the Sniper, posting from the
+reagent bag, suffix names on fast mode rows (`TESTING.md` section 15).
+
+## 0.4: selling tools (planning, 2026-10-05)
+
+Tyler chose selling tools (other candidates, not chosen for now: price history from Sniper rounds,
+a price history chart, crafting profit). Searching and buying are strong since 0.3; the Auctions
+tab is still a list with Cancel.
+
+Decisions (Tyler, 2026-10-05):
+- Auctions tab shows, for each of your auctions, the lowest price of other sellers and a status:
+  lowest, tied, undercut by how much, sold.
+- Undercut (someone else lower) is red and goes through "Cancel undercut". Tied (someone else at
+  your price; on Forever the newest listing at a price sells first) is amber, shown but not
+  cancelled.
+- Cancelled items come back by mail on Forever (Tyler), so reposting is: cancel at the auction
+  house, collect the mail, post again (the Post tab already starts at the lowest price).
+- Every cancel and every post needs its own click (Blizzard marks CancelAuction, PostItem and
+  PostCommodity as restricted), so Cancel undercut steps through one auction per click.
+- Posting several items: after posting an item, the Post tab selects the next item in the list
+  (no separate queue mode).
+
+Facts to check while building: the cost of cancelling on Forever (`GetCancelCost`, likely the
+deposit), and how fast the per-item checks are for a typical number of auctions (about 0.5s per
+item, measured for searches).
+
+Order: mockup of the Auctions tab, then build, then the Post tab jump.
+
+## 0.2.x: everything that is there works (done)
 
 The goal of the 0.2 line is that every feature in the addon works without issues: no new
 features, only bug fixes and speed. A 0.2.x goes to CurseForge once the filters work well in

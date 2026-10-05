@@ -110,6 +110,17 @@ download. Every agent: pull first, one agent per branch, update this file when d
   (it showed the vendor price before, which looked like the usual price). Buying from the Sniper
   is not confirmed in game yet.
 
+## 0.3.1 (in progress)
+
+- Performance pass after Tyler stressed compute cost (2026-10-05). Found and fixed: `control.lua`
+  compared every event listener with every other one on every frame, all game long (from Classic
+  aux); the Auctions and Bids tabs ran endless per-frame threads to rebuild their lists every
+  second; the Full scan button restyled itself every frame; the Live button and Sniper status
+  rebuilt their text every frame. Rules for all agents: AGENTS.md, Performance. Tests: `per-frame
+  work`. Not changed yet: the buy bar refreshes its texts every frame while something is selected
+  (only on the Search and Sniper tabs); a candidate for a later pass.
+- 0.4 Auctions tab mockup: https://claude.ai/artifact/A6L3eNDURLpJUMBd1aVucY, waiting for Tyler.
+
 ## Releases
 
 - 0.2.1 released 2026-10-05: GitHub Release `v0.2.1` (pre-release, with the zip, published by

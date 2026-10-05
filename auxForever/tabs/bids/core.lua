@@ -18,15 +18,6 @@ function aux.event.AUX_LOADED()
             aux.query_bids()
         end
     end)
-    aux.coro_thread(function()
-        while true do
-            local timestamp = GetTime()
-            while GetTime() - timestamp < 1 do
-                aux.coro_wait()
-            end
-            refresh = true
-        end
-    end)
 end
 
 function tab.OPEN()
@@ -55,9 +46,14 @@ function place_bid(buyout)
     end)
 end
 
+-- auxForever: the list follows the game's events; a slow refresh keeps time left current. aux used
+-- to run a thread every frame all game long to rebuild it every second.
+REFRESH_SECONDS = 10
+
 function on_update()
-    if refresh then
+    if refresh or GetTime() >= (next_refresh or 0) then
         refresh = false
+        next_refresh = GetTime() + REFRESH_SECONDS
         scan_auctions()
     end
 

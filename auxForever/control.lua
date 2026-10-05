@@ -4,14 +4,28 @@ local event_frame = CreateFrame'Frame'
 
 local listeners = {}
 
+-- auxForever: unused events are unregistered once per frame only after a listener was killed.
+-- aux used to compare every listener with every other listener on every frame, all game long,
+-- even with the auction house closed.
+local killed_any = false
+
 function event.AUX_LOADED()
 	event_frame:SetScript('OnUpdate', function()
-        for _, listener in pairs(listeners) do
-            local event, needed = listener.event, false
-            for _, listener in pairs(listeners) do
-                needed = needed or listener.event == event and not listener.killed
+        if not killed_any then
+            return
+        end
+        killed_any = false
+        local needed, dropped = {}, {}
+        for id, listener in pairs(listeners) do
+            if listener.killed then
+                listeners[id] = nil
+                dropped[listener.event] = true
+            else
+                needed[listener.event] = true
             end
-            if not needed then
+        end
+        for event in pairs(dropped) do
+            if not needed[event] then
                 event_frame:UnregisterEvent(event)
             end
         end
@@ -32,6 +46,7 @@ function M.kill_listener(listener_id)
 	local listener = listeners[listener_id]
 	if listener then
 		listener.killed = true
+		killed_any = true
 	end
 end
 
