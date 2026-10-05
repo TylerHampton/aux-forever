@@ -1,9 +1,13 @@
 name: Release
 
-# Pushing a tag like v0.2.1 publishes a GitHub Release with the installable zip attached and the
-# version's notes from docs/changelog.md. The tag must match the version in auxForever.toc.
+# Publishes a GitHub Release with the installable zip attached and the version's notes from
+# docs/changelog.md. Two ways to start it:
+#   - Actions tab, Release, "Run workflow" on main: releases the version in auxForever.toc and
+#     creates its tag (v0.2.1 for forever-0.2.1).
+#   - pushing a tag like v0.2.1; the tag must match the version in auxForever.toc.
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - 'v*'
@@ -17,11 +21,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check the tag matches the addon version
+      - name: Find the version
         run: |
-          version="${GITHUB_REF_NAME#v}"
-          grep -qx "## Version: forever-$version" auxForever/auxForever.toc || {
-            echo "The tag $GITHUB_REF_NAME does not match the Version line in auxForever.toc"
+          version=$(sed -n 's/^## Version: forever-//p' auxForever/auxForever.toc | tr -d '\r')
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "The tag $GITHUB_REF_NAME does not match the Version line in auxForever.toc ($version)"
+            exit 1
+          fi
+          grep -q "^## $version " docs/changelog.md || {
+            echo "docs/changelog.md has no section for $version"
             exit 1
           }
           echo "VERSION=$version" >> "$GITHUB_ENV"
@@ -50,6 +58,8 @@ jobs:
 
       - uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ env.VERSION }}
+          target_commitish: ${{ github.sha }}
           name: auxForever ${{ env.VERSION }}
           body_path: notes.md
           files: auxForever-${{ env.VERSION }}.zip
