@@ -19,7 +19,9 @@ Open for 0.2.x:
 
 ## 0.3: fast mode and sniper
 
-- **Fast mode:** search with the browse results only (one row per item with its lowest price and
+- **Fast mode** (measured need, 2026-10-05: a 335 item search took 3m 13s, 72% of it waiting on
+  Blizzard's request rate limit, while the item list came back in 0.1s): search with the browse
+  results only (one row per item with its lowest price and
   how many are for sale), without fetching every item's individual auctions. Much faster for broad
   searches; the details of one item load when it is selected. It has to stay lightweight.
 - **Sniper** (as in TSM): go through the whole auction house and list items for sale a good margin

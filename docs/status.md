@@ -50,8 +50,15 @@ Last updated at the end of the first session (2026-10-04).
    Code review (2026-10-05): client-side work is small; slowness is mostly one server request per
    item. Two waits in `core/scan.lua` may add to it: 1s before using results the client already
    holds when no event comes, and 20s when no answer comes at all. `/aux debug` (search timing
-   log, `timing_report` in scan.lua) measures this; decide on shortening the waits from Tyler's
-   numbers. Also planned: refresh the results table a few times a second instead of per item.
+   log, `timing_report` in scan.lua) measures this.
+   Measured by Tyler (step 4 of the test scenario, 335 items): 3m 13s, 0.58s per item. Throttle
+   2m 19s (72%), server answers 53s, item data 0.8s, item list 0.1s, other 0.0s. 336 answers on
+   time, none after the 1s fallback, none timed out. So the waits in our code are not the problem
+   and the addon's own work is negligible: the time goes to Blizzard's request rate limit
+   (`IsThrottledMessageSystemReady`), which allows about one item search every 0.4s. Nothing in
+   full mode can beat that; fast mode (0.3) can, since the item list itself (0.1s here) already
+   holds each item's lowest price and quantity. The waits stay as they are, and the table refresh
+   change is dropped (no measurable cost).
 4. Not yet tested in game: Auctions tab cancel, Bids tab, full scan, posting gear with a bid,
    Filter Builder dropdowns after the dropdown fix. See `TESTING.md`.
 5. Later: Tyler sends Simon (shirsig) the project to review before it goes public. The GitHub
