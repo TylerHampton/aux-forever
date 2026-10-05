@@ -111,7 +111,8 @@ Load order is the TOC (`auxForever/auxForever.toc`).
 - `tabs/search/`: `core.lua` (sub tabs), `results.lua` (searches, history arrows), `saved.lua`
   (favorites and recent), `quick.lua` (quick search menu), `filter.lua` (Filter Builder logic:
   condition tree, search text, "In words"), `frame.lua` (Search tab widgets),
-  `builder.lua` (Filter Builder rows and menus).
+  `builder.lua` (Filter Builder rows and menus), `recipe.lua` (recipe search: the button on the
+  profession window, Alt-click on a recipe, the cost line).
 - `tabs/sniper/`: the Sniper tab (0.3): `core.lua` (rounds over the whole item list, the deal
   rule `judge`, checking a candidate's real auctions, buying), `frame.lua` (controls and table).
 - `tabs/post/`: posting (auto price, undercut mode, deposit, "You get"). `tabs/auctions/`,

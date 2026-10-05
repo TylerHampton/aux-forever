@@ -10,6 +10,14 @@ CurseForge file's changelog box.
   each cancel costs. Prices are read when the tab opens (or with Check prices), half a second per
   item, never in the background.
 - Post tab: after posting everything of an item, the next item in the list is selected.
+- Recipe search: with aux open at the auction house, the profession window gets a "Search in aux"
+  button, and Alt-click on a recipe does the same. aux searches the item the recipe makes and all
+  its materials at once, and the line next to the tabs adds up the materials (cheapest auction or
+  vendor price), what the item sells for after the cut, and the profit or loss. Nothing is read
+  before you click.
+- Performance: item tooltips no longer build a hidden tooltip on every hover (once per item);
+  the Post tab and the buy bar no longer redo their work every frame; scans no longer unpack each
+  item's price history for every auction they see.
 
 ## 0.3.1 (2026-10-05)
 

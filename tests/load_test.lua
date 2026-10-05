@@ -1610,4 +1610,59 @@ try('per-frame work 0.4', function()
   history.data = real_data
 end)
 
+
+try('recipe search', function()
+  local aux = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local shortcut = loadstring("select(2, ...) 'aux.core.shortcut'; return _M")('auxForever', addon)
+  check('recipe link: enchant', search.recipe_id_from_link('|cffffd000|Henchant:12046|h[Tailoring: Simple Kilt]|h|r') == 12046)
+  check('recipe link: spell', search.recipe_id_from_link('|Hspell:12046|h[x]|h') == 12046)
+  check('an item link is not a recipe', search.recipe_id_from_link('|Hitem:2589::::::0:0|h[Linen Cloth]|h') == nil)
+
+  -- a made-up recipe: one robe from three of another robe and one of a third
+  local schematic = {name = 'Robe Kit', outputItemID = 101, quantityMin = 1, reagentSlotSchematics = {
+    {reagents = {{itemID = 102}}, quantityRequired = 3, required = true},
+    {reagents = {{itemID = 103}}, quantityRequired = 1, required = true},
+    {reagents = {{itemID = 104}}, quantityRequired = 1, required = false},
+  }}
+  G.C_TradeSkillUI = {GetRecipeSchematic = function(id) return id == 12046 and schematic or nil end}
+  local parts = search.recipe_parts(12046)
+  check('recipe: the item it makes', parts.output.item_id == 101 and parts.output.count == 1)
+  check('recipe: required materials only', #parts.reagents == 2 and parts.reagents[1].count == 3)
+
+  local run, restore = fake_ah(ROBES())
+  search.update_mode(search.NORMAL_MODE)
+  local was_shown = aux.frame.__shown
+  aux.frame.__shown = true
+  shortcut.on_modified_click('|cffffd000|Henchant:12046|h[Tailoring: Robe Kit]|h|r')
+  check('recipe: a plain click on a recipe does nothing', search.search_box:GetText() ~= 'spellbinder robe/exact;greenweave robe/exact;pagan robe/exact')
+  local real_alt = IsAltKeyDown
+  G.IsAltKeyDown = function() return true end
+  shortcut.on_modified_click('|cffffd000|Henchant:12046|h[Tailoring: Robe Kit]|h|r')
+  G.IsAltKeyDown = real_alt
+  run(120)
+  local s = search.current_search()
+  check('recipe: Alt-click searches the item and its materials', search.search_box:GetText() == 'spellbinder robe/exact;greenweave robe/exact;pagan robe/exact')
+  check('recipe: the search knows its recipe', s.recipe and s.recipe.name == 'Robe Kit')
+  -- materials: 3 x 64s + 2g 20s = 4g 12s; sells for 1g 85s less 5% = 1g 75s 75c: a loss
+  local summary = search.results_summary(s) or ''
+  check('recipe: the line adds up the craft', summary:find('Robe Kit: materials 4g 12s', 1, true) ~= nil and summary:find('sells for 1g 75s 75c after the cut', 1, true) ~= nil and summary:find('loss 2g 36s 25c', 1, true) ~= nil)
+
+  -- the button on the profession window
+  local form = new_frame()
+  rawset(form, 'GetRecipeInfo', function() return {recipeID = 12046} end)
+  G.ProfessionsFrame = {CraftingPage = {SchematicForm = form}}
+  fire('ADDON_LOADED', 'Blizzard_Professions')
+  check('recipe: a Search in aux button on the profession window', search.recipe_button ~= nil and search.recipe_button.__text == 'Search in aux')
+  search.search_box:SetText('')
+  search.recipe_button.__scripts.OnClick(search.recipe_button)
+  run(120)
+  check('recipe: the button searches the shown recipe', search.search_box:GetText():find('spellbinder robe/exact', 1, true) == 1)
+  fire('AUCTION_HOUSE_CLOSED')
+  check('recipe: the button hides when the auction house closes', not search.recipe_button.__shown)
+  G.ProfessionsFrame, G.C_TradeSkillUI = nil, nil
+  aux.frame.__shown = was_shown
+  restore()
+end)
+
 print('done, errors: ' .. errors)

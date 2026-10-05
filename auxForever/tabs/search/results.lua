@@ -449,6 +449,10 @@ function M.results_summary(search)
         text = thousands(levels) .. (levels == 1 and ' price level, ' or ' price levels, ')
     end
     text = text .. thousands(units) .. ' for sale'
+    if search.recipe then
+        -- a recipe search: what the craft costs and earns says more than the counts
+        text = recipe_summary(search)
+    end
     if search.fast then
         text = text .. ', fast'
     elseif search.full_reason then
@@ -661,6 +665,7 @@ function M.execute(_, resume, mode)
         search.mode = mode
         search.fast, search.full_reason = fast, full_reason
         search.open, search.pending_open = {}, nil
+        search.recipe = take_pending_recipe()
         if mode ~= LIVE_MODE then
             search.sort_type = 'unitprice'
         end

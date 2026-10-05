@@ -281,7 +281,7 @@ Sniper tab (between Search and Post)
 - [ ] Few deals at first is expected: deals against the usual price need 3 days of price history
       (Full scans build it). Below-vendor deals show from the start.
 
-## 16. Version 0.4 (in progress): Auctions tab, Post next item
+## 16. Version 0.4 (in progress): Auctions tab, Post next item, recipe search
 
 Auctions tab
 - [ ] Open the Auctions tab with some auctions up: after a moment "Checking prices, item 1 of N"
@@ -299,6 +299,25 @@ Auctions tab
 Post tab
 - [ ] Post everything of an item: the next item in the list is selected by itself.
 - [ ] Post only part of an item: it stays selected.
+
+Recipe search
+- [ ] With aux open at the auction house, open Tailoring (or any profession) and pick a recipe: a
+      "Search in aux" button sits at the bottom right of the recipe panel. Close the auction house:
+      it is gone.
+- [ ] Click it: aux shows the Search tab, the search bar reads the item and each material with
+      "/exact", and the results list their auctions.
+- [ ] The line next to the tabs reads like "Simple Kilt: materials 6s 10c, sells for 42s 75c after
+      the cut, profit 36s 65c". Check one number by hand. Vendor materials (Fine Thread) use the
+      vendor price when you have visited a vendor that sells it.
+- [ ] Alt-click a recipe in the list: the same search. Shift-click still only does Blizzard's own
+      thing (link in chat or track the recipe), not an aux search.
+- [ ] A recipe whose item or materials are not for sale: the line says "none for sale" or shows "?".
+
+Performance (0.4)
+- [ ] `/aux memory` right after logging in, and again after 30 minutes or more of play with the
+      auction house. Send both numbers.
+- [ ] Hover many items in your bags and the bank: tooltips still show Value and Vendor.
+- [ ] Post tab: the Post button still turns on and off as you type prices.
 
 ## Things to note even without errors
 - Anything that looks different from how aux worked on Classic.

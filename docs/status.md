@@ -110,6 +110,19 @@ download. Every agent: pull first, one agent per branch, update this file when d
   (it showed the vendor price before, which looked like the usual price). Buying from the Sniper
   is not confirmed in game yet.
 
+## 0.4 (in progress)
+
+- Built: Auctions tab (undercut check, Cancel undercut), Post tab next item, recipe search (button
+  on the profession window and Alt-click), performance fixes (tooltip scan once per item, Post tab
+  and buy bar throttled, history unpacked only for new daily lows). TOC `forever-0.4`.
+- Facts from Tyler's in-game check (2026-10-05): the recipe for Simple Kilt is 12046 and its link
+  shows the materials. The second check failed only because the /run line was over WoW's
+  255-character chat limit; Blizzard's own profession window uses `GetRecipeSchematic` to show
+  materials, so the call works on Forever.
+- `core/crafting.lua` hooks Classic's profession frames, which Forever does not have; it does
+  nothing on Forever and costs only one event listener. Left in place for now.
+- Not tested in game yet: everything in `TESTING.md` section 16.
+
 ## 0.3.1 (released 2026-10-05)
 
 - Performance pass after Tyler stressed compute cost (2026-10-05). Found and fixed: `control.lua`
