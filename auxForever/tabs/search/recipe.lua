@@ -141,14 +141,15 @@ function M.recipe_costs(parts, records)
     return cost, missing, net
 end
 
--- "Simple Kilt: materials 6s 10c, sells for 42s 75c after the cut, profit 36s 65c". A material
--- with no auction and no known vendor price is named (aux learns vendor prices when you open a
--- vendor that sells it): "materials 8s 63c + Gray Dye (no price)", and the profit becomes a bound
--- ("profit at most", "loss at least").
+-- The line in the bottom bar: "Simple Kilt   materials 6s 10c   sells 42s 75c after cut   profit
+-- 36s 65c". A material with no auction and no known vendor price is named (aux learns vendor prices
+-- when you open a vendor that sells it): "materials 8s 63c + Gray Dye (no price)", and the profit
+-- becomes a bound ("profit at most", "loss at least").
+local GAP = '   '
 function M.recipe_summary(search)
     local parts = search.recipe
     local cost, missing, net = recipe_costs(parts, search.records)
-    local text = (parts.name or 'Recipe') .. ': materials ' .. plain_money(cost)
+    local text = aux.color.accent.background(parts.name or 'Recipe') .. GAP .. 'materials ' .. plain_money(cost)
     if missing then
         local names = {}
         for _, item_id in ipairs(missing) do
@@ -159,13 +160,13 @@ function M.recipe_summary(search)
     end
     if parts.output then
         if not net then
-            text = text .. ', none for sale'
+            text = text .. GAP .. 'none for sale'
         else
-            text = text .. ', sells for ' .. plain_money(net) .. ' after the cut'
+            text = text .. GAP .. 'sells ' .. plain_money(net) .. ' after cut' .. GAP
             if net >= cost then
-                text = text .. aux.color.green((missing and ', profit at most ' or ', profit ') .. plain_money(net - cost))
+                text = text .. aux.color.green((missing and 'profit at most ' or 'profit ') .. plain_money(net - cost))
             else
-                text = text .. aux.color.red((missing and ', loss at least ' or ', loss ') .. plain_money(cost - net))
+                text = text .. aux.color.red((missing and 'loss at least ' or 'loss ') .. plain_money(cost - net))
             end
         end
     end

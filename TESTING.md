@@ -281,7 +281,7 @@ Sniper tab (between Search and Post)
 - [ ] Few deals at first is expected: deals against the usual price need 3 days of price history
       (Full scans build it). Below-vendor deals show from the start.
 
-## 16. Version 0.4 (in progress): Auctions tab, Post next item, recipe search
+## 16. Version 0.4: Auctions tab, Post next item, recipe search
 
 Auctions tab
 - [ ] Open the Auctions tab with some auctions up: after a moment "Checking prices, item 1 of N"
@@ -306,9 +306,11 @@ Recipe search
       it is gone.
 - [ ] Click it: aux shows the Search tab, the search bar reads the item and each material with
       "/exact", and the results list their auctions.
-- [ ] The line next to the tabs reads like "Simple Kilt: materials 6s 10c, sells for 42s 75c after
-      the cut, profit 36s 65c". Check one number by hand. Vendor materials (Fine Thread) use the
-      vendor price when you have visited a vendor that sells it.
+- [ ] The bar at the bottom, right of Clear, reads like "Simple Kilt   materials 6s 10c   sells
+      42s 75c after cut   profit 36s 65c"; the line next to the sub tabs only has the counts. Check
+      one number by hand. Vendor materials (Fine Thread) use the vendor price when you have
+      visited a vendor that sells it. Make the window narrow: the line is cut with "..." before
+      it reaches the credit text, never on top of it.
 - [ ] Alt-click a recipe in the list: the same search. Shift-click still only does Blizzard's own
       thing (link in chat or track the recipe), not an aux search.
 - [ ] A recipe whose item is not for sale: the line says "none for sale". A material with no

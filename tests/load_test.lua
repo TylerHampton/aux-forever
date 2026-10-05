@@ -1766,8 +1766,11 @@ try('recipe search', function()
   check('recipe: Alt-click searches the item and its materials', search.search_box:GetText() == 'spellbinder robe/exact;greenweave robe/exact;pagan robe/exact')
   check('recipe: the search knows its recipe', s.recipe and s.recipe.name == 'Robe Kit')
   -- materials: 3 x 64s + 2g 20s = 4g 12s; sells for 1g 85s less 5% = 1g 75s 75c: a loss
-  local summary = search.results_summary(s) or ''
-  check('recipe: the line adds up the craft', summary:find('Robe Kit: materials 4g 12s', 1, true) ~= nil and summary:find('sells for 1g 75s 75c after the cut', 1, true) ~= nil and summary:find('loss 2g 36s 25c', 1, true) ~= nil)
+  search.update_results_summary(true)
+  local summary = search.recipe_label.__text or ''
+  check('recipe: the line adds up the craft', summary:find('materials 4g 12s', 1, true) ~= nil and summary:find('sells 1g 75s 75c after cut', 1, true) ~= nil and summary:find('loss 2g 36s 25c', 1, true) ~= nil)
+  -- Tyler, 0.4: the cost crowded the line next to the sub tabs and was cut off; it is in the bottom bar
+  check('recipe: the cost is in the bottom bar, not next to the sub tabs', summary:find('Robe Kit', 1, true) ~= nil and not (search.results_summary(s) or ''):find('materials', 1, true))
   -- Tyler, 0.4: "materials ?" did not say which material had no price (Gray Dye, not for sale)
   local without = {}
   for _, r in ipairs(s.records) do if r.item_id ~= 103 then tinsert(without, r) end end
@@ -1796,7 +1799,7 @@ try('recipe search', function()
   search.handlers.OnClick(search.favorite_searches_listing, {search = search.favorite_searches[1], index = 1}, nil, 'LeftButton')
   run(120)
   local again = search.current_search()
-  check('recipe: running the saved recipe search shows the cost line again', again.recipe and again.recipe.name == 'Robe Kit' and (search.results_summary(again) or ''):find('Robe Kit: materials', 1, true) ~= nil)
+  check('recipe: running the saved recipe search shows the cost line again', again.recipe and again.recipe.name == 'Robe Kit' and (search.recipe_summary(again) or ''):find('materials', 1, true) ~= nil)
   tremove(search.favorite_searches, 1)
 
   -- the button on the profession window

@@ -9,7 +9,7 @@ TOC. Every release gets an entry in `docs/changelog.md`.
 no new features (Tyler, 2026-10-05). To confirm in game: buying from the Sniper, posting from the
 reagent bag, suffix names on fast mode rows (`TESTING.md` section 15).
 
-## 0.4: selling tools (planning, 2026-10-05)
+## 0.4: selling tools (released 2026-10-05)
 
 Tyler chose selling tools (other candidates, not chosen for now: price history from Sniper rounds,
 a price history chart, crafting profit). Searching and buying are strong since 0.3; the Auctions

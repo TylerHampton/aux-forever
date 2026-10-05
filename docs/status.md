@@ -8,7 +8,16 @@ Last updated 2026-10-05 (before a context compaction of Claude's session).
   `main` is at the 0.3.1 merge (#6).
 - Versioning decision (2026-10-05): fixes to an unreleased version go into that version, so the
   build 2 and 3 fixes are part of 0.4, not 0.4.1. 0.4.1 is for fixes after 0.4 is released.
-- In progress: **0.4** on branch `claude/modest-volta-4mgmsb` (TOC `forever-0.4`), pushed. Tyler
+- 0.4 release (2026-10-05): Tyler approved it after build 5, with one last change: the recipe
+  cost line moved from the line next to the sub tabs (crowded, cut off) to the bottom bar right of
+  Clear, in shorter words (`recipe_label` in `tabs/search/frame.lua`, set in
+  `update_results_summary`). That last change was not tried in game before the release; Tyler
+  checks the release zip before uploading to CurseForge. Released through a pull request into
+  `main` and the Release workflow (`v0.4`). Open after 0.4: `/aux memory` at round 10 and round 40
+  of the Sniper (should match after a cleanup); Simon's background item cache thread
+  (`fetch_item_data` in `core/cache.lua`, walks item IDs 1 to 30000 at login) is a performance
+  item to review for 0.4.1.
+- Before the release, **0.4** was on branch `claude/modest-volta-4mgmsb` (TOC `forever-0.4`), pushed. Tyler
   tested the first 0.4 build: recipe search works. His findings, fixed in the second build:
   saved recipe searches showed raw search text (now "Recipe  Name  (N materials)", the recipe is
   kept on the saved entry); the Sniper played its sound once per deal (about 40 times in a 1c

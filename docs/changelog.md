@@ -3,37 +3,31 @@
 What changed in each version, newest first. The text under each version is ready to paste into the
 CurseForge file's changelog box.
 
-## 0.4 (in progress)
+## 0.4 (2026-10-05)
 
-- Auctions tab: each of your auctions is compared with other sellers: undercut (and by how much),
-  tied, lowest, sold. "Cancel undercut" cancels the undercut ones, one click each, and shows what
-  each cancel costs. Prices are read when the tab opens (or with Check prices), half a second per
-  item, never in the background.
-- Post tab: after posting everything of an item, the next item in the list is selected.
+- Auctions tab: each of your auctions is compared with the other sellers: undercut (and by how
+  much), tied, lowest or sold. "Cancel undercut" cancels the undercut ones, one click each, and
+  shows what each cancel costs; cancelled items come back by mail. Prices are read when the tab
+  opens (or with Check prices), half a second per item, never in the background.
 - Recipe search: with aux open at the auction house, the profession window gets a "Search in aux"
   button, and Alt-click on a recipe does the same. aux searches the item the recipe makes and all
-  its materials at once, and the line next to the tabs adds up the materials (cheapest auction or
-  vendor price), what the item sells for after the cut, and the profit or loss. Nothing is read
-  before you click.
-- Performance: item tooltips no longer build a hidden tooltip on every hover (once per item);
-  the Post tab and the buy bar no longer redo their work every frame; scans no longer unpack each
-  item's price history for every auction they see.
-- Saved and Recent searches show a recipe search as "Recipe  Simple Kilt  (2 materials)" instead
-  of its search text; running it again brings back the cost line, and the quick search menu shows
-  the item's icon and the last profit or loss.
-- Sniper: one sound for a burst of deals (at most one every 10 seconds; the first round could play
-  it dozens of times); deals show while a round runs, with "checking N possible deals (k done)";
-  the empty table's text is no longer cut off. Rounds no longer unpack each item's price history
-  or build a table per item, and reuse one table per round instead of a new one.
-- Sniper: found deals no longer vanish from the table for a while when the game drops item data
-  (a deal keeps the prices it was judged with; the vendor price also comes from aux's own saved
-  item list).
-- Recipe cost line: a material with no auction and no known vendor price is named ("+ Gray Dye
-  (no price)") instead of "materials ?", and the profit or loss is shown as a bound ("loss at
-  least ...", "profit at most ...").
-- Sniper: 2.5 seconds between rounds instead of 1, for less work and fewer requests.
-- `/aux debug` prints timing for searches only, not for every Sniper round or Auctions check.
-- `/aux memory` also shows what is left after a cleanup, to tell real use from garbage not yet freed.
+  its materials at once. The bar under the results adds up the materials (cheapest auction or
+  vendor price), what the item sells for after the cut, and the profit or loss; a material with
+  no price is named, and the result becomes "loss at least" or "profit at most". Recipe searches
+  show in Saved and Recent as "Recipe  Name  (N materials)" and keep their cost line. Nothing is
+  read before you click.
+- Post tab: after posting everything of an item, the next item in the list is selected.
+- Sniper: deals show while a round runs, with "checking N possible deals (k done)"; one sound for
+  a burst of deals (at most one every 10 seconds); deals no longer vanish for a while when the game
+  reloads item data; 2.5 seconds between rounds instead of 1; the empty table's text is no longer
+  cut off.
+- Performance and memory: item tooltips no longer build a hidden tooltip on every hover; the Post
+  tab and the buy bar no longer redo their work every frame; scans no longer unpack each item's
+  price history for every auction they see; Sniper rounds build no tables per item and keep
+  nothing from round to round (about 1 MB of notes on the items, once).
+- `/aux memory` also shows what is left after a cleanup, to tell real use from garbage the game
+  has not freed yet. `/aux debug` prints timing for searches only, not for every Sniper round or
+  Auctions check.
 
 ## 0.3.1 (2026-10-05)
 

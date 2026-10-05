@@ -59,6 +59,15 @@ from aux on Classic:
   the search ran.
 - A buy bar under the results that never spends more than the price you saw.
 
+**Recipes**
+
+- With aux open at the auction house, the profession window gets a "Search in aux" button (or
+  Alt-click a recipe). aux searches the item the recipe makes and all its materials at once, and
+  the bar under the results adds up the materials, what the item sells for after the cut, and the
+  profit or loss.
+- Recipe searches stay in your recent and saved searches, labeled "Recipe", with the last profit
+  or loss in the quick search menu.
+
 **Sniper**
 
 - Watches the whole auction house round after round and lists deals as they appear: items below
@@ -66,8 +75,9 @@ from aux on Classic:
   the profit.
 - Every deal is checked against the item's real auctions before it is shown, and bought from the
   same buy bar as on the Search tab.
-- A sound and a flashing game icon for new deals, deals that sell are marked gone, and items you
-  never want can be ignored.
+- Deals show up while a round is still running. A sound (at most once every 10 seconds) and a
+  flashing game icon for new deals, deals that sell are marked gone, and items you never want can
+  be ignored.
 
 **Post**
 
@@ -78,6 +88,14 @@ from aux on Classic:
 - Shows what you get after the auction house cut, the deposit, and warns you when a vendor would pay
   more.
 - Remembers your settings per item. Prices are typed the aux way (see Usage).
+- After you post everything of an item, the next item in the list is selected.
+
+**Auctions**
+
+- Compares each of your auctions with the other sellers: undercut (and by how much), tied, lowest
+  or sold.
+- "Cancel undercut" cancels the undercut ones, one click each, and shows what each cancel costs.
+  Cancelled items come back by mail.
 
 **History**
 
@@ -104,7 +122,8 @@ from aux on Classic:
 - `/aux debug` turns the search timing log on or off: after each search, chat says where the time
   went. Useful for bug reports about slow searches.
 - `/aux debug list` times the item list of the whole auction house.
-- `/aux memory` says how much memory aux uses.
+- `/aux memory` says how much memory aux uses, and how much is left after a cleanup (the rest is
+  garbage the game frees over time).
 
 **Tooltip**
 
@@ -131,6 +150,7 @@ from aux on Classic:
 - Tab accepts an autocompletion.
 - Shift-click or Alt-click an item in your bags to search for it.
 - The clock button next to the arrows opens your quick searches. Pin the ones you use often.
+- Alt-click a recipe in the profession window to search it with its materials.
 
 **Post**
 

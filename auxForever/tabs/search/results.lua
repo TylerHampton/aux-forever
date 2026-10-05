@@ -449,10 +449,6 @@ function M.results_summary(search)
         text = thousands(levels) .. (levels == 1 and ' price level, ' or ' price levels, ')
     end
     text = text .. thousands(units) .. ' for sale'
-    if search.recipe then
-        -- a recipe search: what the craft costs and earns says more than the counts
-        text = recipe_summary(search)
-    end
     if search.fast then
         text = text .. ', fast'
     elseif search.full_reason then
@@ -474,7 +470,7 @@ function M.results_summary(search)
 end
 
 do
-    local last_count, last_summary, next_update = nil, nil, 0
+    local last_count, last_summary, last_recipe, next_update = nil, nil, nil, 0
     -- every half second: cheap, and only touches the text when it changed
     function M.update_results_summary(force)
         if not force and GetTime() < next_update then return end
@@ -489,6 +485,12 @@ do
         if summary ~= last_summary then
             last_summary = summary
             results_summary_label:SetText(summary)
+        end
+        -- a recipe search's cost, in the bottom bar
+        local recipe = search and search.recipe and search.records and #search.records > 0 and recipe_summary(search) or ''
+        if recipe ~= last_recipe then
+            last_recipe = recipe
+            recipe_label:SetText(recipe)
         end
     end
 end
