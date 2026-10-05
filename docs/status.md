@@ -28,8 +28,22 @@ Last updated 2026-10-05 (before a context compaction of Claude's session).
   game reloads an item, and a deal without facts was hidden. Fixed in build 3: deals keep the facts
   they were found with, and the vendor price falls back to aux's saved item list. Likely cause, not
   proven in game.
+  Build 4 result (Tyler): login 8.1 MB (8.1 after a cleanup); after 23 Sniper rounds 49.0 MB, 16.4
+  after a cleanup. Measured in the harness with 7,700 fake items: the Sniper keeps about 1.1 MB
+  once (its notes on each item: `known`, `seen_items`), then nothing more through round 60 (test
+  "sniper: rounds keep no memory"). Other things that grow once and stop: aux's saved item list
+  (`account_data.items`, Simon's cache, filled from every item the game loads, so the Sniper fills
+  it fast), the history cache, search results kept for the history arrows. Not yet proven which
+  part makes up the rest of the 8 MB; to tell: `/aux memory` at round 10 and round 40, the "after a
+  cleanup" number should be the same. Tyler noticed a new Sniper find right after running
+  `/aux memory`: aux has no weak tables, so a cleanup cannot change what it knows; finds came every
+  few minutes in that session, so it is likely chance; watch for it repeating.
+  Design note from Tyler (not a demand): the line next to the sub tabs is getting crowded (the
+  recipe line gets cut off: "searched ju..."), while the bar at the bottom (next to Clear) and the
+  search bar have room. Consider moving the recipe line or the summary down there; mockup first.
+  Also fixed in build 5: the recipe line names a material without a price instead of "?".
   Next steps:
-  1. Tyler tests the third build (`TESTING.md` section 16, Recipe search, Sniper fixes,
+  1. Tyler tests the fifth build (`TESTING.md` section 16, Recipe search, Sniper fixes,
      Performance) and sends both `/aux memory` lines at login and after 20+ Sniper rounds. If the
      "after a cleanup" number keeps climbing, something is kept that should not be: look for it.
   2. Fix whatever his test turns up (each bug: fix plus a test that fails without it).

@@ -1394,6 +1394,39 @@ try('sniper: judging items reuses the history cache', function()
   G.GetItemInfo = real_info
 end)
 
+-- Tyler, 0.4: memory after a cleanup went from 8.1 MB at login to 16.4 MB after 23 Sniper rounds.
+-- The Sniper may keep notes on each item once, but nothing may pile up round after round.
+try('sniper: rounds keep no memory', function()
+  local aux_require = loadstring("select(2, ...) 'aux.test43'; return require")('auxForever', addon)
+  local aux = aux_require 'aux'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local items = {}
+  for i = 1, 2000 do
+    tinsert(items, {id = 5000 + i, name = 'Item ' .. i, min = 1000, qty = 3, sell = 10, auctions = {{buyout = 1000}}})
+  end
+  local run, restore = fake_ah(items)
+  aux.set_tab(2)
+  sniper.start()
+  local r0 = sniper.round
+  local live = {}
+  for _ = 1, 20000 do
+    run(1)
+    local r = sniper.round - r0
+    if (r == 2 or r == 8) and not live[r] and not sniper.active then
+      -- some prices change every round, so items are judged again
+      for i = r, 2000, 7 do items[i].min = items[i].min + 1 end
+      collectgarbage('collect')
+      live[r] = collectgarbage('count')
+    end
+    if r >= 8 and live[8] then break end
+  end
+  check('sniper memory: measured at rounds 2 and 8', live[2] and live[8])
+  check('sniper memory: no growth from round 2 to round 8', live[2] and live[8] and live[8] - live[2] < 64)
+  sniper.stop()
+  aux.set_tab(1)
+  restore()
+end)
+
 -- Tyler, 0.4: the first round at 1c profit played the sound about 40 times before any deal showed
 try('sniper: one sound per burst, deals shown during the round, no timing lines', function()
   local aux_require = loadstring("select(2, ...) 'aux.test41'; return require")('auxForever', addon)
@@ -1735,6 +1768,14 @@ try('recipe search', function()
   -- materials: 3 x 64s + 2g 20s = 4g 12s; sells for 1g 85s less 5% = 1g 75s 75c: a loss
   local summary = search.results_summary(s) or ''
   check('recipe: the line adds up the craft', summary:find('Robe Kit: materials 4g 12s', 1, true) ~= nil and summary:find('sells for 1g 75s 75c after the cut', 1, true) ~= nil and summary:find('loss 2g 36s 25c', 1, true) ~= nil)
+  -- Tyler, 0.4: "materials ?" did not say which material had no price (Gray Dye, not for sale)
+  local without = {}
+  for _, r in ipairs(s.records) do if r.item_id ~= 103 then tinsert(without, r) end end
+  local partial = search.recipe_summary{recipe = s.recipe, records = without}
+  local info = loadstring("select(2, ...) 'aux.util.info'; return _M")('auxForever', addon)
+  local dye = info.item(103).name
+  check('recipe: a material without a price is named', partial:find('materials 1g 92s 00c + ' .. dye .. ' (no price)', 1, true) ~= nil)
+  check('recipe: with a material missing the loss is a bound', partial:find('loss at least 16s 25c', 1, true) ~= nil)
 
   -- Tyler, 0.4: a saved recipe search showed as its raw text "[Colorful Kilt];[Bolt of Woolen Cloth];..."
   local recent = search.recent_searches[1]

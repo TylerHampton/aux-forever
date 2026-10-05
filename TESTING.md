@@ -311,7 +311,9 @@ Recipe search
       vendor price when you have visited a vendor that sells it.
 - [ ] Alt-click a recipe in the list: the same search. Shift-click still only does Blizzard's own
       thing (link in chat or track the recipe), not an aux search.
-- [ ] A recipe whose item or materials are not for sale: the line says "none for sale" or shows "?".
+- [ ] A recipe whose item is not for sale: the line says "none for sale". A material with no
+      auction and no known vendor price is named, like "+ Gray Dye (no price)", with "loss at least"
+      or "profit at most". Open a vendor that sells it, search again: its vendor price is used.
 - [ ] Saved and Recent searches show a recipe search as "Recipe  Simple Kilt  (2 materials)"
       ("Recipe" in amber), not its search text. Hovering it shows the recipe and its search.
 - [ ] Save one as a favorite (Favorite button or right-click in Recent), do another search, then

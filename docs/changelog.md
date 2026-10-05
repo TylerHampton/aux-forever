@@ -28,6 +28,9 @@ CurseForge file's changelog box.
 - Sniper: found deals no longer vanish from the table for a while when the game drops item data
   (a deal keeps the prices it was judged with; the vendor price also comes from aux's own saved
   item list).
+- Recipe cost line: a material with no auction and no known vendor price is named ("+ Gray Dye
+  (no price)") instead of "materials ?", and the profit or loss is shown as a bound ("loss at
+  least ...", "profit at most ...").
 - Sniper: 2.5 seconds between rounds instead of 1, for less work and fewer requests.
 - `/aux debug` prints timing for searches only, not for every Sniper round or Auctions check.
 - `/aux memory` also shows what is left after a cleanup, to tell real use from garbage not yet freed.

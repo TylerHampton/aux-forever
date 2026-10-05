@@ -109,8 +109,9 @@ local function plain_money(amount)
 end
 
 -- Cost of a recipe from a search's records: materials (each the cheapest auction or the vendor
--- price, whichever is lower; missing is true when one has neither) and what the made item sells
--- for after the cut (nil when none is for sale or the recipe makes no item).
+-- price, whichever is lower; cost counts only those with a price, missing lists the item IDs of
+-- the others, nil when none is missing) and what the made item sells for after the cut (nil when
+-- none is for sale or the recipe makes no item).
 function M.recipe_costs(parts, records)
     local cheapest = {}
     for _, record in ipairs(records or empty) do
@@ -121,7 +122,7 @@ function M.recipe_costs(parts, records)
             end
         end
     end
-    local cost, missing = 0, false
+    local cost, missing = 0, nil
     for _, part in ipairs(parts.reagents) do
         local price = cheapest[part.item_id]
         local vendor, limited = info.merchant_buy_info(part.item_id)
@@ -131,7 +132,8 @@ function M.recipe_costs(parts, records)
         if price then
             cost = cost + ceil(price) * part.count
         else
-            missing = true
+            missing = missing or {}
+            tinsert(missing, part.item_id)
         end
     end
     local sell = parts.output and cheapest[parts.output.item_id]
@@ -139,18 +141,31 @@ function M.recipe_costs(parts, records)
     return cost, missing, net
 end
 
--- "Simple Kilt: materials 6s 10c, sells for 42s 75c after the cut, profit 36s 65c"
+-- "Simple Kilt: materials 6s 10c, sells for 42s 75c after the cut, profit 36s 65c". A material
+-- with no auction and no known vendor price is named (aux learns vendor prices when you open a
+-- vendor that sells it): "materials 8s 63c + Gray Dye (no price)", and the profit becomes a bound
+-- ("profit at most", "loss at least").
 function M.recipe_summary(search)
     local parts = search.recipe
     local cost, missing, net = recipe_costs(parts, search.records)
-    local text = (parts.name or 'Recipe') .. ': materials ' .. (missing and '?' or plain_money(cost))
+    local text = (parts.name or 'Recipe') .. ': materials ' .. plain_money(cost)
+    if missing then
+        local names = {}
+        for _, item_id in ipairs(missing) do
+            local item_info = info.item(item_id)
+            tinsert(names, item_info and item_info.name or 'a material')
+        end
+        text = text .. ' + ' .. table.concat(names, ', ') .. ' (no price)'
+    end
     if parts.output then
         if not net then
             text = text .. ', none for sale'
         else
             text = text .. ', sells for ' .. plain_money(net) .. ' after the cut'
-            if not missing then
-                text = text .. (net >= cost and aux.color.green(', profit ' .. plain_money(net - cost)) or aux.color.red(', loss ' .. plain_money(cost - net)))
+            if net >= cost then
+                text = text .. aux.color.green((missing and ', profit at most ' or ', profit ') .. plain_money(net - cost))
+            else
+                text = text .. aux.color.red((missing and ', loss at least ' or ', loss ') .. plain_money(cost - net))
             end
         end
     end
