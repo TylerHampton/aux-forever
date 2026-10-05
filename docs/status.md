@@ -74,6 +74,13 @@ agent (`CLAUDE.md` and `GEMINI.md` load it); `docs/gemini-setup.md` is Tyler's s
 Actions (`.github/workflows/test.yml`) runs the tests on every push and offers the addon as a
 download. Every agent: pull first, one agent per branch, update this file when done.
 
+## 0.3 (planning, see docs/roadmap.md)
+
+- Decisions recorded in the roadmap: automatic fast mode, Sniper as its own top tab, default deal
+  rule.
+- `/aux debug list` (`measure_item_list` in core/scan.lua) times the whole auction house's item
+  list; waiting for Tyler's numbers before the mockups.
+
 ## Releases
 
 - 0.2.1 released 2026-10-05: GitHub Release `v0.2.1` (pre-release, with the zip, published by

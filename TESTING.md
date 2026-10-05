@@ -202,6 +202,11 @@ Search timing log (for measuring slow searches)
       fallback, time-outs, the slowest items. Screenshot that and send it. Run the same search a
       second time and screenshot that too. `/aux debug` again turns it off.
 
+Item list measurement (for planning 0.3)
+- [ ] At the auction house, type `/aux debug list`. After a while chat says how many items the
+      whole auction house has, how long the list took and how many requests it needed. Screenshot
+      it. Try it at a busy time and a quiet time if you can.
+
 Blizzard UI button
 - [ ] Click Blizzard UI several times, also right after clicking around in aux: the Blizzard
       window opens in front every time, and the button is lit while it is open. Click it again to

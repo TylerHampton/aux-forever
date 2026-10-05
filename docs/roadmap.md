@@ -51,6 +51,21 @@ Open for 0.2.x:
   first (a debug command that times an item list of everything, without opening items).
 - The full scan stays separate: it feeds price history, which is what makes deals trustworthy.
 
+### Decisions (Tyler, 2026-10-05)
+
+- Fast mode is automatic: searches over many items use the item list; a search for one exact
+  item stays full. A small Fast / Full switch can force full.
+- The Sniper gets its own top tab (Search, Sniper, Post, Auctions, Bids).
+- Default deal rule, chosen by Claude for a full release rather than the beta economy (Tyler left
+  the call to Claude; TSM players' sniper setups combine "below vendor price" with "a share of the
+  market price, never below vendor price"; the exact TSM defaults could not be checked):
+  - always a deal: lowest price below what a vendor pays (a sure profit, no history needed);
+  - otherwise a deal when the lowest price is at most 60% of the usual price, the profit after the
+    auction house cut is at least 5s, and the usual price rests on at least 3 days of history;
+  - the usual price used here is never below the vendor price.
+  Players can change the percentage and the minimum profit. A percentage scales from level 20 to
+  60 on its own; the 5s floor only hides trivial finds.
+
 ### Order
 
 1. Measure the whole-auction-house item list (time, number of items, number of requests).

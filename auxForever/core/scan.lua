@@ -203,8 +203,11 @@ end
 -- cached results were used). A request the throttle system drops is sent again. The client does
 -- not always fire the results event again for results it already holds, so if no event arrives
 -- within a second but cached() reports results, those are used.
+local requests_sent = 0
+
 function request(send, events, match, cached)
     for _ = 1, 3 do
+        requests_sent = requests_sent + 1
         local t_throttle = GetTime()
         wait_throttle()
         timing_add('throttle', GetTime() - t_throttle)
@@ -483,6 +486,29 @@ function replicate()
             end
         end
     end
+end
+
+-- auxForever: /aux debug list. Times the item list of the whole auction house without opening any
+-- item, which is what fast mode and the sniper would do: how long it takes and how big it is.
+function M.measure_item_list()
+    if state then
+        aux.print('A search is running; try again when it is done.')
+        return
+    end
+    aux.coro_thread(function()
+        -- a scan state of its own, so no search starts meanwhile and Close stops it like a search
+        state = {id = aux.coro_id(), params = {}, listener_ids = {}}
+        local requests_before = requests_sent
+        local t0 = GetTime()
+        local ok, item_keys = pcall(browse, {})
+        local requests = requests_sent - requests_before
+        state = nil
+        if not ok or not item_keys then
+            aux.print('Item list: the auction house did not answer.')
+            return
+        end
+        aux.print(format('Item list of the whole auction house: %d items in %s (%d requests)', #item_keys, format_seconds(GetTime() - t0), requests))
+    end)
 end
 
 function scan()

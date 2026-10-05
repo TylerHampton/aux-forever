@@ -18,6 +18,12 @@ function SlashCmdList.AUX(command)
     if arguments[1] == 'scale' and tonumber(arguments[2]) then
 	    aux.change_window_scale(tonumber(arguments[2]))
 	    aux.print('scale ' .. aux.color.blue(floor(aux.account_data.scale * 100 + .5) .. '%') .. ' (70% to 150%)')
+    elseif arguments[1] == 'debug' and arguments[2] == 'list' then
+        if not info.auction_house_open() then
+            aux.print('Open the auction house first.')
+        else
+            scan.measure_item_list()
+        end
     elseif arguments[1] == 'debug' then
         aux.account_data.debug_timing = not aux.account_data.debug_timing
         aux.print('search timing log ' .. status(aux.account_data.debug_timing) .. (aux.account_data.debug_timing and ': a summary prints in chat after each search' or ''))
@@ -102,6 +108,7 @@ function SlashCmdList.AUX(command)
         aux.print('- tooltip money icons [' .. status(tooltip_settings.money_icons) .. ']')
 		aux.print('- clear item cache')
 		aux.print('- debug [' .. status(aux.account_data.debug_timing) .. '] (search timing log)')
+		aux.print('- debug list (times the item list of the whole auction house)')
         aux.print('- clear post')
     end
 end

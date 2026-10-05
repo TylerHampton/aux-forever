@@ -1036,4 +1036,29 @@ try('search timing during a search', function()
   check('the 1s fallback is counted', all:find('0 on time, 1 after the 1s fallback', 1, true) ~= nil)
 end)
 
+-- /aux debug list: times the whole auction house's item list without opening items
+try('item list measurement', function()
+  local scan = loadstring("select(2, ...) 'aux.core.scan'; return _M")('auxForever', addon)
+  local printed = {}
+  local real_add = DEFAULT_CHAT_FRAME.AddMessage
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', function(_, text) tinsert(printed, text) end)
+  local saved = {}
+  for k, v in pairs{GetBrowseResults = function() return {{itemKey = {itemID = 1}}, {itemKey = {itemID = 2}}, {itemKey = {itemID = 3}}} end,
+                    HasFullBrowseResults = function() return true end} do
+    saved[k] = rawget(C_AuctionHouse, k); C_AuctionHouse[k] = v
+  end
+  local real_send = C_AuctionHouse.SendBrowseQuery
+  local sent = 0
+  C_AuctionHouse.SendBrowseQuery = function() sent = sent + 1 end
+  scan.measure_item_list()
+  -- the stub never sends the browse event, so the request runs into its 20s time-out
+  for _ = 1, 260 do tick() end
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', real_add)
+  for k in pairs(saved) do C_AuctionHouse[k] = saved[k] end
+  C_AuctionHouse.SendBrowseQuery = real_send
+  local all = table.concat(printed, '\n')
+  check('one browse request sent', sent >= 1)
+  check('the measurement is reported', all:find('Item list', 1, true) ~= nil)
+end)
+
 print('done, errors: ' .. errors)
