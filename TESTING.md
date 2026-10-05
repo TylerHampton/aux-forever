@@ -8,42 +8,19 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.4.1, test build 4 (release check)
+## Current build: 0.4.1, test build 5 (release check)
 
 A /reload is enough. The test page has the same steps.
 
-**Before you start**
-- [ ] 1. Build 4 installed, no BugSack error.
-- [ ] 2. `/aux memory detail` at login. Screenshot.
-
-**Window**
-- [ ] 3. Clicks on the resize corner change nothing; dragging resizes; it never jumps.
-
-**Prices**
-- [ ] 4. Linen cloth (Full): every price shows its copper ("1s 00c"). Medicine staff: "12s".
-- [ ] 5. The buy bar reads short ("Buy for 12s").
-- [ ] 6. Auction Bid shows "---" without a starting bid; real starting bids still show.
-
-**Sniper**
-- [ ] 7. A trade good deal: the buy bar offers no more than the table's For sale.
-- [ ] 8. Buy, then Confirm: "waits while you buy" meanwhile; it arrives by mail.
-- [ ] 9. `/aux memory detail` at round 10, nothing selected. Screenshot.
-- [ ] 10. `/aux memory detail` at round 40, nothing selected. Screenshot.
-
-**Full scan**
-- [ ] 11. Full scan, then `/aux memory detail`: "After a cleanup" far below 42.3 MB.
-
-**Quick run before release**
-- [ ] 12. Search and buy one gear auction and a few of a trade good; prices match the mail.
-- [ ] 13. Live repeats with a countdown; Pause and Resume work.
-- [ ] 14. A favorite and a clock menu search both run.
-- [ ] 15. Post one trade good and one piece of gear; lowest price matched by default.
-- [ ] 16. Auctions tab checks prices and shows statuses.
-- [ ] 17. Recipe search shows the cost line in the bottom bar.
-
-**Optional**
-- [ ] 18. Fast lit, medicine staff (no /exact): suffix names shown?
-- [ ] 19. Cancel undercut on a real undercut auction; it arrives by mail.
+- [ ] 1. Build 5 installed, no BugSack error.
+- [ ] 2. Sniper: with the mouse over the table the rows stay still; a clicked deal stays selected.
+- [ ] 3. Sniper: with a deal selected the status says "Holding while a deal is selected"; clicking it
+      again lets it go and the rounds go on.
+- [ ] 4. Sniper: a gear deal shows "Checking the auction...", then "Buy for"; it buys and arrives.
+- [ ] 5. Sniper: a trade good deal buys with Buy, then Confirm.
+- [ ] 6. An empty search bar says "Type something to search for." and searches nothing.
+- [ ] 7. Quick run: search and buy, Live, saved and clock searches, Post, Auctions tab, recipe search.
+- [ ] 8. `/aux memory detail` at the end. Screenshot.
 
 ## Before every release: the quick run
 
