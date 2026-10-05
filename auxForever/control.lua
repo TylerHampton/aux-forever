@@ -50,7 +50,23 @@ do
 end
 
 do
-    local threads, kill_signals = {}, {}
+    local threads, kill_signals, error_handlers = {}, {}, {}
+
+    -- auxForever: an error inside a thread used to leave whatever it was doing marked as running
+    -- forever (a search stuck on "Updating"). Its error handler now cleans up first; the error is
+    -- still raised so BugSack shows it.
+    local function resume(thread_id, thread)
+        local ok, message = coroutine.resume(thread)
+        if not ok then
+            threads[thread_id] = nil
+            local on_error = error_handlers[thread_id]
+            error_handlers[thread_id] = nil
+            if on_error then
+                on_error(message)
+            end
+            error(message, 0)
+        end
+    end
 
     CreateFrame'Frame':SetScript('OnUpdate', function()
         for thread_id, thread in pairs(threads) do
@@ -58,17 +74,19 @@ do
             if status == 'dead' or kill_signals[thread_id] then
                 kill_signals[thread_id] = nil
                 threads[thread_id] = nil
+                error_handlers[thread_id] = nil
             elseif status == 'suspended' then
-                assert(coroutine.resume(thread))
+                resume(thread_id, thread)
             end
         end
     end)
 
-    function M.coro_thread(f)
+    function M.coro_thread(f, on_error)
         local thread = coroutine.create(f)
         local thread_id = tostring(thread)
         threads[thread_id] = thread
-        assert(coroutine.resume(thread))
+        error_handlers[thread_id] = on_error
+        resume(thread_id, thread)
     end
 
     function M.coro_wait()

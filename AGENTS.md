@@ -8,7 +8,7 @@ stand), before changing anything.
 
 auxForever is a port of **aux**, the auction house addon by shirsig (Simon), to **World of
 Warcraft: Forever**, plus a visual redesign and modern improvements. The credit line, used in the
-addon and on every page, is: "aux by shirsig, granted immortality by Tyler". Simon gave written
+addon and on every page, is: "aux by shirsig, re-imagined by a fan". Simon gave written
 permission by email (quoted in `README.md`); he is not involved in this version.
 
 - Forever runs the modern client (Interface 16001, game version 1.60.1) with the modern auction
@@ -101,7 +101,9 @@ Load order is the TOC (`auxForever/auxForever.toc`).
 - `color.lua`: the palette. `gui/core.lua`: widgets (button, label, editbox, dropdown, checkbox,
   status bar, rounded styling, `style_choice`, `set_primary`, background opacity).
 - `core/scan.lua`: the scan engine, rewritten for `C_AuctionHouse` (browse query, then one search
-  per item key; full scan with `ReplicateItems`). `util/scan.lua`, `util/info.lua`: helpers and
+  per item key; full scan with `ReplicateItems`). Fast mode (`params.fast`) stops at the browse
+  list: one row per item (`info.browse_record`, `record.fast`); `params.on_item_list` hands the raw
+  list to the Sniper. `util/scan.lua`, `util/info.lua`: helpers and
   item/auction records. `core/history.lua`: price history ("usual price").
 - `util/filter.lua`: aux's search language: parsing, the post filters and their validators.
 - `gui/auction_listing.lua`: the result tables (columns Lvl, Item, For sale, ...).
@@ -110,6 +112,8 @@ Load order is the TOC (`auxForever/auxForever.toc`).
   (favorites and recent), `quick.lua` (quick search menu), `filter.lua` (Filter Builder logic:
   condition tree, search text, "In words"), `frame.lua` (Search tab widgets),
   `builder.lua` (Filter Builder rows and menus).
+- `tabs/sniper/`: the Sniper tab (0.3): `core.lua` (rounds over the whole item list, the deal
+  rule `judge`, checking a candidate's real auctions, buying), `frame.lua` (controls and table).
 - `tabs/post/`: posting (auto price, undercut mode, deposit, "You get"). `tabs/auctions/`,
   `tabs/bids/`: the other tabs. `core/slash.lua`: `/aux` commands.
 - `textures/*.tga`: icons and rounded corners (addon textures load; addon fonts do not).
@@ -123,6 +127,9 @@ Load order is the TOC (`auxForever/auxForever.toc`).
   directly there, not `aux.color` (the global `aux` is the saved variables table).
 - Lua 5.1 only (WoW): no `goto`, no `//`, no integer types. Use WoW globals such as `tinsert`,
   `strlower`, `format`.
+- Never wrap code that waits (`aux.coro_wait`, any scan request) in `pcall`: Lua 5.1 cannot yield
+  inside a `pcall`, so it fails at once. The test harness only notices if the stubbed answer
+  arrives on a later tick, as in the game.
 - Colors from `color.lua` are callable: `aux.color.accent.background('text')` returns colored
   text; `aux.color.accent.background()` returns r, g, b, a.
 - `gui.editbox` calls `editbox.change(self, is_user_input)` on every text change, `enter`, `escape`,

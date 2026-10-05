@@ -17,16 +17,79 @@ Open for 0.2.x:
   item per request, so a search over hundreds of items takes minutes; the big speedup is 0.3).
 - Still not tried in game: Auctions tab cancel, Bids tab, full scan, posting gear with a bid.
 
-## 0.3: fast mode and sniper
+## 0.3: fast mode and sniper (planning, 2026-10-05)
 
-- **Fast mode** (measured need, 2026-10-05: a 335 item search took 3m 13s, 72% of it waiting on
-  Blizzard's request rate limit, while the item list came back in 0.1s): search with the browse
-  results only (one row per item with its lowest price and
-  how many are for sale), without fetching every item's individual auctions. Much faster for broad
-  searches; the details of one item load when it is selected. It has to stay lightweight.
-- **Sniper** (as in TSM): go through the whole auction house and list items for sale a good margin
-  below their usual price, using the price history aux already collects. Fast mode is what makes
-  this practical. Open questions for when it is designed: how the margin is set, how often it
-  rescans (the full scan is allowed once every 15 minutes), and how buying from it works.
+### What the game gives us (Blizzard's API documentation)
 
-Both get a mockup first, as with every visible change.
+- **Item list** (`GetBrowseResults`, 0.1s for 335 items; the whole auction house, 7718 items, in
+  8.5s and 16 requests): per item
+  only the item, how many are for sale (`totalQuantity`), the lowest price (`minPrice`) and
+  whether some are yours. No bids, sellers, time left or individual auctions.
+- **One item's auctions** (`SendSearchQuery` per item): everything, but Blizzard's request limit
+  allows about one every 0.4s. This is what full mode does for every item.
+- **Full scan** (`ReplicateItems`, once per 15 minutes): every auction with price and seller,
+  but no auction IDs, so nothing can be bought from it directly.
+
+### Fast mode
+
+- A search that only reads the item list: one row per item with Lvl, Item, For sale, Lowest
+  price (each) and % of usual. Seconds instead of minutes for broad searches.
+- Selecting a row loads that item's auctions (one request, about half a second) into the buy bar,
+  which buys exactly as today and keeps its price guarantee.
+- Conditions that need more than the list (bid, seller, time left, tooltip text) cannot be
+  checked on the list. Proposal: they are checked when an item is opened, and the Filter Builder
+  marks them; or a search that uses them runs in full mode. To be decided.
+- Lightweight: no new saved data; the list is what the game already sends.
+
+### Sniper
+
+- Goes through the whole auction house's item list again and again and lists items whose lowest
+  price is a good margin under their usual price, newest finds on top, with a sound when one
+  appears. Selecting one loads its auctions into the buy bar as above.
+- A deal: lowest price at most X% of usual and at least Y profit. Items with too little price
+  history are skipped, so a thin "usual price" does not fake deals.
+- How often it can go round depends on how long the whole list takes on Forever: to be measured
+  first (a debug command that times an item list of everything, without opening items).
+- The full scan stays separate: it feeds price history, which is what makes deals trustworthy.
+
+### Decisions (Tyler, 2026-10-05)
+
+- Fast mode is automatic: searches over many items use the item list; a search for one exact
+  item stays full. A small Fast / Full switch can force full.
+- The Sniper gets its own top tab (Search, Sniper, Post, Auctions, Bids).
+- Default deal rule, chosen by Claude for a full release rather than the beta economy (Tyler left
+  the call to Claude; TSM players' sniper setups combine "below vendor price" with "a share of the
+  market price, never below vendor price"; the exact TSM defaults could not be checked):
+  - always a deal: lowest price below what a vendor pays (a sure profit, no history needed);
+  - otherwise a deal when the lowest price is at most 60% of the usual price, the profit after the
+    auction house cut is at least 5s, and the usual price rests on at least 3 days of history;
+  - the usual price used here is never below the vendor price.
+  Players can change the percentage and the minimum profit. A percentage scales from level 20 to
+  60 on its own; the 5s floor only hides trivial finds.
+
+### Built (2026-10-05, first build for testing)
+
+- Fast mode as planned. Rows from the item list are not price history (the list's lowest price may
+  be a bid); opened items are. Conditions the list cannot check (seller, time left, bid, tooltip
+  text) make a search full, and the summary line says so (Tyler's choice).
+- Live mode kept as Simon's real time mode, made visible (Tyler: "make it work how it sounds"):
+  a round, then a 5 second countdown on the Live button, "Paused" only when paused, held while on
+  another tab.
+- Sniper: only while its tab is open (Tyler's choice). An item that looks like a deal on the list
+  is opened once to check its real auctions, so a bid shown as the lowest price never makes a
+  false deal. The minimum profit also applies to below-vendor deals, so 1 copper finds are hidden.
+  Known limit: profit is per item, so cheap trade goods (Wool Cloth 2s, usual 6s) rarely pass 5s
+  even when buying 80 would be worth it. To revisit after testing.
+- Fast mode and the Sniper were delivered together in one zip (Tyler's choice).
+
+### Order
+
+1. Measure the whole-auction-house item list (time, number of items, number of requests).
+   Done (Tyler, 2026-10-05, `/aux debug list`): 7718 items in 8.5s, 16 requests (the game sends
+   the list in pages of about 500). Reading every item's auctions instead would take about 75
+   minutes at 0.58s per item. One sniper round is therefore about 8.5s. Not yet known: whether
+   it changes at busy times, and whether the server objects to rounds back to back for a long time.
+2. Mockups for fast mode and the sniper, then build fast mode (the sniper is built on it).
+3. Sniper.
+
+Every visible change gets a mockup first.

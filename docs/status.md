@@ -8,7 +8,8 @@ Last updated at the end of the first session (2026-10-04).
 - Buy bar: trade goods by quantity with a confirmed server price, gear one at a time.
   Purchases matched the mail exactly.
 - Resizable window that remembers its size and position.
-- Rename to auxForever, credit line "aux by shirsig, granted immortality by Tyler".
+- Rename to auxForever. Credit line, changed by Tyler on 2026-10-05 (was "aux by shirsig, granted
+  immortality by Tyler"): "aux by shirsig, re-imagined by a fan".
 - New look: top bar with tabs, rounded corners, amber accent, "N sellers" in the seller column.
 - Undercut mode: match the cheapest price by default, goblin toggle to undercut.
 - Post tab duration dropdown (fixed this session).
@@ -74,10 +75,53 @@ agent (`CLAUDE.md` and `GEMINI.md` load it); `docs/gemini-setup.md` is Tyler's s
 Actions (`.github/workflows/test.yml`) runs the tests on every push and offers the addon as a
 download. Every agent: pull first, one agent per branch, update this file when done.
 
+## 0.3 (planning, see docs/roadmap.md)
+
+- Decisions recorded in the roadmap: automatic fast mode, Sniper as its own top tab, default deal
+  rule.
+- `/aux debug list` (`measure_item_list` in core/scan.lua) times the whole auction house's item
+  list. First try failed at once (a `pcall` around the waiting request, fixed in a7c9835); the
+  rerun gave 7718 items in 8.5s, 16 requests.
+- Mockups for fast mode and the Sniper: https://claude.ai/artifact/Q5C3ScRtCLV9ohYCcuyuRA
+  (private to Tyler). Approved ("let's see the prototype").
+- 0.3 first build (TOC `forever-0.3.0-dev`, later `forever-0.3`, branch `claude/modest-volta-4mgmsb`, sent as a zip):
+  fast mode on Search (Fast / Full switch, click a row to read its auctions), Live mode with a
+  visible countdown and paused state, and the Sniper tab. Decisions and known limits:
+  `docs/roadmap.md`, "Built". In-game checks: `TESTING.md` section 15. Not tested in game yet.
+  Unknowns to watch: whether the item list's lowest price is ever a bid (`/aux debug` prints a
+  line when an opened item differs), whether item list names include suffixes, the Sniper's
+  round time over a long session, and whether the server minds rounds back to back.
+- Tyler's first 0.3 test (2026-10-05), neither reproduced since:
+  1. Live stuck on "Updating" with an empty table and the status bar full. Cause not confirmed;
+     the likely one is an error inside the scan's thread, which used to leave the scan marked as
+     running forever. `aux.coro_thread` now takes an error handler: the scan ends as if stopped
+     (Live shows Paused, chat asks for the BugSack text) and the error still reaches BugSack.
+     Live also restarts by itself if it says Updating with no round running.
+  2. Blizzard's own tabs (Buy, Sell, Auctions) stretched off the screen. Likely cause: Blizzard
+     sizes its tabs to their text when shown, and that ran while aux kept the window at 1% scale.
+     The tabs are now measured again with Blizzard's code whenever the window is shown at full size.
+  3. Items in the reagent bag (Forever's bag 5) were missing from the Post tab: aux read bags 0 to 4
+     only. `info.inventory` now goes up to `NUM_TOTAL_EQUIPPED_BAG_SLOTS` (5).
+- Sniper test by Tyler (2026-10-05): round 39, 7256 items in 8.4s each round, matching the
+  `/aux debug list` measurement. Two below-vendor deals were found and went gone (sold or relisted;
+  not checked). Changes after it: deals that fail the current rule are hidden even when gone (a 1c
+  find from a loose setting stayed after going back to 5s), the count reads "N to buy, N gone"
+  instead of "0 found" over gone rows, and Usual is blank unless the item has 3 days of history
+  (it showed the vendor price before, which looked like the usual price). Buying from the Sniper
+  is not confirmed in game yet.
+
 ## Releases
 
-- 0.2.1 released 2026-10-05: GitHub Release `v0.2.1` (pre-release, with the zip), CurseForge
-  upload by Tyler. Includes everything from 0.2, which was not released on its own.
+- 0.2.1 released 2026-10-05: GitHub Release `v0.2.1` (pre-release, with the zip, published by
+  the Release workflow from `main` at 064ace9), CurseForge upload by Tyler. Includes everything
+  from 0.2, which was not released on its own. Its release text says "listed under 0.2 below",
+  which only makes sense in the changelog file; the changelog wording is fixed for later
+  releases.
+- 0.3 approved for release by Tyler on 2026-10-05 after testing fast mode, Live and the Sniper
+  (round times 8.4s). Released through a pull request into `main` and the Release workflow
+  (GitHub Release `v0.3`, pre-release). CurseForge upload by Tyler. Not confirmed in game at
+  release: buying from the Sniper, posting from the reagent bag, whether fast mode rows show
+  suffixes ("of the Owl"); these stay in `TESTING.md` section 15.
 - From 0.2.1 on, the Release workflow publishes the GitHub Release: Actions, Release, "Run
   workflow" on `main` (or a pushed `v<version>` tag). See AGENTS.md, Releases.
 

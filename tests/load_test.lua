@@ -593,14 +593,14 @@ try('post auto price', function()
   check('loading the item again starts at the lowest again', post.get_unit_buyout_price() == 240)
 
   -- the status bar is gold once the listings are in, and back to normal on leaving the tab
-  aux.set_tab(2)
+  aux.set_tab(3) -- Search, Sniper, Post
   post.update_item(item)
   check('post: gold once the listings are in', aux.status_bar.done == true)
   local plain = function(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
   post.update_item_configuration()
   check('deposit shown as money going out', plain(post.deposit.__text):find('^Deposit %-') ~= nil)
   check('you get shown in green', post.net_summary.__text:find('You get ', 1, true) == 1 and post.net_summary.__text:upper():find('6FD39A', 1, true) ~= nil)
-  aux.set_tab(3)
+  aux.set_tab(4)
   check('post: leaving the tab ends gold', aux.status_bar.done == false)
   post.selected_item = nil
 end)
@@ -957,6 +957,24 @@ try('blizzard ui button', function()
   rawset(AuctionHouseFrame, 'GetPoint', nil); rawset(AuctionHouseFrame, 'SetPoint', nil)
   rawset(AuctionHouseFrame, 'Raise', nil); rawset(AuctionHouseFrame, 'HookScript', nil)
   rawset(a.blizzard_button, 'SetBackdropBorderColor', nil)
+
+  -- Blizzard's tabs are measured again at full size when its window is shown
+  local resized = {}
+  local function tab(name)
+    local t = new_frame(name)
+    t.__scripts.OnShow = function(self) tinsert(resized, self.__name) end
+    return t
+  end
+  rawset(AuctionHouseFrame, 'Tabs', {tab('Buy'), tab('Sell'), tab('Auctions')})
+  local auctions_frame = new_frame('AuctionsFrame')
+  rawset(auctions_frame, 'Tabs', {tab('Auctions sub'), tab('Bids sub')})
+  rawset(AuctionHouseFrame, 'AuctionsFrame', auctions_frame)
+  a.set_blizzard_frame_shown(true)
+  check('Blizzard tabs are resized at full size', #resized == 5 and resized[1] == 'Buy' and resized[5] == 'Bids sub')
+  resized = {}
+  a.set_blizzard_frame_shown(false)
+  check('tabs are not resized while hidden', #resized == 0)
+  rawset(AuctionHouseFrame, 'Tabs', nil); rawset(AuctionHouseFrame, 'AuctionsFrame', nil)
 end)
 
 -- Settings: scale from 70% to 150% that is kept, no explanation text; the resize corner anchors
@@ -1034,6 +1052,376 @@ try('search timing during a search', function()
   check('the search finished', done)
   check('summary printed after the search', all:find('Search timing:', 1, true) ~= nil and all:find('for 1 item,', 1, true) ~= nil)
   check('the 1s fallback is counted', all:find('0 on time, 1 after the 1s fallback', 1, true) ~= nil)
+end)
+
+-- /aux debug list: times the whole auction house's item list without opening items
+try('item list measurement', function()
+  local scan = loadstring("select(2, ...) 'aux.core.scan'; return _M")('auxForever', addon)
+  local printed = {}
+  local real_add = DEFAULT_CHAT_FRAME.AddMessage
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', function(_, text) tinsert(printed, text) end)
+  local saved = {}
+  for k, v in pairs{GetBrowseResults = function() return {{itemKey = {itemID = 1}}, {itemKey = {itemID = 2}}, {itemKey = {itemID = 3}}} end,
+                    HasFullBrowseResults = function() return true end} do
+    saved[k] = rawget(C_AuctionHouse, k); C_AuctionHouse[k] = v
+  end
+  local real_send = C_AuctionHouse.SendBrowseQuery
+  local sent = 0
+  -- the game answers a browse query with an event a moment later (so the request has to wait)
+  local answer_due
+  C_AuctionHouse.SendBrowseQuery = function() sent = sent + 1; answer_due = true end
+  scan.measure_item_list()
+  for _ = 1, 30 do
+    tick()
+    if answer_due then
+      answer_due = false
+      for _, f in ipairs(frames) do
+        if f.__events['AUCTION_HOUSE_BROWSE_RESULTS_UPDATED'] and f.__scripts.OnEvent then
+          f.__scripts.OnEvent(f, 'AUCTION_HOUSE_BROWSE_RESULTS_UPDATED')
+        end
+      end
+    end
+  end
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', real_add)
+  for k in pairs(saved) do C_AuctionHouse[k] = saved[k] end
+  C_AuctionHouse.SendBrowseQuery = real_send
+  local all = table.concat(printed, '\n')
+  check('one browse request sent', sent >= 1)
+  check('the measurement is reported', all:find('Item list of the whole auction house: 3 items in', 1, true) ~= nil and all:find('(1 request)', 1, true) ~= nil)
+  check('no false "did not answer"', all:find('did not answer', 1, true) == nil)
+end)
+
+
+-- 0.3: a fake auction house that answers a moment after each request, as the game does
+local function fake_ah(items)
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  local pending = {}
+  local by_id = {}
+  for _, it in ipairs(items) do by_id[it.id] = it end
+  local function link(it) return '|cff1eff00|Hitem:' .. it.id .. '::::::' .. (it.suffix or 0) .. ':0|h[' .. it.name .. ']|h|r' end
+  local browses = 0
+  set(C_AuctionHouse, 'SendBrowseQuery', function() browses = browses + 1; tinsert(pending, {'AUCTION_HOUSE_BROWSE_RESULTS_UPDATED'}) end)
+  set(C_AuctionHouse, 'HasFullBrowseResults', function() return true end)
+  set(C_AuctionHouse, 'GetBrowseResults', function()
+    local r = {}
+    for _, it in ipairs(items) do
+      if it.qty > 0 then tinsert(r, {itemKey = {itemID = it.id, itemSuffix = it.suffix or 0, itemLevel = 0}, totalQuantity = it.qty, minPrice = it.min, containsOwnerItem = false}) end
+    end
+    return r
+  end)
+  set(C_AuctionHouse, 'GetItemKeyInfo', function(key) local it = by_id[key.itemID]; return it and {itemID = it.id, itemName = it.name, quality = it.quality or 2, iconFileID = 1, isCommodity = it.commodity or false} end)
+  set(C_AuctionHouse, 'GetItemKeyRequiredLevel', function(key) return by_id[key.itemID].req or 1 end)
+  set(C_AuctionHouse, 'SendSearchQuery', function(key)
+    local it = by_id[key.itemID]
+    if it.commodity then tinsert(pending, {'COMMODITY_SEARCH_RESULTS_UPDATED', it.id}) else tinsert(pending, {'ITEM_SEARCH_RESULTS_UPDATED', key}) end
+  end)
+  set(C_AuctionHouse, 'HasSearchResults', function() return true end)
+  set(C_AuctionHouse, 'HasFullItemSearchResults', function() return true end)
+  set(C_AuctionHouse, 'HasFullCommoditySearchResults', function() return true end)
+  set(C_AuctionHouse, 'GetNumItemSearchResults', function(key) return by_id[key.itemID].qty > 0 and #by_id[key.itemID].auctions or 0 end)
+  set(C_AuctionHouse, 'GetNumCommoditySearchResults', function(id) return by_id[id].qty > 0 and #by_id[id].auctions or 0 end)
+  set(C_AuctionHouse, 'GetItemSearchResultInfo', function(key, i)
+    local it = by_id[key.itemID]; local a = it.auctions[i]
+    return {itemKey = key, itemLink = link(it), auctionID = it.id * 100 + i, quantity = a.qty or 1, buyoutAmount = a.buyout, minBid = a.bid or 0, bidAmount = 0,
+      owners = {a.own and 'player' or 'Seller'}, totalNumberOfOwners = 1, containsOwnerItem = a.own or false, timeLeft = 3}
+  end)
+  set(C_AuctionHouse, 'GetCommoditySearchResultInfo', function(id, i)
+    local a = by_id[id].auctions[i]
+    return {itemID = id, quantity = a.qty or 1, unitPrice = a.buyout, auctionID = id * 100 + i, owners = {'Seller'}, numOwnerItems = 0, timeLeftSeconds = 3600, totalNumberOfOwners = 1}
+  end)
+  set(G, 'GetItemInfo', function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    local it = by_id[id]
+    if not it then return end
+    return it.name, link(it), it.quality or 2, 10, it.req or 1, 'Armor', 'Cloth', it.stack or 1, 'INVTYPE_CHEST', 1, it.sell or 0
+  end)
+  set(C_Item, 'IsItemDataCachedByID', function() return true end)
+  local function deliver()
+    local list = pending; pending = {}
+    for _, p in ipairs(list) do fire(p[1], p[2]) end
+  end
+  local function run(n) for _ = 1, n or 40 do tick(); deliver() end end
+  local function restore() for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end end
+  return run, restore, function() return browses end
+end
+
+try('fast mode choice', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local require = loadstring("select(2, ...) 'aux.test30'; return require")('auxForever', addon)
+  local filter = require 'aux.util.filter'
+  local aux = require 'aux'
+  check('price search is fast', search.fast_choice(filter.queries('herb/price/20s')) == true)
+  check('percent and rarity are fast', search.fast_choice(filter.queries('robe/uncommon/percent/80')) == true)
+  local fast, why = search.fast_choice(filter.queries('robe/seller/thrakk'))
+  check('seller search reads every auction', fast == false and why == 'seller')
+  fast, why = search.fast_choice(filter.queries('robe/left/30m'))
+  check('time left search reads every auction', fast == false and why == 'time left')
+  fast, why = search.fast_choice(filter.queries('robe/bid-price/1g'))
+  check('bid search reads every auction', fast == false and why == 'bid')
+  fast, why = search.fast_choice(filter.queries('robe/of the owl'))
+  check('tooltip text search reads every auction', fast == false and why == 'tooltip text')
+  fast, why = search.fast_choice(filter.queries('linen cloth/exact'))
+  check('one exact item reads every auction', fast == false and why == nil)
+  aux.account_data.full_search = true
+  check('Full reads every auction', search.fast_choice(filter.queries('herb/price/20s')) == false)
+  aux.account_data.full_search = false
+end)
+
+local ROBES = function()
+  return {
+    {id = 101, name = 'Spellbinder Robe', min = 18500, qty = 3, sell = 3000, auctions = {{buyout = 18500, bid = 15000}, {buyout = 21000, bid = 18000}, {buyout = 25000, bid = 20000}}},
+    {id = 102, name = 'Greenweave Robe', min = 6400, qty = 2, auctions = {{buyout = 6400}, {buyout = 7000}}},
+    {id = 103, name = 'Pagan Robe', min = 22000, qty = 1, auctions = {{buyout = 22000}}},
+  }
+end
+
+try('fast search', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local require = loadstring("select(2, ...) 'aux.test31'; return require")('auxForever', addon)
+  local history = require 'aux.core.history'
+  local run, restore = fake_ah(ROBES())
+  search.frame:Show()
+  search.update_mode(search.NORMAL_MODE)
+  search.search_box:SetText('robe')
+  search.execute(nil, false)
+  run(40)
+  local s = search.current_search()
+  check('fast: the search finished', s.complete == true and s.fast == true)
+  local rows = {}
+  for _, r in ipairs(s.records) do rows[r.item_id] = r end
+  check('fast: one row per item', #s.records == 3 and rows[101] and rows[101].fast)
+  check('fast: a row has the lowest price and the units for sale', rows[101].unit_buyout_price == 18500 and rows[101].count * rows[101].auction_count == 3)
+  check('fast: the row is named from the item list', rows[101].name == 'Spellbinder Robe' and rows[101].item_key == '101:0')
+  check('fast: summary says fast', (search.results_summary(s) or ''):find('3 items, 6 for sale, fast', 1, true) ~= nil)
+  check('fast: the list is not price history', history.value('101:0') == nil)
+  search.open_item(s, rows[101])
+  run(40)
+  local robes, list_rows = 0, 0
+  for _, r in ipairs(s.records) do
+    if r.item_id == 101 then robes = robes + 1; if r.fast then list_rows = list_rows + 1 end end
+  end
+  check('fast: an opened item shows its auctions', robes == 3 and list_rows == 0)
+  check('fast: the other items stay as list rows', (function() for _, r in ipairs(s.records) do if r.item_id == 102 then return r.fast end end end)())
+  local selection = s.table:GetSelection()
+  check('fast: the cheapest auction is selected for the buy bar', selection and selection.record.unit_buyout_price == 18500 and not selection.record.fast)
+  check('fast: the opened item is expanded', s.table.expanded['101:0'] == true)
+  check('fast: its auctions are price history', history.value('101:0') == 18500)
+
+  -- a condition the list does not have: every auction is read, and the summary says why
+  search.search_box:SetText('robe/seller/seller')
+  search.execute(nil, false)
+  run(60)
+  s = search.current_search()
+  check('full: a seller search reads every auction', s.fast == false and #s.records == 6 and not s.records[1].fast)
+  check('full: summary says why', (search.results_summary(s) or ''):find('full (uses seller)', 1, true) ~= nil)
+  search.frame:Hide()
+  restore()
+end)
+
+try('live mode', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local run, restore, browses = fake_ah(ROBES())
+  search.frame:Show()
+  search.update_mode(search.NORMAL_MODE)
+  search.search_box:SetText('robe')
+  search.toggle_live()
+  local s = search.current_search()
+  check('live: turning Live on runs the search', search.mode == search.LIVE_MODE and s.mode == search.LIVE_MODE and s.active)
+  tick()
+  check('live: "Updating" during a round', search.live_status(s) == 'updating' and search.mode_button:GetText() == 'Updating')
+  run(20)
+  local status, seconds = search.live_status(s)
+  check('live: a countdown after the round', status == 'waiting' and seconds >= 1 and seconds <= search.LIVE_INTERVAL and s.live_round == 1)
+  check('live: the button counts down', search.mode_button:GetText():find('^Live %ds$') ~= nil)
+  check('live: summary says when the next round is', (search.results_summary(s) or ''):find('live: updated just now, next in', 1, true) ~= nil)
+  run(70)
+  check('live: the next round runs after the countdown', s.live_round >= 2)
+  search.pause()
+  check('live: Pause shows Paused', search.live_status(s) == 'paused')
+  search.update_live_button()
+  check('live: the button says Paused', search.mode_button:GetText() == 'Paused')
+  check('live: Resume says Resume live', search.resume_button:GetText() == 'Resume live' and search.resume_button.__shown)
+  local round = s.live_round
+  run(80)
+  check('live: no rounds while paused', s.live_round == round)
+  search.execute(nil, true)
+  run(20)
+  check('live: Resume carries on', s.live_round > round and s.active)
+  search.hold_live()
+  round = s.live_round
+  run(80)
+  check('live: held while on another tab, not paused', s.live_round == round and search.live_status(s) ~= 'paused')
+  search.resume_held_live()
+  run(20)
+  check('live: carries on when back on the tab', s.live_round > round)
+  search.toggle_live()
+  check('live: turning Live off stops it and keeps the results', s.mode == search.NORMAL_MODE and not s.active and #s.records > 0)
+  local sent = browses()
+  run(80)
+  check('live: no more rounds once off', browses() == sent)
+  search.update_live_button()
+  check('live: the button says Live again', search.mode_button:GetText() == 'Live')
+  search.frame:Hide()
+  restore()
+end)
+
+try('sniper deal rule', function()
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local reason, profit = sniper.judge(50, nil, 100, 0, 60, 50)
+  check('below vendor price is a deal without history', reason == 'vendor' and profit == 50)
+  check('a trivial profit below vendor price is not a deal', sniper.judge(50, nil, 100, 0, 60, 500) == nil)
+  check('no deal against the usual price with under 3 days of history', sniper.judge(1000, 5000, 0, 2, 60, 500) == nil)
+  reason, profit = sniper.judge(1000, 5000, 0, 3, 60, 500)
+  check('a deal: 20% of usual, profit after the cut', reason == 'usual' and profit == 3750)
+  check('not a deal above the percentage', sniper.judge(3100, 5000, 0, 5, 60, 500) == nil)
+  check('not a deal under the minimum profit', sniper.judge(200, 600, 0, 5, 60, 500) == nil)
+  local _, _, pct = sniper.judge(100, 50, 200, 5, 60, 0)
+  check('the usual price is never below the vendor price', pct == 50)
+end)
+
+try('sniper round', function()
+  local aux_require = loadstring("select(2, ...) 'aux.test32'; return require")('auxForever', addon)
+  local aux = aux_require 'aux'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local function days(key, value)
+    h.write_record(key, {next_push = h.get_next_push(), data_points = {{value = value, time = 3}, {value = value, time = 2}, {value = value, time = 1}}})
+  end
+  days('201:0', 2200); days('203:0', 600); days('204:0', 5000)
+  -- the kilt was only seen today: a usual price, but not one to show
+  h.write_record('202:0', {next_push = h.get_next_push(), daily_min_buyout = 1500, data_points = {}})
+  local items = {
+    {id = 201, name = 'Kingsblood', commodity = true, min = 850, qty = 41, sell = 50, stack = 20, auctions = {{buyout = 850, qty = 12}, {buyout = 900, qty = 29}}},
+    {id = 202, name = 'Ritual Kilt', min = 1500, qty = 1, sell = 2200, auctions = {{buyout = 1500}}},
+    {id = 203, name = 'Wool Cloth', commodity = true, min = 210, qty = 80, sell = 33, auctions = {{buyout = 210, qty = 80}}},
+    {id = 204, name = 'Bid Only Robe', min = 1000, qty = 1, sell = 0, auctions = {{buyout = 0, bid = 1000}}},
+  }
+  local run, restore = fake_ah(items)
+  aux.set_tab(2)
+  check('sniper: second tab', sniper.frame.__shown)
+  sniper.start()
+  run(60)
+  check('sniper: a round completed', sniper.round >= 1)
+  local found = {}
+  for _, deal in ipairs(sniper.deals) do found[deal.name] = deal end
+  check('sniper: a trade good under its usual price', found.Kingsblood and found.Kingsblood.deal_reason == 'usual' and found.Kingsblood.unit_buyout_price == 850 and found.Kingsblood.deal_percent == 39)
+  check('sniper: below vendor price', found['Ritual Kilt'] and found['Ritual Kilt'].deal_reason == 'vendor' and found['Ritual Kilt'].deal_profit == 700)
+  check('sniper: no usual price shown without enough history', found['Ritual Kilt'].deal_usual == nil and found.Kingsblood.deal_usual == 2200)
+  check('sniper: too little profit is not a deal', not found['Wool Cloth'])
+  check('sniper: a bid shown as the lowest price is not a deal', not found['Bid Only Robe'])
+  check('sniper: deals are in the table', #sniper.listing.records == 2)
+  check('sniper: a commodity deal keeps its tiers to buy', found.Kingsblood.deal_tiers and #found.Kingsblood.deal_tiers == 2)
+  items[2].qty = 0
+  run(40)
+  check('sniper: a deal that sold shows as gone', found['Ritual Kilt'].deal_gone == true and not found.Kingsblood.deal_gone)
+  check('sniper: the count says how many are left and gone', sniper.deals_count(sniper.shown_deals()) == '1 to buy, 1 gone')
+  aux.account_data.sniper_profit = 800
+  sniper.settings_changed()
+  check('sniper: a gone deal under the current rule is hidden', #sniper.listing.records == 1 and sniper.listing.records[1].name == 'Kingsblood')
+  aux.account_data.sniper_profit = 500
+  sniper.settings_changed()
+  -- buying a deal from the buy bar: the cheapest units first, never above the price shown
+  local bar = aux_require 'aux.gui.buy_bar'
+  sniper.listing:SetSelectedRecord(found.Kingsblood)
+  tick(); tick()
+  check('sniper: the buy bar offers the deal', bar.primary_label():find('^Buy 20 for') ~= nil)
+  bar.primary_click()
+  fire('COMMODITY_PRICE_UPDATED', 900, 17400)
+  tick()
+  check('sniper: the server price is confirmed only after a click', bar.primary_label():find('^Confirm') ~= nil)
+  bar.primary_click()
+  fire('COMMODITY_PURCHASE_SUCCEEDED')
+  tick()
+  check('sniper: once its price is bought up the deal shows as bought', found.Kingsblood.deal_bought == true and found.Kingsblood.deal_gone == true)
+  check('sniper: the rest stays to buy at the next price', #found.Kingsblood.deal_tiers == 1 and found.Kingsblood.deal_tiers[1].count == 21)
+  found.Kingsblood.deal_gone, found.Kingsblood.deal_bought = nil, nil
+  sniper.listing:SetSelectedRecord()
+  tick()
+  aux.account_data.sniper_percent = 30
+  sniper.settings_changed()
+  check('sniper: a stricter rule hides deals that no longer pass', #sniper.listing.records == 1)
+  aux.account_data.sniper_percent = 60
+  sniper.settings_changed()
+  sniper.ignore(found.Kingsblood)
+  check('sniper: an ignored item is removed and remembered', sniper.ignored_count() == 1 and #sniper.shown_deals() == 1)
+  run(40)
+  local again
+  for _, deal in ipairs(sniper.deals) do if deal.name == 'Kingsblood' then again = true end end
+  check('sniper: an ignored item is not found again', not again)
+  sniper.unignore_all()
+  sniper.stop()
+  local round = sniper.round
+  run(60)
+  check('sniper: no rounds after Stop', sniper.round == round)
+  aux.set_tab(1)
+  sniper.clear_deals()
+  restore()
+end)
+
+
+try('an error does not leave a search stuck', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.core.scan'; return _M")('auxForever', addon)
+  local run, restore = fake_ah(ROBES())
+  local printed = {}
+  local real_add = DEFAULT_CHAT_FRAME.AddMessage
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', function(_, text) tinsert(printed, text) end)
+  local real_results = C_AuctionHouse.GetBrowseResults
+  rawset(C_AuctionHouse, 'GetBrowseResults', function() error('test error in the item list') end)
+  -- like tick(), but the error raised for BugSack is expected here
+  local raised = 0
+  local function quiet_run(n)
+    for _ = 1, n do
+      clock = clock + 0.1
+      for _, f in ipairs(frames) do
+        if f.__shown and f.__scripts.OnUpdate then
+          if not pcall(f.__scripts.OnUpdate, f, 0.1) then raised = raised + 1 end
+        end
+      end
+      for _, f in ipairs(frames) do
+        if f.__events['AUCTION_HOUSE_BROWSE_RESULTS_UPDATED'] and f.__scripts.OnEvent then
+          pcall(f.__scripts.OnEvent, f, 'AUCTION_HOUSE_BROWSE_RESULTS_UPDATED')
+        end
+      end
+    end
+  end
+  search.frame:Show()
+  search.update_mode(search.NORMAL_MODE)
+  search.search_box:SetText('robe')
+  search.toggle_live()
+  local s = search.current_search()
+  quiet_run(20)
+  check('the error still reaches BugSack', raised >= 1)
+  check('the scan is not left running', not scan.is_scanning())
+  check('live shows Paused instead of Updating forever', search.live_status(s) == 'paused')
+  check('chat says the search stopped because of an error', table.concat(printed, '\n'):find('stopped because of an error', 1, true) ~= nil)
+  rawset(C_AuctionHouse, 'GetBrowseResults', real_results)
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', real_add)
+
+  -- "Updating" with no round running carries on by itself
+  search.execute(nil, true)
+  run(20)
+  local round = s.live_round or 0
+  s.live_next = nil
+  run(40)
+  check('a live search with no round running carries on', (s.live_round or 0) > round)
+  search.toggle_live()
+  search.frame:Hide()
+  restore()
+end)
+
+
+try('reagent bag', function()
+  local require = loadstring("select(2, ...) 'aux.test33'; return require")('auxForever', addon)
+  local info = require 'aux.util.info'
+  local real = C_Container.GetContainerNumSlots
+  -- backpack with 2 slots, no bags, a reagent bag with 3 slots
+  C_Container.GetContainerNumSlots = function(bag) return ({[0] = 2, [5] = 3})[bag] or 0 end
+  local slots = {}
+  for slot in info.inventory() do tinsert(slots, slot[1] .. ':' .. slot[2]) end
+  C_Container.GetContainerNumSlots = real
+  check('the reagent bag is read', table.concat(slots, ' ') == '0:1 0:2 5:1 5:2 5:3')
 end)
 
 print('done, errors: ' .. errors)

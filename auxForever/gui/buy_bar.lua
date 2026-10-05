@@ -426,6 +426,14 @@ function M.clear()
     line2:SetText('Gear is bought one at a time. Trade goods are bought cheapest first, in the amount you pick.')
 end
 
+-- auxForever: a note while there is nothing to buy yet, e.g. while an item's auctions are read
+function M.show_note(text1, text2, color)
+    clear()
+    line1:SetText(text1 or '')
+    line2:SetText(text2 or '')
+    line2:SetTextColor((color or aux.color.label.enabled)())
+end
+
 function M.busy()
     return state ~= IDLE
 end
@@ -460,8 +468,26 @@ function aux.event.CLOSE()
     clear()
 end
 
+-- auxForever: the Sniper tab borrows the bar while it is open
+local default_parent
+
+function M.attach(parent)
+    if bar:GetParent() ~= parent then
+        clear()
+        bar:SetParent(parent)
+        bar:ClearAllPoints()
+        bar:SetPoint('BOTTOMLEFT', 0, 0)
+        bar:SetPoint('BOTTOMRIGHT', 0, 0)
+    end
+end
+
+function M.attach_default()
+    attach(default_parent)
+end
+
 -- Built by the Search tab along the bottom of its results
 function M.create(parent)
+    default_parent = parent
     bar = CreateFrame('Frame', nil, parent, 'BackdropTemplate')
     gui.set_frame_style(bar, aux.color.panel.background, aux.color.panel.border)
     bar:SetBackdropColor(.105, .10, .09, 1)

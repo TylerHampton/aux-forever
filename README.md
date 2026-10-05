@@ -1,6 +1,6 @@
 # auxForever
 
-aux by shirsig, granted immortality by Tyler.
+aux by shirsig, re-imagined by a fan.
 
 auxForever brings [aux](https://github.com/shirsig/aux-addon), the auction house addon by shirsig,
 to World of Warcraft: Forever.

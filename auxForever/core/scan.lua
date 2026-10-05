@@ -128,14 +128,28 @@ function M.start(params)
         abort()
     end
     do (params.on_scan_start or pass)() end
+    local scan_state
     aux.coro_thread(function()
         state = {
             id = aux.coro_id(),
             params = params,
             listener_ids = {},
         }
+        scan_state = state
         timing = aux.account_data.debug_timing and new_timing() or nil
         scan()
+    end, function()
+        -- an error stopped the scan: end it as if stopped, so nothing waits for it forever
+        if state and state == scan_state then
+            for id in pairs(state.listener_ids) do
+                aux.kill_listener(id)
+            end
+            local on_abort = state.params.on_abort
+            state = nil
+            timing = nil
+            aux.print('The search stopped because of an error. Please send the error text (BugSack) to the author.')
+            do (on_abort or pass)() end
+        end
     end)
 end
 
@@ -203,8 +217,11 @@ end
 -- cached results were used). A request the throttle system drops is sent again. The client does
 -- not always fire the results event again for results it already holds, so if no event arrives
 -- within a second but cached() reports results, those are used.
+local requests_sent = 0
+
 function request(send, events, match, cached)
     for _ = 1, 3 do
+        requests_sent = requests_sent + 1
         local t_throttle = GetTime()
         wait_throttle()
         timing_add('throttle', GetTime() - t_throttle)
@@ -313,8 +330,9 @@ function browse_query(blizzard_query)
     }
 end
 
--- Returns the list of item keys matching the query, or nil if the auction house did not answer.
-function browse(blizzard_query)
+-- auxForever: the item list of a query, one entry per item with only itemKey, totalQuantity,
+-- minPrice and containsOwnerItem. Returns nil if the auction house did not answer.
+function browse_results(blizzard_query)
     local events = {'AUCTION_HOUSE_BROWSE_RESULTS_UPDATED', 'AUCTION_HOUSE_BROWSE_RESULTS_ADDED', 'AUCTION_HOUSE_BROWSE_FAILURE'}
     local query = browse_query(blizzard_query)
     local answer = request(function() C_AuctionHouse.SendBrowseQuery(query) end, events)
@@ -327,11 +345,25 @@ function browse(blizzard_query)
             break
         end
     end
+    return C_AuctionHouse.GetBrowseResults()
+end
+
+-- Returns the list of item keys matching the query, or nil if the auction house did not answer.
+function browse(blizzard_query)
+    local results = browse_results(blizzard_query)
+    if not results then
+        return
+    end
     local item_keys = {}
-    for _, result in ipairs(C_AuctionHouse.GetBrowseResults()) do
+    for _, result in ipairs(results) do
         tinsert(item_keys, result.itemKey)
     end
     return item_keys
+end
+
+-- auxForever: an item key as text, the same form as a record's item_key ("item:suffix")
+function M.item_key_string(item_key)
+    return item_key.itemID .. ':' .. (item_key.itemSuffix or 0)
 end
 
 -- Returns the auction records for one item key, or nil if the auction house did not answer.
@@ -392,7 +424,10 @@ function search(item_key)
 end
 
 function process_auction(auction, page, total)
-    history.process_auction(auction)
+    -- a fast mode row only knows the lowest price, which may be a bid: it is not price history
+    if not auction.fast then
+        history.process_auction(auction)
+    end
     auction.page = page
     auction.blizzard_query = get_query().blizzard_query
     if not get_query().validator or get_query().validator(auction) then
@@ -432,6 +467,68 @@ function scan_item_keys(item_keys)
         do (state.params.on_page_scanned or pass)() end
         check_aborted(scan_state)
     end
+end
+
+-- auxForever: fast mode. Each item of the list becomes one row with its lowest price and how many
+-- are for sale, without opening it. Items in params.open (item key strings) are read in full
+-- instead. Items the client has not loaded yet are asked for and added as they arrive.
+function scan_item_list(results)
+    local scan_state = state
+    local open = state.params.open or empty
+    local validator = get_query().validator
+    local pending = {}
+    local function add(result)
+        local record = info.browse_record(result)
+        if not record then
+            return false
+        end
+        record.validator = validator
+        process_auction(record)
+        return true
+    end
+    for i, result in ipairs(results) do
+        if (result.totalQuantity or 0) > 0 then
+            if open[item_key_string(result.itemKey)] then
+                for _, record in ipairs(search(result.itemKey) or empty) do
+                    process_auction(record)
+                    check_aborted(scan_state)
+                end
+            elseif not add(result) then
+                info.request_item(result.itemKey.itemID)
+                tinsert(pending, result)
+            end
+            check_aborted(scan_state)
+        end
+        if i % 100 == 0 then
+            do (state.params.on_page_scanned or pass)() end
+            aux.coro_wait()
+            check_aborted(scan_state)
+        end
+    end
+    local t0 = GetTime()
+    while #pending > 0 and GetTime() - t0 < 5 do
+        aux.coro_wait()
+        check_aborted(scan_state)
+        for i = #pending, 1, -1 do
+            if add(pending[i]) then
+                tremove(pending, i)
+                check_aborted(scan_state)
+            end
+        end
+    end
+    timing_add('items', #results)
+    do (state.params.on_page_scanned or pass)() end
+    check_aborted(scan_state)
+end
+
+-- auxForever: one item's auctions, for code running inside a scan (the sniper). They count as
+-- price history like any search.
+function M.read_item(item_key)
+    local records = search(item_key)
+    for _, record in ipairs(records or empty) do
+        history.process_auction(record)
+    end
+    return records
 end
 
 function replicate()
@@ -485,6 +582,30 @@ function replicate()
     end
 end
 
+-- auxForever: /aux debug list. Times the item list of the whole auction house without opening any
+-- item, which is what fast mode and the sniper would do: how long it takes and how big it is.
+function M.measure_item_list()
+    if state then
+        aux.print('A search is running; try again when it is done.')
+        return
+    end
+    aux.coro_thread(function()
+        -- a scan state of its own, so no search starts meanwhile and Close stops it like a search
+        state = {id = aux.coro_id(), params = {}, listener_ids = {}}
+        local requests_before = requests_sent
+        local t0 = GetTime()
+        -- no pcall here: WoW's Lua 5.1 cannot pause (yield) inside one, and the request must wait
+        local item_keys = browse({})
+        local requests = requests_sent - requests_before
+        state = nil
+        if not item_keys then
+            aux.print('Item list: the auction house did not answer.')
+            return
+        end
+        aux.print(format('Item list of the whole auction house: %d items in %s (%d %s)', #item_keys, format_seconds(GetTime() - t0), requests, requests == 1 and 'request' or 'requests'))
+    end)
+end
+
 function scan()
     local scan_state = state
     state.query_index = 1
@@ -495,6 +616,20 @@ function scan()
             replicate()
         elseif get_query().item_keys then
             scan_item_keys(get_query().item_keys)
+        elseif state.params.fast or state.params.on_item_list then
+            local t_browse = GetTime()
+            local results = browse_results(get_query().blizzard_query or empty)
+            timing_add('browse', GetTime() - t_browse)
+            if timing then
+                timing.answer = max(0, timing.answer - (GetTime() - t_browse))
+            end
+            if not results then
+                aux.print('the auction house did not respond to the search')
+            elseif state.params.on_item_list then
+                state.params.on_item_list(results)
+            else
+                scan_item_list(results)
+            end
         else
             local t_browse = GetTime()
             local item_keys = browse(get_query().blizzard_query or empty)

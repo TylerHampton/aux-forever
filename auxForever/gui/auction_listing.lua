@@ -35,7 +35,7 @@ function M.seller_text(record)
     return '?'
 end
 
-function item_column_init(rt, cell)
+function M.item_column_init(rt, cell)
     local spacer = CreateFrame('Frame', nil, cell)
     spacer:SetPoint('TOPLEFT', 0, 0)
     spacer:SetHeight(rt.ROW_HEIGHT)
@@ -63,7 +63,7 @@ function item_column_init(rt, cell)
     cell.text:SetPoint('BOTTOMRIGHT', 0, 0)
 end
 
-function item_column_fill(cell, record, _, _, _, indented)
+function M.item_column_fill(cell, record, _, _, _, indented)
 	cell.icon:SetTexture(record.texture)
 	if indented then
 		cell.spacer:SetWidth(10)
@@ -74,7 +74,13 @@ function item_column_fill(cell, record, _, _, _, indented)
 		cell.icon:SetAlpha(1)
 		cell.text:SetAlpha(1)
 	end
-	cell.text:SetText(gsub(record.link, '[%[%]]', ''))
+	if record.fast then
+		-- a fast mode row: the item's own name and quality from the item list
+		local color = ITEM_QUALITY_COLORS[record.quality or 1]
+		cell.text:SetText(color and color.hex and (color.hex .. record.name .. FONT_COLOR_CODE_CLOSE) or record.name)
+	else
+		cell.text:SetText(gsub(record.link, '[%[%]]', ''))
+	end
 end
 
 function status_code(record)
@@ -144,10 +150,11 @@ M.search_columns = {
         width = .04,
         align = 'CENTER',
         fill = function(cell, record)
-            cell.text:SetText(TIME_LEFT_STRINGS[record.duration or 0] or '?')
+            -- auxForever: a fast mode row does not know its auctions yet
+            cell.text:SetText(record.fast and '' or TIME_LEFT_STRINGS[record.duration or 0] or '?')
         end,
         cmp = function(record_a, record_b, desc)
-            return sort_util.compare(record_a.duration, record_b.duration, desc)
+            return sort_util.compare(record_a.duration or 0, record_b.duration or 0, desc)
         end,
     },
     {
@@ -155,7 +162,7 @@ M.search_columns = {
         width = .13,
         align = 'CENTER',
         fill = function(cell, record)
-            cell.text:SetText(seller_text(record))
+            cell.text:SetText(record.fast and '' or seller_text(record))
         end,
         cmp = function(record_a, record_b, desc)
             if not record_a.owner and not record_b.owner then
@@ -176,8 +183,11 @@ M.search_columns = {
         align = 'RIGHT',
         toggle = 'price_per_unit',
         fill = function(cell, record)
-            -- Forever: commodities cannot be bid on
-            if record.commodity then
+            -- Forever: commodities cannot be bid on; a fast mode row does not know its bids
+            if record.fast then
+                cell.text:SetText('')
+                return
+            elseif record.commodity then
                 cell.text:SetText('---')
                 return
             end
@@ -582,7 +592,13 @@ local methods = {
         local row = self:GetParent().row
         if row.record then
 	        GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-            GameTooltip:SetHyperlink(row.record.link)
+            local key = row.record.browse_key
+            if key and GameTooltip.SetItemKey then
+                -- auxForever: a fast mode row has no link of its own; this shows its suffix too
+                GameTooltip:SetItemKey(key.itemID, key.itemLevel or 0, key.itemSuffix or 0, row.record.requirement or 0)
+            else
+                GameTooltip:SetHyperlink(row.record.link)
+            end
             GameTooltip_ShowCompareItem()
         end
     end,
@@ -594,7 +610,11 @@ local methods = {
     OnEnter = function(self)
         local rt = self.rt
 
-        if not rt.rowInfo.single_item then
+        if self.record and self.record.fast then
+            GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
+            GameTooltip:AddLine('Click to see this item\'s auctions.', 1, 1, 1, true)
+            GameTooltip:Show()
+        elseif not rt.rowInfo.single_item then
             if rt.expanded[self.expandKey] then
                 GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
                 GameTooltip:AddLine('Double-click to collapse this item.', 1, 1, 1, true)
@@ -691,7 +711,7 @@ local methods = {
 	    -- auxForever: trade goods cannot be bid on, so the Bid column hides when every row is one
 	    local all_commodities = #records > 0
 	    for _, record in ipairs(records) do
-	        if not record.commodity then
+	        if not (record.commodity or record.is_commodity) then
 	            all_commodities = false
 	            break
 	        end

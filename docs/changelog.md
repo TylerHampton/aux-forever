@@ -3,10 +3,33 @@
 What changed in each version, newest first. The text under each version is ready to paste into the
 CurseForge file's changelog box.
 
+## 0.3 (2026-10-05)
+
+- Fast searches: a search over many items lists each item once with its lowest price and how many
+  are for sale, read from the auction house's item list in seconds instead of minutes. Click an
+  item to see its auctions and buy. A Fast / Full switch sits next to Search. Searches for one
+  exact item, or using seller, time left, bid or tooltip text, read every auction as before, and
+  the line next to the tabs says why.
+- Live mode shows what it is doing: "Updating" during a round, then a countdown to the next one
+  ("Live 4s"), and "Paused" only when you pause it. It repeats the search every 5 seconds, holds
+  while you are on another tab and carries on when you come back.
+- New Sniper tab: watches the whole auction house round after round (about 8 seconds a round) and
+  lists deals: below vendor price, or at most 60% of the usual price, with at least 5s profit
+  either way (both adjustable). The usual price needs 3 days of price history. Each deal is
+  checked against the item's real auctions before it is shown, and buying works as on the Search
+  tab. A sound and a flashing game icon for new deals; ignore items you do not want.
+- Post tab: items in the reagent bag are listed too.
+- The Blizzard window's own tabs (Buy, Sell, Auctions) no longer stretch off the screen.
+- A search that hits an error now stops cleanly and says so in chat, instead of looking busy
+  forever.
+- New credit line: "aux by shirsig, re-imagined by a fan".
+- Needs a full game restart after updating (new files).
+
 ## 0.2.1 (2026-10-05)
 
-First release since 0.1.1: it also brings everything listed under 0.2 below (the new Filter
-Builder, the default duration setting and the favorites fix).
+First release since 0.1.1, so it also brings everything from 0.2: the new Filter Builder
+(conditions in plain words, Match All or Any, "not", groups inside groups, an "In words" line,
+kept in sync with the search bar), the default duration setting and the favorites fix.
 
 - Post tab: trade goods have one Quantity box instead of Stack size and Stacks. Forever posts a
   trade good as one listing of any size, so Max now posts everything you have.

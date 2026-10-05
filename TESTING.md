@@ -4,10 +4,10 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
 (BugSack lets you select it) and send it over. One error at a time is fine.
 
 ## 1. Loading
-- [ ] Log in. Chat shows `<auxForever> loaded. aux by shirsig, granted immortality by Tyler. /aux for help`.
+- [ ] Log in. Chat shows `<auxForever> loaded. aux by shirsig, re-imagined by a fan. /aux for help`.
 - [ ] The AddOns list shows "auxForever" by shirsig. Hovering it shows the credit line.
 - [ ] Type `/aux`, then `/auxforever`. Both print the list of settings in chat.
-- [ ] The bottom of the window shows "aux by shirsig, granted immortality by Tyler" next to Scan.
+- [ ] The bottom of the window shows "aux by shirsig, re-imagined by a fan" next to Scan.
 
 ## 2. Opening the auction house
 - [ ] Talk to an auctioneer. The aux window opens and the Blizzard window does not appear.
@@ -202,6 +202,11 @@ Search timing log (for measuring slow searches)
       fallback, time-outs, the slowest items. Screenshot that and send it. Run the same search a
       second time and screenshot that too. `/aux debug` again turns it off.
 
+Item list measurement (for planning 0.3)
+- [ ] At the auction house, type `/aux debug list`. After a while chat says how many items the
+      whole auction house has, how long the list took and how many requests it needed. Screenshot
+      it. Try it at a busy time and a quiet time if you can.
+
 Blizzard UI button
 - [ ] Click Blizzard UI several times, also right after clicking around in aux: the Blizzard
       window opens in front every time, and the button is lit while it is open. Click it again to
@@ -217,6 +222,64 @@ Post tab: trade goods
       button follow it.
 - [ ] Post: one listing of that many shows up on the auction house.
 - [ ] Gear still shows "Count" as before.
+
+## 15. Version 0.3 (in testing): fast mode, Live, Sniper
+
+Needs a full game restart (new Lua files), not just `/reload`.
+
+Fast mode (Search tab)
+- [ ] Next to Search there is a Fast / Full switch; Fast is lit. Hovering each explains it.
+- [ ] Search `15/25/usable/armor/cloth/uncommon` (step 4 of the test scenario, 3m 13s in 0.2.1):
+      it finishes in seconds. One row per item, with its lowest price, how many are for sale and
+      % of usual; Time Left, Seller and Bid are empty. The line next to the tabs ends ", fast".
+- [ ] Click a row: the buy bar says "Reading its auctions...", then the item's auctions open under
+      it with time left, seller and bid, and the cheapest is selected in the buy bar. Buy or bid
+      works as before.
+- [ ] Gear with a suffix ("of the Owl"): does the row's name show the suffix? Hover the icon: does
+      the tooltip show the right item? Note what you see.
+- [ ] A search for one item (`linen cloth/exact`) still opens its auctions directly.
+- [ ] A search with a seller, time left or bid condition (`robe/left/30m`) reads every auction,
+      and the line next to the tabs says "full (uses time left)".
+- [ ] Choose Full: searches read every auction again, as in 0.2.1. The choice is kept after
+      `/reload`. Set it back to Fast.
+- [ ] With `/aux debug` on, opening a fast row prints a line when the list's lowest price differs
+      from the cheapest real auction. Screenshot any such line: it tells us whether the list shows
+      bids as prices.
+
+Live (Search tab)
+- [ ] Type a search, click Live: it turns green and the search starts. The button says
+      "Updating" during a round, then counts down "Live 5s, 4s, ..." to the next round. The line
+      next to the tabs says "live: updated just now, next in 4s".
+- [ ] Pause: the Live button says "Paused" (amber) and the button next to Search says "Resume live".
+      Nothing updates. Resume live: it carries on.
+- [ ] Go to the Post tab and back: Live carries on by itself (it is held, not paused, while away).
+- [ ] Click Live again: it turns off, the countdown stops and the results stay.
+- [ ] If Live ever sits on "Updating" for more than a minute, or chat says "The search stopped
+      because of an error", send the BugSack error text and a screenshot.
+- [ ] Blizzard UI several times, also after opening the character sheet or a vendor: the Buy, Sell
+      and Auctions tabs at the bottom of the Blizzard window always have their normal size.
+- [ ] Mark a favorite as an alert (Saved Searches, Alert column), run a search that matches it in
+      Live: when a new matching auction appears, the alert pops up.
+
+Post tab: reagent bag
+- [ ] Items in the reagent bag (Linen Cloth, herbs...) are listed on the Post tab, counted together
+      with the same item in other bags ("N in your bags"), and can be posted.
+
+Sniper tab (between Search and Post)
+- [ ] Start: the status says "Watching", then "round 1, 7718 items in 9.2s" or similar. The first
+      round can take longer (the game loads item data). Screenshot the round time after a few rounds.
+- [ ] Deals appear with Found, Item, For sale, Price each, Usual, Why ("below vendor" in blue or
+      "38% of usual" in green) and Profit each. A sound plays and the game icon flashes for a new
+      one (Sound switch on).
+- [ ] Deals that sell show as "gone", dimmed. Click a deal: the buy bar offers it; buying works and
+      never costs more than shown.
+- [ ] Change the 60% or the 5s: deals that no longer pass disappear; Start finds again under the
+      new rule. The values are kept after `/reload`.
+- [ ] Ignore item removes the selected deal and it is not found again; Unignore all (N) brings
+      them back. Clear empties the list.
+- [ ] Go to another tab and back: the Sniper carries on. Close the auction house: it stops.
+- [ ] Few deals at first is expected: deals against the usual price need 3 days of price history
+      (Full scans build it). Below-vendor deals show from the start.
 
 ## Things to note even without errors
 - Anything that looks different from how aux worked on Classic.

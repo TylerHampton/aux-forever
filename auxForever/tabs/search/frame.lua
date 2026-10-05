@@ -90,13 +90,24 @@ do
     next_button = btn
 end
 do
+    -- auxForever: Live mode. The button shows what it is doing: "Updating" during a round, then a
+    -- countdown to the next round ("Live 4s"), or "Paused".
 	local btn = gui.button(frame, gui.font_size.small)
 	btn:SetHeight(25)
-	btn:SetWidth(45)
+	btn:SetWidth(70)
     btn:SetText('Live')
-	btn:SetScript('OnClick', function(self)
-        update_mode(mode == NORMAL_MODE and LIVE_MODE or NORMAL_MODE)
+	btn:SetScript('OnClick', function()
+        toggle_live()
 	end)
+    btn:SetScript('OnEnter', function(self)
+        GameTooltip:SetOwner(self, 'ANCHOR_BOTTOM')
+        GameTooltip:AddLine('Live')
+        GameTooltip:AddLine('Repeats the search every ' .. LIVE_INTERVAL .. ' seconds and shows what is listed now.', 1, 1, 1, true)
+        GameTooltip:AddLine('A new auction matching one of your alert favorites brings up an alert.', 1, 1, 1, true)
+        GameTooltip:AddLine('It holds while you are on another tab.', 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
 	mode_button = btn
 end
 do
@@ -120,7 +131,7 @@ do
     btn:SetPoint('TOPRIGHT', -5, -8)
     btn:SetText('Pause')
     btn:SetScript('OnClick', function()
-        scan.abort()
+        pause()
     end)
     stop_button = btn
 end
@@ -134,6 +145,39 @@ do
         execute(nil, true)
     end)
     resume_button = btn
+end
+do
+    -- auxForever: Fast reads each item once with its lowest price; Full reads every auction
+    local function tooltip(self, title, ...)
+        GameTooltip:SetOwner(self, 'ANCHOR_BOTTOM')
+        GameTooltip:AddLine(title)
+        for _, line in ipairs{...} do
+            GameTooltip:AddLine(line, 1, 1, 1, true)
+        end
+        GameTooltip:Show()
+    end
+    local fast = gui.button(frame, gui.font_size.small)
+    fast:SetHeight(25)
+    fast:SetWidth(42)
+    fast:SetText('Fast')
+    fast:SetScript('OnClick', function() set_full_search(false) end)
+    fast:SetScript('OnEnter', function(self)
+        tooltip(self, 'Fast', 'Lists each item once with its lowest price. Click an item to see its auctions.',
+            'Searches for one exact item, or using seller, time left, bid or tooltip text, read every auction anyway.')
+    end)
+    fast:SetScript('OnLeave', function() GameTooltip:Hide() end)
+    fast_button = fast
+    local full = gui.button(frame, gui.font_size.small)
+    full:SetHeight(25)
+    full:SetWidth(42)
+    full:SetText('Full')
+    fast:SetPoint('RIGHT', full, 'LEFT', -2, 0)
+    full:SetScript('OnClick', function() set_full_search(true) end)
+    full:SetScript('OnEnter', function(self)
+        tooltip(self, 'Full', 'Reads every auction of every item, as aux always did. Slow on big searches.')
+    end)
+    full:SetScript('OnLeave', function() GameTooltip:Hide() end)
+    full_button = full
 end
 do
 	local editbox = gui.editbox(frame)

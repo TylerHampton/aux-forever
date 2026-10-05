@@ -24,9 +24,12 @@ function tab.OPEN()
     frame:Show()
     update_search_listings()
     update_done()
+    update_fast_switch()
+    resume_held_live()
 end
 
 function tab.CLOSE()
+    hold_live()
     current_search().table:SetSelectedRecord()
     hide_quick_menu()
     frame:Hide()
