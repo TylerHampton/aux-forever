@@ -185,6 +185,14 @@ Needs a full game restart (a new texture was added), not just `/reload`.
 - [ ] Shrink the window to its smallest: the line does not overlap the Filter Builder button
       (it may cut off at the end).
 
+Post tab: trade goods
+- [ ] Pick a trade good you have more than one stack of (e.g. 29 Blood Shards). There is one
+      "Quantity" box instead of Stack size and Stacks, and it starts at everything you have (29).
+- [ ] -, + and typing change it by one; Max goes back to everything. "Posting 29 items" and the Post
+      button follow it.
+- [ ] Post: one listing of that many shows up on the auction house.
+- [ ] Gear still shows "Count" as before.
+
 ## Things to note even without errors
 - Anything that looks different from how aux worked on Classic.
 - Anything slow (searches will be slower than Classic for broad searches, that is expected).

@@ -481,11 +481,10 @@ function update_item_configuration()
 		-- Forever: commodities have no bids, only a buyout price per unit; gear is posted one per auction
 		if selected_item.commodity then
 			unit_start_price_input:Hide()
-			stack_size_input:Show()
 		else
 			unit_start_price_input:Show()
-			stack_size_input:Hide()
 		end
+		stack_size_input:Hide()
         layout_parameters(selected_item.commodity)
         unit_buyout_price_input:Show()
         stack_count_input:Show()
@@ -504,7 +503,7 @@ function update_item_configuration()
 		else
             item.count:SetText()
         end
-        item_detail:SetText(selected_item.count .. ' in your bags' .. ((selected_item.commodity and (selected_item.max_stack or 1) > 1) and ' · stack of ' .. selected_item.max_stack or ''))
+        item_detail:SetText(selected_item.count .. ' in your bags')
 
         local quantity = post_quantity()
         local unit_price = get_unit_buyout_price() > 0 and get_unit_buyout_price() or get_unit_start_price()
@@ -580,15 +579,12 @@ end
 
 function quantity_update(maximize_count)
     if selected_item then
-        local max_stack_count
-        if selected_item.commodity then
-            max_stack_count = floor(selected_item.count / stack_size_input:GetNumber())
-        else
-            local location = selected_item.item_location
-            max_stack_count = selected_item.count
-            if location and location:IsValid() and C_Item.DoesItemExist(location) then
-                max_stack_count = min(max_stack_count, max(1, C_AuctionHouse.GetAvailablePostCount(location)))
-            end
+        -- Forever: a trade good is posted as one listing of any quantity, so there are no stacks:
+        -- stack size stays 1 and the count is the quantity, up to everything in the bags
+        local location = selected_item.item_location
+        local max_stack_count = selected_item.count
+        if location and location:IsValid() and C_Item.DoesItemExist(location) then
+            max_stack_count = min(max_stack_count, max(1, C_AuctionHouse.GetAvailablePostCount(location)))
         end
         stack_count_input.max_value = max_stack_count
         if maximize_count then
@@ -618,9 +614,8 @@ function update_item(item)
 
     hide_checkbox:SetChecked(settings.hidden)
 
-    local max_stack_size = item.commodity and min(item.max_stack, item.count) or 1
-    stack_size_input.max_value = max_stack_size
-    stack_size_input:SetNumber(max_stack_size)
+    stack_size_input.max_value = 1
+    stack_size_input:SetNumber(1)
     quantity_update(true)
 
     unit_start_price_input:SetText(money.to_string(settings.start_price, true, nil, nil, true))

@@ -251,7 +251,7 @@ do
     end
     editbox:SetScript('OnTabPressed', function()
         if IsShiftKeyDown() then
-            stack_size_input:SetFocus()
+            return
         elseif unit_start_price_input:IsShown() then
             unit_start_price_input:SetFocus()
         else
@@ -524,10 +524,9 @@ function M.layout_parameters(commodity)
         end
     end
     if commodity then
-        at(stack_size_input, ROW1, 115)
-        at(stack_count_input, ROW2, 115)
-        at(duration_dropdown, ROW3, 86)
-        stack_count_input.caption:SetText('Stacks')
+        at(stack_count_input, ROW1, 115)
+        at(duration_dropdown, ROW2, 86)
+        stack_count_input.caption:SetText('Quantity')
         at(unit_buyout_price_input, ROW2 + 2, RIGHT_X, -134)
         unit_buyout_price_input:SetHeight(34)
         unit_buyout_price_input:SetFontSize(20)

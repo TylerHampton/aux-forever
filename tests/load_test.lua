@@ -513,7 +513,7 @@ try('post panel', function()
   post.update_item_configuration()
   check('trade good: posts stack size x stacks', post.post_quantity() == 6)
   check('item name without brackets', text(post.item.name) == 'Minor Mana Potion')
-  check('bags and stack shown', plain(text(post.item_detail)):find('3 in your bags') ~= nil and plain(text(post.item_detail)):find('stack of 5') ~= nil)
+  check('bags shown, no stacks for trade goods', plain(text(post.item_detail)):find('3 in your bags') ~= nil and plain(text(post.item_detail)):find('stack of') == nil)
   check('posting line', plain(text(post.posting_summary)) == 'Posting 6 items')
   check('post button says what it posts', text(post.post_button) == 'Post 6 items')
   check('total and what you get are shown', text(post.total_summary):find('^Total') ~= nil and text(post.net_summary):find('^You get') ~= nil)
@@ -879,6 +879,21 @@ try('search results summary', function()
   current.records = saved
   s.update_results_summary(true)
   check('magnifier in the search bar', s.search_icon ~= nil)
+end)
+
+-- Post: trade goods are one listing on Forever, so one Quantity box, and Max is everything in the bags
+try('post quantity', function()
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  post.selected_item = {commodity = true, key = '7076:0', item_id = 7076, name = 'Blood Shard', quality = 1, count = 29, max_stack = 10}
+  post.quantity_update(true)
+  check('Max is everything in the bags', post.stack_count_input.max_value == 29)
+  post.layout_parameters(true)
+  check('the box is called Quantity', post.stack_count_input.caption.__text == 'Quantity')
+  post.update_item_configuration()
+  check('no stack size box', post.stack_size_input.__shown == false)
+  post.layout_parameters(false)
+  check('gear keeps Count', post.stack_count_input.caption.__text == 'Count')
+  post.selected_item = nil
 end)
 
 print('done, errors: ' .. errors)

@@ -25,6 +25,9 @@ Last updated at the end of the first session (2026-10-04).
    sale, searched 2m ago", Results sub tab only) and a magnifier in the search bar. The sub tab
    buttons are narrower (200) to make room. New texture `textures/search.tga`: full restart.
    Gemini's mockup for this (branch `gemini/search-details`, only on Tyler's PC) was not used.
+   Also in 0.2.1: trade goods on the Post tab have one Quantity box (Max = everything in the bags)
+   instead of Stack size and Stacks, since Forever posts a trade good as one listing of any size;
+   10 x 2 used to leave 9 of 29 Blood Shards behind. Stack size stays 1 internally.
 4. Not yet tested in game: Auctions tab cancel, Bids tab, full scan, posting gear with a bid,
    Filter Builder dropdowns after the dropdown fix. See `TESTING.md`.
 5. Later: Tyler sends Simon (shirsig) the project to review before it goes public. The GitHub
