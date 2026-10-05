@@ -1,0 +1,82 @@
+select(2, ...) 'aux.tabs.bids'
+
+local aux = require 'aux'
+local scan = require 'aux.core.scan'
+
+local tab = aux.tab 'Bids'
+
+-- Forever: the list comes from C_AuctionHouse.QueryBids and bids are placed by auction ID.
+
+function aux.event.AUX_LOADED()
+    for _, event in ipairs{'BIDS_UPDATED', 'BID_ADDED'} do
+        aux.event_listener(event, function()
+            refresh = true
+        end)
+    end
+    aux.event_listener('AUCTION_HOUSE_NEW_BID_RECEIVED', function()
+        if aux.frame:IsShown() then
+            aux.query_bids()
+        end
+    end)
+    aux.coro_thread(function()
+        while true do
+            local timestamp = GetTime()
+            while GetTime() - timestamp < 1 do
+                aux.coro_wait()
+            end
+            refresh = true
+        end
+    end)
+end
+
+function tab.OPEN()
+    frame:Show()
+    aux.query_bids()
+end
+
+function tab.CLOSE()
+    listing:SetSelectedRecord()
+    frame:Hide()
+end
+
+function M.scan_auctions()
+    local auctions = {}
+    for _, auction in scan.bidder_auctions() do
+        tinsert(auctions, auction)
+    end
+    listing:SetDatabase(auctions)
+end
+
+function place_bid(buyout)
+    local record = listing:GetSelection().record
+    local amount = buyout and record.buyout_price or record.bid_price
+    aux.place_bid(record.auction_id, amount, function()
+        aux.query_bids()
+    end)
+end
+
+function on_update()
+    if refresh then
+        refresh = false
+        scan_auctions()
+    end
+
+    local selection = listing:GetSelection()
+    if selection then
+        if aux.bid_in_progress() then
+            bid_button:Disable()
+            buyout_button:Disable()
+            return
+        end
+        if not selection.record.high_bidder then
+            bid_button:Enable()
+        else
+            bid_button:Disable()
+        end
+        if selection.record.buyout_price > 0 then
+            buyout_button:Enable()
+        else
+            buyout_button:Disable()
+        end
+    end
+end

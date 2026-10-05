@@ -1,0 +1,35 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Lua 5.1
+        run: sudo apt-get update && sudo apt-get install -y lua5.1
+
+      - name: Syntax check
+        run: |
+          for f in $(find auxForever tests -name '*.lua'); do luac5.1 -p "$f"; done
+
+      - name: Load test
+        working-directory: auxForever
+        run: |
+          lua5.1 ../tests/load_test.lua | tee ../test-output.txt
+          tail -n 1 ../test-output.txt | grep -qx 'done, errors: 0'
+
+      - name: Package the addon
+        run: |
+          mkdir -p dist
+          cp -r auxForever dist/auxForever
+
+      # the download holds the auxForever folder, ready to copy into Interface\AddOns
+      - uses: actions/upload-artifact@v4
+        with:
+          name: auxForever
+          path: dist/

@@ -1,0 +1,151 @@
+![auxForever](https://raw.githubusercontent.com/TylerHampton/aux-forever/claude/modest-volta-4mgmsb/docs/images/banner.png)
+
+**aux by shirsig, granted immortality by Tyler.**
+
+auxForever is [aux](https://www.curseforge.com/wow/addons/aux), the auction house addon by
+shirsig (Simon), rebuilt to run on World of Warcraft: Forever. The search filter language, saved
+searches, price history and the way aux works are his. auxForever adapts them to Forever's modern
+auction house and gives the window a new look.
+
+## Version 0.1
+
+This is the first test release. Searching, buying, posting and the price history all work in game.
+Please report anything that breaks on the [issue tracker](https://github.com/TylerHampton/aux-forever/issues),
+with the error text if BugSack or the game shows one. Do not report auxForever problems to Simon:
+he is not involved in this version.
+
+## What is different on Forever
+
+Forever runs on the modern client and its modern auction house, so some things work differently
+from aux on Classic:
+
+- **Trade goods are "commodities".** Herbs, cloth, ore and the like are bought by quantity and the
+  game always sells the cheapest units first. The buy bar offers quantities with their total cost,
+  asks the server for the real price, and nothing is bought until you press Confirm. If the price
+  went up in the meantime, the purchase is cancelled and the listings are read again.
+- **Gear is bought one at a time** at the price on the button, and can still be bid on.
+- **Match the lowest price by default.** On Forever the newest listing at a price sells first, so
+  matching the cheapest listing sells just as fast as undercutting it and keeps prices from sliding.
+  Undercut mode (the goblin on the Post tab) goes one step below when you want it.
+- **Full scans** are allowed once every 15 minutes.
+
+## Features
+
+**General**
+
+- Completely independent replacement for the Blizzard auction house window, one click away from
+  the unaltered Blizzard interface.
+- A resizable window that remembers its size and position.
+- Settings behind the gear: background opacity and the default auction length.
+- Many convenient shortcuts.
+
+**Search**
+
+- Advanced search filters which can be combined with logical operators, with autocompletion.
+- A Filter Builder that writes those searches for you: conditions in plain words, Match All or
+  Any, "not", and groups inside groups, read back in plain English as you build.
+- Quick searches: your recent searches with their cheapest price, and pinned favorites, one click
+  away. Back and forward arrows step through earlier results like a web browser.
+- Concise listings: level, item, how many are for sale at that price, time left, seller, bid,
+  buyout and the percentage of the usual price.
+- Sorting across all results, by unit price or by percentage of the historical value.
+- A buy bar under the results that never spends more than the price you saw.
+
+**Post**
+
+- Lists the auctionable items in your bags; hide the ones you never sell.
+- Reads the existing auctions for the item and starts at the lowest price (or one step below in
+  undercut mode). Click any listing to use its price instead.
+- Shows what you get after the auction house cut, the deposit, and warns you when a vendor would pay
+  more.
+- Remembers your settings per item. Prices are typed the aux way (see Usage).
+
+**History**
+
+- Gathers price history from every search and scan.
+- A single, simple but reliable historical value per item.
+- Tooltip with the historical value, vendor prices, disenchant value and more.
+
+## Slash commands
+
+`/aux` and `/auxforever` both work.
+
+**General**
+
+- `/aux` lists the settings.
+- `/aux scale factor` scales the window.
+- `/aux opacity N` sets the background opacity, from 50 to 100 percent.
+- `/aux undercut` explains undercutting on Forever; `/aux undercut on|off` sets undercut mode.
+  It always starts off when the auction house opens.
+- `/aux ignore owner` stops waiting for owner names when scanning.
+- `/aux action shortcuts` enables the Alt-click shortcuts for buyout, bid and cancel.
+- `/aux post bid` adds a bid price to the Post tab.
+- `/aux post duration hours` sets the default auction duration (2, 8 or 24).
+- `/aux clear item cache` rebuilds the item list used for autocompletion.
+
+**Tooltip**
+
+- `/aux tooltip value`
+- `/aux tooltip daily`
+- `/aux tooltip disenchant value`
+- `/aux tooltip disenchant distribution`
+- `/aux tooltip merchant buy`
+- `/aux tooltip merchant sell`
+- `/aux tooltip money icons`
+
+## Usage
+
+**Listings (Search, Auctions and Bids)**
+
+- Double-click a row with a blue count to expand it.
+- Right-click a row to search for that item.
+- Shift-click a row to link the item in chat; Ctrl-click to preview it.
+- Click a column header to sort.
+- With action shortcuts on, Alt-click the selected row to buy or cancel.
+
+**Search**
+
+- Tab accepts an autocompletion.
+- Shift-click or Alt-click an item in your bags to search for it.
+- The clock button next to the arrows opens your quick searches. Pin the ones you use often.
+
+**Post**
+
+- Prices take `g`, `s` and `c` for gold, silver and copper. A number alone counts as gold, and
+  decimals work (`1.5g` is 1g 50s).
+- Shift-click or Alt-click an item in your bags to select it.
+- Right-click an item in the list to search for it.
+
+## Search filters
+
+The filter language is the same as in aux. Parts of a query are separated by slashes, and
+semicolons mean "or": `q1;q2` finds everything matching either. The first part is the item name
+unless it matches a filter keyword, and `exact` matches the name exactly. Filters can be combined
+with `and`, `or` and `not` in polish notation. The Filter Builder sub-tab builds queries for you, shows the search text it writes
+and reads it back in plain English, so it is the easiest way to learn them. A few examples:
+
+- `armor/cloth/50/intellect/stamina` finds cloth armor from level 50 with both intellect and
+  stamina.
+- `recipe/usable/not/libram` finds recipes you can use, skipping librams.
+- `or/and2/profit/5g/percent/60/and3/bid-profit/5g/bid-percent/60/left/30m` finds auctions at
+  least 5g and 40% below their usual price, or bids that are, with 30 minutes or less left.
+
+Simon's [aux page](https://www.curseforge.com/wow/addons/aux) describes every filter in detail.
+
+## Historical value
+
+The historical value is a slightly time-weighted median of up to 12 saved daily values, where a
+daily value is the lowest unit buyout price seen for the item over that day.
+
+## Install
+
+Install with the CurseForge app, or download the file, unzip it and copy the `auxForever` folder
+into your Forever `Interface\AddOns` folder. If you tried an early test copy named `aux-addon`,
+delete it so the two don't load together.
+
+## Credit and license
+
+aux was created by [shirsig](https://github.com/shirsig) (Simon), who gave permission for this
+version: "as far as I'm concerned you can feel free to use it, work on it and distribute it in any
+way you please." auxForever is made by Tyler. Source code:
+[TylerHampton/aux-forever](https://github.com/TylerHampton/aux-forever).
