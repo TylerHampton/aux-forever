@@ -138,6 +138,8 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
 
 ## 13. Version 0.2: auction length, favorites, Filter Builder
 
+A guided run through all of this with early Horde items: `docs/test-scenario-0.2.md`.
+
 Needs a full game restart (a new file was added), not just `/reload`.
 
 Settings
