@@ -289,6 +289,8 @@ local function create_row()
     row.of_these:SetPoint('LEFT', row.any_btn, 'RIGHT', 8, 0)
     row.all_btn:SetScript('OnClick', function() row.item.node.mode = 'and' changed() end)
     row.any_btn:SetScript('OnClick', function() row.item.node.mode = 'or' changed() end)
+    tooltip(row.all_btn, 'Match all', 'Every condition in this group must be true. Faded while the group has fewer than two conditions: then it makes no difference.')
+    tooltip(row.any_btn, 'Match any', 'At least one condition in this group must be true. Faded while the group has fewer than two conditions: then it makes no difference.')
 
     -- "+ Condition" / "+ Group" rows
     row.add_cond = gui.button(row, gui.font_size.medium)
@@ -325,6 +327,17 @@ local function create_row()
     end
 
     return row
+end
+
+-- an All / Any switch with fewer than two conditions under it changes nothing: shown faded
+local function style_match(all_btn, any_btn, group)
+    gui.style_choice(all_btn, group.mode == 'and')
+    gui.style_choice(any_btn, group.mode == 'or')
+    local idle = active_count(group) < 2
+    for _, btn in ipairs{all_btn, any_btn} do
+        btn.idle = idle
+        btn:SetAlpha(idle and .45 or 1)
+    end
 end
 
 local function show_only(row, kind)
@@ -420,8 +433,7 @@ function rebuild()
             fill_condition(row, item.node)
         elseif item.kind == 'group' then
             style_not(row.not_btn, item.node.negated)
-            gui.style_choice(row.all_btn, item.node.mode == 'and')
-            gui.style_choice(row.any_btn, item.node.mode == 'or')
+            style_match(row.all_btn, row.any_btn, item.node)
         end
         row:Show()
         y = y + ROW_HEIGHT + ROW_GAP
@@ -456,14 +468,13 @@ function rebuild()
         box_pool[i]:Hide()
     end
 
+    style_match(root_all_button, root_any_button, root)
     rows_child:SetHeight(y + 8)
     empty_hint:SetShown(#root.items == 0)
     update_builder_words()
 end
 
 function M.update_builder()
-    gui.style_choice(root_all_button, get_builder_root().mode == 'and')
-    gui.style_choice(root_any_button, get_builder_root().mode == 'or')
     rebuild()
 end
 
@@ -514,8 +525,8 @@ do
         sync_builder()
         update_builder()
     end)
-    tooltip(all, 'Match all', 'An auction is shown only when every condition below is true.')
-    tooltip(any, 'Match any', 'An auction is shown when at least one condition below is true.')
+    tooltip(all, 'Match all', 'An auction is shown only when every condition below is true. Faded while there are fewer than two conditions here: then it makes no difference.')
+    tooltip(any, 'Match any', 'An auction is shown when at least one condition below is true. Faded while there are fewer than two conditions here: then it makes no difference.')
     root_all_button, root_any_button = all, any
 end
 

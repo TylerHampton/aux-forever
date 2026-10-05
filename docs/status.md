@@ -28,6 +28,13 @@ Last updated at the end of the first session (2026-10-04).
    Also in 0.2.1: trade goods on the Post tab have one Quantity box (Max = everything in the bags)
    instead of Stack size and Stacks, since Forever posts a trade good as one listing of any size;
    10 x 2 used to leave 9 of 29 Blood Shards behind. Stack size stays 1 internally.
+   After Tyler's test run (2026-10-05): the summary counted every auction as a "price level"
+   ("403 price levels, 403 for sale"); it now counts items ("37 items, 403 for sale") and only says
+   price levels for a one-item search. Filter Builder: All / Any switches fade with fewer than two
+   conditions under them (Tyler toggled the top switch with one group and saw no change), and the
+   builder no longer re-reads its own text when reopened, which flattened a lone group. Broad gear
+   searches are slow because Forever answers one item per request; a faster browse-only mode
+   could be considered later.
 4. Not yet tested in game: Auctions tab cancel, Bids tab, full scan, posting gear with a bid,
    Filter Builder dropdowns after the dropdown fix. See `TESTING.md`.
 5. Later: Tyler sends Simon (shirsig) the project to review before it goes public. The GitHub

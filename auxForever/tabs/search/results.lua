@@ -195,8 +195,9 @@ function M.update_done()
     aux.status_bar:set_done(frame:IsShown() and frame.results:IsShown() and search and search.complete)
 end
 
--- auxForever: "Search Results 11" on the sub tab, and next to the sub tabs what the results hold:
--- "11 price levels, 6,180 for sale, searched 2m ago". One price level is one row of a price.
+-- auxForever: "Search Results 37" on the sub tab, and next to the sub tabs what the results hold:
+-- "37 items, 403 for sale, searched 2m ago" for a search over many items, or for one item
+-- "11 price levels, 6,180 for sale". The first number is the one on the sub tab.
 local function thousands(n)
     local text = tostring(n)
     while true do
@@ -206,16 +207,43 @@ local function thousands(n)
     end
 end
 
+-- the number on the Search Results sub tab: items, or price levels when all results are one item
+function M.results_count(search)
+    if not search or not search.records then
+        return 0
+    end
+    local items, item_count = {}, 0
+    for _, record in ipairs(search.records) do
+        local key = record.item_key or record.item_id or record
+        if not items[key] then
+            items[key] = true
+            item_count = item_count + 1
+        end
+    end
+    return item_count > 1 and item_count or #search.records
+end
+
 function M.results_summary(search)
     if not search or not search.records or #search.records == 0 then
         return nil
     end
-    local units = 0
+    local units, items, item_count = 0, {}, 0
     for _, record in ipairs(search.records) do
         units = units + (record.count or 1) * (record.auction_count or 1)
+        local key = record.item_key or record.item_id or record
+        if not items[key] then
+            items[key] = true
+            item_count = item_count + 1
+        end
     end
-    local levels = #search.records
-    local text = thousands(levels) .. (levels == 1 and ' price level, ' or ' price levels, ') .. thousands(units) .. ' for sale'
+    local text
+    if item_count > 1 then
+        text = thousands(item_count) .. ' items, '
+    else
+        local levels = #search.records
+        text = thousands(levels) .. (levels == 1 and ' price level, ' or ' price levels, ')
+    end
+    text = text .. thousands(units) .. ' for sale'
     if search.active then
         return text .. ', still searching'
     elseif search.complete and search.completed_at then
@@ -231,7 +259,7 @@ do
         if not force and GetTime() < next_update then return end
         next_update = GetTime() + .5
         local search = current_search()
-        local count = search and search.records and #search.records or 0
+        local count = results_count(search)
         if count ~= last_count then
             last_count = count
             search_results_button:SetText(count > 0 and 'Search Results  ' .. aux.color.accent.background(thousands(count)) or 'Search Results')

@@ -857,9 +857,12 @@ try('search results summary', function()
   local s = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
   local plain = function(t) return ((tostring(t or '')):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
   check('no summary without results', s.results_summary({records = {}}) == nil)
-  local search = {records = {{count = 20, auction_count = 1}, {count = 1, auction_count = 6}, {count = 1000, auction_count = 6}}, complete = true, completed_at = time()}
+  local search = {records = {{item_key = 'a', count = 20, auction_count = 1}, {item_key = 'a', count = 1, auction_count = 6}, {item_key = 'a', count = 1000, auction_count = 6}}, complete = true, completed_at = time()}
   local text = s.results_summary(search)
-  check('summary counts price levels and units', text and text:find('3 price levels, 6,026 for sale', 1, true) ~= nil)
+  check('one item: price levels and units', text and text:find('3 price levels, 6,026 for sale', 1, true) ~= nil)
+  local gear = {records = {{item_key = 'x', count = 1}, {item_key = 'x', count = 1}, {item_key = 'y', count = 1}}, complete = true, completed_at = time()}
+  check('many items: items and units', s.results_summary(gear):find('^2 items, 3 for sale') ~= nil)
+  check('sub tab number counts items', s.results_count(gear) == 2 and s.results_count(search) == 3)
   check('summary says when', text and text:find('searched just now', 1, true) ~= nil)
   search.active, search.complete = true, false
   check('summary while searching', s.results_summary(search):find('still searching', 1, true) ~= nil)
@@ -868,7 +871,7 @@ try('search results summary', function()
   s.set_subtab(s.RESULTS)
   local current = s.current_search()
   local saved = current.records
-  current.records = {{count = 3}, {count = 2}}
+  current.records = {{item_key = 'a', count = 3}, {item_key = 'a', count = 2}}
   current.complete, current.completed_at, current.active = true, time(), false
   s.update_results_summary(true)
   check('result count on the sub tab', plain(s.search_results_button.__text) == 'Search Results  2')
@@ -894,6 +897,33 @@ try('post quantity', function()
   post.layout_parameters(false)
   check('gear keeps Count', post.stack_count_input.caption.__text == 'Count')
   post.selected_item = nil
+end)
+
+-- Filter Builder: the builder keeps its own groups when it opens again, and All / Any fades when
+-- there is nothing to choose between
+try('filter builder keeps groups', function()
+  local s = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  s.set_subtab(s.FILTER)
+  s.clear_builder()
+  local root = s.get_builder_root()
+  root.mode = 'or'
+  local g = s.new_group('and')
+  local c1 = s.new_condition('price'); c1.value = '20s'
+  local c2 = s.new_condition('item'); c2.value = 'linen cloth'
+  tinsert(g.items, c1); tinsert(g.items, c2); tinsert(root.items, g)
+  s.sync_builder(); s.update_builder()
+  check('root switch faded with one group', s.root_any_button.idle == true)
+  check('group switch active with two conditions', (function()
+    for _, row in ipairs(s.builder_rows) do if row.__shown and row.item and row.item.kind == 'group' then return row.all_btn.idle == false end end
+  end)())
+  s.set_subtab(s.RESULTS)
+  s.set_subtab(s.FILTER)
+  check('the group is still a group after leaving and coming back', s.get_builder_root().items[1] == g and s.get_builder_root().mode == 'or')
+  local g2 = s.new_group('and'); local c3 = s.new_condition('price'); c3.value = '3s'; tinsert(g2.items, c3); tinsert(root.items, g2)
+  s.sync_builder(); s.update_builder()
+  check('root switch active with two groups', s.root_any_button.idle == false)
+  s.clear_builder()
+  s.set_subtab(s.SAVED)
 end)
 
 print('done, errors: ' .. errors)

@@ -58,6 +58,7 @@ end
 local builder_root = {kind = 'group', mode = 'and', items = {}}
 local builder_rest -- other searches in the search bar after a ';', kept as they are
 local loading, syncing
+local last_written -- the search bar text the builder wrote last
 
 function M.get_builder_root()
     return builder_root
@@ -158,6 +159,17 @@ local function serialize(node)
         end
     end
     return node.negated and 'not/' .. body or body
+end
+
+-- how many items of a group are complete enough to count; All / Any only matters from two
+function M.active_count(group)
+    local n = 0
+    for _, item in ipairs(group.items) do
+        if serialize(item) then
+            n = n + 1
+        end
+    end
+    return n
 end
 
 -- the post filter part of the search text for a tree
@@ -373,6 +385,7 @@ function M.sync_builder()
     if builder_rest then
         text = text .. ';' .. builder_rest
     end
+    last_written = text
     if search_box:GetText() ~= text then
         syncing = true
         search_box:SetText(text)
@@ -388,6 +401,12 @@ function M.load_builder()
         return true
     end
     local text = search_box:GetText() or ''
+    -- the search bar still holds what the builder wrote: keep the builder as the player left it
+    -- (reading the text back would give the same search, but could flatten a lone group)
+    if text == last_written then
+        do (update_builder or pass)() end
+        return true
+    end
     local first, rest = strmatch(text, '^([^;]*);(.*)$')
     first = first or text
     local filter, error = filter_util.parse_filter_string(first)

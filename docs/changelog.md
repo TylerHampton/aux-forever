@@ -7,9 +7,11 @@ CurseForge file's changelog box.
 
 - Post tab: trade goods have one Quantity box instead of Stack size and Stacks. Forever posts a
   trade good as one listing of any size, so Max now posts everything you have.
-- Search tab: the Search Results tab shows how many results there are, a line next to the tabs
-  says what they hold ("11 price levels, 6,180 for sale, searched 2m ago"), and the search bar has
-  a magnifier.
+- Search tab: the Search Results tab shows how many items were found, a line next to the tabs
+  says what they hold ("37 items, 403 for sale, searched 2m ago"), and the search bar has a
+  magnifier.
+- Filter Builder: a Match All / Any switch is faded while it has fewer than two conditions under
+  it, and the builder keeps your groups when you leave it and come back.
 - Needs a full game restart after updating (a new icon was added).
 
 ## 0.2 (2026-10-05)

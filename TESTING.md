@@ -180,9 +180,11 @@ Needs a full game restart (a new texture was added), not just `/reload`.
 
 - [ ] The search bar has a small magnifier at its left, and typed text starts after it.
 - [ ] The three sub tab buttons are a little narrower. After a search, the first one reads
-      "Search Results  11" with the number in gold: the rows in the results.
-- [ ] To the right of the sub tabs: "11 price levels, 6,180 for sale, searched just now". While a
-      search runs it says "still searching"; a minute later "searched 1m ago".
+      "Search Results  37" with the number in gold: how many different items were found (for a
+      search of one item: how many prices).
+- [ ] To the right of the sub tabs: "37 items, 403 for sale, searched just now", or for one item
+      "11 price levels, 6,180 for sale". While a search runs it says "still searching"; a minute
+      later "searched 1m ago".
 - [ ] The line only shows on Search Results, not on Saved Searches or Filter Builder.
 - [ ] Shrink the window to its smallest: the line does not overlap the Filter Builder button
       (it may cut off at the end).
