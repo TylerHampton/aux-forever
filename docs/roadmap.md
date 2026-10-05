@@ -21,7 +21,8 @@ Open for 0.2.x:
 
 ### What the game gives us (Blizzard's API documentation)
 
-- **Item list** (`GetBrowseResults`, one request, 0.1s for 335 items in Tyler's test): per item
+- **Item list** (`GetBrowseResults`, 0.1s for 335 items; the whole auction house, 7718 items, in
+  8.5s and 16 requests): per item
   only the item, how many are for sale (`totalQuantity`), the lowest price (`minPrice`) and
   whether some are yours. No bids, sellers, time left or individual auctions.
 - **One item's auctions** (`SendSearchQuery` per item): everything, but Blizzard's request limit
@@ -69,6 +70,10 @@ Open for 0.2.x:
 ### Order
 
 1. Measure the whole-auction-house item list (time, number of items, number of requests).
+   Done (Tyler, 2026-10-05, `/aux debug list`): 7718 items in 8.5s, 16 requests (the game sends
+   the list in pages of about 500). Reading every item's auctions instead would take about 75
+   minutes at 0.58s per item. One sniper round is therefore about 8.5s. Not yet known: whether
+   it changes at busy times, and whether the server objects to rounds back to back for a long time.
 2. Mockups for fast mode and the sniper, then build fast mode (the sniper is built on it).
 3. Sniper.
 

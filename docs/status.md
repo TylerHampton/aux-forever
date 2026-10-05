@@ -79,8 +79,10 @@ download. Every agent: pull first, one agent per branch, update this file when d
 - Decisions recorded in the roadmap: automatic fast mode, Sniper as its own top tab, default deal
   rule.
 - `/aux debug list` (`measure_item_list` in core/scan.lua) times the whole auction house's item
-  list; waiting for Tyler's numbers before the mockups. His first try printed "the auction house
-  did not answer" at once: a `pcall` around the waiting request (fixed in a7c9835, needs a rerun).
+  list. First try failed at once (a `pcall` around the waiting request, fixed in a7c9835); the
+  rerun gave 7718 items in 8.5s, 16 requests.
+- Mockups for fast mode and the Sniper: https://claude.ai/artifact/Q5C3ScRtCLV9ohYCcuyuRA
+  (private to Tyler). Waiting for his answer before building.
 
 ## Releases
 
