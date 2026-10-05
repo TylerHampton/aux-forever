@@ -1424,4 +1424,65 @@ try('reagent bag', function()
   check('the reagent bag is read', table.concat(slots, ' ') == '0:1 0:2 5:1 5:2 5:3')
 end)
 
+
+-- Performance: nothing heavy runs every frame (Tyler, 2026-10-05: performance matters)
+try('per-frame work', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  -- events: unused ones are unregistered after a kill, and idle frames do nothing
+  local id = a.event_listener('AUX_TEST_EVENT', function() end)
+  local event_frame
+  for _, f in ipairs(frames) do if f.__events['AUX_TEST_EVENT'] then event_frame = f end end
+  local unregistered = 0
+  rawset(event_frame, 'UnregisterEvent', function(self, e) unregistered = unregistered + 1; self.__events[e] = nil end)
+  for _ = 1, 5 do tick() end
+  check('idle frames unregister nothing', unregistered == 0)
+  a.kill_listener(id)
+  tick()
+  check('a killed listener\'s event is unregistered', unregistered == 1 and not event_frame.__events['AUX_TEST_EVENT'])
+  tick()
+  check('and only once', unregistered == 1)
+  rawset(event_frame, 'UnregisterEvent', nil)
+  -- with many listeners an idle frame stays cheap (aux compared every listener with every other
+  -- listener on every frame, all game long)
+  local ids = {}
+  for i = 1, 400 do tinsert(ids, a.event_listener('AUX_TEST_EVENT_' .. (i % 20), function() end)) end
+  local t0 = os.clock()
+  for _ = 1, 30 do event_frame.__scripts.OnUpdate(event_frame) end
+  check('an idle frame costs next to nothing', os.clock() - t0 < .05)
+  for _, i in ipairs(ids) do a.kill_listener(i) end
+  tick()
+
+  -- Auctions tab: the list follows events, not a rebuild every second
+  local auctions = loadstring("select(2, ...) 'aux.tabs.auctions'; return _M")('auxForever', addon)
+  local real_scan, scans = auctions.scan_auctions, 0
+  auctions.scan_auctions = function() scans = scans + 1 end
+  auctions.frame:Show()
+  for _ = 1, 30 do tick() end
+  check('Auctions tab: no rebuild every second', scans <= 1)
+  auctions.refresh = true
+  tick()
+  check('Auctions tab: rebuilt when the game says the list changed', scans == 2)
+  auctions.frame:Hide()
+  auctions.scan_auctions = real_scan
+
+  -- Full scan button: restyled only when ready changes
+  local styled = 0
+  rawset(a.scan_button, 'SetBackdropColor', function() styled = styled + 1 end)
+  for _ = 1, 30 do tick() end
+  check('Full scan button is not restyled every frame', styled <= 1)
+  rawset(a.scan_button, 'SetBackdropColor', nil)
+end)
+
+
+try('/aux memory', function()
+  local slash = loadstring("select(2, ...) 'aux.core.slash'; return _M")('auxForever', addon)
+  local updated
+  G.UpdateAddOnMemoryUsage = function() updated = true end
+  G.GetAddOnMemoryUsage = function(name) return name == 'auxForever' and 3584 or 0 end
+  local report = slash.memory_report()
+  check('memory is measured when asked', updated == true)
+  check('memory report in MB with the history size', report:find('uses 3.5 MB of memory; price history for %d+ items') ~= nil)
+  G.UpdateAddOnMemoryUsage, G.GetAddOnMemoryUsage = nil, nil
+end)
+
 print('done, errors: ' .. errors)

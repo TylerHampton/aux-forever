@@ -237,8 +237,15 @@ do
     local function seconds_until_scan()
         return max(0, account_data.replicate_time + scan.REPLICATE_COOLDOWN - time())
     end
+    -- auxForever: checked twice a second and restyled only when ready changes (it was every frame)
+    local ready, next_check
     btn:SetScript('OnUpdate', function(self)
-        if seconds_until_scan() == 0 and not scan.is_scanning() then
+        if GetTime() < (next_check or 0) then return end
+        next_check = GetTime() + .5
+        local now_ready = seconds_until_scan() == 0 and not scan.is_scanning()
+        if now_ready == ready then return end
+        ready = now_ready
+        if ready then
             self:Enable()
             self:SetBackdropColor(color.state.enabled())
         else

@@ -9,6 +9,19 @@ function status(enabled)
 	return (enabled and aux.color.green'on' or aux.color.red'off')
 end
 
+-- auxForever: /aux memory. How much memory aux uses, and how many items its price history holds
+-- (the part that grows over time). Measured only when asked: updating the game's memory figures
+-- takes a moment.
+function M.memory_report()
+    UpdateAddOnMemoryUsage()
+    local kilobytes = GetAddOnMemoryUsage('auxForever') or 0
+    local items = 0
+    for _ in pairs(aux.faction_data and aux.faction_data.history or empty) do
+        items = items + 1
+    end
+    return format('auxForever uses %.1f MB of memory; price history for %d items', kilobytes / 1024, items)
+end
+
 _G.SLASH_AUX1 = '/aux'
 _G.SLASH_AUX2 = '/auxforever'
 function SlashCmdList.AUX(command)
@@ -24,6 +37,8 @@ function SlashCmdList.AUX(command)
         else
             scan.measure_item_list()
         end
+    elseif arguments[1] == 'memory' then
+        aux.print(memory_report())
     elseif arguments[1] == 'debug' then
         aux.account_data.debug_timing = not aux.account_data.debug_timing
         aux.print('search timing log ' .. status(aux.account_data.debug_timing) .. (aux.account_data.debug_timing and ': a summary prints in chat after each search' or ''))
@@ -109,6 +124,7 @@ function SlashCmdList.AUX(command)
 		aux.print('- clear item cache')
 		aux.print('- debug [' .. status(aux.account_data.debug_timing) .. '] (search timing log)')
 		aux.print('- debug list (times the item list of the whole auction house)')
+		aux.print('- memory (how much memory aux uses)')
         aux.print('- clear post')
     end
 end

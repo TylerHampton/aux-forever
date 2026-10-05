@@ -110,6 +110,19 @@ download. Every agent: pull first, one agent per branch, update this file when d
   (it showed the vendor price before, which looked like the usual price). Buying from the Sniper
   is not confirmed in game yet.
 
+## 0.3.1 (released 2026-10-05)
+
+- Performance pass after Tyler stressed compute cost (2026-10-05). Found and fixed: `control.lua`
+  compared every event listener with every other one on every frame, all game long (from Classic
+  aux); the Auctions and Bids tabs ran endless per-frame threads to rebuild their lists every
+  second; the Full scan button restyled itself every frame; the Live button and Sniper status
+  rebuilt their text every frame. Rules for all agents: AGENTS.md, Performance. Tests: `per-frame
+  work`. Not changed yet: the buy bar refreshes its texts every frame while something is selected
+  (only on the Search and Sniper tabs); a candidate for a later pass.
+- `/aux memory` (memory use and number of items in price history), for questions about RAM.
+- 0.4 Auctions tab mockup approved by Tyler (https://claude.ai/artifact/A6L3eNDURLpJUMBd1aVucY).
+  Recipe search added to 0.4 (`docs/roadmap.md`). Not built yet.
+
 ## Releases
 
 - 0.2.1 released 2026-10-05: GitHub Release `v0.2.1` (pre-release, with the zip, published by
@@ -122,6 +135,8 @@ download. Every agent: pull first, one agent per branch, update this file when d
   (GitHub Release `v0.3`, pre-release). CurseForge upload by Tyler. Not confirmed in game at
   release: buying from the Sniper, posting from the reagent bag, whether fast mode rows show
   suffixes ("of the Owl"); these stay in `TESTING.md` section 15.
+- 0.3.1 approved by Tyler on 2026-10-05 ("stable and ready to release"): performance fixes and
+  `/aux memory`. GitHub Release `v0.3.1` by the Release workflow; CurseForge upload by Tyler.
 - From 0.2.1 on, the Release workflow publishes the GitHub Release: Actions, Release, "Run
   workflow" on `main` (or a pushed `v<version>` tag). See AGENTS.md, Releases.
 

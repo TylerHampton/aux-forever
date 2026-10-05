@@ -118,6 +118,23 @@ Load order is the TOC (`auxForever/auxForever.toc`).
   `tabs/bids/`: the other tabs. `core/slash.lua`: `/aux` commands.
 - `textures/*.tga`: icons and rounded corners (addon textures load; addon fonts do not).
 
+## Performance (Tyler: "add-on performance and compute cost is very important")
+
+aux runs inside the game; every frame it spends time in costs the player frame rate.
+- Nothing may run every frame while it has nothing to do. `OnUpdate` handlers return at once when
+  idle, throttle to a few times a second (`GetTime()` checks), and only touch widgets (`SetText`,
+  `SetBackdropColor`) when a value changed.
+- No endless `aux.coro_thread` loops: a thread that `coro_wait`s forever is resumed every frame,
+  all game long, even with the auction house closed. Use events, or a timestamp check inside a
+  tab's own `on_update` (which only runs while the tab is shown).
+- No work that grows with the square of anything per frame or per event.
+- Long loops (thousands of items: the Sniper, fast lists, full scans) yield with `aux.coro_wait()`
+  every few hundred items so the game does not stutter.
+- Prefer one request over many: the item list (one request per 500 items) over one search per
+  item, and read single items only when needed.
+- Tests guard the rules above (`per-frame work` in `tests/load_test.lua`); add one when you add an
+  `OnUpdate` or a timer.
+
 ## Code gotchas (each one has caused a real bug)
 
 - **Module system:** a file starts with `select(2, ...) 'module.name'`. `M.x = v` writes both the
@@ -164,8 +181,8 @@ as interactive HTML pages; an HTML file Tyler can open in a browser works the sa
 
 - `docs/status.md`: current state, decisions, open items. Keep it up to date.
 - `docs/changelog.md`: what changed in each version; add an entry when the version number changes.
-- `docs/roadmap.md`: what each version is for. 0.2.x is fixes and speed only, no new features;
-  fast mode and the sniper are 0.3.
+- `docs/roadmap.md`: what each version is for. A patch version (0.3.x) is bug fixes, speed and
+  small things only, no new features; new features go into the next minor version (0.4).
 - `docs/forever-auction-house.md`: how Forever's auction house works, with sources.
 - `TESTING.md`: in-game checklist, one numbered section per feature.
 - `README.md`: credit, license, install. License: MIT for the changes made here; Simon's original

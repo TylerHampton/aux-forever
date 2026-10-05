@@ -179,6 +179,7 @@ function start_live_scan(query, search)
     search.live_query = query
     search.live_next = nil
     live_search = search
+    update_live_button(true)
 
     local seen = {}
     for _, record in pairs(search.records) do
@@ -221,6 +222,7 @@ function start_live_scan(query, search)
             search.live_round = (search.live_round or 0) + 1
             search.completed_at = time()
             search.live_next = GetTime() + LIVE_INTERVAL
+            update_live_button(true)
         end,
         on_abort = function()
             aux.status_bar:update_status(1, 1)
@@ -242,6 +244,7 @@ function pause_live(search)
         update_continuation()
     end
     update_start_stop()
+    update_live_button(true)
 end
 
 -- a round right now (an item was opened, so its auctions show without waiting for the countdown)
@@ -272,6 +275,7 @@ function stop_live(search)
     update_continuation()
     update_start_stop()
     update_done()
+    update_live_button(true)
 end
 
 -- the Pause button
@@ -342,8 +346,10 @@ function M.live_status(search)
 end
 
 do
-    local last_text, last_look
+    local last_text, last_look, next_update
     function M.update_live_button(force)
+        if not force and GetTime() < (next_update or 0) then return end
+        next_update = GetTime() + .2
         local status, seconds = live_status(current_search())
         local text, look = 'Live', _M.mode == LIVE_MODE and 'on' or 'off'
         if status == 'updating' then

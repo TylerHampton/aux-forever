@@ -3,6 +3,17 @@
 What changed in each version, newest first. The text under each version is ready to paste into the
 CurseForge file's changelog box.
 
+## 0.3.1 (2026-10-05)
+
+- Performance: aux no longer does work every frame while idle. A check inherited from Classic aux
+  compared every event listener with every other one on every frame, all game long, even away
+  from the auction house; the Auctions and Bids tabs each ran a timer every frame to rebuild their
+  lists every second; the Full scan button repainted itself every frame. Now the event cleanup
+  runs only after a change, the Auctions and Bids lists follow the game's events (and refresh
+  every 10 seconds while open), and the Full scan button and Live and Sniper status lines update a
+  few times a second.
+- `/aux memory` says how much memory aux uses and how many items its price history holds.
+
 ## 0.3 (2026-10-05)
 
 - Fast searches: a search over many items lists each item once with its lowest price and how many

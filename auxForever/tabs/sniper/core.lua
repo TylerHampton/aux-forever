@@ -296,7 +296,10 @@ function M.update()
     if running and not active and next_round_at and GetTime() >= next_round_at then
         start_round()
     end
-    update_controls()
+    if GetTime() >= (next_controls or 0) then
+        next_controls = GetTime() + .2
+        update_controls()
+    end
     update_selection()
     -- "found 20s ago" keeps counting
     if GetTime() >= (next_refresh or 0) then
