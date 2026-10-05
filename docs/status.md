@@ -20,7 +20,7 @@ Last updated at the end of the first session (2026-10-04).
    and re-shown every frame, which drops clicks); needs checking in game.
 2. Done: the status bar is dim gray when idle (Tyler agreed). Gear is now priced in whole silver
    and undercut by 1 silver; needs checking in game (post a green item in undercut mode).
-3. Built in 0.2.1 (2026-10-05), needs testing in game (TESTING.md section 14): the result count on
+3. Built in 0.2.1 (2026-10-05), tried in game by Tyler, who approved it for release: the result count on
    the "Search Results" sub tab, the summary line next to the sub tabs ("11 price levels, 6,180 for
    sale, searched 2m ago", Results sub tab only) and a magnifier in the search bar. The sub tab
    buttons are narrower (200) to make room. New texture `textures/search.tga`: full restart.

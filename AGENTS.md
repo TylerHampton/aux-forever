@@ -146,6 +146,7 @@ as interactive HTML pages; an HTML file Tyler can open in a browser works the sa
 ## Where to find more
 
 - `docs/status.md`: current state, decisions, open items. Keep it up to date.
+- `docs/changelog.md`: what changed in each version; add an entry when the version number changes.
 - `docs/forever-auction-house.md`: how Forever's auction house works, with sources.
 - `TESTING.md`: in-game checklist, one numbered section per feature.
 - `README.md`: credit, license, install. License: MIT for the changes made here; Simon's original
