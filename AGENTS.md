@@ -8,7 +8,7 @@ stand), before changing anything.
 
 auxForever is a port of **aux**, the auction house addon by shirsig (Simon), to **World of
 Warcraft: Forever**, plus a visual redesign and modern improvements. The credit line, used in the
-addon and on every page, is: "aux by shirsig, granted immortality by Tyler". Simon gave written
+addon and on every page, is: "aux by shirsig, re-imagined by a fan". Simon gave written
 permission by email (quoted in `README.md`); he is not involved in this version.
 
 - Forever runs the modern client (Interface 16001, game version 1.60.1) with the modern auction

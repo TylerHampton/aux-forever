@@ -26,7 +26,7 @@ Each new file: the zip from the version's GitHub Release (or the zip Claude send
 
 [banner]
 
-**aux by shirsig, granted immortality by Tyler.**
+**aux by shirsig, re-imagined by a fan.**
 
 auxForever is [aux](https://www.curseforge.com/wow/addons/aux), the auction house addon by
 shirsig (Simon), rebuilt to run on World of Warcraft: Forever. The search filter language, saved

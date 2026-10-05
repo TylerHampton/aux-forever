@@ -1,6 +1,6 @@
 ![auxForever](https://raw.githubusercontent.com/TylerHampton/aux-forever/main/docs/images/banner.png)
 
-**aux by shirsig, granted immortality by Tyler.**
+**aux by shirsig, re-imagined by a fan.**
 
 auxForever is [aux](https://www.curseforge.com/wow/addons/aux), the auction house addon by
 shirsig (Simon), rebuilt to run on World of Warcraft: Forever. The search filter language, saved

@@ -2,7 +2,7 @@
 ## Author: shirsig
 ## Title: auxForever
 ## Version: forever-0.3.0-dev
-## Notes: aux by shirsig, granted immortality by Tyler
+## Notes: aux by shirsig, re-imagined by a fan
 ## SavedVariables: aux
 
 libs\package.lua

@@ -8,7 +8,8 @@ Last updated at the end of the first session (2026-10-04).
 - Buy bar: trade goods by quantity with a confirmed server price, gear one at a time.
   Purchases matched the mail exactly.
 - Resizable window that remembers its size and position.
-- Rename to auxForever, credit line "aux by shirsig, granted immortality by Tyler".
+- Rename to auxForever. Credit line, changed by Tyler on 2026-10-05 (was "aux by shirsig, granted
+  immortality by Tyler"): "aux by shirsig, re-imagined by a fan".
 - New look: top bar with tabs, rounded corners, amber accent, "N sellers" in the seller column.
 - Undercut mode: match the cheapest price by default, goblin toggle to undercut.
 - Post tab duration dropdown (fixed this session).
