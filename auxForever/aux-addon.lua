@@ -226,6 +226,22 @@ do
         end
     end
 
+    -- Blizzard sizes its tabs to their text when they are shown. While the window is shrunk to
+    -- 1% that measurement can come out far too wide, and the tabs (Buy, Sell, Auctions) then ran
+    -- off the screen once the window was shown at full size (Tyler, 2026-10-05, not reproduced).
+    -- Measure them again at full size with Blizzard's own code.
+    function M.resize_blizzard_tabs()
+        local auctions_frame = AuctionHouseFrame.AuctionsFrame
+        for _, tabs in ipairs{AuctionHouseFrame.Tabs, type(auctions_frame) == 'table' and auctions_frame.Tabs} do
+            for _, tab in ipairs(type(tabs) == 'table' and tabs or empty) do
+                local on_show = tab.GetScript and tab:GetScript('OnShow')
+                if on_show and tab:IsShown() then
+                    on_show(tab)
+                end
+            end
+        end
+    end
+
     function M.blizzard_frame_shown()
         return blizzard_visible
     end
@@ -236,6 +252,7 @@ do
         if shown then
             AuctionHouseFrame:SetScale(1)
             fix_blizzard_frame_position()
+            resize_blizzard_tabs()
             -- never off screen, whatever moved it
             AuctionHouseFrame:SetClampedToScreen(true)
             AuctionHouseFrame:SetAlpha(1)

@@ -957,6 +957,24 @@ try('blizzard ui button', function()
   rawset(AuctionHouseFrame, 'GetPoint', nil); rawset(AuctionHouseFrame, 'SetPoint', nil)
   rawset(AuctionHouseFrame, 'Raise', nil); rawset(AuctionHouseFrame, 'HookScript', nil)
   rawset(a.blizzard_button, 'SetBackdropBorderColor', nil)
+
+  -- Blizzard's tabs are measured again at full size when its window is shown
+  local resized = {}
+  local function tab(name)
+    local t = new_frame(name)
+    t.__scripts.OnShow = function(self) tinsert(resized, self.__name) end
+    return t
+  end
+  rawset(AuctionHouseFrame, 'Tabs', {tab('Buy'), tab('Sell'), tab('Auctions')})
+  local auctions_frame = new_frame('AuctionsFrame')
+  rawset(auctions_frame, 'Tabs', {tab('Auctions sub'), tab('Bids sub')})
+  rawset(AuctionHouseFrame, 'AuctionsFrame', auctions_frame)
+  a.set_blizzard_frame_shown(true)
+  check('Blizzard tabs are resized at full size', #resized == 5 and resized[1] == 'Buy' and resized[5] == 'Bids sub')
+  resized = {}
+  a.set_blizzard_frame_shown(false)
+  check('tabs are not resized while hidden', #resized == 0)
+  rawset(AuctionHouseFrame, 'Tabs', nil); rawset(AuctionHouseFrame, 'AuctionsFrame', nil)
 end)
 
 -- Settings: scale from 70% to 150% that is kept, no explanation text; the resize corner anchors
@@ -1329,6 +1347,58 @@ try('sniper round', function()
   check('sniper: no rounds after Stop', sniper.round == round)
   aux.set_tab(1)
   sniper.clear_deals()
+  restore()
+end)
+
+
+try('an error does not leave a search stuck', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.core.scan'; return _M")('auxForever', addon)
+  local run, restore = fake_ah(ROBES())
+  local printed = {}
+  local real_add = DEFAULT_CHAT_FRAME.AddMessage
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', function(_, text) tinsert(printed, text) end)
+  local real_results = C_AuctionHouse.GetBrowseResults
+  rawset(C_AuctionHouse, 'GetBrowseResults', function() error('test error in the item list') end)
+  -- like tick(), but the error raised for BugSack is expected here
+  local raised = 0
+  local function quiet_run(n)
+    for _ = 1, n do
+      clock = clock + 0.1
+      for _, f in ipairs(frames) do
+        if f.__shown and f.__scripts.OnUpdate then
+          if not pcall(f.__scripts.OnUpdate, f, 0.1) then raised = raised + 1 end
+        end
+      end
+      for _, f in ipairs(frames) do
+        if f.__events['AUCTION_HOUSE_BROWSE_RESULTS_UPDATED'] and f.__scripts.OnEvent then
+          pcall(f.__scripts.OnEvent, f, 'AUCTION_HOUSE_BROWSE_RESULTS_UPDATED')
+        end
+      end
+    end
+  end
+  search.frame:Show()
+  search.update_mode(search.NORMAL_MODE)
+  search.search_box:SetText('robe')
+  search.toggle_live()
+  local s = search.current_search()
+  quiet_run(20)
+  check('the error still reaches BugSack', raised >= 1)
+  check('the scan is not left running', not scan.is_scanning())
+  check('live shows Paused instead of Updating forever', search.live_status(s) == 'paused')
+  check('chat says the search stopped because of an error', table.concat(printed, '\n'):find('stopped because of an error', 1, true) ~= nil)
+  rawset(C_AuctionHouse, 'GetBrowseResults', real_results)
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', real_add)
+
+  -- "Updating" with no round running carries on by itself
+  search.execute(nil, true)
+  run(20)
+  local round = s.live_round or 0
+  s.live_next = nil
+  run(40)
+  check('a live search with no round running carries on', (s.live_round or 0) > round)
+  search.toggle_live()
+  search.frame:Hide()
   restore()
 end)
 

@@ -128,14 +128,28 @@ function M.start(params)
         abort()
     end
     do (params.on_scan_start or pass)() end
+    local scan_state
     aux.coro_thread(function()
         state = {
             id = aux.coro_id(),
             params = params,
             listener_ids = {},
         }
+        scan_state = state
         timing = aux.account_data.debug_timing and new_timing() or nil
         scan()
+    end, function()
+        -- an error stopped the scan: end it as if stopped, so nothing waits for it forever
+        if state and state == scan_state then
+            for id in pairs(state.listener_ids) do
+                aux.kill_listener(id)
+            end
+            local on_abort = state.params.on_abort
+            state = nil
+            timing = nil
+            aux.print('The search stopped because of an error. Please send the error text (BugSack) to the author.')
+            do (on_abort or pass)() end
+        end
     end)
 end
 

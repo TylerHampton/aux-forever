@@ -376,8 +376,13 @@ end
 -- every frame while the Search tab is shown: start the next live round when its countdown ends
 function M.update_live()
     local search = live_search
-    if search and search.active and search.live_next and GetTime() >= search.live_next and not scan.is_scanning() then
-        start_live_scan(search.live_query, search)
+    if search and search.active and search.mode == LIVE_MODE and not search.live_held then
+        if not search.live_next and not scan.is_scanning() then
+            -- "Updating" with no round running (it ended without telling): carry on with a round
+            search.live_next = GetTime() + 1
+        elseif search.live_next and GetTime() >= search.live_next and not scan.is_scanning() then
+            start_live_scan(search.live_query, search)
+        end
     end
     update_live_button()
 end

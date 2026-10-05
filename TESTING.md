@@ -254,6 +254,10 @@ Live (Search tab)
       Nothing updates. Resume live: it carries on.
 - [ ] Go to the Post tab and back: Live carries on by itself (it is held, not paused, while away).
 - [ ] Click Live again: it turns off, the countdown stops and the results stay.
+- [ ] If Live ever sits on "Updating" for more than a minute, or chat says "The search stopped
+      because of an error", send the BugSack error text and a screenshot.
+- [ ] Blizzard UI several times, also after opening the character sheet or a vendor: the Buy, Sell
+      and Auctions tabs at the bottom of the Blizzard window always have their normal size.
 - [ ] Mark a favorite as an alert (Saved Searches, Alert column), run a search that matches it in
       Live: when a new matching auction appears, the alert pops up.
 

@@ -91,6 +91,15 @@ download. Every agent: pull first, one agent per branch, update this file when d
   Unknowns to watch: whether the item list's lowest price is ever a bid (`/aux debug` prints a
   line when an opened item differs), whether item list names include suffixes, the Sniper's
   round time over a long session, and whether the server minds rounds back to back.
+- Tyler's first 0.3 test (2026-10-05), neither reproduced since:
+  1. Live stuck on "Updating" with an empty table and the status bar full. Cause not confirmed;
+     the likely one is an error inside the scan's thread, which used to leave the scan marked as
+     running forever. `aux.coro_thread` now takes an error handler: the scan ends as if stopped
+     (Live shows Paused, chat asks for the BugSack text) and the error still reaches BugSack.
+     Live also restarts by itself if it says Updating with no round running.
+  2. Blizzard's own tabs (Buy, Sell, Auctions) stretched off the screen. Likely cause: Blizzard
+     sizes its tabs to their text when shown, and that ran while aux kept the window at 1% scale.
+     The tabs are now measured again with Blizzard's code whenever the window is shown at full size.
 
 ## Releases
 
