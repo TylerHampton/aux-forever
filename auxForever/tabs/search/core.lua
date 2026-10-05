@@ -61,6 +61,7 @@ function set_subtab(tab)
         load_builder()
     end
     update_done()
+    update_results_summary(true)
 end
 
 function M.set_filter(filter_string)

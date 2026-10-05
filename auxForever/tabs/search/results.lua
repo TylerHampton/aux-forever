@@ -195,6 +195,55 @@ function M.update_done()
     aux.status_bar:set_done(frame:IsShown() and frame.results:IsShown() and search and search.complete)
 end
 
+-- auxForever: "Search Results 11" on the sub tab, and next to the sub tabs what the results hold:
+-- "11 price levels, 6,180 for sale, searched 2m ago". One price level is one row of a price.
+local function thousands(n)
+    local text = tostring(n)
+    while true do
+        local done
+        text, done = gsub(text, '^(%d+)(%d%d%d)', '%1,%2')
+        if done == 0 then return text end
+    end
+end
+
+function M.results_summary(search)
+    if not search or not search.records or #search.records == 0 then
+        return nil
+    end
+    local units = 0
+    for _, record in ipairs(search.records) do
+        units = units + (record.count or 1) * (record.auction_count or 1)
+    end
+    local levels = #search.records
+    local text = thousands(levels) .. (levels == 1 and ' price level, ' or ' price levels, ') .. thousands(units) .. ' for sale'
+    if search.active then
+        return text .. ', still searching'
+    elseif search.complete and search.completed_at then
+        return text .. ', searched ' .. time_ago(search.completed_at)
+    end
+    return text
+end
+
+do
+    local last_count, last_summary, next_update = nil, nil, 0
+    -- every half second: cheap, and only touches the text when it changed
+    function M.update_results_summary(force)
+        if not force and GetTime() < next_update then return end
+        next_update = GetTime() + .5
+        local search = current_search()
+        local count = search and search.records and #search.records or 0
+        if count ~= last_count then
+            last_count = count
+            search_results_button:SetText(count > 0 and 'Search Results  ' .. aux.color.accent.background(thousands(count)) or 'Search Results')
+        end
+        local summary = frame.results:IsShown() and results_summary(search) or ''
+        if summary ~= last_summary then
+            last_summary = summary
+            results_summary_label:SetText(summary)
+        end
+    end
+end
+
 function start_search(queries, continuation)
     local current_query, current_page, total_queries, start_query, start_page
 
@@ -252,6 +301,7 @@ function start_search(queries, continuation)
         on_complete = function()
             aux.status_bar:update_status(1, 1)
             search.complete = true
+            search.completed_at = time()
             update_done()
             remember_search_result(search.filter_string, search.records)
 
@@ -536,6 +586,7 @@ do
     end
 
     function on_update()
+        update_results_summary()
         local selection = current_search().table:GetSelection()
         if selection and selection.record ~= checked then
             find_auction(selection.record)

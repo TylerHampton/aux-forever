@@ -19,7 +19,7 @@ permission by email (quoted in `README.md`); he is not involved in this version.
   `World of Warcraft\_classic_beta_\Interface\AddOns`.
 - Released as a beta on CurseForge (unlisted). Page text and settings: `docs/curseforge.md`,
   paste-ready copy `docs/curseforge-description.md`. Version is in `auxForever/auxForever.toc`
-  (`## Version: forever-0.2.0`).
+  (`## Version: forever-x.y.z`).
 
 ## The owner: how to work with Tyler
 

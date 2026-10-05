@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Author: shirsig
 ## Title: auxForever
-## Version: forever-0.2.0
+## Version: forever-0.2.1
 ## Notes: aux by shirsig, granted immortality by Tyler
 ## SavedVariables: aux
 

@@ -852,4 +852,33 @@ try('filter builder ui', function()
   s.set_subtab(s.SAVED)
 end)
 
+-- Search tab: result count on the sub tab, summary line next to the sub tabs, magnifier in the search bar
+try('search results summary', function()
+  local s = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local plain = function(t) return ((tostring(t or '')):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  check('no summary without results', s.results_summary({records = {}}) == nil)
+  local search = {records = {{count = 20, auction_count = 1}, {count = 1, auction_count = 6}, {count = 1000, auction_count = 6}}, complete = true, completed_at = time()}
+  local text = s.results_summary(search)
+  check('summary counts price levels and units', text and text:find('3 price levels, 6,026 for sale', 1, true) ~= nil)
+  check('summary says when', text and text:find('searched just now', 1, true) ~= nil)
+  search.active, search.complete = true, false
+  check('summary while searching', s.results_summary(search):find('still searching', 1, true) ~= nil)
+  check('one price level', s.results_summary({records = {{count = 5}}}):find('^1 price level, 5 for sale') ~= nil)
+
+  s.set_subtab(s.RESULTS)
+  local current = s.current_search()
+  local saved = current.records
+  current.records = {{count = 3}, {count = 2}}
+  current.complete, current.completed_at, current.active = true, time(), false
+  s.update_results_summary(true)
+  check('result count on the sub tab', plain(s.search_results_button.__text) == 'Search Results  2')
+  check('summary line shown on Results', s.results_summary_label.__text:find('2 price levels, 5 for sale', 1, true) ~= nil)
+  s.set_subtab(s.SAVED)
+  check('summary hidden on other sub tabs', s.results_summary_label.__text == '')
+  check('count stays on the sub tab', plain(s.search_results_button.__text) == 'Search Results  2')
+  current.records = saved
+  s.update_results_summary(true)
+  check('magnifier in the search bar', s.search_icon ~= nil)
+end)
+
 print('done, errors: ' .. errors)

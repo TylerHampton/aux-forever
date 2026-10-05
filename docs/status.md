@@ -20,9 +20,11 @@ Last updated at the end of the first session (2026-10-04).
    and re-shown every frame, which drops clicks); needs checking in game.
 2. Done: the status bar is dim gray when idle (Tyler agreed). Gear is now priced in whole silver
    and undercut by 1 silver; needs checking in game (post a green item in undercut mode).
-3. Parts of the mockup not built yet: "Results N" count, the summary line next to the sub tabs
-   ("11 price levels, 6,180 for sale, searched 4s ago"), a search icon in the search box.
-   Column names were kept as in aux on purpose.
+3. Built in 0.2.1 (2026-10-05), needs testing in game (TESTING.md section 14): the result count on
+   the "Search Results" sub tab, the summary line next to the sub tabs ("11 price levels, 6,180 for
+   sale, searched 2m ago", Results sub tab only) and a magnifier in the search bar. The sub tab
+   buttons are narrower (200) to make room. New texture `textures/search.tga`: full restart.
+   Gemini's mockup for this (branch `gemini/search-details`, only on Tyler's PC) was not used.
 4. Not yet tested in game: Auctions tab cancel, Bids tab, full scan, posting gear with a bid,
    Filter Builder dropdowns after the dropdown fix. See `TESTING.md`.
 5. Later: Tyler sends Simon (shirsig) the project to review before it goes public. The GitHub
@@ -54,9 +56,9 @@ download. Every agent: pull first, one agent per branch, update this file when d
    - The bid variants are separate menu entries rather than the Buyout / Bid switch the mockup
      mentioned. Category names still need checking against Forever's AuctionCategories in game.
      (The `<>` in the search bar is aux's label for an empty search; not a bug by itself.)
-3. Saved Searches: Favorite with an empty search bar saves an empty search (`<>`), once per click
-   (Tyler's screenshot: nine of them). Favorite should do nothing on an empty search bar and should
-   not add a search that is already a favorite.
+3. Done in 0.2: Favorite with an empty search bar used to save an empty search (`<>`), once per
+   click. Now it saves nothing on an empty search bar and never adds a search that is already a
+   favorite (`add_favorite` and `save_favorite` in `tabs/search/saved.lua`, with tests).
 
 ## Fixed in 0.1.1
 
