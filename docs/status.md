@@ -6,6 +6,8 @@ Last updated 2026-10-05 (before a context compaction of Claude's session).
 
 - Released: 0.3 and 0.3.1 (GitHub Releases `v0.3`, `v0.3.1`, uploaded to CurseForge by Tyler).
   `main` is at the 0.3.1 merge (#6).
+- Versioning decision (2026-10-05): fixes to an unreleased version go into that version, so the
+  build 2 and 3 fixes are part of 0.4, not 0.4.1. 0.4.1 is for fixes after 0.4 is released.
 - In progress: **0.4** on branch `claude/modest-volta-4mgmsb` (TOC `forever-0.4`), pushed. Tyler
   tested the first 0.4 build: recipe search works. His findings, fixed in the second build:
   saved recipe searches showed raw search text (now "Recipe  Name  (N materials)", the recipe is
@@ -19,9 +21,9 @@ Last updated 2026-10-05 (before a context compaction of Claude's session).
   MB per round. `/aux memory` now also reports the size after a full cleanup to tell the two apart.
   Build 2 result (Tyler, 2026-10-05): `/aux memory` read 58.2 MB, 10.6 MB after a cleanup, and
   later 18.9 MB, 10.7 MB after a cleanup, over 13+ Sniper rounds. So aux keeps about 10.6 MB and it
-  does not grow; the rest is garbage from the rounds that the game frees. Possible later change:
-  a longer pause between Sniper rounds (now 1s) would make less garbage and fewer requests; not
-  done, Tyler not asked yet. Also in build 2, every Sniper deal vanished around round 6 and came
+  does not grow; the rest is garbage from the rounds that the game frees. The pause between
+  Sniper rounds went from 1s to 2.5s (Tyler's choice, a compromise) for less garbage and fewer
+  requests. Also in build 2, every Sniper deal vanished around round 6 and came
   back later: build 2 read the vendor price only from GetItemInfo, which returns nothing while the
   game reloads an item, and a deal without facts was hidden. Fixed in build 3: deals keep the facts
   they were found with, and the vendor price falls back to aux's saved item list. Likely cause, not

@@ -19,7 +19,7 @@ local tab = aux.tab 'Sniper'
 
 AUCTION_CUT = .05 -- the auction house cut, as on the Post tab
 MIN_DAYS = 3 -- days of price history needed before a price can be a deal against the usual price
-ROUND_PAUSE = 1 -- seconds between rounds
+ROUND_PAUSE = 2.5 -- seconds between rounds: less garbage and fewer requests than 1s, deals still quick (Tyler)
 MAX_DEALS = 100
 ALERT_GAP = 10 -- seconds: at most one sound per this long, however many deals turn up
 

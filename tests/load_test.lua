@@ -1431,6 +1431,12 @@ try('sniper: one sound per burst, deals shown during the round, no timing lines'
   local timing_lines = 0
   for _, text in ipairs(printed) do if text:find('Search timing') then timing_lines = timing_lines + 1 end end
   check('sniper: rounds print no timing lines with /aux debug on', timing_lines == 0)
+  -- 2.5 seconds between rounds (Tyler, 0.4): the next round starts after the pause, not before
+  local r1 = sniper.round
+  run(23)
+  check('sniper: no new round during the pause', sniper.round == r1 and not sniper.active)
+  run(5)
+  check('sniper: the next round starts after 2.5 seconds', sniper.active or sniper.round > r1)
   sniper.stop()
   aux.account_data.debug_timing = false
   aux.account_data.sniper_profit = 500
