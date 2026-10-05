@@ -4,12 +4,10 @@ Written for Tyler, 2026-10-05. Gemini (and any other AI) learns the project from
 top of the repository; `GEMINI.md` loads it automatically. There are two ways to use Gemini on
 this repository. Both can be used alongside Claude.
 
-## Before either: one branch everyone starts from
+## Starting point
 
-All the work so far is on the branch `claude/modest-volta-4mgmsb` (pull request #1). `main` still
-holds only the first upload. Gemini tools start from `main` unless told otherwise, so merge
-pull request #1 first: on GitHub open the repository, Pull requests, #1, "Merge pull request",
-"Confirm merge". After that, every agent starts from `main` and works on its own branch.
+Everything up to version 0.2 is merged into `main` (pull request #1, 2026-10-05). Every agent
+starts from `main` and works on its own branch.
 
 ## Option 1: Jules (in the browser, works like Claude here)
 
@@ -21,7 +19,7 @@ pull request. Nothing to install.
 3. In the repository's settings in Jules, find the environment setup script and paste:
    `sudo apt-get update && sudo apt-get install -y lua5.1 zip`
    (this lets it run the addon's tests).
-4. Pick the repository, pick the branch (`main` once #1 is merged), and describe the task.
+4. Pick the repository, pick the branch `main`, and describe the task.
 5. Jules shows a plan, works, and opens a pull request. Check that the "Tests" check on the pull
    request is green.
 6. To try it in game: on the pull request's "Checks" tab open the Tests run, and download

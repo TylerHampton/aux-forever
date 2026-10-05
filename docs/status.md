@@ -30,8 +30,8 @@ Last updated at the end of the first session (2026-10-04).
 
 ## Repository
 
-Public since 2026-10-04. All work is on `claude/modest-volta-4mgmsb` (PR #1); `main` still holds
-only the initial commit until Tyler merges, so a download of `main` is not auxForever yet.
+Public since 2026-10-04. PR #1 (everything up to 0.2) was merged into `main` on 2026-10-05, so
+`main` is auxForever 0.2. New work starts from `main` on its own branch.
 
 Since 2026-10-05 Gemini may work on the repository too. `AGENTS.md` is the shared guide for every
 agent (`CLAUDE.md` and `GEMINI.md` load it); `docs/gemini-setup.md` is Tyler's setup guide. GitHub

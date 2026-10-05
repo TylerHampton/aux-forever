@@ -2,7 +2,7 @@
 
 Everything below the line is the page description, written in Markdown. The ready-to-paste copy is
 `docs/curseforge-description.md`: the same text with the header image linked from this repository
-(the link points at the working branch; switch it to `main` once that is merged). Keep the two in
+(the link points at `main`). Keep the two in
 step when editing.
 
 Project settings, modeled on shirsig's aux page:
