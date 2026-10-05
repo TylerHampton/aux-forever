@@ -261,6 +261,10 @@ Live (Search tab)
 - [ ] Mark a favorite as an alert (Saved Searches, Alert column), run a search that matches it in
       Live: when a new matching auction appears, the alert pops up.
 
+Post tab: reagent bag
+- [ ] Items in the reagent bag (Linen Cloth, herbs...) are listed on the Post tab, counted together
+      with the same item in other bags ("N in your bags"), and can be posted.
+
 Sniper tab (between Search and Post)
 - [ ] Start: the status says "Watching", then "round 1, 7718 items in 9.2s" or similar. The first
       round can take longer (the game loads item data). Screenshot the round time after a few rounds.

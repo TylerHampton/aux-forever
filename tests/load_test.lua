@@ -1402,4 +1402,17 @@ try('an error does not leave a search stuck', function()
   restore()
 end)
 
+
+try('reagent bag', function()
+  local require = loadstring("select(2, ...) 'aux.test33'; return require")('auxForever', addon)
+  local info = require 'aux.util.info'
+  local real = C_Container.GetContainerNumSlots
+  -- backpack with 2 slots, no bags, a reagent bag with 3 slots
+  C_Container.GetContainerNumSlots = function(bag) return ({[0] = 2, [5] = 3})[bag] or 0 end
+  local slots = {}
+  for slot in info.inventory() do tinsert(slots, slot[1] .. ':' .. slot[2]) end
+  C_Container.GetContainerNumSlots = real
+  check('the reagent bag is read', table.concat(slots, ' ') == '0:1 0:2 5:1 5:2 5:3')
+end)
+
 print('done, errors: ' .. errors)

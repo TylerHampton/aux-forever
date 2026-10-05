@@ -544,15 +544,22 @@ function M.item_quality_index(item_quality)
     end
 end
 
+-- auxForever: the backpack, the four bags and Forever's reagent bag (bag 5, Enum.BagIndex.ReagentBag
+-- in Blizzard's Forever code); Classic aux stopped at bag 4, so reagent bag items never showed
+function M.last_bag()
+	return max(4, tonumber(NUM_TOTAL_EQUIPPED_BAG_SLOTS) or 5)
+end
+
 function M.inventory()
 	local bag, slot = 0, 0
+	local last = last_bag()
 	return function()
 		if slot >= C_Container.GetContainerNumSlots(bag) then
-			repeat bag = bag + 1 until C_Container.GetContainerNumSlots(bag) > 0 or bag > 4
+			repeat bag = bag + 1 until bag > last or C_Container.GetContainerNumSlots(bag) > 0
 			slot = 1
 		else
 			slot = slot + 1
 		end
-		if bag <= 4 then return {bag, slot} end
+		if bag <= last then return {bag, slot} end
 	end
 end

@@ -16,6 +16,7 @@ CurseForge file's changelog box.
   price, or at most 60% of the usual price with at least 5s profit after the auction house cut
   (both adjustable). Each deal is checked against the item's real auctions before it is shown.
   A sound and a flashing game icon for new deals; ignore items you do not want.
+- Post tab: items in the reagent bag are listed too.
 - Needs a full game restart after updating (new files).
 
 ## 0.2.1 (2026-10-05)

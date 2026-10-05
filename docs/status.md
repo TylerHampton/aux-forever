@@ -100,6 +100,8 @@ download. Every agent: pull first, one agent per branch, update this file when d
   2. Blizzard's own tabs (Buy, Sell, Auctions) stretched off the screen. Likely cause: Blizzard
      sizes its tabs to their text when shown, and that ran while aux kept the window at 1% scale.
      The tabs are now measured again with Blizzard's code whenever the window is shown at full size.
+  3. Items in the reagent bag (Forever's bag 5) were missing from the Post tab: aux read bags 0 to 4
+     only. `info.inventory` now goes up to `NUM_TOTAL_EQUIPPED_BAG_SLOTS` (5).
 
 ## Releases
 
