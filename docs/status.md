@@ -43,7 +43,8 @@ only the initial commit until Tyler merges, so a download of `main` is not auxFo
      Simon's full and/or/not nesting kept; groups map one to one onto it).
    - Live sync with the search bar replaces Import/Export; "Save to favorites" added.
    - "In words" line reads the search back in plain English.
-   - Seen while checking: Export with an empty form wrote `<>`; Import may not set the Exact
+   - Seen while checking: Tyler's screenshot shows `<>` in the search bar (cause not found yet; the
+     test harness exports an empty form as an empty string); Import may not set the Exact
      checkbox; category names need checking against Forever's AuctionCategories.
 
 ## Fixed in 0.1.1
