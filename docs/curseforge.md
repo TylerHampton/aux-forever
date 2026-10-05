@@ -19,8 +19,7 @@ Project settings, modeled on shirsig's aux page:
 | Issues link | https://github.com/TylerHampton/aux-forever/issues |
 | Visibility | Unlisted for now |
 
-Each new file: the zip from the version's GitHub Release (or the `auxForever` folder zipped the
-zip Claude sends)), display name `auxForever <version>`, release type Beta, game version
+Each new file: the zip from the version's GitHub Release (or the zip Claude sends), display name `auxForever <version>`, release type Beta, game version
 1.60.1, and the changelog text for that version from `docs/changelog.md`.
 
 ---
