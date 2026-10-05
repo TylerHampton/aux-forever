@@ -6,7 +6,8 @@ The shared guide for every AI agent on this project is AGENTS.md, loaded here:
 
 ## Claude Code specifics
 
-- Develop on the branch the session names (so far `claude/modest-volta-4mgmsb`, PR #1).
+- Develop on the branch the session names, started from the latest `main`. PR #1 (up to 0.2) is
+  merged.
 - Zip for Tyler: `zip -qr <scratchpad>/auxForever.zip auxForever -x '*.git*'`, then send it with
   the file-sending tool.
 - Other agents (Gemini) also work on this repository: pull before starting, and leave

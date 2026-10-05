@@ -1,4 +1,4 @@
-![auxForever](https://raw.githubusercontent.com/TylerHampton/aux-forever/claude/modest-volta-4mgmsb/docs/images/banner.png)
+![auxForever](https://raw.githubusercontent.com/TylerHampton/aux-forever/main/docs/images/banner.png)
 
 **aux by shirsig, granted immortality by Tyler.**
 
