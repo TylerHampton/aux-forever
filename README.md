@@ -66,6 +66,8 @@ Known gaps:
 
 ## Layout
 
+- `AGENTS.md` is the guide for AI agents working on this repository (Claude, Gemini, Jules).
+
 - `auxForever/` is the addon (named `aux-addon` in the early commits). The first commit in this repository is the unmodified upstream code,
   so `git diff` against it shows every change made for Forever.
 - `auxForever/compat.lua` maps old Classic function names to their Forever replacements.

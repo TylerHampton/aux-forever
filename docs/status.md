@@ -33,6 +33,11 @@ Last updated at the end of the first session (2026-10-04).
 Public since 2026-10-04. All work is on `claude/modest-volta-4mgmsb` (PR #1); `main` still holds
 only the initial commit until Tyler merges, so a download of `main` is not auxForever yet.
 
+Since 2026-10-05 Gemini may work on the repository too. `AGENTS.md` is the shared guide for every
+agent (`CLAUDE.md` and `GEMINI.md` load it); `docs/gemini-setup.md` is Tyler's setup guide. GitHub
+Actions (`.github/workflows/test.yml`) runs the tests on every push and offers the addon as a
+download. Every agent: pull first, one agent per branch, update this file when done.
+
 ## 0.2 (built 2026-10-05, needs testing in game: TESTING.md section 13)
 
 1. Settings popup: default auction length (2h/8h/24h, labels from the game). It is the existing
