@@ -205,6 +205,12 @@ function update_auction_listing(listing, records, reference)
 	if selected_item then
 		local historical_value = history.value(selected_item.key)
 		local stack_size = stack_size_input:GetNumber()
+		-- every price in the list keeps all its parts when any of them has copper (money.set_full_parts)
+		local amounts = {historical_value and ceil(historical_value) or 0}
+		for _, record in pairs(records[selected_item.key] or empty) do
+			tinsert(amounts, ceil(record.unit_price or 0))
+		end
+		money.set_full_parts(money.any_copper(amounts))
 		for _, record in pairs(records[selected_item.key] or empty) do
 			local price_color = tonumber(tostring(undercut(record, stack_size_input:GetNumber(), listing == 'bid'))) < reference and aux.color.red
 			local price = record.unit_price * (listing == 'bid' and aux.account_data.post_bid == 'stack' and record.stack_size or 1)
@@ -231,6 +237,7 @@ function update_auction_listing(listing, records, reference)
 				record = { historical_value = true, stack_size = stack_size, unit_price = historical_value }
             })
 		end
+		money.set_full_parts(false)
 		sort(rows, function(a, b)
 			return sort_util.multi_lt(
 				a.record.unit_price * (listing == 'bid' and a.record.stack_size or 1),
@@ -648,7 +655,7 @@ function update_item(item)
 
     -- start from the lowest listing once the listings are in (auto_pick_price)
     auto_price_key = item.key
-    if not bid_records[item.key] then
+    if not listings_known(item.key) then
         refresh_entries()
     else
         listings_ready[item.key] = true
@@ -782,10 +789,42 @@ function refresh_entries()
 	end
 end
 
+-- auxForever: a full scan reads every auction on the auction house (69,591 in Tyler's, 0.4.1) and
+-- aux kept the listings of every item for the Post tab, all session long: about 30 MB after a
+-- cleanup. The Post tab only shows items in your bags, so the full scan now keeps theirs alone;
+-- any other item's listings are read when it is picked, as before.
+local scan_keys
+
 function M.clear_auctions()
     bid_records, buyout_records = {}, {}
     aux.wipe(listings_ready)
+    scan_keys = {}
+    for slot in info.inventory() do
+        local item_info = info.container_item(unpack(slot))
+        if item_info then
+            scan_keys[item_info.item_key] = true
+        end
+    end
     update_post_done()
+end
+
+-- an auction from a full scan: kept only for items in the bags
+function M.record_scanned_auction(auction)
+    if scan_keys and scan_keys[auction.item_key] then
+        record_auction(auction)
+    end
+end
+
+-- /aux memory detail: items whose listings the Post tab keeps
+function M.memory_counts()
+    local n = 0
+    for _ in pairs(bid_records) do n = n + 1 end
+    return n
+end
+
+-- whether the listings of an item are known (from a full scan or an earlier read)
+function M.listings_known(item_key)
+    return bid_records[item_key] ~= nil
 end
 
 function M.record_auction(auction)

@@ -164,6 +164,13 @@ function check_item(item_key, key)
         return
     end
     sort(tiers, function(a, b) return a.unit_buyout_price < b.unit_buyout_price end)
+    -- only the units that are a deal can be bought here: the buy bar offered 20 Ironweb Spider Silk
+    -- where 7 were below vendor price and the rest cost more (Tyler, 0.4.1)
+    for i = #tiers, 1, -1 do
+        if not judge_record(tiers[i]) then
+            tremove(tiers, i)
+        end
+    end
     -- the usual price is only shown when it rests on enough history to be trusted
     local usual, vendor, days = item_facts(cheapest.item_key, cheapest.item_id)
     cheapest.deal_history, cheapest.deal_vendor, cheapest.deal_days = usual, vendor, days
@@ -330,7 +337,14 @@ end
 -- every frame while the tab is shown
 function M.update()
     -- the Sniper owns the request limit while its tab is open: a search still running elsewhere stops
-    if running and not active and next_round_at and GetTime() >= next_round_at then
+    if running and buy_bar.busy() then
+        -- a purchase talks to the auction house too: the round stops, and the next one waits until
+        -- the purchase is done (the round could also replace the deal being bought)
+        if active then
+            scan.abort()
+        end
+        next_round_at = GetTime() + ROUND_PAUSE
+    elseif running and not active and next_round_at and GetTime() >= next_round_at then
         start_round()
     end
     if GetTime() >= (next_controls or 0) then
@@ -383,6 +397,9 @@ end
 function M.status()
     if not running then
         return 'Stopped', 'Start watches the whole auction house for deals'
+    end
+    if buy_bar.busy() then
+        return 'Watching', 'waits while you buy'
     end
     local done = round > 0 and format('round %d, %s items in %.1fs', round, last_count or 0, last_seconds or 0) or 'first round'
     if checking and checking.total > 0 then
@@ -475,4 +492,15 @@ function update_selection()
         checked = nil
         buy_bar.clear()
     end
+end
+
+local function count(t)
+    local n = 0
+    for _ in pairs(t) do n = n + 1 end
+    return n
+end
+
+-- /aux memory detail: what the Sniper keeps
+function M.memory_counts()
+    return count(known), count(seen_items), #deals
 end

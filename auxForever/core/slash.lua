@@ -32,6 +32,21 @@ function M.memory_report()
     return text
 end
 
+-- /aux memory detail: how many entries aux's main stores hold, to find one that keeps growing
+function M.memory_detail()
+    local known, seen, deals = require('aux.tabs.sniper').memory_counts()
+    local cached, today = require('aux.core.history').memory_counts()
+    local searches, records = require('aux.tabs.search').memory_counts()
+    return {
+        format('Sniper: %d items known, %d seen last round, %d deals', known, seen, deals),
+        format('History: %d usual prices cached, %d items seen today', cached, today),
+        format('Search: %d searches kept, %d result rows', searches, records),
+        format('Post: listings kept for %d items', require('aux.tabs.post').memory_counts()),
+        format('Tooltips: %d items checked', require('aux.core.tooltip').memory_counts()),
+        format('Events: %d listeners, %d running tasks', aux.listener_count(), aux.thread_count()),
+    }
+end
+
 _G.SLASH_AUX1 = '/aux'
 _G.SLASH_AUX2 = '/auxforever'
 function SlashCmdList.AUX(command)
@@ -49,6 +64,11 @@ function SlashCmdList.AUX(command)
         end
     elseif arguments[1] == 'memory' then
         aux.print(memory_report())
+        if arguments[2] == 'detail' then
+            for _, line in ipairs(memory_detail()) do
+                aux.print(line)
+            end
+        end
     elseif arguments[1] == 'debug' then
         aux.account_data.debug_timing = not aux.account_data.debug_timing
         aux.print('search timing log ' .. status(aux.account_data.debug_timing) .. (aux.account_data.debug_timing and ': a summary prints in chat after each search' or ''))

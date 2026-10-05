@@ -11,7 +11,14 @@ CurseForge file's changelog box.
 - Removed the Classic-only crafting cost code and its `/aux crafting cost` setting; it never ran on
   Forever (recipe search does this job since 0.4).
 - `/aux memory` also says how many items aux's item list knows, and whether it is still checking.
-- Prices leave out parts that are zero: "7s" instead of "7s 00c", "1g 92s" instead of "1g 92s 00c".
+- Prices leave out parts that are zero ("7s" instead of "7s 00c") in text. In a table, when any price
+  has copper, every price keeps all its parts ("1s 00c") so the column lines up.
+- Memory: a full scan no longer keeps the listings of every item on the auction house for the Post
+  tab (about 30 MB for the rest of the session); it keeps those of the items in your bags.
+- Sniper: the buy bar offers only the units that are a deal (it offered more expensive units of a
+  trade good too), and rounds wait while a purchase is under way.
+- The Auction Bid column shows "---" for auctions with no starting bid instead of their buyout.
+- `/aux memory detail` lists what aux keeps (Sniper, history, searches, Post, tooltips, events).
 - Sniper: deals that sold sort below the ones still to buy.
 
 ## 0.4 (2026-10-05)

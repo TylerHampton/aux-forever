@@ -96,6 +96,13 @@ do
         end
     end)
 
+    -- auxForever: /aux memory detail
+    function M.thread_count()
+        local n = 0
+        for _ in pairs(threads) do n = n + 1 end
+        return n
+    end
+
     function M.coro_thread(f, on_error)
         local thread = coroutine.create(f)
         local thread_id = tostring(thread)
@@ -115,4 +122,11 @@ do
     function M.coro_id()
         return tostring(coroutine.running())
     end
+end
+
+-- auxForever: /aux memory detail
+function M.listener_count()
+    local n = 0
+    for _ in pairs(listeners) do n = n + 1 end
+    return n
 end

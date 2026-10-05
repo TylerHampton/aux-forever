@@ -134,3 +134,11 @@ function push_record(item_record)
 	end
 	item_record.next_push, item_record.daily_min_buyout = get_next_push(), nil
 end
+
+-- auxForever: /aux memory detail
+function M.memory_counts()
+	local cached, today = 0, 0
+	for _ in pairs(value_cache) do cached = cached + 1 end
+	for _ in pairs(today_min) do today = today + 1 end
+	return cached, today
+end

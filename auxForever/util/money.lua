@@ -59,6 +59,23 @@ function M.to_string2(money, exact, color)
 	return str
 end
 
+full_parts = false
+
+-- a table turns this on while it fills its rows, when any of its prices has copper
+function M.set_full_parts(on)
+	full_parts = on and true or false
+end
+
+-- whether any of these amounts has copper
+function M.any_copper(amounts)
+	for _, amount in ipairs(amounts) do
+		if amount % 100 ~= 0 then
+			return true
+		end
+	end
+	return false
+end
+
 function M.to_string(money, pad, trim, color, no_color)
 	local is_negative = money < 0
 	money = abs(money)
@@ -71,19 +88,31 @@ function M.to_string(money, pad, trim, color, no_color)
 		gold_text, silver_text, copper_text = GOLD_TEXT, SILVER_TEXT, COPPER_TEXT
 	end
 
-	-- auxForever: parts that are zero are always left out ("7s", not "7s 00c"; Tyler, 0.4.1). The
-	-- trim argument is kept for callers but no longer changes anything.
-	local parts = {}
-	if gold > 0 then
-		tinsert(parts, format_number(gold, false, color) .. gold_text)
+	-- auxForever (Tyler, 0.4.1): parts that are zero are left out ("7s", not "7s 00c"), except while
+	-- a table whose prices include copper fills its rows (full_parts): there every price keeps all
+	-- its parts ("1s 00c"), so the column lines up. The trim argument no longer changes anything.
+	local text
+	if full_parts then
+		if gold > 0 then
+			text = format_number(gold, false, color) .. gold_text .. ' ' .. format_number(silver, pad, color) .. silver_text .. ' ' .. format_number(copper, pad, color) .. copper_text
+		elseif silver > 0 then
+			text = format_number(silver, false, color) .. silver_text .. ' ' .. format_number(copper, pad, color) .. copper_text
+		else
+			text = format_number(copper, false, color) .. copper_text
+		end
+	else
+		local parts = {}
+		if gold > 0 then
+			tinsert(parts, format_number(gold, false, color) .. gold_text)
+		end
+		if silver > 0 then
+			tinsert(parts, format_number(silver, gold > 0 and pad, color) .. silver_text)
+		end
+		if copper > 0 or gold == 0 and silver == 0 then
+			tinsert(parts, format_number(copper, (gold > 0 or silver > 0) and pad, color) .. copper_text)
+		end
+		text = aux.join(parts, ' ')
 	end
-	if silver > 0 then
-		tinsert(parts, format_number(silver, gold > 0 and pad, color) .. silver_text)
-	end
-	if copper > 0 or gold == 0 and silver == 0 then
-		tinsert(parts, format_number(copper, (gold > 0 or silver > 0) and pad, color) .. copper_text)
-	end
-	local text = aux.join(parts, ' ')
 
 	if is_negative then
 		text = (color and color'-' or '-') .. text

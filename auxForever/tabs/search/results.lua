@@ -47,6 +47,15 @@ do
         return searches[search_index]
     end
 
+    -- auxForever: /aux memory detail
+    function M.memory_counts()
+        local records = 0
+        for _, search in ipairs(searches) do
+            records = records + #(search.records or empty)
+        end
+        return #searches, records
+    end
+
     function M.set_nav_enabled(button, enabled)
         if enabled then
             button:Enable()

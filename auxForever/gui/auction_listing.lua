@@ -133,6 +133,13 @@ local function quantity_column(title)
     }
 end
 
+-- auxForever: an auction without a starting bid carries its buyout as the bid price, so it looked
+-- biddable at the buyout (Tyler, 0.4.1: "I dont even have the option to bid"); most Forever gear is
+-- buyout only. Same rule as the buy bar's Bid button.
+function M.biddable(record)
+    return record.high_bidder or (record.high_bid or 0) > 0 or (record.buyout_price or 0) == 0 or (record.bid_price or 0) < record.buyout_price
+end
+
 M.search_columns = {
     level_column(),
     {
@@ -187,7 +194,7 @@ M.search_columns = {
             if record.fast then
                 cell.text:SetText('')
                 return
-            elseif record.commodity then
+            elseif record.commodity or not biddable(record) then
                 cell.text:SetText('---')
                 return
             end
@@ -694,6 +701,19 @@ local methods = {
             end
         end
 
+        -- auxForever: when any price in the table has copper, every price shows all its parts
+        local has_copper = false
+        for _, record in ipairs(records) do
+            for _, amount in ipairs{ceil(record.unit_buyout_price or 0), ceil(record.unit_bid_price or 0), record.buyout_price or 0, record.bid_price or 0} do
+                if amount % 100 ~= 0 then
+                    has_copper = true
+                    break
+                end
+            end
+            if has_copper then break end
+        end
+        self.has_copper = has_copper
+
 	    -- auxForever: rows show units for sale (see quantity_column), so total units per item
 	    for _, v in ipairs(self.rowInfo) do
             local totalUnits, totalPlayerUnits = 0, 0
@@ -784,6 +804,7 @@ local methods = {
 		    row:Hide()
 	    end
         local rowIndex = 1 - FauxScrollFrame_GetOffset(self.scrollFrame)
+        money.set_full_parts(self.has_copper)
         for _, v in ipairs(self.rowInfo) do
             if self.expanded[v.expandKey] then
                 for j, childInfo in ipairs(v.children) do
@@ -795,6 +816,7 @@ local methods = {
                 rowIndex = rowIndex + 1
             end
         end
+        money.set_full_parts(false)
     end,
 
     SetRowInfo = function(self, rowIndex, record, units, own_units, indented, expandable, expandKey)

@@ -147,3 +147,10 @@ function extend_tooltip(tooltip, link, quantity)
 --    end
     tooltip:Show()
 end
+
+-- auxForever: /aux memory detail
+function M.memory_counts()
+    local n = 0
+    for _ in pairs(auctionable_cache) do n = n + 1 end
+    return n
+end

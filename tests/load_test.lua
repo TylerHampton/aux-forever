@@ -656,6 +656,16 @@ try('table columns', function()
   rt:SetDatabase({{commodity = true, count = 20, item_key = 'a', search_signature = 'a1', name = 'A', requirement = 0, unit_buyout_price = 7, buyout_price = 140, unit_bid_price = 0, bid_price = 0, duration = 2},
                   {count = 1, auction_count = 3, item_key = 'b', search_signature = 'b1', name = 'B', requirement = 10, unit_buyout_price = 900, buyout_price = 900, unit_bid_price = 500, bid_price = 500, high_bid = 0, duration = 3}})
   check('bid column shown when gear is in the results', not bid_hidden())
+  -- an auction with no starting bid shows no bid, not its buyout (Tyler, 0.4.1)
+  local bid_col
+  for i, c in ipairs(al.search_columns) do
+    if type(c.title) == 'table' and c.title[1]:find('^Auction Bid') then bid_col = i end
+  end
+  local bcell = {text = new_frame()}
+  al.search_columns[bid_col].fill(bcell, {count = 1, unit_buyout_price = 1200, buyout_price = 1200, unit_bid_price = 1200, bid_price = 1200, high_bid = 0})
+  check('bid column: buyout only shows ---', bcell.text.__text == '---')
+  al.search_columns[bid_col].fill(bcell, {count = 1, unit_buyout_price = 1200, buyout_price = 1200, unit_bid_price = 800, bid_price = 800, high_bid = 0})
+  check('bid column: a real starting bid shows', tostring(bcell.text.__text):find('^8') ~= nil)
 end)
 
 -- Post price lists: units for sale, time left, price, % of usual
@@ -1613,6 +1623,8 @@ try('/aux memory', function()
   check('memory is measured when asked', updated == true)
   check('memory report in MB with the history size', report:find('uses 3.5 MB of memory; price history for %d+ items') ~= nil)
   check('memory report says what is left after a cleanup', report:find('After a cleanup: 3.5 MB', 1, true) ~= nil)
+  local detail = slash.memory_detail()
+  check('memory detail: one line per store', #detail == 6 and detail[1]:find('^Sniper: %d+ items known') ~= nil and detail[6]:find('^Events: %d+ listeners') ~= nil)
   G.UpdateAddOnMemoryUsage, G.GetAddOnMemoryUsage = nil, nil
 end)
 
@@ -1742,6 +1754,65 @@ try('per-frame work 0.4', function()
 end)
 
 
+-- Tyler, 0.4.1: the buy bar offered 20 Ironweb Spider Silk on the Sniper where only 7 were a deal,
+-- and the buy did not go through while rounds kept running
+try('sniper: only deal-priced units to buy, rounds wait while buying', function()
+  local aux_require = loadstring("select(2, ...) 'aux.test47'; return require")('auxForever', addon)
+  local aux = aux_require 'aux'
+  local buy_bar = aux_require 'aux.gui.buy_bar'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local items = {
+    {id = 501, name = 'Ironweb Spider Silk', commodity = true, stack = 20, min = 2499, qty = 25, sell = 2500,
+      auctions = {{buyout = 2499, qty = 7}, {buyout = 2550, qty = 18}}},
+  }
+  local run, restore = fake_ah(items)
+  aux.account_data.sniper_profit = 1
+  sniper.clear_deals()
+  aux.set_tab(2)
+  local r0 = sniper.round
+  sniper.start()
+  for _ = 1, 200 do run(1) if sniper.round > r0 then break end end
+  local deal = sniper.deals[1]
+  local units = 0
+  for _, tier in ipairs(deal and deal.deal_tiers or {}) do units = units + tier.count end
+  check('sniper: only the units below vendor price can be bought', deal and units == 7)
+  local real_busy = buy_bar.busy
+  rawset(buy_bar, 'busy', function() return true end)
+  local r1 = sniper.round
+  run(60)
+  check('sniper: no round while a purchase is under way', sniper.round == r1 and not sniper.active)
+  check('sniper: the status says it waits', select(2, sniper.status()) == 'waits while you buy')
+  rawset(buy_bar, 'busy', real_busy)
+  run(60)
+  check('sniper: rounds go on after the purchase', sniper.round > r1)
+  sniper.stop()
+  aux.account_data.sniper_profit = 500
+  sniper.clear_deals()
+  aux.set_tab(1)
+  restore()
+end)
+
+-- Tyler, 0.4.1: after a full scan (69,591 auctions) aux held 42 MB after a cleanup: the Post tab kept
+-- the listings of every item. It keeps only the items in the bags now.
+try('full scan keeps Post listings for bag items only', function()
+  local req = loadstring("select(2, ...) 'aux.test46'; return require")('auxForever', addon)
+  local info = req 'aux.util.info'
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local real_inventory, real_container = info.inventory, info.container_item
+  rawset(info, 'inventory', function()
+    local done = false
+    return function() if not done then done = true return {0, 1} end end
+  end)
+  rawset(info, 'container_item', function() return {item_key = '111:0'} end)
+  post.clear_auctions()
+  post.record_scanned_auction({item_key = '111:0', commodity = true, unit_buyout_price = 50, count = 5, duration = 2, owner = 'Someone'})
+  post.record_scanned_auction({item_key = '222:0', commodity = true, unit_buyout_price = 70, count = 9, duration = 2, owner = 'Someone'})
+  check('full scan: an item in the bags keeps its listings', post.listings_known('111:0'))
+  check('full scan: an item not in the bags is not kept', not post.listings_known('222:0'))
+  rawset(info, 'inventory', real_inventory); rawset(info, 'container_item', real_container)
+  post.clear_auctions()
+end)
+
 -- Tyler, 0.4.1: prices read "7s", not "7s 00c"
 try('money without zero parts', function()
   local req = loadstring("select(2, ...) 'aux.test45'; return require")('auxForever', addon)
@@ -1754,6 +1825,25 @@ try('money without zero parts', function()
   check('money: 0c', plain(0) == '0c')
   check('money: 3g', plain(30000) == '3g')
   check('money: negative', plain(-700) == '-7s')
+  -- Tyler: in a column of copper prices "1s" broke the line-up; tables with copper keep all parts
+  money.set_full_parts(true)
+  check('money in a table with copper: 1s 00c', plain(100) == '1s 00c')
+  money.set_full_parts(false)
+  check('money outside tables stays short', plain(100) == '1s')
+  local al = req 'aux.gui.auction_listing'
+  local buyout_col
+  for i, c in ipairs(al.search_columns) do
+    if type(c.title) == 'table' and c.title[1]:find('^Auction Buyout') then buyout_col = i end
+  end
+  local rt = al.new(new_frame(), 19, al.search_columns)
+  local function rec(key, price) return {count = 1, item_key = key, search_signature = key, name = key, requirement = 0, unit_buyout_price = price, buyout_price = price, unit_bid_price = 0, bid_price = 0, high_bid = 0, duration = 2} end
+  rt:SetDatabase({rec('a', 47), rec('b', 100)})
+  check('table with copper: every price keeps its copper', rt.has_copper == true)
+  rt:SetDatabase({rec('c', 1200), rec('d', 1500)})
+  check('table without copper: prices stay short', rt.has_copper == false)
+  rt.has_copper = true
+  rt:UpdateRows()
+  check('the table leaves short prices for everything else', plain(100) == '1s')
 end)
 
 try('per-frame work 0.4.1', function()

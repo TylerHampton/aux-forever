@@ -280,7 +280,7 @@ do
             on_auction = function(auction_record, total)
                 count = count + 1
                 status_bar:update_status(count / total, 0)
-                post.record_auction(auction_record)
+                post.record_scanned_auction(auction_record)
             end,
             on_abort = function()
                 status_bar:update_status(1, 1)
