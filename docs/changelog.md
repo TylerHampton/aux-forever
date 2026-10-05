@@ -5,8 +5,9 @@ CurseForge file's changelog box.
 
 ## 0.2.1 (2026-10-05)
 
-First release since 0.1.1: it also brings everything listed under 0.2 below (the new Filter
-Builder, the default duration setting and the favorites fix).
+First release since 0.1.1, so it also brings everything from 0.2: the new Filter Builder
+(conditions in plain words, Match All or Any, "not", groups inside groups, an "In words" line,
+kept in sync with the search bar), the default duration setting and the favorites fix.
 
 - Post tab: trade goods have one Quantity box instead of Stack size and Stacks. Forever posts a
   trade good as one listing of any size, so Max now posts everything you have.
