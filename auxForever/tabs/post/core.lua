@@ -294,6 +294,18 @@ function confirm_post()
     end
 end
 
+-- Bid and buyout for an item auction. The server refuses a buyout that is not above the starting bid
+-- ("Internal auction error"; Blizzard's own sell frame blocks it too), so a starting bid at or above
+-- the buyout is left out and the item is posted for buyout only, at the price the player sees.
+function M.item_post_prices(start_price, buyout_price)
+    local buyout = buyout_price > 0 and round_price(buyout_price) or nil
+    local bid = round_price(max(1, start_price))
+    if buyout and bid >= buyout then
+        bid = nil
+    end
+    return bid, buyout
+end
+
 -- Forever: commodities are posted as one listing of (stack size x stack count) units at a unit price;
 -- other items are posted as one auction per item.
 function post_auction()
@@ -324,12 +336,12 @@ function post_auction()
         end
         posting = 'single'
     else
-        local buyout = get_unit_buyout_price() > 0 and round_price(get_unit_buyout_price()) or nil
+        local bid, buyout = item_post_prices(get_unit_start_price(), get_unit_buyout_price())
         post = {
             location = location,
             duration = duration,
             quantity = stack_count,
-            bid = round_price(max(1, get_unit_start_price())),
+            bid = bid,
             buyout = buyout,
         }
         pending_post = post

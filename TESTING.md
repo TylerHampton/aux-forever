@@ -53,6 +53,8 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
 - [ ] Pick a trade good. Only the buyout price box shows. Existing auctions load on the right.
 - [ ] Post a small amount. It appears on the auction house.
 - [ ] Pick a piece of gear. Starting price and buyout both show. Post it.
+- [ ] Gear with the starting bid equal to the buyout (the default) posts without "Internal auction
+      error" and shows up for buyout only. With a lower starting bid it can be bid on.
 - [ ] The deposit amount looks right compared to the Blizzard window.
 
 ## 6. Auctions tab

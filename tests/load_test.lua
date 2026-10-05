@@ -675,4 +675,36 @@ try('post listing columns', function()
 end)
 
 fire('AUCTION_HOUSE_CLOSED')
+-- Posting gear: the server refuses a buyout that is not above the starting bid ("Internal auction
+-- error"), so a bid equal to the buyout is left out and the item goes up for buyout only.
+try('post item prices', function()
+  local require = loadstring("select(2, ...) 'aux.test15'; return require")('auxForever', addon)
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  post.selected_item = {key = '5210:0', item_id = 5210, name = 'Blazing Wand', quality = 2, count = 1, max_stack = 1}
+  local bid, buyout = post.item_post_prices(700, 700)
+  check('bid equal to buyout: buyout only', bid == nil and buyout == 700)
+  bid, buyout = post.item_post_prices(900, 700)
+  check('bid above buyout: buyout only', bid == nil and buyout == 700)
+  bid, buyout = post.item_post_prices(500, 700)
+  check('bid below buyout is kept', bid == 500 and buyout == 700)
+  bid, buyout = post.item_post_prices(500, 0)
+  check('no buyout: bid only', bid == 500 and buyout == nil)
+
+  -- the post itself sends no bid when it would equal the buyout
+  local args
+  local real_post, real_find = C_AuctionHouse.PostItem, post.find_item_location
+  C_AuctionHouse.PostItem = function(...) args = {n = select('#', ...), ...} return false end
+  post.find_item_location = function() return 'bag slot' end
+  rawset(post.stack_count_input, 'GetNumber', function() return 1 end)
+  rawset(post.duration_dropdown, 'GetIndex', function() return 2 end)
+  post.set_unit_start_price(700)
+  post.set_unit_buyout_price(700)
+  post.post_auction()
+  check('PostItem called for gear', args ~= nil)
+  check('PostItem gets no bid when it equals the buyout', args and args[4] == nil and args[5] == 700)
+  C_AuctionHouse.PostItem, post.find_item_location = real_post, real_find
+  rawset(post.stack_count_input, 'GetNumber', nil); rawset(post.duration_dropdown, 'GetIndex', nil)
+  post.selected_item = nil
+end)
+
 print('done, errors: ' .. errors)

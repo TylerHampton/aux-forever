@@ -33,6 +33,12 @@ Last updated at the end of the first session (2026-10-04).
 Public since 2026-10-04. All work is on `claude/modest-volta-4mgmsb` (PR #1); `main` still holds
 only the initial commit until Tyler merges, so a download of `main` is not auxForever yet.
 
+## Fixed in 0.1.1
+
+- Posting gear failed with "Internal auction error" when the starting bid equalled the buyout
+  (the default). The game needs the buyout above the bid; an equal or higher bid is now left out and
+  the item is posted for buyout only. Found by Tyler's brother with a Blazing Wand.
+
 ## Recent decisions
 
 - Undercut mode starts off every time the auction house opens (Tyler: never remembered).

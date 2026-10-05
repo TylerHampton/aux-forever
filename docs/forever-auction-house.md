@@ -87,6 +87,10 @@ visible confirmation, but gives no evidence. **Unverified**; needs an in-game te
 - Items: `PostItem(location, duration, quantity, bid, buyout)`. Prices are per item. Posting a
   quantity above 1 creates that many separate auctions ("multisell", with
   `AUCTION_MULTISELL_START/UPDATE/FAILURE`). Bid is optional and off by default.
+- The buyout must be above the starting bid. Blizzard's sell frame refuses `buyout <= bid`
+  (`AUCTION_HOUSE_SELL_FRAME_ERROR_BUYOUT`), and on Forever posting a green wand with bid equal to
+  buyout gave "Internal auction error" (Tyler's brother, 2026-10-05). auxForever leaves the bid out
+  in that case, so the item goes up for buyout only.
 - Commodities: `PostCommodity(location, duration, quantity, unitPrice)`.
 - Either can return "needs confirmation". The server then sends `AUCTION_HOUSE_POST_WARNING`
   or `AUCTION_HOUSE_POST_ERROR`, and `ConfirmPostItem`/`ConfirmPostCommodity` completes it from a click.
