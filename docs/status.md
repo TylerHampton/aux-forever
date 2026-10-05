@@ -9,13 +9,26 @@ Last updated 2026-10-05 (before a context compaction of Claude's session).
 - Versioning decision (2026-10-05): fixes to an unreleased version go into that version, so the
   build 2 and 3 fixes are part of 0.4, not 0.4.1. 0.4.1 is for fixes after 0.4 is released.
 - **Now: 0.4.1** on branch `claude/modest-volta-4mgmsb` (restarted from `main` after the 0.4
-  merge), TOC `forever-0.4.1`. Plan in `docs/roadmap.md` (0.4.1): performance first, then
+  merge), TOC `forever-0.4.1`, test build 3 out. Plan in `docs/roadmap.md` (0.4.1): performance first, then
   common-sense UX (list to agree with Tyler, mockups for visual changes). Done so far: login item
   walk (`fetch_item_data`) skips non-items and pauses every 500 numbers, `core/crafting.lua`
   removed, the per-frame audit (Saved Searches, Bids tab, quick menu rows fixed), tests run once
   per change on GitHub. In-game checks: `TESTING.md` (Current build) and the test page
   https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ, where Tyler marks each step; read the results
-  with ArtifactData, collection `builds/0-4-1-dev2/results` (one document per step id).
+  with ArtifactData, collection `builds/0-4-1-dev<N>/results` (one document per step id; notes
+  and screenshot asset ids, which `Artifact` read with `path` = the id downloads).
+- Build 2 results (Tyler, 2026-10-05): a full scan left 42.3 MB after a cleanup (Post tab kept
+  every item's listings; fixed in build 3, only bag items now). Sniper "after a cleanup" grew
+  12.9 MB (round 29) to 19.1 MB (round 41) with only the Sniper running and a deal selected; the
+  harness does not repeat it (flat over 80 rounds with deals, selection and moving prices), so
+  build 3 adds `/aux memory detail` (entry counts per store) and asks for round 10 and 40 with
+  nothing selected. Sniper buy bar offered non-deal units of a trade good (fixed: deal tiers
+  filtered by the rule) and the buy did not go through (unknown; rounds now pause while the buy
+  bar is busy; the Confirm click may have been missed). Prices: Tyler wants copper kept in
+  tables for alignment (done: full parts when any price in the table has copper). Auction Bid
+  showed the buyout on buyout-only auctions (now "---"). Resize corner jumps on a single click:
+  not reproduced, details asked in build 3's page. Posting bid = buyout posts buyout only, as
+  designed; the test step had asked for a lower bid.
 - 0.4 release (2026-10-05): Tyler approved it after build 5, with one last change: the recipe
   cost line moved from the line next to the sub tabs (crowded, cut off) to the bottom bar right of
   Clear, in shorter words (`recipe_label` in `tabs/search/frame.lua`, set in

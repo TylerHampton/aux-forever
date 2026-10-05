@@ -8,50 +8,40 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.4.1, test build 2
+## Current build: 0.4.1, test build 3
 
-Full game restart needed (a file was removed).
+A /reload is enough. Build 2's results (saved on the test page) led to these fixes.
 
 **Before you start**
-- [ ] 1. Install build 2 and restart the game. No BugSack error; chat says auxForever loaded.
-- [ ] 2. `/aux memory` right after login. The line ends in "item list N items" (maybe "still
-      checking"). Note the line.
-- [ ] 3. `/aux`: the settings list has no "crafting cost" line.
+- [ ] 1. Install build 3. No BugSack error.
+- [ ] 2. `/aux memory detail` right after login: seven lines (memory, Sniper, History, Search, Post,
+      Tooltips, Events). Screenshot them.
 
 **Prices**
-- [ ] 4. Search linen cloth, look at the buy bar and the Post tab too: prices read "7s" or
-      "1g 92s", never "7s 00c". Prices with copper still show it ("1s 23c").
+- [ ] 3. Search linen cloth (Full): every price shows its copper, "1s 00c" included. Search
+      medicine staff (no copper anywhere): prices read "12s".
+- [ ] 4. The buy bar and the recipe cost line read short ("Buy for 12s").
 
 **Search**
-- [ ] 5. Fast on, search `15/25/usable/armor/cloth/uncommon`: note whether gear rows show the
-      suffix ("of the Owl").
-- [ ] 6. Saved Searches: Alt-drag a favorite to another place. It moves and stays.
-- [ ] 7. Clock button: the pin on a recent search appears on hover and stays over the pin itself.
-
-**Recipes**
-- [ ] 8. Search in aux from a profession window: the cost is in the bottom bar right of Clear;
-      the line next to the sub tabs shows only counts.
-- [ ] 9. Narrow window: the cost line ends in "..." and never covers the credit text.
-- [ ] 10. Shift-click a recipe: only Blizzard's own action, no aux search.
+- [ ] 5. Medicine staff: Auction Bid shows "---" for auctions with no starting bid.
+- [ ] 6. Fast lit, search medicine staff (no /exact): do rows show "of the Boar" style names?
 
 **Sniper**
-- [ ] 11. Gone deals sit below every deal you can still buy.
-- [ ] 12. Buy a cheap deal: bought at the shown price, arrives by mail.
-- [ ] 13. `/aux memory` at round 10. Note the line.
-- [ ] 14. `/aux memory` at round 40. "After a cleanup" close to round 10's. Note the line.
+- [ ] 7. A trade good deal: the buy bar's "for sale" matches the table; no bigger button.
+- [ ] 8. Buy a deal: Buy, then Confirm. The status says "waits while you buy"; it arrives by mail.
+- [ ] 9. `/aux memory detail` at round 10, nothing selected. Screenshot.
+- [ ] 10. `/aux memory detail` at round 40, nothing selected. Screenshot.
 
-**Post**
-- [ ] 15. An item only in the reagent bag is listed and posts.
-- [ ] 16. A green item with a bid lower than its buyout posts without an error.
+**Full scan**
+- [ ] 11. Full scan, then `/aux memory detail`: "After a cleanup" far below build 2's 42.3 MB.
 
-**Auctions and Bids**
-- [ ] 17. Cancel undercut on a real undercut auction: "Cancelled, comes by mail", item arrives.
-- [ ] 18. Bid on a cheap item: it shows on the Bids tab; Bid and Buyout follow the selected row.
+**Window**
+- [ ] 12. Click the resize corner once, a few times: does it jump? Every time? Which way? Scale
+      from `/aux`? Screenshots before and after.
 
-**Other**
-- [ ] 19. Full scan once: it finishes without an error.
-- [ ] 20. Filter Builder: each dropdown opens and picks a value.
-- [ ] 21. `/aux memory` about 10 minutes after login: "still checking" is gone. Note the line.
+**When you get to it**
+- [ ] 13. Cancel undercut on a real undercut auction: "Cancelled, comes by mail", item arrives.
+- [ ] 14. Bid on an auction whose Auction Bid is a price below its buyout: it shows on Bids.
 
 ## Before every release: the quick run
 
