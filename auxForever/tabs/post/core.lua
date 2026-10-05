@@ -431,7 +431,10 @@ function M.price_note_text()
 end
 
 -- the Post button fades when it cannot be used, since its amber color would otherwise look ready
+local post_enabled
 local function set_post_enabled(enabled)
+    if enabled == post_enabled then return end
+    post_enabled = enabled
     if enabled then
         post_button:Enable()
         post_button:SetAlpha(1)
@@ -817,8 +820,11 @@ function M.record_auction(auction)
     end
 end
 
+-- auxForever: the Post button is checked (price boxes read, deposit asked from the game) five times
+-- a second and after every change, not every frame as before
 function on_update()
     auto_pick_price()
+    local changed = refresh
     if refresh then
         refresh = false
         price_update()
@@ -826,7 +832,10 @@ function on_update()
         update_inventory_listing()
         update_auction_listings()
     end
-    validate_parameters()
+    if changed or GetTime() >= (next_validate or 0) then
+        next_validate = GetTime() + .2
+        validate_parameters()
+    end
 end
 
 function M.set_undercut_mode(enabled)

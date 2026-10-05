@@ -1565,4 +1565,49 @@ try('post: next item after posting', function()
   check('post: nothing after the last item', post.next_item_after('Delta', 'd:0', list) == nil)
 end)
 
+
+try('per-frame work 0.4', function()
+  local require = loadstring("select(2, ...) 'aux.test40'; return require")('auxForever', addon)
+  -- tooltips: whether an item can be auctioned is read from a hidden tooltip once per item
+  local tooltip = loadstring("select(2, ...) 'aux.core.tooltip'; return _M")('auxForever', addon)
+  local built = 0
+  rawset(AuxTooltip, 'SetHyperlink', function() built = built + 1 end)
+  rawset(AuxTooltip, 'NumLines', function() return 0 end)
+  local item_info = {link = 'item:4000', quality = 1}
+  tooltip.is_auctionable(4000, item_info); tooltip.is_auctionable(4000, item_info); tooltip.is_auctionable(4000, item_info)
+  check('an item tooltip is scanned once, not on every hover', built == 1)
+  rawset(AuxTooltip, 'SetHyperlink', nil); rawset(AuxTooltip, 'NumLines', nil)
+
+  -- Post tab: the Post button is checked a few times a second, not every frame
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local real_validate, validations = post.validate_parameters, 0
+  post.validate_parameters = function() validations = validations + 1 end
+  post.refresh = false
+  for _ = 1, 20 do post.on_update() end
+  check('Post tab: not validated every frame', validations <= 1)
+  post.validate_parameters = real_validate
+
+  -- buy bar: its texts refresh ten times a second, not every frame
+  local bar = require 'aux.gui.buy_bar'
+  local refreshed = 0
+  bar.show_item{record = {buyout_price = 100, bid_price = 50, count = 1, auction_count = 1}, name = 'Test', busy = function() refreshed = refreshed + 1 return false end, on_buy = function() end, on_bid = function() end}
+  refreshed = 0
+  for _ = 1, 20 do bar.frame.__scripts.OnUpdate(bar.frame) end
+  check('buy bar: not refreshed every frame', refreshed <= 2)
+  bar.clear()
+
+  -- price history: a price that is not a new daily low does not unpack the saved history
+  local history = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local real_data, reads = history.data, 0
+  history.data = setmetatable({}, {__index = function(_, k) reads = reads + 1 return real_data[k] end, __newindex = function(_, k, v) real_data[k] = v end})
+  local function auction(price) return {item_key = '4321:0', buyout_price = price, count = 1} end
+  history.process_auction(auction(500))
+  local after_first = reads
+  for _ = 1, 10 do history.process_auction(auction(600)) end
+  check('history: higher prices do not unpack the saved history', reads == after_first)
+  history.process_auction(auction(400))
+  check('history: a new low is still recorded', history.market_value('4321:0') == 400)
+  history.data = real_data
+end)
+
 print('done, errors: ' .. errors)

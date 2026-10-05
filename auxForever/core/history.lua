@@ -44,13 +44,30 @@ function write_record(item_key, record)
 	end
 end
 
+-- auxForever: a scan sees every auction, and aux unpacked and repacked the item's saved history for
+-- each one. Today's lowest price per item is kept in memory (one number per item seen today), so
+-- the saved text is only touched when a price is a new low for the day.
+local today_min, today_until = {}, 0
+
 function M.process_auction(auction_record)
-	local item_record = read_record(auction_record.item_key)
 	local unit_buyout_price = ceil(auction_record.buyout_price / auction_record.count)
-	if unit_buyout_price > 0 and unit_buyout_price < (item_record.daily_min_buyout or math.huge) then
-		item_record.daily_min_buyout = unit_buyout_price
-		write_record(auction_record.item_key, item_record)
+	if unit_buyout_price <= 0 then
+		return
 	end
+	if time() >= today_until then
+		today_min, today_until = {}, get_next_push()
+	end
+	local key = auction_record.item_key
+	local known = today_min[key]
+	if known and unit_buyout_price >= known then
+		return
+	end
+	local item_record = read_record(key)
+	if unit_buyout_price < (item_record.daily_min_buyout or math.huge) then
+		item_record.daily_min_buyout = unit_buyout_price
+		write_record(key, item_record)
+	end
+	today_min[key] = item_record.daily_min_buyout or unit_buyout_price
 end
 
 function M.data_points(item_key)

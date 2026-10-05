@@ -62,11 +62,26 @@ function aux.event.AUX_LOADED()
     end)
 end
 
+-- auxForever: whether an item can be auctioned is read from a hidden tooltip of the item, which
+-- the game has to build. aux did that on every hover of every item, anywhere in the game; the
+-- answer never changes for an item, so it is kept (one entry per item hovered).
+local auctionable_cache = {}
+
+function M.is_auctionable(item_id, item_info)
+    local known = auctionable_cache[item_id]
+    if known == nil then
+        known = info.auctionable(info.tooltip('link', item_info.link), item_info.quality) and true or false
+        auctionable_cache[item_id] = known
+    end
+    return known
+end
+
 function extend_tooltip(tooltip, link, quantity)
     local item_id, suffix_id = info.parse_link(link)
     quantity = IsShiftKeyDown() and quantity or 1
     local item_info = info.item(item_id)
-    if item_info then
+    -- auxForever: the disenchant table is only worked out when one of its lines is shown
+    if item_info and (settings.disenchant_distribution or settings.disenchant_value) then
         local distribution = disenchant.distribution(item_info.slot, item_info.quality, item_info.level)
         if #distribution > 0 then
             if settings.disenchant_distribution then
@@ -106,7 +121,7 @@ function extend_tooltip(tooltip, link, quantity)
             end
         end
     end
-    local auctionable = not item_info or info.auctionable(info.tooltip('link', item_info.link), item_info.quality)
+    local auctionable = not item_info or is_auctionable(item_id, item_info)
     local item_key = (item_id or 0) .. ':' .. (suffix_id or 0)
     local value = history.value(item_key)
     if auctionable then

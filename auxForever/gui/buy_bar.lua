@@ -489,6 +489,7 @@ end
 function M.create(parent)
     default_parent = parent
     bar = CreateFrame('Frame', nil, parent, 'BackdropTemplate')
+    M.frame = bar
     gui.set_frame_style(bar, aux.color.panel.background, aux.color.panel.border)
     bar:SetBackdropColor(.105, .10, .09, 1)
     bar:SetBackdropBorderColor(.23, .20, .15, 1)
@@ -498,7 +499,11 @@ function M.create(parent)
     bar:SetScript('OnHide', function()
         reset()
     end)
+    local next_update = 0
     bar:SetScript('OnUpdate', function()
+        -- auxForever: ten times a second is plenty for the texts and the quote timer (was every frame)
+        if mode == NONE or GetTime() < next_update then return end
+        next_update = GetTime() + .1
         -- a quote only lasts a short time; a lost server answer must not leave the bar stuck
         if mode == COMMODITY and state == QUOTED and C_AuctionHouse.GetQuoteDurationRemaining() == 0 then
             reset({'The price quote expired', 'Nothing was bought'}, aux.color.red)
