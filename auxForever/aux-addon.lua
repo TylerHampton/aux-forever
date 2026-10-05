@@ -206,6 +206,20 @@ end
 -- because hiding it closes the auction house. Instead it is kept invisible behind aux.
 do
     local blizzard_visible = false
+    local HIDDEN_SCALE = .01
+
+    -- The game lays out its side windows (UIParentPanelManager) with offsets divided by the
+    -- window's scale. Any layout while the Blizzard window is shrunk (opening the character sheet,
+    -- spellbook, a vendor...) therefore puts it 100 times too far away, off screen, and growing
+    -- it back left it there: the Blizzard UI button seemed to do nothing. Bring such an anchor
+    -- back to what the layout meant.
+    function M.fix_blizzard_frame_position()
+        local point, relative_to, relative_point, x, y = AuctionHouseFrame:GetPoint(1)
+        if point and y and abs(y) > UIParent:GetHeight() then
+            AuctionHouseFrame:ClearAllPoints()
+            AuctionHouseFrame:SetPoint(point, relative_to, relative_point, x * HIDDEN_SCALE, y * HIDDEN_SCALE)
+        end
+    end
 
     function M.blizzard_frame_shown()
         return blizzard_visible
@@ -216,14 +230,15 @@ do
         blizzard_visible = shown
         if shown then
             AuctionHouseFrame:SetScale(1)
+            fix_blizzard_frame_position()
+            -- never off screen, whatever moved it
+            AuctionHouseFrame:SetClampedToScreen(true)
             AuctionHouseFrame:SetAlpha(1)
             AuctionHouseFrame:EnableMouse(true)
-            -- both windows sit in the same layer, and whichever was shown or clicked last is on
-            -- top. Without this the Blizzard window often opened behind aux and looked like
-            -- nothing happened, depending on which of the two the game showed first.
+            -- both windows sit in the same layer, and whichever was shown or clicked last is on top
             AuctionHouseFrame:Raise()
         else
-            AuctionHouseFrame:SetScale(.01)
+            AuctionHouseFrame:SetScale(HIDDEN_SCALE)
             AuctionHouseFrame:SetAlpha(0)
             AuctionHouseFrame:EnableMouse(false)
         end

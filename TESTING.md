@@ -192,7 +192,10 @@ Needs a full game restart (a new texture was added), not just `/reload`.
 Blizzard UI button
 - [ ] Click Blizzard UI several times, also right after clicking around in aux: the Blizzard
       window opens in front every time, and the button is lit while it is open. Click it again to
-      hide it. If it ever fails, note what you clicked just before.
+      hide it.
+- [ ] With the auction house open and the Blizzard window hidden, open and close the character
+      sheet (C) and the spellbook (P). Then click Blizzard UI: it still appears on screen (this
+      used to send it off screen). If it ever fails, note what you opened just before.
 
 Post tab: trade goods
 - [ ] Pick a trade good you have more than one stack of (e.g. 29 Blood Shards). There is one

@@ -12,8 +12,9 @@ CurseForge file's changelog box.
   magnifier.
 - Filter Builder: a Match All / Any switch is faded while it has fewer than two conditions under
   it, and the builder keeps your groups when you leave it and come back.
-- Blizzard UI button: the Blizzard window now always opens in front of aux, and the button is lit
-  while it is shown.
+- Blizzard UI button: the Blizzard window could end up off screen after opening another game
+  window (character sheet, spellbook, a vendor), so the button seemed to do nothing. It now
+  always opens on screen and in front of aux, and the button is lit while it is shown.
 - Needs a full game restart after updating (a new icon was added).
 
 ## 0.2 (2026-10-05)
