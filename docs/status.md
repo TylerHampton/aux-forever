@@ -47,6 +47,11 @@ Last updated at the end of the first session (2026-10-04).
    the slash-only `/aux scale`, whose saved value was never applied after a reload before. The
    resize corner anchors the window by its top left before sizing: it started out anchored by its
    left edge, and sizing from the corner then could jump to full screen on one click (Tyler).
+   Code review (2026-10-05): client-side work is small; slowness is mostly one server request per
+   item. Two waits in `core/scan.lua` may add to it: 1s before using results the client already
+   holds when no event comes, and 20s when no answer comes at all. `/aux debug` (search timing
+   log, `timing_report` in scan.lua) measures this; decide on shortening the waits from Tyler's
+   numbers. Also planned: refresh the results table a few times a second instead of per item.
 4. Not yet tested in game: Auctions tab cancel, Bids tab, full scan, posting gear with a bid,
    Filter Builder dropdowns after the dropdown fix. See `TESTING.md`.
 5. Later: Tyler sends Simon (shirsig) the project to review before it goes public. The GitHub

@@ -18,6 +18,9 @@ function SlashCmdList.AUX(command)
     if arguments[1] == 'scale' and tonumber(arguments[2]) then
 	    aux.change_window_scale(tonumber(arguments[2]))
 	    aux.print('scale ' .. aux.color.blue(floor(aux.account_data.scale * 100 + .5) .. '%') .. ' (70% to 150%)')
+    elseif arguments[1] == 'debug' then
+        aux.account_data.debug_timing = not aux.account_data.debug_timing
+        aux.print('search timing log ' .. status(aux.account_data.debug_timing) .. (aux.account_data.debug_timing and ': a summary prints in chat after each search' or ''))
     elseif arguments[1] == 'ignore' and arguments[2] == 'owner' then
 	    aux.account_data.ignore_owner = not aux.account_data.ignore_owner
         aux.print('ignore owner ' .. status(aux.account_data.ignore_owner))
@@ -98,6 +101,7 @@ function SlashCmdList.AUX(command)
 		aux.print('- tooltip disenchant distribution [' .. status(tooltip_settings.disenchant_distribution) .. ']')
         aux.print('- tooltip money icons [' .. status(tooltip_settings.money_icons) .. ']')
 		aux.print('- clear item cache')
+		aux.print('- debug [' .. status(aux.account_data.debug_timing) .. '] (search timing log)')
         aux.print('- clear post')
     end
 end

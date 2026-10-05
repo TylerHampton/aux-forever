@@ -986,4 +986,54 @@ try('settings scale and resize corner', function()
   rawset(a.frame, 'SetPoint', nil); rawset(a.frame, 'StartSizing', nil)
 end)
 
+-- Search timing log (/aux debug): the summary says where a search's time went
+try('search timing log', function()
+  local scan = loadstring("select(2, ...) 'aux.core.scan'; return _M")('auxForever', addon)
+  local t = scan.new_timing()
+  t.items, t.event, t.cached, t.timeout, t.dropped = 400, 380, 18, 2, 3
+  t.browse, t.answer, t.throttle, t.item_data = 2, 150, 10, 5
+  t.slow = {{name = 'Ritual Sandals', seconds = 21}, {name = 'Seer\'s Pants', seconds = 2}}
+  local lines = scan.timing_report(t, 200)
+  check('total and per item', lines[1] == 'Search timing: 3m 20s for 400 items, 0.50s each')
+  check('where the time went', lines[2] == 'Waiting: item list 2.0s, server answers 2m 30s, throttle 10.0s, item data 5.0s, other 33.0s')
+  check('how answers came', lines[3] == 'Answers: 380 on time, 18 after the 1s fallback, 2 timed out (20s each), 3 dropped and resent')
+  check('slowest items first', lines[4] == 'Slowest: Ritual Sandals 21.0s, Seer\'s Pants 2.0s')
+  check('stopped searches say so', scan.timing_report(scan.new_timing(), 1, true)[1]:find('(stopped)', 1, true) ~= nil)
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local before = a.account_data.debug_timing
+  SlashCmdList.AUX('debug')
+  check('/aux debug switches it', a.account_data.debug_timing == not before)
+  SlashCmdList.AUX('debug')
+end)
+
+-- The timing log during a real search run: an item whose answer never comes as an event is
+-- counted as answered after the 1s fallback, and the summary prints when the search ends
+try('search timing during a search', function()
+  local scan = loadstring("select(2, ...) 'aux.core.scan'; return _M")('auxForever', addon)
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local printed = {}
+  local real_add = DEFAULT_CHAT_FRAME.AddMessage
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', function(_, text) tinsert(printed, text) end)
+  local saved = {}
+  for k, v in pairs{GetItemKeyInfo = function() return {isCommodity = false, itemName = 'Test Item'} end,
+                    HasSearchResults = function() return true end, HasFullItemSearchResults = function() return true end,
+                    GetNumItemSearchResults = function() return 0 end} do
+    saved[k] = rawget(C_AuctionHouse, k); C_AuctionHouse[k] = v
+  end
+  local cached_saved = C_Item.IsItemDataCachedByID
+  C_Item.IsItemDataCachedByID = function() return true end
+  a.account_data.debug_timing = true
+  local done
+  scan.start{type = 'list', queries = {{blizzard_query = {}, item_keys = {{itemID = 4}}}}, on_complete = function() done = true end}
+  for _ = 1, 40 do if done then break end tick() end
+  a.account_data.debug_timing = false
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', real_add)
+  for k in pairs(saved) do C_AuctionHouse[k] = saved[k] end
+  C_Item.IsItemDataCachedByID = cached_saved
+  local all = table.concat(printed, '\n')
+  check('the search finished', done)
+  check('summary printed after the search', all:find('Search timing:', 1, true) ~= nil and all:find('for 1 item,', 1, true) ~= nil)
+  check('the 1s fallback is counted', all:find('0 on time, 1 after the 1s fallback', 1, true) ~= nil)
+end)
+
 print('done, errors: ' .. errors)

@@ -113,6 +113,8 @@ from aux on Classic:
 - `/aux post bid` adds a bid price to the Post tab.
 - `/aux post duration hours` sets the default auction duration (2, 8 or 24).
 - `/aux clear item cache` rebuilds the item list used for autocompletion.
+- `/aux debug` turns the search timing log on or off: after each search, chat says where the time
+  went. Useful for bug reports about slow searches.
 
 **Tooltip**
 

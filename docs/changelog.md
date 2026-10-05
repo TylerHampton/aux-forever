@@ -15,6 +15,7 @@ CurseForge file's changelog box.
 - Settings: a Scale setting (70% to 150%), handy on large monitors, and the scale is now kept
   after a reload. The settings menu has no explanation text; the auction length setting is now
   called Default duration, like the Duration buttons on the Post tab.
+- `/aux debug` turns on a search timing log: after each search, chat shows where the time went.
 - The resize corner no longer makes the window jump to full screen on a single click.
 - Blizzard UI button: the Blizzard window could end up off screen after opening another game
   window (character sheet, spellbook, a vendor), so the button seemed to do nothing. It now

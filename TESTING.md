@@ -196,6 +196,12 @@ Settings and window
 - [ ] Single-click the resize corner (bottom right) several times, also right after logging in:
       the window never jumps. Dragging it resizes, double-click goes back to the default size.
 
+Search timing log (for measuring slow searches)
+- [ ] Type `/aux debug`: chat says the search timing log is on. Run a broad search (e.g. step 4 of
+      the test scenario). When it ends, chat shows where the time went: server answers, the 1s
+      fallback, time-outs, the slowest items. Screenshot that and send it. Run the same search a
+      second time and screenshot that too. `/aux debug` again turns it off.
+
 Blizzard UI button
 - [ ] Click Blizzard UI several times, also right after clicking around in aux: the Blizzard
       window opens in front every time, and the button is lit while it is open. Click it again to
