@@ -1,0 +1,56 @@
+name: Release
+
+# Pushing a tag like v0.2.1 publishes a GitHub Release with the installable zip attached and the
+# version's notes from docs/changelog.md. The tag must match the version in auxForever.toc.
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the tag matches the addon version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          grep -qx "## Version: forever-$version" auxForever/auxForever.toc || {
+            echo "The tag $GITHUB_REF_NAME does not match the Version line in auxForever.toc"
+            exit 1
+          }
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Install Lua 5.1
+        run: sudo apt-get update && sudo apt-get install -y lua5.1
+
+      - name: Tests
+        run: |
+          for f in $(find auxForever tests -name '*.lua'); do luac5.1 -p "$f"; done
+          cd auxForever
+          lua5.1 ../tests/load_test.lua | tee ../test-output.txt
+          tail -n 1 ../test-output.txt | grep -qx 'done, errors: 0'
+
+      - name: Package
+        run: zip -qr "auxForever-$VERSION.zip" auxForever -x '*.git*'
+
+      - name: Release notes
+        run: |
+          {
+            echo "Download **auxForever-$VERSION.zip** below, unzip it and copy the \`auxForever\` folder into \`World of Warcraft\\_classic_beta_\\Interface\\AddOns\`, replacing the old one."
+            echo
+            awk -v v="$VERSION" 'index($0, "## " v " ") == 1 {p = 1; next} /^## / && p {exit} p' docs/changelog.md
+          } > notes.md
+          cat notes.md
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: auxForever ${{ env.VERSION }}
+          body_path: notes.md
+          files: auxForever-${{ env.VERSION }}.zip
+          prerelease: true

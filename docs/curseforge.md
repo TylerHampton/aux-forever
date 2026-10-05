@@ -19,8 +19,8 @@ Project settings, modeled on shirsig's aux page:
 | Issues link | https://github.com/TylerHampton/aux-forever/issues |
 | Visibility | Unlisted for now |
 
-First file: the `auxForever` folder zipped (the zip Claude sends), display name `auxForever 0.1`,
-release type Beta.
+Each new file: the zip from the version's GitHub Release (or the zip Claude sends), display name `auxForever <version>`, release type Beta, game version
+1.60.1, and the changelog text for that version from `docs/changelog.md`.
 
 ---
 
@@ -33,9 +33,10 @@ shirsig (Simon), rebuilt to run on World of Warcraft: Forever. The search filter
 searches, price history and the way aux works are his. auxForever adapts them to Forever's modern
 auction house and gives the window a new look.
 
-## Version 0.1
+## Beta
 
-This is the first test release. Searching, buying, posting and the price history all work in game.
+auxForever is in beta. Searching, buying, posting and the price history all work in game; each
+file's changelog lists what changed.
 Please report anything that breaks on the [issue tracker](https://github.com/TylerHampton/aux-forever/issues),
 with the error text if BugSack or the game shows one. Do not report auxForever problems to Simon:
 he is not involved in this version.
@@ -75,11 +76,14 @@ from aux on Classic:
 - Concise listings: level, item, how many are for sale at that price, time left, seller, bid,
   buyout and the percentage of the usual price.
 - Sorting across all results, by unit price or by percentage of the historical value.
+- A count of the results and a summary of what they hold: price levels, items for sale and when
+  the search ran.
 - A buy bar under the results that never spends more than the price you saw.
 
 **Post**
 
 - Lists the auctionable items in your bags; hide the ones you never sell.
+- Trade goods are posted as one listing of any quantity, up to everything you have.
 - Reads the existing auctions for the item and starts at the lowest price (or one step below in
   undercut mode). Click any listing to use its price instead.
 - Shows what you get after the auction house cut, the deposit, and warns you when a vendor would pay
@@ -108,6 +112,8 @@ from aux on Classic:
 - `/aux post bid` adds a bid price to the Post tab.
 - `/aux post duration hours` sets the default auction duration (2, 8 or 24).
 - `/aux clear item cache` rebuilds the item list used for autocompletion.
+- `/aux debug` turns the search timing log on or off: after each search, chat says where the time
+  went. Useful for bug reports about slow searches.
 
 **Tooltip**
 

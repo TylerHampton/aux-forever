@@ -20,9 +20,45 @@ Last updated at the end of the first session (2026-10-04).
    and re-shown every frame, which drops clicks); needs checking in game.
 2. Done: the status bar is dim gray when idle (Tyler agreed). Gear is now priced in whole silver
    and undercut by 1 silver; needs checking in game (post a green item in undercut mode).
-3. Parts of the mockup not built yet: "Results N" count, the summary line next to the sub tabs
-   ("11 price levels, 6,180 for sale, searched 4s ago"), a search icon in the search box.
-   Column names were kept as in aux on purpose.
+3. Built in 0.2.1 (2026-10-05), tried in game by Tyler, who approved it for release: the result count on
+   the "Search Results" sub tab, the summary line next to the sub tabs ("11 price levels, 6,180 for
+   sale, searched 2m ago", Results sub tab only) and a magnifier in the search bar. The sub tab
+   buttons are narrower (200) to make room. New texture `textures/search.tga`: full restart.
+   Gemini's mockup for this (branch `gemini/search-details`, only on Tyler's PC) was not used.
+   Also in 0.2.1: trade goods on the Post tab have one Quantity box (Max = everything in the bags)
+   instead of Stack size and Stacks, since Forever posts a trade good as one listing of any size;
+   10 x 2 used to leave 9 of 29 Blood Shards behind. Stack size stays 1 internally.
+   After Tyler's test run (2026-10-05): the summary counted every auction as a "price level"
+   ("403 price levels, 403 for sale"); it now counts items ("37 items, 403 for sale") and only says
+   price levels for a one-item search. Filter Builder: All / Any switches fade with fewer than two
+   conditions under them (Tyler toggled the top switch with one group and saw no change), and the
+   builder no longer re-reads its own text when reopened, which flattened a lone group. Broad gear
+   searches are slow because Forever answers one item per request; fast mode is planned for 0.3
+   (`docs/roadmap.md`).
+   Blizzard UI button "unreliable" (Tyler; moving aux did not reveal the window, so it was not
+   just behind aux). Cause found in Blizzard's UIParentPanelManager: side windows are anchored
+   with offsets divided by the window's scale, so any panel layout while aux keeps the Blizzard
+   window shrunk to 1% (opening the character sheet, spellbook, a vendor) put it 100 times too
+   far, off screen. On showing it, aux now scales such an anchor back
+   (`fix_blizzard_frame_position` in `aux-addon.lua`), clamps it to the screen, raises it above
+   aux, and lights the button while it is shown. Not confirmed in game yet.
+   Settings (Tyler, 2026-10-05): no explanation text in the menu; "Default duration" replaces
+   "Auction length" plus its note; a Scale row (70% to 150%, 5% steps, for 1440p screens) replaces
+   the slash-only `/aux scale`, whose saved value was never applied after a reload before. The
+   resize corner anchors the window by its top left before sizing: it started out anchored by its
+   left edge, and sizing from the corner then could jump to full screen on one click (Tyler).
+   Code review (2026-10-05): client-side work is small; slowness is mostly one server request per
+   item. Two waits in `core/scan.lua` may add to it: 1s before using results the client already
+   holds when no event comes, and 20s when no answer comes at all. `/aux debug` (search timing
+   log, `timing_report` in scan.lua) measures this.
+   Measured by Tyler (step 4 of the test scenario, 335 items): 3m 13s, 0.58s per item. Throttle
+   2m 19s (72%), server answers 53s, item data 0.8s, item list 0.1s, other 0.0s. 336 answers on
+   time, none after the 1s fallback, none timed out. So the waits in our code are not the problem
+   and the addon's own work is negligible: the time goes to Blizzard's request rate limit
+   (`IsThrottledMessageSystemReady`), which allows about one item search every 0.4s. Nothing in
+   full mode can beat that; fast mode (0.3) can, since the item list itself (0.1s here) already
+   holds each item's lowest price and quantity. The waits stay as they are, and the table refresh
+   change is dropped (no measurable cost).
 4. Not yet tested in game: Auctions tab cancel, Bids tab, full scan, posting gear with a bid,
    Filter Builder dropdowns after the dropdown fix. See `TESTING.md`.
 5. Later: Tyler sends Simon (shirsig) the project to review before it goes public. The GitHub
@@ -38,7 +74,14 @@ agent (`CLAUDE.md` and `GEMINI.md` load it); `docs/gemini-setup.md` is Tyler's s
 Actions (`.github/workflows/test.yml`) runs the tests on every push and offers the addon as a
 download. Every agent: pull first, one agent per branch, update this file when done.
 
-## 0.2 (built 2026-10-05, needs testing in game: TESTING.md section 13)
+## Releases
+
+- 0.2.1 released 2026-10-05: GitHub Release `v0.2.1` (pre-release, with the zip), CurseForge
+  upload by Tyler. Includes everything from 0.2, which was not released on its own.
+- From 0.2.1 on, pushing a `v<version>` tag publishes the GitHub Release automatically
+  (`.github/workflows/release.yml`).
+
+## 0.2 (built 2026-10-05, released as part of 0.2.1)
 
 1. Settings popup: default auction length (2h/8h/24h, labels from the game). It is the existing
    `post_duration` setting: new items start at it, items posted before keep their last length.
@@ -54,9 +97,9 @@ download. Every agent: pull first, one agent per branch, update this file when d
    - The bid variants are separate menu entries rather than the Buyout / Bid switch the mockup
      mentioned. Category names still need checking against Forever's AuctionCategories in game.
      (The `<>` in the search bar is aux's label for an empty search; not a bug by itself.)
-3. Saved Searches: Favorite with an empty search bar saves an empty search (`<>`), once per click
-   (Tyler's screenshot: nine of them). Favorite should do nothing on an empty search bar and should
-   not add a search that is already a favorite.
+3. Done in 0.2: Favorite with an empty search bar used to save an empty search (`<>`), once per
+   click. Now it saves nothing on an empty search bar and never adds a search that is already a
+   favorite (`add_favorite` and `save_favorite` in `tabs/search/saved.lua`, with tests).
 
 ## Fixed in 0.1.1
 

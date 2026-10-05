@@ -11,6 +11,7 @@ local auction_listing = require 'aux.gui.auction_listing'
 local buy_bar = require 'aux.gui.buy_bar'
 
 FILTER_SPACING = 27
+SUBTAB_WIDTH = 200
 
 frame = CreateFrame('Frame', nil, aux.frame)
 frame:SetAllPoints(aux.frame.body)
@@ -162,6 +163,15 @@ do
     editbox:HookScript('OnReceiveDrag', search_cursor_item)
     editbox:HookScript('OnMouseDown', search_cursor_item)
 	search_box = editbox
+    -- auxForever: a magnifier at the start of the search bar
+    local icon = editbox:CreateTexture(nil, 'OVERLAY')
+    icon:SetTexture([[Interface\AddOns\auxForever\textures\search.tga]])
+    icon:SetSize(14, 14)
+    icon:SetPoint('LEFT', 7, 0)
+    icon:SetVertexColor(aux.color.label.enabled())
+    editbox:SetTextInsets(26, 1.5, 3, 3)
+    editbox.overlay:SetPoint('LEFT', 26, 0)
+    search_icon = icon
 end
 do
     gui.horizontal_line(frame, -40)
@@ -169,7 +179,7 @@ end
 do
     local btn = gui.button(frame, gui.font_size.large)
     btn:SetPoint('BOTTOMLEFT', aux.frame.content, 'TOPLEFT', 10, 8)
-    btn:SetWidth(243)
+    btn:SetWidth(SUBTAB_WIDTH)
     btn:SetHeight(22)
     btn:SetText('Search Results')
     btn:SetScript('OnClick', function() set_subtab(RESULTS) end)
@@ -178,7 +188,7 @@ end
 do
     local btn = gui.button(frame, gui.font_size.large)
     btn:SetPoint('TOPLEFT', search_results_button, 'TOPRIGHT', 5, 0)
-    btn:SetWidth(243)
+    btn:SetWidth(SUBTAB_WIDTH)
     btn:SetHeight(22)
     btn:SetText('Saved Searches')
     btn:SetScript('OnClick', function() set_subtab(SAVED) end)
@@ -187,11 +197,20 @@ end
 do
     local btn = gui.button(frame, gui.font_size.large)
     btn:SetPoint('TOPLEFT', saved_searches_button, 'TOPRIGHT', 5, 0)
-    btn:SetWidth(243)
+    btn:SetWidth(SUBTAB_WIDTH)
     btn:SetHeight(22)
     btn:SetText('Filter Builder')
     btn:SetScript('OnClick', function() set_subtab(FILTER) end)
     new_filter_button = btn
+end
+do
+    -- auxForever: what the shown results hold, e.g. "11 price levels, 6,180 for sale, searched 2m ago"
+    local label = gui.label(frame, gui.font_size.small)
+    label:SetPoint('TOPLEFT', new_filter_button, 'TOPRIGHT', 12, 0)
+    label:SetPoint('BOTTOMRIGHT', aux.frame.content, 'TOPRIGHT', -10, 8)
+    label:SetJustifyH('RIGHT')
+    label:SetTextColor(aux.color.label.enabled())
+    results_summary_label = label
 end
 do
     local btn = gui.button(frame.results)

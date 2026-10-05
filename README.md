@@ -39,7 +39,9 @@ The look, the tabs, the search filter language, saved searches and price history
 
 ## Install
 
-1. Download this repository (Code, then Download ZIP) and unzip it.
+1. Download the latest `auxForever-<version>.zip` from the repository's
+   [Releases](https://github.com/TylerHampton/aux-forever/releases) page (or install it with the
+   CurseForge app) and unzip it.
 2. Find your Forever AddOns folder. Easiest: in CurseForge, select your Forever install and use
    its "Open Folder" option. Otherwise, in the Battle.net app use the gear next to Play, then
    "Show in Explorer", open the Forever game folder (its name starts and ends with an underscore)

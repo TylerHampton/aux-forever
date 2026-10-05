@@ -19,7 +19,7 @@ permission by email (quoted in `README.md`); he is not involved in this version.
   `World of Warcraft\_classic_beta_\Interface\AddOns`.
 - Released as a beta on CurseForge (unlisted). Page text and settings: `docs/curseforge.md`,
   paste-ready copy `docs/curseforge-description.md`. Version is in `auxForever/auxForever.toc`
-  (`## Version: forever-0.2.0`).
+  (`## Version: forever-x.y.z`).
 
 ## The owner: how to work with Tyler
 
@@ -71,6 +71,14 @@ for f in $(find . -name '*.lua'); do luac5.1 -p "$f"; done   # syntax check
   `loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)`.
 - Tests cannot show layout or how the game reacts. Add the in-game checks for each change to
   `TESTING.md` (numbered sections) so Tyler can verify.
+
+### Releases
+
+Only when Tyler says a version is ready: merge its pull request into `main`, then tag the merge
+commit `v<version>` (matching `## Version: forever-<version>` in the TOC) and push the tag. The
+Release workflow (`.github/workflows/release.yml`) runs the tests, builds `auxForever-<version>.zip`
+and publishes a GitHub Release (marked pre-release while in beta) with the version's notes from
+`docs/changelog.md`. CurseForge is uploaded by hand by Tyler (see `docs/curseforge.md`).
 
 ### Packaging
 
@@ -146,6 +154,9 @@ as interactive HTML pages; an HTML file Tyler can open in a browser works the sa
 ## Where to find more
 
 - `docs/status.md`: current state, decisions, open items. Keep it up to date.
+- `docs/changelog.md`: what changed in each version; add an entry when the version number changes.
+- `docs/roadmap.md`: what each version is for. 0.2.x is fixes and speed only, no new features;
+  fast mode and the sniper are 0.3.
 - `docs/forever-auction-house.md`: how Forever's auction house works, with sources.
 - `TESTING.md`: in-game checklist, one numbered section per feature.
 - `README.md`: credit, license, install. License: MIT for the changes made here; Simon's original

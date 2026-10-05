@@ -513,7 +513,7 @@ try('post panel', function()
   post.update_item_configuration()
   check('trade good: posts stack size x stacks', post.post_quantity() == 6)
   check('item name without brackets', text(post.item.name) == 'Minor Mana Potion')
-  check('bags and stack shown', plain(text(post.item_detail)):find('3 in your bags') ~= nil and plain(text(post.item_detail)):find('stack of 5') ~= nil)
+  check('bags shown, no stacks for trade goods', plain(text(post.item_detail)):find('3 in your bags') ~= nil and plain(text(post.item_detail)):find('stack of') == nil)
   check('posting line', plain(text(post.posting_summary)) == 'Posting 6 items')
   check('post button says what it posts', text(post.post_button) == 'Post 6 items')
   check('total and what you get are shown', text(post.total_summary):find('^Total') ~= nil and text(post.net_summary):find('^You get') ~= nil)
@@ -850,6 +850,190 @@ try('filter builder ui', function()
   click(s.builder_save_button)
   check('saving an empty search saves nothing', #s.favorite_searches == favorites)
   s.set_subtab(s.SAVED)
+end)
+
+-- Search tab: result count on the sub tab, summary line next to the sub tabs, magnifier in the search bar
+try('search results summary', function()
+  local s = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local plain = function(t) return ((tostring(t or '')):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  check('no summary without results', s.results_summary({records = {}}) == nil)
+  local search = {records = {{item_key = 'a', count = 20, auction_count = 1}, {item_key = 'a', count = 1, auction_count = 6}, {item_key = 'a', count = 1000, auction_count = 6}}, complete = true, completed_at = time()}
+  local text = s.results_summary(search)
+  check('one item: price levels and units', text and text:find('3 price levels, 6,026 for sale', 1, true) ~= nil)
+  local gear = {records = {{item_key = 'x', count = 1}, {item_key = 'x', count = 1}, {item_key = 'y', count = 1}}, complete = true, completed_at = time()}
+  check('many items: items and units', s.results_summary(gear):find('^2 items, 3 for sale') ~= nil)
+  check('sub tab number counts items', s.results_count(gear) == 2 and s.results_count(search) == 3)
+  check('summary says when', text and text:find('searched just now', 1, true) ~= nil)
+  search.active, search.complete = true, false
+  check('summary while searching', s.results_summary(search):find('still searching', 1, true) ~= nil)
+  check('one price level', s.results_summary({records = {{count = 5}}}):find('^1 price level, 5 for sale') ~= nil)
+
+  s.set_subtab(s.RESULTS)
+  local current = s.current_search()
+  local saved = current.records
+  current.records = {{item_key = 'a', count = 3}, {item_key = 'a', count = 2}}
+  current.complete, current.completed_at, current.active = true, time(), false
+  s.update_results_summary(true)
+  check('result count on the sub tab', plain(s.search_results_button.__text) == 'Search Results  2')
+  check('summary line shown on Results', s.results_summary_label.__text:find('2 price levels, 5 for sale', 1, true) ~= nil)
+  s.set_subtab(s.SAVED)
+  check('summary hidden on other sub tabs', s.results_summary_label.__text == '')
+  check('count stays on the sub tab', plain(s.search_results_button.__text) == 'Search Results  2')
+  current.records = saved
+  s.update_results_summary(true)
+  check('magnifier in the search bar', s.search_icon ~= nil)
+end)
+
+-- Post: trade goods are one listing on Forever, so one Quantity box, and Max is everything in the bags
+try('post quantity', function()
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  post.selected_item = {commodity = true, key = '7076:0', item_id = 7076, name = 'Blood Shard', quality = 1, count = 29, max_stack = 10}
+  post.quantity_update(true)
+  check('Max is everything in the bags', post.stack_count_input.max_value == 29)
+  post.layout_parameters(true)
+  check('the box is called Quantity', post.stack_count_input.caption.__text == 'Quantity')
+  post.update_item_configuration()
+  check('no stack size box', post.stack_size_input.__shown == false)
+  post.layout_parameters(false)
+  check('gear keeps Count', post.stack_count_input.caption.__text == 'Count')
+  post.selected_item = nil
+end)
+
+-- Filter Builder: the builder keeps its own groups when it opens again, and All / Any fades when
+-- there is nothing to choose between
+try('filter builder keeps groups', function()
+  local s = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  s.set_subtab(s.FILTER)
+  s.clear_builder()
+  local root = s.get_builder_root()
+  root.mode = 'or'
+  local g = s.new_group('and')
+  local c1 = s.new_condition('price'); c1.value = '20s'
+  local c2 = s.new_condition('item'); c2.value = 'linen cloth'
+  tinsert(g.items, c1); tinsert(g.items, c2); tinsert(root.items, g)
+  s.sync_builder(); s.update_builder()
+  check('root switch faded with one group', s.root_any_button.idle == true)
+  check('group switch active with two conditions', (function()
+    for _, row in ipairs(s.builder_rows) do if row.__shown and row.item and row.item.kind == 'group' then return row.all_btn.idle == false end end
+  end)())
+  s.set_subtab(s.RESULTS)
+  s.set_subtab(s.FILTER)
+  check('the group is still a group after leaving and coming back', s.get_builder_root().items[1] == g and s.get_builder_root().mode == 'or')
+  local g2 = s.new_group('and'); local c3 = s.new_condition('price'); c3.value = '3s'; tinsert(g2.items, c3); tinsert(root.items, g2)
+  s.sync_builder(); s.update_builder()
+  check('root switch active with two groups', s.root_any_button.idle == false)
+  s.clear_builder()
+  s.set_subtab(s.SAVED)
+end)
+
+-- Blizzard UI button: the Blizzard window comes to the front, the button shows its state, and the
+-- hooks are installed even when another addon loaded Blizzard's auction house first
+try('blizzard ui button', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local raised, hooks = 0, {}
+  rawset(AuctionHouseFrame, 'Raise', function() raised = raised + 1 end)
+  rawset(AuctionHouseFrame, 'HookScript', function(self, script, fn) hooks[script] = (hooks[script] or 0) + 1 end)
+  a.hook_blizzard_frame(); a.hook_blizzard_frame()
+  check('the Blizzard window is hooked only once', hooks.OnShow == nil and hooks.OnHide == nil)
+  local lit
+  rawset(a.blizzard_button, 'SetBackdropBorderColor', function(self, r, g, b) lit = (r == a.color.blizzard()) end)
+  a.blizzard_button.__scripts.OnClick(a.blizzard_button)
+  check('Blizzard window shown and brought to the front', a.blizzard_frame_shown() and raised == 1)
+  check('button lit while shown', lit == true)
+  a.blizzard_button.__scripts.OnClick(a.blizzard_button)
+  check('second click hides it', not a.blizzard_frame_shown() and lit == false)
+  -- the game laid the window out while it was shrunk: 100 times too far, off screen
+  local placed
+  rawset(AuctionHouseFrame, 'GetPoint', function() return 'TOPLEFT', UIParent, 'TOPLEFT', 1600, -11600 end)
+  rawset(AuctionHouseFrame, 'SetPoint', function(self, p, r, rp, x, y) placed = {x, y} end)
+  a.blizzard_button.__scripts.OnClick(a.blizzard_button)
+  check('an off screen window comes back where the layout meant it', placed and placed[1] == 16 and placed[2] == -116)
+  placed = nil
+  rawset(AuctionHouseFrame, 'GetPoint', function() return 'TOPLEFT', UIParent, 'TOPLEFT', 16, -2 end)
+  a.blizzard_button.__scripts.OnClick(a.blizzard_button)
+  a.blizzard_button.__scripts.OnClick(a.blizzard_button)
+  check('a window in place is left alone', placed == nil)
+  a.blizzard_button.__scripts.OnClick(a.blizzard_button)
+  rawset(AuctionHouseFrame, 'GetPoint', nil); rawset(AuctionHouseFrame, 'SetPoint', nil)
+  rawset(AuctionHouseFrame, 'Raise', nil); rawset(AuctionHouseFrame, 'HookScript', nil)
+  rawset(a.blizzard_button, 'SetBackdropBorderColor', nil)
+end)
+
+-- Settings: scale from 70% to 150% that is kept, no explanation text; the resize corner anchors
+-- the window by its top left corner before sizing
+try('settings scale and resize corner', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local scaled
+  rawset(a.frame, 'SetScale', function(self, x) scaled = x end)
+  a.change_window_scale(1.2)
+  check('scale applied and kept', scaled == 1.2 and a.account_data.scale == 1.2)
+  a.scale_buttons[2].__scripts.OnClick(a.scale_buttons[2])
+  check('plus steps 5%', math.abs(a.account_data.scale - 1.25) < .001)
+  a.change_window_scale(5)
+  check('never above 150%', a.account_data.scale == 1.5)
+  a.change_window_scale(.1)
+  check('never below 70%', a.account_data.scale == .7)
+  a.change_window_scale(1)
+  check('scale values are cleaned up', a.clean_scale(1.31) == 1.3 and a.clean_scale('x') == 1)
+  a.change_window_scale(1)
+  rawset(a.frame, 'SetScale', nil)
+  local anchored
+  rawset(a.frame, 'SetPoint', function(self, point) anchored = point end)
+  rawset(a.frame, 'StartSizing', function() sized_after = anchored end)
+  sized_after = nil
+  a.resize_grip.__scripts.OnMouseDown(a.resize_grip, 'LeftButton')
+  check('resize corner anchors top left before sizing', sized_after == 'TOPLEFT')
+  rawset(a.frame, 'SetPoint', nil); rawset(a.frame, 'StartSizing', nil)
+end)
+
+-- Search timing log (/aux debug): the summary says where a search's time went
+try('search timing log', function()
+  local scan = loadstring("select(2, ...) 'aux.core.scan'; return _M")('auxForever', addon)
+  local t = scan.new_timing()
+  t.items, t.event, t.cached, t.timeout, t.dropped = 400, 380, 18, 2, 3
+  t.browse, t.answer, t.throttle, t.item_data = 2, 150, 10, 5
+  t.slow = {{name = 'Ritual Sandals', seconds = 21}, {name = 'Seer\'s Pants', seconds = 2}}
+  local lines = scan.timing_report(t, 200)
+  check('total and per item', lines[1] == 'Search timing: 3m 20s for 400 items, 0.50s each')
+  check('where the time went', lines[2] == 'Waiting: item list 2.0s, server answers 2m 30s, throttle 10.0s, item data 5.0s, other 33.0s')
+  check('how answers came', lines[3] == 'Answers: 380 on time, 18 after the 1s fallback, 2 timed out (20s each), 3 dropped and resent')
+  check('slowest items first', lines[4] == 'Slowest: Ritual Sandals 21.0s, Seer\'s Pants 2.0s')
+  check('stopped searches say so', scan.timing_report(scan.new_timing(), 1, true)[1]:find('(stopped)', 1, true) ~= nil)
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local before = a.account_data.debug_timing
+  SlashCmdList.AUX('debug')
+  check('/aux debug switches it', a.account_data.debug_timing == not before)
+  SlashCmdList.AUX('debug')
+end)
+
+-- The timing log during a real search run: an item whose answer never comes as an event is
+-- counted as answered after the 1s fallback, and the summary prints when the search ends
+try('search timing during a search', function()
+  local scan = loadstring("select(2, ...) 'aux.core.scan'; return _M")('auxForever', addon)
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local printed = {}
+  local real_add = DEFAULT_CHAT_FRAME.AddMessage
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', function(_, text) tinsert(printed, text) end)
+  local saved = {}
+  for k, v in pairs{GetItemKeyInfo = function() return {isCommodity = false, itemName = 'Test Item'} end,
+                    HasSearchResults = function() return true end, HasFullItemSearchResults = function() return true end,
+                    GetNumItemSearchResults = function() return 0 end} do
+    saved[k] = rawget(C_AuctionHouse, k); C_AuctionHouse[k] = v
+  end
+  local cached_saved = C_Item.IsItemDataCachedByID
+  C_Item.IsItemDataCachedByID = function() return true end
+  a.account_data.debug_timing = true
+  local done
+  scan.start{type = 'list', queries = {{blizzard_query = {}, item_keys = {{itemID = 4}}}}, on_complete = function() done = true end}
+  for _ = 1, 40 do if done then break end tick() end
+  a.account_data.debug_timing = false
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', real_add)
+  for k in pairs(saved) do C_AuctionHouse[k] = saved[k] end
+  C_Item.IsItemDataCachedByID = cached_saved
+  local all = table.concat(printed, '\n')
+  check('the search finished', done)
+  check('summary printed after the search', all:find('Search timing:', 1, true) ~= nil and all:find('for 1 item,', 1, true) ~= nil)
+  check('the 1s fallback is counted', all:find('0 on time, 1 after the 1s fallback', 1, true) ~= nil)
 end)
 
 print('done, errors: ' .. errors)

@@ -18,6 +18,61 @@ local TIMEOUT = 20
 
 local state
 
+-- auxForever: search timing log (/aux debug). While it is on, each search records where its time
+-- goes and prints a summary when it ends, so slow searches can be measured instead of guessed.
+local timing
+
+local function timing_add(field, amount)
+    if timing then
+        timing[field] = timing[field] + (amount or 1)
+    end
+end
+
+local function format_seconds(seconds)
+    if seconds >= 60 then
+        return format('%dm %02ds', floor(seconds / 60), floor(seconds % 60))
+    end
+    return format('%.1fs', seconds)
+end
+
+-- the summary lines for a finished (or stopped) search
+function M.timing_report(t, total, stopped)
+    local lines = {}
+    local head = 'Search timing' .. (stopped and ' (stopped)' or '') .. ': ' .. format_seconds(total)
+    if t.items > 0 then
+        head = head .. format(' for %d %s, %.2fs each', t.items, t.items == 1 and 'item' or 'items', total / t.items)
+    end
+    tinsert(lines, head)
+    local other = max(0, total - t.browse - t.answer - t.throttle - t.item_data)
+    tinsert(lines, format('Waiting: item list %s, server answers %s, throttle %s, item data %s, other %s',
+        format_seconds(t.browse), format_seconds(t.answer), format_seconds(t.throttle), format_seconds(t.item_data), format_seconds(other)))
+    tinsert(lines, format('Answers: %d on time, %d after the 1s fallback, %d timed out (20s each), %d dropped and resent',
+        t.event, t.cached, t.timeout, t.dropped))
+    if #t.slow > 0 then
+        sort(t.slow, function(a, b) return a.seconds > b.seconds end)
+        local parts = {}
+        for i = 1, min(3, #t.slow) do
+            tinsert(parts, format('%s %s', t.slow[i].name, format_seconds(t.slow[i].seconds)))
+        end
+        tinsert(lines, 'Slowest: ' .. table.concat(parts, ', '))
+    end
+    return lines
+end
+
+function M.new_timing()
+    return {t0 = GetTime(), items = 0, event = 0, cached = 0, timeout = 0, dropped = 0,
+        browse = 0, answer = 0, throttle = 0, item_data = 0, slow = {}}
+end
+
+local function timing_finish(stopped)
+    if timing then
+        for _, line in ipairs(timing_report(timing, GetTime() - timing.t0, stopped)) do
+            aux.print(line)
+        end
+        timing = nil
+    end
+end
+
 local SORTS = {
     {sortOrder = Enum.AuctionHouseSortOrder.Price, reverseSort = false},
     {sortOrder = Enum.AuctionHouseSortOrder.Name, reverseSort = false},
@@ -79,6 +134,7 @@ function M.start(params)
             params = params,
             listener_ids = {},
         }
+        timing = aux.account_data.debug_timing and new_timing() or nil
         scan()
     end)
 end
@@ -91,6 +147,7 @@ function M.abort()
         end
         local on_abort = state.params.on_abort
         state = nil
+        timing_finish(true)
         do (on_abort or pass)() end
     end
 end
@@ -98,6 +155,7 @@ end
 function complete()
     local on_complete = state.params.on_complete
     state = nil
+    timing_finish()
     do (on_complete or pass)() end
 end
 
@@ -147,7 +205,10 @@ end
 -- within a second but cached() reports results, those are used.
 function request(send, events, match, cached)
     for _ = 1, 3 do
+        local t_throttle = GetTime()
         wait_throttle()
+        timing_add('throttle', GetTime() - t_throttle)
+        local t_answer = GetTime()
         local dropped
         local drop_id = aux.event_listener('AUCTION_HOUSE_THROTTLED_MESSAGE_DROPPED', function()
             dropped = true
@@ -160,11 +221,16 @@ function request(send, events, match, cached)
         end)
         aux.kill_listener(drop_id)
         state.listener_ids[drop_id] = nil
+        timing_add('answer', GetTime() - t_answer)
         if received then
+            timing_add('event')
             return received
         elseif not dropped then
-            return cached and cached() or false
+            local from_cache = cached and cached() or false
+            timing_add(from_cache and 'cached' or 'timeout')
+            return from_cache
         end
+        timing_add('dropped')
     end
     return false
 end
@@ -184,6 +250,7 @@ function wait_item(item_id)
     while not C_Item.IsItemDataCachedByID(item_id) and GetTime() - t0 < 3 do
         aux.coro_wait()
     end
+    timing_add('item_data', GetTime() - t0)
     return C_Item.IsItemDataCachedByID(item_id)
 end
 
@@ -198,7 +265,9 @@ end
 function item_key_info(item_key)
     local key_info = C_AuctionHouse.GetItemKeyInfo(item_key)
     if not key_info then
+        local t0 = GetTime()
         listen({'ITEM_KEY_ITEM_INFO_RECEIVED'}, function(item_id) return item_id == item_key.itemID end)(3)
+        timing_add('item_data', GetTime() - t0)
         key_info = C_AuctionHouse.GetItemKeyInfo(item_key)
     end
     return key_info
@@ -337,7 +406,16 @@ function scan_item_keys(item_keys)
     local first_page = blizzard_query.first_page or 0
     local last_page = min(blizzard_query.last_page or math.huge, #item_keys - 1)
     for page = first_page, last_page do
+        local t_item = GetTime()
         local records = search(item_keys[page + 1])
+        if timing then
+            timing.items = timing.items + 1
+            local seconds = GetTime() - t_item
+            if seconds > 1.5 then
+                local key_info = C_AuctionHouse.GetItemKeyInfo(item_keys[page + 1])
+                tinsert(timing.slow, {name = key_info and key_info.itemName or ('item ' .. item_keys[page + 1].itemID), seconds = seconds})
+            end
+        end
         do
             (state.params.on_page_loaded or pass)(
                 page - first_page + 1,
@@ -418,7 +496,13 @@ function scan()
         elseif get_query().item_keys then
             scan_item_keys(get_query().item_keys)
         else
+            local t_browse = GetTime()
             local item_keys = browse(get_query().blizzard_query or empty)
+            timing_add('browse', GetTime() - t_browse)
+            -- the item list's own request time is counted as item list, not as server answers
+            if timing and item_keys then
+                timing.answer = max(0, timing.answer - (GetTime() - t_browse))
+            end
             if item_keys then
                 scan_item_keys(item_keys)
             else

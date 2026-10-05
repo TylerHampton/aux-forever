@@ -10,6 +10,9 @@ function event.AUX_LOADED()
 	for _, v in ipairs(tab_info) do
 		tabs:create_tab(v.name)
 	end
+	-- the saved position and size are in the window's own scale, so the scale comes first
+	account_data.scale = clean_scale(account_data.scale)
+	frame:SetScale(account_data.scale)
 	restore_window()
 	account_data.background_opacity = gui.set_background_opacity(account_data.background_opacity)
 end
@@ -41,6 +44,42 @@ function save_window()
 	window.width, window.height = frame:GetWidth(), frame:GetHeight()
 	local point, _, relative_point, x, y = frame:GetPoint(1)
 	window.point, window.relative_point, window.x, window.y = point, relative_point, x, y
+end
+
+-- the window keeps its top left corner where it is; sizing and scaling then grow it to the right
+-- and down only. Sizing from the corner while it hung from another point (it starts out anchored
+-- by its left edge) could make the window jump to full screen on a single click.
+function M.anchor_top_left()
+	local left, top = frame:GetLeft(), frame:GetTop()
+	if left and top then
+		frame:ClearAllPoints()
+		frame:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT', left, top)
+	end
+end
+
+MIN_SCALE, MAX_SCALE = .7, 1.5
+
+-- auxForever: window scale, 70% to 150% (the Scale setting and /aux scale)
+function M.clean_scale(scale)
+	return bounded(MIN_SCALE, MAX_SCALE, floor((tonumber(scale) or 1) * 20 + .5) / 20)
+end
+
+function M.set_window_scale(scale)
+	scale = clean_scale(scale)
+	anchor_top_left()
+	local left, top = frame:GetLeft(), frame:GetTop()
+	local old = frame:GetScale()
+	frame:SetScale(scale)
+	-- keep the top left corner in place on screen: anchor offsets are in the window's own scale
+	if left and top and old and old > 0 then
+		frame:ClearAllPoints()
+		frame:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT', left * old / scale, top * old / scale)
+	end
+	-- never bigger than the screen at the new scale
+	local max_width, max_height = max_size()
+	gui.set_size(frame, bounded(MIN_WIDTH, max_width, frame:GetWidth()), bounded(MIN_HEIGHT, max_height, frame:GetHeight()))
+	save_window()
+	return scale
 end
 
 function M.restore_window()
@@ -123,6 +162,7 @@ do
 	grip:SetScript('OnMouseDown', function(_, button)
 		if button ~= 'LeftButton' then return end
 		set_resize_bounds()
+		anchor_top_left()
 		frame:StartSizing('BOTTOMRIGHT')
 	end)
 	grip:SetScript('OnMouseUp', function()
@@ -131,6 +171,7 @@ do
 	end)
 	grip:SetScript('OnDoubleClick', function()
 		frame:StopMovingOrSizing()
+		anchor_top_left()
 		gui.set_size(frame, DEFAULT_WIDTH, DEFAULT_HEIGHT)
 		save_window()
 	end)
@@ -168,7 +209,24 @@ do
 	btn:SetScript('OnClick',function()
 		set_blizzard_frame_shown(not blizzard_frame_shown())
 	end)
+	btn:SetScript('OnEnter', function(self)
+		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOM')
+		GameTooltip:AddLine(blizzard_frame_shown() and 'Hide the Blizzard auction house' or 'Show the Blizzard auction house')
+		GameTooltip:AddLine('It opens on top of aux. Click aux to bring aux back to the front.', 1, 1, 1, true)
+		GameTooltip:Show()
+	end)
+	btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
     blizzard_button = btn
+    -- lit while the Blizzard window is shown, so its state is always visible
+    function M.update_blizzard_button()
+        if blizzard_frame_shown() then
+            btn:SetBackdropColor(color.accent.selected())
+            btn:SetBackdropBorderColor(color.blizzard())
+        else
+            btn:SetBackdropColor(color.content.background())
+            btn:SetBackdropBorderColor(color.content.border())
+        end
+    end
 end
 do
     local btn = gui.button(frame)
@@ -229,7 +287,7 @@ do
     scan_button = btn
 end
 do
-    -- auxForever: settings (background opacity, default auction length), behind a gear in the top bar
+    -- auxForever: settings (background opacity, scale, default duration), behind a gear in the top bar
     local btn = gui.button(frame)
     btn:SetPoint('RIGHT', scan_button, 'LEFT', -6, 0)
     gui.set_size(btn, 28, 26)
@@ -249,7 +307,7 @@ do
     local popup = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
     gui.set_frame_style(popup, color.content.background, color.input.border, nil, nil, nil, nil, 8)
     popup:SetFrameStrata('DIALOG')
-    gui.set_size(popup, 250, 150)
+    gui.set_size(popup, 250, 138)
     popup:SetPoint('TOPRIGHT', btn, 'BOTTOMRIGHT', 0, -4)
     popup:EnableMouse(true)
     popup:Hide()
@@ -260,88 +318,85 @@ do
     title:SetText('SETTINGS')
     title:SetTextColor(color.accent.background())
 
-    local label = gui.label(popup, gui.font_size.medium)
-    label:SetPoint('TOPLEFT', 12, -40)
-    label:SetText('Background')
-    label:SetTextColor(color.text.enabled())
-
-    local plus = gui.button(popup, gui.font_size.large)
-    gui.set_size(plus, 26, 24)
-    plus:SetPoint('TOPRIGHT', -10, -35)
-    plus:SetText('+')
-    local value = gui.label(popup, gui.font_size.medium)
-    value:SetWidth(46)
-    value:SetJustifyH('CENTER')
-    value:SetPoint('RIGHT', plus, 'LEFT', -2, 0)
-    value:SetTextColor(color.text.enabled())
-    local minus = gui.button(popup, gui.font_size.large)
-    gui.set_size(minus, 26, 24)
-    minus:SetPoint('RIGHT', value, 'LEFT', -2, 0)
-    minus:SetText('-')
-
-    local function refresh()
-        local opacity = account_data.background_opacity
-        value:SetText(floor(opacity * 100 + .5) .. '%')
-        if opacity > gui.MIN_BACKGROUND_OPACITY + .001 then minus:Enable() else minus:Disable() end
-        if opacity < .999 then plus:Enable() else plus:Disable() end
-    end
-    function M.set_background_opacity(opacity)
-        account_data.background_opacity = gui.set_background_opacity(opacity)
-        refresh()
-    end
-    minus:SetScript('OnClick', function() set_background_opacity(account_data.background_opacity - .05) end)
-    plus:SetScript('OnClick', function() set_background_opacity(account_data.background_opacity + .05) end)
-    for _, b in ipairs{minus, plus} do
-        b:SetScript('OnEnter', function(self)
-            GameTooltip:SetOwner(self, 'ANCHOR_BOTTOM')
-            GameTooltip:AddLine('Background opacity')
-            GameTooltip:AddLine('How much of the game shows through. Text and buttons stay solid; 50% is the lowest.', 1, 1, 1, true)
-            GameTooltip:Show()
-        end)
-        b:SetScript('OnLeave', function() GameTooltip:Hide() end)
+    local function row_label(text, y)
+        local label = gui.label(popup, gui.font_size.medium)
+        label:SetPoint('TOPLEFT', 12, y)
+        label:SetText(text)
+        label:SetTextColor(color.text.enabled())
+        return label
     end
 
-    local divider = popup:CreateTexture(nil, 'ARTWORK')
-    divider:SetColorTexture(color.window.border())
-    divider:SetHeight(1)
-    divider:SetPoint('TOPLEFT', 8, -70)
-    divider:SetPoint('TOPRIGHT', -8, -70)
+    -- a value with - and + at the right of a row
+    local function stepper(y)
+        local plus = gui.button(popup, gui.font_size.large)
+        gui.set_size(plus, 26, 24)
+        plus:SetPoint('TOPRIGHT', -10, y + 5)
+        plus:SetText('+')
+        local value = gui.label(popup, gui.font_size.medium)
+        value:SetWidth(46)
+        value:SetJustifyH('CENTER')
+        value:SetPoint('RIGHT', plus, 'LEFT', -2, 0)
+        value:SetTextColor(color.text.enabled())
+        local minus = gui.button(popup, gui.font_size.large)
+        gui.set_size(minus, 26, 24)
+        minus:SetPoint('RIGHT', value, 'LEFT', -2, 0)
+        minus:SetText('-')
+        return minus, value, plus
+    end
 
-    local length_label = gui.label(popup, gui.font_size.medium)
-    length_label:SetPoint('TOPLEFT', 12, -86)
-    length_label:SetText('Auction length')
-    length_label:SetTextColor(color.text.enabled())
+    local function percent(x) return floor(x * 100 + .5) .. '%' end
+
+    row_label('Background', -40)
+    local opacity_minus, opacity_value, opacity_plus = stepper(-40)
+    row_label('Scale', -72)
+    local scale_minus, scale_value, scale_plus = stepper(-72)
+    row_label('Default duration', -104)
     local length_buttons = {}
     for i = 3, 1, -1 do
         local b = gui.button(popup, gui.font_size.small)
         gui.set_size(b, 38, 24)
         if i == 3 then
-            b:SetPoint('TOPRIGHT', -10, -81)
+            b:SetPoint('TOPRIGHT', -10, -99)
         else
             b:SetPoint('RIGHT', length_buttons[i + 1], 'LEFT', -3, 0)
         end
-        b:SetScript('OnClick', function()
-            account_data.post_duration = i
-            refresh()
-        end)
         length_buttons[i] = b
     end
     M.auction_length_buttons = length_buttons
-    local length_note = gui.label(popup, gui.font_size.small)
-    length_note:SetPoint('TOPLEFT', 12, -112)
-    length_note:SetPoint('TOPRIGHT', -12, -112)
-    length_note:SetJustifyH('LEFT')
-    length_note:SetWordWrap(true)
-    length_note:SetTextColor(color.label.enabled())
-    length_note:SetText('For items you have not posted before. Items you have posted start at the length you used last time.')
+    M.scale_buttons = {scale_minus, scale_plus}
+    M.scale_value = scale_value
 
-    local refresh_opacity = refresh
-    function refresh()
-        refresh_opacity()
+    local function refresh()
+        local opacity = account_data.background_opacity
+        opacity_value:SetText(percent(opacity))
+        if opacity > gui.MIN_BACKGROUND_OPACITY + .001 then opacity_minus:Enable() else opacity_minus:Disable() end
+        if opacity < .999 then opacity_plus:Enable() else opacity_plus:Disable() end
+        local scale = account_data.scale or 1
+        scale_value:SetText(percent(scale))
+        if scale > MIN_SCALE + .001 then scale_minus:Enable() else scale_minus:Disable() end
+        if scale < MAX_SCALE - .001 then scale_plus:Enable() else scale_plus:Disable() end
         for i, b in ipairs(length_buttons) do
             b:SetText(info.duration_hours(i) .. 'h')
             gui.style_choice(b, account_data.post_duration == i)
         end
+    end
+    function M.set_background_opacity(opacity)
+        account_data.background_opacity = gui.set_background_opacity(opacity)
+        refresh()
+    end
+    function M.change_window_scale(scale)
+        account_data.scale = set_window_scale(scale)
+        refresh()
+    end
+    opacity_minus:SetScript('OnClick', function() set_background_opacity(account_data.background_opacity - .05) end)
+    opacity_plus:SetScript('OnClick', function() set_background_opacity(account_data.background_opacity + .05) end)
+    scale_minus:SetScript('OnClick', function() change_window_scale((account_data.scale or 1) - .05) end)
+    scale_plus:SetScript('OnClick', function() change_window_scale((account_data.scale or 1) + .05) end)
+    for i, b in ipairs(length_buttons) do
+        b:SetScript('OnClick', function()
+            account_data.post_duration = i
+            refresh()
+        end)
     end
 
     popup:SetScript('OnShow', function()

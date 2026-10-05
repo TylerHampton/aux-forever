@@ -206,6 +206,20 @@ end
 -- because hiding it closes the auction house. Instead it is kept invisible behind aux.
 do
     local blizzard_visible = false
+    local HIDDEN_SCALE = .01
+
+    -- The game lays out its side windows (UIParentPanelManager) with offsets divided by the
+    -- window's scale. Any layout while the Blizzard window is shrunk (opening the character sheet,
+    -- spellbook, a vendor...) therefore puts it 100 times too far away, off screen, and growing
+    -- it back left it there: the Blizzard UI button seemed to do nothing. Bring such an anchor
+    -- back to what the layout meant.
+    function M.fix_blizzard_frame_position()
+        local point, relative_to, relative_point, x, y = AuctionHouseFrame:GetPoint(1)
+        if point and y and abs(y) > UIParent:GetHeight() then
+            AuctionHouseFrame:ClearAllPoints()
+            AuctionHouseFrame:SetPoint(point, relative_to, relative_point, x * HIDDEN_SCALE, y * HIDDEN_SCALE)
+        end
+    end
 
     function M.blizzard_frame_shown()
         return blizzard_visible
@@ -216,16 +230,27 @@ do
         blizzard_visible = shown
         if shown then
             AuctionHouseFrame:SetScale(1)
+            fix_blizzard_frame_position()
+            -- never off screen, whatever moved it
+            AuctionHouseFrame:SetClampedToScreen(true)
             AuctionHouseFrame:SetAlpha(1)
             AuctionHouseFrame:EnableMouse(true)
+            -- both windows sit in the same layer, and whichever was shown or clicked last is on top
+            AuctionHouseFrame:Raise()
         else
-            AuctionHouseFrame:SetScale(.01)
+            AuctionHouseFrame:SetScale(HIDDEN_SCALE)
             AuctionHouseFrame:SetAlpha(0)
             AuctionHouseFrame:EnableMouse(false)
         end
+        do (update_blizzard_button or pass)() end
     end
 
-    function event.AUCTION_HOUSE_LOADED()
+    -- hooked once, whoever loaded Blizzard's auction house first (another addon may load it
+    -- before aux, and then its load event has already passed)
+    local hooked
+    function M.hook_blizzard_frame()
+        if hooked or not AuctionHouseFrame then return end
+        hooked = true
         AuctionHouseFrame:HookScript('OnShow', function(self)
             set_blizzard_frame_shown(false)
             -- aux handles posting confirmations itself; stop the hidden frame from popping its own dialog
@@ -234,12 +259,18 @@ do
         end)
         AuctionHouseFrame:HookScript('OnHide', function()
             blizzard_visible = false
+            do (update_blizzard_button or pass)() end
         end)
+    end
+
+    function event.AUCTION_HOUSE_LOADED()
+        hook_blizzard_frame()
     end
 end
 
 function AUCTION_HOUSE_SHOW()
     compat_load_auction_house_ui()
+    hook_blizzard_frame()
     if AuctionHouseFrame and AuctionHouseFrame:IsShown() then
         set_blizzard_frame_shown(false)
     end

@@ -138,6 +138,8 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
 
 ## 13. Version 0.2: auction length, favorites, Filter Builder
 
+A guided run through all of this with early Horde items: `docs/test-scenario-0.2.md`.
+
 Needs a full game restart (a new file was added), not just `/reload`.
 
 Settings
@@ -171,6 +173,50 @@ Filter Builder (Search tab, Filter Builder)
       search finds cloth armor. (Category names come from the game; check they match.)
 - [ ] Clear all empties the form and the search bar. Save to favorites saves the search.
 - [ ] Press Search at the top: the results match what "In words" says.
+
+## 14. Version 0.2.1: Search tab details
+
+Needs a full game restart (a new texture was added), not just `/reload`.
+
+- [ ] The search bar has a small magnifier at its left, and typed text starts after it.
+- [ ] The three sub tab buttons are a little narrower. After a search, the first one reads
+      "Search Results  37" with the number in gold: how many different items were found (for a
+      search of one item: how many prices).
+- [ ] To the right of the sub tabs: "37 items, 403 for sale, searched just now", or for one item
+      "11 price levels, 6,180 for sale". While a search runs it says "still searching"; a minute
+      later "searched 1m ago".
+- [ ] The line only shows on Search Results, not on Saved Searches or Filter Builder.
+- [ ] Shrink the window to its smallest: the line does not overlap the Filter Builder button
+      (it may cut off at the end).
+
+Settings and window
+- [ ] Gear menu: Background, Scale and Default duration, with no explanation text under them.
+- [ ] Scale - and + change the whole window in 5% steps, from 70% to 150%. The window's top left
+      corner stays put. After `/reload` the scale, size and position are kept.
+- [ ] Single-click the resize corner (bottom right) several times, also right after logging in:
+      the window never jumps. Dragging it resizes, double-click goes back to the default size.
+
+Search timing log (for measuring slow searches)
+- [ ] Type `/aux debug`: chat says the search timing log is on. Run a broad search (e.g. step 4 of
+      the test scenario). When it ends, chat shows where the time went: server answers, the 1s
+      fallback, time-outs, the slowest items. Screenshot that and send it. Run the same search a
+      second time and screenshot that too. `/aux debug` again turns it off.
+
+Blizzard UI button
+- [ ] Click Blizzard UI several times, also right after clicking around in aux: the Blizzard
+      window opens in front every time, and the button is lit while it is open. Click it again to
+      hide it.
+- [ ] With the auction house open and the Blizzard window hidden, open and close the character
+      sheet (C) and the spellbook (P). Then click Blizzard UI: it still appears on screen (this
+      used to send it off screen). If it ever fails, note what you opened just before.
+
+Post tab: trade goods
+- [ ] Pick a trade good you have more than one stack of (e.g. 29 Blood Shards). There is one
+      "Quantity" box instead of Stack size and Stacks, and it starts at everything you have (29).
+- [ ] -, + and typing change it by one; Max goes back to everything. "Posting 29 items" and the Post
+      button follow it.
+- [ ] Post: one listing of that many shows up on the auction house.
+- [ ] Gear still shows "Count" as before.
 
 ## Things to note even without errors
 - Anything that looks different from how aux worked on Classic.
