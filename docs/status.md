@@ -13,7 +13,9 @@ Last updated 2026-10-05 (before a context compaction of Claude's session).
   common-sense UX (list to agree with Tyler, mockups for visual changes). Done so far: login item
   walk (`fetch_item_data`) skips non-items and pauses every 500 numbers, `core/crafting.lua`
   removed, the per-frame audit (Saved Searches, Bids tab, quick menu rows fixed), tests run once
-  per change on GitHub. In-game checks: `TESTING.md` section 17 (full restart: a file was removed).
+  per change on GitHub. In-game checks: `TESTING.md` (Current build) and the test page
+  https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ, where Tyler marks each step; read the results
+  with ArtifactData, collection `builds/0-4-1-dev2/results` (one document per step id).
 - 0.4 release (2026-10-05): Tyler approved it after build 5, with one last change: the recipe
   cost line moved from the line next to the sub tabs (crowded, cut off) to the bottom bar right of
   Clear, in shorter words (`recipe_label` in `tabs/search/frame.lua`, set in
@@ -58,7 +60,7 @@ Last updated 2026-10-05 (before a context compaction of Claude's session).
   search bar have room. Consider moving the recipe line or the summary down there; mockup first.
   Also fixed in build 5: the recipe line names a material without a price instead of "?".
   Next steps:
-  1. Tyler tests the fifth build (`TESTING.md` section 16, Recipe search, Sniper fixes,
+  1. Tyler tests the fifth build (`docs/testing-history.md` section 16, Recipe search, Sniper fixes,
      Performance) and sends both `/aux memory` lines at login and after 20+ Sniper rounds. If the
      "after a cleanup" number keeps climbing, something is kept that should not be: look for it.
   2. Fix whatever his test turns up (each bug: fix plus a test that fails without it).
@@ -169,7 +171,7 @@ download. Every agent: pull first, one agent per branch, update this file when d
 - 0.3 first build (TOC `forever-0.3.0-dev`, later `forever-0.3`, branch `claude/modest-volta-4mgmsb`, sent as a zip):
   fast mode on Search (Fast / Full switch, click a row to read its auctions), Live mode with a
   visible countdown and paused state, and the Sniper tab. Decisions and known limits:
-  `docs/roadmap.md`, "Built". In-game checks: `TESTING.md` section 15. Not tested in game yet.
+  `docs/roadmap.md`, "Built". In-game checks: `docs/testing-history.md` section 15. Not tested in game yet.
   Unknowns to watch: whether the item list's lowest price is ever a bid (`/aux debug` prints a
   line when an opened item differs), whether item list names include suffixes, the Sniper's
   round time over a long session, and whether the server minds rounds back to back.
@@ -203,7 +205,7 @@ download. Every agent: pull first, one agent per branch, update this file when d
   materials, so the call works on Forever.
 - `core/crafting.lua` hooked Classic's profession frames, which Forever does not have. Removed in
   0.4.1 with its `/aux crafting cost` setting.
-- Not tested in game yet: everything in `TESTING.md` section 16.
+- Not tested in game yet: everything in `docs/testing-history.md` section 16.
 
 ## 0.3.1 (released 2026-10-05)
 
@@ -229,7 +231,7 @@ download. Every agent: pull first, one agent per branch, update this file when d
   (round times 8.4s). Released through a pull request into `main` and the Release workflow
   (GitHub Release `v0.3`, pre-release). CurseForge upload by Tyler. Not confirmed in game at
   release: buying from the Sniper, posting from the reagent bag, whether fast mode rows show
-  suffixes ("of the Owl"); these stay in `TESTING.md` section 15.
+  suffixes ("of the Owl"); these stay in `docs/testing-history.md` section 15.
 - 0.3.1 approved by Tyler on 2026-10-05 ("stable and ready to release"): performance fixes and
   `/aux memory`. GitHub Release `v0.3.1` by the Release workflow; CurseForge upload by Tyler.
 - From 0.2.1 on, the Release workflow publishes the GitHub Release: Actions, Release, "Run

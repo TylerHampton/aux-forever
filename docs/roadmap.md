@@ -10,7 +10,7 @@ changes; no new features (those are written down for 0.5). A bad bug (spends mon
 errors over and over, a tab that does not work) gets its own hotfix release at once; everything
 else is batched, about a week of real use.
 
-1. Confirm in game what never was (`TESTING.md` section 17): the recipe cost line in the bottom
+1. Confirm in game what never was (`TESTING.md`, Current build): the recipe cost line in the bottom
    bar, buying from the Sniper, posting from the reagent bag, suffix names on fast rows, the
    Auctions tab cancel flow, the Bids tab, a full scan, posting gear with a bid, Filter Builder
    dropdowns, Shift-click on a recipe.
@@ -36,7 +36,7 @@ else is batched, about a week of real use.
 
 0.3 was released on 2026-10-05. 0.3.x is bug fixes, speed and other small things that come up,
 no new features (Tyler, 2026-10-05). To confirm in game: buying from the Sniper, posting from the
-reagent bag, suffix names on fast mode rows (`TESTING.md` section 15).
+reagent bag, suffix names on fast mode rows (`docs/testing-history.md` section 15).
 
 ## 0.4: selling tools (released 2026-10-05)
 
