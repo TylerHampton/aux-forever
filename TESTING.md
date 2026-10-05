@@ -8,40 +8,42 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.4.1, test build 3
+## Current build: 0.4.1, test build 4 (release check)
 
-A /reload is enough. Build 2's results (saved on the test page) led to these fixes.
+A /reload is enough. The test page has the same steps.
 
 **Before you start**
-- [ ] 1. Install build 3. No BugSack error.
-- [ ] 2. `/aux memory detail` right after login: seven lines (memory, Sniper, History, Search, Post,
-      Tooltips, Events). Screenshot them.
+- [ ] 1. Build 4 installed, no BugSack error.
+- [ ] 2. `/aux memory detail` at login. Screenshot.
+
+**Window**
+- [ ] 3. Clicks on the resize corner change nothing; dragging resizes; it never jumps.
 
 **Prices**
-- [ ] 3. Search linen cloth (Full): every price shows its copper, "1s 00c" included. Search
-      medicine staff (no copper anywhere): prices read "12s".
-- [ ] 4. The buy bar and the recipe cost line read short ("Buy for 12s").
-
-**Search**
-- [ ] 5. Medicine staff: Auction Bid shows "---" for auctions with no starting bid.
-- [ ] 6. Fast lit, search medicine staff (no /exact): do rows show "of the Boar" style names?
+- [ ] 4. Linen cloth (Full): every price shows its copper ("1s 00c"). Medicine staff: "12s".
+- [ ] 5. The buy bar reads short ("Buy for 12s").
+- [ ] 6. Auction Bid shows "---" without a starting bid; real starting bids still show.
 
 **Sniper**
-- [ ] 7. A trade good deal: the buy bar's "for sale" matches the table; no bigger button.
-- [ ] 8. Buy a deal: Buy, then Confirm. The status says "waits while you buy"; it arrives by mail.
+- [ ] 7. A trade good deal: the buy bar offers no more than the table's For sale.
+- [ ] 8. Buy, then Confirm: "waits while you buy" meanwhile; it arrives by mail.
 - [ ] 9. `/aux memory detail` at round 10, nothing selected. Screenshot.
 - [ ] 10. `/aux memory detail` at round 40, nothing selected. Screenshot.
 
 **Full scan**
-- [ ] 11. Full scan, then `/aux memory detail`: "After a cleanup" far below build 2's 42.3 MB.
+- [ ] 11. Full scan, then `/aux memory detail`: "After a cleanup" far below 42.3 MB.
 
-**Window**
-- [ ] 12. Click the resize corner once, a few times: does it jump? Every time? Which way? Scale
-      from `/aux`? Screenshots before and after.
+**Quick run before release**
+- [ ] 12. Search and buy one gear auction and a few of a trade good; prices match the mail.
+- [ ] 13. Live repeats with a countdown; Pause and Resume work.
+- [ ] 14. A favorite and a clock menu search both run.
+- [ ] 15. Post one trade good and one piece of gear; lowest price matched by default.
+- [ ] 16. Auctions tab checks prices and shows statuses.
+- [ ] 17. Recipe search shows the cost line in the bottom bar.
 
-**When you get to it**
-- [ ] 13. Cancel undercut on a real undercut auction: "Cancelled, comes by mail", item arrives.
-- [ ] 14. Bid on an auction whose Auction Bid is a price below its buyout: it shows on Bids.
+**Optional**
+- [ ] 18. Fast lit, medicine staff (no /exact): suffix names shown?
+- [ ] 19. Cancel undercut on a real undercut auction; it arrives by mail.
 
 ## Before every release: the quick run
 
