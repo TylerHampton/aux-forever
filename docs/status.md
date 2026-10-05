@@ -33,6 +33,19 @@ Last updated at the end of the first session (2026-10-04).
 Public since 2026-10-04. All work is on `claude/modest-volta-4mgmsb` (PR #1); `main` still holds
 only the initial commit until Tyler merges, so a download of `main` is not auxForever yet.
 
+## Planned for 0.2 (Tyler, 2026-10-05)
+
+1. Settings popup: default auction length (2h/8h/24h, labels from the game). It is the existing
+   `post_duration` setting: new items start at it, items posted before keep their last length.
+2. Filter Builder facelift. Mockup: https://claude.ai/artifact/2UoFbSgPsFSgRUdPdNKZQV
+   - Left "Which items" (the Blizzard part), right "Only show auctions where": a list of conditions
+     in plain words, Match All / Any, a "not" switch per row, and groups that nest (Tyler wants
+     Simon's full and/or/not nesting kept; groups map one to one onto it).
+   - Live sync with the search bar replaces Import/Export; "Save to favorites" added.
+   - "In words" line reads the search back in plain English.
+   - Seen while checking: Export with an empty form wrote `<>`; Import may not set the Exact
+     checkbox; category names need checking against Forever's AuctionCategories.
+
 ## Fixed in 0.1.1
 
 - Posting gear failed with "Internal auction error" when the starting bid equalled the buyout
