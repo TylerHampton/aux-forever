@@ -312,10 +312,26 @@ Recipe search
 - [ ] Alt-click a recipe in the list: the same search. Shift-click still only does Blizzard's own
       thing (link in chat or track the recipe), not an aux search.
 - [ ] A recipe whose item or materials are not for sale: the line says "none for sale" or shows "?".
+- [ ] Saved and Recent searches show a recipe search as "Recipe  Simple Kilt  (2 materials)"
+      ("Recipe" in amber), not its search text. Hovering it shows the recipe and its search.
+- [ ] Save one as a favorite (Favorite button or right-click in Recent), do another search, then
+      click the saved one: the cost line comes back.
+- [ ] The quick search menu (clock button) shows the made item's icon and "Profit ..." or "Loss ...".
+
+Sniper (0.4 fixes)
+- [ ] Set the profit to 1c and press Start: the sound plays once, then at most once every 10
+      seconds, however many deals turn up.
+- [ ] Deals appear in the table while the round runs; the status reads "checking N possible deals
+      (k done)".
+- [ ] With no deals, the empty table's text shows in full on two lines (it was cut to "round...").
+- [ ] With `/aux debug` on, Sniper rounds and the Auctions tab's price check print nothing in chat;
+      a Search still prints its timing.
 
 Performance (0.4)
-- [ ] `/aux memory` right after logging in, and again after 30 minutes or more of play with the
-      auction house. Send both numbers.
+- [ ] `/aux memory` right after logging in, and again after 20 or more Sniper rounds. It now
+      prints two numbers: what the game counts, and what is left "After a cleanup" (the rest was
+      garbage the game frees over time). Send both lines from both times. The command pauses the
+      game for a moment, which is expected.
 - [ ] Hover many items in your bags and the bank: tooltips still show Value and Vendor.
 - [ ] Post tab: the Post button still turns on and off as you type prices.
 

@@ -19,7 +19,15 @@ function M.memory_report()
     for _ in pairs(aux.faction_data and aux.faction_data.history or empty) do
         items = items + 1
     end
-    return format('auxForever uses %.1f MB of memory; price history for %d items', kilobytes / 1024, items)
+    local text = format('auxForever uses %.1f MB of memory; price history for %d items', kilobytes / 1024, items)
+    -- The game's number includes garbage (tables no longer used, such as each Sniper round's item
+    -- list) that Lua frees a little at a time. One full cleanup, only when asked (a short pause),
+    -- shows what aux really keeps.
+    if pcall(collectgarbage, 'collect') then
+        UpdateAddOnMemoryUsage()
+        text = text .. format('. After a cleanup: %.1f MB; the rest was garbage the game frees over time', (GetAddOnMemoryUsage('auxForever') or 0) / 1024)
+    end
+    return text
 end
 
 _G.SLASH_AUX1 = '/aux'

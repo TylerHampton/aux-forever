@@ -75,6 +75,11 @@ function M.data_points(item_key)
 end
 
 function M.value(item_key)
+	-- auxForever: an item without any history needs no unpacking and no cache entry (the Sniper asks
+	-- about every item on the auction house)
+	if not data[item_key] then
+		return
+	end
 	if not value_cache[item_key] or value_cache[item_key].next_push <= time() then
 		local item_record, value
 		item_record = read_record(item_key)
@@ -92,9 +97,17 @@ function M.value(item_key)
 		else
 			value = item_record.daily_min_buyout
 		end
-		value_cache[item_key] = { value = value, next_push = item_record.next_push }
+		value_cache[item_key] = { value = value, next_push = item_record.next_push, days = #item_record.data_points }
 	end
 	return value_cache[item_key].value
+end
+
+-- auxForever: the usual price and how many days of history it rests on, from the same cache (the
+-- Sniper used to unpack the saved history again just to count its days)
+function M.value_and_days(item_key)
+	local usual = value(item_key)
+	local cached = value_cache[item_key]
+	return usual, cached and data[item_key] and cached.days or 0
 end
 
 function M.market_value(item_key)

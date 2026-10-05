@@ -81,6 +81,7 @@ function M.check_prices()
     checking = {done = 0, total = #keys}
     scan.start{
         type = 'list',
+        quiet = true,
         queries = {{item_keys = keys}},
         on_page_loaded = function(done)
             if checking then checking.done = done end

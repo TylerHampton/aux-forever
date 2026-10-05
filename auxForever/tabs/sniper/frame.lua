@@ -175,7 +175,8 @@ end)
 do
     local label = gui.label(frame.listing.list, gui.font_size.medium)
     label:SetPoint('CENTER', 0, 0)
-    label:SetWidth(500)
+    label:SetWidth(600)
+    label:SetWordWrap(true) -- two lines; gui.label is one line by default, which cut it to "round..."
     label:SetTextColor(aux.color.label.enabled())
     empty_label = label
 end

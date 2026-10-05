@@ -108,12 +108,12 @@ local function plain_money(amount)
     return money.to_string(amount, true, nil, nil, true)
 end
 
--- "Simple Kilt: materials 6s 10c, sells for 42s 75c after the cut, profit 36s 65c". Materials use
--- the cheapest auction or the vendor price, whichever is lower; the item uses its cheapest auction.
-function M.recipe_summary(search)
-    local parts = search.recipe
+-- Cost of a recipe from a search's records: materials (each the cheapest auction or the vendor
+-- price, whichever is lower; missing is true when one has neither) and what the made item sells
+-- for after the cut (nil when none is for sale or the recipe makes no item).
+function M.recipe_costs(parts, records)
     local cheapest = {}
-    for _, record in ipairs(search.records or empty) do
+    for _, record in ipairs(records or empty) do
         if not record.own and (record.buyout_price or 0) > 0 then
             local unit = record.unit_buyout_price
             if not cheapest[record.item_id] or unit < cheapest[record.item_id] then
@@ -134,13 +134,20 @@ function M.recipe_summary(search)
             missing = true
         end
     end
+    local sell = parts.output and cheapest[parts.output.item_id]
+    local net = sell and floor(ceil(sell) * parts.output.count * (1 - AUCTION_CUT)) or nil
+    return cost, missing, net
+end
+
+-- "Simple Kilt: materials 6s 10c, sells for 42s 75c after the cut, profit 36s 65c"
+function M.recipe_summary(search)
+    local parts = search.recipe
+    local cost, missing, net = recipe_costs(parts, search.records)
     local text = (parts.name or 'Recipe') .. ': materials ' .. (missing and '?' or plain_money(cost))
     if parts.output then
-        local sell = cheapest[parts.output.item_id]
-        if not sell then
+        if not net then
             text = text .. ', none for sale'
         else
-            local net = floor(ceil(sell) * parts.output.count * (1 - AUCTION_CUT))
             text = text .. ', sells for ' .. plain_money(net) .. ' after the cut'
             if not missing then
                 text = text .. (net >= cost and aux.color.green(', profit ' .. plain_money(net - cost)) or aux.color.red(', loss ' .. plain_money(cost - net)))
@@ -148,6 +155,25 @@ function M.recipe_summary(search)
         end
     end
     return text
+end
+
+-- Saved and Recent searches keep the recipe of a recipe search, so running one again (from either
+-- list, the quick menu, the history arrows or typed) shows the cost line again.
+function M.saved_recipe(filter_string)
+    for _, list in ipairs{recent_searches or empty, favorite_searches or empty} do
+        for _, entry in ipairs(list) do
+            if entry.recipe and entry.filter_string == filter_string then
+                return entry.recipe
+            end
+        end
+    end
+end
+
+-- a recipe search in the lists: "Recipe  Colorful Kilt  (3 materials)" instead of its search text
+function M.recipe_entry_name(entry)
+    local n = #(entry.recipe.reagents or empty)
+    return aux.color.accent.background('Recipe') .. '  ' .. (entry.filter_name or entry.recipe.name or '?')
+        .. '  ' .. aux.color.label.enabled('(' .. n .. (n == 1 and ' material)' or ' materials)'))
 end
 
 -- the button on the profession window, shown while aux is open at the auction house

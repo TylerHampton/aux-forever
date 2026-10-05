@@ -6,10 +6,22 @@ Last updated 2026-10-05 (before a context compaction of Claude's session).
 
 - Released: 0.3 and 0.3.1 (GitHub Releases `v0.3`, `v0.3.1`, uploaded to CurseForge by Tyler).
   `main` is at the 0.3.1 merge (#6).
-- In progress: **0.4** on branch `claude/modest-volta-4mgmsb` (TOC `forever-0.4`), pushed. Tyler is
-  testing the 0.4 build in game (`TESTING.md` section 16) and will report back. Next steps:
-  1. Fix whatever his test turns up (each bug: fix plus a test that fails without it).
-  2. Read his two `/aux memory` numbers (login, and after 30+ minutes); compare with later builds.
+- In progress: **0.4** on branch `claude/modest-volta-4mgmsb` (TOC `forever-0.4`), pushed. Tyler
+  tested the first 0.4 build: recipe search works. His findings, fixed in the second build:
+  saved recipe searches showed raw search text (now "Recipe  Name  (N materials)", the recipe is
+  kept on the saved entry); the Sniper played its sound once per deal (about 40 times in a 1c
+  first round) and showed nothing until the round ended (now one sound per 10s, deals and
+  "checking N possible deals" during the round); `/aux debug` printed timing every Sniper round
+  (scans with `quiet = true` print nothing); memory read 8.6 MB at first and 26.0 MB after Sniper
+  rounds. Memory: rounds no longer unpack history or build tables per item (`history.value_and_days`,
+  `GetItemInfo` directly). What remains per round is the game's own item list (about 7,700 entries,
+  each a table with an item key table), which becomes garbage; an estimate, not measured, is a few
+  MB per round. `/aux memory` now also reports the size after a full cleanup to tell the two apart.
+  Next steps:
+  1. Tyler tests the second build (`TESTING.md` section 16, Recipe search, Sniper fixes,
+     Performance) and sends both `/aux memory` lines at login and after 20+ Sniper rounds. If the
+     "after a cleanup" number keeps climbing, something is kept that should not be: look for it.
+  2. Fix whatever his test turns up (each bug: fix plus a test that fails without it).
   3. When he says 0.4 is ready: changelog heading `## 0.4 (date)`, status, curseforge text
      (features: Auctions tab undercut check, recipe search, Post next item), then a pull request
      into `main`, wait for CI, merge, run the Release workflow, check the release zip, send it, and

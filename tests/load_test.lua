@@ -1360,6 +1360,79 @@ try('sniper round', function()
 end)
 
 
+-- Tyler, 0.4: memory grew from 8.6 to 26 MB over Sniper rounds. Judging an item must not unpack its
+-- saved history again each round, nor touch history for items that have none.
+try('sniper: judging items reuses the history cache', function()
+  local req = loadstring("select(2, ...) 'aux.test42'; return require")('auxForever', addon)
+  local persistence = req 'aux.util.persistence'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  h.write_record('401:0', {next_push = h.get_next_push(), data_points = {{value = 500, time = 3}, {value = 500, time = 2}, {value = 500, time = 1}}})
+  local real_read, reads = persistence.read, 0
+  rawset(persistence, 'read', function(...) reads = reads + 1; return real_read(...) end)
+  local real_info = G.GetItemInfo
+  G.GetItemInfo = function(id) return 'Thing', 'link', 2, 1, 1, 'Armor', 'Cloth', 1, '', 1, 77 end
+  local usual, vendor, days = sniper.item_facts('401:0', 401)
+  check('sniper facts: usual price, vendor price and days', usual == 500 and vendor == 77 and days == 3)
+  reads = 0
+  for _ = 1, 5 do sniper.item_facts('401:0', 401) end
+  check('sniper facts: the saved history is not unpacked again', reads == 0)
+  local real_new, built = h.new_record, 0
+  h.new_record = function() built = built + 1; return real_new() end
+  local u2, _, d2 = sniper.item_facts('402:0', 402)
+  h.new_record = real_new
+  check('sniper facts: an item without history reads and builds nothing', reads == 0 and built == 0 and u2 == nil and d2 == 0)
+  rawset(persistence, 'read', real_read)
+  G.GetItemInfo = real_info
+end)
+
+-- Tyler, 0.4: the first round at 1c profit played the sound about 40 times before any deal showed
+try('sniper: one sound per burst, deals shown during the round, no timing lines', function()
+  local aux_require = loadstring("select(2, ...) 'aux.test41'; return require")('auxForever', addon)
+  local aux = aux_require 'aux'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local items = {}
+  for i = 1, 6 do
+    tinsert(items, {id = 300 + i, name = 'Cheap Thing ' .. i, min = 100, qty = 1, sell = 900, auctions = {{buyout = 100}}})
+  end
+  local run, restore = fake_ah(items)
+  local sounds = 0
+  local real_sound = G.PlaySound
+  G.PlaySound = function() sounds = sounds + 1 end
+  local printed = {}
+  local real_add = DEFAULT_CHAT_FRAME.AddMessage
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', function(_, text) tinsert(printed, text) end)
+  aux.account_data.debug_timing = true
+  aux.account_data.sniper_profit = 1
+  aux.set_tab(2)
+  local r0 = sniper.round
+  sniper.start()
+  local seen_mid_round, status_mid_round
+  for _ = 1, 200 do
+    run(1)
+    if sniper.round == r0 and sniper.checking and sniper.checking.done > 0 and sniper.checking.done < sniper.checking.total and #sniper.listing.records > 0 then
+      seen_mid_round = true
+      status_mid_round = select(2, sniper.status())
+    end
+    if sniper.round > r0 then break end
+  end
+  check('sniper: the round found every deal', #sniper.deals == 6)
+  check('sniper: deals show in the table before the round ends', seen_mid_round)
+  check('sniper: the status says how many possible deals are being checked', status_mid_round and status_mid_round:find('checking 6 possible deals') ~= nil)
+  check('sniper: six deals in one round play the sound once', sounds == 1)
+  local timing_lines = 0
+  for _, text in ipairs(printed) do if text:find('Search timing') then timing_lines = timing_lines + 1 end end
+  check('sniper: rounds print no timing lines with /aux debug on', timing_lines == 0)
+  sniper.stop()
+  aux.account_data.debug_timing = false
+  aux.account_data.sniper_profit = 500
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', real_add)
+  G.PlaySound = real_sound
+  aux.set_tab(1)
+  sniper.clear_deals()
+  restore()
+end)
+
 try('an error does not leave a search stuck', function()
   local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
   local scan = loadstring("select(2, ...) 'aux.core.scan'; return _M")('auxForever', addon)
@@ -1482,6 +1555,7 @@ try('/aux memory', function()
   local report = slash.memory_report()
   check('memory is measured when asked', updated == true)
   check('memory report in MB with the history size', report:find('uses 3.5 MB of memory; price history for %d+ items') ~= nil)
+  check('memory report says what is left after a cleanup', report:find('After a cleanup: 3.5 MB', 1, true) ~= nil)
   G.UpdateAddOnMemoryUsage, G.GetAddOnMemoryUsage = nil, nil
 end)
 
@@ -1647,6 +1721,28 @@ try('recipe search', function()
   -- materials: 3 x 64s + 2g 20s = 4g 12s; sells for 1g 85s less 5% = 1g 75s 75c: a loss
   local summary = search.results_summary(s) or ''
   check('recipe: the line adds up the craft', summary:find('Robe Kit: materials 4g 12s', 1, true) ~= nil and summary:find('sells for 1g 75s 75c after the cut', 1, true) ~= nil and summary:find('loss 2g 36s 25c', 1, true) ~= nil)
+
+  -- Tyler, 0.4: a saved recipe search showed as its raw text "[Colorful Kilt];[Bolt of Woolen Cloth];..."
+  local recent = search.recent_searches[1]
+  check('recipe: the recent entry keeps its recipe', recent.recipe and recent.recipe.name == 'Robe Kit')
+  local rows
+  rawset(search.recent_searches_listing, 'SetData', function(_, r) rows = r end)
+  search.update_search_listings()
+  rawset(search.recent_searches_listing, 'SetData', nil)
+  local name = rows and rows[1].cols[1].value or ''
+  check('recipe: Recent shows "Recipe  Robe Kit  (2 materials)"', name:find('Recipe', 1, true) and name:find('Robe Kit', 1, true) and name:find('(2 materials)', 1, true) and not name:find('exact', 1, true))
+  check('recipe: the quick menu shows the last profit or loss', recent.last_profit == -23625 and search.quick_entry_detail(recent):find('^Loss ') ~= nil)
+  check('recipe: saved as a favorite with its recipe', search.save_favorite(search.search_box:GetText()) == 'saved' and search.favorite_searches[1].recipe ~= nil)
+  -- another search, then the favorite again: the cost line comes back
+  search.set_filter('pagan robe/exact')
+  search.execute(nil, false)
+  run(60)
+  check('recipe: a plain search has no recipe', search.current_search().recipe == nil)
+  search.handlers.OnClick(search.favorite_searches_listing, {search = search.favorite_searches[1], index = 1}, nil, 'LeftButton')
+  run(120)
+  local again = search.current_search()
+  check('recipe: running the saved recipe search shows the cost line again', again.recipe and again.recipe.name == 'Robe Kit' and (search.results_summary(again) or ''):find('Robe Kit: materials', 1, true) ~= nil)
+  tremove(search.favorite_searches, 1)
 
   -- the button on the profession window
   local form = new_frame()

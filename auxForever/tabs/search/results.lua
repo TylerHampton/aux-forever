@@ -648,14 +648,20 @@ function M.execute(_, resume, mode)
         current_search().table:SetSelectedRecord()
     end
     if not resume then
+        -- a recipe search: started from the profession window, or run again from a saved one
+        local recipe = take_pending_recipe() or saved_recipe(filter_string)
+        local prettified = aux.join(aux.map(aux.copy(queries), function(filter) return filter.prettified end), ';')
         if filter_string ~= current_search().filter_string then
             if current_search().filter_string then
                 new_search(filter_string, mode)
             else
                 current_search().filter_string = filter_string
             end
-            new_recent_search(filter_string, aux.join(aux.map(aux.copy(queries), function(filter) return filter.prettified end), ';'))
+            new_recent_search(filter_string, prettified, recipe)
         else
+            if recipe then
+                new_recent_search(filter_string, prettified, recipe)
+            end
             local search = current_search()
             search.records = {}
             search.table:Reset()
@@ -665,7 +671,7 @@ function M.execute(_, resume, mode)
         search.mode = mode
         search.fast, search.full_reason = fast, full_reason
         search.open, search.pending_open = {}, nil
-        search.recipe = take_pending_recipe()
+        search.recipe = recipe
         if mode ~= LIVE_MODE then
             search.sort_type = 'unitprice'
         end

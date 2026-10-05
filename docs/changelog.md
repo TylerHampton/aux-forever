@@ -18,6 +18,15 @@ CurseForge file's changelog box.
 - Performance: item tooltips no longer build a hidden tooltip on every hover (once per item);
   the Post tab and the buy bar no longer redo their work every frame; scans no longer unpack each
   item's price history for every auction they see.
+- Saved and Recent searches show a recipe search as "Recipe  Simple Kilt  (2 materials)" instead
+  of its search text; running it again brings back the cost line, and the quick search menu shows
+  the item's icon and the last profit or loss.
+- Sniper: one sound for a burst of deals (at most one every 10 seconds; the first round could play
+  it dozens of times); deals show while a round runs, with "checking N possible deals (k done)";
+  the empty table's text is no longer cut off. Rounds no longer unpack each item's price history
+  or build a table per item, and reuse one table per round instead of a new one.
+- `/aux debug` prints timing for searches only, not for every Sniper round or Auctions check.
+- `/aux memory` also shows what is left after a cleanup, to tell real use from garbage not yet freed.
 
 ## 0.3.1 (2026-10-05)
 
