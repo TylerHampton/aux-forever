@@ -4,6 +4,7 @@ local gui = require 'aux.gui'
 local scan = require 'aux.core.scan'
 local post = require 'aux.tabs.post'
 local search = require 'aux.tabs.search'
+local info = require 'aux.util.info'
 
 function event.AUX_LOADED()
 	for _, v in ipairs(tab_info) do
@@ -228,7 +229,7 @@ do
     scan_button = btn
 end
 do
-    -- auxForever: settings (for now the background opacity), behind a gear in the top bar
+    -- auxForever: settings (background opacity, default auction length), behind a gear in the top bar
     local btn = gui.button(frame)
     btn:SetPoint('RIGHT', scan_button, 'LEFT', -6, 0)
     gui.set_size(btn, 28, 26)
@@ -248,7 +249,7 @@ do
     local popup = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
     gui.set_frame_style(popup, color.content.background, color.input.border, nil, nil, nil, nil, 8)
     popup:SetFrameStrata('DIALOG')
-    gui.set_size(popup, 240, 76)
+    gui.set_size(popup, 250, 150)
     popup:SetPoint('TOPRIGHT', btn, 'BOTTOMRIGHT', 0, -4)
     popup:EnableMouse(true)
     popup:Hide()
@@ -298,6 +299,49 @@ do
             GameTooltip:Show()
         end)
         b:SetScript('OnLeave', function() GameTooltip:Hide() end)
+    end
+
+    local divider = popup:CreateTexture(nil, 'ARTWORK')
+    divider:SetColorTexture(color.window.border())
+    divider:SetHeight(1)
+    divider:SetPoint('TOPLEFT', 8, -70)
+    divider:SetPoint('TOPRIGHT', -8, -70)
+
+    local length_label = gui.label(popup, gui.font_size.medium)
+    length_label:SetPoint('TOPLEFT', 12, -86)
+    length_label:SetText('Auction length')
+    length_label:SetTextColor(color.text.enabled())
+    local length_buttons = {}
+    for i = 3, 1, -1 do
+        local b = gui.button(popup, gui.font_size.small)
+        gui.set_size(b, 38, 24)
+        if i == 3 then
+            b:SetPoint('TOPRIGHT', -10, -81)
+        else
+            b:SetPoint('RIGHT', length_buttons[i + 1], 'LEFT', -3, 0)
+        end
+        b:SetScript('OnClick', function()
+            account_data.post_duration = i
+            refresh()
+        end)
+        length_buttons[i] = b
+    end
+    M.auction_length_buttons = length_buttons
+    local length_note = gui.label(popup, gui.font_size.small)
+    length_note:SetPoint('TOPLEFT', 12, -112)
+    length_note:SetPoint('TOPRIGHT', -12, -112)
+    length_note:SetJustifyH('LEFT')
+    length_note:SetWordWrap(true)
+    length_note:SetTextColor(color.label.enabled())
+    length_note:SetText('For items you have not posted before. Items you have posted start at the length you used last time.')
+
+    local refresh_opacity = refresh
+    function refresh()
+        refresh_opacity()
+        for i, b in ipairs(length_buttons) do
+            b:SetText(info.duration_hours(i) .. 'h')
+            gui.style_choice(b, account_data.post_duration == i)
+        end
     end
 
     popup:SetScript('OnShow', function()

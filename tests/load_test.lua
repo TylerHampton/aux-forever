@@ -707,4 +707,149 @@ try('post item prices', function()
   post.selected_item = nil
 end)
 
+-- Filter Builder: aux's and/or/not post filter as a tree of groups and back, and in words
+try('filter builder model', function()
+  local require = loadstring("select(2, ...) 'aux.test16'; return require")('auxForever', addon)
+  local filter_util = require 'aux.util.filter'
+  local s = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local function roundtrip(str)
+    local parsed = filter_util.parse_filter_string(str)
+    return s.post_string(s.tree_from_post(parsed.post)), s.tree_from_post(parsed.post)
+  end
+  check('single condition', roundtrip('price/5g') == 'price/5g')
+  local out, root = roundtrip('or/price/5g/percent/60')
+  check('or at the top shows as Match Any', root.mode == 'or' and #root.items == 2)
+  check('or at the top writes back with a count', out == 'or2/price/5g/percent/60')
+  check('not on a condition', roundtrip('not/price/5g') == 'not/price/5g')
+  out, root = roundtrip('price/5g/not/or2/seller/bob/left/30m')
+  check('negated group is one item', #root.items == 2 and root.items[2].kind == 'group' and root.items[2].negated and root.items[2].mode == 'or')
+  check('negated group writes back', out == 'price/5g/not/or2/seller/bob/left/30m')
+  out = roundtrip('or/and2/profit/5g/percent/60/and3/bid-profit/5g/bid-percent/60/left/30m')
+  check("Simon's example keeps its meaning", out == 'or2/and2/profit/5g/percent/60/and3/bid-profit/5g/bid-percent/60/left/30m')
+  check('a bare and over everything is the same as the top level', roundtrip('and/price/5g/percent/60') == 'price/5g/percent/60')
+  local words = s.post_words(s.tree_from_post(filter_util.parse_filter_string('price/5g/not/or2/seller/bob/left/30m').post))
+  check('in words: not and or read out', words and words:find('NOT (', 1, true) and words:find(' OR ', 1, true) and words:find(' AND ', 1, true))
+  local g = s.new_group('and')
+  local c = s.new_condition('price'); c.value = 'abc'
+  tinsert(g.items, c)
+  tinsert(g.items, s.new_condition('utilizable'))
+  check('an unfinished condition is left out', s.post_string(g) == 'utilizable')
+  c.value = '1.5g'
+  check('money is written the aux way', s.post_string(g) == 'price/1g 50s/utilizable')
+  local empty_group = s.new_group('or')
+  tinsert(g.items, empty_group)
+  check('an empty group is left out', s.post_string(g) == 'price/1g 50s/utilizable')
+  check('every post filter has a menu entry', (function()
+    for key in pairs(filter_util.filters) do
+      local found
+      for _, info in ipairs(s.CONDITIONS) do if info.key == key then found = true end end
+      if not found then return false end
+    end
+    return true
+  end)())
+end)
+
+-- Favorites: an empty search bar saves nothing, and a search is saved once
+try('favorites', function()
+  local s = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local before = #s.favorite_searches
+  check('empty search is not saved', s.add_favorite('') == 'empty' and s.add_favorite('   ') == 'empty' and #s.favorite_searches == before)
+  check('a search is saved', s.add_favorite('copper ore/exact') == 'saved' and #s.favorite_searches == before + 1)
+  check('the same search again is not', s.add_favorite('Copper Ore/exact') == 'duplicate' and #s.favorite_searches == before + 1)
+  tremove(s.favorite_searches, 1)
+end)
+
+-- Settings: default auction length
+try('auction length setting', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local buttons = a.auction_length_buttons
+  check('three auction length buttons', buttons and #buttons == 3)
+  buttons[3].__scripts.OnClick(buttons[3])
+  check('choosing one sets the default length', a.account_data.post_duration == 3)
+  buttons[2].__scripts.OnClick(buttons[2])
+  check('and back', a.account_data.post_duration == 2)
+end)
+
+-- Filter Builder: rows follow the search bar, and every edit rewrites the search bar
+try('filter builder ui', function()
+  local s = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local function shown_rows()
+    local list = {}
+    for _, row in ipairs(s.builder_rows) do if row.__shown and row.item then tinsert(list, row) end end
+    return list
+  end
+  local function find_row(fn) for _, row in ipairs(shown_rows()) do if fn(row.item) then return row end end end
+  local function click(widget) widget.__scripts.OnClick(widget) end
+  local function pick(value)
+    for _, b in ipairs(s.builder_menu_buttons) do if b.__shown and b.value == value then click(b) return true end end
+  end
+  local text = function() return s.search_box:GetText() end
+
+  s.search_box:SetText('price/5g/not/or2/seller/bob/left/30m')
+  s.set_subtab(s.FILTER)
+  local rows = shown_rows()
+  check('rows: condition, group, two inside, two add rows', #rows == 6)
+  check('first row is the price condition', rows[1].item.kind == 'cond' and rows[1].type_btn.__text == 'Price per item' and rows[1].value_box.__text == '5g')
+  check('group row is negated and Any', rows[2].item.kind == 'group' and rows[2].item.node.negated and rows[2].item.node.mode == 'or')
+  check('in words shown', tostring(s.builder_words_text.__text):find('NOT (', 1, true) ~= nil)
+  check('loading does not rewrite the search bar', text() == 'price/5g/not/or2/seller/bob/left/30m')
+
+  click(rows[1].not_btn)
+  check('not switch writes not', text() == 'not/price/5g/not/or2/seller/bob/left/30m')
+  click(find_row(function(i) return i.kind == 'cond' and i.node.filter == 'price' end).not_btn)
+
+  local root_add = find_row(function(i) return i.kind == 'add' and i.group == s.get_builder_root() end)
+  click(root_add.add_cond)
+  check('condition menu lists every filter', #s.builder_menu_buttons >= 18)
+  check('picking a condition adds a row', pick('percent'))
+  local pct = find_row(function(i) return i.kind == 'cond' and i.node.filter == 'percent' end)
+  check('new condition row', pct ~= nil)
+  check('unfinished condition stays out of the search bar', text() == 'price/5g/not/or2/seller/bob/left/30m')
+  pct.value_box:SetText('60')
+  pct.value_box.change(pct.value_box, true)
+  check('typing a value writes it', text() == 'price/5g/not/or2/seller/bob/left/30m/percent/60')
+
+  local left = find_row(function(i) return i.kind == 'cond' and i.node.filter == 'left' end)
+  click(left.value_btn)
+  check('choice menu', pick('2h'))
+  check('choice written', text():find('left/2h', 1, true) ~= nil)
+
+  click(find_row(function(i) return i.kind == 'group' end).remove)
+  check('removing a group removes its conditions', text() == 'price/5g/percent/60')
+  click(s.root_any_button)
+  check('Match any at the top', text() == 'or2/price/5g/percent/60')
+  click(s.root_all_button)
+
+  root_add = find_row(function(i) return i.kind == 'add' and i.group == s.get_builder_root() end)
+  click(root_add.add_group)
+  local inner_add = find_row(function(i) return i.kind == 'add' and i.group ~= s.get_builder_root() end)
+  check('a new group has its own add row', inner_add ~= nil)
+  click(inner_add.add_cond); pick('seller')
+  local seller = find_row(function(i) return i.kind == 'cond' and i.node.filter == 'seller' end)
+  check('condition added inside the group', seller and seller.item.depth == 1)
+  seller.value_box:SetText('Bob'); seller.value_box.change(seller.value_box, true)
+  check('a group with one condition is written without and/or', text() == 'price/5g/percent/60/seller/bob')
+
+  s.search_box:SetText('price/3g')
+  s.search_box.change(s.search_box, true)
+  rows = shown_rows()
+  check('typing in the search bar updates the builder', #rows == 2 and rows[1].value_box.__text == '3g')
+  s.search_box:SetText('price')
+  s.search_box.change(s.search_box, true)
+  check('unreadable search bar text is explained', tostring(s.builder_words_text.__text):find('cannot', 1, true) ~= nil)
+  check('and the rows stay as they were', #shown_rows() == 2)
+
+  s.search_box:SetText('copper ore/exact;linen cloth')
+  s.load_builder()
+  click(s.root_any_button)
+  check('other searches after ; are kept', text():find(';linen cloth', 1, true) ~= nil)
+
+  local favorites = #s.favorite_searches
+  click(s.builder_clear_button)
+  check('Clear all empties the search bar', text() == '' and #s.get_builder_root().items == 0)
+  click(s.builder_save_button)
+  check('saving an empty search saves nothing', #s.favorite_searches == favorites)
+  s.set_subtab(s.SAVED)
+end)
+
 print('done, errors: ' .. errors)

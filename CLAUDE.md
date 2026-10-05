@@ -34,6 +34,9 @@ and give a ready-to-install zip after every change. Current status and open item
   the game font is used. Textures (`.tga`) from the addon folder do load.
 - The buy bar redraws every frame: never hide and re-show a button each frame, the game drops
   clicks on it (this broke Cancel). Show or hide only when the state changes.
+- Filter Builder: the condition tree and search text are in `tabs/search/filter.lua`, the rows and
+  menus in `tabs/search/builder.lua`. Write and/or with a count (`and2`): a bare `and` takes
+  everything after it.
 - Buying must never spend more than the player saw: the buy bar confirms only quotes at or below
   the shown price. Keep that guarantee.
 

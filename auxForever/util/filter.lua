@@ -249,7 +249,7 @@ do
 	end
 end
 
-function parse_parameter(input_type, str)
+function M.parse_parameter(input_type, str)
     if input_type == 'money' then
         local money = money.from_string(str)
         return money and money > 0 and money or nil

@@ -23,7 +23,6 @@ end
 function tab.OPEN()
     frame:Show()
     update_search_listings()
-    update_filter_display()
     update_done()
 end
 
@@ -59,6 +58,7 @@ function set_subtab(tab)
     elseif tab == FILTER then
         frame.filter:Show()
         new_filter_button:LockHighlight()
+        load_builder()
     end
     update_done()
 end

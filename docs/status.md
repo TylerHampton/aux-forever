@@ -33,7 +33,7 @@ Last updated at the end of the first session (2026-10-04).
 Public since 2026-10-04. All work is on `claude/modest-volta-4mgmsb` (PR #1); `main` still holds
 only the initial commit until Tyler merges, so a download of `main` is not auxForever yet.
 
-## Planned for 0.2 (Tyler, 2026-10-05)
+## 0.2 (built 2026-10-05, needs testing in game: TESTING.md section 13)
 
 1. Settings popup: default auction length (2h/8h/24h, labels from the game). It is the existing
    `post_duration` setting: new items start at it, items posted before keep their last length.
@@ -43,9 +43,12 @@ only the initial commit until Tyler merges, so a download of `main` is not auxFo
      Simon's full and/or/not nesting kept; groups map one to one onto it).
    - Live sync with the search bar replaces Import/Export; "Save to favorites" added.
    - "In words" line reads the search back in plain English.
-   - Seen while checking: Import may not set the Exact checkbox; category names need checking
-     against Forever's AuctionCategories. (The `<>` in the search bar is aux's label for an empty
-     search, which lists everything; not a bug by itself.)
+   - Built as `tabs/search/filter.lua` (tree, search text, words) and `tabs/search/builder.lua`
+     (rows, menus). Groups are always written with a count (`and2`), since a bare `and` takes
+     everything after it. Unfinished conditions are left out of the search bar.
+   - The bid variants are separate menu entries rather than the Buyout / Bid switch the mockup
+     mentioned. Category names still need checking against Forever's AuctionCategories in game.
+     (The `<>` in the search bar is aux's label for an empty search; not a bug by itself.)
 3. Saved Searches: Favorite with an empty search bar saves an empty search (`<>`), once per click
    (Tyler's screenshot: nine of them). Favorite should do nothing on an empty search bar and should
    not add a search that is already a favorite.

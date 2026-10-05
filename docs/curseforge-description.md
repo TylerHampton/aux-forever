@@ -35,12 +35,15 @@ from aux on Classic:
 
 - Completely independent replacement for the Blizzard auction house window, one click away from
   the unaltered Blizzard interface.
-- A resizable window that remembers its size and position, with an adjustable background opacity.
+- A resizable window that remembers its size and position.
+- Settings behind the gear: background opacity and the default auction length.
 - Many convenient shortcuts.
 
 **Search**
 
 - Advanced search filters which can be combined with logical operators, with autocompletion.
+- A Filter Builder that writes those searches for you: conditions in plain words, Match All or
+  Any, "not", and groups inside groups, read back in plain English as you build.
 - Quick searches: your recent searches with their cheapest price, and pinned favorites, one click
   away. Back and forward arrows step through earlier results like a web browser.
 - Concise listings: level, item, how many are for sale at that price, time left, seller, bid,
@@ -118,8 +121,8 @@ from aux on Classic:
 The filter language is the same as in aux. Parts of a query are separated by slashes, and
 semicolons mean "or": `q1;q2` finds everything matching either. The first part is the item name
 unless it matches a filter keyword, and `exact` matches the name exactly. Filters can be combined
-with `and`, `or` and `not` in polish notation. The Filter Builder sub-tab builds queries for you and
-is the easiest way to learn them. A few examples:
+with `and`, `or` and `not` in polish notation. The Filter Builder sub-tab builds queries for you, shows the search text it writes
+and reads it back in plain English, so it is the easiest way to learn them. A few examples:
 
 - `armor/cloth/50/intellect/stamina` finds cloth armor from level 50 with both intellect and
   stamina.

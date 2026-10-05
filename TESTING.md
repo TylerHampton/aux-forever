@@ -136,6 +136,42 @@ Do these in order. After each step, if BugSack shows an error, copy the full err
 - [ ] The setting is kept after `/reload`. `/aux opacity 85` sets it from chat.
 - [ ] Clicking anywhere else closes the Settings box.
 
+## 13. Version 0.2: auction length, favorites, Filter Builder
+
+Needs a full game restart (a new file was added), not just `/reload`.
+
+Settings
+- [ ] The gear's Settings box now has "Auction length" with 2h / 8h / 24h. Pick 24h, then select an
+      item in the Post tab you have never posted: it starts at 24h. An item you posted before keeps
+      the length you used last time.
+
+Favorites
+- [ ] Saved Searches, empty search bar, click Favorite: nothing is added and chat says why.
+- [ ] Favorite the same search twice: it is added once ("already a favorite").
+
+Filter Builder (Search tab, Filter Builder)
+- [ ] Left: "WHICH ITEMS" with Name, Exact, Level from and to, I can use, Category, Type, Slot,
+      Rarity. Changing any of them changes the search bar text at once.
+- [ ] Right: "ONLY SHOW AUCTIONS WHERE". Click "+ Condition": a menu of every filter in plain
+      words opens. Pick "Price per item, at most", type `5g`: the search bar shows `price/5g`.
+- [ ] A bad value (e.g. `abc` for a price) gets a red border and stays out of the search bar.
+- [ ] Time left and Rarity open a small list of choices instead of a text box.
+- [ ] "not" on a row turns red and adds `not/` in the search bar.
+- [ ] Match All / Any at the top right switches the search between all and any of the conditions.
+- [ ] "+ Group" adds a box with its own All / Any and "not"; "+ Condition" inside it adds to the
+      group. A group inside a group works too.
+- [ ] The × on a row or a group removes it.
+- [ ] "In words" at the bottom reads the whole search back, e.g. "... where price per item is at
+      most 5g AND NOT (seller is bob OR time left is 30m)."
+- [ ] Type a search in the search bar, then open Filter Builder: the form shows it. Typing in the
+      search bar while the builder is open updates the form too.
+- [ ] Paste Simon's example `or/and2/profit/5g/percent/60/and3/bid-profit/5g/bid-percent/60/left/30m`
+      into the search bar and open Filter Builder: two groups under Match Any.
+- [ ] Category, Type and Slot: pick Armor, then Cloth. The search bar shows `armor/cloth`, and a
+      search finds cloth armor. (Category names come from the game; check they match.)
+- [ ] Clear all empties the form and the search bar. Save to favorites saves the search.
+- [ ] Press Search at the top: the results match what "In words" says.
+
 ## Things to note even without errors
 - Anything that looks different from how aux worked on Classic.
 - Anything slow (searches will be slower than Classic for broad searches, that is expected).

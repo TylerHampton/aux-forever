@@ -181,7 +181,18 @@ function get_alert_validator()
 	end
 end
 
+-- auxForever: an empty search bar is not saved (it used to add an empty search per click), nor a
+-- search that is already a favorite. Returns 'saved', 'empty' or 'duplicate' (nil when invalid).
 function add_favorite(filter_string)
+	filter_string = aux.trim(filter_string or '')
+	if filter_string == '' then
+		return 'empty'
+	end
+	for _, entry in ipairs(favorite_searches) do
+		if strlower(aux.trim(entry.filter_string)) == strlower(filter_string) then
+			return 'duplicate'
+		end
+	end
 	local queries, error = filter_util.queries(filter_string)
 	if queries then
 		tinsert(favorite_searches, 1, {
@@ -189,9 +200,23 @@ function add_favorite(filter_string)
 			prettified = aux.join(aux.map(queries, function(query) return query.prettified end), ';')
         })
 		update_search_listings()
+		return 'saved'
 	else
 		aux.print('Invalid filter:', error)
 	end
+end
+
+-- the Favorite buttons: saves and says why when nothing was saved
+function save_favorite(filter_string)
+	local result = add_favorite(filter_string)
+	if result == 'empty' then
+		aux.print('Nothing to save: the search bar is empty.')
+	elseif result == 'duplicate' then
+		aux.print('That search is already a favorite.')
+	elseif result == 'saved' then
+		aux.print('Saved to favorites.')
+	end
+	return result
 end
 
 function enable_alert(search)

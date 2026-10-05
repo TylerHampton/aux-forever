@@ -223,6 +223,19 @@ function M.button(parent, text_height)
     return button
 end
 
+-- one option of a row of choice buttons (2h / 8h / 24h, All / Any): selected ones get the accent
+function M.style_choice(btn, selected)
+    if selected then
+        btn:SetBackdropColor(aux.color.accent.selected())
+        btn:SetBackdropBorderColor(aux.color.accent.background())
+        btn:GetFontString():SetTextColor(.96, .83, .56)
+    else
+        btn:SetBackdropColor(aux.color.content.background())
+        btn:SetBackdropBorderColor(aux.color.content.border())
+        btn:GetFontString():SetTextColor(aux.color.text.enabled())
+    end
+end
+
 -- auxForever: the main action of a view (Search), in the accent color
 function M.set_primary(button)
     button:SetBackdropColor(aux.color.accent.background())
