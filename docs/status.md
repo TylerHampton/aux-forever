@@ -43,9 +43,12 @@ only the initial commit until Tyler merges, so a download of `main` is not auxFo
      Simon's full and/or/not nesting kept; groups map one to one onto it).
    - Live sync with the search bar replaces Import/Export; "Save to favorites" added.
    - "In words" line reads the search back in plain English.
-   - Seen while checking: Tyler's screenshot shows `<>` in the search bar (cause not found yet; the
-     test harness exports an empty form as an empty string); Import may not set the Exact
-     checkbox; category names need checking against Forever's AuctionCategories.
+   - Seen while checking: Import may not set the Exact checkbox; category names need checking
+     against Forever's AuctionCategories. (The `<>` in the search bar is aux's label for an empty
+     search, which lists everything; not a bug by itself.)
+3. Saved Searches: Favorite with an empty search bar saves an empty search (`<>`), once per click
+   (Tyler's screenshot: nine of them). Favorite should do nothing on an empty search bar and should
+   not add a search that is already a favorite.
 
 ## Fixed in 0.1.1
 
