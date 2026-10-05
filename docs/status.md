@@ -26,8 +26,11 @@ Last updated 2026-10-05 (before a context compaction of Claude's session).
   filtered by the rule) and the buy did not go through (unknown; rounds now pause while the buy
   bar is busy; the Confirm click may have been missed). Prices: Tyler wants copper kept in
   tables for alignment (done: full parts when any price in the table has copper). Auction Bid
-  showed the buyout on buyout-only auctions (now "---"). Resize corner jumps on a single click:
-  not reproduced, details asked in build 3's page. Posting bid = buyout posts buyout only, as
+  showed the buyout on buyout-only auctions (now "---"). Resize corner jumps on a single click
+  (Tyler made sure: single clicks, and once it starts each click jumps again; scale 100%): not
+  reproduced; my double-click guess was wrong. Build 4 drops the game's StartSizing for aux's own
+  sizing during the drag (`frame.lua`, grip OnUpdate only while dragging), so a click without
+  movement changes nothing; anchor_top_left no longer re-anchors when already in place. Posting bid = buyout posts buyout only, as
   designed; the test step had asked for a lower bid.
 - 0.4 release (2026-10-05): Tyler approved it after build 5, with one last change: the recipe
   cost line moved from the line next to the sub tabs (crowded, cut off) to the bottom bar right of

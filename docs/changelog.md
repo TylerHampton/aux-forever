@@ -18,6 +18,8 @@ CurseForge file's changelog box.
 - Sniper: the buy bar offers only the units that are a deal (it offered more expensive units of a
   trade good too), and rounds wait while a purchase is under way.
 - The Auction Bid column shows "---" for auctions with no starting bid instead of their buyout.
+- The resize corner: aux sizes the window itself while you drag. A single click on the corner could
+  make the whole window jump diagonally, again with each click.
 - `/aux memory detail` lists what aux keeps (Sniper, history, searches, Post, tooltips, events).
 - Sniper: deals that sold sort below the ones still to buy.
 

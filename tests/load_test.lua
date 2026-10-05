@@ -1005,13 +1005,42 @@ try('settings scale and resize corner', function()
   check('scale values are cleaned up', a.clean_scale(1.31) == 1.3 and a.clean_scale('x') == 1)
   a.change_window_scale(1)
   rawset(a.frame, 'SetScale', nil)
-  local anchored
-  rawset(a.frame, 'SetPoint', function(self, point) anchored = point end)
-  rawset(a.frame, 'StartSizing', function() sized_after = anchored end)
-  sized_after = nil
-  a.resize_grip.__scripts.OnMouseDown(a.resize_grip, 'LeftButton')
-  check('resize corner anchors top left before sizing', sized_after == 'TOPLEFT')
-  rawset(a.frame, 'SetPoint', nil); rawset(a.frame, 'StartSizing', nil)
+  -- Tyler, 0.4.1: one click on the resize corner could make the whole window jump diagonally.
+  -- aux sizes the window itself now: only a drag changes the size, by exactly the drag.
+  local f, grip = a.frame, a.resize_grip
+  local w, h, sizes, anchored = 1200, 600, 0, nil
+  local cx, cy, down = 500, 300, true
+  rawset(f, 'GetWidth', function() return w end); rawset(f, 'GetHeight', function() return h end)
+  rawset(f, 'SetWidth', function(_, v) w = v; sizes = sizes + 1 end); rawset(f, 'SetHeight', function(_, v) h = v; sizes = sizes + 1 end)
+  rawset(f, 'SetSize', function(_, x, y) w, h = x, y; sizes = sizes + 1 end)
+  rawset(f, 'GetLeft', function() return 100 end); rawset(f, 'GetTop', function() return 900 end)
+  rawset(f, 'GetEffectiveScale', function() return 1 end)
+  rawset(UIParent, 'GetEffectiveScale', function() return 1 end)
+  rawset(UIParent, 'GetWidth', function() return 1920 end); rawset(UIParent, 'GetHeight', function() return 1080 end)
+  rawset(f, 'SetPoint', function(_, point) anchored = point end)
+  rawset(f, 'StartSizing', function() anchored = 'game sizing' end)
+  G.GetCursorPosition = function() return cx, cy end
+  G.IsMouseButtonDown = function() return down end
+  grip.__scripts.OnMouseDown(grip, 'LeftButton')
+  check('resize corner anchors the window by its top left', anchored == 'TOPLEFT')
+  for _ = 1, 3 do grip.__scripts.OnUpdate(grip) end
+  grip.__scripts.OnMouseUp(grip)
+  check('a click on the resize corner changes nothing', sizes == 0 and w == 1200 and h == 600)
+  check('the drag stops with the click', grip.__scripts.OnUpdate == nil)
+  down = true
+  grip.__scripts.OnMouseDown(grip, 'LeftButton')
+  cx, cy = 560, 260
+  grip.__scripts.OnUpdate(grip)
+  check('a drag resizes by exactly the drag', w == 1260 and h == 640)
+  cx, cy = 5000, -5000
+  grip.__scripts.OnUpdate(grip)
+  check('the window stays on screen', w == 1820 and h == 900)
+  down = false
+  grip.__scripts.OnUpdate(grip)
+  check('releasing the mouse anywhere ends the drag', grip.__scripts.OnUpdate == nil)
+  for _, k in ipairs{'GetWidth', 'GetHeight', 'SetWidth', 'SetHeight', 'SetSize', 'GetLeft', 'GetTop', 'GetEffectiveScale', 'SetPoint', 'StartSizing'} do rawset(f, k, nil) end
+  for _, k in ipairs{'GetEffectiveScale', 'GetWidth', 'GetHeight'} do rawset(UIParent, k, nil) end
+  G.GetCursorPosition, G.IsMouseButtonDown = nil, nil
 end)
 
 -- Search timing log (/aux debug): the summary says where a search's time went

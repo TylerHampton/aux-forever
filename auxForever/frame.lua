@@ -29,16 +29,6 @@ local function max_size()
 	return max(MIN_WIDTH, UIParent:GetWidth() / scale), max(MIN_HEIGHT, UIParent:GetHeight() / scale)
 end
 
-local function set_resize_bounds()
-	local max_width, max_height = max_size()
-	if frame.SetResizeBounds then
-		frame:SetResizeBounds(MIN_WIDTH, MIN_HEIGHT, max_width, max_height)
-	else
-		frame:SetMinResize(MIN_WIDTH, MIN_HEIGHT)
-		frame:SetMaxResize(max_width, max_height)
-	end
-end
-
 function save_window()
 	local window = account_data.window
 	window.width, window.height = frame:GetWidth(), frame:GetHeight()
@@ -51,6 +41,12 @@ end
 -- by its left edge) could make the window jump to full screen on a single click.
 function M.anchor_top_left()
 	local left, top = frame:GetLeft(), frame:GetTop()
+	local point, relative, relative_point, x, y = frame:GetPoint(1)
+	-- already there: leave it, so a click never moves the window by a rounding error
+	if point == 'TOPLEFT' and relative == UIParent and relative_point == 'BOTTOMLEFT' and left and top
+		and abs((x or 0) - left) < .5 and abs((y or 0) - top) < .5 then
+		return
+	end
 	if left and top then
 		frame:ClearAllPoints()
 		frame:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT', left, top)
@@ -159,18 +155,49 @@ do
 	grip:SetNormalTexture([[Interface\ChatFrame\UI-ChatIM-SizeGrabber-Up]])
 	grip:SetHighlightTexture([[Interface\ChatFrame\UI-ChatIM-SizeGrabber-Highlight]])
 	grip:SetPushedTexture([[Interface\ChatFrame\UI-ChatIM-SizeGrabber-Down]])
+	-- auxForever (0.4.1): aux sizes the window itself instead of the game's StartSizing. With
+	-- StartSizing a single click on the corner could make the whole window jump diagonally, again
+	-- with each click (Tyler; not reproduced here). Now the size follows the mouse only while it is
+	-- dragged, measured from where the drag started, so a click that does not move changes nothing.
+	-- The top left corner stays put and the window stays on screen. Runs only during a drag.
+	local function cursor()
+		local x, y = GetCursorPosition()
+		local scale = frame:GetEffectiveScale()
+		return x / scale, y / scale
+	end
+	local function stop_sizing()
+		if grip:GetScript('OnUpdate') then
+			grip:SetScript('OnUpdate', nil)
+			save_window()
+		end
+	end
 	grip:SetScript('OnMouseDown', function(_, button)
 		if button ~= 'LeftButton' then return end
-		set_resize_bounds()
 		anchor_top_left()
-		frame:StartSizing('BOTTOMRIGHT')
+		local x0, y0 = cursor()
+		local width0, height0 = frame:GetWidth(), frame:GetHeight()
+		-- room up to the right and bottom edges of the screen, in the window's own scale
+		local screen = UIParent:GetEffectiveScale() / frame:GetEffectiveScale()
+		local max_width = max(MIN_WIDTH, UIParent:GetWidth() * screen - (frame:GetLeft() or 0))
+		local max_height = max(MIN_HEIGHT, frame:GetTop() or UIParent:GetHeight() * screen)
+		local last_width, last_height = width0, height0
+		grip:SetScript('OnUpdate', function()
+			if not IsMouseButtonDown('LeftButton') then
+				stop_sizing()
+				return
+			end
+			local x, y = cursor()
+			local width = floor(bounded(MIN_WIDTH, max_width, width0 + x - x0) + .5)
+			local height = floor(bounded(MIN_HEIGHT, max_height, height0 + y0 - y) + .5)
+			if width ~= last_width or height ~= last_height then
+				last_width, last_height = width, height
+				gui.set_size(frame, width, height)
+			end
+		end)
 	end)
-	grip:SetScript('OnMouseUp', function()
-		frame:StopMovingOrSizing()
-		save_window()
-	end)
+	grip:SetScript('OnMouseUp', stop_sizing)
 	grip:SetScript('OnDoubleClick', function()
-		frame:StopMovingOrSizing()
+		stop_sizing()
 		anchor_top_left()
 		gui.set_size(frame, DEFAULT_WIDTH, DEFAULT_HEIGHT)
 		save_window()
