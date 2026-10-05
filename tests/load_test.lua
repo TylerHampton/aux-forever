@@ -1316,6 +1316,16 @@ try('sniper round', function()
   run(40)
   check('sniper: a deal that sold shows as gone', found['Ritual Kilt'].deal_gone == true and not found.Kingsblood.deal_gone)
   check('sniper: the count says how many are left and gone', sniper.deals_count(sniper.shown_deals()) == '1 to buy, 1 gone')
+  -- Tyler, 0.4.1: deals that sold go to the bottom of the table
+  local function shown_order()
+    local out = {}
+    for _, info in ipairs(sniper.listing.rowInfo) do tinsert(out, info.children[1].record) end
+    return out
+  end
+  found.Kingsblood.deal_found, found['Ritual Kilt'].deal_found = 100, 200 -- the gone one is newer
+  sniper.update_deals()
+  local order = shown_order()
+  check('sniper: a deal that sold sorts below the ones to buy', #order == 2 and not order[1].deal_gone and order[2].deal_gone)
   -- Tyler, 0.4 build 2: after a few rounds every deal vanished from the table, then came back. The
   -- game had dropped the items' data for a moment, and a deal without item data was hidden.
   local real_info = G.GetItemInfo
@@ -1732,6 +1742,20 @@ try('per-frame work 0.4', function()
 end)
 
 
+-- Tyler, 0.4.1: prices read "7s", not "7s 00c"
+try('money without zero parts', function()
+  local req = loadstring("select(2, ...) 'aux.test45'; return require")('auxForever', addon)
+  local money = req 'aux.util.money'
+  local function plain(n) return money.to_string(n, true, nil, nil, true) end
+  check('money: 7s', plain(700) == '7s')
+  check('money: 1g 92s', plain(19200) == '1g 92s')
+  check('money: 1g 5c', plain(10005) == '1g 05c')
+  check('money: 1s 23c', plain(123) == '1s 23c')
+  check('money: 0c', plain(0) == '0c')
+  check('money: 3g', plain(30000) == '3g')
+  check('money: negative', plain(-700) == '-7s')
+end)
+
 try('per-frame work 0.4.1', function()
   local aux_require = loadstring("select(2, ...) 'aux.test44'; return require")('auxForever', addon)
   local aux = aux_require 'aux'
@@ -1826,7 +1850,7 @@ try('recipe search', function()
   local partial = search.recipe_summary{recipe = s.recipe, records = without}
   local info = loadstring("select(2, ...) 'aux.util.info'; return _M")('auxForever', addon)
   local dye = info.item(103).name
-  check('recipe: a material without a price is named', partial:find('materials 1g 92s 00c + ' .. dye .. ' (no price)', 1, true) ~= nil)
+  check('recipe: a material without a price is named', partial:find('materials 1g 92s + ' .. dye .. ' (no price)', 1, true) ~= nil)
   check('recipe: with a material missing the loss is a bound', partial:find('loss at least 16s 25c', 1, true) ~= nil)
 
   -- Tyler, 0.4: a saved recipe search showed as its raw text "[Colorful Kilt];[Bolt of Woolen Cloth];..."

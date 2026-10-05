@@ -71,28 +71,19 @@ function M.to_string(money, pad, trim, color, no_color)
 		gold_text, silver_text, copper_text = GOLD_TEXT, SILVER_TEXT, COPPER_TEXT
 	end
 
-	local text
-	if trim then
-		local parts = {}
-		if gold > 0 then
-			tinsert(parts, format_number(gold, false, color) .. gold_text)
-		end
-		if silver > 0 then
-			tinsert(parts, format_number(silver, pad, color) .. silver_text)
-		end
-		if copper > 0 or gold == 0 and silver == 0 then
-			tinsert(parts, format_number(copper, pad, color) .. copper_text)
-		end
-		text = aux.join(parts, ' ')
-	else
-		if gold > 0 then
-			text = format_number(gold, false, color) .. gold_text .. ' ' .. format_number(silver, pad, color) .. silver_text .. ' ' .. format_number(copper, pad, color) .. copper_text
-		elseif silver > 0 then
-			text = format_number(silver, false, color) .. silver_text .. ' ' .. format_number(copper, pad, color) .. copper_text
-		else
-			text = format_number(copper, false, color) .. copper_text
-		end
+	-- auxForever: parts that are zero are always left out ("7s", not "7s 00c"; Tyler, 0.4.1). The
+	-- trim argument is kept for callers but no longer changes anything.
+	local parts = {}
+	if gold > 0 then
+		tinsert(parts, format_number(gold, false, color) .. gold_text)
 	end
+	if silver > 0 then
+		tinsert(parts, format_number(silver, gold > 0 and pad, color) .. silver_text)
+	end
+	if copper > 0 or gold == 0 and silver == 0 then
+		tinsert(parts, format_number(copper, (gold > 0 or silver > 0) and pad, color) .. copper_text)
+	end
+	local text = aux.join(parts, ' ')
 
 	if is_negative then
 		text = (color and color'-' or '-') .. text

@@ -11,6 +11,8 @@ CurseForge file's changelog box.
 - Removed the Classic-only crafting cost code and its `/aux crafting cost` setting; it never ran on
   Forever (recipe search does this job since 0.4).
 - `/aux memory` also says how many items aux's item list knows, and whether it is still checking.
+- Prices leave out parts that are zero: "7s" instead of "7s 00c", "1g 92s" instead of "1g 92s 00c".
+- Sniper: deals that sold sort below the ones still to buy.
 
 ## 0.4 (2026-10-05)
 

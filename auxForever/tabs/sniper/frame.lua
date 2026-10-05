@@ -64,6 +64,10 @@ M.columns = {
             end
         end,
         cmp = function(a, b, desc)
+            -- deals that sold sit below the ones still to buy, whichever way this column is sorted
+            if not a.deal_gone ~= not b.deal_gone then
+                return a.deal_gone and sort_util.GT or sort_util.LT
+            end
             return sort_util.compare(a.deal_found, b.deal_found, desc)
         end,
     },

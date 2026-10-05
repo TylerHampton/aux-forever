@@ -28,7 +28,9 @@ else is batched, about a week of real use.
 4. Housekeeping, done: tests run once per change on GitHub (a pull request from this repository
    reuses the branch's run; the duplicate was cancelled while queued at the 0.4 merge and GitHub
    mailed it as a failure).
-5. UX/UI common sense: list to agree with Tyler; visual changes get a mockup first.
+5. UX/UI common sense. Tyler picked (2026-10-05): prices without zero parts ("7s", not "7s 00c")
+   and sold Sniper deals at the bottom; both done. Not picked for now: a dash instead of "?" in
+   the Sniper's Usual column, and "?" in the Search tab's Seller column.
 
 ## 0.3.x: fixes after 0.3 (done)
 
