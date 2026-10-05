@@ -1485,4 +1485,84 @@ try('/aux memory', function()
   G.UpdateAddOnMemoryUsage, G.GetAddOnMemoryUsage = nil, nil
 end)
 
+
+try('auctions tab: undercut check', function()
+  local aux = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local auctions = loadstring("select(2, ...) 'aux.tabs.auctions'; return _M")('auxForever', addon)
+  local items = ROBES()
+  tinsert(items, {id = 104, name = 'Native Robe', min = 3000, qty = 1, auctions = {{buyout = 3000}}})
+  -- another seller at 6400 for the Greenweave Robe, the same price as ours
+  local run, restore = fake_ah(items)
+  local function link(id, name) return '|cff1eff00|Hitem:' .. id .. '::::::0:0|h[' .. name .. ']|h|r' end
+  local owned = {
+    {auctionID = 9001, itemKey = {itemID = 101, itemSuffix = 0, itemLevel = 0}, itemLink = link(101, 'Spellbinder Robe'), status = 0, quantity = 1, timeLeft = 3, buyoutAmount = 20000},
+    {auctionID = 9002, itemKey = {itemID = 102, itemSuffix = 0, itemLevel = 0}, itemLink = link(102, 'Greenweave Robe'), status = 0, quantity = 1, timeLeft = 3, buyoutAmount = 6400},
+    {auctionID = 9003, itemKey = {itemID = 103, itemSuffix = 0, itemLevel = 0}, itemLink = link(103, 'Pagan Robe'), status = 0, quantity = 1, timeLeft = 3, buyoutAmount = 21000},
+    {auctionID = 9004, itemKey = {itemID = 101, itemSuffix = 0, itemLevel = 0}, itemLink = link(101, 'Spellbinder Robe'), status = 1, quantity = 1, timeLeft = 3, buyoutAmount = 19000},
+  }
+  local saved = {}
+  local function set(k, v) saved[k] = rawget(C_AuctionHouse, k); rawset(C_AuctionHouse, k, v) end
+  set('GetNumOwnedAuctions', function() return #owned end)
+  set('GetOwnedAuctionInfo', function(i) return owned[i] end)
+  local cancels = {}
+  set('CancelAuction', function(id) tinsert(cancels, id) end)
+  set('CanCancelAuction', function() return true end)
+  set('GetCancelCost', function() return 925 end)
+  local searches = 0
+  local real_search = C_AuctionHouse.SendSearchQuery
+  rawset(C_AuctionHouse, 'SendSearchQuery', function(...) searches = searches + 1; return real_search(...) end)
+  local real_sold = Enum.AuctionStatus
+  rawset(Enum, 'AuctionStatus', {Active = 0, Sold = 1})
+
+  aux.set_tab(4) -- Search, Sniper, Post, Auctions
+  check('auctions: fourth tab', auctions.frame.__shown)
+  run(60)
+  local by_id = {}
+  for _, record in ipairs(auctions.listing.records) do by_id[record.auction_id] = record end
+  local status, amount, lowest = auctions.auction_status(by_id[9001])
+  check('auctions: a lower price from someone else is undercut, by how much', status == 'undercut' and amount == 1500 and lowest == 18500)
+  status, amount = auctions.auction_status(by_id[9002])
+  check('auctions: someone else at your price is tied', status == 'tied' and amount == 1)
+  check('auctions: cheapest is lowest', auctions.auction_status(by_id[9003]) == 'lowest')
+  check('auctions: sold is sold', auctions.auction_status(by_id[9004]) == 'sold')
+  check('auctions: each item is read once', searches == 3)
+  check('auctions: summary', auctions.summary_text(auctions.status_counts()) == '4 auctions: 1 undercut, 1 tied, 1 lowest, 1 sold')
+
+  auctions.update_controls()
+  check('auctions: the button says how many are undercut', auctions.cancel_undercut_button:GetText() == 'Cancel undercut (1)')
+  check('auctions: it says which one is next', auctions.next_label:GetText():find('Next: Spellbinder Robe', 1, true) ~= nil)
+  auctions.cancel_next_undercut()
+  check('auctions: Cancel undercut cancels the undercut one', #cancels == 1 and cancels[1] == 9001)
+  check('auctions: and marks it cancelled', auctions.auction_status(by_id[9001]) == 'cancelled')
+  auctions.cancel_next_undercut()
+  check('auctions: tied and lowest auctions are left alone', #cancels == 1)
+
+  -- opening the tab again soon does not read the prices again
+  aux.set_tab(1); aux.set_tab(4)
+  run(20)
+  check('auctions: no new check within two minutes', searches == 3)
+  -- an auction posted since then is checked when the tab opens, without waiting two minutes
+  tinsert(owned, {auctionID = 9005, itemKey = {itemID = 104, itemSuffix = 0, itemLevel = 0}, itemLink = link(104, 'Native Robe'), status = 0, quantity = 1, timeLeft = 3, buyoutAmount = 3500})
+  aux.set_tab(1); aux.set_tab(4)
+  run(40)
+  check('auctions: a newly posted auction is checked at once', searches == 7)
+  aux.set_tab(1)
+  rawset(C_AuctionHouse, 'SendSearchQuery', real_search)
+  for k, v in pairs(saved) do rawset(C_AuctionHouse, k, v) end
+  rawset(Enum, 'AuctionStatus', real_sold)
+  restore()
+end)
+
+
+try('post: next item after posting', function()
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local list = {
+    {key = 'd:0', name = 'Delta', count = 3}, {key = 'a:0', name = 'Alpha', count = 2},
+    {key = 'c:0', name = 'Charlie', count = 0}, {key = 'b:0', name = 'Bravo', count = 1},
+  }
+  check('post: the next item in the list', (post.next_item_after('Alpha', 'a:0', list) or {}).name == 'Bravo')
+  check('post: items with none left are skipped', (post.next_item_after('Bravo', 'b:0', list) or {}).name == 'Delta')
+  check('post: nothing after the last item', post.next_item_after('Delta', 'd:0', list) == nil)
+end)
+
 print('done, errors: ' .. errors)

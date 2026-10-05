@@ -281,6 +281,25 @@ Sniper tab (between Search and Post)
 - [ ] Few deals at first is expected: deals against the usual price need 3 days of price history
       (Full scans build it). Below-vendor deals show from the start.
 
+## 16. Version 0.4 (in progress): Auctions tab, Post next item
+
+Auctions tab
+- [ ] Open the Auctions tab with some auctions up: after a moment "Checking prices, item 1 of N"
+      then "Prices checked just now". Each auction shows its price, the lowest other seller and a
+      status: "Undercut by ..." (red), "Tied with N others" (amber), "Lowest" (green), "Sold, money
+      in the mail" (blue).
+- [ ] Compare one or two with the Search tab: the lowest other price matches.
+- [ ] "Cancel undercut (N)" names the next one and what the cancel costs. Each click cancels one;
+      the row then says "Cancelled, comes by mail". The item arrives by mail.
+- [ ] Tied and lowest auctions are never cancelled by it.
+- [ ] Switch tabs and back within two minutes: prices are not read again. Post something new and
+      come back: it is checked at once.
+- [ ] Select a row: the line next to Cancel explains its status.
+
+Post tab
+- [ ] Post everything of an item: the next item in the list is selected by itself.
+- [ ] Post only part of an item: it stays selected.
+
 ## Things to note even without errors
 - Anything that looks different from how aux worked on Classic.
 - Anything slow (searches will be slower than Classic for broad searches, that is expected).

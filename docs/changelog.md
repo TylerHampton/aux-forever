@@ -3,6 +3,14 @@
 What changed in each version, newest first. The text under each version is ready to paste into the
 CurseForge file's changelog box.
 
+## 0.4 (in progress)
+
+- Auctions tab: each of your auctions is compared with other sellers: undercut (and by how much),
+  tied, lowest, sold. "Cancel undercut" cancels the undercut ones, one click each, and shows what
+  each cancel costs. Prices are read when the tab opens (or with Check prices), half a second per
+  item, never in the background.
+- Post tab: after posting everything of an item, the next item in the list is selected.
+
 ## 0.3.1 (2026-10-05)
 
 - Performance: aux no longer does work every frame while idle. A check inherited from Classic aux
