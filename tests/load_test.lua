@@ -656,6 +656,15 @@ try('table columns', function()
   rt:SetDatabase({{commodity = true, count = 20, item_key = 'a', search_signature = 'a1', name = 'A', requirement = 0, unit_buyout_price = 7, buyout_price = 140, unit_bid_price = 0, bid_price = 0, duration = 2},
                   {count = 1, auction_count = 3, item_key = 'b', search_signature = 'b1', name = 'B', requirement = 10, unit_buyout_price = 900, buyout_price = 900, unit_bid_price = 500, bid_price = 500, high_bid = 0, duration = 3}})
   check('bid column shown when gear is in the results', not bid_hidden())
+  -- the selected record stays selected when rows are added above it (Tyler, 0.4.1)
+  local function grec(key, price) return {count = 1, item_key = key, search_signature = key, name = key, requirement = 0, unit_buyout_price = price, buyout_price = price, unit_bid_price = 0, bid_price = 0, high_bid = 0, duration = 2} end
+  local ra, rb = grec('ka', 100), grec('kb', 200)
+  local db = {ra, rb}
+  rt:SetDatabase(db)
+  rt:SetSelectedRecord(rb)
+  tinsert(db, 1, grec('kc', 50))
+  rt:SetDatabase(db)
+  check('selection stays on the same record when rows are added', rt:GetSelection() and rt:GetSelection().record == rb)
   -- an auction with no starting bid shows no bid, not its buyout (Tyler, 0.4.1)
   local bid_col
   for i, c in ipairs(al.search_columns) do
@@ -1821,6 +1830,72 @@ try('sniper: only deal-priced units to buy, rounds wait while buying', function(
   restore()
 end)
 
+-- Tyler, 0.4.1 build 4: gear deals could not be bought from the Sniper, and the table moved under the
+-- mouse. A selected gear deal is read again before it can be bought, and the rounds hold meanwhile.
+try('sniper: a selected gear deal is checked again and the rounds hold', function()
+  local aux_require = loadstring("select(2, ...) 'aux.test48'; return require")('auxForever', addon)
+  local aux = aux_require 'aux'
+  local bar = aux_require 'aux.gui.buy_bar'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local items = {
+    {id = 601, name = 'Massive Battle Axe', min = 2800, qty = 1, sell = 3036, auctions = {{buyout = 2800}}},
+    {id = 602, name = 'Long Redwood Bow', min = 5500, qty = 1, sell = 5568, auctions = {{buyout = 5500}}},
+  }
+  local run, restore = fake_ah(items)
+  local searched = {}
+  local real_send = C_AuctionHouse.SendSearchQuery
+  rawset(C_AuctionHouse, 'SendSearchQuery', function(key, ...) searched[key.itemID] = (searched[key.itemID] or 0) + 1; return real_send(key, ...) end)
+  aux.account_data.sniper_profit = 1
+  sniper.clear_deals()
+  aux.set_tab(2)
+  local r0 = sniper.round
+  sniper.start()
+  for _ = 1, 300 do run(1) if sniper.round > r0 then break end end
+  local axe
+  for _, d in ipairs(sniper.deals) do if d.item_id == 601 then axe = d end end
+  check('sniper gear: the deal is found', axe ~= nil)
+  local before = searched[601] or 0
+  sniper.listing:SetSelectedRecord(axe)
+  run(3)
+  check('sniper gear: selecting it reads its item again', (searched[601] or 0) > before)
+  run(10)
+  check('sniper gear: then the buy bar offers it', bar.primary_label():find('^Buy for') ~= nil)
+  local r1 = sniper.round
+  run(80)
+  check('sniper gear: no round while a deal is selected', sniper.round == r1 and not sniper.active)
+  check('sniper gear: the status says it holds', sniper.status() == 'Holding')
+  sniper.click_deal(axe)
+  check('sniper gear: a click on the selected deal lets it go', sniper.listing:GetSelection() == nil)
+  run(80)
+  check('sniper gear: the rounds go on', sniper.round > r1)
+
+  -- sold before the click: the deal shows as gone, nothing to buy
+  local bow
+  for _, d in ipairs(sniper.deals) do if d.item_id == 602 then bow = d end end
+  items[2].qty = 0
+  sniper.listing:SetSelectedRecord(bow)
+  run(15)
+  check('sniper gear: sold before the click shows as gone', bow and bow.deal_gone == true)
+  sniper.listing:SetSelectedRecord()
+
+  -- the table waits while the mouse is over it
+  local before_records = sniper.listing.records
+  rawset(sniper.frame.listing, 'IsMouseOver', function() return true end)
+  sniper.deals_changed = true
+  sniper.update(); run(2)
+  check('sniper: the table does not change under the mouse', sniper.listing.records == before_records and sniper.deals_changed == true)
+  rawset(sniper.frame.listing, 'IsMouseOver', nil)
+  run(10)
+  check('sniper: the table catches up when the mouse leaves', sniper.deals_changed == false)
+
+  sniper.stop()
+  rawset(C_AuctionHouse, 'SendSearchQuery', real_send)
+  aux.account_data.sniper_profit = 500
+  sniper.clear_deals()
+  aux.set_tab(1)
+  restore()
+end)
+
 -- Tyler, 0.4.1: after a full scan (69,591 auctions) aux held 42 MB after a cleanup: the Post tab kept
 -- the listings of every item. It keeps only the items in the bags now.
 try('full scan keeps Post listings for bag items only', function()
@@ -1873,6 +1948,18 @@ try('money without zero parts', function()
   rt.has_copper = true
   rt:UpdateRows()
   check('the table leaves short prices for everything else', plain(100) == '1s')
+end)
+
+try('an empty search does not list the whole auction house', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local req = loadstring("select(2, ...) 'aux.test49'; return require")('auxForever', addon)
+  local exports = req 'aux.core.scan'
+  local real_start, started = exports.start, false
+  rawset(exports, 'start', function() started = true end)
+  search.search_box:SetText('  ')
+  search.execute(nil, false)
+  check('empty search: nothing is searched', not started)
+  rawset(exports, 'start', real_start)
 end)
 
 try('per-frame work 0.4.1', function()

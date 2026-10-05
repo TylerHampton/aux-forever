@@ -870,6 +870,7 @@ local methods = {
         end
 
         local prevSelectedIndex
+        local prev_selected = self.selected
         if self.selected then
             for i, row in pairs(self.rows) do
                 if row:IsVisible() and row.record == self.selected then
@@ -881,6 +882,17 @@ local methods = {
         self:UpdateRowInfo()
         self:UpdateRows()
 
+        -- auxForever: the same record stays selected while it is still listed. aux reselected by row
+        -- position, so new rows above it moved the selection onto another record (Tyler, 0.4.1,
+        -- Sniper: "the item I am selecting changes every time a new item is added")
+        if not self.selected and prev_selected then
+            for _, record in ipairs(self.records or empty) do
+                if record == prev_selected then
+                    self:SetSelectedRecord(record)
+                    break
+                end
+            end
+        end
         if not self.selected and prevSelectedIndex then
             -- try to select the same row
             local row = self.rows[prevSelectedIndex]

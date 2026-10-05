@@ -169,7 +169,9 @@ listing = auction_listing.new(frame.listing.list, 19, columns)
 listing:SetSort(-1)
 listing:Reset()
 listing:SetHandler('OnClick', function(row, button)
-    if button == 'RightButton' then
+    if button == 'LeftButton' then
+        click_deal(row.record)
+    elseif button == 'RightButton' then
         aux.set_tab(1)
         search_tab.set_filter(strlower(info.item(row.record.item_id).name) .. '/exact')
         search_tab.execute(nil, false)

@@ -17,6 +17,18 @@ Last updated 2026-10-05 (before a context compaction of Claude's session).
   https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ, where Tyler marks each step; read the results
   with ArtifactData, collection `builds/0-4-1-dev<N>/results` (one document per step id; notes
   and screenshot asset ids, which `Artifact` read with `path` = the id downloads).
+- Build 4 results (Tyler, 2026-10-05; the game server was being restarted and players reported
+  the AH broken meanwhile): memory settled (after a cleanup 17.3 MB at Sniper round 14, 17.5 MB at
+  round 46, 18.5 MB after a full scan with the bag-only fix; the rise from 8.1 MB at login is
+  one-time: an empty search's 2,083 rows, Sniper notes on 7,763 items, 2,177 cached usual
+  prices). Sniper gear buys did nothing while trade goods bought fine and Search gear buys work:
+  likely the purchase needs the auction in the latest search of its item, and rounds search other
+  items. Build 5: a selected gear deal is read again (one request) before Buy, rounds hold while a
+  deal is selected (click again to let go), the purchase stays on the click (PlaceBid from code
+  may need a click; unverified). The selection moved because auction_listing reselected by row
+  position after each refresh (Simon's code); it now keeps the same record. The Sniper table
+  freezes while the mouse is over it. Empty searches do nothing. Tyler skipped the quick run;
+  it is still needed before release.
 - Build 2 results (Tyler, 2026-10-05): a full scan left 42.3 MB after a cleanup (Post tab kept
   every item's listings; fixed in build 3, only bag items now). Sniper "after a cleanup" grew
   12.9 MB (round 29) to 19.1 MB (round 41) with only the Sniper running and a deal selected; the

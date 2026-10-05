@@ -634,6 +634,12 @@ function M.execute(_, resume, mode)
         search_box:SetText(current_search().filter_string)
     end
     local filter_string = search_box:GetText()
+    -- auxForever: an empty search bar listed the whole auction house up to the table's limit of
+    -- 2,000 rows, with a "Table full" popup (Tyler pressed Search by accident, 0.4.1)
+    if aux.trim(filter_string) == '' then
+        aux.print('Type something to search for.')
+        return
+    end
 
     local queries, error = filter_util.queries(filter_string)
     if not queries then
