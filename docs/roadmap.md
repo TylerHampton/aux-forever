@@ -47,6 +47,17 @@ To check in game: the recipe link format (likely `enchant:` plus the recipe ID),
 also tracks the recipe (Blizzard does that when the click is not taken), and whether links from
 other players' recipes in chat work too.
 
+Recommended design (Claude, 2026-10-05, waiting for Tyler; mockup board "Recipe" in the 0.4
+canvas): no Recipes tab and no copy of the player's recipes. A "Search in aux" button on the
+profession window's recipe panel, shown only while aux is open at the auction house, plus
+Shift-click or Alt-click on a recipe in the list. Either one reads that one recipe
+(`GetRecipeSchematic`) at the moment of the click and runs one Search tab search for the item and
+its materials; a line above the results adds up materials, sale price after the cut, and profit.
+Nothing runs or is stored until the click. In Blizzard's Forever code the only built-in link from
+the profession window to the auction house is a gamepad-only "search the auction house" for a
+single reagent; the "search every ingredient" Hotpocket knows from retail is, as far as we know,
+from Auctionator (not confirmed).
+
 Order: Auctions tab (mockup approved by Tyler 2026-10-05:
 https://claude.ai/artifact/A6L3eNDURLpJUMBd1aVucY), the Post tab jump, recipe search.
 
