@@ -218,14 +218,24 @@ do
             AuctionHouseFrame:SetScale(1)
             AuctionHouseFrame:SetAlpha(1)
             AuctionHouseFrame:EnableMouse(true)
+            -- both windows sit in the same layer, and whichever was shown or clicked last is on
+            -- top. Without this the Blizzard window often opened behind aux and looked like
+            -- nothing happened, depending on which of the two the game showed first.
+            AuctionHouseFrame:Raise()
         else
             AuctionHouseFrame:SetScale(.01)
             AuctionHouseFrame:SetAlpha(0)
             AuctionHouseFrame:EnableMouse(false)
         end
+        do (update_blizzard_button or pass)() end
     end
 
-    function event.AUCTION_HOUSE_LOADED()
+    -- hooked once, whoever loaded Blizzard's auction house first (another addon may load it
+    -- before aux, and then its load event has already passed)
+    local hooked
+    function M.hook_blizzard_frame()
+        if hooked or not AuctionHouseFrame then return end
+        hooked = true
         AuctionHouseFrame:HookScript('OnShow', function(self)
             set_blizzard_frame_shown(false)
             -- aux handles posting confirmations itself; stop the hidden frame from popping its own dialog
@@ -234,12 +244,18 @@ do
         end)
         AuctionHouseFrame:HookScript('OnHide', function()
             blizzard_visible = false
+            do (update_blizzard_button or pass)() end
         end)
+    end
+
+    function event.AUCTION_HOUSE_LOADED()
+        hook_blizzard_frame()
     end
 end
 
 function AUCTION_HOUSE_SHOW()
     compat_load_auction_house_ui()
+    hook_blizzard_frame()
     if AuctionHouseFrame and AuctionHouseFrame:IsShown() then
         set_blizzard_frame_shown(false)
     end

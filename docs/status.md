@@ -33,8 +33,12 @@ Last updated at the end of the first session (2026-10-04).
    price levels for a one-item search. Filter Builder: All / Any switches fade with fewer than two
    conditions under them (Tyler toggled the top switch with one group and saw no change), and the
    builder no longer re-reads its own text when reopened, which flattened a lone group. Broad gear
-   searches are slow because Forever answers one item per request; a faster browse-only mode
-   could be considered later.
+   searches are slow because Forever answers one item per request; fast mode is planned for 0.3
+   (`docs/roadmap.md`).
+   Blizzard UI button "unreliable" (Tyler): most likely the Blizzard window opened behind aux,
+   since both are top-level windows in the same layer and whichever showed last is in front. It
+   is now raised when shown, lit while shown, and its hooks are installed even if another addon
+   loaded Blizzard's auction house first. Not confirmed in game yet.
 4. Not yet tested in game: Auctions tab cancel, Bids tab, full scan, posting gear with a bid,
    Filter Builder dropdowns after the dropdown fix. See `TESTING.md`.
 5. Later: Tyler sends Simon (shirsig) the project to review before it goes public. The GitHub

@@ -189,6 +189,11 @@ Needs a full game restart (a new texture was added), not just `/reload`.
 - [ ] Shrink the window to its smallest: the line does not overlap the Filter Builder button
       (it may cut off at the end).
 
+Blizzard UI button
+- [ ] Click Blizzard UI several times, also right after clicking around in aux: the Blizzard
+      window opens in front every time, and the button is lit while it is open. Click it again to
+      hide it. If it ever fails, note what you clicked just before.
+
 Post tab: trade goods
 - [ ] Pick a trade good you have more than one stack of (e.g. 29 Blood Shards). There is one
       "Quantity" box instead of Stack size and Stacks, and it starts at everything you have (29).

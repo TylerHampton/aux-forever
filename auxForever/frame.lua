@@ -168,7 +168,24 @@ do
 	btn:SetScript('OnClick',function()
 		set_blizzard_frame_shown(not blizzard_frame_shown())
 	end)
+	btn:SetScript('OnEnter', function(self)
+		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOM')
+		GameTooltip:AddLine(blizzard_frame_shown() and 'Hide the Blizzard auction house' or 'Show the Blizzard auction house')
+		GameTooltip:AddLine('It opens on top of aux. Click aux to bring aux back to the front.', 1, 1, 1, true)
+		GameTooltip:Show()
+	end)
+	btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
     blizzard_button = btn
+    -- lit while the Blizzard window is shown, so its state is always visible
+    function M.update_blizzard_button()
+        if blizzard_frame_shown() then
+            btn:SetBackdropColor(color.accent.selected())
+            btn:SetBackdropBorderColor(color.blizzard())
+        else
+            btn:SetBackdropColor(color.content.background())
+            btn:SetBackdropBorderColor(color.content.border())
+        end
+    end
 end
 do
     local btn = gui.button(frame)

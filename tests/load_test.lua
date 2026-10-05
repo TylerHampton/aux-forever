@@ -926,4 +926,24 @@ try('filter builder keeps groups', function()
   s.set_subtab(s.SAVED)
 end)
 
+-- Blizzard UI button: the Blizzard window comes to the front, the button shows its state, and the
+-- hooks are installed even when another addon loaded Blizzard's auction house first
+try('blizzard ui button', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local raised, hooks = 0, {}
+  rawset(AuctionHouseFrame, 'Raise', function() raised = raised + 1 end)
+  rawset(AuctionHouseFrame, 'HookScript', function(self, script, fn) hooks[script] = (hooks[script] or 0) + 1 end)
+  a.hook_blizzard_frame(); a.hook_blizzard_frame()
+  check('the Blizzard window is hooked only once', hooks.OnShow == nil and hooks.OnHide == nil)
+  local lit
+  rawset(a.blizzard_button, 'SetBackdropBorderColor', function(self, r, g, b) lit = (r == a.color.blizzard()) end)
+  a.blizzard_button.__scripts.OnClick(a.blizzard_button)
+  check('Blizzard window shown and brought to the front', a.blizzard_frame_shown() and raised == 1)
+  check('button lit while shown', lit == true)
+  a.blizzard_button.__scripts.OnClick(a.blizzard_button)
+  check('second click hides it', not a.blizzard_frame_shown() and lit == false)
+  rawset(AuctionHouseFrame, 'Raise', nil); rawset(AuctionHouseFrame, 'HookScript', nil)
+  rawset(a.blizzard_button, 'SetBackdropBorderColor', nil)
+end)
+
 print('done, errors: ' .. errors)
