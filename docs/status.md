@@ -119,7 +119,9 @@ download. Every agent: pull first, one agent per branch, update this file when d
   rebuilt their text every frame. Rules for all agents: AGENTS.md, Performance. Tests: `per-frame
   work`. Not changed yet: the buy bar refreshes its texts every frame while something is selected
   (only on the Search and Sniper tabs); a candidate for a later pass.
-- 0.4 Auctions tab mockup: https://claude.ai/artifact/A6L3eNDURLpJUMBd1aVucY, waiting for Tyler.
+- `/aux memory` (memory use and number of items in price history), for questions about RAM.
+- 0.4 Auctions tab mockup approved by Tyler (https://claude.ai/artifact/A6L3eNDURLpJUMBd1aVucY).
+  Recipe search added to 0.4 (`docs/roadmap.md`). Not built yet.
 
 ## Releases
 

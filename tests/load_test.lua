@@ -1473,4 +1473,16 @@ try('per-frame work', function()
   rawset(a.scan_button, 'SetBackdropColor', nil)
 end)
 
+
+try('/aux memory', function()
+  local slash = loadstring("select(2, ...) 'aux.core.slash'; return _M")('auxForever', addon)
+  local updated
+  G.UpdateAddOnMemoryUsage = function() updated = true end
+  G.GetAddOnMemoryUsage = function(name) return name == 'auxForever' and 3584 or 0 end
+  local report = slash.memory_report()
+  check('memory is measured when asked', updated == true)
+  check('memory report in MB with the history size', report:find('uses 3.5 MB of memory; price history for %d+ items') ~= nil)
+  G.UpdateAddOnMemoryUsage, G.GetAddOnMemoryUsage = nil, nil
+end)
+
 print('done, errors: ' .. errors)

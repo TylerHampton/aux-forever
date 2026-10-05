@@ -104,6 +104,7 @@ from aux on Classic:
 - `/aux debug` turns the search timing log on or off: after each search, chat says where the time
   went. Useful for bug reports about slow searches.
 - `/aux debug list` times the item list of the whole auction house.
+- `/aux memory` says how much memory aux uses.
 
 **Tooltip**
 

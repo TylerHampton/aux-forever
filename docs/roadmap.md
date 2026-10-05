@@ -32,7 +32,23 @@ Facts to check while building: the cost of cancelling on Forever (`GetCancelCost
 deposit), and how fast the per-item checks are for a typical number of auctions (about 0.5s per
 item, measured for searches).
 
-Order: mockup of the Auctions tab, then build, then the Post tab jump.
+Recipe search (added by Tyler 2026-10-05 after two guild testers asked for it; retail and
+Auctionator users expect it): Shift-click or Alt-click a recipe in the profession window while aux is
+open, and the Search tab searches the item it makes and every material, as one search with one exact
+query per item ("linen bag/exact;bolt of linen cloth/exact;..."). Facts from Blizzard's Forever code:
+- Forever uses the modern profession window (Blizzard_Professions), not Classic's TradeSkillFrame.
+  aux's `core/crafting.lua` hooks only the Classic frames, so its material cost label and its
+  right-click search on materials never run on Forever.
+- The recipe list passes a click to `HandleModifiedItemClick(C_TradeSkillUI.GetRecipeLink(id))`,
+  which aux already hooks for items; recipe links are not item links, so they are ignored today.
+- `C_TradeSkillUI.GetRecipeSchematic(recipeID, false)` gives `outputItemID` and
+  `reagentSlotSchematics` (each with its `reagents` item IDs and `quantityRequired`).
+To check in game: the recipe link format (likely `enchant:` plus the recipe ID), whether Shift-click
+also tracks the recipe (Blizzard does that when the click is not taken), and whether links from
+other players' recipes in chat work too.
+
+Order: Auctions tab (mockup approved by Tyler 2026-10-05:
+https://claude.ai/artifact/A6L3eNDURLpJUMBd1aVucY), the Post tab jump, recipe search.
 
 ## 0.2.x: everything that is there works (done)
 

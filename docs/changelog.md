@@ -12,6 +12,7 @@ CurseForge file's changelog box.
   runs only after a change, the Auctions and Bids lists follow the game's events (and refresh
   every 10 seconds while open), and the Full scan button and Live and Sniper status lines update a
   few times a second.
+- `/aux memory` says how much memory aux uses and how many items its price history holds.
 
 ## 0.3 (2026-10-05)
 
