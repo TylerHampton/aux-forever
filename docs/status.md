@@ -17,8 +17,17 @@ Last updated 2026-10-05 (before a context compaction of Claude's session).
   `GetItemInfo` directly). What remains per round is the game's own item list (about 7,700 entries,
   each a table with an item key table), which becomes garbage; an estimate, not measured, is a few
   MB per round. `/aux memory` now also reports the size after a full cleanup to tell the two apart.
+  Build 2 result (Tyler, 2026-10-05): `/aux memory` read 58.2 MB, 10.6 MB after a cleanup, and
+  later 18.9 MB, 10.7 MB after a cleanup, over 13+ Sniper rounds. So aux keeps about 10.6 MB and it
+  does not grow; the rest is garbage from the rounds that the game frees. Possible later change:
+  a longer pause between Sniper rounds (now 1s) would make less garbage and fewer requests; not
+  done, Tyler not asked yet. Also in build 2, every Sniper deal vanished around round 6 and came
+  back later: build 2 read the vendor price only from GetItemInfo, which returns nothing while the
+  game reloads an item, and a deal without facts was hidden. Fixed in build 3: deals keep the facts
+  they were found with, and the vendor price falls back to aux's saved item list. Likely cause, not
+  proven in game.
   Next steps:
-  1. Tyler tests the second build (`TESTING.md` section 16, Recipe search, Sniper fixes,
+  1. Tyler tests the third build (`TESTING.md` section 16, Recipe search, Sniper fixes,
      Performance) and sends both `/aux memory` lines at login and after 20+ Sniper rounds. If the
      "after a cleanup" number keeps climbing, something is kept that should not be: look for it.
   2. Fix whatever his test turns up (each bug: fix plus a test that fails without it).

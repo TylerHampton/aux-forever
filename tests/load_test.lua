@@ -1316,6 +1316,14 @@ try('sniper round', function()
   run(40)
   check('sniper: a deal that sold shows as gone', found['Ritual Kilt'].deal_gone == true and not found.Kingsblood.deal_gone)
   check('sniper: the count says how many are left and gone', sniper.deals_count(sniper.shown_deals()) == '1 to buy, 1 gone')
+  -- Tyler, 0.4 build 2: after a few rounds every deal vanished from the table, then came back. The
+  -- game had dropped the items' data for a moment, and a deal without item data was hidden.
+  local real_info = G.GetItemInfo
+  G.GetItemInfo = function() end
+  sniper.update_deals()
+  check('sniper: deals stay listed while the game reloads item data', #sniper.listing.records == 2 and sniper.deals_count(sniper.shown_deals()) == '1 to buy, 1 gone')
+  G.GetItemInfo = real_info
+  sniper.update_deals()
   aux.account_data.sniper_profit = 800
   sniper.settings_changed()
   check('sniper: a gone deal under the current rule is hidden', #sniper.listing.records == 1 and sniper.listing.records[1].name == 'Kingsblood')

@@ -324,6 +324,8 @@ Sniper (0.4 fixes)
 - [ ] Deals appear in the table while the round runs; the status reads "checking N possible deals
       (k done)".
 - [ ] With no deals, the empty table's text shows in full on two lines (it was cut to "round...").
+- [ ] Let it run 20 or more rounds with deals listed: they stay in the table the whole time (in
+      build 2 they all vanished around round 6 and came back later).
 - [ ] With `/aux debug` on, Sniper rounds and the Auctions tab's price check print nothing in chat;
       a Search still prints its timing.
 

@@ -25,6 +25,9 @@ CurseForge file's changelog box.
   it dozens of times); deals show while a round runs, with "checking N possible deals (k done)";
   the empty table's text is no longer cut off. Rounds no longer unpack each item's price history
   or build a table per item, and reuse one table per round instead of a new one.
+- Sniper: found deals no longer vanish from the table for a while when the game drops item data
+  (a deal keeps the prices it was judged with; the vendor price also comes from aux's own saved
+  item list).
 - `/aux debug` prints timing for searches only, not for every Sniper round or Auctions check.
 - `/aux memory` also shows what is left after a cleanup, to tell real use from garbage not yet freed.
 

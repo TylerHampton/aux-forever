@@ -73,8 +73,13 @@ end
 function M.item_facts(key, item_id)
     local name, _, _, _, _, _, _, _, _, _, sell_price = GetItemInfo(item_id)
     if not name then
+        -- the game drops item data now and then; aux's own saved item list still has the vendor price
         info.request_item(item_id)
-        return
+        local saved = info.item_info(item_id)
+        if not saved then
+            return
+        end
+        sell_price = saved.sell_price
     end
     local usual, days = history.value_and_days(key)
     return usual, sell_price or 0, days
@@ -87,7 +92,12 @@ end
 function M.judge_record(record)
     local usual, vendor, days = item_facts(record.item_key, record.item_id)
     if usual == nil and vendor == nil then
-        return
+        if not record.deal_key then
+            return
+        end
+        -- a deal already found keeps the facts it was judged with while the game reloads the item
+        -- (without this, every deal could vanish from the table at once and come back later)
+        usual, vendor, days = record.deal_history, record.deal_vendor, record.deal_days
     end
     return judge(ceil(record.unit_buyout_price), usual, vendor, days, settings())
 end
@@ -156,6 +166,7 @@ function check_item(item_key, key)
     sort(tiers, function(a, b) return a.unit_buyout_price < b.unit_buyout_price end)
     -- the usual price is only shown when it rests on enough history to be trusted
     local usual, vendor, days = item_facts(cheapest.item_key, cheapest.item_id)
+    cheapest.deal_history, cheapest.deal_vendor, cheapest.deal_days = usual, vendor, days
     if (days or 0) < MIN_DAYS then
         usual = nil
     end
