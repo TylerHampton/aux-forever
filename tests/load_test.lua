@@ -1289,6 +1289,8 @@ try('sniper round', function()
     h.write_record(key, {next_push = h.get_next_push(), data_points = {{value = value, time = 3}, {value = value, time = 2}, {value = value, time = 1}}})
   end
   days('201:0', 2200); days('203:0', 600); days('204:0', 5000)
+  -- the kilt was only seen today: a usual price, but not one to show
+  h.write_record('202:0', {next_push = h.get_next_push(), daily_min_buyout = 1500, data_points = {}})
   local items = {
     {id = 201, name = 'Kingsblood', commodity = true, min = 850, qty = 41, sell = 50, stack = 20, auctions = {{buyout = 850, qty = 12}, {buyout = 900, qty = 29}}},
     {id = 202, name = 'Ritual Kilt', min = 1500, qty = 1, sell = 2200, auctions = {{buyout = 1500}}},
@@ -1305,6 +1307,7 @@ try('sniper round', function()
   for _, deal in ipairs(sniper.deals) do found[deal.name] = deal end
   check('sniper: a trade good under its usual price', found.Kingsblood and found.Kingsblood.deal_reason == 'usual' and found.Kingsblood.unit_buyout_price == 850 and found.Kingsblood.deal_percent == 39)
   check('sniper: below vendor price', found['Ritual Kilt'] and found['Ritual Kilt'].deal_reason == 'vendor' and found['Ritual Kilt'].deal_profit == 700)
+  check('sniper: no usual price shown without enough history', found['Ritual Kilt'].deal_usual == nil and found.Kingsblood.deal_usual == 2200)
   check('sniper: too little profit is not a deal', not found['Wool Cloth'])
   check('sniper: a bid shown as the lowest price is not a deal', not found['Bid Only Robe'])
   check('sniper: deals are in the table', #sniper.listing.records == 2)
@@ -1312,6 +1315,12 @@ try('sniper round', function()
   items[2].qty = 0
   run(40)
   check('sniper: a deal that sold shows as gone', found['Ritual Kilt'].deal_gone == true and not found.Kingsblood.deal_gone)
+  check('sniper: the count says how many are left and gone', sniper.deals_count(sniper.shown_deals()) == '1 to buy, 1 gone')
+  aux.account_data.sniper_profit = 800
+  sniper.settings_changed()
+  check('sniper: a gone deal under the current rule is hidden', #sniper.listing.records == 1 and sniper.listing.records[1].name == 'Kingsblood')
+  aux.account_data.sniper_profit = 500
+  sniper.settings_changed()
   -- buying a deal from the buy bar: the cheapest units first, never above the price shown
   local bar = aux_require 'aux.gui.buy_bar'
   sniper.listing:SetSelectedRecord(found.Kingsblood)

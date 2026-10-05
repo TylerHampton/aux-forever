@@ -311,15 +311,24 @@ do
     ignore_button = btn
 end
 
+-- "2 to buy, 1 gone": a list of only gone deals no longer reads "0 found"
+function M.deals_count(shown)
+    local open, gone = 0, 0
+    for _, deal in ipairs(shown) do
+        if deal.deal_gone then gone = gone + 1 else open = open + 1 end
+    end
+    local text = open .. ' to buy'
+    if gone > 0 then
+        text = text .. ', ' .. gone .. ' gone'
+    end
+    return text
+end
+
 -- the table follows the deals; called when they change
 function M.update_deals()
     local shown = shown_deals()
     listing:SetDatabase(shown)
-    local live = 0
-    for _, deal in ipairs(shown) do
-        if not deal.deal_gone then live = live + 1 end
-    end
-    deals_label:SetText(aux.color.accent.background('Deals') .. '  ' .. aux.color.label.enabled(live == 1 and '1 found' or live .. ' found'))
+    deals_label:SetText(aux.color.accent.background('Deals') .. '  ' .. aux.color.label.enabled(deals_count(shown)))
     if #shown > 0 then
         empty_label:SetText('')
     elseif running then

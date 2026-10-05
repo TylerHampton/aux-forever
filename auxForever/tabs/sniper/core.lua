@@ -138,8 +138,11 @@ function check_item(item_key, key)
         return
     end
     sort(tiers, function(a, b) return a.unit_buyout_price < b.unit_buyout_price end)
-    local usual = history.value(cheapest.item_key)
-    local _, vendor = item_facts(cheapest.item_key, cheapest.item_id)
+    -- the usual price is only shown when it rests on enough history to be trusted
+    local usual, vendor, days = item_facts(cheapest.item_key, cheapest.item_id)
+    if (days or 0) < MIN_DAYS then
+        usual = nil
+    end
     cheapest.deal_key = key
     cheapest.deal_reason = reason
     cheapest.deal_profit = profit
@@ -275,11 +278,12 @@ function M.ignored_count()
     return aux.size(aux.account_data.sniper_ignored)
 end
 
--- The deals shown: those that still pass the current settings, newest first
+-- The deals shown: those that pass the current settings, gone ones too (a 1c find from a looser
+-- setting no longer clutters the list once the profit is set back to 5s)
 function M.shown_deals()
     local shown = {}
     for _, deal in ipairs(deals) do
-        if deal.deal_gone or judge_record(deal) then
+        if judge_record(deal) then
             tinsert(shown, deal)
         end
     end

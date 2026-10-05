@@ -102,6 +102,13 @@ download. Every agent: pull first, one agent per branch, update this file when d
      The tabs are now measured again with Blizzard's code whenever the window is shown at full size.
   3. Items in the reagent bag (Forever's bag 5) were missing from the Post tab: aux read bags 0 to 4
      only. `info.inventory` now goes up to `NUM_TOTAL_EQUIPPED_BAG_SLOTS` (5).
+- Sniper test by Tyler (2026-10-05): round 39, 7256 items in 8.4s each round, matching the
+  `/aux debug list` measurement. Two below-vendor deals were found and went gone (sold or relisted;
+  not checked). Changes after it: deals that fail the current rule are hidden even when gone (a 1c
+  find from a loose setting stayed after going back to 5s), the count reads "N to buy, N gone"
+  instead of "0 found" over gone rows, and Usual is blank unless the item has 3 days of history
+  (it showed the vendor price before, which looked like the usual price). Buying from the Sniper
+  is not confirmed in game yet.
 
 ## Releases
 
