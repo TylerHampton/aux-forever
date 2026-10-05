@@ -3,7 +3,7 @@
 What changed in each version, newest first. The text under each version is ready to paste into the
 CurseForge file's changelog box.
 
-## 0.3.1 (in testing)
+## 0.3.1 (2026-10-05)
 
 - Performance: aux no longer does work every frame while idle. A check inherited from Classic aux
   compared every event listener with every other one on every frame, all game long, even away
