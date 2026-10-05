@@ -74,7 +74,14 @@ agent (`CLAUDE.md` and `GEMINI.md` load it); `docs/gemini-setup.md` is Tyler's s
 Actions (`.github/workflows/test.yml`) runs the tests on every push and offers the addon as a
 download. Every agent: pull first, one agent per branch, update this file when done.
 
-## 0.2 (built 2026-10-05, needs testing in game: TESTING.md section 13)
+## Releases
+
+- 0.2.1 released 2026-10-05: GitHub Release `v0.2.1` (pre-release, with the zip), CurseForge
+  upload by Tyler. Includes everything from 0.2, which was not released on its own.
+- From 0.2.1 on, pushing a `v<version>` tag publishes the GitHub Release automatically
+  (`.github/workflows/release.yml`).
+
+## 0.2 (built 2026-10-05, released as part of 0.2.1)
 
 1. Settings popup: default auction length (2h/8h/24h, labels from the game). It is the existing
    `post_duration` setting: new items start at it, items posted before keep their last length.

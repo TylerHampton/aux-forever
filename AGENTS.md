@@ -72,6 +72,14 @@ for f in $(find . -name '*.lua'); do luac5.1 -p "$f"; done   # syntax check
 - Tests cannot show layout or how the game reacts. Add the in-game checks for each change to
   `TESTING.md` (numbered sections) so Tyler can verify.
 
+### Releases
+
+Only when Tyler says a version is ready: merge its pull request into `main`, then tag the merge
+commit `v<version>` (matching `## Version: forever-<version>` in the TOC) and push the tag. The
+Release workflow (`.github/workflows/release.yml`) runs the tests, builds `auxForever-<version>.zip`
+and publishes a GitHub Release (marked pre-release while in beta) with the version's notes from
+`docs/changelog.md`. CurseForge is uploaded by hand by Tyler (see `docs/curseforge.md`).
+
 ### Packaging
 
 The zip must contain the `auxForever` folder at its top level:
