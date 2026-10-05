@@ -432,5 +432,5 @@ do
     label:SetPoint('BOTTOMRIGHT', -24, 12)
     label:SetText('aux by shirsig, re-imagined by a fan')
     label:SetTextColor(.55, .55, .55)
-    credit_label = label
+    M.credit_label = label
 end

@@ -174,13 +174,30 @@ function set_unit_buyout_price(amount)
 	write_settings(settings)
 end
 
-function update_inventory_listing()
+-- the items in the list on the left, in the order shown
+function visible_inventory()
 	local records = aux.values(aux.filter(aux.copy(inventory_records), function(record)
 		local settings = read_settings(record.key)
 		return record.count > 0 and (not settings.hidden or show_hidden_checkbox:GetChecked())
 	end))
 	sort(records, function(a, b) return a.name < b.name end)
-	item_listing.populate(inventory_listing, records)
+	return records
+end
+
+function update_inventory_listing()
+	item_listing.populate(inventory_listing, visible_inventory())
+end
+
+-- auxForever (0.4): after everything of an item was posted, the next item in the list is selected,
+-- so posting several items is one click each
+function M.next_item_after(name, key, records)
+	local best
+	for _, record in ipairs(records or visible_inventory()) do
+		if record.key ~= key and record.count > 0 and record.name > name and (not best or record.name < best.name) then
+			best = record
+		end
+	end
+	return best
 end
 
 function update_auction_listing(listing, records, reference)
@@ -378,7 +395,11 @@ function post_auction()
         end
         if selected_item and selected_item.key == item_key then
             if all_posted then
+                local next_item = next_item_after(selected_item.name, item_key)
                 selected_item = nil
+                if next_item then
+                    update_item(next_item)
+                end
             else
                 update_item(selected_item)
             end
@@ -410,7 +431,10 @@ function M.price_note_text()
 end
 
 -- the Post button fades when it cannot be used, since its amber color would otherwise look ready
+local post_enabled
 local function set_post_enabled(enabled)
+    if enabled == post_enabled then return end
+    post_enabled = enabled
     if enabled then
         post_button:Enable()
         post_button:SetAlpha(1)
@@ -796,8 +820,11 @@ function M.record_auction(auction)
     end
 end
 
+-- auxForever: the Post button is checked (price boxes read, deposit asked from the game) five times
+-- a second and after every change, not every frame as before
 function on_update()
     auto_pick_price()
+    local changed = refresh
     if refresh then
         refresh = false
         price_update()
@@ -805,7 +832,10 @@ function on_update()
         update_inventory_listing()
         update_auction_listings()
     end
-    validate_parameters()
+    if changed or GetTime() >= (next_validate or 0) then
+        next_validate = GetTime() + .2
+        validate_parameters()
+    end
 end
 
 function M.set_undercut_mode(enabled)

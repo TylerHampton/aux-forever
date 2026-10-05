@@ -281,6 +281,66 @@ Sniper tab (between Search and Post)
 - [ ] Few deals at first is expected: deals against the usual price need 3 days of price history
       (Full scans build it). Below-vendor deals show from the start.
 
+## 16. Version 0.4: Auctions tab, Post next item, recipe search
+
+Auctions tab
+- [ ] Open the Auctions tab with some auctions up: after a moment "Checking prices, item 1 of N"
+      then "Prices checked just now". Each auction shows its price, the lowest other seller and a
+      status: "Undercut by ..." (red), "Tied with N others" (amber), "Lowest" (green), "Sold, money
+      in the mail" (blue).
+- [ ] Compare one or two with the Search tab: the lowest other price matches.
+- [ ] "Cancel undercut (N)" names the next one and what the cancel costs. Each click cancels one;
+      the row then says "Cancelled, comes by mail". The item arrives by mail.
+- [ ] Tied and lowest auctions are never cancelled by it.
+- [ ] Switch tabs and back within two minutes: prices are not read again. Post something new and
+      come back: it is checked at once.
+- [ ] Select a row: the line next to Cancel explains its status.
+
+Post tab
+- [ ] Post everything of an item: the next item in the list is selected by itself.
+- [ ] Post only part of an item: it stays selected.
+
+Recipe search
+- [ ] With aux open at the auction house, open Tailoring (or any profession) and pick a recipe: a
+      "Search in aux" button sits at the bottom right of the recipe panel. Close the auction house:
+      it is gone.
+- [ ] Click it: aux shows the Search tab, the search bar reads the item and each material with
+      "/exact", and the results list their auctions.
+- [ ] The bar at the bottom, right of Clear, reads like "Simple Kilt   materials 6s 10c   sells
+      42s 75c after cut   profit 36s 65c"; the line next to the sub tabs only has the counts. Check
+      one number by hand. Vendor materials (Fine Thread) use the vendor price when you have
+      visited a vendor that sells it. Make the window narrow: the line is cut with "..." before
+      it reaches the credit text, never on top of it.
+- [ ] Alt-click a recipe in the list: the same search. Shift-click still only does Blizzard's own
+      thing (link in chat or track the recipe), not an aux search.
+- [ ] A recipe whose item is not for sale: the line says "none for sale". A material with no
+      auction and no known vendor price is named, like "+ Gray Dye (no price)", with "loss at least"
+      or "profit at most". Open a vendor that sells it, search again: its vendor price is used.
+- [ ] Saved and Recent searches show a recipe search as "Recipe  Simple Kilt  (2 materials)"
+      ("Recipe" in amber), not its search text. Hovering it shows the recipe and its search.
+- [ ] Save one as a favorite (Favorite button or right-click in Recent), do another search, then
+      click the saved one: the cost line comes back.
+- [ ] The quick search menu (clock button) shows the made item's icon and "Profit ..." or "Loss ...".
+
+Sniper (0.4 fixes)
+- [ ] Set the profit to 1c and press Start: the sound plays once, then at most once every 10
+      seconds, however many deals turn up.
+- [ ] Deals appear in the table while the round runs; the status reads "checking N possible deals
+      (k done)".
+- [ ] With no deals, the empty table's text shows in full on two lines (it was cut to "round...").
+- [ ] Let it run 20 or more rounds with deals listed: they stay in the table the whole time (in
+      build 2 they all vanished around round 6 and came back later).
+- [ ] With `/aux debug` on, Sniper rounds and the Auctions tab's price check print nothing in chat;
+      a Search still prints its timing.
+
+Performance (0.4)
+- [ ] `/aux memory` right after logging in, and again after 20 or more Sniper rounds. It now
+      prints two numbers: what the game counts, and what is left "After a cleanup" (the rest was
+      garbage the game frees over time). Send both lines from both times. The command pauses the
+      game for a moment, which is expected.
+- [ ] Hover many items in your bags and the bank: tooltips still show Value and Vendor.
+- [ ] Post tab: the Post button still turns on and off as you type prices.
+
 ## Things to note even without errors
 - Anything that looks different from how aux worked on Classic.
 - Anything slow (searches will be slower than Classic for broad searches, that is expected).

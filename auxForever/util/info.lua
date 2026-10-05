@@ -215,6 +215,7 @@ function M.item_search_record(result)
     set_prices(record, result.minBid, result.bidAmount, result.buyoutAmount)
     record.high_bidder = result.bidder and result.bidder == player_guid() or nil
     record.own = owned_row(result)
+    record.contains_own = result.containsOwnerItem or nil
     record.owner = seller(result, record.own)
     record.seller_count = result.totalNumberOfOwners or #result.owners
     record.duration = result.timeLeftSeconds and duration_from_seconds(result.timeLeftSeconds) or duration_from_band(result.timeLeft)
@@ -318,6 +319,7 @@ function M.owned_record(owned)
         return
     end
     record.auction_id = owned.auctionID
+    record.item_search_key = owned.itemKey
     -- like every other modern auction house price, these are per unit
     local quantity = max(1, owned.quantity or 1)
     local buyout = owned.buyoutAmount and owned.buyoutAmount * quantity or 0

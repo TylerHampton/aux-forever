@@ -268,6 +268,16 @@ do
     end)
     clear_button = btn
 end
+do
+    -- auxForever: a recipe search's cost, in the free space of the bottom bar under its results
+    -- (it crowded the line next to the sub tabs and was cut off there)
+    local label = gui.label(frame.results, gui.font_size.medium)
+    label:SetPoint('LEFT', clear_button, 'RIGHT', 14, 0)
+    label:SetPoint('RIGHT', aux.credit_label, 'LEFT', -16, 0)
+    label:SetJustifyH('LEFT')
+    label:SetTextColor(aux.color.label.enabled())
+    recipe_label = label
+end
 buy_bar.create(frame.results)
 do
     local btn = gui.button(frame.saved)

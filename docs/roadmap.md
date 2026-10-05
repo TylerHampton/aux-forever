@@ -9,7 +9,7 @@ TOC. Every release gets an entry in `docs/changelog.md`.
 no new features (Tyler, 2026-10-05). To confirm in game: buying from the Sniper, posting from the
 reagent bag, suffix names on fast mode rows (`TESTING.md` section 15).
 
-## 0.4: selling tools (planning, 2026-10-05)
+## 0.4: selling tools (released 2026-10-05)
 
 Tyler chose selling tools (other candidates, not chosen for now: price history from Sniper rounds,
 a price history chart, crafting profit). Searching and buying are strong since 0.3; the Auctions
@@ -46,6 +46,37 @@ query per item ("linen bag/exact;bolt of linen cloth/exact;..."). Facts from Bli
 To check in game: the recipe link format (likely `enchant:` plus the recipe ID), whether Shift-click
 also tracks the recipe (Blizzard does that when the click is not taken), and whether links from
 other players' recipes in chat work too.
+
+Recommended design (Claude, 2026-10-05, waiting for Tyler; mockup board "Recipe" in the 0.4
+canvas): no Recipes tab and no copy of the player's recipes. A "Search in aux" button on the
+profession window's recipe panel, shown only while aux is open at the auction house, plus
+Shift-click or Alt-click on a recipe in the list. Either one reads that one recipe
+(`GetRecipeSchematic`) at the moment of the click and runs one Search tab search for the item and
+its materials; a line above the results adds up materials, sale price after the cut, and profit.
+Nothing runs or is stored until the click. In Blizzard's Forever code the only built-in link from
+the profession window to the auction house is a gamepad-only "search the auction house" for a
+single reagent; the "search every ingredient" Hotpocket knows from retail is, as far as we know,
+from Auctionator (not confirmed).
+
+Found in Blizzard's Forever code (2026-10-05): Shift-click on a recipe is also "track recipe"
+(`RECIPEWATCHTOGGLE`, default Shift) whenever the click is not taken by chat, and aux's hook cannot
+take it, so Shift-click would search and track at once. Use Alt-click and the button instead.
+The selected recipe is `ProfessionsFrame.CraftingPage.SchematicForm:GetRecipeInfo()`.
+Waiting for Tyler's in-game check of the recipe link and `GetRecipeSchematic` (two /run lines).
+
+Performance work planned with 0.4 (Tyler: performance matters most; change Simon's code where it
+makes sense):
+- Item tooltips anywhere in the game build a hidden tooltip on every hover to decide whether the
+  item can be auctioned (`info.auctionable(info.tooltip(...))` in `core/tooltip.lua`): cache it per
+  item.
+- The Post tab re-reads its price boxes and asks the game for the deposit every frame while open
+  (`validate_parameters`, `deposit_amount`): only when something changed.
+- The buy bar sets its texts every frame while a row is selected: only on change.
+- Price history unpacks and repacks an item's saved text for every auction a scan sees
+  (`history.process_auction`): keep records unpacked in memory and save once.
+Not worth changing: the idle thread loop in `control.lua` (an empty table per frame), the event
+dispatch (about 30 listeners per event), the module system's lookups (rewriting all of aux to
+locals would be churn with no measurable gain at these call rates).
 
 Order: Auctions tab (mockup approved by Tyler 2026-10-05:
 https://claude.ai/artifact/A6L3eNDURLpJUMBd1aVucY), the Post tab jump, recipe search.

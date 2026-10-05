@@ -1316,6 +1316,14 @@ try('sniper round', function()
   run(40)
   check('sniper: a deal that sold shows as gone', found['Ritual Kilt'].deal_gone == true and not found.Kingsblood.deal_gone)
   check('sniper: the count says how many are left and gone', sniper.deals_count(sniper.shown_deals()) == '1 to buy, 1 gone')
+  -- Tyler, 0.4 build 2: after a few rounds every deal vanished from the table, then came back. The
+  -- game had dropped the items' data for a moment, and a deal without item data was hidden.
+  local real_info = G.GetItemInfo
+  G.GetItemInfo = function() end
+  sniper.update_deals()
+  check('sniper: deals stay listed while the game reloads item data', #sniper.listing.records == 2 and sniper.deals_count(sniper.shown_deals()) == '1 to buy, 1 gone')
+  G.GetItemInfo = real_info
+  sniper.update_deals()
   aux.account_data.sniper_profit = 800
   sniper.settings_changed()
   check('sniper: a gone deal under the current rule is hidden', #sniper.listing.records == 1 and sniper.listing.records[1].name == 'Kingsblood')
@@ -1359,6 +1367,118 @@ try('sniper round', function()
   restore()
 end)
 
+
+-- Tyler, 0.4: memory grew from 8.6 to 26 MB over Sniper rounds. Judging an item must not unpack its
+-- saved history again each round, nor touch history for items that have none.
+try('sniper: judging items reuses the history cache', function()
+  local req = loadstring("select(2, ...) 'aux.test42'; return require")('auxForever', addon)
+  local persistence = req 'aux.util.persistence'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  h.write_record('401:0', {next_push = h.get_next_push(), data_points = {{value = 500, time = 3}, {value = 500, time = 2}, {value = 500, time = 1}}})
+  local real_read, reads = persistence.read, 0
+  rawset(persistence, 'read', function(...) reads = reads + 1; return real_read(...) end)
+  local real_info = G.GetItemInfo
+  G.GetItemInfo = function(id) return 'Thing', 'link', 2, 1, 1, 'Armor', 'Cloth', 1, '', 1, 77 end
+  local usual, vendor, days = sniper.item_facts('401:0', 401)
+  check('sniper facts: usual price, vendor price and days', usual == 500 and vendor == 77 and days == 3)
+  reads = 0
+  for _ = 1, 5 do sniper.item_facts('401:0', 401) end
+  check('sniper facts: the saved history is not unpacked again', reads == 0)
+  local real_new, built = h.new_record, 0
+  h.new_record = function() built = built + 1; return real_new() end
+  local u2, _, d2 = sniper.item_facts('402:0', 402)
+  h.new_record = real_new
+  check('sniper facts: an item without history reads and builds nothing', reads == 0 and built == 0 and u2 == nil and d2 == 0)
+  rawset(persistence, 'read', real_read)
+  G.GetItemInfo = real_info
+end)
+
+-- Tyler, 0.4: memory after a cleanup went from 8.1 MB at login to 16.4 MB after 23 Sniper rounds.
+-- The Sniper may keep notes on each item once, but nothing may pile up round after round.
+try('sniper: rounds keep no memory', function()
+  local aux_require = loadstring("select(2, ...) 'aux.test43'; return require")('auxForever', addon)
+  local aux = aux_require 'aux'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local items = {}
+  for i = 1, 2000 do
+    tinsert(items, {id = 5000 + i, name = 'Item ' .. i, min = 1000, qty = 3, sell = 10, auctions = {{buyout = 1000}}})
+  end
+  local run, restore = fake_ah(items)
+  aux.set_tab(2)
+  sniper.start()
+  local r0 = sniper.round
+  local live = {}
+  for _ = 1, 20000 do
+    run(1)
+    local r = sniper.round - r0
+    if (r == 2 or r == 8) and not live[r] and not sniper.active then
+      -- some prices change every round, so items are judged again
+      for i = r, 2000, 7 do items[i].min = items[i].min + 1 end
+      collectgarbage('collect')
+      live[r] = collectgarbage('count')
+    end
+    if r >= 8 and live[8] then break end
+  end
+  check('sniper memory: measured at rounds 2 and 8', live[2] and live[8])
+  check('sniper memory: no growth from round 2 to round 8', live[2] and live[8] and live[8] - live[2] < 64)
+  sniper.stop()
+  aux.set_tab(1)
+  restore()
+end)
+
+-- Tyler, 0.4: the first round at 1c profit played the sound about 40 times before any deal showed
+try('sniper: one sound per burst, deals shown during the round, no timing lines', function()
+  local aux_require = loadstring("select(2, ...) 'aux.test41'; return require")('auxForever', addon)
+  local aux = aux_require 'aux'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local items = {}
+  for i = 1, 6 do
+    tinsert(items, {id = 300 + i, name = 'Cheap Thing ' .. i, min = 100, qty = 1, sell = 900, auctions = {{buyout = 100}}})
+  end
+  local run, restore = fake_ah(items)
+  local sounds = 0
+  local real_sound = G.PlaySound
+  G.PlaySound = function() sounds = sounds + 1 end
+  local printed = {}
+  local real_add = DEFAULT_CHAT_FRAME.AddMessage
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', function(_, text) tinsert(printed, text) end)
+  aux.account_data.debug_timing = true
+  aux.account_data.sniper_profit = 1
+  aux.set_tab(2)
+  local r0 = sniper.round
+  sniper.start()
+  local seen_mid_round, status_mid_round
+  for _ = 1, 200 do
+    run(1)
+    if sniper.round == r0 and sniper.checking and sniper.checking.done > 0 and sniper.checking.done < sniper.checking.total and #sniper.listing.records > 0 then
+      seen_mid_round = true
+      status_mid_round = select(2, sniper.status())
+    end
+    if sniper.round > r0 then break end
+  end
+  check('sniper: the round found every deal', #sniper.deals == 6)
+  check('sniper: deals show in the table before the round ends', seen_mid_round)
+  check('sniper: the status says how many possible deals are being checked', status_mid_round and status_mid_round:find('checking 6 possible deals') ~= nil)
+  check('sniper: six deals in one round play the sound once', sounds == 1)
+  local timing_lines = 0
+  for _, text in ipairs(printed) do if text:find('Search timing') then timing_lines = timing_lines + 1 end end
+  check('sniper: rounds print no timing lines with /aux debug on', timing_lines == 0)
+  -- 2.5 seconds between rounds (Tyler, 0.4): the next round starts after the pause, not before
+  local r1 = sniper.round
+  run(23)
+  check('sniper: no new round during the pause', sniper.round == r1 and not sniper.active)
+  run(5)
+  check('sniper: the next round starts after 2.5 seconds', sniper.active or sniper.round > r1)
+  sniper.stop()
+  aux.account_data.debug_timing = false
+  aux.account_data.sniper_profit = 500
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', real_add)
+  G.PlaySound = real_sound
+  aux.set_tab(1)
+  sniper.clear_deals()
+  restore()
+end)
 
 try('an error does not leave a search stuck', function()
   local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
@@ -1482,7 +1602,221 @@ try('/aux memory', function()
   local report = slash.memory_report()
   check('memory is measured when asked', updated == true)
   check('memory report in MB with the history size', report:find('uses 3.5 MB of memory; price history for %d+ items') ~= nil)
+  check('memory report says what is left after a cleanup', report:find('After a cleanup: 3.5 MB', 1, true) ~= nil)
   G.UpdateAddOnMemoryUsage, G.GetAddOnMemoryUsage = nil, nil
+end)
+
+
+try('auctions tab: undercut check', function()
+  local aux = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local auctions = loadstring("select(2, ...) 'aux.tabs.auctions'; return _M")('auxForever', addon)
+  local items = ROBES()
+  tinsert(items, {id = 104, name = 'Native Robe', min = 3000, qty = 1, auctions = {{buyout = 3000}}})
+  -- another seller at 6400 for the Greenweave Robe, the same price as ours
+  local run, restore = fake_ah(items)
+  local function link(id, name) return '|cff1eff00|Hitem:' .. id .. '::::::0:0|h[' .. name .. ']|h|r' end
+  local owned = {
+    {auctionID = 9001, itemKey = {itemID = 101, itemSuffix = 0, itemLevel = 0}, itemLink = link(101, 'Spellbinder Robe'), status = 0, quantity = 1, timeLeft = 3, buyoutAmount = 20000},
+    {auctionID = 9002, itemKey = {itemID = 102, itemSuffix = 0, itemLevel = 0}, itemLink = link(102, 'Greenweave Robe'), status = 0, quantity = 1, timeLeft = 3, buyoutAmount = 6400},
+    {auctionID = 9003, itemKey = {itemID = 103, itemSuffix = 0, itemLevel = 0}, itemLink = link(103, 'Pagan Robe'), status = 0, quantity = 1, timeLeft = 3, buyoutAmount = 21000},
+    {auctionID = 9004, itemKey = {itemID = 101, itemSuffix = 0, itemLevel = 0}, itemLink = link(101, 'Spellbinder Robe'), status = 1, quantity = 1, timeLeft = 3, buyoutAmount = 19000},
+  }
+  local saved = {}
+  local function set(k, v) saved[k] = rawget(C_AuctionHouse, k); rawset(C_AuctionHouse, k, v) end
+  set('GetNumOwnedAuctions', function() return #owned end)
+  set('GetOwnedAuctionInfo', function(i) return owned[i] end)
+  local cancels = {}
+  set('CancelAuction', function(id) tinsert(cancels, id) end)
+  set('CanCancelAuction', function() return true end)
+  set('GetCancelCost', function() return 925 end)
+  local searches = 0
+  local real_search = C_AuctionHouse.SendSearchQuery
+  rawset(C_AuctionHouse, 'SendSearchQuery', function(...) searches = searches + 1; return real_search(...) end)
+  local real_sold = Enum.AuctionStatus
+  rawset(Enum, 'AuctionStatus', {Active = 0, Sold = 1})
+
+  aux.set_tab(4) -- Search, Sniper, Post, Auctions
+  check('auctions: fourth tab', auctions.frame.__shown)
+  run(60)
+  local by_id = {}
+  for _, record in ipairs(auctions.listing.records) do by_id[record.auction_id] = record end
+  local status, amount, lowest = auctions.auction_status(by_id[9001])
+  check('auctions: a lower price from someone else is undercut, by how much', status == 'undercut' and amount == 1500 and lowest == 18500)
+  status, amount = auctions.auction_status(by_id[9002])
+  check('auctions: someone else at your price is tied', status == 'tied' and amount == 1)
+  check('auctions: cheapest is lowest', auctions.auction_status(by_id[9003]) == 'lowest')
+  check('auctions: sold is sold', auctions.auction_status(by_id[9004]) == 'sold')
+  check('auctions: each item is read once', searches == 3)
+  check('auctions: summary', auctions.summary_text(auctions.status_counts()) == '4 auctions: 1 undercut, 1 tied, 1 lowest, 1 sold')
+
+  auctions.update_controls()
+  check('auctions: the button says how many are undercut', auctions.cancel_undercut_button:GetText() == 'Cancel undercut (1)')
+  check('auctions: it says which one is next', auctions.next_label:GetText():find('Next: Spellbinder Robe', 1, true) ~= nil)
+  auctions.cancel_next_undercut()
+  check('auctions: Cancel undercut cancels the undercut one', #cancels == 1 and cancels[1] == 9001)
+  check('auctions: and marks it cancelled', auctions.auction_status(by_id[9001]) == 'cancelled')
+  auctions.cancel_next_undercut()
+  check('auctions: tied and lowest auctions are left alone', #cancels == 1)
+
+  -- opening the tab again soon does not read the prices again
+  aux.set_tab(1); aux.set_tab(4)
+  run(20)
+  check('auctions: no new check within two minutes', searches == 3)
+  -- an auction posted since then is checked when the tab opens, without waiting two minutes
+  tinsert(owned, {auctionID = 9005, itemKey = {itemID = 104, itemSuffix = 0, itemLevel = 0}, itemLink = link(104, 'Native Robe'), status = 0, quantity = 1, timeLeft = 3, buyoutAmount = 3500})
+  aux.set_tab(1); aux.set_tab(4)
+  run(40)
+  check('auctions: a newly posted auction is checked at once', searches == 7)
+  aux.set_tab(1)
+  rawset(C_AuctionHouse, 'SendSearchQuery', real_search)
+  for k, v in pairs(saved) do rawset(C_AuctionHouse, k, v) end
+  rawset(Enum, 'AuctionStatus', real_sold)
+  restore()
+end)
+
+
+try('post: next item after posting', function()
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local list = {
+    {key = 'd:0', name = 'Delta', count = 3}, {key = 'a:0', name = 'Alpha', count = 2},
+    {key = 'c:0', name = 'Charlie', count = 0}, {key = 'b:0', name = 'Bravo', count = 1},
+  }
+  check('post: the next item in the list', (post.next_item_after('Alpha', 'a:0', list) or {}).name == 'Bravo')
+  check('post: items with none left are skipped', (post.next_item_after('Bravo', 'b:0', list) or {}).name == 'Delta')
+  check('post: nothing after the last item', post.next_item_after('Delta', 'd:0', list) == nil)
+end)
+
+
+try('per-frame work 0.4', function()
+  local require = loadstring("select(2, ...) 'aux.test40'; return require")('auxForever', addon)
+  -- tooltips: whether an item can be auctioned is read from a hidden tooltip once per item
+  local tooltip = loadstring("select(2, ...) 'aux.core.tooltip'; return _M")('auxForever', addon)
+  local built = 0
+  rawset(AuxTooltip, 'SetHyperlink', function() built = built + 1 end)
+  rawset(AuxTooltip, 'NumLines', function() return 0 end)
+  local item_info = {link = 'item:4000', quality = 1}
+  tooltip.is_auctionable(4000, item_info); tooltip.is_auctionable(4000, item_info); tooltip.is_auctionable(4000, item_info)
+  check('an item tooltip is scanned once, not on every hover', built == 1)
+  rawset(AuxTooltip, 'SetHyperlink', nil); rawset(AuxTooltip, 'NumLines', nil)
+
+  -- Post tab: the Post button is checked a few times a second, not every frame
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local real_validate, validations = post.validate_parameters, 0
+  post.validate_parameters = function() validations = validations + 1 end
+  post.refresh = false
+  for _ = 1, 20 do post.on_update() end
+  check('Post tab: not validated every frame', validations <= 1)
+  post.validate_parameters = real_validate
+
+  -- buy bar: its texts refresh ten times a second, not every frame
+  local bar = require 'aux.gui.buy_bar'
+  local refreshed = 0
+  bar.show_item{record = {buyout_price = 100, bid_price = 50, count = 1, auction_count = 1}, name = 'Test', busy = function() refreshed = refreshed + 1 return false end, on_buy = function() end, on_bid = function() end}
+  refreshed = 0
+  for _ = 1, 20 do bar.frame.__scripts.OnUpdate(bar.frame) end
+  check('buy bar: not refreshed every frame', refreshed <= 2)
+  bar.clear()
+
+  -- price history: a price that is not a new daily low does not unpack the saved history
+  local history = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local real_data, reads = history.data, 0
+  history.data = setmetatable({}, {__index = function(_, k) reads = reads + 1 return real_data[k] end, __newindex = function(_, k, v) real_data[k] = v end})
+  local function auction(price) return {item_key = '4321:0', buyout_price = price, count = 1} end
+  history.process_auction(auction(500))
+  local after_first = reads
+  for _ = 1, 10 do history.process_auction(auction(600)) end
+  check('history: higher prices do not unpack the saved history', reads == after_first)
+  history.process_auction(auction(400))
+  check('history: a new low is still recorded', history.market_value('4321:0') == 400)
+  history.data = real_data
+end)
+
+
+try('recipe search', function()
+  local aux = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local shortcut = loadstring("select(2, ...) 'aux.core.shortcut'; return _M")('auxForever', addon)
+  check('recipe link: enchant', search.recipe_id_from_link('|cffffd000|Henchant:12046|h[Tailoring: Simple Kilt]|h|r') == 12046)
+  check('recipe link: spell', search.recipe_id_from_link('|Hspell:12046|h[x]|h') == 12046)
+  check('an item link is not a recipe', search.recipe_id_from_link('|Hitem:2589::::::0:0|h[Linen Cloth]|h') == nil)
+
+  -- a made-up recipe: one robe from three of another robe and one of a third
+  local schematic = {name = 'Robe Kit', outputItemID = 101, quantityMin = 1, reagentSlotSchematics = {
+    {reagents = {{itemID = 102}}, quantityRequired = 3, required = true},
+    {reagents = {{itemID = 103}}, quantityRequired = 1, required = true},
+    {reagents = {{itemID = 104}}, quantityRequired = 1, required = false},
+  }}
+  G.C_TradeSkillUI = {GetRecipeSchematic = function(id) return id == 12046 and schematic or nil end}
+  local parts = search.recipe_parts(12046)
+  check('recipe: the item it makes', parts.output.item_id == 101 and parts.output.count == 1)
+  check('recipe: required materials only', #parts.reagents == 2 and parts.reagents[1].count == 3)
+
+  local run, restore = fake_ah(ROBES())
+  search.update_mode(search.NORMAL_MODE)
+  local was_shown = aux.frame.__shown
+  aux.frame.__shown = true
+  shortcut.on_modified_click('|cffffd000|Henchant:12046|h[Tailoring: Robe Kit]|h|r')
+  check('recipe: a plain click on a recipe does nothing', search.search_box:GetText() ~= 'spellbinder robe/exact;greenweave robe/exact;pagan robe/exact')
+  local real_alt = IsAltKeyDown
+  G.IsAltKeyDown = function() return true end
+  shortcut.on_modified_click('|cffffd000|Henchant:12046|h[Tailoring: Robe Kit]|h|r')
+  G.IsAltKeyDown = real_alt
+  run(120)
+  local s = search.current_search()
+  check('recipe: Alt-click searches the item and its materials', search.search_box:GetText() == 'spellbinder robe/exact;greenweave robe/exact;pagan robe/exact')
+  check('recipe: the search knows its recipe', s.recipe and s.recipe.name == 'Robe Kit')
+  -- materials: 3 x 64s + 2g 20s = 4g 12s; sells for 1g 85s less 5% = 1g 75s 75c: a loss
+  search.update_results_summary(true)
+  local summary = search.recipe_label.__text or ''
+  check('recipe: the line adds up the craft', summary:find('materials 4g 12s', 1, true) ~= nil and summary:find('sells 1g 75s 75c after cut', 1, true) ~= nil and summary:find('loss 2g 36s 25c', 1, true) ~= nil)
+  -- Tyler, 0.4: the cost crowded the line next to the sub tabs and was cut off; it is in the bottom bar
+  check('recipe: the cost is in the bottom bar, not next to the sub tabs', summary:find('Robe Kit', 1, true) ~= nil and not (search.results_summary(s) or ''):find('materials', 1, true))
+  -- Tyler, 0.4: "materials ?" did not say which material had no price (Gray Dye, not for sale)
+  local without = {}
+  for _, r in ipairs(s.records) do if r.item_id ~= 103 then tinsert(without, r) end end
+  local partial = search.recipe_summary{recipe = s.recipe, records = without}
+  local info = loadstring("select(2, ...) 'aux.util.info'; return _M")('auxForever', addon)
+  local dye = info.item(103).name
+  check('recipe: a material without a price is named', partial:find('materials 1g 92s 00c + ' .. dye .. ' (no price)', 1, true) ~= nil)
+  check('recipe: with a material missing the loss is a bound', partial:find('loss at least 16s 25c', 1, true) ~= nil)
+
+  -- Tyler, 0.4: a saved recipe search showed as its raw text "[Colorful Kilt];[Bolt of Woolen Cloth];..."
+  local recent = search.recent_searches[1]
+  check('recipe: the recent entry keeps its recipe', recent.recipe and recent.recipe.name == 'Robe Kit')
+  local rows
+  rawset(search.recent_searches_listing, 'SetData', function(_, r) rows = r end)
+  search.update_search_listings()
+  rawset(search.recent_searches_listing, 'SetData', nil)
+  local name = rows and rows[1].cols[1].value or ''
+  check('recipe: Recent shows "Recipe  Robe Kit  (2 materials)"', name:find('Recipe', 1, true) and name:find('Robe Kit', 1, true) and name:find('(2 materials)', 1, true) and not name:find('exact', 1, true))
+  check('recipe: the quick menu shows the last profit or loss', recent.last_profit == -23625 and search.quick_entry_detail(recent):find('^Loss ') ~= nil)
+  check('recipe: saved as a favorite with its recipe', search.save_favorite(search.search_box:GetText()) == 'saved' and search.favorite_searches[1].recipe ~= nil)
+  -- another search, then the favorite again: the cost line comes back
+  search.set_filter('pagan robe/exact')
+  search.execute(nil, false)
+  run(60)
+  check('recipe: a plain search has no recipe', search.current_search().recipe == nil)
+  search.handlers.OnClick(search.favorite_searches_listing, {search = search.favorite_searches[1], index = 1}, nil, 'LeftButton')
+  run(120)
+  local again = search.current_search()
+  check('recipe: running the saved recipe search shows the cost line again', again.recipe and again.recipe.name == 'Robe Kit' and (search.recipe_summary(again) or ''):find('materials', 1, true) ~= nil)
+  tremove(search.favorite_searches, 1)
+
+  -- the button on the profession window
+  local form = new_frame()
+  rawset(form, 'GetRecipeInfo', function() return {recipeID = 12046} end)
+  G.ProfessionsFrame = {CraftingPage = {SchematicForm = form}}
+  fire('ADDON_LOADED', 'Blizzard_Professions')
+  check('recipe: a Search in aux button on the profession window', search.recipe_button ~= nil and search.recipe_button.__text == 'Search in aux')
+  search.search_box:SetText('')
+  search.recipe_button.__scripts.OnClick(search.recipe_button)
+  run(120)
+  check('recipe: the button searches the shown recipe', search.search_box:GetText():find('spellbinder robe/exact', 1, true) == 1)
+  fire('AUCTION_HOUSE_CLOSED')
+  check('recipe: the button hides when the auction house closes', not search.recipe_button.__shown)
+  G.ProfessionsFrame, G.C_TradeSkillUI = nil, nil
+  aux.frame.__shown = was_shown
+  restore()
 end)
 
 print('done, errors: ' .. errors)

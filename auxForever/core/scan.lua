@@ -136,7 +136,8 @@ function M.start(params)
             listener_ids = {},
         }
         scan_state = state
-        timing = aux.account_data.debug_timing and new_timing() or nil
+        -- background scans (Sniper rounds, the Auctions tab's price check) set quiet: no chat lines
+        timing = aux.account_data.debug_timing and not params.quiet and new_timing() or nil
         scan()
     end, function()
         -- an error stopped the scan: end it as if stopped, so nothing waits for it forever

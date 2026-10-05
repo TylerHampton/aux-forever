@@ -39,6 +39,10 @@ function M.remember_search_result(filter_string, records)
                 entry.last_time = time()
                 entry.last_price = cheapest
                 entry.item_id = single and item_id or nil
+                if entry.recipe then
+                    local cost, missing, net = recipe_costs(entry.recipe, records)
+                    entry.last_profit = net and not missing and net - cost or nil
+                end
             end
         end
     end
@@ -65,6 +69,11 @@ end
 function M.quick_entry_detail(entry)
     if not entry.last_time then
         return 'Search again to see prices'
+    elseif entry.recipe and entry.last_profit then
+        local amount = money.to_string(abs(entry.last_profit), true)
+        return (entry.last_profit >= 0 and 'Profit ' or 'Loss ') .. amount .. ', ' .. time_ago(entry.last_time)
+    elseif entry.recipe then
+        return 'Recipe, ' .. time_ago(entry.last_time)
     elseif entry.last_price then
         return 'Cheapest ' .. money.to_string(entry.last_price, true) .. ', ' .. time_ago(entry.last_time)
     elseif entry.item_id then
@@ -171,8 +180,22 @@ end
 
 local function fill_row(row, entry, pinned)
     row.entry, row.pinned = entry, pinned
-    local item = entry.item_id and info.item(entry.item_id)
-    if item then
+    local item_id = entry.recipe and entry.recipe.output and entry.recipe.output.item_id or entry.item_id
+    local item = item_id and info.item(item_id)
+    if entry.recipe then
+        -- a recipe search: the made item's icon and "Recipe  Colorful Kilt  (3 materials)"
+        if item then
+            row.icon:SetTexture(item.texture)
+            row.icon:SetTexCoord(.07, .93, .07, .93)
+            row.icon:SetVertexColor(1, 1, 1)
+        else
+            row.icon:SetTexture(TEXTURES .. 'funnel.tga')
+            row.icon:SetTexCoord(0, 1, 0, 1)
+            row.icon:SetVertexColor(aux.color.label.enabled())
+        end
+        row.name:SetText(recipe_entry_name(entry))
+        row.name:SetTextColor(aux.color.text.enabled())
+    elseif item then
         row.icon:SetTexture(item.texture)
         row.icon:SetTexCoord(.07, .93, .07, .93)
         row.icon:SetVertexColor(1, 1, 1)

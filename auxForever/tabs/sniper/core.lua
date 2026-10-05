@@ -19,8 +19,9 @@ local tab = aux.tab 'Sniper'
 
 AUCTION_CUT = .05 -- the auction house cut, as on the Post tab
 MIN_DAYS = 3 -- days of price history needed before a price can be a deal against the usual price
-ROUND_PAUSE = 1 -- seconds between rounds
+ROUND_PAUSE = 2.5 -- seconds between rounds: less garbage and fewer requests than 1s, deals still quick (Tyler)
 MAX_DEALS = 100
+ALERT_GAP = 10 -- seconds: at most one sound per this long, however many deals turn up
 
 running = false -- Start was pressed
 active = false -- a round is under way
@@ -29,7 +30,11 @@ last_count, last_seconds = nil, nil
 deals = {} -- one record per item: the cheapest checked auction, with deal_* fields
 
 local known = {} -- item key text -> the lowest price already judged
+local seen_items = {} -- during a round: item key text -> lowest price on the list
 local next_round_at
+local last_alert -- GetTime() of the last sound
+checking = nil -- during a round: {done, total} possible deals being opened
+deals_changed = false -- the table is redrawn soon (throttled) while a round finds deals
 
 -- The deal rule. unit_price: lowest price per item; usual: the usual price (nil without history);
 -- vendor: what a vendor pays for one; days: days of price history; percent, min_profit: the
@@ -63,13 +68,21 @@ function M.judge(unit_price, usual, vendor, days, percent, min_profit)
 end
 
 -- usual price, vendor price, days of history; nil when the client has not loaded the item yet
+-- Runs for every item whose price changed (all of them in the first round), so it builds no tables:
+-- the vendor price straight from the game, the history from its cache.
 function M.item_facts(key, item_id)
-    local item_info = info.item(item_id)
-    if not item_info then
+    local name, _, _, _, _, _, _, _, _, _, sell_price = GetItemInfo(item_id)
+    if not name then
+        -- the game drops item data now and then; aux's own saved item list still has the vendor price
         info.request_item(item_id)
-        return
+        local saved = info.item_info(item_id)
+        if not saved then
+            return
+        end
+        sell_price = saved.sell_price
     end
-    return history.value(key), item_info.sell_price or 0, #history.data_points(key)
+    local usual, days = history.value_and_days(key)
+    return usual, sell_price or 0, days
 end
 
 local function settings()
@@ -79,7 +92,12 @@ end
 function M.judge_record(record)
     local usual, vendor, days = item_facts(record.item_key, record.item_id)
     if usual == nil and vendor == nil then
-        return
+        if not record.deal_key then
+            return
+        end
+        -- a deal already found keeps the facts it was judged with while the game reloads the item
+        -- (without this, every deal could vanish from the table at once and come back later)
+        usual, vendor, days = record.deal_history, record.deal_vendor, record.deal_days
     end
     return judge(ceil(record.unit_buyout_price), usual, vendor, days, settings())
 end
@@ -92,7 +110,14 @@ local function find_deal(key)
     end
 end
 
-local function alert()
+-- One sound for a burst of finds: the first round with a loose setting can find dozens of deals,
+-- each opened one by one (about half a second each), and a sound per deal played over and over.
+function M.alert()
+    local now = GetTime()
+    if last_alert and now - last_alert < ALERT_GAP then
+        return
+    end
+    last_alert = now
     if aux.account_data.sniper_sound then
         PlaySound(SOUNDKIT.RAID_WARNING or 8959, 'Master')
     end
@@ -106,6 +131,7 @@ local function set_gone(deal)
     if deal and not deal.deal_gone then
         deal.deal_gone = true
         deal.deal_gone_at = time()
+        deals_changed = true
     end
 end
 
@@ -140,6 +166,7 @@ function check_item(item_key, key)
     sort(tiers, function(a, b) return a.unit_buyout_price < b.unit_buyout_price end)
     -- the usual price is only shown when it rests on enough history to be trusted
     local usual, vendor, days = item_facts(cheapest.item_key, cheapest.item_id)
+    cheapest.deal_history, cheapest.deal_vendor, cheapest.deal_days = usual, vendor, days
     if (days or 0) < MIN_DAYS then
         usual = nil
     end
@@ -158,6 +185,7 @@ function check_item(item_key, key)
     while #deals > MAX_DEALS do
         tremove(deals, 1)
     end
+    deals_changed = true
     if not same then
         alert()
     end
@@ -187,9 +215,13 @@ function check_list(results, seen)
             aux.coro_wait()
         end
     end
+    -- each one is a request: shown as "checking 12 possible deals (3 done)" while it runs
+    checking = {done = 0, total = #candidates}
     for _, result in ipairs(candidates) do
         check_item(result.itemKey, scan.item_key_string(result.itemKey))
+        checking.done = checking.done + 1
     end
+    checking = nil
 end
 
 -- after a round: a deal whose item is gone from the list, or whose lowest price went up, sold
@@ -206,9 +238,12 @@ function start_round()
     active = true
     next_round_at = nil
     local t0 = GetTime()
-    local seen = {}
+    -- one table for every round: a new one per round was 7000+ entries of garbage each time
+    aux.wipe(seen_items)
+    local seen = seen_items
     scan.start{
         type = 'list',
+        quiet = true,
         queries = {{blizzard_query = {}}},
         on_item_list = function(results)
             last_count = #results
@@ -216,6 +251,7 @@ function start_round()
         end,
         on_complete = function()
             active = false
+            checking = nil
             round = round + 1
             last_seconds = GetTime() - t0
             if last_count then
@@ -226,6 +262,7 @@ function start_round()
         end,
         on_abort = function()
             active = false
+            checking = nil
             next_round_at = running and GetTime() + ROUND_PAUSE or nil
         end,
     }
@@ -301,6 +338,12 @@ function M.update()
         update_controls()
     end
     update_selection()
+    -- deals found during a round show up at once, at most twice a second
+    if deals_changed and GetTime() >= (next_deals or 0) then
+        next_deals = GetTime() + .5
+        deals_changed = false
+        update_deals()
+    end
     -- "found 20s ago" keeps counting
     if GetTime() >= (next_refresh or 0) then
         next_refresh = GetTime() + 1
@@ -340,6 +383,10 @@ end
 function M.status()
     if not running then
         return 'Stopped', 'Start watches the whole auction house for deals'
+    end
+    local done = round > 0 and format('round %d, %s items in %.1fs', round, last_count or 0, last_seconds or 0) or 'first round'
+    if checking and checking.total > 0 then
+        return 'Watching', format('%s; checking %d possible %s (%d done)', done, checking.total, checking.total == 1 and 'deal' or 'deals', checking.done)
     elseif round == 0 then
         return 'Watching', 'first round, reading the item list...'
     end

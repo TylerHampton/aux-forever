@@ -470,7 +470,7 @@ function M.results_summary(search)
 end
 
 do
-    local last_count, last_summary, next_update = nil, nil, 0
+    local last_count, last_summary, last_recipe, next_update = nil, nil, nil, 0
     -- every half second: cheap, and only touches the text when it changed
     function M.update_results_summary(force)
         if not force and GetTime() < next_update then return end
@@ -485,6 +485,12 @@ do
         if summary ~= last_summary then
             last_summary = summary
             results_summary_label:SetText(summary)
+        end
+        -- a recipe search's cost, in the bottom bar
+        local recipe = search and search.recipe and search.records and #search.records > 0 and recipe_summary(search) or ''
+        if recipe ~= last_recipe then
+            last_recipe = recipe
+            recipe_label:SetText(recipe)
         end
     end
 end
@@ -644,14 +650,20 @@ function M.execute(_, resume, mode)
         current_search().table:SetSelectedRecord()
     end
     if not resume then
+        -- a recipe search: started from the profession window, or run again from a saved one
+        local recipe = take_pending_recipe() or saved_recipe(filter_string)
+        local prettified = aux.join(aux.map(aux.copy(queries), function(filter) return filter.prettified end), ';')
         if filter_string ~= current_search().filter_string then
             if current_search().filter_string then
                 new_search(filter_string, mode)
             else
                 current_search().filter_string = filter_string
             end
-            new_recent_search(filter_string, aux.join(aux.map(aux.copy(queries), function(filter) return filter.prettified end), ';'))
+            new_recent_search(filter_string, prettified, recipe)
         else
+            if recipe then
+                new_recent_search(filter_string, prettified, recipe)
+            end
             local search = current_search()
             search.records = {}
             search.table:Reset()
@@ -661,6 +673,7 @@ function M.execute(_, resume, mode)
         search.mode = mode
         search.fast, search.full_reason = fast, full_reason
         search.open, search.pending_open = {}, nil
+        search.recipe = recipe
         if mode ~= LIVE_MODE then
             search.sort_type = 'unitprice'
         end

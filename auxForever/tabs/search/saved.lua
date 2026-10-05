@@ -62,7 +62,7 @@ function update_search_listings()
 	local favorite_search_rows = {}
 	for i = 1, #favorite_searches do
 		local search = favorite_searches[i]
-        local name = search.filter_name or strsub(search.prettified, 1, 250)
+        local name = search.recipe and recipe_entry_name(search) or search.filter_name or strsub(search.prettified, 1, 250)
 		tinsert(favorite_search_rows, {
 			cols = {{ value = search.alert and aux.color.red'X' or '' }, { value = name }},
 			search = search,
@@ -74,7 +74,7 @@ function update_search_listings()
 	local recent_search_rows = {}
 	for i = 1, #recent_searches do
 		local search = recent_searches[i]
-		local name = strsub(search.prettified, 1, 250)
+		local name = search.recipe and recipe_entry_name(search) or strsub(search.prettified, 1, 250)
 		tinsert(recent_search_rows, {
 			cols = {{ value = name }},
 			search = search,
@@ -84,7 +84,7 @@ function update_search_listings()
 	recent_searches_listing:SetData(recent_search_rows)
 end
 
-function new_recent_search(filter_string, prettified)
+function new_recent_search(filter_string, prettified, recipe)
 	for i = #recent_searches, 1, -1 do
 		if recent_searches[i].filter_string == filter_string then
 			tremove(recent_searches, i)
@@ -93,6 +93,7 @@ function new_recent_search(filter_string, prettified)
 	tinsert(recent_searches, 1, {
 		filter_string = filter_string,
 		prettified = prettified,
+		recipe = recipe,
     })
 	while #recent_searches > 50 do
 		tremove(recent_searches)
@@ -155,6 +156,11 @@ handlers = {
             update_search_listings()
         end
 		GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
+		if data.search.recipe then
+			GameTooltip:AddLine('Recipe: ' .. (data.search.recipe.name or '?'), aux.color.accent.background())
+			GameTooltip:AddLine('Searches the item and its materials, and adds up the cost.', 1, 1, 1, true)
+			GameTooltip:AddLine(' ')
+		end
 		GameTooltip:AddLine(gsub(data.search.prettified, ';', '\n\n'), 255/255, 254/255, 250/255, true)
 		GameTooltip:Show()
 	end,
@@ -197,7 +203,8 @@ function add_favorite(filter_string)
 	if queries then
 		tinsert(favorite_searches, 1, {
 			filter_string = filter_string,
-			prettified = aux.join(aux.map(queries, function(query) return query.prettified end), ';')
+			prettified = aux.join(aux.map(queries, function(query) return query.prettified end), ';'),
+			recipe = saved_recipe(filter_string),
         })
 		update_search_listings()
 		return 'saved'

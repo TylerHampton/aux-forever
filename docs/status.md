@@ -1,6 +1,82 @@
 # Status
 
-Last updated at the end of the first session (2026-10-04).
+Last updated 2026-10-05 (before a context compaction of Claude's session).
+
+## Start here (where things stand right now)
+
+- Released: 0.3 and 0.3.1 (GitHub Releases `v0.3`, `v0.3.1`, uploaded to CurseForge by Tyler).
+  `main` is at the 0.3.1 merge (#6).
+- Versioning decision (2026-10-05): fixes to an unreleased version go into that version, so the
+  build 2 and 3 fixes are part of 0.4, not 0.4.1. 0.4.1 is for fixes after 0.4 is released.
+- 0.4 release (2026-10-05): Tyler approved it after build 5, with one last change: the recipe
+  cost line moved from the line next to the sub tabs (crowded, cut off) to the bottom bar right of
+  Clear, in shorter words (`recipe_label` in `tabs/search/frame.lua`, set in
+  `update_results_summary`). That last change was not tried in game before the release; Tyler
+  checks the release zip before uploading to CurseForge. Released through a pull request into
+  `main` and the Release workflow (`v0.4`). Open after 0.4: `/aux memory` at round 10 and round 40
+  of the Sniper (should match after a cleanup); Simon's background item cache thread
+  (`fetch_item_data` in `core/cache.lua`, walks item IDs 1 to 30000 at login) is a performance
+  item to review for 0.4.1.
+- Before the release, **0.4** was on branch `claude/modest-volta-4mgmsb` (TOC `forever-0.4`), pushed. Tyler
+  tested the first 0.4 build: recipe search works. His findings, fixed in the second build:
+  saved recipe searches showed raw search text (now "Recipe  Name  (N materials)", the recipe is
+  kept on the saved entry); the Sniper played its sound once per deal (about 40 times in a 1c
+  first round) and showed nothing until the round ended (now one sound per 10s, deals and
+  "checking N possible deals" during the round); `/aux debug` printed timing every Sniper round
+  (scans with `quiet = true` print nothing); memory read 8.6 MB at first and 26.0 MB after Sniper
+  rounds. Memory: rounds no longer unpack history or build tables per item (`history.value_and_days`,
+  `GetItemInfo` directly). What remains per round is the game's own item list (about 7,700 entries,
+  each a table with an item key table), which becomes garbage; an estimate, not measured, is a few
+  MB per round. `/aux memory` now also reports the size after a full cleanup to tell the two apart.
+  Build 2 result (Tyler, 2026-10-05): `/aux memory` read 58.2 MB, 10.6 MB after a cleanup, and
+  later 18.9 MB, 10.7 MB after a cleanup, over 13+ Sniper rounds. So aux keeps about 10.6 MB and it
+  does not grow; the rest is garbage from the rounds that the game frees. The pause between
+  Sniper rounds went from 1s to 2.5s (Tyler's choice, a compromise) for less garbage and fewer
+  requests. Also in build 2, every Sniper deal vanished around round 6 and came
+  back later: build 2 read the vendor price only from GetItemInfo, which returns nothing while the
+  game reloads an item, and a deal without facts was hidden. Fixed in build 3: deals keep the facts
+  they were found with, and the vendor price falls back to aux's saved item list. Likely cause, not
+  proven in game.
+  Build 4 result (Tyler): login 8.1 MB (8.1 after a cleanup); after 23 Sniper rounds 49.0 MB, 16.4
+  after a cleanup. Measured in the harness with 7,700 fake items: the Sniper keeps about 1.1 MB
+  once (its notes on each item: `known`, `seen_items`), then nothing more through round 60 (test
+  "sniper: rounds keep no memory"). Other things that grow once and stop: aux's saved item list
+  (`account_data.items`, Simon's cache, filled from every item the game loads, so the Sniper fills
+  it fast), the history cache, search results kept for the history arrows. Not yet proven which
+  part makes up the rest of the 8 MB; to tell: `/aux memory` at round 10 and round 40, the "after a
+  cleanup" number should be the same. Tyler noticed a new Sniper find right after running
+  `/aux memory`: aux has no weak tables, so a cleanup cannot change what it knows; finds came every
+  few minutes in that session, so it is likely chance; watch for it repeating.
+  Design note from Tyler (not a demand): the line next to the sub tabs is getting crowded (the
+  recipe line gets cut off: "searched ju..."), while the bar at the bottom (next to Clear) and the
+  search bar have room. Consider moving the recipe line or the summary down there; mockup first.
+  Also fixed in build 5: the recipe line names a material without a price instead of "?".
+  Next steps:
+  1. Tyler tests the fifth build (`TESTING.md` section 16, Recipe search, Sniper fixes,
+     Performance) and sends both `/aux memory` lines at login and after 20+ Sniper rounds. If the
+     "after a cleanup" number keeps climbing, something is kept that should not be: look for it.
+  2. Fix whatever his test turns up (each bug: fix plus a test that fails without it).
+  3. When he says 0.4 is ready: changelog heading `## 0.4 (date)`, status, curseforge text
+     (features: Auctions tab undercut check, recipe search, Post next item), then a pull request
+     into `main`, wait for CI, merge, run the Release workflow, check the release zip, send it, and
+     give Tyler the CurseForge upload steps and changelog text (as done for 0.3 and 0.3.1).
+- 0.4 contents: Auctions tab (undercut / tied / lowest / sold, Cancel undercut one per click, check
+  on tab open, reused for 2 minutes unless an auction is unchecked), Post tab selects the next item
+  after posting everything of one, recipe search (`tabs/search/recipe.lua`: "Search in aux" button
+  on the profession window while aux is open, Alt-click a recipe; Shift-click is Blizzard's track
+  recipe, so not used), performance fixes (tooltip scan once per item, Post tab validation and buy
+  bar throttled, history unpacked only for new daily lows).
+- Mockups (private to Tyler): 0.3 https://claude.ai/artifact/Q5C3ScRtCLV9ohYCcuyuRA, 0.4
+  https://claude.ai/artifact/A6L3eNDURLpJUMBd1aVucY (Auctions tab approved; "Recipe" board is the
+  built design; "Recipes" sub tab board was rejected).
+- Tyler's standing priorities: performance and compute cost first (AGENTS.md, Performance); patch
+  versions (0.x.y) are fixes, speed and small things only; mockup before any visual change; he
+  trusts Claude's engineering judgment but wants honesty, not agreement.
+- Testers: two guild AH power users (Darkhorse, Hotpocket) asked for recipe search; their RAM
+  concern is why `/aux memory` exists.
+- Release mechanics that bit before: the session's git proxy refuses tag pushes, so releases go
+  through the Release workflow (`run_workflow` on `main`); after a merge, restart the branch from
+  `main` before new work; WoW chat lines are limited to 255 characters (keep /run test lines short).
 
 ## Working in game (tested by Tyler)
 
@@ -109,6 +185,19 @@ download. Every agent: pull first, one agent per branch, update this file when d
   instead of "0 found" over gone rows, and Usual is blank unless the item has 3 days of history
   (it showed the vendor price before, which looked like the usual price). Buying from the Sniper
   is not confirmed in game yet.
+
+## 0.4 (in progress)
+
+- Built: Auctions tab (undercut check, Cancel undercut), Post tab next item, recipe search (button
+  on the profession window and Alt-click), performance fixes (tooltip scan once per item, Post tab
+  and buy bar throttled, history unpacked only for new daily lows). TOC `forever-0.4`.
+- Facts from Tyler's in-game check (2026-10-05): the recipe for Simple Kilt is 12046 and its link
+  shows the materials. The second check failed only because the /run line was over WoW's
+  255-character chat limit; Blizzard's own profession window uses `GetRecipeSchematic` to show
+  materials, so the call works on Forever.
+- `core/crafting.lua` hooks Classic's profession frames, which Forever does not have; it does
+  nothing on Forever and costs only one event listener. Left in place for now.
+- Not tested in game yet: everything in `TESTING.md` section 16.
 
 ## 0.3.1 (released 2026-10-05)
 
