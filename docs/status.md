@@ -78,8 +78,8 @@ download. Every agent: pull first, one agent per branch, update this file when d
 
 - 0.2.1 released 2026-10-05: GitHub Release `v0.2.1` (pre-release, with the zip), CurseForge
   upload by Tyler. Includes everything from 0.2, which was not released on its own.
-- From 0.2.1 on, pushing a `v<version>` tag publishes the GitHub Release automatically
-  (`.github/workflows/release.yml`).
+- From 0.2.1 on, the Release workflow publishes the GitHub Release: Actions, Release, "Run
+  workflow" on `main` (or a pushed `v<version>` tag). See AGENTS.md, Releases.
 
 ## 0.2 (built 2026-10-05, released as part of 0.2.1)
 

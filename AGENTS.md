@@ -74,11 +74,13 @@ for f in $(find . -name '*.lua'); do luac5.1 -p "$f"; done   # syntax check
 
 ### Releases
 
-Only when Tyler says a version is ready: merge its pull request into `main`, then tag the merge
-commit `v<version>` (matching `## Version: forever-<version>` in the TOC) and push the tag. The
-Release workflow (`.github/workflows/release.yml`) runs the tests, builds `auxForever-<version>.zip`
-and publishes a GitHub Release (marked pre-release while in beta) with the version's notes from
-`docs/changelog.md`. CurseForge is uploaded by hand by Tyler (see `docs/curseforge.md`).
+Only when Tyler says a version is ready: merge its pull request into `main`, then run the Release
+workflow (`.github/workflows/release.yml`) on `main`: Actions tab, Release, "Run workflow" (or, for
+an agent, trigger the workflow through the GitHub API; Claude's session cannot push tags). It reads
+the version from the TOC, runs the tests, builds `auxForever-<version>.zip`, creates the tag
+`v<version>` and publishes a GitHub Release (pre-release while in beta) with the version's notes
+from `docs/changelog.md`. Pushing a matching `v<version>` tag does the same. CurseForge is uploaded
+by hand by Tyler (see `docs/curseforge.md`).
 
 ### Packaging
 
