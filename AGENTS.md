@@ -123,6 +123,9 @@ Load order is the TOC (`auxForever/auxForever.toc`).
   directly there, not `aux.color` (the global `aux` is the saved variables table).
 - Lua 5.1 only (WoW): no `goto`, no `//`, no integer types. Use WoW globals such as `tinsert`,
   `strlower`, `format`.
+- Never wrap code that waits (`aux.coro_wait`, any scan request) in `pcall`: Lua 5.1 cannot yield
+  inside a `pcall`, so it fails at once. The test harness only notices if the stubbed answer
+  arrives on a later tick, as in the game.
 - Colors from `color.lua` are callable: `aux.color.accent.background('text')` returns colored
   text; `aux.color.accent.background()` returns r, g, b, a.
 - `gui.editbox` calls `editbox.change(self, is_user_input)` on every text change, `enter`, `escape`,

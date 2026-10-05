@@ -1049,16 +1049,28 @@ try('item list measurement', function()
   end
   local real_send = C_AuctionHouse.SendBrowseQuery
   local sent = 0
-  C_AuctionHouse.SendBrowseQuery = function() sent = sent + 1 end
+  -- the game answers a browse query with an event a moment later (so the request has to wait)
+  local answer_due
+  C_AuctionHouse.SendBrowseQuery = function() sent = sent + 1; answer_due = true end
   scan.measure_item_list()
-  -- the stub never sends the browse event, so the request runs into its 20s time-out
-  for _ = 1, 260 do tick() end
+  for _ = 1, 30 do
+    tick()
+    if answer_due then
+      answer_due = false
+      for _, f in ipairs(frames) do
+        if f.__events['AUCTION_HOUSE_BROWSE_RESULTS_UPDATED'] and f.__scripts.OnEvent then
+          f.__scripts.OnEvent(f, 'AUCTION_HOUSE_BROWSE_RESULTS_UPDATED')
+        end
+      end
+    end
+  end
   rawset(DEFAULT_CHAT_FRAME, 'AddMessage', real_add)
   for k in pairs(saved) do C_AuctionHouse[k] = saved[k] end
   C_AuctionHouse.SendBrowseQuery = real_send
   local all = table.concat(printed, '\n')
   check('one browse request sent', sent >= 1)
-  check('the measurement is reported', all:find('Item list', 1, true) ~= nil)
+  check('the measurement is reported', all:find('Item list of the whole auction house: 3 items in', 1, true) ~= nil and all:find('(1 request)', 1, true) ~= nil)
+  check('no false "did not answer"', all:find('did not answer', 1, true) == nil)
 end)
 
 print('done, errors: ' .. errors)

@@ -500,14 +500,15 @@ function M.measure_item_list()
         state = {id = aux.coro_id(), params = {}, listener_ids = {}}
         local requests_before = requests_sent
         local t0 = GetTime()
-        local ok, item_keys = pcall(browse, {})
+        -- no pcall here: WoW's Lua 5.1 cannot pause (yield) inside one, and the request must wait
+        local item_keys = browse({})
         local requests = requests_sent - requests_before
         state = nil
-        if not ok or not item_keys then
+        if not item_keys then
             aux.print('Item list: the auction house did not answer.')
             return
         end
-        aux.print(format('Item list of the whole auction house: %d items in %s (%d requests)', #item_keys, format_seconds(GetTime() - t0), requests))
+        aux.print(format('Item list of the whole auction house: %d items in %s (%d %s)', #item_keys, format_seconds(GetTime() - t0), requests, requests == 1 and 'request' or 'requests'))
     end)
 end
 
