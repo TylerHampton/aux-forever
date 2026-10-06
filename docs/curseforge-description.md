@@ -46,7 +46,8 @@ from aux on Classic:
   seconds. Click an item to see its auctions. Switch to Full to read every auction as aux always
   did.
 - Live mode repeats a search every few seconds, with a countdown on the Live button, and alerts you
-  when a new auction matches one of your alert favorites.
+  when a new auction matches one of your alert favorites. It waits while you buy, and any new
+  search ends it.
 - Advanced search filters which can be combined with logical operators, with autocompletion.
 - A Filter Builder that writes those searches for you: conditions in plain words, Match All or
   Any, "not", and groups inside groups, read back in plain English as you build.

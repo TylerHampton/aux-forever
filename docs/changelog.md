@@ -3,32 +3,33 @@
 What changed in each version, newest first. The text under each version is ready to paste into the
 CurseForge file's changelog box.
 
-## 0.4.1 (in progress)
+## 0.4.1 (2026-10-06)
 
-- Performance: aux's item list at login no longer asks the server about item numbers the game
-  says do not exist, and walks the list in steps instead of one long frame. Saved Searches, the
-  Bids tab and the quick search menu no longer do work every frame.
-- Removed the Classic-only crafting cost code and its `/aux crafting cost` setting; it never ran on
-  Forever (recipe search does this job since 0.4).
-- `/aux memory` also says how many items aux's item list knows, and whether it is still checking.
-- Prices leave out parts that are zero ("7s" instead of "7s 00c") in text. In a table, when any price
-  has copper, every price keeps all its parts ("1s 00c") so the column lines up.
+Performance, memory and fixes from a week of testing.
+
 - Memory: a full scan no longer keeps the listings of every item on the auction house for the Post
-  tab (about 30 MB for the rest of the session); it keeps those of the items in your bags.
-- Sniper: the buy bar offers only the units that are a deal (it offered more expensive units of a
-  trade good too), and rounds wait while a purchase is under way.
+  tab (about 30 MB for the rest of the session); it keeps those of the items in your bags. Sniper
+  rounds keep nothing from round to round.
+- Performance: aux's item list at login no longer asks the server about item numbers the game says
+  do not exist, and walks the list in steps instead of one long frame. Saved Searches, the Bids tab
+  and the quick search menu no longer do work every frame. The Classic-only crafting cost code and
+  its `/aux crafting cost` setting are removed; recipe search does this job.
 - Sniper: gear deals can be bought. A selected deal is checked again first ("Checking the
-  auction...", or what is left of a trade good), and the rounds hold while a deal is selected
-  (click it again to go on). The table no longer changes while the mouse is over it.
-- A new search of any kind ends Live mode. A saved or recipe search started while Live was on was
-  refused, and Live kept updating the old search under the new search text.
-- Tables keep the same row selected when rows are added above it (it moved to another row).
-- An empty search bar no longer lists the whole auction house (2,000 rows and a "Table full" popup).
-- The Auction Bid column shows "---" for auctions with no starting bid instead of their buyout.
-- The resize corner: aux sizes the window itself while you drag. A single click on the corner could
-  make the whole window jump diagonally, again with each click.
-- `/aux memory detail` lists what aux keeps (Sniper, history, searches, Post, tooltips, events).
-- Sniper: deals that sold sort below the ones still to buy.
+  auction...", or what is left of a trade good), the buy bar offers only the units that are a deal,
+  and the rounds hold while a deal is selected (click it again to go on) or a purchase is under
+  way. Deals that sold sort to the bottom, and the table no longer changes while the mouse is over
+  it.
+- Live: a new search of any kind ends Live mode, and Live rounds wait while you buy (a round during
+  a trade good's price quote ended it with "Internal auction error").
+- Tables keep the same row selected when rows are added above it.
+- Prices leave out parts that are zero ("7s" instead of "7s 00c"); in a table where any price has
+  copper, every price keeps all its parts so the column lines up. The Auction Bid column shows "---"
+  for auctions with no starting bid.
+- The resize corner: aux sizes the window itself while you drag. A single click on it could make
+  the whole window jump.
+- An empty search bar no longer lists the whole auction house.
+- `/aux memory` also reports the size after a cleanup and the item list; `/aux memory detail` lists
+  what aux keeps.
 
 ## 0.4 (2026-10-05)
 

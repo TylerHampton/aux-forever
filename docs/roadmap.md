@@ -3,7 +3,7 @@
 Set by Tyler on 2026-10-05. Version numbers are `0.MINOR.PATCH`, written `forever-0.2.1` in the
 TOC. Every release gets an entry in `docs/changelog.md`.
 
-## 0.4.1: performance first, then common-sense UX (now)
+## 0.4.1: performance first, then common-sense UX (released 2026-10-06)
 
 0.4 was released on 2026-10-05. Tyler: 0.4.1 is mainly performance, partly UX/UI common-sense
 changes; no new features (those are written down for 0.5). A bad bug (spends money wrongly,

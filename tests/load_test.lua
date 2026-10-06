@@ -1303,6 +1303,19 @@ try('live mode', function()
   search.resume_held_live()
   run(20)
   check('live: carries on when back on the tab', s.live_round > round)
+  -- Tyler, 0.4.1: a live round during a trade good's price quote ended it with "Internal auction
+  -- error"; live rounds wait while the buy bar is buying, and are held, not paused
+  local live_req = loadstring("select(2, ...) 'aux.test50'; return require")('auxForever', addon)
+  local live_bar = live_req 'aux.gui.buy_bar'
+  local real_busy = live_bar.busy
+  rawset(live_bar, 'busy', function() return true end)
+  tick()
+  round = s.live_round
+  run(80)
+  check('live: no round while buying', s.live_round == round and search.live_status(s) ~= 'paused')
+  rawset(live_bar, 'busy', real_busy)
+  run(30)
+  check('live: rounds go on after the purchase', s.live_round > round)
   search.toggle_live()
   check('live: turning Live off stops it and keeps the results', s.mode == search.NORMAL_MODE and not s.active and #s.records > 0)
   local sent = browses()

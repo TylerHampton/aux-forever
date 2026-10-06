@@ -8,7 +8,12 @@ Last updated 2026-10-05 (before a context compaction of Claude's session).
   `main` is at the 0.3.1 merge (#6).
 - Versioning decision (2026-10-05): fixes to an unreleased version go into that version, so the
   build 2 and 3 fixes are part of 0.4, not 0.4.1. 0.4.1 is for fixes after 0.4 is released.
-- **Now: 0.4.1** on branch `claude/modest-volta-4mgmsb` (restarted from `main` after the 0.4
+- **0.4.1 release (2026-10-06):** build 6 passed except one case, fixed before release: a Live
+  round during a trade good's price quote ended the purchase with "Internal auction error"; Live
+  rounds now wait while the buy bar is buying (`update_live`). That fix was not tried in game
+  before the release; Tyler checks it on the release zip before uploading to CurseForge. Next:
+  0.5 planning (docs/roadmap.md, 0.5 notes: Sniper rework, fast-market buy feedback).
+- Before the release, **0.4.1** was on branch `claude/modest-volta-4mgmsb` (restarted from `main` after the 0.4
   merge), TOC `forever-0.4.1`, test build 3 out. Plan in `docs/roadmap.md` (0.4.1): performance first, then
   common-sense UX (list to agree with Tyler, mockups for visual changes). Done so far: login item
   walk (`fetch_item_data`) skips non-items and pauses every 500 numbers, `core/crafting.lua`
