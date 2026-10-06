@@ -8,18 +8,13 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.4.1, test build 6 (last check before release)
+## Current build: none yet (0.4.1 released 2026-10-06)
 
-A /reload is enough. The test page has the same steps. Build 5 passed the quick run.
+0.5 (the visual rework) has not started. The next agent puts the first 0.5 test build's steps
+here. One check from 0.4.1 is still open, to do on the release zip before the CurseForge upload:
 
-- [ ] 1. Build 6 installed, no BugSack error.
-- [ ] 2. Live on a search, then a saved recipe search: Live turns off; the recipe's items and cost
-      line show.
-- [ ] 3. Live on again, then Search in aux (or Alt-click a recipe): the same.
-- [ ] 4. The Live button still repeats a search with a countdown.
-- [ ] 5. Sniper: trade good deals say "Checking what is left..." first, then buy (Buy, Confirm)
-      without "Internal auction error". Try two or three.
-- [ ] 6. Sniper: a gear deal still buys.
+- [ ] Search tab, Live on a trade good: Buy, wait past the Live countdown, then Confirm. It buys
+      without "Internal auction error", and Live goes on after.
 
 ## Before every release: the quick run
 

@@ -1,0 +1,404 @@
+<title>auxForever Test Run</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column of test steps grouped by area, a sticky progress bar on top; the addon's own
+   dark slate look with its amber accent, deliberately single-theme like the addon itself. */
+:root {
+  --bg: #121417;
+  --panel: #1a1d21;
+  --panel-2: #22262b;
+  --line: #2e333a;
+  --fg: #ece7dc;
+  --muted: #9a958b;
+  --accent: #e3a43b;
+  --accent-ink: #1b1406;
+  --pass: #5cc98a;
+  --fail: #ec6b5e;
+  --skip: #8f9aa6;
+  --display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); }
+body { color: var(--fg); font: 15px/1.5 var(--body); }
+.wrap { max-width: 860px; margin: 0 auto; padding-inline: 16px; padding-block: 0 64px; }
+
+header.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--line);
+}
+header.top .wrap { padding-block: 14px 12px; display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; justify-content: space-between; }
+.brand { font: 700 22px/1.1 var(--display); letter-spacing: .01em; }
+.brand b { color: var(--accent); font-weight: 700; }
+.brand small { display: block; font: 500 13px/1.4 var(--body); color: var(--muted); letter-spacing: 0; }
+.progress { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 260px; max-width: 380px; }
+.bar { flex: 1; height: 8px; border-radius: 4px; background: var(--panel-2); overflow: hidden; display: flex; }
+.bar span { height: 100%; transition: width .25s; }
+.bar .p { background: var(--pass); } .bar .f { background: var(--fail); } .bar .s { background: var(--skip); }
+.counts { font: 500 13px/1.3 var(--body); color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.counts strong { color: var(--fg); }
+
+.intro { margin-block: 22px 8px; color: var(--muted); max-width: 65ch; }
+.intro p { margin: 0 0 8px; }
+.notice { margin-block: 12px; padding: 10px 14px; border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; background: var(--panel); color: var(--fg); }
+.notice[hidden] { display: none; }
+
+section.area { margin-top: 30px; }
+section.area h2 { font: 600 13px/1 var(--display); text-transform: uppercase; letter-spacing: .12em; color: var(--accent); margin: 0 0 10px; display: flex; gap: 10px; align-items: baseline; }
+section.area h2 .n { color: var(--muted); letter-spacing: .04em; font-weight: 500; }
+
+.step { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 10px; margin-bottom: 10px; position: relative; }
+.step[data-status="pass"] { border-color: color-mix(in srgb, var(--pass) 45%, var(--line)); }
+.step[data-status="fail"] { border-color: color-mix(in srgb, var(--fail) 60%, var(--line)); }
+.step[data-status="skip"] { opacity: .78; }
+.step.dragover { outline: 2px dashed var(--accent); outline-offset: 2px; }
+.head { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+.what { min-width: 0; flex: 1 1 320px; }
+.what h3 { margin: 0 0 4px; font: 600 17px/1.3 var(--display); text-wrap: balance; }
+.what h3 .id { font: 500 12px/1 var(--mono); color: var(--muted); margin-right: 8px; vertical-align: 2px; }
+.what p { margin: 0; color: var(--fg); max-width: 65ch; }
+.what .expect { color: var(--muted); margin-top: 4px; }
+.what .expect b { color: var(--fg); font-weight: 600; }
+code, .cmd { font: 500 13px/1.4 var(--mono); background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; color: var(--fg); }
+button.cmd { cursor: pointer; }
+button.cmd:hover { border-color: var(--accent); }
+button.cmd::after { content: " copy"; color: var(--muted); font-size: 11px; }
+button.cmd.copied::after { content: " copied"; color: var(--pass); }
+
+.verdict { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; flex: none; }
+.verdict button { font: 600 14px/1 var(--display); letter-spacing: .03em; background: var(--panel-2); color: var(--muted); border: 0; padding: 9px 14px; cursor: pointer; min-width: 64px; }
+.verdict button + button { border-left: 1px solid var(--line); }
+.verdict button:hover { color: var(--fg); }
+.verdict button[aria-pressed="true"][data-v="pass"] { background: var(--pass); color: #08200f; }
+.verdict button[aria-pressed="true"][data-v="fail"] { background: var(--fail); color: #2a0703; }
+.verdict button[aria-pressed="true"][data-v="skip"] { background: var(--skip); color: #0f1216; }
+button:focus-visible, textarea:focus-visible, label.shot:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.note { display: grid; gap: 6px; }
+textarea { width: 100%; min-height: 40px; resize: vertical; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font: 14px/1.45 var(--body); }
+textarea::placeholder { color: #6c6860; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13px; color: var(--muted); }
+label.shot { cursor: pointer; color: var(--accent); font-weight: 600; }
+label.shot input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.saved { margin-left: auto; font-variant-numeric: tabular-nums; }
+.saved.err { color: var(--fail); }
+.shots { display: flex; flex-wrap: wrap; gap: 8px; }
+.shots:empty { display: none; }
+.shots a { display: block; width: 120px; height: 72px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line); background: var(--panel-2); }
+.shots img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.shots .uploading { width: 120px; height: 72px; border-radius: 4px; border: 1px dashed var(--line); display: grid; place-items: center; color: var(--muted); font-size: 12px; }
+
+footer.end { margin-top: 34px; }
+@media (max-width: 520px) {
+  .verdict { width: 100%; }
+  .verdict button { flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .bar span { transition: none; } }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><b>aux</b>Forever test run<small>0.4.1, test build 6: last check before release</small></div>
+    <div class="progress" aria-label="Progress">
+      <div class="bar" aria-hidden="true"><span class="p" id="barP"></span><span class="f" id="barF"></span><span class="s" id="barS"></span></div>
+      <div class="counts" id="counts"><strong>0</strong> of 0 done</div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="intro">
+    <p>Go top to bottom in game. Press <strong>Pass</strong>, <strong>Fail</strong> or <strong>Skip</strong> if you like; a note or a screenshot alone is enough. Add a screenshot with the button or paste one (Ctrl+V) while the note box is selected.</p>
+    <p>Everything saves by itself as you go. Claude reads it from here, so you only need to say "done" in the chat.</p>
+  </div>
+  <div class="notice" id="offline" hidden>Saving is not available in this view. Open the page from its claude.ai link while signed in, then your answers save.</div>
+  <div id="areas"></div>
+  <footer class="end">
+    <section class="area">
+      <h2>Anything else</h2>
+      <div class="step" data-id="general">
+        <div class="what"><h3>General notes</h3><p>Anything that felt slow, odd or confusing, even if no step covers it.</p></div>
+        <div class="note">
+          <textarea id="note-general" placeholder="Optional"></textarea>
+          <div class="tools"><label class="shot">Add screenshot<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple data-shot="general"></label><span class="saved" id="saved-general"></span></div>
+          <div class="shots" id="shots-general"></div>
+        </div>
+      </div>
+    </section>
+  </footer>
+</main>
+
+<script>
+// The steps: what to do (how) and what you should see (expect). Ids are the keys the answers are
+// stored under, so Claude can read each one.
+var BUILD = "0-4-1-dev6";
+var AREAS = [
+  { name: "Before you start", steps: [
+    { id: "install", title: "Install build 6",
+      how: "Copy the auxForever folder from auxForever-0.4.1-dev6.zip over the old one and /reload.",
+      expect: "No BugSack error." }
+  ]},
+  { name: "Live", steps: [
+    { id: "live-saved", title: "A saved recipe search ends Live",
+      how: "Start Live on a search (linen cloth), then click a saved recipe search in Saved Searches.",
+      expect: "Live turns off, and the results are the recipe's items with the cost line in the bottom bar." },
+    { id: "live-recipe", title: "Search in aux ends Live",
+      how: "Start Live again, then click Search in aux in a profession window (or Alt-click a recipe).",
+      expect: "Same: Live off, the recipe's items and cost line." },
+    { id: "live-button", title: "The Live button still works",
+      how: "Press Live on a search.",
+      expect: "It repeats with a countdown, as before." }
+  ]},
+  { name: "Sniper", steps: [
+    { id: "sniper-trade", title: "Buy trade good deals",
+      how: "Select a trade good deal. It says Checking what is left... first; then Buy, then Confirm. Try two or three.",
+      expect: "They buy without Internal auction error. If one fails, note the time and what it said." },
+    { id: "sniper-gear", title: "Buy a gear deal",
+      how: "Select a gear deal, wait for Buy for, click it.",
+      expect: "Bought, as in build 5." }
+  ]}
+];
+
+var ALL_IDS = [];
+AREAS.forEach(function (a) { a.steps.forEach(function (s) { ALL_IDS.push(s.id); }); });
+ALL_IDS.push("general");
+
+var state = {};           // id -> {status, note, shots}
+ALL_IDS.forEach(function (id) { state[id] = { status: "", note: "", shots: [] }; });
+var col = null, assets = null;
+var editing = {};         // id -> true while its note box has focus
+var writing = {}, again = {};
+
+function el(tag, attrs, html) {
+  var e = document.createElement(tag);
+  for (var k in (attrs || {})) e.setAttribute(k, attrs[k]);
+  if (html != null) e.innerHTML = html;
+  return e;
+}
+
+function build() {
+  var root = document.getElementById("areas");
+  var n = 0;
+  AREAS.forEach(function (area) {
+    var sec = el("section", { "class": "area" });
+    sec.appendChild(el("h2", null, area.name + ' <span class="n">' + area.steps.length + (area.steps.length === 1 ? " step" : " steps") + "</span>"));
+    area.steps.forEach(function (s) {
+      n += 1;
+      var card = el("div", { "class": "step", "data-id": s.id, "data-status": "" });
+      var head = el("div", { "class": "head" });
+      var what = el("div", { "class": "what" });
+      what.appendChild(el("h3", null, '<span class="id">' + n + "</span>" + s.title));
+      var how = el("p");
+      how.appendChild(document.createTextNode(s.how + (s.cmd ? " " : "")));
+      if (s.cmd) {
+        var b = el("button", { "class": "cmd", type: "button", title: "Copy" });
+        b.textContent = s.cmd;
+        b.addEventListener("click", function () { copy(s.cmd, b); });
+        how.appendChild(b);
+      }
+      what.appendChild(how);
+      what.appendChild(el("p", { "class": "expect" }, "<b>Expect:</b> " + s.expect));
+      head.appendChild(what);
+      var verdict = el("div", { "class": "verdict", role: "group", "aria-label": "Result for step " + n });
+      [["pass", "Pass"], ["fail", "Fail"], ["skip", "Skip"]].forEach(function (v) {
+        var btn = el("button", { type: "button", "data-v": v[0], "aria-pressed": "false" });
+        btn.textContent = v[1];
+        btn.addEventListener("click", function () { setStatus(s.id, v[0]); });
+        verdict.appendChild(btn);
+      });
+      head.appendChild(verdict);
+      card.appendChild(head);
+      var note = el("div", { "class": "note" });
+      note.appendChild(el("textarea", { id: "note-" + s.id, placeholder: "What you saw (optional). Paste a screenshot here with Ctrl+V.", rows: "1" }));
+      var tools = el("div", { "class": "tools" });
+      tools.appendChild(el("label", { "class": "shot" }, 'Add screenshot<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple data-shot="' + s.id + '">'));
+      tools.appendChild(el("span", { "class": "saved", id: "saved-" + s.id }));
+      note.appendChild(tools);
+      note.appendChild(el("div", { "class": "shots", id: "shots-" + s.id }));
+      card.appendChild(note);
+      sec.appendChild(card);
+    });
+    root.appendChild(sec);
+  });
+
+  ALL_IDS.forEach(function (id) {
+    var ta = document.getElementById("note-" + id);
+    var timer = null;
+    ta.addEventListener("focus", function () { editing[id] = true; });
+    ta.addEventListener("input", function () {
+      state[id].note = ta.value;
+      clearTimeout(timer);
+      timer = setTimeout(function () { save(id); }, 900);
+    });
+    ta.addEventListener("blur", function () {
+      editing[id] = false;
+      clearTimeout(timer);
+      if (state[id].note !== (state[id].savedNote || "")) save(id);
+    });
+    ta.addEventListener("paste", function (e) {
+      var files = imagesFrom(e.clipboardData);
+      if (files.length) { e.preventDefault(); upload(id, files); }
+    });
+    var card = ta.closest(".step");
+    card.addEventListener("dragover", function (e) { if (hasFiles(e)) { e.preventDefault(); card.classList.add("dragover"); } });
+    card.addEventListener("dragleave", function () { card.classList.remove("dragover"); });
+    card.addEventListener("drop", function (e) {
+      card.classList.remove("dragover");
+      var files = imagesFrom(e.dataTransfer);
+      if (files.length) { e.preventDefault(); upload(id, files); }
+    });
+  });
+  document.querySelectorAll("input[data-shot]").forEach(function (input) {
+    input.addEventListener("change", function () {
+      var files = Array.prototype.slice.call(input.files || []);
+      input.value = "";
+      if (files.length) upload(input.getAttribute("data-shot"), files);
+    });
+  });
+}
+
+function hasFiles(e) { return e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], "Files") >= 0; }
+function imagesFrom(dt) {
+  var out = [];
+  if (!dt) return out;
+  Array.prototype.forEach.call(dt.files || [], function (f) { if (/^image\//.test(f.type)) out.push(f); });
+  return out;
+}
+
+function copy(text, btn) {
+  function done() { btn.classList.add("copied"); setTimeout(function () { btn.classList.remove("copied"); }, 1500); }
+  try {
+    navigator.clipboard.writeText(text).then(done, function () { select(btn); });
+  } catch (e) { select(btn); }
+}
+function select(node) {
+  var r = document.createRange(); r.selectNodeContents(node);
+  var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+}
+
+function paint(id) {
+  var st = state[id];
+  var card = document.querySelector('.step[data-id="' + id + '"]');
+  if (!card) return;
+  card.setAttribute("data-status", st.status || "");
+  card.querySelectorAll(".verdict button").forEach(function (b) {
+    b.setAttribute("aria-pressed", b.getAttribute("data-v") === st.status ? "true" : "false");
+  });
+  var ta = document.getElementById("note-" + id);
+  if (!editing[id] && ta.value !== st.note) ta.value = st.note || "";
+  if (ta.value && ta.scrollHeight > ta.clientHeight) ta.style.height = Math.min(ta.scrollHeight + 2, 240) + "px";
+  var shots = document.getElementById("shots-" + id);
+  var keep = shots.querySelectorAll(".uploading");
+  shots.innerHTML = "";
+  (st.shots || []).forEach(function (sid) {
+    var a = el("a", { href: "/_blob/" + sid, target: "_blank", rel: "noopener", title: "Open full size" });
+    var img = el("img", { src: "/_blob/" + sid, alt: "Screenshot for this step", loading: "lazy" });
+    a.appendChild(img);
+    shots.appendChild(a);
+  });
+  Array.prototype.forEach.call(keep, function (k) { shots.appendChild(k); });
+}
+
+function paintCounts() {
+  var total = ALL_IDS.length - 1, p = 0, f = 0, s = 0;
+  ALL_IDS.forEach(function (id) {
+    if (id === "general") return;
+    var v = state[id].status;
+    if (v === "pass") p++; else if (v === "fail") f++; else if (v === "skip") s++;
+  });
+  var done = p + f + s;
+  document.getElementById("counts").innerHTML = "<strong>" + done + "</strong> of " + total + " done" +
+    (f ? ', <strong style="color:var(--fail)">' + f + " failed</strong>" : "");
+  document.getElementById("barP").style.width = (100 * p / total) + "%";
+  document.getElementById("barF").style.width = (100 * f / total) + "%";
+  document.getElementById("barS").style.width = (100 * s / total) + "%";
+}
+
+function setStatus(id, v) {
+  state[id].status = state[id].status === v ? "" : v;
+  paint(id); paintCounts();
+  save(id);
+}
+
+function savedLabel(id, text, err) {
+  var s = document.getElementById("saved-" + id);
+  if (!s) return;
+  s.textContent = text;
+  s.classList.toggle("err", !!err);
+}
+
+// one write at a time per step; a change during a write is saved right after it
+function save(id) {
+  if (!col) { savedLabel(id, "Not saved: saving is off in this view", true); return; }
+  if (writing[id]) { again[id] = true; return; }
+  writing[id] = true;
+  var st = state[id];
+  var body = { status: st.status || "", note: st.note || "", shots: (st.shots || []).slice(), at: new Date().toISOString() };
+  savedLabel(id, "Saving...");
+  col.doc(id).set(body).then(function () {
+    st.savedNote = body.note;
+    savedLabel(id, "Saved");
+  }, function (e) {
+    var code = e && e.code;
+    savedLabel(id, code === "invalid_argument" ? "Not saved: this view cannot write" : "Not saved, try again", true);
+  }).then(function () {
+    writing[id] = false;
+    if (again[id]) { again[id] = false; save(id); }
+  });
+}
+
+function upload(id, files) {
+  if (!assets) { savedLabel(id, "Screenshots cannot be added in this view", true); return; }
+  var shots = document.getElementById("shots-" + id);
+  files.forEach(function (file) {
+    var ph = el("div", { "class": "uploading" }, "Uploading...");
+    shots.appendChild(ph);
+    assets.upload(file).then(function (res) {
+      ph.remove();
+      state[id].shots = (state[id].shots || []).concat([res.id]);
+      paint(id);
+      save(id);
+    }, function (e) {
+      ph.remove();
+      var code = e && e.code;
+      savedLabel(id, code === "too_large" ? "That image is over 20 MB" : code === "unsupported_type" ? "Use a PNG, JPG, WebP or GIF" : "Upload failed, try again", true);
+    });
+  });
+}
+
+build();
+ALL_IDS.forEach(paint);
+paintCounts();
+
+(async function () {
+  var claude = window.claude;
+  var db = claude && claude.use ? await claude.use("db") : null;
+  if (!db) { document.getElementById("offline").hidden = false; return; }
+  col = db.collection("builds/" + BUILD + "/results");
+  assets = claude && claude.use ? await claude.use("assets") : null;
+  if (!assets) document.querySelectorAll("label.shot").forEach(function (l) { l.hidden = true; });
+  col.onSnapshot(function (snap) {
+    snap.docs.forEach(function (d) {
+      var id = d.id;
+      if (!state[id] || !d.exists) return;
+      var data = d.data() || {};
+      var st = state[id];
+      if (!writing[id]) {
+        st.status = data.status || "";
+        st.shots = Array.isArray(data.shots) ? data.shots.slice() : [];
+        if (!editing[id]) { st.note = data.note || ""; st.savedNote = st.note; }
+      }
+      paint(id);
+    });
+    paintCounts();
+  }, function () {
+    document.getElementById("offline").hidden = false;
+  });
+})();
+</script>

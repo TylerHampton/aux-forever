@@ -1,8 +1,35 @@
 # Status
 
-Last updated 2026-10-05 (before a context compaction of Claude's session).
+Last updated 2026-10-06, after the 0.4.1 release (end of a long Claude session).
 
 ## Start here (where things stand right now)
+
+Read this, then `AGENTS.md` (how to work with Tyler, tests, performance rules, gotchas).
+
+- **Released:** 0.4.1 on 2026-10-06 (GitHub Release `v0.4.1`, pre-release, merged as PR #8 at
+  `ea73c6a`). Tyler uploads to CurseForge by hand after checking one thing on the release zip:
+  Live mode on a trade good, Buy, wait past the Live countdown, Confirm; it must buy without
+  "Internal auction error" (that fix went in after his last test). If it failed, it becomes 0.4.2.
+  Earlier releases are listed in `docs/changelog.md`.
+- **Branch:** `claude/modest-volta-4mgmsb` was restarted from `main` after the 0.4.1 merge. Any
+  agent starts new work from the latest `main` on its own branch (AGENTS.md, Branches).
+- **Next: 0.5, a big visual rework** (Tyler, 2026-10-06). He is leveling with aux installed and will
+  give feedback as he plays; first finding: the **Post tab is visually cluttered**. Every visual
+  change starts as a mockup he approves (AGENTS.md). Planning notes, including his Sniper notes:
+  `docs/roadmap.md`, 0.5. Ask him what to rework first before building anything.
+- **Testing with Tyler:** each test build gets the test page
+  https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler). He marks every step Pass,
+  Fail or Skip with notes and screenshots and says "done"; Claude reads the answers. How to update
+  and read it: AGENTS.md, "Test page". Its source is `docs/test-page.html`. `TESTING.md` holds the
+  same steps in text, for Gemini or anyone without the page.
+- **Memory (settled in 0.4.1):** `/aux memory` after cleanup stays at about 12 to 18 MB through
+  long sessions with the Sniper, searches and a full scan (a full scan used to leave 42 MB). `/aux memory detail` counts
+  what each part keeps if a report comes in.
+- **Unverified facts worth knowing:** buying gear from code probably needs the auction in the
+  latest search of its item (the Sniper reads a selected deal again first); whether `PlaceBid` may
+  be called outside a click is unknown, so purchases always come from the player's click.
+
+## 0.4 and 0.4.1 testing notes (history)
 
 - Released: 0.3 and 0.3.1 (GitHub Releases `v0.3`, `v0.3.1`, uploaded to CurseForge by Tyler).
   `main` is at the 0.3.1 merge (#6).
@@ -234,7 +261,7 @@ download. Every agent: pull first, one agent per branch, update this file when d
   (it showed the vendor price before, which looked like the usual price). Buying from the Sniper
   is not confirmed in game yet.
 
-## 0.4 (in progress)
+## 0.4 (released 2026-10-05)
 
 - Built: Auctions tab (undercut check, Cancel undercut), Post tab next item, recipe search (button
   on the profession window and Alt-click), performance fixes (tooltip scan once per item, Post tab

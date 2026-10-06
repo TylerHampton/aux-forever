@@ -16,3 +16,5 @@ The shared guide for every AI agent on this project is AGENTS.md, loaded here:
   `World of Warcraft\_classic_beta_\Interface\AddOns` with the one in the zip.
 - Claude Code also works on this repository, on its own branches. Never push to `main` or merge
   without Tyler asking.
+- Claude keeps a test page for Tyler that Gemini cannot use. Keep `TESTING.md` "Current build" up
+  to date with the in-game checks for your change, and ask Tyler for results in the chat.

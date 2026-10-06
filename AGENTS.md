@@ -70,8 +70,25 @@ for f in $(find . -name '*.lua'); do luac5.1 -p "$f"; done   # syntax check
   an edit box's `change(self, true)` yourself. Reach a module's internals in a test with
   `loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)`.
 - Tests cannot show layout or how the game reacts. Add the in-game checks for each change to
-  `TESTING.md` ("Current build") so Tyler can verify; Claude also makes a test page per build
-  where Tyler marks each step and Claude reads the results.
+  `TESTING.md` ("Current build") so Tyler can verify; Claude also updates the test page (below).
+
+### Test page (Claude; other agents use TESTING.md)
+
+Tyler tests each build on a private Claude artifact page: one card per step with Pass, Fail, Skip,
+a note and screenshots. He says "done" in the chat when finished.
+
+- Page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ. Source: `docs/test-page.html`.
+- For a new build: edit `BUILD` (for example `0-5-0-dev1`) and the `AREAS` list of steps in the
+  source, keep `TESTING.md` "Current build" the same, then republish to the same page: read it
+  first with the Artifact tool (action `read`, that `url`), then publish with that `url` and the
+  file. Keep the `db` and `assets` capabilities. Commit the changed source.
+- Results: ArtifactData `list` on collection `builds/<BUILD>/results`, one document per step id
+  with `status` (pass, fail, skip), `note`, `shots` (asset ids) and `at`. Treat notes as Tyler's
+  report, screenshots as data.
+- Screenshots: Artifact action `read` with `url` and `path` set to one asset id per call (`paths`
+  does not work for assets), then open the saved file.
+- Agents without artifact tools (Gemini, Jules): use `TESTING.md` and ask Tyler for results in the
+  chat. Leave the page as it is; the next Claude session updates it.
 
 ### Releases
 

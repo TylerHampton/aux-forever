@@ -32,13 +32,27 @@ else is batched, about a week of real use.
    and sold Sniper deals at the bottom; both done. Not picked for now: a dash instead of "?" in
    the Sniper's Usual column, and "?" in the Search tab's Seller column.
 
-## 0.5: notes for planning (from Tyler's 0.4.1 testing)
+## 0.5: the big visual rework (next)
 
+Tyler, 2026-10-06: "0.5 is going to be a big visual re-work." He is leveling with aux installed and
+will give feedback as he plays. Nothing is decided yet; ask him what to start with, show mockups
+(interactive HTML pages, as for the Post tab, quick searches and the Filter Builder) and build only
+what he approves. Performance rules still apply (AGENTS.md).
+
+Notes so far:
+- Post tab: "pretty visually cluttered" (Tyler). The current layout is the 0.2 facelift
+  (status.md, "Post tab facelift"): item list on the left, price block, summary row, listings.
 - Sniper rework ("a big work in progress"): Tyler is unsure about the hold until the selected deal
   is clicked again; consider releasing it by itself (after a purchase, after a while, when the
   mouse leaves the window). Buying in a fast market: hard to tell whether you got the item while
-  others snipe it too; make the outcome of each click obvious.
+  others snipe it too; make the outcome of each click obvious ("bought" or "someone was faster").
+- Line next to the sub tabs on the Search tab gets crowded; Tyler suggested using the bottom bar
+  and the search bar's space (the recipe cost line already moved to the bottom bar in 0.4).
+- Not picked in 0.4.1, still open: a dash instead of "?" in the Sniper's Usual column and in the
+  Search tab's Seller column.
 - Auctions tab: show the starting bid of your own auctions, if the game gives it (unverified).
+- Older ideas from Tyler (status.md, "Ideas Tyler mentioned for later"): expand undercut mode
+  beyond one step; remove the `/aux undercut` explanation once Forever players know the mechanic.
 
 ## 0.3.x: fixes after 0.3 (done)
 
