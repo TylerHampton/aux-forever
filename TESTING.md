@@ -8,19 +8,18 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.4.1, test build 5 (release check)
+## Current build: 0.4.1, test build 6 (last check before release)
 
-A /reload is enough. The test page has the same steps.
+A /reload is enough. The test page has the same steps. Build 5 passed the quick run.
 
-- [ ] 1. Build 5 installed, no BugSack error.
-- [ ] 2. Sniper: with the mouse over the table the rows stay still; a clicked deal stays selected.
-- [ ] 3. Sniper: with a deal selected the status says "Holding while a deal is selected"; clicking it
-      again lets it go and the rounds go on.
-- [ ] 4. Sniper: a gear deal shows "Checking the auction...", then "Buy for"; it buys and arrives.
-- [ ] 5. Sniper: a trade good deal buys with Buy, then Confirm.
-- [ ] 6. An empty search bar says "Type something to search for." and searches nothing.
-- [ ] 7. Quick run: search and buy, Live, saved and clock searches, Post, Auctions tab, recipe search.
-- [ ] 8. `/aux memory detail` at the end. Screenshot.
+- [ ] 1. Build 6 installed, no BugSack error.
+- [ ] 2. Live on a search, then a saved recipe search: Live turns off; the recipe's items and cost
+      line show.
+- [ ] 3. Live on again, then Search in aux (or Alt-click a recipe): the same.
+- [ ] 4. The Live button still repeats a search with a countdown.
+- [ ] 5. Sniper: trade good deals say "Checking what is left..." first, then buy (Buy, Confirm)
+      without "Internal auction error". Try two or three.
+- [ ] 6. Sniper: a gear deal still buys.
 
 ## Before every release: the quick run
 
