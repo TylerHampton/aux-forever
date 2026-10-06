@@ -17,9 +17,11 @@ CurseForge file's changelog box.
   tab (about 30 MB for the rest of the session); it keeps those of the items in your bags.
 - Sniper: the buy bar offers only the units that are a deal (it offered more expensive units of a
   trade good too), and rounds wait while a purchase is under way.
-- Sniper: gear deals can be bought. A selected gear deal is checked again first ("Checking the
-  auction..."), and the rounds hold while a deal is selected (click it again to go on). The table
-  no longer changes while the mouse is over it.
+- Sniper: gear deals can be bought. A selected deal is checked again first ("Checking the
+  auction...", or what is left of a trade good), and the rounds hold while a deal is selected
+  (click it again to go on). The table no longer changes while the mouse is over it.
+- A new search of any kind ends Live mode. A saved or recipe search started while Live was on was
+  refused, and Live kept updating the old search under the new search text.
 - Tables keep the same row selected when rows are added above it (it moved to another row).
 - An empty search bar no longer lists the whole auction house (2,000 rows and a "Table full" popup).
 - The Auction Bid column shows "---" for auctions with no starting bid instead of their buyout.

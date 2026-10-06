@@ -1310,6 +1310,30 @@ try('live mode', function()
   check('live: no more rounds once off', browses() == sent)
   search.update_live_button()
   check('live: the button says Live again', search.mode_button:GetText() == 'Live')
+  -- Tyler, 0.4.1: a new search while Live is on (a saved recipe search) ends Live and runs
+  search.search_box:SetText('robe')
+  search.toggle_live()
+  run(20)
+  local old = search.current_search()
+  local addon_aux = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  addon_aux.account_data.full_search = true
+  rawset(AuxTooltip, 'NumLines', function() return 0 end)
+  search.set_filter('spellbinder robe/exact;greenweave robe/exact')
+  search.execute()
+  local new = search.current_search()
+  check('live: a new search ends Live', search.mode == search.NORMAL_MODE and new ~= old and new.mode == search.NORMAL_MODE)
+  run(60)
+  check('live: the new search runs', #new.records > 0 and not old.active)
+  sent = browses()
+  run(80)
+  check('live: the old search does not go on', browses() == sent)
+  addon_aux.account_data.full_search = false
+  rawset(AuxTooltip, 'NumLines', nil)
+  -- the item data this search loaded is not left for later tests
+  for _, it in ipairs(ROBES()) do
+    addon_aux.account_data.items[it.id] = nil
+    addon_aux.account_data.item_ids[strlower(it.name)] = nil
+  end
   search.frame:Hide()
   restore()
 end)
@@ -1390,7 +1414,9 @@ try('sniper round', function()
   -- buying a deal from the buy bar: the cheapest units first, never above the price shown
   local bar = aux_require 'aux.gui.buy_bar'
   sniper.listing:SetSelectedRecord(found.Kingsblood)
-  tick(); tick()
+  -- the deal is read again first (Tyler, 0.4.1: trade good buys failed on old deals)
+  run(10)
+  check('sniper: a trade good deal is read again when selected', sniper.refreshing == nil and #found.Kingsblood.deal_tiers == 2)
   check('sniper: the buy bar offers the deal', bar.primary_label():find('^Buy 20 for') ~= nil)
   bar.primary_click()
   fire('COMMODITY_PRICE_UPDATED', 900, 17400)
@@ -1814,6 +1840,15 @@ try('sniper: only deal-priced units to buy, rounds wait while buying', function(
   local units = 0
   for _, tier in ipairs(deal and deal.deal_tiers or {}) do units = units + tier.count end
   check('sniper: only the units below vendor price can be bought', deal and units == 7)
+  -- selected later, after someone bought 4 of the 7: the deal is read again with today's counts
+  items[1].auctions[1].qty = 3
+  sniper.listing:SetSelectedRecord(deal)
+  run(10)
+  units = 0
+  for _, tier in ipairs(deal.deal_tiers or {}) do units = units + tier.count end
+  check('sniper: a selected trade good deal shows what is left', units == 3)
+  sniper.listing:SetSelectedRecord()
+  run(2)
   local real_busy = buy_bar.busy
   rawset(buy_bar, 'busy', function() return true end)
   local r1 = sniper.round

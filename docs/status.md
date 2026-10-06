@@ -17,6 +17,13 @@ Last updated 2026-10-05 (before a context compaction of Claude's session).
   https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ, where Tyler marks each step; read the results
   with ArtifactData, collection `builds/0-4-1-dev<N>/results` (one document per step id; notes
   and screenshot asset ids, which `Artifact` read with `path` = the id downloads).
+- Build 5 results (Tyler, 2026-10-06): Sniper gear buys work ("way better"), hold and pick pass,
+  empty search, quick run search/buy, Live, Post, Auctions (cancel and undercut too) pass; memory
+  11.9 MB after a cleanup at the end. Failed: a saved or recipe search while Live was on (refused
+  as a multi-query, Live kept updating the old search; fixed in build 6: any new search ends
+  Live). Trade good Sniper buys hit "Internal auction error" 4 of 5 times on deals found minutes
+  earlier; build 6 reads a trade good deal again when selected, like gear. Tyler's Sniper design
+  notes are in docs/roadmap.md (0.5).
 - Build 4 results (Tyler, 2026-10-05; the game server was being restarted and players reported
   the AH broken meanwhile): memory settled (after a cleanup 17.3 MB at Sniper round 14, 17.5 MB at
   round 46, 18.5 MB after a full scan with the bag-only fix; the rise from 8.1 MB at login is

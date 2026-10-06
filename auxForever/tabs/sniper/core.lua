@@ -179,6 +179,7 @@ function check_item(item_key, key)
         usual = nil
     end
     cheapest.deal_key = key
+    cheapest.deal_item_key = item_key -- to read the item again when the deal is selected
     cheapest.deal_reason = reason
     cheapest.deal_profit = profit
     cheapest.deal_percent = pct
@@ -428,47 +429,73 @@ refreshing = nil -- the gear deal being read again before it can be bought
 -- from the latest search of its item. So a selected gear deal is read again first (one request),
 -- the rounds hold while a deal is selected, and the purchase itself stays on the player's click.
 
-local show_item_bar
+local show_item_bar, show_commodity_bar
 
--- read a gear deal's item again; the buy bar offers it once its auction is confirmed
+-- Read a deal's item again when it is selected; the buy bar offers it once that answer is in.
+-- Gear: the same auction, or another one at the shown price or lower. Trade goods: the units that
+-- are still a deal, at today's counts (4 of 5 trade good buys failed with "Internal auction error"
+-- on deals found minutes earlier, Tyler, 0.4.1).
 local function refresh_deal(record)
-    if not record.item_search_key then
-        show_item_bar(record)
+    local item_key = record.deal_item_key or record.item_search_key
+    if not item_key then
+        if record.commodity then show_commodity_bar(record) else show_item_bar(record) end
         return
     end
     if active then
         scan.abort()
     end
     refreshing = record
-    buy_bar.show_note(record.name, 'Checking the auction...')
-    local same_id, same_price
+    buy_bar.show_note(record.name, record.commodity and 'Checking what is left...' or 'Checking the auction...')
+    local fresh = {}
     scan.start{
         type = 'list',
         quiet = true,
-        queries = {{item_keys = {record.item_search_key}}},
+        queries = {{item_keys = {item_key}}},
         on_auction = function(auction)
-            if auction.own or auction.buyout_price <= 0 then return end
-            if auction.auction_id == record.auction_id then
-                same_id = auction
-            elseif ceil(auction.unit_buyout_price) <= ceil(record.unit_buyout_price) then
-                same_price = same_price or auction
+            if not auction.own and auction.buyout_price > 0 then
+                tinsert(fresh, auction)
             end
         end,
         on_complete = function()
             if refreshing ~= record then return end
             refreshing = nil
-            -- the same auction, or another one at the shown price or lower (never more than shown)
-            local found = same_id or same_price
-            if found then
-                record.auction_id = found.auction_id
-                if checked == record then
-                    show_item_bar(record)
+            if record.commodity then
+                local tiers = {}
+                for _, tier in ipairs(fresh) do
+                    if judge_record(tier) then
+                        tinsert(tiers, tier)
+                    end
+                end
+                sort(tiers, function(a, b) return a.unit_buyout_price < b.unit_buyout_price end)
+                if tiers[1] then
+                    record.deal_tiers = tiers
+                    if checked == record then
+                        show_commodity_bar(record)
+                    end
+                    return
                 end
             else
-                set_gone(record)
-                if checked == record then
-                    buy_bar.show_note(record.name, 'Sold before you could buy it', aux.color.red)
+                -- the same auction, or another one at the shown price or lower (never more than shown)
+                local found
+                for _, auction in ipairs(fresh) do
+                    if auction.auction_id == record.auction_id then
+                        found = auction
+                        break
+                    elseif not found and ceil(auction.unit_buyout_price) <= ceil(record.unit_buyout_price) then
+                        found = auction
+                    end
                 end
+                if found then
+                    record.auction_id = found.auction_id
+                    if checked == record then
+                        show_item_bar(record)
+                    end
+                    return
+                end
+            end
+            set_gone(record)
+            if checked == record then
+                buy_bar.show_note(record.name, 'Sold before you could buy it', aux.color.red)
             end
         end,
         on_abort = function()
@@ -480,7 +507,14 @@ local function refresh_deal(record)
 end
 
 local function show_deal(record)
-    if record.commodity then
+    if record.deal_gone then
+        buy_bar.show_note(record.name, record.deal_bought and 'Bought' or 'Gone: sold or relisted')
+    else
+        refresh_deal(record)
+    end
+end
+
+function show_commodity_bar(record)
         local item_info = info.item(record.item_id)
         buy_bar.show_commodity{
             item_id = record.item_id,
@@ -502,10 +536,13 @@ local function show_deal(record)
                     end
                 end
                 record.deal_tiers = rest
-                if rest[1] ~= record then
-                    -- the deal's own price is bought up
+                if not rest[1] or ceil(rest[1].unit_buyout_price) > ceil(record.unit_buyout_price) then
+                    -- the deal's own price is bought up: the rounds go on
                     record.deal_bought = true
                     set_gone(record)
+                    if checked == record then
+                        listing:SetSelectedRecord()
+                    end
                 end
                 update_deals()
             end,
@@ -515,11 +552,6 @@ local function show_deal(record)
                 update_deals()
             end,
         }
-    elseif record.deal_gone then
-        buy_bar.show_note(record.name, record.deal_bought and 'Bought' or 'Gone: sold or relisted')
-    else
-        refresh_deal(record)
-    end
 end
 
 function show_item_bar(record)

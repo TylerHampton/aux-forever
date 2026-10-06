@@ -623,6 +623,7 @@ function M.fast_choice(queries)
 end
 
 function M.execute(_, resume, mode)
+    local mode_given = mode ~= nil
 
     if resume then
         mode = current_search().mode
@@ -639,6 +640,14 @@ function M.execute(_, resume, mode)
     if aux.trim(filter_string) == '' then
         aux.print('Type something to search for.')
         return
+    end
+
+    -- auxForever: a new search of any kind ends Live (Tyler, 0.4.1). A saved or recipe search
+    -- started while Live was on was refused as a multi-query: the search bar showed the new search
+    -- while Live kept updating the old one. Only the Live button itself starts a live search.
+    if not resume and not mode_given and mode == LIVE_MODE and current_search() and filter_string ~= current_search().filter_string then
+        mode = NORMAL_MODE
+        update_mode(NORMAL_MODE)
     end
 
     local queries, error = filter_util.queries(filter_string)

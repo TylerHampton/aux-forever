@@ -32,6 +32,14 @@ else is batched, about a week of real use.
    and sold Sniper deals at the bottom; both done. Not picked for now: a dash instead of "?" in
    the Sniper's Usual column, and "?" in the Search tab's Seller column.
 
+## 0.5: notes for planning (from Tyler's 0.4.1 testing)
+
+- Sniper rework ("a big work in progress"): Tyler is unsure about the hold until the selected deal
+  is clicked again; consider releasing it by itself (after a purchase, after a while, when the
+  mouse leaves the window). Buying in a fast market: hard to tell whether you got the item while
+  others snipe it too; make the outcome of each click obvious.
+- Auctions tab: show the starting bid of your own auctions, if the game gives it (unverified).
+
 ## 0.3.x: fixes after 0.3 (done)
 
 0.3 was released on 2026-10-05. 0.3.x is bug fixes, speed and other small things that come up,
