@@ -656,6 +656,25 @@ try('table columns', function()
   rt:SetDatabase({{commodity = true, count = 20, item_key = 'a', search_signature = 'a1', name = 'A', requirement = 0, unit_buyout_price = 7, buyout_price = 140, unit_bid_price = 0, bid_price = 0, duration = 2},
                   {count = 1, auction_count = 3, item_key = 'b', search_signature = 'b1', name = 'B', requirement = 10, unit_buyout_price = 900, buyout_price = 900, unit_bid_price = 500, bid_price = 500, high_bid = 0, duration = 3}})
   check('bid column shown when gear is in the results', not bid_hidden())
+  -- the selected record stays selected when rows are added above it (Tyler, 0.4.1)
+  local function grec(key, price) return {count = 1, item_key = key, search_signature = key, name = key, requirement = 0, unit_buyout_price = price, buyout_price = price, unit_bid_price = 0, bid_price = 0, high_bid = 0, duration = 2} end
+  local ra, rb = grec('ka', 100), grec('kb', 200)
+  local db = {ra, rb}
+  rt:SetDatabase(db)
+  rt:SetSelectedRecord(rb)
+  tinsert(db, 1, grec('kc', 50))
+  rt:SetDatabase(db)
+  check('selection stays on the same record when rows are added', rt:GetSelection() and rt:GetSelection().record == rb)
+  -- an auction with no starting bid shows no bid, not its buyout (Tyler, 0.4.1)
+  local bid_col
+  for i, c in ipairs(al.search_columns) do
+    if type(c.title) == 'table' and c.title[1]:find('^Auction Bid') then bid_col = i end
+  end
+  local bcell = {text = new_frame()}
+  al.search_columns[bid_col].fill(bcell, {count = 1, unit_buyout_price = 1200, buyout_price = 1200, unit_bid_price = 1200, bid_price = 1200, high_bid = 0})
+  check('bid column: buyout only shows ---', bcell.text.__text == '---')
+  al.search_columns[bid_col].fill(bcell, {count = 1, unit_buyout_price = 1200, buyout_price = 1200, unit_bid_price = 800, bid_price = 800, high_bid = 0})
+  check('bid column: a real starting bid shows', tostring(bcell.text.__text):find('^8') ~= nil)
 end)
 
 -- Post price lists: units for sale, time left, price, % of usual
@@ -995,13 +1014,42 @@ try('settings scale and resize corner', function()
   check('scale values are cleaned up', a.clean_scale(1.31) == 1.3 and a.clean_scale('x') == 1)
   a.change_window_scale(1)
   rawset(a.frame, 'SetScale', nil)
-  local anchored
-  rawset(a.frame, 'SetPoint', function(self, point) anchored = point end)
-  rawset(a.frame, 'StartSizing', function() sized_after = anchored end)
-  sized_after = nil
-  a.resize_grip.__scripts.OnMouseDown(a.resize_grip, 'LeftButton')
-  check('resize corner anchors top left before sizing', sized_after == 'TOPLEFT')
-  rawset(a.frame, 'SetPoint', nil); rawset(a.frame, 'StartSizing', nil)
+  -- Tyler, 0.4.1: one click on the resize corner could make the whole window jump diagonally.
+  -- aux sizes the window itself now: only a drag changes the size, by exactly the drag.
+  local f, grip = a.frame, a.resize_grip
+  local w, h, sizes, anchored = 1200, 600, 0, nil
+  local cx, cy, down = 500, 300, true
+  rawset(f, 'GetWidth', function() return w end); rawset(f, 'GetHeight', function() return h end)
+  rawset(f, 'SetWidth', function(_, v) w = v; sizes = sizes + 1 end); rawset(f, 'SetHeight', function(_, v) h = v; sizes = sizes + 1 end)
+  rawset(f, 'SetSize', function(_, x, y) w, h = x, y; sizes = sizes + 1 end)
+  rawset(f, 'GetLeft', function() return 100 end); rawset(f, 'GetTop', function() return 900 end)
+  rawset(f, 'GetEffectiveScale', function() return 1 end)
+  rawset(UIParent, 'GetEffectiveScale', function() return 1 end)
+  rawset(UIParent, 'GetWidth', function() return 1920 end); rawset(UIParent, 'GetHeight', function() return 1080 end)
+  rawset(f, 'SetPoint', function(_, point) anchored = point end)
+  rawset(f, 'StartSizing', function() anchored = 'game sizing' end)
+  G.GetCursorPosition = function() return cx, cy end
+  G.IsMouseButtonDown = function() return down end
+  grip.__scripts.OnMouseDown(grip, 'LeftButton')
+  check('resize corner anchors the window by its top left', anchored == 'TOPLEFT')
+  for _ = 1, 3 do grip.__scripts.OnUpdate(grip) end
+  grip.__scripts.OnMouseUp(grip)
+  check('a click on the resize corner changes nothing', sizes == 0 and w == 1200 and h == 600)
+  check('the drag stops with the click', grip.__scripts.OnUpdate == nil)
+  down = true
+  grip.__scripts.OnMouseDown(grip, 'LeftButton')
+  cx, cy = 560, 260
+  grip.__scripts.OnUpdate(grip)
+  check('a drag resizes by exactly the drag', w == 1260 and h == 640)
+  cx, cy = 5000, -5000
+  grip.__scripts.OnUpdate(grip)
+  check('the window stays on screen', w == 1820 and h == 900)
+  down = false
+  grip.__scripts.OnUpdate(grip)
+  check('releasing the mouse anywhere ends the drag', grip.__scripts.OnUpdate == nil)
+  for _, k in ipairs{'GetWidth', 'GetHeight', 'SetWidth', 'SetHeight', 'SetSize', 'GetLeft', 'GetTop', 'GetEffectiveScale', 'SetPoint', 'StartSizing'} do rawset(f, k, nil) end
+  for _, k in ipairs{'GetEffectiveScale', 'GetWidth', 'GetHeight'} do rawset(UIParent, k, nil) end
+  G.GetCursorPosition, G.IsMouseButtonDown = nil, nil
 end)
 
 -- Search timing log (/aux debug): the summary says where a search's time went
@@ -1255,6 +1303,19 @@ try('live mode', function()
   search.resume_held_live()
   run(20)
   check('live: carries on when back on the tab', s.live_round > round)
+  -- Tyler, 0.4.1: a live round during a trade good's price quote ended it with "Internal auction
+  -- error"; live rounds wait while the buy bar is buying, and are held, not paused
+  local live_req = loadstring("select(2, ...) 'aux.test50'; return require")('auxForever', addon)
+  local live_bar = live_req 'aux.gui.buy_bar'
+  local real_busy = live_bar.busy
+  rawset(live_bar, 'busy', function() return true end)
+  tick()
+  round = s.live_round
+  run(80)
+  check('live: no round while buying', s.live_round == round and search.live_status(s) ~= 'paused')
+  rawset(live_bar, 'busy', real_busy)
+  run(30)
+  check('live: rounds go on after the purchase', s.live_round > round)
   search.toggle_live()
   check('live: turning Live off stops it and keeps the results', s.mode == search.NORMAL_MODE and not s.active and #s.records > 0)
   local sent = browses()
@@ -1262,6 +1323,30 @@ try('live mode', function()
   check('live: no more rounds once off', browses() == sent)
   search.update_live_button()
   check('live: the button says Live again', search.mode_button:GetText() == 'Live')
+  -- Tyler, 0.4.1: a new search while Live is on (a saved recipe search) ends Live and runs
+  search.search_box:SetText('robe')
+  search.toggle_live()
+  run(20)
+  local old = search.current_search()
+  local addon_aux = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  addon_aux.account_data.full_search = true
+  rawset(AuxTooltip, 'NumLines', function() return 0 end)
+  search.set_filter('spellbinder robe/exact;greenweave robe/exact')
+  search.execute()
+  local new = search.current_search()
+  check('live: a new search ends Live', search.mode == search.NORMAL_MODE and new ~= old and new.mode == search.NORMAL_MODE)
+  run(60)
+  check('live: the new search runs', #new.records > 0 and not old.active)
+  sent = browses()
+  run(80)
+  check('live: the old search does not go on', browses() == sent)
+  addon_aux.account_data.full_search = false
+  rawset(AuxTooltip, 'NumLines', nil)
+  -- the item data this search loaded is not left for later tests
+  for _, it in ipairs(ROBES()) do
+    addon_aux.account_data.items[it.id] = nil
+    addon_aux.account_data.item_ids[strlower(it.name)] = nil
+  end
   search.frame:Hide()
   restore()
 end)
@@ -1316,6 +1401,16 @@ try('sniper round', function()
   run(40)
   check('sniper: a deal that sold shows as gone', found['Ritual Kilt'].deal_gone == true and not found.Kingsblood.deal_gone)
   check('sniper: the count says how many are left and gone', sniper.deals_count(sniper.shown_deals()) == '1 to buy, 1 gone')
+  -- Tyler, 0.4.1: deals that sold go to the bottom of the table
+  local function shown_order()
+    local out = {}
+    for _, info in ipairs(sniper.listing.rowInfo) do tinsert(out, info.children[1].record) end
+    return out
+  end
+  found.Kingsblood.deal_found, found['Ritual Kilt'].deal_found = 100, 200 -- the gone one is newer
+  sniper.update_deals()
+  local order = shown_order()
+  check('sniper: a deal that sold sorts below the ones to buy', #order == 2 and not order[1].deal_gone and order[2].deal_gone)
   -- Tyler, 0.4 build 2: after a few rounds every deal vanished from the table, then came back. The
   -- game had dropped the items' data for a moment, and a deal without item data was hidden.
   local real_info = G.GetItemInfo
@@ -1332,7 +1427,9 @@ try('sniper round', function()
   -- buying a deal from the buy bar: the cheapest units first, never above the price shown
   local bar = aux_require 'aux.gui.buy_bar'
   sniper.listing:SetSelectedRecord(found.Kingsblood)
-  tick(); tick()
+  -- the deal is read again first (Tyler, 0.4.1: trade good buys failed on old deals)
+  run(10)
+  check('sniper: a trade good deal is read again when selected', sniper.refreshing == nil and #found.Kingsblood.deal_tiers == 2)
   check('sniper: the buy bar offers the deal', bar.primary_label():find('^Buy 20 for') ~= nil)
   bar.primary_click()
   fire('COMMODITY_PRICE_UPDATED', 900, 17400)
@@ -1603,6 +1700,8 @@ try('/aux memory', function()
   check('memory is measured when asked', updated == true)
   check('memory report in MB with the history size', report:find('uses 3.5 MB of memory; price history for %d+ items') ~= nil)
   check('memory report says what is left after a cleanup', report:find('After a cleanup: 3.5 MB', 1, true) ~= nil)
+  local detail = slash.memory_detail()
+  check('memory detail: one line per store', #detail == 6 and detail[1]:find('^Sniper: %d+ items known') ~= nil and detail[6]:find('^Events: %d+ listeners') ~= nil)
   G.UpdateAddOnMemoryUsage, G.GetAddOnMemoryUsage = nil, nil
 end)
 
@@ -1732,6 +1831,234 @@ try('per-frame work 0.4', function()
 end)
 
 
+-- Tyler, 0.4.1: the buy bar offered 20 Ironweb Spider Silk on the Sniper where only 7 were a deal,
+-- and the buy did not go through while rounds kept running
+try('sniper: only deal-priced units to buy, rounds wait while buying', function()
+  local aux_require = loadstring("select(2, ...) 'aux.test47'; return require")('auxForever', addon)
+  local aux = aux_require 'aux'
+  local buy_bar = aux_require 'aux.gui.buy_bar'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local items = {
+    {id = 501, name = 'Ironweb Spider Silk', commodity = true, stack = 20, min = 2499, qty = 25, sell = 2500,
+      auctions = {{buyout = 2499, qty = 7}, {buyout = 2550, qty = 18}}},
+  }
+  local run, restore = fake_ah(items)
+  aux.account_data.sniper_profit = 1
+  sniper.clear_deals()
+  aux.set_tab(2)
+  local r0 = sniper.round
+  sniper.start()
+  for _ = 1, 200 do run(1) if sniper.round > r0 then break end end
+  local deal = sniper.deals[1]
+  local units = 0
+  for _, tier in ipairs(deal and deal.deal_tiers or {}) do units = units + tier.count end
+  check('sniper: only the units below vendor price can be bought', deal and units == 7)
+  -- selected later, after someone bought 4 of the 7: the deal is read again with today's counts
+  items[1].auctions[1].qty = 3
+  sniper.listing:SetSelectedRecord(deal)
+  run(10)
+  units = 0
+  for _, tier in ipairs(deal.deal_tiers or {}) do units = units + tier.count end
+  check('sniper: a selected trade good deal shows what is left', units == 3)
+  sniper.listing:SetSelectedRecord()
+  run(2)
+  local real_busy = buy_bar.busy
+  rawset(buy_bar, 'busy', function() return true end)
+  local r1 = sniper.round
+  run(60)
+  check('sniper: no round while a purchase is under way', sniper.round == r1 and not sniper.active)
+  check('sniper: the status says it waits', select(2, sniper.status()) == 'waits while you buy')
+  rawset(buy_bar, 'busy', real_busy)
+  run(60)
+  check('sniper: rounds go on after the purchase', sniper.round > r1)
+  sniper.stop()
+  aux.account_data.sniper_profit = 500
+  sniper.clear_deals()
+  aux.set_tab(1)
+  restore()
+end)
+
+-- Tyler, 0.4.1 build 4: gear deals could not be bought from the Sniper, and the table moved under the
+-- mouse. A selected gear deal is read again before it can be bought, and the rounds hold meanwhile.
+try('sniper: a selected gear deal is checked again and the rounds hold', function()
+  local aux_require = loadstring("select(2, ...) 'aux.test48'; return require")('auxForever', addon)
+  local aux = aux_require 'aux'
+  local bar = aux_require 'aux.gui.buy_bar'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local items = {
+    {id = 601, name = 'Massive Battle Axe', min = 2800, qty = 1, sell = 3036, auctions = {{buyout = 2800}}},
+    {id = 602, name = 'Long Redwood Bow', min = 5500, qty = 1, sell = 5568, auctions = {{buyout = 5500}}},
+  }
+  local run, restore = fake_ah(items)
+  local searched = {}
+  local real_send = C_AuctionHouse.SendSearchQuery
+  rawset(C_AuctionHouse, 'SendSearchQuery', function(key, ...) searched[key.itemID] = (searched[key.itemID] or 0) + 1; return real_send(key, ...) end)
+  aux.account_data.sniper_profit = 1
+  sniper.clear_deals()
+  aux.set_tab(2)
+  local r0 = sniper.round
+  sniper.start()
+  for _ = 1, 300 do run(1) if sniper.round > r0 then break end end
+  local axe
+  for _, d in ipairs(sniper.deals) do if d.item_id == 601 then axe = d end end
+  check('sniper gear: the deal is found', axe ~= nil)
+  local before = searched[601] or 0
+  sniper.listing:SetSelectedRecord(axe)
+  run(3)
+  check('sniper gear: selecting it reads its item again', (searched[601] or 0) > before)
+  run(10)
+  check('sniper gear: then the buy bar offers it', bar.primary_label():find('^Buy for') ~= nil)
+  local r1 = sniper.round
+  run(80)
+  check('sniper gear: no round while a deal is selected', sniper.round == r1 and not sniper.active)
+  check('sniper gear: the status says it holds', sniper.status() == 'Holding')
+  sniper.click_deal(axe)
+  check('sniper gear: a click on the selected deal lets it go', sniper.listing:GetSelection() == nil)
+  run(80)
+  check('sniper gear: the rounds go on', sniper.round > r1)
+
+  -- sold before the click: the deal shows as gone, nothing to buy
+  local bow
+  for _, d in ipairs(sniper.deals) do if d.item_id == 602 then bow = d end end
+  items[2].qty = 0
+  sniper.listing:SetSelectedRecord(bow)
+  run(15)
+  check('sniper gear: sold before the click shows as gone', bow and bow.deal_gone == true)
+  sniper.listing:SetSelectedRecord()
+
+  -- the table waits while the mouse is over it
+  local before_records = sniper.listing.records
+  rawset(sniper.frame.listing, 'IsMouseOver', function() return true end)
+  sniper.deals_changed = true
+  sniper.update(); run(2)
+  check('sniper: the table does not change under the mouse', sniper.listing.records == before_records and sniper.deals_changed == true)
+  rawset(sniper.frame.listing, 'IsMouseOver', nil)
+  run(10)
+  check('sniper: the table catches up when the mouse leaves', sniper.deals_changed == false)
+
+  sniper.stop()
+  rawset(C_AuctionHouse, 'SendSearchQuery', real_send)
+  aux.account_data.sniper_profit = 500
+  sniper.clear_deals()
+  aux.set_tab(1)
+  restore()
+end)
+
+-- Tyler, 0.4.1: after a full scan (69,591 auctions) aux held 42 MB after a cleanup: the Post tab kept
+-- the listings of every item. It keeps only the items in the bags now.
+try('full scan keeps Post listings for bag items only', function()
+  local req = loadstring("select(2, ...) 'aux.test46'; return require")('auxForever', addon)
+  local info = req 'aux.util.info'
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local real_inventory, real_container = info.inventory, info.container_item
+  rawset(info, 'inventory', function()
+    local done = false
+    return function() if not done then done = true return {0, 1} end end
+  end)
+  rawset(info, 'container_item', function() return {item_key = '111:0'} end)
+  post.clear_auctions()
+  post.record_scanned_auction({item_key = '111:0', commodity = true, unit_buyout_price = 50, count = 5, duration = 2, owner = 'Someone'})
+  post.record_scanned_auction({item_key = '222:0', commodity = true, unit_buyout_price = 70, count = 9, duration = 2, owner = 'Someone'})
+  check('full scan: an item in the bags keeps its listings', post.listings_known('111:0'))
+  check('full scan: an item not in the bags is not kept', not post.listings_known('222:0'))
+  rawset(info, 'inventory', real_inventory); rawset(info, 'container_item', real_container)
+  post.clear_auctions()
+end)
+
+-- Tyler, 0.4.1: prices read "7s", not "7s 00c"
+try('money without zero parts', function()
+  local req = loadstring("select(2, ...) 'aux.test45'; return require")('auxForever', addon)
+  local money = req 'aux.util.money'
+  local function plain(n) return money.to_string(n, true, nil, nil, true) end
+  check('money: 7s', plain(700) == '7s')
+  check('money: 1g 92s', plain(19200) == '1g 92s')
+  check('money: 1g 5c', plain(10005) == '1g 05c')
+  check('money: 1s 23c', plain(123) == '1s 23c')
+  check('money: 0c', plain(0) == '0c')
+  check('money: 3g', plain(30000) == '3g')
+  check('money: negative', plain(-700) == '-7s')
+  -- Tyler: in a column of copper prices "1s" broke the line-up; tables with copper keep all parts
+  money.set_full_parts(true)
+  check('money in a table with copper: 1s 00c', plain(100) == '1s 00c')
+  money.set_full_parts(false)
+  check('money outside tables stays short', plain(100) == '1s')
+  local al = req 'aux.gui.auction_listing'
+  local buyout_col
+  for i, c in ipairs(al.search_columns) do
+    if type(c.title) == 'table' and c.title[1]:find('^Auction Buyout') then buyout_col = i end
+  end
+  local rt = al.new(new_frame(), 19, al.search_columns)
+  local function rec(key, price) return {count = 1, item_key = key, search_signature = key, name = key, requirement = 0, unit_buyout_price = price, buyout_price = price, unit_bid_price = 0, bid_price = 0, high_bid = 0, duration = 2} end
+  rt:SetDatabase({rec('a', 47), rec('b', 100)})
+  check('table with copper: every price keeps its copper', rt.has_copper == true)
+  rt:SetDatabase({rec('c', 1200), rec('d', 1500)})
+  check('table without copper: prices stay short', rt.has_copper == false)
+  rt.has_copper = true
+  rt:UpdateRows()
+  check('the table leaves short prices for everything else', plain(100) == '1s')
+end)
+
+try('an empty search does not list the whole auction house', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local req = loadstring("select(2, ...) 'aux.test49'; return require")('auxForever', addon)
+  local exports = req 'aux.core.scan'
+  local real_start, started = exports.start, false
+  rawset(exports, 'start', function() started = true end)
+  search.search_box:SetText('  ')
+  search.execute(nil, false)
+  check('empty search: nothing is searched', not started)
+  rawset(exports, 'start', real_start)
+end)
+
+try('per-frame work 0.4.1', function()
+  local aux_require = loadstring("select(2, ...) 'aux.test44'; return require")('auxForever', addon)
+  local aux = aux_require 'aux'
+  -- Saved Searches: the Alt key is only checked while a favorite is being dragged
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local real_alt, alt_checks = G.IsAltKeyDown, 0
+  G.IsAltKeyDown = function() alt_checks = alt_checks + 1 return false end
+  search.dragged_search = nil
+  for _ = 1, 20 do search.frame.saved.__scripts.OnUpdate(search.frame.saved) end
+  check('Saved Searches: no Alt check every frame while nothing is dragged', alt_checks == 0)
+  G.IsAltKeyDown = real_alt
+
+  -- Bids tab: its buttons follow the selection a few times a second, not every frame
+  local bids = loadstring("select(2, ...) 'aux.tabs.bids'; return _M")('auxForever', addon)
+  local real_get, gets = bids.listing.GetSelection, 0
+  rawset(bids.listing, 'GetSelection', function() gets = gets + 1 end)
+  bids.refresh, bids.next_refresh = false, GetTime() + 100
+  for _ = 1, 20 do bids.on_update() end
+  check('Bids tab: buttons not updated every frame', gets <= 1)
+  rawset(bids.listing, 'GetSelection', nil)
+
+  -- aux's item list at login: numbers the game says are no item are not asked about, and a
+  -- complete list is walked over many frames, not in one long one
+  local info = loadstring("select(2, ...) 'aux.util.info'; return _M")('auxForever', addon)
+  local real_items, real_unused = aux.account_data.items, aux.account_data.unused_item_ids
+  aux.account_data.items, aux.account_data.unused_item_ids = {}, {}
+  for id = 1, 30000 do aux.account_data.unused_item_ids[id] = true end
+  local real_exists, real_info, asked = C_Item.DoesItemExistByID, G.GetItemInfo, {}
+  rawset(C_Item, 'DoesItemExistByID', function(id) return id ~= 777 end)
+  G.GetItemInfo = function(x) asked[tonumber(tostring(x):match('%d+'))] = true end
+  -- a complete list: nothing to ask, still spread over frames
+  info.item_walk_done = nil
+  info.fetch_item_data()
+  check('item list: a complete list is not walked in one frame', not info.item_walk_done)
+  for _ = 1, 100 do tick() end
+  check('item list: a complete list is walked within a few frames', info.item_walk_done == true)
+  aux.account_data.unused_item_ids[777], aux.account_data.unused_item_ids[778] = nil, nil
+  info.item_walk_done = nil
+  info.fetch_item_data()
+  for _ = 1, 100 do tick() end
+  check('item list: done after some frames', info.item_walk_done == true)
+  check('item list: a number that is no item is not asked about', not asked[777] and asked[778])
+  local known, _, _, done = info.item_list_progress()
+  check('item list: progress for /aux memory', known == 0 and done == true)
+  rawset(C_Item, 'DoesItemExistByID', real_exists)
+  G.GetItemInfo = real_info
+  aux.account_data.items, aux.account_data.unused_item_ids = real_items, real_unused
+end)
+
 try('recipe search', function()
   local aux = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
   local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
@@ -1777,7 +2104,7 @@ try('recipe search', function()
   local partial = search.recipe_summary{recipe = s.recipe, records = without}
   local info = loadstring("select(2, ...) 'aux.util.info'; return _M")('auxForever', addon)
   local dye = info.item(103).name
-  check('recipe: a material without a price is named', partial:find('materials 1g 92s 00c + ' .. dye .. ' (no price)', 1, true) ~= nil)
+  check('recipe: a material without a price is named', partial:find('materials 1g 92s + ' .. dye .. ' (no price)', 1, true) ~= nil)
   check('recipe: with a material missing the loss is a bound', partial:find('loss at least 16s 25c', 1, true) ~= nil)
 
   -- Tyler, 0.4: a saved recipe search showed as its raw text "[Colorful Kilt];[Bolt of Woolen Cloth];..."

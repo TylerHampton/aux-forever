@@ -47,6 +47,15 @@ do
         return searches[search_index]
     end
 
+    -- auxForever: /aux memory detail
+    function M.memory_counts()
+        local records = 0
+        for _, search in ipairs(searches) do
+            records = records + #(search.records or empty)
+        end
+        return #searches, records
+    end
+
     function M.set_nav_enabled(button, enabled)
         if enabled then
             button:Enable()
@@ -380,13 +389,26 @@ do
 end
 
 -- every frame while the Search tab is shown: start the next live round when its countdown ends
+local held_for_buying = false
+
 function M.update_live()
     local search = live_search
+    -- auxForever: a purchase talks to the auction house too. A live round during a trade good's
+    -- price quote ended it with "Internal auction error" (Tyler, 0.4.1), so rounds wait while the
+    -- buy bar is buying, and a round under way is held and carries on afterwards.
+    local buying = buy_bar.busy() or aux.bid_in_progress()
+    if buying and not held_for_buying and search and search.active and search.mode == LIVE_MODE and not search.live_held and scan.is_scanning() then
+        held_for_buying = true
+        hold_live()
+    elseif not buying and held_for_buying then
+        held_for_buying = false
+        resume_held_live()
+    end
     if search and search.active and search.mode == LIVE_MODE and not search.live_held then
         if not search.live_next and not scan.is_scanning() then
             -- "Updating" with no round running (it ended without telling): carry on with a round
             search.live_next = GetTime() + 1
-        elseif search.live_next and GetTime() >= search.live_next and not scan.is_scanning() then
+        elseif search.live_next and GetTime() >= search.live_next and not scan.is_scanning() and not buying then
             start_live_scan(search.live_query, search)
         end
     end
@@ -614,6 +636,7 @@ function M.fast_choice(queries)
 end
 
 function M.execute(_, resume, mode)
+    local mode_given = mode ~= nil
 
     if resume then
         mode = current_search().mode
@@ -625,6 +648,20 @@ function M.execute(_, resume, mode)
         search_box:SetText(current_search().filter_string)
     end
     local filter_string = search_box:GetText()
+    -- auxForever: an empty search bar listed the whole auction house up to the table's limit of
+    -- 2,000 rows, with a "Table full" popup (Tyler pressed Search by accident, 0.4.1)
+    if aux.trim(filter_string) == '' then
+        aux.print('Type something to search for.')
+        return
+    end
+
+    -- auxForever: a new search of any kind ends Live (Tyler, 0.4.1). A saved or recipe search
+    -- started while Live was on was refused as a multi-query: the search bar showed the new search
+    -- while Live kept updating the old one. Only the Live button itself starts a live search.
+    if not resume and not mode_given and mode == LIVE_MODE and current_search() and filter_string ~= current_search().filter_string then
+        mode = NORMAL_MODE
+        update_mode(NORMAL_MODE)
+    end
 
     local queries, error = filter_util.queries(filter_string)
     if not queries then

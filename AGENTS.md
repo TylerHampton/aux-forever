@@ -70,7 +70,8 @@ for f in $(find . -name '*.lua'); do luac5.1 -p "$f"; done   # syntax check
   an edit box's `change(self, true)` yourself. Reach a module's internals in a test with
   `loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)`.
 - Tests cannot show layout or how the game reacts. Add the in-game checks for each change to
-  `TESTING.md` (numbered sections) so Tyler can verify.
+  `TESTING.md` ("Current build") so Tyler can verify; Claude also makes a test page per build
+  where Tyler marks each step and Claude reads the results.
 
 ### Releases
 
@@ -185,7 +186,8 @@ as interactive HTML pages; an HTML file Tyler can open in a browser works the sa
 - `docs/roadmap.md`: what each version is for. A patch version (0.3.x) is bug fixes, speed and
   small things only, no new features; new features go into the next minor version (0.4).
 - `docs/forever-auction-house.md`: how Forever's auction house works, with sources.
-- `TESTING.md`: in-game checklist, one numbered section per feature.
+- `TESTING.md`: the current build's in-game checklist and the quick run before every release.
+  `docs/testing-history.md`: the older detailed checklists, by section number.
 - `README.md`: credit, license, install. License: MIT for the changes made here; Simon's original
   code has no license and is used with his permission. CurseForge uses "All Rights Reserved".
 - `git log`: every change with its reason. The first commit is the unmodified upstream aux, so

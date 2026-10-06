@@ -46,7 +46,8 @@ from aux on Classic:
   seconds. Click an item to see its auctions. Switch to Full to read every auction as aux always
   did.
 - Live mode repeats a search every few seconds, with a countdown on the Live button, and alerts you
-  when a new auction matches one of your alert favorites.
+  when a new auction matches one of your alert favorites. It waits while you buy, and any new
+  search ends it.
 - Advanced search filters which can be combined with logical operators, with autocompletion.
 - A Filter Builder that writes those searches for you: conditions in plain words, Match All or
   Any, "not", and groups inside groups, read back in plain English as you build.
@@ -76,8 +77,9 @@ from aux on Classic:
 - Every deal is checked against the item's real auctions before it is shown, and bought from the
   same buy bar as on the Search tab.
 - Deals show up while a round is still running. A sound (at most once every 10 seconds) and a
-  flashing game icon for new deals, deals that sell are marked gone, and items you never want can
-  be ignored.
+  flashing game icon for new deals; deals that sell are marked gone and sit at the bottom, and
+  items you never want can be ignored.
+- The buy bar offers only the units that are a deal, and the Sniper waits while you buy.
 
 **Post**
 
@@ -124,6 +126,8 @@ from aux on Classic:
 - `/aux debug list` times the item list of the whole auction house.
 - `/aux memory` says how much memory aux uses, and how much is left after a cleanup (the rest is
   garbage the game frees over time).
+- `/aux memory detail` also lists what aux keeps: Sniper, price history, searches, Post, tooltips
+  and events. Useful for bug reports about memory.
 
 **Tooltip**
 

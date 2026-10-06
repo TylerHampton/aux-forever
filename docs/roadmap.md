@@ -3,11 +3,48 @@
 Set by Tyler on 2026-10-05. Version numbers are `0.MINOR.PATCH`, written `forever-0.2.1` in the
 TOC. Every release gets an entry in `docs/changelog.md`.
 
-## 0.3.x: fixes after 0.3 (now)
+## 0.4.1: performance first, then common-sense UX (released 2026-10-06)
+
+0.4 was released on 2026-10-05. Tyler: 0.4.1 is mainly performance, partly UX/UI common-sense
+changes; no new features (those are written down for 0.5). A bad bug (spends money wrongly,
+errors over and over, a tab that does not work) gets its own hotfix release at once; everything
+else is batched, about a week of real use.
+
+1. Confirm in game what never was (`TESTING.md`, Current build): the recipe cost line in the bottom
+   bar, buying from the Sniper, posting from the reagent bag, suffix names on fast rows, the
+   Auctions tab cancel flow, the Bids tab, a full scan, posting gear with a bid, Filter Builder
+   dropdowns, Shift-click on a recipe.
+2. Feedback from the two testers (Darkhorse, Hotpocket), on recipe search and the Auctions tab.
+3. Performance:
+   - Done: Simon's login walk over item numbers 1 to 30000 (`fetch_item_data`) skips numbers the
+     game says are no item and pauses every 500 numbers; `/aux memory` says how far it is.
+   - Done: `core/crafting.lua` removed (Classic profession frames only; on by default, did nothing
+     on Forever) with its `/aux crafting cost` setting.
+   - Done: the per-frame audit. Every `OnUpdate` and thread was read. Fixed: Saved Searches checked
+     the Alt key every frame, the Bids tab set its buttons every frame, quick menu rows set the
+     pin's alpha every frame. The buy bar was already at ten times a second in 0.4 and only while
+     a row is selected; left as is.
+   - To do: `/aux memory` at Sniper round 10 and round 40 (after a cleanup should match).
+4. Housekeeping, done: tests run once per change on GitHub (a pull request from this repository
+   reuses the branch's run; the duplicate was cancelled while queued at the 0.4 merge and GitHub
+   mailed it as a failure).
+5. UX/UI common sense. Tyler picked (2026-10-05): prices without zero parts ("7s", not "7s 00c")
+   and sold Sniper deals at the bottom; both done. Not picked for now: a dash instead of "?" in
+   the Sniper's Usual column, and "?" in the Search tab's Seller column.
+
+## 0.5: notes for planning (from Tyler's 0.4.1 testing)
+
+- Sniper rework ("a big work in progress"): Tyler is unsure about the hold until the selected deal
+  is clicked again; consider releasing it by itself (after a purchase, after a while, when the
+  mouse leaves the window). Buying in a fast market: hard to tell whether you got the item while
+  others snipe it too; make the outcome of each click obvious.
+- Auctions tab: show the starting bid of your own auctions, if the game gives it (unverified).
+
+## 0.3.x: fixes after 0.3 (done)
 
 0.3 was released on 2026-10-05. 0.3.x is bug fixes, speed and other small things that come up,
 no new features (Tyler, 2026-10-05). To confirm in game: buying from the Sniper, posting from the
-reagent bag, suffix names on fast mode rows (`TESTING.md` section 15).
+reagent bag, suffix names on fast mode rows (`docs/testing-history.md` section 15).
 
 ## 0.4: selling tools (released 2026-10-05)
 

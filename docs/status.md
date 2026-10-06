@@ -8,6 +8,54 @@ Last updated 2026-10-05 (before a context compaction of Claude's session).
   `main` is at the 0.3.1 merge (#6).
 - Versioning decision (2026-10-05): fixes to an unreleased version go into that version, so the
   build 2 and 3 fixes are part of 0.4, not 0.4.1. 0.4.1 is for fixes after 0.4 is released.
+- **0.4.1 release (2026-10-06):** build 6 passed except one case, fixed before release: a Live
+  round during a trade good's price quote ended the purchase with "Internal auction error"; Live
+  rounds now wait while the buy bar is buying (`update_live`). That fix was not tried in game
+  before the release; Tyler checks it on the release zip before uploading to CurseForge. Next:
+  0.5 planning (docs/roadmap.md, 0.5 notes: Sniper rework, fast-market buy feedback).
+- Before the release, **0.4.1** was on branch `claude/modest-volta-4mgmsb` (restarted from `main` after the 0.4
+  merge), TOC `forever-0.4.1`, test build 3 out. Plan in `docs/roadmap.md` (0.4.1): performance first, then
+  common-sense UX (list to agree with Tyler, mockups for visual changes). Done so far: login item
+  walk (`fetch_item_data`) skips non-items and pauses every 500 numbers, `core/crafting.lua`
+  removed, the per-frame audit (Saved Searches, Bids tab, quick menu rows fixed), tests run once
+  per change on GitHub. In-game checks: `TESTING.md` (Current build) and the test page
+  https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ, where Tyler marks each step; read the results
+  with ArtifactData, collection `builds/0-4-1-dev<N>/results` (one document per step id; notes
+  and screenshot asset ids, which `Artifact` read with `path` = the id downloads).
+- Build 5 results (Tyler, 2026-10-06): Sniper gear buys work ("way better"), hold and pick pass,
+  empty search, quick run search/buy, Live, Post, Auctions (cancel and undercut too) pass; memory
+  11.9 MB after a cleanup at the end. Failed: a saved or recipe search while Live was on (refused
+  as a multi-query, Live kept updating the old search; fixed in build 6: any new search ends
+  Live). Trade good Sniper buys hit "Internal auction error" 4 of 5 times on deals found minutes
+  earlier; build 6 reads a trade good deal again when selected, like gear. Tyler's Sniper design
+  notes are in docs/roadmap.md (0.5).
+- Build 4 results (Tyler, 2026-10-05; the game server was being restarted and players reported
+  the AH broken meanwhile): memory settled (after a cleanup 17.3 MB at Sniper round 14, 17.5 MB at
+  round 46, 18.5 MB after a full scan with the bag-only fix; the rise from 8.1 MB at login is
+  one-time: an empty search's 2,083 rows, Sniper notes on 7,763 items, 2,177 cached usual
+  prices). Sniper gear buys did nothing while trade goods bought fine and Search gear buys work:
+  likely the purchase needs the auction in the latest search of its item, and rounds search other
+  items. Build 5: a selected gear deal is read again (one request) before Buy, rounds hold while a
+  deal is selected (click again to let go), the purchase stays on the click (PlaceBid from code
+  may need a click; unverified). The selection moved because auction_listing reselected by row
+  position after each refresh (Simon's code); it now keeps the same record. The Sniper table
+  freezes while the mouse is over it. Empty searches do nothing. Tyler skipped the quick run;
+  it is still needed before release.
+- Build 2 results (Tyler, 2026-10-05): a full scan left 42.3 MB after a cleanup (Post tab kept
+  every item's listings; fixed in build 3, only bag items now). Sniper "after a cleanup" grew
+  12.9 MB (round 29) to 19.1 MB (round 41) with only the Sniper running and a deal selected; the
+  harness does not repeat it (flat over 80 rounds with deals, selection and moving prices), so
+  build 3 adds `/aux memory detail` (entry counts per store) and asks for round 10 and 40 with
+  nothing selected. Sniper buy bar offered non-deal units of a trade good (fixed: deal tiers
+  filtered by the rule) and the buy did not go through (unknown; rounds now pause while the buy
+  bar is busy; the Confirm click may have been missed). Prices: Tyler wants copper kept in
+  tables for alignment (done: full parts when any price in the table has copper). Auction Bid
+  showed the buyout on buyout-only auctions (now "---"). Resize corner jumps on a single click
+  (Tyler made sure: single clicks, and once it starts each click jumps again; scale 100%): not
+  reproduced; my double-click guess was wrong. Build 4 drops the game's StartSizing for aux's own
+  sizing during the drag (`frame.lua`, grip OnUpdate only while dragging), so a click without
+  movement changes nothing; anchor_top_left no longer re-anchors when already in place. Posting bid = buyout posts buyout only, as
+  designed; the test step had asked for a lower bid.
 - 0.4 release (2026-10-05): Tyler approved it after build 5, with one last change: the recipe
   cost line moved from the line next to the sub tabs (crowded, cut off) to the bottom bar right of
   Clear, in shorter words (`recipe_label` in `tabs/search/frame.lua`, set in
@@ -52,7 +100,7 @@ Last updated 2026-10-05 (before a context compaction of Claude's session).
   search bar have room. Consider moving the recipe line or the summary down there; mockup first.
   Also fixed in build 5: the recipe line names a material without a price instead of "?".
   Next steps:
-  1. Tyler tests the fifth build (`TESTING.md` section 16, Recipe search, Sniper fixes,
+  1. Tyler tests the fifth build (`docs/testing-history.md` section 16, Recipe search, Sniper fixes,
      Performance) and sends both `/aux memory` lines at login and after 20+ Sniper rounds. If the
      "after a cleanup" number keeps climbing, something is kept that should not be: look for it.
   2. Fix whatever his test turns up (each bug: fix plus a test that fails without it).
@@ -163,7 +211,7 @@ download. Every agent: pull first, one agent per branch, update this file when d
 - 0.3 first build (TOC `forever-0.3.0-dev`, later `forever-0.3`, branch `claude/modest-volta-4mgmsb`, sent as a zip):
   fast mode on Search (Fast / Full switch, click a row to read its auctions), Live mode with a
   visible countdown and paused state, and the Sniper tab. Decisions and known limits:
-  `docs/roadmap.md`, "Built". In-game checks: `TESTING.md` section 15. Not tested in game yet.
+  `docs/roadmap.md`, "Built". In-game checks: `docs/testing-history.md` section 15. Not tested in game yet.
   Unknowns to watch: whether the item list's lowest price is ever a bid (`/aux debug` prints a
   line when an opened item differs), whether item list names include suffixes, the Sniper's
   round time over a long session, and whether the server minds rounds back to back.
@@ -195,9 +243,9 @@ download. Every agent: pull first, one agent per branch, update this file when d
   shows the materials. The second check failed only because the /run line was over WoW's
   255-character chat limit; Blizzard's own profession window uses `GetRecipeSchematic` to show
   materials, so the call works on Forever.
-- `core/crafting.lua` hooks Classic's profession frames, which Forever does not have; it does
-  nothing on Forever and costs only one event listener. Left in place for now.
-- Not tested in game yet: everything in `TESTING.md` section 16.
+- `core/crafting.lua` hooked Classic's profession frames, which Forever does not have. Removed in
+  0.4.1 with its `/aux crafting cost` setting.
+- Not tested in game yet: everything in `docs/testing-history.md` section 16.
 
 ## 0.3.1 (released 2026-10-05)
 
@@ -206,8 +254,8 @@ download. Every agent: pull first, one agent per branch, update this file when d
   aux); the Auctions and Bids tabs ran endless per-frame threads to rebuild their lists every
   second; the Full scan button restyled itself every frame; the Live button and Sniper status
   rebuilt their text every frame. Rules for all agents: AGENTS.md, Performance. Tests: `per-frame
-  work`. Not changed yet: the buy bar refreshes its texts every frame while something is selected
-  (only on the Search and Sniper tabs); a candidate for a later pass.
+  work`. The buy bar was throttled to ten times a second in 0.4 (and does nothing with no row
+  selected).
 - `/aux memory` (memory use and number of items in price history), for questions about RAM.
 - 0.4 Auctions tab mockup approved by Tyler (https://claude.ai/artifact/A6L3eNDURLpJUMBd1aVucY).
   Recipe search added to 0.4 (`docs/roadmap.md`). Not built yet.
@@ -223,7 +271,7 @@ download. Every agent: pull first, one agent per branch, update this file when d
   (round times 8.4s). Released through a pull request into `main` and the Release workflow
   (GitHub Release `v0.3`, pre-release). CurseForge upload by Tyler. Not confirmed in game at
   release: buying from the Sniper, posting from the reagent bag, whether fast mode rows show
-  suffixes ("of the Owl"); these stay in `TESTING.md` section 15.
+  suffixes ("of the Owl"); these stay in `docs/testing-history.md` section 15.
 - 0.3.1 approved by Tyler on 2026-10-05 ("stable and ready to release"): performance fixes and
   `/aux memory`. GitHub Release `v0.3.1` by the Release workflow; CurseForge upload by Tyler.
 - From 0.2.1 on, the Release workflow publishes the GitHub Release: Actions, Release, "Run

@@ -33,6 +33,7 @@ local known = {} -- item key text -> the lowest price already judged
 local seen_items = {} -- during a round: item key text -> lowest price on the list
 local next_round_at
 local last_alert -- GetTime() of the last sound
+local checked -- the selected deal, as the buy bar shows it
 checking = nil -- during a round: {done, total} possible deals being opened
 deals_changed = false -- the table is redrawn soon (throttled) while a round finds deals
 
@@ -164,6 +165,13 @@ function check_item(item_key, key)
         return
     end
     sort(tiers, function(a, b) return a.unit_buyout_price < b.unit_buyout_price end)
+    -- only the units that are a deal can be bought here: the buy bar offered 20 Ironweb Spider Silk
+    -- where 7 were below vendor price and the rest cost more (Tyler, 0.4.1)
+    for i = #tiers, 1, -1 do
+        if not judge_record(tiers[i]) then
+            tremove(tiers, i)
+        end
+    end
     -- the usual price is only shown when it rests on enough history to be trusted
     local usual, vendor, days = item_facts(cheapest.item_key, cheapest.item_id)
     cheapest.deal_history, cheapest.deal_vendor, cheapest.deal_days = usual, vendor, days
@@ -171,6 +179,7 @@ function check_item(item_key, key)
         usual = nil
     end
     cheapest.deal_key = key
+    cheapest.deal_item_key = item_key -- to read the item again when the deal is selected
     cheapest.deal_reason = reason
     cheapest.deal_profit = profit
     cheapest.deal_percent = pct
@@ -258,7 +267,7 @@ function start_round()
                 mark_gone(seen)
             end
             next_round_at = GetTime() + ROUND_PAUSE
-            update_deals()
+            deals_changed = true
         end,
         on_abort = function()
             active = false
@@ -330,7 +339,15 @@ end
 -- every frame while the tab is shown
 function M.update()
     -- the Sniper owns the request limit while its tab is open: a search still running elsewhere stops
-    if running and not active and next_round_at and GetTime() >= next_round_at then
+    if running and (buy_bar.busy() or aux.bid_in_progress() or refreshing or checked) then
+        -- a purchase talks to the auction house too: the round stops, and the next one waits until
+        -- the purchase is done and no deal is selected (a round would also search other items and
+        -- could replace the deal being bought)
+        if active then
+            scan.abort()
+        end
+        next_round_at = GetTime() + ROUND_PAUSE
+    elseif running and not active and next_round_at and GetTime() >= next_round_at then
         start_round()
     end
     if GetTime() >= (next_controls or 0) then
@@ -338,8 +355,9 @@ function M.update()
         update_controls()
     end
     update_selection()
-    -- deals found during a round show up at once, at most twice a second
-    if deals_changed and GetTime() >= (next_deals or 0) then
+    -- deals found during a round show up at once, at most twice a second, but not while the mouse is
+    -- over the table: rows moved under the cursor while Tyler tried to pick one (0.4.1)
+    if deals_changed and GetTime() >= (next_deals or 0) and not frame.listing:IsMouseOver() then
         next_deals = GetTime() + .5
         deals_changed = false
         update_deals()
@@ -369,9 +387,10 @@ end
 
 function tab.CLOSE()
     -- held: the rounds carry on when the tab is open again
-    if active then
+    if active or refreshing then
         scan.abort()
     end
+    refreshing = nil
     active = false
     next_round_at = nil
     listing:SetSelectedRecord()
@@ -384,6 +403,13 @@ function M.status()
     if not running then
         return 'Stopped', 'Start watches the whole auction house for deals'
     end
+    if buy_bar.busy() or aux.bid_in_progress() then
+        return 'Watching', 'waits while you buy'
+    elseif refreshing then
+        return 'Watching', 'checking the selected deal...'
+    elseif checked then
+        return 'Holding', 'while a deal is selected; click it again to go on'
+    end
     local done = round > 0 and format('round %d, %s items in %.1fs', round, last_count or 0, last_seconds or 0) or 'first round'
     if checking and checking.total > 0 then
         return 'Watching', format('%s; checking %d possible %s (%d done)', done, checking.total, checking.total == 1 and 'deal' or 'deals', checking.done)
@@ -395,10 +421,100 @@ end
 
 -- buying
 
-local checked
+refreshing = nil -- the gear deal being read again before it can be bought
+
+-- Tyler, 0.4.1: gear deals could not be bought from the Sniper (the button did nothing), while gear
+-- from the Search tab and trade goods from the Sniper could. Likely cause: the rounds search other
+-- items between finding a deal and the click, and the auction house takes a purchase of an auction
+-- from the latest search of its item. So a selected gear deal is read again first (one request),
+-- the rounds hold while a deal is selected, and the purchase itself stays on the player's click.
+
+local show_item_bar, show_commodity_bar
+
+-- Read a deal's item again when it is selected; the buy bar offers it once that answer is in.
+-- Gear: the same auction, or another one at the shown price or lower. Trade goods: the units that
+-- are still a deal, at today's counts (4 of 5 trade good buys failed with "Internal auction error"
+-- on deals found minutes earlier, Tyler, 0.4.1).
+local function refresh_deal(record)
+    local item_key = record.deal_item_key or record.item_search_key
+    if not item_key then
+        if record.commodity then show_commodity_bar(record) else show_item_bar(record) end
+        return
+    end
+    if active then
+        scan.abort()
+    end
+    refreshing = record
+    buy_bar.show_note(record.name, record.commodity and 'Checking what is left...' or 'Checking the auction...')
+    local fresh = {}
+    scan.start{
+        type = 'list',
+        quiet = true,
+        queries = {{item_keys = {item_key}}},
+        on_auction = function(auction)
+            if not auction.own and auction.buyout_price > 0 then
+                tinsert(fresh, auction)
+            end
+        end,
+        on_complete = function()
+            if refreshing ~= record then return end
+            refreshing = nil
+            if record.commodity then
+                local tiers = {}
+                for _, tier in ipairs(fresh) do
+                    if judge_record(tier) then
+                        tinsert(tiers, tier)
+                    end
+                end
+                sort(tiers, function(a, b) return a.unit_buyout_price < b.unit_buyout_price end)
+                if tiers[1] then
+                    record.deal_tiers = tiers
+                    if checked == record then
+                        show_commodity_bar(record)
+                    end
+                    return
+                end
+            else
+                -- the same auction, or another one at the shown price or lower (never more than shown)
+                local found
+                for _, auction in ipairs(fresh) do
+                    if auction.auction_id == record.auction_id then
+                        found = auction
+                        break
+                    elseif not found and ceil(auction.unit_buyout_price) <= ceil(record.unit_buyout_price) then
+                        found = auction
+                    end
+                end
+                if found then
+                    record.auction_id = found.auction_id
+                    if checked == record then
+                        show_item_bar(record)
+                    end
+                    return
+                end
+            end
+            set_gone(record)
+            if checked == record then
+                buy_bar.show_note(record.name, 'Sold before you could buy it', aux.color.red)
+            end
+        end,
+        on_abort = function()
+            if refreshing == record then
+                refreshing = nil
+            end
+        end,
+    }
+end
 
 local function show_deal(record)
-    if record.commodity then
+    if record.deal_gone then
+        buy_bar.show_note(record.name, record.deal_bought and 'Bought' or 'Gone: sold or relisted')
+    else
+        refresh_deal(record)
+    end
+end
+
+function show_commodity_bar(record)
         local item_info = info.item(record.item_id)
         buy_bar.show_commodity{
             item_id = record.item_id,
@@ -420,10 +536,13 @@ local function show_deal(record)
                     end
                 end
                 record.deal_tiers = rest
-                if rest[1] ~= record then
-                    -- the deal's own price is bought up
+                if not rest[1] or ceil(rest[1].unit_buyout_price) > ceil(record.unit_buyout_price) then
+                    -- the deal's own price is bought up: the rounds go on
                     record.deal_bought = true
                     set_gone(record)
+                    if checked == record then
+                        listing:SetSelectedRecord()
+                    end
                 end
                 update_deals()
             end,
@@ -433,7 +552,9 @@ local function show_deal(record)
                 update_deals()
             end,
         }
-    else
+end
+
+function show_item_bar(record)
         buy_bar.show_item{
             record = record,
             name = record.name,
@@ -441,7 +562,7 @@ local function show_deal(record)
             quality = record.quality,
             own = false,
             busy = function()
-                return record.deal_gone or record.deal_bought or aux.bid_in_progress()
+                return record.deal_gone or record.deal_bought or aux.bid_in_progress() or refreshing ~= nil
             end,
             on_buy = function()
                 aux.place_bid(record.auction_id, record.buyout_price, function()
@@ -450,6 +571,10 @@ local function show_deal(record)
                     known[record.deal_key] = nil
                     set_gone(record)
                     update_deals()
+                    -- bought: the rounds go on
+                    if checked == record then
+                        listing:SetSelectedRecord()
+                    end
                 end, function()
                     set_gone(record)
                     update_deals()
@@ -463,6 +588,12 @@ local function show_deal(record)
                 end)
             end,
         }
+end
+
+-- a click on the deal that is already selected lets it go, and the rounds go on
+function M.click_deal(record)
+    if record and record == checked then
+        listing:SetSelectedRecord()
     end
 end
 
@@ -475,4 +606,15 @@ function update_selection()
         checked = nil
         buy_bar.clear()
     end
+end
+
+local function count(t)
+    local n = 0
+    for _ in pairs(t) do n = n + 1 end
+    return n
+end
+
+-- /aux memory detail: what the Sniper keeps
+function M.memory_counts()
+    return count(known), count(seen_items), #deals
 end
