@@ -7,9 +7,12 @@ Last updated 2026-10-06, after the 0.4.1 release (end of a long Claude session).
 Read this, then `AGENTS.md` (how to work with Tyler, tests, performance rules, gotchas).
 
 - **Released:** 0.4.1 on 2026-10-06 (GitHub Release `v0.4.1`, pre-release, merged as PR #8 at
-  `ea73c6a`). Tyler uploads to CurseForge by hand after checking one thing on the release zip:
-  Live mode on a trade good, Buy, wait past the Live countdown, Confirm; it must buy without
-  "Internal auction error" (that fix went in after his last test). If it failed, it becomes 0.4.2.
+  `ea73c6a`), and uploaded to CurseForge by Tyler the same day. One fix in it was never tried in
+  game: Live rounds now wait while the buy bar is buying (`update_live` in
+  `tabs/search/results.lua`). **Put that check in the first 0.5 test build** (it is already in
+  `TESTING.md`, "Current build"): Live on a trade good, Buy, wait past the Live countdown,
+  Confirm; it must buy without "Internal auction error". If it fails, fix it on its own as 0.4.2
+  (a patch), before or alongside 0.5 work, as Tyler prefers.
   Earlier releases are listed in `docs/changelog.md`.
 - **Branch:** `claude/modest-volta-4mgmsb` was restarted from `main` after the 0.4.1 merge. Any
   agent starts new work from the latest `main` on its own branch (AGENTS.md, Branches).
@@ -38,7 +41,7 @@ Read this, then `AGENTS.md` (how to work with Tyler, tests, performance rules, g
 - **0.4.1 release (2026-10-06):** build 6 passed except one case, fixed before release: a Live
   round during a trade good's price quote ended the purchase with "Internal auction error"; Live
   rounds now wait while the buy bar is buying (`update_live`). That fix was not tried in game
-  before the release; Tyler checks it on the release zip before uploading to CurseForge. Next:
+  before the release; Tyler uploaded to CurseForge anyway, so it is checked in the first 0.5 build. Next:
   0.5 planning (docs/roadmap.md, 0.5 notes: Sniper rework, fast-market buy feedback).
 - Before the release, **0.4.1** was on branch `claude/modest-volta-4mgmsb` (restarted from `main` after the 0.4
   merge), TOC `forever-0.4.1`, test build 3 out. Plan in `docs/roadmap.md` (0.4.1): performance first, then

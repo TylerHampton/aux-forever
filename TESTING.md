@@ -8,10 +8,11 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: none yet (0.4.1 released 2026-10-06)
+## Current build: none yet (0.4.1 released and on CurseForge, 2026-10-06)
 
 0.5 (the visual rework) has not started. The next agent puts the first 0.5 test build's steps
-here. One check from 0.4.1 is still open, to do on the release zip before the CurseForge upload:
+here and on the test page, and keeps this check from 0.4.1 as the first step (it was not tried in
+game before the release):
 
 - [ ] Search tab, Live on a trade good: Buy, wait past the Live countdown, then Confirm. It buys
       without "Internal auction error", and Live goes on after.
