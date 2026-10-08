@@ -93,7 +93,7 @@ For whoever fixes or builds from it:
 | Recorder's notes | Inferences, marked as such: likely code area, likely cause, related entries, existing docs that touch it. |
 | Unknowns | What the report leaves open, and how a fix can work without it. Players are not asked. |
 | Ask Tyler | Open questions for Tyler (what he meant, what he has seen himself). |
-| Proposed | Recorder's suggestion: `hotfix`, next patch (`0.4.x`), next minor (`0.5`), `later`, or `none`. Tyler decides. |
+| Proposed | Recorder's suggestion: `hotfix`, next patch, next minor (`0.5`), `later`, or `none`. Tyler decides. There will be no 0.4.2 (Tyler, 2026-10-08): fixes and small things wait for 0.5 unless they are bad enough for a hotfix. |
 | Status | `new`, `needs-info` (waiting on Tyler), `confirmed` (reproduced), `planned <version>`, `in-progress <branch>`, `fixed <version> <commit>`, `built <version> <commit>`, `wont-fix` (with Tyler's reason), `duplicate of FB-n`. |
 
 ## Index
@@ -105,8 +105,8 @@ For whoever fixes or builds from it:
 | [FB-003](#fb-003-clicking-post-sometimes-does-nothing-and-shows-no-error) | 2026-10-08 | Darkhorse | bug | Post | S2 | Clicking Post sometimes does nothing and shows no error | new |
 | [FB-004](#fb-004-the-ui-is-the-biggest-issue-closer-to-the-traditional-auction-house-layout) | 2026-10-08 | Darkhorse | ux | Overall | n/a | The UI is his biggest issue; wants it closer to the traditional auction house | wont-fix (direction; Tyler: follow TSM and aux) |
 | [FB-005](#fb-005-praise-the-list-of-sellable-items-on-the-left-of-the-post-tab) | 2026-10-08 | Darkhorse | praise | Post | n/a | Praise: the list of sellable items on the Post tab | new |
-| [FB-006](#fb-006-after-resizing-and-changing-the-scale-the-recent-searches-header-sticks-out-of-the-window) | 2026-10-08 | Garsterson | bug | Window | S3 | After resizing and changing the scale, the Recent Searches header sticks out of the window | new |
-| [FB-007](#fb-007-crafting-cost-in-the-profession-window-anywhere-in-the-world) | 2026-10-08 | Garsterson | request | Recipe search | n/a | Crafting cost in the profession window, anywhere in the world | new |
+| [FB-006](#fb-006-after-resizing-and-changing-the-scale-the-recent-searches-header-sticks-out-of-the-window) | 2026-10-08 | Garsterson | bug | Window | S3 | After resizing and changing the scale, the Recent Searches header sticks out of the window | planned 0.5 |
+| [FB-007](#fb-007-crafting-cost-in-the-profession-window-anywhere-in-the-world) | 2026-10-08 | Garsterson | request | Recipe search | n/a | Crafting cost in the profession window, anywhere in the world | planned 0.5 |
 
 ## Players
 
@@ -141,7 +141,7 @@ Template (copy for each new entry, newest at the bottom):
 - Area: <area>
 - Severity: <S1 | S2 | S3 | n/a>
 - Status: new
-- Proposed: <hotfix | 0.4.x | 0.5 | later | none>
+- Proposed: <hotfix | 0.5 | later | none>
 
 Said:
 > exact words
@@ -168,7 +168,7 @@ Ask Tyler:
 - Area: Buy bar
 - Severity: n/a
 - Status: new
-- Proposed: 0.4.x (small; a visual change, so mockup first)
+- Proposed: 0.5 (no 0.4.2, Tyler 2026-10-08; a visual change, so mockup first)
 
 Said:
 > is there a way to select the number of something you want to buy? or am i locked in to like 1 or
@@ -213,7 +213,7 @@ Ask Tyler: nothing.
 - Area: Post
 - Severity: n/a
 - Status: new
-- Proposed: 0.4.x if Tyler counts it as a small fix to an expected behavior; 0.5 if a new feature
+- Proposed: 0.5 (no 0.4.2, Tyler 2026-10-08)
 
 Said:
 > also, being able to right click something in your bags when you're on the sell tab would be
@@ -270,7 +270,7 @@ right-click on a bag item yourself? Steps if so.
 - Area: Post
 - Severity: S2 (nothing lost; the player is left not knowing why)
 - Status: new
-- Proposed: 0.4.x (the silent part: always say why a post did not happen)
+- Proposed: 0.5 (no 0.4.2, Tyler 2026-10-08; the silent part: always say why a post did not happen)
 
 Said:
 > also one time i tried posting an item and just nothing happened when i clicked post. I forget if
@@ -396,8 +396,8 @@ Ask Tyler: nothing.
 - Type: bug
 - Area: Window (seen on Search, Saved Searches)
 - Severity: S3 (looks broken; nothing lost)
-- Status: new
-- Proposed: 0.4.x
+- Status: planned 0.5 (Tyler, 2026-10-08: "Just wrap this into .5, I dont want to make a .4.2")
+- Proposed: 0.5
 
 Said (Tyler's summary):
 > He had the issue in the screenshot when he, at 100% scale, made the window large, then raised
@@ -453,7 +453,7 @@ Ask Tyler: nothing; the steps are enough to try.
 - Type: request
 - Area: Recipe search (profession window)
 - Severity: n/a
-- Status: new
+- Status: planned 0.5 (design decided 2026-10-08, see Decisions; mockup before building)
 - Proposed: 0.5 (a new feature; the roadmap keeps those out of patch versions)
 
 Said (Tyler's summary):
@@ -492,22 +492,45 @@ Recorder's notes:
   (`market_value`) and up to 11 past daily lows, from which the usual price (`value`) is a weighted
   median. History is saved, so it is there away from the auction house. Vendor prices aux has seen
   are saved too (`info.merchant_buy_info`).
-- Inference: "based on full scan data" therefore has to mean one of: the usual price (steady, what
-  Simon used), today's lowest (fresh, but one cheap auction can make it look too low, and it is
-  empty on a day with no scan), or a new store of the last full scan's prices (more memory).
-  Tyler's choice; see Ask Tyler.
+- Inference: "based on full scan data" therefore had to mean one of: the usual price (steady, what
+  Simon used), today's lowest, or a new store of the last full scan's prices. Tyler chose the usual
+  price (Decisions below). How aux stores prices: `docs/price-data.md`.
 - Performance (AGENTS.md): compute the cost only when a recipe is selected, not per frame, and use
   the history cache (`value_and_days`), not unpacking per material.
 
-Unknowns: whether Garsterson wants it on hover or always visible. Work from Tyler's scope (cost only)
-and keep it to one short line.
+Unknowns: none that block it; Tyler's decisions below settle the open points.
 
-Ask Tyler:
-1. Where should it show: a line in the recipe's detail panel (as Simon's aux did), or a tooltip
-   when hovering the recipe?
-2. Which price: usual price, today's lowest, or a saved copy of the last full scan?
-3. When a material has no price yet: show "?", or show the cost of the rest and name what is
-   missing (as the 0.4 recipe line does)?
+Decisions (Tyler, 2026-10-08, answering the questions this entry asked him):
+1. Where: "A line in the detail panel of the recipe" (as Simon's aux did; not a tooltip).
+2. Which price: "usual price. We need to make sure we are communicating this in a low-profile and
+   clean way."
+3. A material with no price: Tyler left it to Claude: "My general philosophy is to convey as much
+   info as we can with as little screen space as we can. [...] My gut says I would like to show
+   them at least an idea of how much it will cost. If we somehow are able to convey that one of the
+   items is missing price data graphically, isnt it implied that the calculation would be missing
+   that amount? [...] Nothing is permanent, we can edit later."
+
+Design (Claude's decision on point 3, with the rest filled in; build from this, mockup first):
+- One line in the recipe's detail panel, small text in the label color, for example
+  `Materials  1g 24s`. It is the cost of one craft: each material at its vendor price if a vendor
+  sells it without limit and that is cheaper, else its usual price (`history.value`), times the
+  amount the recipe needs.
+- Some materials without a price: show the sum of the priced ones followed by a gray `+`
+  (`Materials  1g 24s+`). The `+` says "at least this much", which is what Tyler's gut asked for:
+  an idea of the cost, with the gap visible but taking no space.
+- No material priced: `Materials  no price yet` in gray. All priced: no marker.
+- Hovering the line shows a tooltip: one row per material (name, amount, cost, and where the price
+  comes from: "vendor" or "usual, N days"), missing ones as "no price yet", and a first line
+  "Usual prices from aux's price history". This is where the price basis is explained, so the line
+  itself stays clean (Tyler's "low-profile").
+- Not done: marking the material's own icon in Blizzard's reagent list. It would show which one is
+  missing at a glance, but it means hooking Blizzard's reagent buttons, which change between game
+  versions. The tooltip names it instead. Revisit if players miss it.
+- Works anywhere the profession window opens; no auction house needed. Computed when a recipe is
+  selected, never per frame (AGENTS.md, Performance).
+- How good the number is depends on how the usual price is worked out; see `docs/price-data.md`,
+  "Is it the best way?" (one cheap auction can set a day's price; the cheapest unit understates the
+  cost of buying many).
 
 ## Before this log
 

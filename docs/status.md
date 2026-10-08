@@ -16,6 +16,10 @@ Last updated 2026-10-08.
   Second batch (2026-10-08): FB-006 and FB-007 from Garsterson (Tyler's brother): the Recent
   Searches header sticks out of the window after resizing and a scale change; crafting cost in the
   profession window anywhere in the world (Tyler: cost only, no profit).
+  Decisions the same day: no 0.4.2, so FB-006 and the other small fixes go into 0.5; FB-007 is a
+  line in the recipe's detail panel at usual prices, with a "+" when a material has no price
+  (design in the entry). Tyler asked how aux stores prices: `docs/price-data.md` (new) explains it
+  and lists its weak points for 0.5 planning.
 - Versioning decision (2026-10-05): fixes to an unreleased version go into that version, so the
   build 2 and 3 fixes are part of 0.4, not 0.4.1. 0.4.1 is for fixes after 0.4 is released.
 - **0.4.1 release (2026-10-06):** build 6 passed except one case, fixed before release: a Live

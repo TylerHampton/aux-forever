@@ -34,6 +34,13 @@ else is batched, about a week of real use.
 
 ## 0.5: notes for planning (from Tyler's 0.4.1 testing)
 
+- No 0.4.2 (Tyler, 2026-10-08): fixes and small things found after 0.4.1 go into 0.5, unless one
+  is bad enough for a hotfix. Player feedback planned or proposed for 0.5: `docs/feedback.md`
+  (index), so far FB-001, FB-002, FB-003, FB-006 (planned), FB-007 (planned, design decided).
+- Price history review (Claude, 2026-10-08, for Tyler to decide): how aux records prices and its
+  weak points are in `docs/price-data.md`. The recipe cost (FB-007), the Sniper and the Post tab
+  all rest on it.
+
 - Redesign (Tyler, told to Darkhorse on 2026-10-07): Tyler and a UI designer friend are working on
   "a massive .5-.6 update". The friend has "a whole design concept laid out"; prototypes to be
   shown to testers. Tyler: "quite transformative, it's geared toward TSM users", "more visually
