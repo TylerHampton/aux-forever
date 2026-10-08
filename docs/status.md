@@ -1,8 +1,39 @@
 # Status
 
-Last updated 2026-10-08.
+Last updated 2026-10-08 (0.5 build session).
 
-## 0.5: start here (handoff written 2026-10-08 by the feedback-logging session)
+## 0.5: where it stands (2026-10-08, build session on `claude/youthful-curie-ghbvlt`)
+
+Branch `claude/youthful-curie-ghbvlt` from `main` (dd040f9), TOC `forever-0.5`. Test build 1 is out
+(zip sent to Tyler; test page https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ, results in
+ArtifactData collection `builds/0-5-dev1/results`). No new files, so `/reload` is enough. All six
+handoff items are built, each with tests that fail without the change; none is tried in game yet.
+
+1. Price data (e1c852a): market price per day from complete views, usual price weighted to recent
+   days (half-life 7 days, 14 days kept), "seen N days ago" in tooltips, history version 3 with
+   lazy conversion of version 2. Details: `docs/price-data.md`, start of "Plan for 0.5".
+2. FB-003 (7a187c7): every way a post ends says what happened (Post tab, left column under
+   Duration, and chat on failure); a faded Post button says why. PostItem's return value is read
+   as "needs confirmation" (as aux's code always did), not as a failure: unverified against the
+   API docs, inferred from the code.
+3. FB-006 (31ac02c): `gui/listing.lua` lays out again on show and on content size change; the last
+   column is anchored to the right edge.
+4. Click standard and FB-002 (140996a): Tyler approved the standard on 2026-10-08. Blizzard's
+   Forever bag code sends a right-click to `AuctionHouseFrame:SetPostItem`; aux follows it.
+   Details and what was not changed: `docs/clicks.md`, "Built in 0.5".
+5. FB-001 (6f77958): option B of the mockup (Tyler: "Everything looks good").
+6. FB-007 (5a935e1): the cost line under the reagent list; its position comes from Blizzard's
+   source, not seen in game yet.
+
+Open:
+- Tyler to test build 1 (`TESTING.md`, Current build, 23 steps; same on the test page).
+- Asked Tyler, no answer yet: whether to do the Sniper and Auctions tab notes in `docs/roadmap.md`
+  (0.5) tonight; what bug he suspected in FB-002 (inference: the right-click went into Blizzard's
+  hidden Sell tab, which also starts a search of its own); the damaged gear check (FB-003, test
+  step 8).
+- Mockup page for this build's visual items: https://claude.ai/artifact/SX8EwZHbgqS94ZBGhUtJCg
+
+## 0.5: start here (handoff written 2026-10-08 by the feedback-logging session; done, see above)
 
 Tyler is opening a new chat on 2026-10-08 to build 0.5 the same night. Everything it needs is in
 the repository; this list is the order of work. Read `AGENTS.md` first, then this, then the files

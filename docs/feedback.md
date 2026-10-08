@@ -100,13 +100,13 @@ For whoever fixes or builds from it:
 
 | ID | Received | From | Type | Area | Sev | Summary | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| [FB-001](#fb-001-the-other-quantity-box-on-the-buy-bar-does-not-look-like-a-place-to-type) | 2026-10-08 | Darkhorse | ux | Buy bar | n/a | The "Other" quantity box does not look like a place to type | in-progress claude/youthful-curie-ghbvlt (mockup approved 2026-10-08) |
-| [FB-002](#fb-002-right-click-an-item-in-the-bags-should-load-it-into-the-post-tab) | 2026-10-08 | Darkhorse | request | Post | n/a | Right-click an item in the bags should load it into the Post tab | in-progress claude/youthful-curie-ghbvlt (click standard approved 2026-10-08) |
+| [FB-001](#fb-001-the-other-quantity-box-on-the-buy-bar-does-not-look-like-a-place-to-type) | 2026-10-08 | Darkhorse | ux | Buy bar | n/a | The "Other" quantity box does not look like a place to type | fixed 0.5 6f77958 |
+| [FB-002](#fb-002-right-click-an-item-in-the-bags-should-load-it-into-the-post-tab) | 2026-10-08 | Darkhorse | request | Post | n/a | Right-click an item in the bags should load it into the Post tab | built 0.5 140996a |
 | [FB-003](#fb-003-clicking-post-sometimes-does-nothing-and-shows-no-error) | 2026-10-08 | Darkhorse | bug | Post | S2 | Clicking Post sometimes does nothing and shows no error | fixed 0.5 7a187c7 |
 | [FB-004](#fb-004-the-ui-is-the-biggest-issue-closer-to-the-traditional-auction-house-layout) | 2026-10-08 | Darkhorse | ux | Overall | n/a | The UI is his biggest issue; wants it closer to the traditional auction house | wont-fix (direction; Tyler: follow TSM and aux) |
 | [FB-005](#fb-005-praise-the-list-of-sellable-items-on-the-left-of-the-post-tab) | 2026-10-08 | Darkhorse | praise | Post | n/a | Praise: the list of sellable items on the Post tab | new |
 | [FB-006](#fb-006-after-resizing-and-changing-the-scale-the-recent-searches-header-sticks-out-of-the-window) | 2026-10-08 | Garsterson | bug | Window | S3 | After resizing and changing the scale, the Recent Searches header sticks out of the window | fixed 0.5 31ac02c |
-| [FB-007](#fb-007-crafting-cost-in-the-profession-window-anywhere-in-the-world) | 2026-10-08 | Garsterson | request | Recipe search | n/a | Crafting cost in the profession window, anywhere in the world | in-progress claude/youthful-curie-ghbvlt (mockup approved 2026-10-08) |
+| [FB-007](#fb-007-crafting-cost-in-the-profession-window-anywhere-in-the-world) | 2026-10-08 | Garsterson | request | Recipe search | n/a | Crafting cost in the profession window, anywhere in the world | built 0.5 5a935e1 |
 
 ## Players
 
@@ -167,7 +167,7 @@ Ask Tyler:
 - Type: ux
 - Area: Buy bar
 - Severity: n/a
-- Status: in-progress claude/youthful-curie-ghbvlt (Tyler approved the mockup, option B, 2026-10-08)
+- Status: fixed 0.5 6f77958 (mockup option B, approved by Tyler 2026-10-08: the box is labeled QUANTITY and always shows the number being bought). In-game check: TESTING.md, 0.5 build 1, steps 17 to 19
 - Proposed: 0.5 (no 0.4.2, Tyler 2026-10-08; a visual change, so mockup first)
 
 Said:
@@ -212,7 +212,7 @@ Ask Tyler: nothing.
 - Type: request (Darkhorse expected it to work; see Tyler's notes on a possible bug)
 - Area: Post
 - Severity: n/a
-- Status: in-progress claude/youthful-curie-ghbvlt (click standard approved by Tyler 2026-10-08)
+- Status: built 0.5 140996a (right-click a bag item follows Blizzard's AuctionHouseFrame:SetPostItem into aux; see docs/clicks.md, Built in 0.5). In-game check: TESTING.md, 0.5 build 1, steps 11 to 13
 - Proposed: 0.5 (no 0.4.2, Tyler 2026-10-08)
 
 Said:
@@ -457,7 +457,7 @@ Ask Tyler: nothing; the steps are enough to try.
 - Type: request
 - Area: Recipe search (profession window)
 - Severity: n/a
-- Status: in-progress claude/youthful-curie-ghbvlt (mockup approved by Tyler 2026-10-08)
+- Status: built 0.5 5a935e1 (mockup approved by Tyler 2026-10-08). In-game check: TESTING.md, 0.5 build 1, steps 20 to 23
 - Proposed: 0.5 (a new feature; the roadmap keeps those out of patch versions)
 
 Said (Tyler's summary):
