@@ -181,7 +181,10 @@ aux runs inside the game; every frame it spends time in costs the player frame r
 
 Dark slate panels, warm off-white text, one amber accent (`227, 164, 59`) for the selected and
 primary things, rounded corners, the game font. Money coming in is green (`positive`), going out red
-(`negative`). Tokens are in `color.lua`. Keep new screens in this style. Mockups so far were made
+(`negative`). Tokens are in `color.lua`. Keep new screens in this style. Direction (Tyler,
+2026-10-08): auxForever should resemble TSM and the original aux, not Blizzard's auction house or
+Auctionator; a player request to move toward the traditional layout was rejected
+(`docs/feedback.md`, FB-004). Mockups so far were made
 as interactive HTML pages; an HTML file Tyler can open in a browser works the same way.
 
 ## Where to find more

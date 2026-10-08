@@ -53,6 +53,9 @@ For whoever records feedback:
   (`<date>-<player>-<channel>.md`), and link it from each entry. Entries quote only the part that
   matters; the source keeps the context.
 - Fill in the player under "Players" below the first time they appear.
+- No follow-up questions to players (Tyler, 2026-10-08: "We wont get this info we need to work
+  without it. I dont want to follow up on feedback."). Record what is not known under "Unknowns"
+  and how a fix can work without it. Questions for Tyler are fine ("Ask Tyler").
 - IDs are never reused or renumbered. Entries are never deleted; a wrong or duplicate entry gets
   status `duplicate` or `wont-fix` with a reason.
 - Add the entry to the index table and commit after every batch, so nothing is lost if a session
@@ -66,7 +69,10 @@ For whoever fixes or builds from it:
 - When you take an entry, set its status to `in-progress` with your branch. When done, set
   `fixed` (or `built`) with the version and commit, and add the in-game check to `TESTING.md`.
   Each bug fix comes with a test that fails without the fix (AGENTS.md).
-- If you need more from the player, add the question under "Ask the player" and set `needs-info`.
+- Do not wait for more from the player; none will come. Read "Unknowns" and build a fix that
+  holds whatever the answer would have been (for example, make every way a post can fail say why,
+  instead of finding the one cause), or check it yourself in the code, Blizzard's code, or ask
+  Tyler to try it in game. Set `needs-info` only while waiting on Tyler.
 - Credit the player in the changelog (see Credit above).
 
 ## Fields
@@ -85,10 +91,10 @@ For whoever fixes or builds from it:
 | Steps / setup | What they did, what they expected, what happened, other addons, error text. Only what was reported. |
 | Tyler's notes | Anything Tyler added: whether he can reproduce it, his opinion. |
 | Recorder's notes | Inferences, marked as such: likely code area, likely cause, related entries, existing docs that touch it. |
-| Ask the player | Open questions for the player that would settle it. |
+| Unknowns | What the report leaves open, and how a fix can work without it. Players are not asked. |
 | Ask Tyler | Open questions for Tyler (what he meant, what he has seen himself). |
 | Proposed | Recorder's suggestion: `hotfix`, next patch (`0.4.x`), next minor (`0.5`), `later`, or `none`. Tyler decides. |
-| Status | `new`, `needs-info`, `confirmed` (reproduced), `planned <version>`, `in-progress <branch>`, `fixed <version> <commit>`, `built <version> <commit>`, `wont-fix` (with Tyler's reason), `duplicate of FB-n`. |
+| Status | `new`, `needs-info` (waiting on Tyler), `confirmed` (reproduced), `planned <version>`, `in-progress <branch>`, `fixed <version> <commit>`, `built <version> <commit>`, `wont-fix` (with Tyler's reason), `duplicate of FB-n`. |
 
 ## Index
 
@@ -96,8 +102,8 @@ For whoever fixes or builds from it:
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | [FB-001](#fb-001-the-other-quantity-box-on-the-buy-bar-does-not-look-like-a-place-to-type) | 2026-10-08 | Darkhorse | ux | Buy bar | n/a | The "Other" quantity box does not look like a place to type | new |
 | [FB-002](#fb-002-right-click-an-item-in-the-bags-should-load-it-into-the-post-tab) | 2026-10-08 | Darkhorse | request | Post | n/a | Right-click an item in the bags should load it into the Post tab | new |
-| [FB-003](#fb-003-clicking-post-sometimes-does-nothing-and-shows-no-error) | 2026-10-08 | Darkhorse | bug | Post | S2 | Clicking Post sometimes does nothing and shows no error | needs-info |
-| [FB-004](#fb-004-the-ui-is-the-biggest-issue-closer-to-the-traditional-auction-house-layout) | 2026-10-08 | Darkhorse | ux | Overall | n/a | The UI is his biggest issue; wants it closer to the traditional auction house | new |
+| [FB-003](#fb-003-clicking-post-sometimes-does-nothing-and-shows-no-error) | 2026-10-08 | Darkhorse | bug | Post | S2 | Clicking Post sometimes does nothing and shows no error | new |
+| [FB-004](#fb-004-the-ui-is-the-biggest-issue-closer-to-the-traditional-auction-house-layout) | 2026-10-08 | Darkhorse | ux | Overall | n/a | The UI is his biggest issue; wants it closer to the traditional auction house | wont-fix (direction; Tyler: follow TSM and aux) |
 | [FB-005](#fb-005-praise-the-list-of-sellable-items-on-the-left-of-the-post-tab) | 2026-10-08 | Darkhorse | praise | Post | n/a | Praise: the list of sellable items on the Post tab | new |
 
 ## Players
@@ -141,7 +147,7 @@ Tyler's notes:
 
 Recorder's notes:
 
-Ask the player:
+Unknowns:
 
 Ask Tyler:
 ```
@@ -186,7 +192,8 @@ Recorder's notes:
   he expects.
 - Gear is bought one auction at a time; this entry is about commodities only.
 
-Ask the player: which item he was buying (to see the buttons he got).
+Unknowns: which item he was buying, so which four buttons he saw. Does not matter for the fix:
+the box looks the same for every item.
 
 Ask Tyler: nothing.
 
@@ -240,9 +247,9 @@ Recorder's notes:
   do both": the bag list on the Post tab is liked (FB-005), and the bags are where his habit
   starts. Both should work.
 - Vocabulary: he calls it the "sell tab" (Blizzard's and Auctionator's name); aux calls it "Post".
-  Related to FB-004.
+  Recorder's reading of Tyler's decision in FB-004 (follow TSM and the original aux): keep "Post".
 
-Ask the player: nothing for now.
+Unknowns: none that block a fix.
 
 Ask Tyler: what bug do you suspect in this section, and have you seen the addon lock up after a
 right-click on a bag item yourself? Steps if so.
@@ -257,7 +264,7 @@ right-click on a bag item yourself? Steps if so.
 - Type: bug
 - Area: Post
 - Severity: S2 (nothing lost; the player is left not knowing why)
-- Status: needs-info
+- Status: new
 - Proposed: 0.4.x (the silent part: always say why a post did not happen)
 
 Said:
@@ -288,9 +295,10 @@ Recorder's notes (code facts with locations; the cause in his case is not known)
 - Whatever the cause, each of the three paths above can tell the player why (for example "This
   item must be repaired first", "Item not found in your bags"). That fix does not need the cause.
 
-Ask the player: if it happens again, which item, whether it was damaged, whether red text showed at
-the top of the screen, and whether BugSack is installed (an error inside the addon would show
-there).
+Unknowns (no follow-up with the player): the item, whether it was damaged, whether the game showed
+red text, and whether an error happened inside the addon (he may not have BugSack). Work without
+them: give each of the three silent paths above its own message, and check damaged gear in the
+code or ask Tyler to try it (Ask Tyler).
 
 Ask Tyler: can you try posting a damaged piece of gear on Forever and say what happens (listed in
 the Post tab or not; what Post does; any red text)?
@@ -305,7 +313,8 @@ the Post tab or not; what Post does; any red text)?
 - Type: ux
 - Area: Overall (every tab)
 - Severity: n/a
-- Status: new
+- Status: wont-fix for the direction he asked for (Tyler, 2026-10-08, see below). That the UI is
+  too confusing stands, and is the redesign's job.
 - Proposed: 0.5 (Tyler's planned redesign; see Tyler's notes)
 
 Said:
@@ -330,16 +339,18 @@ you switch back. Everytime I make a big update I'll let you know".
 Recorder's notes:
 - He blames his habits ("that's bc i'm so used to..."). Under Tyler's rule (How we read feedback,
   above) this is a finding about the addon: an expert auction house player finds it confusing.
-- A possible tension for the redesign: Darkhorse asks for "less of a dramatic change from the
-  traditional UI"; Tyler's plan is "quite transformative" and "geared toward TSM users". Both agree
-  on "more visually simple". Worth deciding which players the redesign is for. Darkhorse's
-  concrete expectations so far: a typed quantity (FB-001), right-click from the bags (FB-002),
-  "sell tab" naming (FB-002).
-- Darkhorse said he will keep using it; Tyler promised to tell him at each big update. He is a
-  good tester for the prototypes.
+- Darkhorse said he will keep using it; Tyler promised to tell him at each big update.
 
-Ask the player: which screens or moments confuse him most (first thing he looks for and cannot
-find). Best asked when the prototypes are ready.
+Decision (Tyler, 2026-10-08), on Darkhorse's request for less change from the traditional UI:
+"This one I outright reject. This should much more closely resemble TSM and the original aux like
+it already does." So the redesign follows TSM and Simon's aux, not Blizzard's auction house or
+Auctionator. What is kept from this entry: the UI is too confusing today (Tyler agreed: "It's too
+confusing rn") and should be "more visually simple". Darkhorse's smaller, concrete points are
+separate entries and are not rejected: FB-001 (typed quantity), FB-002 (right-click from the bags,
+which Tyler agreed to), FB-005 (keep the bag list).
+
+Unknowns: which screens confuse him most. Not asked (no follow-up with players); the redesign
+works from Tyler's and the designer's judgment.
 
 Ask Tyler: who is the UI designer (a name or handle for the docs), how their designs will reach
 the repository (images, a mockup page, Figma), and whether the redesign is 0.5, 0.6 or spans both.
@@ -366,7 +377,7 @@ comes from Simon's aux).
 Recorder's notes: the redesign (FB-004) should keep a list of sellable bag items on the Post tab,
 alongside right-click from the bags (FB-002).
 
-Ask the player: nothing.
+Unknowns: none.
 
 Ask Tyler: nothing.
 

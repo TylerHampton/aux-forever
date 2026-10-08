@@ -37,8 +37,10 @@ else is batched, about a week of real use.
 - Redesign (Tyler, told to Darkhorse on 2026-10-07): Tyler and a UI designer friend are working on
   "a massive .5-.6 update". The friend has "a whole design concept laid out"; prototypes to be
   shown to testers. Tyler: "quite transformative, it's geared toward TSM users", "more visually
-  simple", "It's too confusing rn". Player feedback that bears on it: `docs/feedback.md`, FB-001
-  to FB-005 (Darkhorse asks for less change from the traditional auction house). Not yet in the
+  simple", "It's too confusing rn". Direction decided by Tyler on 2026-10-08: it follows TSM and
+  the original aux, not Blizzard's auction house or Auctionator ("This should much more closely
+  resemble TSM and the original aux like it already does"; a request for the opposite was rejected,
+  `docs/feedback.md` FB-004). Player feedback that bears on it: FB-001 to FB-005. Not yet in the
   repository; mockup before building, as for every visual change.
 
 - Sniper rework ("a big work in progress"): Tyler is unsure about the hold until the selected deal
