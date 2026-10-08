@@ -78,8 +78,17 @@ it could not be picked up and aux posted from another stack. All four fixed in b
 item is cleared from Blizzard's Sell tab (ClearPostItem), a Post button tooltip, status bar text
 during a Full scan.
 
+Build 4 results (Tyler, 2026-10-08, `builds/0-5-dev4/results`): Full scan status text passes;
+Linen Cloth Value 33c with 712 listed at 33c and 2 at 3c (the outliers were ignored: right); the
+faded Post button's tooltip shows the reason. The right-click unlock step has only a screenshot of
+"Not posted: the item is on your mouse pointer..." on Ritual Bands, no note: either the item was
+still on the pointer when Post was clicked (expected message) or it was still locked after the
+right-click (the bug). Asked Tyler which.
+
 Open:
-- Tyler to test build 4 (`TESTING.md`, Current build, 5 steps).
+- Tyler's answer on the right-click unlock step.
+- Then: the release quick run (`TESTING.md`, Before every release), and whether the Sniper and
+  Auctions tab notes (`docs/roadmap.md`, 0.5) go into 0.5 or wait.
 - Asked Tyler: whether to do the Sniper and Auctions tab notes in `docs/roadmap.md` (0.5) tonight
   (he asked what they were; explained 2026-10-08, waiting); whether today's market price should
   count in the usual price. FB-002's suspected bug: he does not remember. Damaged gear (FB-003):
