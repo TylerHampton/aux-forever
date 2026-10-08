@@ -21,9 +21,12 @@ named.
      the damaged-gear check listed there if it helps; do not wait for it.
   3. **FB-006, Recent Searches header sticks out** after resizing and a scale change
      (`gui/listing.lua` fixed column widths). Screenshot and steps in the entry.
-  4. **FB-002, right-click a bag item loads it into the Post tab.** Check Blizzard's Forever bag
-     click code first (the entry explains why: aux keeps Blizzard's window invisible but open, and
-     the click may go there). Ask Tyler what bug he suspected there (entry, Ask Tyler).
+  4. **Clicks made consistent, including FB-002** (right-click a bag item loads it into the Post
+     tab). Tyler asked on 2026-10-08 for clicks to be predictable across every tab. The full click
+     map, the findings and the proposed standard are in `docs/clicks.md`; show Tyler its standard
+     table (and the hover hint mockup) for an OK before changing clicks. Check Blizzard's Forever
+     bag click code first (FB-002 explains why: aux keeps Blizzard's window invisible but open, and
+     the click may go there). Ask Tyler what bug he suspected there (FB-002, Ask Tyler).
   5. **FB-001, the buy bar's quantity box** should look like a place to type. Visual: mockup first.
   6. **FB-007, crafting cost in the profession window**, anywhere in the world, at usual prices;
      design decided in the entry (one line, "+" when a material has no price, tooltip with
@@ -32,7 +35,7 @@ named.
      buy feedback, Auctions tab starting bid).
 - **Not in 0.5 tonight:** the redesign with Tyler's designer friend (direction: TSM and the
   original aux, AGENTS.md Design language); the designs are not in the repository yet.
-- **Mockups:** show the FB-001 and FB-007 mockups together early, so Tyler can approve them while
+- **Mockups:** show the FB-001 and FB-007 mockups and the click standard (`docs/clicks.md`) together early, so Tyler can approve them while
   steps 1 to 4 are built.
 - **Credit** (Tyler's rule, `docs/feedback.md` Credit): changelog lines for FB-001, FB-002, FB-003
   end "(suggested by Darkhorse)" or "(reported by Darkhorse)"; FB-006 "(reported by

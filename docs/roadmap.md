@@ -37,6 +37,9 @@ else is batched, about a week of real use.
 - No 0.4.2 (Tyler, 2026-10-08): fixes and small things found after 0.4.1 go into 0.5, unless one
   is bad enough for a hotfix. Player feedback planned or proposed for 0.5: `docs/feedback.md`
   (index), so far FB-001, FB-002, FB-003, FB-006 (planned), FB-007 (planned, design decided).
+- Consistent clicks (Tyler, 2026-10-08: predictable clicks "across all of the different
+  modules"): click map, findings and proposed standard in `docs/clicks.md`. Includes FB-002
+  (right-click from the bags). Tyler approves the standard before it is built.
 - Better price data (decided by Tyler, 2026-10-08: "I do want you to make changes to the data and
   make it better"): a market price per day that one cheap auction cannot set, recent days counting
   more, the age of a price shown. Plan, cost, risks and tests: `docs/price-data.md`, "Plan for

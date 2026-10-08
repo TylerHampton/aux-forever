@@ -193,6 +193,8 @@ as interactive HTML pages; an HTML file Tyler can open in a browser works the sa
 - `docs/feedback.md`: every piece of player feedback, one numbered entry each (FB-001, ...),
   with the player's exact words and its status. Check it before planning a version; update an
   entry's status when you fix or build it.
+- `docs/clicks.md`: every click and modifier click in the addon, and the click standard for 0.5.
+  Check it before adding or changing a click.
 - `docs/price-data.md`: where aux keeps prices (price history, the "usual price"), how they are
   recorded and used, and their known weak points.
 - `docs/changelog.md`: what changed in each version; add an entry when the version number changes.

@@ -251,6 +251,8 @@ Recorder's notes:
 - "train my eyes to look there instead of my bags" and Tyler's "I want people to easily be able to
   do both": the bag list on the Post tab is liked (FB-005), and the bags are where his habit
   starts. Both should work.
+- Tyler widened this into a review of every click in the addon (2026-10-08): `docs/clicks.md`. Build
+  this entry as part of that standard.
 - Vocabulary: he calls it the "sell tab" (Blizzard's and Auctionator's name); aux calls it "Post".
   Recorder's reading of Tyler's decision in FB-004 (follow TSM and the original aux): keep "Post".
 
