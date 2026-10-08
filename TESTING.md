@@ -8,7 +8,7 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.6 build 1, the new look (branch `claude/ui-kit-look`)
+## Current build: 0.6 build 1, the new look (branch `design`)
 
 Only colors and shapes changed, nothing about searching, buying or posting. `/reload` is enough
 after copying the folder (no new files). Compare each screen with the matching screen on the "New"

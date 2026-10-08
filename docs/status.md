@@ -1,8 +1,8 @@
 # Status
 
-Last updated 2026-10-08: 0.6 build 1 (the new look) is on branch `claude/ui-kit-look`.
+Last updated 2026-10-08: 0.6 build 1 (the new look) is on branch `design`.
 
-## 0.6: the new look (started 2026-10-08, branch `claude/ui-kit-look`)
+## 0.6: the new look (started 2026-10-08, branch `design`)
 
 Tyler asked to "take the ui kit and screens and make the addon look like that". The design is the
 Paper file "auxForever Screens", pages "UI Kit" (every color, size and control) and "New" (the seven
@@ -31,8 +31,8 @@ Build 1 (not tried in game yet): a restyle only, no change to searching, buying 
   `PixelUtil` in `create_shape` (`gui/core.lua`).
 - The test page (artifact LUCZVgJV27irizAyKHTjhJ) could not be read from this session ("not
   found"); build 1's steps are only in `TESTING.md`.
-- Not pushed yet: this Mac had no GitHub login (`gh auth login`), so CI has not run. Tests pass
-  locally under LuaJIT 2.1, not lua5.1.
+- Tests and syntax check pass under Lua 5.1.5 (built from lua.org source on Tyler's collaborator's
+  Mac; Homebrew has no lua@5.1).
 - Open question for Tyler: zebra rows. He asked for a zebra version of an earlier design; the kit
   says no stripes, so build 1 has none. Easy to add back.
 
