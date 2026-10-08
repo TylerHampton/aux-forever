@@ -8,10 +8,27 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: none yet (0.5 released 2026-10-08)
+## Current build: 0.6 build 1, the new look (branch `claude/ui-kit-look`)
 
-The next session puts its first test build's steps here. 0.5's build steps and results are in
-`docs/status.md` (0.5 build log).
+Only colors and shapes changed, nothing about searching, buying or posting. `/reload` is enough
+after copying the folder (no new files). Compare each screen with the matching screen on the "New"
+page of the Paper file.
+
+- [ ] 1. Open the auction house: no BugSack error. The window is near black with square corners, a
+  darker band along the top and bottom, "aux" white and "Forever" gold, the open tab outlined in
+  gold.
+- [ ] 2. Search tab: search `cloth`. Column headers are raised gray plates; click "Buyout each"
+  twice: the name turns white with a gold arrow that flips. Click a row: it turns gold with a gold
+  bar on its left. Moving the mouse over other rows only lightens them.
+- [ ] 3. Buy bar: the quantity boxes are gray, the chosen one outlined in gold; the Buy button has a
+  gold outline and label. Press Buy: Confirm turns green. Cancel.
+- [ ] 4. Sub tabs, Live, Fast/Full: the open sub tab is outlined in gold. Live on is outlined in
+  gold; Fast/Full shows the chosen one in dark gold.
+- [ ] 5. Post, Auctions, Bids, Sniper: open each. Nothing looks broken (text cut off, a button with
+  no outline, an orange fill left from before). Post: Match lowest / Undercut and 12h/24h/48h show
+  the chosen one in dark gold.
+- [ ] 6. Settings (gear): set Background to 50%. The whole window fades, including the top and
+  bottom bands. Set it back.
 
 ## Before every release: the 5-minute check
 

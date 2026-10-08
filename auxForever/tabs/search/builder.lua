@@ -64,7 +64,7 @@ end
 local menu, menu_buttons, menu_labels = nil, {}, {}
 local function create_menu()
     menu = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
-    gui.set_frame_style(menu, aux.color.content.background, aux.color.input.border, nil, nil, nil, nil, 8)
+    gui.set_panel_style(menu)
     menu:SetFrameStrata('DIALOG')
     menu:SetClampedToScreen(true)
     menu:EnableMouse(true)

@@ -205,9 +205,13 @@ aux runs inside the game; every frame it spends time in costs the player frame r
 
 ## Design language
 
-Dark slate panels, warm off-white text, one amber accent (`227, 164, 59`) for the selected and
-primary things, rounded corners, the game font. Money coming in is green (`positive`), going out red
-(`negative`). Tokens are in `color.lua`. Keep new screens in this style. Direction (Tyler,
+Since 0.6, the UI Kit in the Paper file "auxForever Screens" (pages "UI Kit" and "New"): near-black
+surfaces with black 1px edges and square corners, raised controls lighter at the top
+(`gui.add_sheen`), sunken tables and inputs, one gold accent (`229, 190, 91`) for what is selected
+or primary, the game font. Buttons get a look with `gui.apply_look` (`default`, `primary`,
+`selected`, `choice`, `choice_on`, `tab`, `menu`, `confirm`; `gui/core.lua`), not hand-set colors.
+Money coming in is green (`positive`), going out red (`negative`). Tokens are in `color.lua`. Keep
+new screens in this style. Direction (Tyler,
 2026-10-08): auxForever should resemble TSM and the original aux, not Blizzard's auction house or
 Auctionator; a player request to move toward the traditional layout was rejected
 (`docs/feedback.md`, FB-004). Mockups so far were made

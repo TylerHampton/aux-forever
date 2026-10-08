@@ -23,6 +23,7 @@ local DEFAULT_WIDTH, DEFAULT_HEIGHT = 1100, 660
 local MIN_WIDTH, MIN_HEIGHT = 1000, 549
 -- auxForever: the logo, tabs, full scan, Blizzard UI and close sit in a bar across the top
 local TOP_BAR_HEIGHT = 40
+local BOTTOM_BAR_HEIGHT = 35
 
 local function max_size()
 	local scale = frame:GetEffectiveScale() / UIParent:GetEffectiveScale()
@@ -120,27 +121,41 @@ do
 	frame.content = CreateFrame('Frame', nil, frame)
 	frame.content:SetPoint('TOPLEFT', frame.body, 'TOPLEFT', 4, -80)
 	frame.content:SetPoint('BOTTOMRIGHT', -4, 35)
-	local divider = frame:CreateTexture(nil, 'BORDER')
-	divider:SetColorTexture(color.panel.border())
-	divider:SetHeight(1)
-	divider:SetPoint('TOPLEFT', 2, -TOP_BAR_HEIGHT)
-	divider:SetPoint('TOPRIGHT', -2, -TOP_BAR_HEIGHT)
+	-- auxForever (0.6, the UI Kit): darker bands across the top (logo, tabs) and the bottom (status
+	-- bar, credit), each with a black edge toward the middle
+	local function band(point, height)
+		local band = frame:CreateTexture(nil, 'BACKGROUND', nil, -5)
+		band:SetTexture([[Interface\Buttons\WHITE8X8]])
+		-- fades with the Background setting, like the window
+		gui.register_background({SetBackdropColor = function(_, ...) band:SetVertexColor(...) end},
+			function() return 11 / 255, 11 / 255, 11 / 255, 1 end)
+		band:SetPoint(point .. 'LEFT', 1, point == 'TOP' and -1 or 1)
+		band:SetPoint(point .. 'RIGHT', -1, point == 'TOP' and -1 or 1)
+		band:SetHeight(height - 1)
+		local edge = frame:CreateTexture(nil, 'BORDER')
+		edge:SetColorTexture(color.window.border())
+		edge:SetHeight(1)
+		edge:SetPoint(point == 'TOP' and 'TOPLEFT' or 'BOTTOMLEFT', band, point == 'TOP' and 'BOTTOMLEFT' or 'TOPLEFT')
+		edge:SetPoint(point == 'TOP' and 'TOPRIGHT' or 'BOTTOMRIGHT', band, point == 'TOP' and 'BOTTOMRIGHT' or 'TOPRIGHT')
+	end
+	band('TOP', TOP_BAR_HEIGHT)
+	band('BOTTOM', BOTTOM_BAR_HEIGHT)
 	frame:Hide()
 	M.frame = frame
 end
 do
     local status_bar = gui.status_bar(frame.content)
     status_bar:SetWidth(265)
-    status_bar:SetHeight(27)
-    status_bar:SetPoint('TOPLEFT', frame.content, 'BOTTOMLEFT', 0, -3)
+    status_bar:SetHeight(22)
+    status_bar:SetPoint('LEFT', frame, 'BOTTOMLEFT', 6, BOTTOM_BAR_HEIGHT / 2)
     status_bar:update_status(1, 1)
     M.status_bar = status_bar
 end
 do
 	local logo = gui.label(frame, 20)
 	logo:SetFont(gui.font_bold, 20)
-	logo:SetPoint('LEFT', frame, 'TOPLEFT', 14, -TOP_BAR_HEIGHT / 2)
-	logo:SetText(color.accent.background'aux' .. color.text.enabled'Forever')
+	logo:SetPoint('LEFT', frame, 'TOPLEFT', 12, -TOP_BAR_HEIGHT / 2)
+	logo:SetText(color.text.enabled'aux' .. color.accent.background'Forever')
 	logo_label = logo
 end
 do
@@ -213,12 +228,13 @@ do
 end
 do
 	local btn = gui.button(frame, 22)
-	btn:SetPoint('RIGHT', frame, 'TOPRIGHT', -8, -TOP_BAR_HEIGHT / 2)
-	gui.set_size(btn, 28, 26)
+	btn:SetPoint('RIGHT', frame, 'TOPRIGHT', -6, -TOP_BAR_HEIGHT / 2)
+	gui.set_size(btn, 26, 26)
 	btn:SetText('\195\151')
 	btn:SetBackdropColor(0, 0, 0, 0)
 	btn:SetBackdropBorderColor(0, 0, 0, 0)
-	btn:GetFontString():SetTextColor(color.label.enabled())
+	btn.aux_sheen:SetShown(false)
+	btn:GetFontString():SetTextColor(.85, .85, .85)
 	btn:SetScript('OnClick', function() frame:Hide() end)
 	btn:SetScript('OnEnter', function(self)
 		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOM')
@@ -230,7 +246,7 @@ do
 end
 do
 	local btn = gui.button(frame, gui.font_size.small)
-	btn:SetPoint('RIGHT', close_button, 'LEFT' , -8, 0)
+	btn:SetPoint('RIGHT', close_button, 'LEFT' , -4, 0)
 	gui.set_size(btn, 80, 26)
 	btn:SetText(color.blizzard'Blizzard UI')
 	btn:SetScript('OnClick',function()
@@ -246,18 +262,15 @@ do
     blizzard_button = btn
     -- lit while the Blizzard window is shown, so its state is always visible
     function M.update_blizzard_button()
+        gui.set_default(btn)
         if blizzard_frame_shown() then
-            btn:SetBackdropColor(color.accent.selected())
             btn:SetBackdropBorderColor(color.blizzard())
-        else
-            btn:SetBackdropColor(color.content.background())
-            btn:SetBackdropBorderColor(color.content.border())
         end
     end
 end
 do
     local btn = gui.button(frame)
-    btn:SetPoint('RIGHT', blizzard_button, 'LEFT' , -6, 0)
+    btn:SetPoint('RIGHT', blizzard_button, 'LEFT' , -4, 0)
     gui.set_size(btn, 80, 26)
     btn:SetText('Full scan')
     -- Forever: a full scan uses C_AuctionHouse.ReplicateItems, which the server allows once every 15 minutes
@@ -274,10 +287,8 @@ do
         ready = now_ready
         if ready then
             self:Enable()
-            self:SetBackdropColor(color.state.enabled())
         else
             self:Disable()
-            self:SetBackdropColor(color.content.background())
         end
     end)
     btn:SetScript('OnEnter', function(self)
@@ -333,13 +344,13 @@ end
 do
     -- auxForever: settings (background opacity, scale, default duration), behind a gear in the top bar
     local btn = gui.button(frame)
-    btn:SetPoint('RIGHT', scan_button, 'LEFT', -6, 0)
-    gui.set_size(btn, 28, 26)
+    btn:SetPoint('RIGHT', scan_button, 'LEFT', -4, 0)
+    gui.set_size(btn, 26, 26)
     local icon = btn:CreateTexture(nil, 'ARTWORK')
     icon:SetTexture([[Interface\AddOns\auxForever\textures\gear.tga]])
     icon:SetSize(15, 15)
     icon:SetPoint('CENTER')
-    icon:SetVertexColor(color.label.enabled())
+    icon:SetVertexColor(.85, .85, .85)
     btn:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_BOTTOM')
         GameTooltip:AddLine('Settings')
@@ -349,7 +360,7 @@ do
     settings_button = btn
 
     local popup = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
-    gui.set_frame_style(popup, color.content.background, color.input.border, nil, nil, nil, nil, 8)
+    gui.set_panel_style(popup)
     popup:SetFrameStrata('DIALOG')
     gui.set_size(popup, 250, 138)
     popup:SetPoint('TOPRIGHT', btn, 'BOTTOMRIGHT', 0, -4)
@@ -445,12 +456,10 @@ do
 
     popup:SetScript('OnShow', function()
         refresh()
-        btn:SetBackdropColor(color.accent.selected())
-        btn:SetBackdropBorderColor(color.accent.background())
+        gui.set_selected(btn)
     end)
     popup:SetScript('OnHide', function()
-        btn:SetBackdropColor(color.content.background())
-        btn:SetBackdropBorderColor(color.content.border())
+        gui.set_default(btn)
     end)
     -- a click anywhere else closes it
     pcall(popup.RegisterEvent, popup, 'GLOBAL_MOUSE_DOWN')
@@ -466,8 +475,8 @@ end
 do
     -- auxForever: credit to aux's creator, shown on every tab
     local label = gui.label(frame, gui.font_size.small)
-    label:SetPoint('BOTTOMRIGHT', -24, 12)
+    label:SetPoint('RIGHT', frame, 'BOTTOMRIGHT', -26, BOTTOM_BAR_HEIGHT / 2)
     label:SetText('aux by shirsig, re-imagined by a fan')
-    label:SetTextColor(.55, .55, .55)
+    label:SetTextColor(color.text.disabled())
     M.credit_label = label
 end

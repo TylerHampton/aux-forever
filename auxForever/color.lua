@@ -19,21 +19,25 @@ end
 
 M.color = immutable-{
 	none = setmetatable({}, {__metatable=false, __newindex=pass, __call=function(_, v) return v end, __concat=function(_, v) return v end}),
-	-- auxForever palette (see the redesign mockup): warm text on dark slate, amber accent
-	text = immutable-{enabled = C(243, 239, 230, 1), disabled = C(125, 122, 115, 1)},
-	label = immutable-{enabled = C(168, 164, 155, 1), disabled = C(110, 107, 100, 1)},
+	-- auxForever palette (0.6, the UI Kit in the Paper file "auxForever Screens"): near black
+	-- surfaces with black edges, one gold accent for what is selected or primary
+	text = immutable-{enabled = C(235, 235, 235, 1), disabled = C(107, 107, 107, 1)},
+	label = immutable-{enabled = C(168, 168, 168, 1), disabled = C(94, 94, 94, 1)},
 	link = C(153, 255, 255, 1),
-	window = immutable-{background = C(22, 24, 27, .97), border = C(43, 47, 53, 1)},
-	panel = immutable-{background = C(24, 26, 29, 1), border = C(38, 42, 47, 1)},
-	content = immutable-{background = C(29, 32, 36, 1), border = C(47, 52, 58, 1)},
-	input = immutable-{background = C(15, 17, 19, 1), border = C(58, 63, 70, 1)},
-	header = immutable-{background = C(29, 32, 36, 1), text = C(142, 138, 129, 1)},
-	state = immutable-{enabled = C(63, 174, 106, 1), disabled = C(122, 58, 52, 1)},
-	accent = immutable-{background = C(227, 164, 59, 1), text = C(26, 20, 8, 1), selected = C(58, 46, 21, 1)},
-	selected = C(227, 164, 59, .22),
-	-- money coming to the player (green) and going out (red), readable on the dark panels
-	positive = C(111, 211, 154, 1),
-	negative = C(255, 138, 126, 1),
+	window = immutable-{background = C(22, 22, 22, .97), border = C(0, 0, 0, 1)},
+	panel = immutable-{background = C(12, 12, 12, 1), border = C(0, 0, 0, 1)},
+	-- raised things (buttons, tabs): 42 at the top, darker toward the bottom (gui.add_sheen)
+	content = immutable-{background = C(42, 42, 42, 1), border = C(0, 0, 0, 1)},
+	-- sunken things (tables, inputs, status bar)
+	input = immutable-{background = C(10, 10, 10, 1), border = C(0, 0, 0, 1)},
+	header = immutable-{background = C(34, 34, 34, 1), text = C(207, 207, 207, 1)},
+	state = immutable-{enabled = C(77, 204, 102, 1), disabled = C(122, 58, 52, 1)},
+	accent = immutable-{background = C(229, 190, 91, 1), text = C(229, 190, 91, 1), selected = C(42, 35, 18, 1), hover = C(242, 212, 138, 1), raised = C(39, 32, 18, 1)},
+	selected = C(229, 190, 91, .13),
+	hover = C(255, 255, 255, .06),
+	-- money coming to the player (green) and going out (red)
+	positive = C(77, 204, 102, 1),
+	negative = C(232, 87, 74, 1),
 
 	tooltip = immutable-{
 		value = C(255, 255, 154, 1),
@@ -45,11 +49,12 @@ M.color = immutable-{
 		}
 	},
 
-	blue = C(41, 146, 255, 1),
-	green = C(22, 255, 22, 1),
-	yellow = C(255, 255, 0, 1),
-	orange = C(255, 146, 24, 1),
-	red = C(255, 0, 0, 1),
+	-- status and deals (percentages of the usual price, errors)
+	blue = C(90, 169, 255, 1),
+	green = C(77, 204, 102, 1),
+	yellow = C(232, 212, 77, 1),
+	orange = C(240, 148, 60, 1),
+	red = C(232, 87, 74, 1),
 	gray = C(187, 187, 187, 1),
 	gold = C(255, 255, 154, 1),
 

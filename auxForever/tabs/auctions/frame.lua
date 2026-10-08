@@ -279,7 +279,7 @@ do
                 gui.set_primary(cancel_undercut_button)
             else
                 cancel_undercut_button:Disable()
-                gui.style_choice(cancel_undercut_button, false)
+                gui.set_default(cancel_undercut_button)
             end
         end
 

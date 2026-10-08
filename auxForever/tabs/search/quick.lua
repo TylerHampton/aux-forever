@@ -231,7 +231,7 @@ end
 
 local function create_menu()
     menu = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
-    gui.set_frame_style(menu, aux.color.content.background, aux.color.input.border, nil, nil, nil, nil, 8)
+    gui.set_panel_style(menu)
     M.quick_menu = menu
     menu:SetFrameStrata('DIALOG')
     menu:SetClampedToScreen(true)
@@ -246,12 +246,10 @@ local function create_menu()
     menu:SetScript('OnShow', function()
         recent_offset = 0
         update_quick_menu()
-        history_button:SetBackdropColor(aux.color.accent.selected())
-        history_button:SetBackdropBorderColor(aux.color.accent.background())
+        gui.set_selected(history_button)
     end)
     menu:SetScript('OnHide', function()
-        history_button:SetBackdropColor(aux.color.content.background())
-        history_button:SetBackdropBorderColor(aux.color.content.border())
+        gui.set_default(history_button)
     end)
     -- a click anywhere else closes the menu
     pcall(menu.RegisterEvent, menu, 'GLOBAL_MOUSE_DOWN')

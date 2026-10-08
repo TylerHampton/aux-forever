@@ -258,18 +258,52 @@ try('lists follow the window size', function()
   G.__geometry = nil
 end)
 
--- Visual refresh: rounded styling keeps the old backdrop color calls working; seller column text
+-- Visual refresh: square styling (0.6, the UI Kit) keeps the old backdrop color calls working; seller column text
 try('restyle', function()
   local require = loadstring("select(2, ...) 'aux.test4'; return require")('auxForever', addon)
   local gui = require 'aux.gui'
   local auction_listing = require 'aux.gui.auction_listing'
   local colored = {}
   local button = gui.button(new_frame())
-  check('button has a rounded fill', button.aux_fill and #button.aux_fill.pieces == 7)
-  check('button has a rounded outline', button.aux_border and #button.aux_border.pieces == 8)
+  check('button has a square fill', button.aux_fill and #button.aux_fill.pieces == 1)
+  check('button has a 1px outline on four sides', button.aux_border and #button.aux_border.pieces == 4)
   for _, t in ipairs(button.aux_fill.pieces) do rawset(t, 'SetVertexColor', function(_, r) colored[#colored + 1] = r end) end
   button:SetBackdropColor(.5, .5, .5, 1)
-  check('SetBackdropColor recolors every fill piece', #colored == 7 and colored[1] == .5)
+  check('SetBackdropColor recolors the fill', #colored == 1 and colored[1] == .5)
+  -- 0.6, the UI Kit: looks. Default buttons have a gold label, the primary one a gold outline,
+  -- disabled ones a gray label; a selected tab stays lit although it is disabled
+  local function label_color(b)
+    local c
+    rawset(b, 'GetFontString', function() return {SetTextColor = function(_, r, g, bl, a) c = {r, g, bl, a} end, GetFont = function() return 'f', 15 end, SetFont = function() end} end)
+    return function() return c end
+  end
+  local b2 = gui.button(new_frame())
+  local c2 = label_color(b2)
+  gui.set_default(b2)
+  check('default button: gold label', math.abs(c2()[1] - 229 / 255) < .001 and math.abs(c2()[3] - 91 / 255) < .001)
+  local border
+  rawset(b2, 'SetBackdropBorderColor', function(_, r, g, bl) border = {r, g, bl} end)
+  gui.set_primary(b2)
+  check('primary button: gold outline', border and math.abs(border[1] - 229 / 255) < .001)
+  rawset(b2, 'IsEnabled', function() return false end)
+  b2:Disable()
+  check('disabled button: gray label', math.abs(c2()[1] - 107 / 255) < .001)
+  gui.apply_look(b2, 'selected', true)
+  check('selected look drawn on a disabled tab', c2()[1] == 1 and c2()[2] == 1)
+  check('a button has the raised gradient', b2.aux_sheen ~= nil)
+  -- selection and hover of a table row are separate: hover never shows the gold bar
+  local row = new_frame()
+  local sel = gui.row_selection(row)
+  check('row selection starts hidden', not sel:IsShown())
+  sel:Show()
+  check('row selection shows', sel:IsShown())
+  -- a client whose SetGradient wants numbers must not break loading
+  local tex = new_frame()
+  rawset(tex, 'SetGradient', function() error('bad argument') end)
+  G.CreateColor = function(r, g, b, a) return {r, g, b, a} end
+  local ok = pcall(gui.set_gradient, tex, .3)
+  G.CreateColor = nil
+  check('gradient falls back without an error', ok)
   check('named seller shown', auction_listing.seller_text{owner = 'Violet Toes'} == 'Violet Toes')
   check('several sellers counted', auction_listing.seller_text{seller_count = 12}:find('12 sellers') ~= nil)
   check('unknown seller', auction_listing.seller_text{seller_count = 1} == '?')
@@ -346,7 +380,7 @@ try('undercut mode', function()
   post_env.selected_item = nil
 end)
 
--- The status bar is amber only while something loads, dim gray when idle
+-- The status bar is amber only while something loads, a faint fill when idle, dark gold when done
 try('status bar idle color', function()
   local require = loadstring("select(2, ...) 'aux.test7'; return require")('auxForever', addon)
   local gui = require 'aux.gui'
@@ -354,16 +388,16 @@ try('status bar idle color', function()
   local color
   rawset(bar.primary_status_bar, 'SetStatusBarColor', function(_, r) color = r end)
   bar:update_status(0, 0)
-  check('amber while loading', color == .89)
+  check('amber while loading', color == .59)
   bar:update_status(1, 1)
-  check('gray when idle', color == .30)
+  check('faint when idle', color == 1)
   bar:set_done(true)
-  check('gold when a search has finished', color == .23)
+  check('dark gold when a search has finished', math.abs(color - 42 / 255) < .001)
   bar:update_status(0, 0)
-  check('amber again while loading', color == .89)
+  check('amber again while loading', color == .59)
   bar:update_status(1, 1)
   bar:set_done(false)
-  check('gray after leaving the search', color == .30)
+  check('faint after leaving the search', color == 1)
 
   -- the search tab turns it gold for a finished search shown in the results, and off when leaving
   local aux = require 'aux'
@@ -521,8 +555,11 @@ try('post panel', function()
   local colors = {}
   rawset(post.post_button, 'GetFontString', function(self) return self.label end)
   rawset(post.post_button.label, 'SetTextColor', function(_, r) colors[#colors + 1] = r end)
-  post.post_button:Enable(); post.post_button:Disable()
-  check('post button keeps its dark text', colors[#colors] < .2 and colors[#colors - 1] < .2)
+  post.post_button:Enable()
+  rawset(post.post_button, 'IsEnabled', function() return false end)
+  post.post_button:Disable()
+  rawset(post.post_button, 'IsEnabled', nil)
+  check('post button: gold label, gray when disabled', math.abs(colors[#colors - 1] - 229 / 255) < .001 and math.abs(colors[#colors] - 107 / 255) < .001)
 
   check('typed price note', plain(post.price_note_text()) == 'Your own price')
   post.set_buyout_selection({unit_price = 69})
@@ -599,7 +636,7 @@ try('post auto price', function()
   local plain = function(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
   post.update_item_configuration()
   check('deposit shown as money going out', plain(post.deposit.__text):find('^Deposit %-') ~= nil)
-  check('you get shown in green', post.net_summary.__text:find('You get ', 1, true) == 1 and post.net_summary.__text:upper():find('6FD39A', 1, true) ~= nil)
+  check('you get shown in green', post.net_summary.__text:find('You get ', 1, true) == 1 and post.net_summary.__text:upper():find('4DCC66', 1, true) ~= nil)
   aux.set_tab(4)
   check('post: leaving the tab ends gold', aux.status_bar.done == false)
   post.selected_item = nil
@@ -620,7 +657,7 @@ try('post money details', function()
   post.set_unit_buyout_price(4)
   post.update_item_configuration()
   check('vendor warning when a vendor pays more', plain(post.net_detail.__text):find('a vendor pays') ~= nil)
-  check('you get turns red below vendor price', post.net_summary.__text:upper():find('FF0000', 1, true) ~= nil)
+  check('you get turns red below vendor price', post.net_summary.__text:upper():find('E8574A', 1, true) ~= nil)
   rawset(post.stack_count_input, 'GetNumber', function() return 1 end)
   rawset(post.stack_size_input, 'GetNumber', function() return 1 end)
   post.set_unit_buyout_price(100)
@@ -955,7 +992,7 @@ try('blizzard ui button', function()
   a.hook_blizzard_frame(); a.hook_blizzard_frame()
   check('the Blizzard window is hooked only once', hooks.OnShow == nil and hooks.OnHide == nil)
   local lit
-  rawset(a.blizzard_button, 'SetBackdropBorderColor', function(self, r, g, b) lit = (r == a.color.blizzard()) end)
+  rawset(a.blizzard_button, 'SetBackdropBorderColor', function(self, r, g, b) local br, bg, bb = a.color.blizzard(); lit = (r == br and g == bg and b == bb) end)
   a.blizzard_button.__scripts.OnClick(a.blizzard_button)
   check('Blizzard window shown and brought to the front', a.blizzard_frame_shown() and raised == 1)
   check('button lit while shown', lit == true)

@@ -14,7 +14,7 @@ local handlers = {
         self.mouseover = true
         if not self.data then return end
         if not self.st.highlightDisabled then
-            self.highlight:Show()
+            self.hover:Show()
         end
 
         local handler = self.st.handlers.OnEnter
@@ -25,10 +25,8 @@ local handlers = {
 
     OnLeave = function(self)
         self.mouseover = false
+        self.hover:Hide()
         if not self.data then return end
-        if not (self.st.selected and self.st.selected(self.data)) then
-            self.highlight:Hide()
-        end
 
         local handler = self.st.handlers.OnLeave
         if handler then
@@ -125,6 +123,7 @@ local methods = {
 			    col:Show()
 			    place_column(col, i == 1 and self.contentFrame or self.headCols[i - 1], i == 1, i == last and self.contentFrame, self.colInfo[i].width * width)
 			    col:SetHeight(self.headHeight)
+			    if self.headHeight > 0 then col.plate:Show() else col.plate:Hide() end
 			    col.text:SetText(self.colInfo[i].name or '')
 			    col.text:SetJustifyH(self.colInfo[i].headAlign or 'CENTER')
 		    else
@@ -173,7 +172,7 @@ local methods = {
                 if not data then break end
 	            row.data = data
 
-                if row.mouseover or self.selected and self.selected(data) then
+                if self.selected and self.selected(data) then
 	                row.highlight:Show()
                 else
 	                row.highlight:Hide()
@@ -210,15 +209,19 @@ local methods = {
         col.st = self
         col.colNum = colNum
 
-	    local text = col:CreateFontString()
+        -- auxForever (0.6, the UI Kit): a raised plate with a black edge, hidden for a table without
+        -- a header
+        local plate = CreateFrame('Frame', nil, col)
+        plate:SetAllPoints()
+        gui.set_frame_style(plate, aux.color.header.background, aux.color.window.border, 0, 0, 1, 0)
+        gui.add_sheen(plate, .26)
+        col.plate = plate
+
+	    local text = plate:CreateFontString()
 	    text:SetAllPoints()
 	    text:SetFont(gui.font, 12)
-	    text:SetTextColor(aux.color.label.enabled())
+	    text:SetTextColor(aux.color.header.text())
         col.text = text
-
-	    local tex = col:CreateTexture()
-	    tex:SetAllPoints()
-	    tex:SetColorTexture(aux.color.header.background())
 
         tinsert(self.headCols, col)
         
@@ -265,11 +268,8 @@ local methods = {
             row:SetPoint('TOPLEFT', 0, -(self.headHeight + HEAD_SPACE + (rowNum - 1) * ROW_HEIGHT))
             row:SetPoint('TOPRIGHT', 0, -(self.headHeight + HEAD_SPACE + (rowNum - 1) * ROW_HEIGHT))
         end
-        local highlight = row:CreateTexture()
-        highlight:SetAllPoints()
-        highlight:SetColorTexture(aux.color.selected())
-        highlight:Hide()
-        row.highlight = highlight
+        row.highlight = gui.row_selection(row)
+        row.hover = gui.row_hover(row)
         row.st = self
 
         row.cols = {}
@@ -334,9 +334,9 @@ function M.new(parent)
     scroll_bar:SetWidth(10)
     local thumbTex = scroll_bar:GetThumbTexture()
     thumbTex:SetPoint('CENTER', 0, 0)
-    thumbTex:SetColorTexture(aux.color.content.border())
+    thumbTex:SetColorTexture(229 / 255, 190 / 255, 91 / 255, .35)
     thumbTex:SetHeight(150)
-    thumbTex:SetWidth(scroll_bar:GetWidth())
+    thumbTex:SetWidth(6)
     _G[scroll_bar:GetName() .. 'ScrollUpButton']:Hide()
     _G[scroll_bar:GetName() .. 'ScrollDownButton']:Hide()
 

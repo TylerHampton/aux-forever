@@ -214,7 +214,7 @@ do
     btn:SetText('Sound')
     btn:SetScript('OnClick', function()
         aux.account_data.sniper_sound = not aux.account_data.sniper_sound
-        gui.style_choice(btn, aux.account_data.sniper_sound)
+        gui.set_selected(btn, aux.account_data.sniper_sound)
     end)
     sound_button = btn
 end
@@ -353,7 +353,7 @@ do
             last_run = running
             run_button:SetText(running and 'Stop' or 'Start')
             if running then
-                gui.style_choice(run_button, false)
+                gui.set_default(run_button)
                 run_button:GetFontString():SetFont(gui.font, gui.font_size.large)
             else
                 gui.set_primary(run_button)
@@ -378,5 +378,5 @@ end
 function aux.event.AUX_LOADED()
     percent_input:SetText(tostring(aux.account_data.sniper_percent))
     profit_input:SetText(money.to_string(aux.account_data.sniper_profit, nil, true, nil, true))
-    gui.style_choice(sound_button, aux.account_data.sniper_sound)
+    gui.set_selected(sound_button, aux.account_data.sniper_sound)
 end

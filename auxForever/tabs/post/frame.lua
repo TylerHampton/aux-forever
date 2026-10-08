@@ -175,15 +175,7 @@ local function caption(parent, anchor, text, x)
 end
 
 local function style_choice(btn, selected)
-    if selected then
-        btn:SetBackdropColor(aux.color.accent.selected())
-        btn:SetBackdropBorderColor(aux.color.accent.background())
-        btn:GetFontString():SetTextColor(.96, .83, .56)
-    else
-        btn:SetBackdropColor(aux.color.content.background())
-        btn:SetBackdropBorderColor(aux.color.content.border())
-        btn:GetFontString():SetTextColor(aux.color.text.enabled())
-    end
+    gui.style_choice(btn, selected)
 end
 
 do
@@ -345,8 +337,8 @@ end
 do
     -- the pricing mode: Match lowest (default) or Undercut with the goblin
     local switch = CreateFrame('Frame', nil, frame.parameters, 'BackdropTemplate')
-    switch.aux_radius = 6
-    gui.set_frame_style(switch, aux.color.input.background, aux.color.content.border)
+    -- auxForever (0.6, the UI Kit): a sunken track with one lit option
+    gui.set_frame_style(switch, function() return 9 / 255, 9 / 255, 9 / 255, 1 end, aux.color.input.border)
     gui.set_size(switch, 204, 30)
     switch:SetPoint('TOPRIGHT', -40, ROW1 + 2)
     local match = small_button(switch, 'Match lowest', 98)
@@ -364,14 +356,10 @@ do
     undercut:SetScript('OnClick', function() set_undercut_mode(true) end)
     function switch:SetChecked(on)
         for btn, selected in pairs{[match] = not on, [undercut] = on} do
-            if selected then
-                btn:SetBackdropColor(aux.color.accent.selected())
-                btn:SetBackdropBorderColor(aux.color.accent.background())
-                btn:GetFontString():SetTextColor(.96, .83, .56)
-            else
+            gui.style_choice(btn, selected)
+            if not selected then
                 btn:SetBackdropColor(0, 0, 0, 0)
                 btn:SetBackdropBorderColor(0, 0, 0, 0)
-                btn:GetFontString():SetTextColor(aux.color.label.enabled())
             end
         end
         goblin:SetAlpha(on and 1 or .55)
@@ -395,8 +383,7 @@ end
 -- "100% of usual": the price compared with the item's usual (historical) price
 local function badge(parent)
     local f = CreateFrame('Frame', nil, parent, 'BackdropTemplate')
-    f.aux_radius = 6
-    gui.set_frame_style(f, aux.color.panel.background, aux.color.panel.border)
+    gui.set_frame_style(f, function() return 9 / 255, 9 / 255, 9 / 255, 1 end, aux.color.input.border)
     gui.set_size(f, 112, 24)
     local text = gui.label(f, gui.font_size.small)
     text:SetPoint('CENTER')
@@ -511,15 +498,6 @@ do
     gui.set_size(btn, 140, 30)
     btn:SetText('Post')
     gui.set_primary(btn)
-    -- keep the dark text of the amber button when it is enabled or disabled (it fades instead)
-    function btn:Enable()
-        self:default_Enable()
-        self:GetFontString():SetTextColor(aux.color.accent.text())
-    end
-    function btn:Disable()
-        self:default_Disable()
-        self:GetFontString():SetTextColor(aux.color.accent.text())
-    end
     btn:SetScript('OnClick', post_auction)
     -- auxForever (0.5): hovering a faded Post button says why (Tyler, build 3: "hovering the greyed
     -- out button does nothing"); the same reason is shown in the left column

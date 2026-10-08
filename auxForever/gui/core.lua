@@ -63,59 +63,42 @@ function M.set_size(frame, width, height)
     frame:SetHeight(height or width)
 end
 
--- auxForever: rounded corners. A frame gets a fill and an outline, each made of four corner pieces
--- and straight pieces between them. The frame's SetBackdropColor and SetBackdropBorderColor are
--- replaced so every existing caller recolors the rounded shape instead of a square backdrop.
-local CORNER_FILL = [[Interface\AddOns\auxForever\textures\corner-fill.tga]]
-local CORNER_LINE = [[Interface\AddOns\auxForever\textures\corner-line.tga]]
+-- auxForever (0.6, the UI Kit): square shapes. A frame gets a fill and a 1px outline, and the
+-- frame's SetBackdropColor and SetBackdropBorderColor are replaced so every existing caller recolors
+-- the shape instead of a backdrop. The radius arguments of older callers are ignored.
 local WHITE = [[Interface\Buttons\WHITE8X8]]
--- texture coordinates that turn the top left corner texture into each corner
-local CORNERS = {
-    {'TOPLEFT', 0, 1, 0, 1},
-    {'TOPRIGHT', 1, 0, 0, 1},
-    {'BOTTOMLEFT', 0, 1, 1, 0},
-    {'BOTTOMRIGHT', 1, 0, 1, 0},
-}
-
-local function shape_texture(frame, layer, sublevel, file)
-    local texture = frame:CreateTexture(nil, layer, nil, sublevel)
-    texture:SetTexture(file)
-    return texture
-end
 
 -- left, right, top, bottom are insets like a backdrop's (negative values grow the shape)
 local function create_shape(frame, layer, sublevel, kind, radius, left, right, top, bottom)
     left, right, top, bottom = left or 0, right or 0, top or 0, bottom or 0
-    local inset = {TOPLEFT = {left, -top}, TOPRIGHT = {-right, -top}, BOTTOMLEFT = {left, bottom}, BOTTOMRIGHT = {-right, bottom}}
     local pieces = {}
-    local corners = {}
-    for _, c in ipairs(CORNERS) do
-        local point, x = c[1], inset[c[1]]
-        local t = shape_texture(frame, layer, sublevel, kind == 'fill' and CORNER_FILL or CORNER_LINE)
-        t:SetSize(radius, radius)
-        t:SetPoint(point, x[1], x[2])
-        t:SetTexCoord(c[2], c[3], c[4], c[5])
-        corners[point] = t
-        tinsert(pieces, t)
-    end
-    local function rect(a1, r1, p1, a2, r2, p2)
-        local t = shape_texture(frame, layer, sublevel, WHITE)
-        t:SetPoint(a1, r1, p1)
-        t:SetPoint(a2, r2, p2)
+    local function rect()
+        local t = frame:CreateTexture(nil, layer, nil, sublevel)
+        t:SetTexture(WHITE)
         tinsert(pieces, t)
         return t
     end
     if kind == 'fill' then
-        rect('TOPLEFT', corners.TOPLEFT, 'TOPRIGHT', 'BOTTOMRIGHT', corners.BOTTOMRIGHT, 'BOTTOMLEFT')
-        rect('TOPLEFT', corners.TOPLEFT, 'BOTTOMLEFT', 'BOTTOMRIGHT', corners.BOTTOMLEFT, 'TOPRIGHT')
-        rect('TOPLEFT', corners.TOPRIGHT, 'BOTTOMLEFT', 'BOTTOMRIGHT', corners.BOTTOMRIGHT, 'TOPRIGHT')
+        local t = rect()
+        t:SetPoint('TOPLEFT', left, -top)
+        t:SetPoint('BOTTOMRIGHT', -right, bottom)
     else
-        -- the straight edges are as thick as the outline in the corner texture
-        local width = radius / 4
-        rect('TOPLEFT', corners.TOPLEFT, 'TOPRIGHT', 'TOPRIGHT', corners.TOPRIGHT, 'TOPLEFT'):SetHeight(width)
-        rect('BOTTOMLEFT', corners.BOTTOMLEFT, 'BOTTOMRIGHT', 'BOTTOMRIGHT', corners.BOTTOMRIGHT, 'BOTTOMLEFT'):SetHeight(width)
-        rect('TOPLEFT', corners.TOPLEFT, 'BOTTOMLEFT', 'BOTTOMLEFT', corners.BOTTOMLEFT, 'TOPLEFT'):SetWidth(width)
-        rect('TOPRIGHT', corners.TOPRIGHT, 'BOTTOMRIGHT', 'BOTTOMRIGHT', corners.BOTTOMRIGHT, 'TOPRIGHT'):SetWidth(width)
+        local t = rect()
+        t:SetPoint('TOPLEFT', left, -top)
+        t:SetPoint('TOPRIGHT', -right, -top)
+        t:SetHeight(1)
+        t = rect()
+        t:SetPoint('BOTTOMLEFT', left, bottom)
+        t:SetPoint('BOTTOMRIGHT', -right, bottom)
+        t:SetHeight(1)
+        t = rect()
+        t:SetPoint('TOPLEFT', left, -top)
+        t:SetPoint('BOTTOMLEFT', left, bottom)
+        t:SetWidth(1)
+        t = rect()
+        t:SetPoint('TOPRIGHT', -right, -top)
+        t:SetPoint('BOTTOMRIGHT', -right, bottom)
+        t:SetWidth(1)
     end
     local shape = {pieces = pieces}
     function shape:SetColor(r, g, b, a)
@@ -140,36 +123,106 @@ local function shape_SetBackdropBorderColor(self, r, g, b, a)
     self.aux_border:SetColor(r, g, b, a)
 end
 
-function M.set_frame_style(frame, backdrop_color, border_color, left, right, top, bottom, radius)
-    radius = radius or frame.aux_radius or 5
+function M.set_frame_style(frame, backdrop_color, border_color, left, right, top, bottom)
     if not frame.aux_fill then
         if frame.SetBackdrop then frame:SetBackdrop(nil) end
-        frame.aux_fill = create_shape(frame, 'BACKGROUND', -8, 'fill', radius, left, right, top, bottom)
-        frame.aux_border = create_shape(frame, 'BACKGROUND', -7, 'line', radius, left, right, top, bottom)
-        frame.SetBackdropColor = shape_SetBackdropColor
-        frame.SetBackdropBorderColor = shape_SetBackdropBorderColor
+        frame.aux_fill = create_shape(frame, 'BACKGROUND', -8, 'fill', 0, left, right, top, bottom)
+        frame.aux_border = create_shape(frame, 'BACKGROUND', -6, 'line', 0, left, right, top, bottom)
     end
+    frame.SetBackdropColor = shape_SetBackdropColor
+    frame.SetBackdropBorderColor = shape_SetBackdropBorderColor
     frame:SetBackdropColor(backdrop_color())
     frame:SetBackdropBorderColor(border_color())
 end
 
 function M.set_window_style(frame, left, right, top, bottom)
-    set_frame_style(frame, aux.color.window.background, aux.color.window.border, left, right, top, bottom, frame.aux_radius or 8)
+    set_frame_style(frame, aux.color.window.background, aux.color.window.border, left, right, top, bottom)
 end
 
 function M.set_panel_style(frame, left, right, top, bottom)
-    set_frame_style(frame, aux.color.panel.background, aux.color.panel.border, left, right, top, bottom, frame.aux_radius or 6)
+    set_frame_style(frame, aux.color.panel.background, aux.color.panel.border, left, right, top, bottom)
 end
 
 function M.set_content_style(frame, left, right, top, bottom)
     set_frame_style(frame, aux.color.content.background, aux.color.content.border, left, right, top, bottom)
 end
 
--- A rounded highlight shown while the mouse is over the frame
+-- sunken: tables, inputs, the status bar
+function M.set_well_style(frame, left, right, top, bottom)
+    set_frame_style(frame, aux.color.input.background, aux.color.input.border, left, right, top, bottom)
+end
+
+-- A vertical gradient from clear at the top to black at the bottom, over a frame's fill, so a raised
+-- thing (button, tab, column header) goes from its fill color at the top to darker at the bottom,
+-- with a faint light line along its top edge. Drawn once; costs nothing per frame.
+local function set_gradient(texture, bottom_alpha)
+    texture:SetTexture(WHITE)
+    texture:SetVertexColor(1, 1, 1, 1)
+    -- the modern call takes color objects, older clients took numbers; unknown which Forever has,
+    -- so each is tried and a plain half dark shade is the last resort
+    if texture.SetGradient and CreateColor
+        and pcall(texture.SetGradient, texture, 'VERTICAL', CreateColor(0, 0, 0, bottom_alpha), CreateColor(0, 0, 0, 0)) then
+        return
+    end
+    if texture.SetGradientAlpha and pcall(texture.SetGradientAlpha, texture, 'VERTICAL', 0, 0, 0, bottom_alpha, 0, 0, 0, 0) then
+        return
+    end
+    texture:SetVertexColor(0, 0, 0, bottom_alpha / 2)
+end
+M.set_gradient = set_gradient
+
+function M.add_sheen(frame, strength)
+    if frame.aux_sheen then return frame.aux_sheen end
+    local shade = frame:CreateTexture(nil, 'BACKGROUND', nil, -7)
+    shade:SetPoint('TOPLEFT', 1, -1)
+    shade:SetPoint('BOTTOMRIGHT', -1, 1)
+    set_gradient(shade, strength or .33)
+    local line = frame:CreateTexture(nil, 'BACKGROUND', nil, -7)
+    line:SetTexture(WHITE)
+    line:SetVertexColor(1, 1, 1, .09)
+    line:SetPoint('TOPLEFT', 1, -1)
+    line:SetPoint('TOPRIGHT', -1, -1)
+    line:SetHeight(1)
+    local sheen = {shade = shade, line = line}
+    function sheen:SetShown(shown)
+        if shown then shade:Show(); line:Show() else shade:Hide(); line:Hide() end
+    end
+    frame.aux_sheen = sheen
+    return sheen
+end
+
+-- A highlight shown while the mouse is over the frame
 function M.add_highlight(frame, radius, r, g, b, a)
-    local shape = create_shape(frame, 'HIGHLIGHT', 0, 'fill', radius or frame.aux_radius or 5)
-    shape:SetColor(r or 1, g or 1, b or 1, a or .08)
+    local shape = create_shape(frame, 'HIGHLIGHT', 0, 'fill', 0)
+    shape:SetColor(r or 1, g or 1, b or 1, a or .07)
     return shape
+end
+
+-- A table row's selection: gold 13% with a 2px gold bar at its left edge. Mouse over a row shows
+-- the lighter hover (row_hover) instead.
+function M.row_selection(row)
+    local fill = row:CreateTexture(nil, 'BACKGROUND', nil, 2)
+    fill:SetAllPoints()
+    fill:SetColorTexture(aux.color.selected())
+    local bar = row:CreateTexture(nil, 'BORDER')
+    bar:SetPoint('TOPLEFT')
+    bar:SetPoint('BOTTOMLEFT')
+    bar:SetWidth(2)
+    bar:SetColorTexture(aux.color.accent.background())
+    local selection = {}
+    function selection:Show() fill:Show(); bar:Show(); self.shown = true end
+    function selection:Hide() fill:Hide(); bar:Hide(); self.shown = false end
+    function selection:IsShown() return self.shown end
+    selection:Hide()
+    return selection
+end
+
+function M.row_hover(row)
+    local hover = row:CreateTexture(nil, 'BACKGROUND', nil, 1)
+    hover:SetAllPoints()
+    hover:SetColorTexture(aux.color.hover())
+    hover:Hide()
+    return hover
 end
 
 -- auxForever: background opacity. The main window and the panels made by gui.panel are registered,
@@ -207,27 +260,71 @@ end
 function M.checkbutton(parent, text_height)
     local button = button(parent, text_height)
     button.state = false
-    button:SetBackdropColor(aux.color.state.disabled())
     function button:SetChecked(state)
-        if state then
-            self:SetBackdropColor(aux.color.state.enabled())
-            self.state = true
-        else
-            self:SetBackdropColor(aux.color.state.disabled())
-            self.state = false
-        end
+        self.state = state and true or false
+        style_choice(self, self.state)
     end
     function button:GetChecked()
         return self.state
     end
+    button:SetChecked(false)
     return button
 end
 
+-- auxForever (0.6, the UI Kit): a button has a look, kept in button.aux_look and drawn by
+-- apply_look; Enable and Disable redraw it.
+--   default   raised gray, gold label
+--   primary   the main action of a view: warm raised, gold outline, gold label
+--   selected  a selected tab or a toggle that is on: warm raised, gold outline, white label
+--   choice    one option of a row of choices (12h / 24h / 48h): sunken, gray label
+--   choice_on the chosen option: dark gold, gold outline at 55%, gold label
+--   tab       a tab that is not selected: raised gray, label in white at 70%
+-- A disabled button is flat dark gray with a gray label, whatever its look.
+local LOOKS = {
+    default = {fill = {42, 42, 42, 1}, border = {0, 0, 0, 1}, text = {229, 190, 91, 1}, sheen = true},
+    primary = {fill = {46, 39, 22, 1}, border = {229, 190, 91, 1}, text = {229, 190, 91, 1}, sheen = true},
+    selected = {fill = {46, 39, 22, 1}, border = {229, 190, 91, 1}, text = {255, 255, 255, 1}, sheen = true},
+    choice = {fill = {10, 10, 10, 1}, border = {0, 0, 0, 1}, text = {138, 138, 138, 1}},
+    choice_on = {fill = {42, 35, 18, 1}, border = {229, 190, 91, .55}, text = {229, 190, 91, 1}},
+    tab = {fill = {42, 42, 42, 1}, border = {0, 0, 0, 1}, text = {235, 235, 235, .7}, sheen = true},
+    -- the buy bar's Confirm: green, money is about to be spent at the price shown
+    confirm = {fill = {22, 44, 28, 1}, border = {77, 204, 102, 1}, text = {77, 204, 102, 1}, sheen = true},
+    -- an option in an open dropdown menu
+    menu = {fill = {14, 14, 14, 1}, border = {0, 0, 0, 0}, text = {235, 235, 235, 1}},
+}
+local DISABLED_LOOK = {fill = {26, 26, 26, 1}, text = {107, 107, 107, 1}}
+M.LOOKS = LOOKS
+
+local function rgb(c) return c[1] / 255, c[2] / 255, c[3] / 255, c[4] end
+
+-- force_enabled draws the enabled look on a disabled button (the selected tab)
+function M.apply_look(btn, look, force_enabled)
+    look = look or btn.aux_look or 'default'
+    btn.aux_look = look
+    local style = LOOKS[look] or LOOKS.default
+    local enabled = force_enabled or btn:IsEnabled()
+    local fill = enabled and style.fill or DISABLED_LOOK.fill
+    btn:SetBackdropColor(rgb(fill))
+    if look == 'primary' and not enabled then
+        btn:SetBackdropBorderColor(74 / 255, 64 / 255, 38 / 255, 1)
+    else
+        btn:SetBackdropBorderColor(rgb(style.border))
+    end
+    if btn.aux_sheen then
+        btn.aux_sheen:SetShown(enabled and style.sheen)
+    end
+    local label = btn:GetFontString()
+    if label then
+        label:SetTextColor(rgb(enabled and style.text or DISABLED_LOOK.text))
+    end
+end
+
 function M.button(parent, text_height)
-    text_height = text_height or font_size.large
+    text_height = text_height or font_size.medium
     local button = CreateFrame('Button', nil, parent, 'BackdropTemplate')
     set_size(button, 80, 24)
     set_content_style(button)
+    add_sheen(button)
     button.highlight = add_highlight(button)
 
     local label = button:CreateFontString()
@@ -235,44 +332,41 @@ function M.button(parent, text_height)
     label:SetAllPoints(button)
     label:SetJustifyH('CENTER')
     label:SetJustifyV('MIDDLE')
-    label:SetTextColor(aux.color.text.enabled())
     button:SetFontString(label)
 
     button.default_Enable = button.Enable
     function button:Enable()
-        if self:IsEnabled() == 1 then return end
-        self:GetFontString():SetTextColor(aux.color.text.enabled())
-        return self:default_Enable()
+        self:default_Enable()
+        apply_look(self)
     end
     button.default_Disable = button.Disable
     function button:Disable()
-        if self:IsEnabled() == 0 then return end
-        self:GetFontString():SetTextColor(aux.color.text.disabled())
-        return self:default_Disable()
+        self:default_Disable()
+        apply_look(self)
     end
 
     button.label = label
+    apply_look(button, 'default')
     return button
 end
 
--- one option of a row of choice buttons (2h / 8h / 24h, All / Any): selected ones get the accent
-function M.style_choice(btn, selected)
-    if selected then
-        btn:SetBackdropColor(aux.color.accent.selected())
-        btn:SetBackdropBorderColor(aux.color.accent.background())
-        btn:GetFontString():SetTextColor(.96, .83, .56)
-    else
-        btn:SetBackdropColor(aux.color.content.background())
-        btn:SetBackdropBorderColor(aux.color.content.border())
-        btn:GetFontString():SetTextColor(aux.color.text.enabled())
-    end
+function M.set_default(btn)
+    apply_look(btn, 'default')
 end
 
--- auxForever: the main action of a view (Search), in the accent color
+-- one option of a row of choice buttons (2h / 8h / 24h, Fast / Full): the chosen one is lit
+function M.style_choice(btn, selected)
+    apply_look(btn, selected and 'choice_on' or 'choice')
+end
+
+-- a selected tab, or a toggle that is on (Sound, Live)
+function M.set_selected(btn, selected)
+    apply_look(btn, (selected == nil or selected) and 'selected' or 'default')
+end
+
+-- auxForever: the main action of a view (Search, Post, Buy): gold outline and label
 function M.set_primary(button)
-    button:SetBackdropColor(aux.color.accent.background())
-    button:SetBackdropBorderColor(aux.color.accent.background())
-    button:GetFontString():SetTextColor(aux.color.accent.text())
+    apply_look(button, 'primary')
     local label = button:GetFontString()
     local _, size = label:GetFont()
     label:SetFont(font_bold, size and size > 0 and size or font_size.large)
@@ -283,32 +377,21 @@ do
     function mt.__index:create_tab(text)
         local id = #self._tabs + 1
 
+        -- auxForever (0.6): every tab is a raised button, 1px apart; the selected one has the gold
+        -- outline and a white label
         local tab = CreateFrame('Button', unique_name(), self._frame, 'BackdropTemplate')
         tab.id = id
         tab.group = self
-        tab:SetHeight(24)
-        if self._orientation == 'BAR' then
-            tab.aux_radius = 5
-        end
-        set_panel_style(tab)
-        local dock = tab:CreateTexture(nil, 'OVERLAY')
-        dock:SetHeight(3)
-        if self._orientation == 'UP' then
-            dock:SetPoint('BOTTOMLEFT', 1, -1)
-            dock:SetPoint('BOTTOMRIGHT', -1, -1)
-        elseif self._orientation == 'DOWN' then
-            dock:SetPoint('TOPLEFT', 1, 1)
-            dock:SetPoint('TOPRIGHT', -1, 1)
-        end
-        dock:SetColorTexture(aux.color.panel.background())
-        tab.dock = dock
+        tab:SetHeight(26)
+        set_content_style(tab)
+        add_sheen(tab)
         tab.highlight = add_highlight(tab)
 
         tab.text = tab:CreateFontString()
         tab.text:SetAllPoints()
         tab.text:SetJustifyH('CENTER')
         tab.text:SetJustifyV('MIDDLE')
-        tab.text:SetFont(font, font_size.large)
+        tab.text:SetFont(font, font_size.medium)
         tab:SetFontString(tab.text)
 
         tab:SetText(text)
@@ -320,30 +403,13 @@ do
             end
         end)
 
-        if self._orientation == 'BAR' then
-            -- auxForever: tabs sit in the window's top bar, after the anchor (the logo)
-            tab:SetHeight(26)
-            tab.text:SetFont(font, font_size.medium)
-            if #self._tabs == 0 then
-                tab:SetPoint('LEFT', self._anchor, 'RIGHT', 16, 0)
-            else
-                tab:SetPoint('LEFT', self._tabs[#self._tabs], 'RIGHT', 4, 0)
-            end
-        elseif #self._tabs == 0 then
-            if self._orientation == 'UP' then
-                tab:SetPoint('BOTTOMLEFT', self._frame, 'TOPLEFT', 4, -1)
-            elseif self._orientation == 'DOWN' then
-                tab:SetPoint('TOPLEFT', self._frame, 'BOTTOMLEFT', 4, 1)
-            end
+        if #self._tabs == 0 then
+            tab:SetPoint('LEFT', self._anchor, 'RIGHT', 14, 0)
         else
-            if self._orientation == 'UP' then
-                tab:SetPoint('BOTTOMLEFT', self._tabs[#self._tabs], 'BOTTOMRIGHT', 4, 0)
-            elseif self._orientation == 'DOWN' then
-                tab:SetPoint('TOPLEFT', self._tabs[#self._tabs], 'TOPRIGHT', 4, 0)
-            end
+            tab:SetPoint('LEFT', self._tabs[#self._tabs], 'RIGHT', 1, 0)
         end
 
-        tab:SetWidth(tab:GetFontString():GetStringWidth() + (self._orientation == 'BAR' and 26 or 14))
+        tab:SetWidth(tab:GetFontString():GetStringWidth() + 28)
 
         tinsert(self._tabs, tab)
     end
@@ -354,28 +420,12 @@ do
     end
     function mt.__index:update()
         for _, tab in pairs(self._tabs) do
-            if tab.group._orientation == 'BAR' then
-                local selected = tab.group._selected == tab.id
-                tab.dock:Hide()
-                tab.text:SetTextColor((selected and aux.color.text.enabled or aux.color.label.enabled)())
-                tab:SetBackdropColor(aux.color.content.background())
-                tab:SetBackdropBorderColor(aux.color.content.background())
-                tab.aux_fill:SetShown(selected)
-                tab.aux_border:SetShown(selected)
-                if selected then tab:Disable() else tab:Enable() end
-            elseif tab.group._selected == tab.id then
-                tab.text:SetTextColor(aux.color.label.enabled())
-                tab:Disable()
-                tab:SetBackdropColor(aux.color.panel.background())
-                tab.dock:Show()
-                tab:SetHeight(29)
-            else
-                tab.text:SetTextColor(aux.color.text.enabled())
-                tab:Enable()
-                tab:SetBackdropColor(aux.color.content.background())
-                tab.dock:Hide()
-                tab:SetHeight(24)
-            end
+            local selected = tab.group._selected == tab.id
+            -- the look first: Enable and Disable redraw it
+            tab.aux_look = selected and 'selected' or 'tab'
+            if selected then tab:Disable() else tab:Enable() end
+            -- a selected tab is disabled (it cannot be clicked again) but keeps its lit look
+            apply_look(tab, nil, true)
         end
     end
     function M.tabs(parent, orientation, anchor)
@@ -410,7 +460,9 @@ function M.editbox(parent)
             return
         end
         self.overlay:Hide()
-        self:SetTextColor(aux.color.text.enabled())
+        self:SetTextColor(1, 1, 1)
+        -- auxForever (0.6): a gold outline while typing
+        self:SetBackdropBorderColor(229 / 255, 190 / 255, 91 / 255, .6)
         self.focused = true
         self:HighlightText()
         do (self.focus_gain or pass)(self) end
@@ -418,6 +470,7 @@ function M.editbox(parent)
     editbox:SetScript('OnEditFocusLost', function(self)
         self.overlay:Show()
         self:SetTextColor(0, 0, 0, 0)
+        self:SetBackdropBorderColor(aux.color.input.border())
         self.focused = false
         self:HighlightText(0, 0)
         self:SetScript('OnUpdate', nil)
@@ -464,7 +517,7 @@ function M.editbox(parent)
     local overlay = label(editbox)
     overlay:SetPoint('LEFT', 1.5, 0)
     overlay:SetPoint('RIGHT', -1.5, 0)
-    overlay:SetTextColor(aux.color.text.enabled())
+    overlay:SetTextColor(1, 1, 1)
     editbox.overlay = overlay
     editbox:SetAlignment('LEFT')
     editbox:SetFontSize(font_size.medium)
@@ -472,22 +525,23 @@ function M.editbox(parent)
 end
 
 do
+    local function C_TRACK() return 9 / 255, 9 / 255, 9 / 255, 1 end
+
     local function update_alpha(self)
         self:SetAlpha(1 - (sin(GetTime() * 180) + 1) / 4)
     end
 
     function M.status_bar(parent)
         local self = CreateFrame('Frame', nil, parent, 'BackdropTemplate')
-        self.aux_radius = 4
-        set_window_style(self)
+        set_frame_style(self, C_TRACK, aux.color.input.border)
         do
             local status_bar = CreateFrame('StatusBar', nil, self, 'TextStatusBar')
             status_bar:SetOrientation('HORIZONTAL')
             status_bar:SetMinMaxValues(0, 1)
-            status_bar:SetPoint('TOPLEFT', 1.5, -1.5)
-            status_bar:SetPoint('BOTTOMRIGHT', -1.5, 1.5)
+            status_bar:SetPoint('TOPLEFT', 2, -2)
+            status_bar:SetPoint('BOTTOMRIGHT', -2, 2)
             status_bar:SetStatusBarTexture([[Interface\Buttons\WHITE8X8]])
-            status_bar:SetStatusBarColor(.42, .42, .42, .7)
+            status_bar:SetStatusBarColor(.35, .28, .14, .6)
             self.secondary_status_bar = status_bar
         end
         do
@@ -496,21 +550,29 @@ do
             status_bar:SetMinMaxValues(0, 1)
             status_bar:SetAllPoints()
             status_bar:SetStatusBarTexture([[Interface\Buttons\WHITE8X8]])
-            status_bar:SetStatusBarColor(.89, .64, .23, .55)
+            status_bar:SetStatusBarColor(.59, .47, .24, 1)
             self.primary_status_bar = status_bar
+            -- darker toward the bottom, like the raised buttons
+            local shade = status_bar:CreateTexture(nil, 'ARTWORK')
+            shade:SetAllPoints(status_bar:GetStatusBarTexture())
+            set_gradient(shade, .3)
+            self.shade = shade
         end
-        -- auxForever: amber while loading, gold when a search has finished (set_done), dim gray
-        -- otherwise. The gold matches the selected quantity button of the buy bar.
+        -- auxForever (0.6, the UI Kit): a sunken track; amber while loading, dark gold with a gold
+        -- outline when a search has finished (set_done), a faint fill otherwise.
         local function paint(self)
             if self.loading then
-                self.primary_status_bar:SetStatusBarColor(.89, .64, .23, .55)
-                self:SetBackdropBorderColor(aux.color.window.border())
+                self.primary_status_bar:SetStatusBarColor(.59, .47, .24, 1)
+                self.shade:Show()
+                self:SetBackdropBorderColor(aux.color.input.border())
             elseif self.done then
-                self.primary_status_bar:SetStatusBarColor(.23, .18, .08, 1)
+                self.primary_status_bar:SetStatusBarColor(aux.color.accent.selected())
+                self.shade:Hide()
                 self:SetBackdropBorderColor(aux.color.accent.background())
             else
-                self.primary_status_bar:SetStatusBarColor(.30, .32, .35, .6)
-                self:SetBackdropBorderColor(aux.color.window.border())
+                self.primary_status_bar:SetStatusBarColor(1, 1, 1, .06)
+                self.shade:Hide()
+                self:SetBackdropBorderColor(aux.color.input.border())
             end
         end
         -- auxForever (0.5): a short text in the bar, e.g. what a Full scan is doing
@@ -518,7 +580,8 @@ do
         text:SetFont(font, font_size.small, '')
         text:SetPoint('LEFT', 8, 0)
         text:SetPoint('RIGHT', -8, 0)
-        text:SetTextColor(aux.color.text.enabled())
+        text:SetJustifyH('CENTER')
+        text:SetTextColor(1, 1, 1)
         self.text = text
         function self:set_text(value)
             if value ~= self.shown_text then
@@ -581,12 +644,9 @@ function M.horizontal_line(parent, y_offset, inverted_color)
     local texture = parent:CreateTexture()
     texture:SetPoint('TOPLEFT', parent, 'TOPLEFT', 2, y_offset)
     texture:SetPoint('TOPRIGHT', parent, 'TOPRIGHT', -2, y_offset)
-    texture:SetHeight(2)
-    if inverted_color then
-        texture:SetColorTexture(aux.color.panel.background())
-    else
-        texture:SetColorTexture(aux.color.content.background())
-    end
+    texture:SetHeight(1)
+    -- auxForever (0.6): edges are black
+    texture:SetColorTexture(aux.color.window.border())
     return texture
 end
 
@@ -594,12 +654,8 @@ function M.vertical_line(parent, x_offset, top_offset, bottom_offset, inverted_c
     local texture = parent:CreateTexture()
     texture:SetPoint('TOPLEFT', parent, 'TOPLEFT', x_offset, top_offset or -2)
     texture:SetPoint('BOTTOMLEFT', parent, 'BOTTOMLEFT', x_offset, bottom_offset or 2)
-    texture:SetWidth(2)
-    if inverted_color then
-        texture:SetColorTexture(aux.color.panel.background())
-    else
-        texture:SetColorTexture(aux.color.content.background())
-    end
+    texture:SetWidth(1)
+    texture:SetColorTexture(aux.color.window.border())
     return texture
 end
 
@@ -676,6 +732,7 @@ do
                 local item_button = dropdown_item_buttons[i]
                 if not item_button then
                     item_button = button(dropdown_frame, text_height)
+                    apply_look(item_button, 'menu')
                     item_button.label:SetJustifyH('LEFT')
                     dropdown_item_buttons[i] = item_button
                 else
@@ -765,16 +822,15 @@ function M.slider(parent)
     local slider = CreateFrame('Slider', nil, parent, 'BackdropTemplate')
     slider:SetOrientation('HORIZONTAL')
     slider:SetHeight(6)
-    slider.aux_radius = 3
     slider:SetHitRectInsets(0, 0, -12, -12)
     slider:SetStepsPerPage(1)
     slider:SetObeyStepOnDrag(true)
     slider:SetValue(0)
 
-    set_panel_style(slider)
+    set_well_style(slider)
     local thumb_texture = slider:CreateTexture(nil, 'ARTWORK')
     thumb_texture:SetPoint('CENTER', 0, 0)
-    thumb_texture:SetColorTexture(aux.color.content.background())
+    thumb_texture:SetColorTexture(aux.color.accent.background())
     thumb_texture:SetHeight(18)
     thumb_texture:SetWidth(8)
     set_size(thumb_texture, 8, 18)
@@ -803,12 +859,11 @@ function M.checkbox(parent)
     local checkbox = CreateFrame('CheckButton', nil, parent, 'UICheckButtonTemplate,BackdropTemplate')
     checkbox:SetWidth(16)
     checkbox:SetHeight(16)
-    checkbox.aux_radius = 4
-    set_content_style(checkbox)
+    set_well_style(checkbox)
     checkbox:ClearNormalTexture()
     checkbox:ClearPushedTexture()
     checkbox:GetHighlightTexture():SetAllPoints()
-    checkbox:GetHighlightTexture():SetColorTexture(1, 1, 1, .2)
+    checkbox:GetHighlightTexture():SetColorTexture(1, 1, 1, .08)
     checkbox:GetCheckedTexture():SetTexCoord(.12, .88, .12, .88)
     checkbox:GetHighlightTexture('BLEND')
     return checkbox

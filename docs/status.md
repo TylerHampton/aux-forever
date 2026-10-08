@@ -1,6 +1,34 @@
 # Status
 
-Last updated 2026-10-08, after the 0.5 release.
+Last updated 2026-10-08: 0.6 build 1 (the new look) is on branch `claude/ui-kit-look`.
+
+## 0.6: the new look (started 2026-10-08, branch `claude/ui-kit-look`)
+
+Tyler asked to "take the ui kit and screens and make the addon look like that". The design is the
+Paper file "auxForever Screens", pages "UI Kit" (every color, size and control) and "New" (the seven
+screens). A "New v2" page with a Barlow design was tried in an earlier session; it is no longer in
+the file, so it is not what was built. TOC `forever-0.6`.
+
+Build 1 (not tried in game yet): a restyle only, no change to searching, buying or posting.
+- `color.lua`: the kit's values (gold 229,190,91; black edges; text #EBEBEB; status colors for the
+  percentages and money). Key names unchanged, so every caller keeps working.
+- `gui/core.lua`: square shapes (the rounded corner textures are no longer used), `add_sheen` (a
+  black gradient over a raised control's fill plus a light top line; falls back to a flat shade if
+  the client's `SetGradient` differs), button looks (`apply_look`; Enable and Disable redraw), tabs
+  as raised buttons 1px apart, gold outline on a focused input, the status bar as a sunken track,
+  `row_selection` and `row_hover` for tables.
+- Tables: raised header plates, sorted column white with a gold chevron (`chevron.tga` rotated), no
+  stripes (the kit says "no stripes"), selected row gold 13% with a 2px gold bar, hover white 6%.
+- Window: darker bands top and bottom that fade with the Background setting; status bar 265x22 in
+  the bottom band; logo "aux" white, "Forever" gold.
+- Buy bar: no box of its own, quantity chips 64px (80 for the stack), Buy 160px with the primary
+  look, Confirm green. The kit's 80px chips and 190px Buy do not fit the 1000px minimum window
+  next to the Quantity box, so they are a little narrower.
+- Not matched: the font (Forever loads no addon fonts; sizes stay as they were, the game font
+  needs them), the layouts of each screen (the kit screens mostly follow the existing layouts;
+  differences such as the Fast/Full sunken track are approximated with two buttons).
+- Open question for Tyler: zebra rows. He asked for a zebra version of an earlier design; the kit
+  says no stripes, so build 1 has none. Easy to add back.
 
 ## Start here (for the next session: 0.5.1 or 0.6)
 

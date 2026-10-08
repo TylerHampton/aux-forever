@@ -6,6 +6,16 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.6 (in progress)
+
+- New look, from the new UI Kit and screen mockups: near-black panels with black edges and square corners, raised buttons that are lighter
+  at the top, one gold color for what is selected or the main action. The selected tab, sub tab and
+  quantity have a gold outline; the main button of each screen (Search, Post, Buy, Start) has a gold
+  outline and label instead of a solid orange fill. Tables have raised column headers, the sorted
+  column is white with a gold arrow, and the selected row is gold with a bar at its left edge. The
+  percentages, money in and out, and warnings use softer colors. The game's own font is kept:
+  Forever does not load fonts from addons.
+
 ## 0.5 (2026-10-08)
 
 Better prices, clearer posting and clicks that work the same everywhere, with player feedback from

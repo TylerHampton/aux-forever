@@ -11,7 +11,7 @@ local auction_listing = require 'aux.gui.auction_listing'
 local buy_bar = require 'aux.gui.buy_bar'
 
 FILTER_SPACING = 27
-SUBTAB_WIDTH = 200
+SUBTAB_WIDTH = 150
 
 frame = CreateFrame('Frame', nil, aux.frame)
 frame:SetAllPoints(aux.frame.body)
@@ -140,7 +140,6 @@ do
     local btn = gui.button(frame)
     btn:SetHeight(25)
     btn:SetPoint('RIGHT', start_button, 'LEFT', -4, 0)
-    btn:SetBackdropColor(aux.color.state.enabled())
     btn:SetText('Resume')
     btn:SetScript('OnClick', function()
         execute(nil, true)
@@ -222,28 +221,28 @@ do
     gui.horizontal_line(frame, -40)
 end
 do
-    local btn = gui.button(frame, gui.font_size.large)
-    btn:SetPoint('BOTTOMLEFT', aux.frame.content, 'TOPLEFT', 10, 8)
+    local btn = gui.button(frame, gui.font_size.medium)
+    btn:SetPoint('BOTTOMLEFT', aux.frame.content, 'TOPLEFT', 8, 7)
     btn:SetWidth(SUBTAB_WIDTH)
-    btn:SetHeight(22)
+    btn:SetHeight(26)
     btn:SetText('Search Results')
     btn:SetScript('OnClick', function() set_subtab(RESULTS) end)
     search_results_button = btn
 end
 do
-    local btn = gui.button(frame, gui.font_size.large)
-    btn:SetPoint('TOPLEFT', search_results_button, 'TOPRIGHT', 5, 0)
+    local btn = gui.button(frame, gui.font_size.medium)
+    btn:SetPoint('TOPLEFT', search_results_button, 'TOPRIGHT', 2, 0)
     btn:SetWidth(SUBTAB_WIDTH)
-    btn:SetHeight(22)
+    btn:SetHeight(26)
     btn:SetText('Saved Searches')
     btn:SetScript('OnClick', function() set_subtab(SAVED) end)
     saved_searches_button = btn
 end
 do
-    local btn = gui.button(frame, gui.font_size.large)
-    btn:SetPoint('TOPLEFT', saved_searches_button, 'TOPRIGHT', 5, 0)
+    local btn = gui.button(frame, gui.font_size.medium)
+    btn:SetPoint('TOPLEFT', saved_searches_button, 'TOPRIGHT', 2, 0)
     btn:SetWidth(SUBTAB_WIDTH)
-    btn:SetHeight(22)
+    btn:SetHeight(26)
     btn:SetText('Filter Builder')
     btn:SetScript('OnClick', function() set_subtab(FILTER) end)
     new_filter_button = btn
