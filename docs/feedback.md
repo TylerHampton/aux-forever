@@ -100,13 +100,13 @@ For whoever fixes or builds from it:
 
 | ID | Received | From | Type | Area | Sev | Summary | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| [FB-001](#fb-001-the-other-quantity-box-on-the-buy-bar-does-not-look-like-a-place-to-type) | 2026-10-08 | Darkhorse | ux | Buy bar | n/a | The "Other" quantity box does not look like a place to type | new |
-| [FB-002](#fb-002-right-click-an-item-in-the-bags-should-load-it-into-the-post-tab) | 2026-10-08 | Darkhorse | request | Post | n/a | Right-click an item in the bags should load it into the Post tab | new |
-| [FB-003](#fb-003-clicking-post-sometimes-does-nothing-and-shows-no-error) | 2026-10-08 | Darkhorse | bug | Post | S2 | Clicking Post sometimes does nothing and shows no error | new |
+| [FB-001](#fb-001-the-other-quantity-box-on-the-buy-bar-does-not-look-like-a-place-to-type) | 2026-10-08 | Darkhorse | ux | Buy bar | n/a | The "Other" quantity box does not look like a place to type | in-progress claude/youthful-curie-ghbvlt (mockup approved 2026-10-08) |
+| [FB-002](#fb-002-right-click-an-item-in-the-bags-should-load-it-into-the-post-tab) | 2026-10-08 | Darkhorse | request | Post | n/a | Right-click an item in the bags should load it into the Post tab | in-progress claude/youthful-curie-ghbvlt (click standard approved 2026-10-08) |
+| [FB-003](#fb-003-clicking-post-sometimes-does-nothing-and-shows-no-error) | 2026-10-08 | Darkhorse | bug | Post | S2 | Clicking Post sometimes does nothing and shows no error | fixed 0.5 7a187c7 |
 | [FB-004](#fb-004-the-ui-is-the-biggest-issue-closer-to-the-traditional-auction-house-layout) | 2026-10-08 | Darkhorse | ux | Overall | n/a | The UI is his biggest issue; wants it closer to the traditional auction house | wont-fix (direction; Tyler: follow TSM and aux) |
 | [FB-005](#fb-005-praise-the-list-of-sellable-items-on-the-left-of-the-post-tab) | 2026-10-08 | Darkhorse | praise | Post | n/a | Praise: the list of sellable items on the Post tab | new |
-| [FB-006](#fb-006-after-resizing-and-changing-the-scale-the-recent-searches-header-sticks-out-of-the-window) | 2026-10-08 | Garsterson | bug | Window | S3 | After resizing and changing the scale, the Recent Searches header sticks out of the window | planned 0.5 |
-| [FB-007](#fb-007-crafting-cost-in-the-profession-window-anywhere-in-the-world) | 2026-10-08 | Garsterson | request | Recipe search | n/a | Crafting cost in the profession window, anywhere in the world | planned 0.5 |
+| [FB-006](#fb-006-after-resizing-and-changing-the-scale-the-recent-searches-header-sticks-out-of-the-window) | 2026-10-08 | Garsterson | bug | Window | S3 | After resizing and changing the scale, the Recent Searches header sticks out of the window | fixed 0.5 31ac02c |
+| [FB-007](#fb-007-crafting-cost-in-the-profession-window-anywhere-in-the-world) | 2026-10-08 | Garsterson | request | Recipe search | n/a | Crafting cost in the profession window, anywhere in the world | in-progress claude/youthful-curie-ghbvlt (mockup approved 2026-10-08) |
 
 ## Players
 
@@ -167,7 +167,7 @@ Ask Tyler:
 - Type: ux
 - Area: Buy bar
 - Severity: n/a
-- Status: new
+- Status: in-progress claude/youthful-curie-ghbvlt (Tyler approved the mockup, option B, 2026-10-08)
 - Proposed: 0.5 (no 0.4.2, Tyler 2026-10-08; a visual change, so mockup first)
 
 Said:
@@ -212,7 +212,7 @@ Ask Tyler: nothing.
 - Type: request (Darkhorse expected it to work; see Tyler's notes on a possible bug)
 - Area: Post
 - Severity: n/a
-- Status: new
+- Status: in-progress claude/youthful-curie-ghbvlt (click standard approved by Tyler 2026-10-08)
 - Proposed: 0.5 (no 0.4.2, Tyler 2026-10-08)
 
 Said:
@@ -271,7 +271,7 @@ right-click on a bag item yourself? Steps if so.
 - Type: bug
 - Area: Post
 - Severity: S2 (nothing lost; the player is left not knowing why)
-- Status: new
+- Status: fixed 0.5 7a187c7 (every way a post ends says what happened; a faded Post button says why). In-game check: TESTING.md, 0.5 build 1, steps 5 to 8
 - Proposed: 0.5 (no 0.4.2, Tyler 2026-10-08; the silent part: always say why a post did not happen)
 
 Said:
@@ -398,7 +398,7 @@ Ask Tyler: nothing.
 - Type: bug
 - Area: Window (seen on Search, Saved Searches)
 - Severity: S3 (looks broken; nothing lost)
-- Status: planned 0.5 (Tyler, 2026-10-08: "Just wrap this into .5, I dont want to make a .4.2")
+- Status: fixed 0.5 31ac02c (tables lay out again when shown and when resized; the last column is anchored to the right edge). In-game check: TESTING.md, 0.5 build 1, steps 9 and 10
 - Proposed: 0.5
 
 Said (Tyler's summary):
@@ -457,7 +457,7 @@ Ask Tyler: nothing; the steps are enough to try.
 - Type: request
 - Area: Recipe search (profession window)
 - Severity: n/a
-- Status: planned 0.5 (design decided 2026-10-08, see Decisions; mockup before building)
+- Status: in-progress claude/youthful-curie-ghbvlt (mockup approved by Tyler 2026-10-08)
 - Proposed: 0.5 (a new feature; the roadmap keeps those out of patch versions)
 
 Said (Tyler's summary):
