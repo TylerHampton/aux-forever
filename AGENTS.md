@@ -201,7 +201,8 @@ as interactive HTML pages; an HTML file Tyler can open in a browser works the sa
 - `docs/roadmap.md`: what each version is for. A patch version (0.3.x) is bug fixes, speed and
   small things only, no new features; new features go into the next minor version (0.4).
 - `docs/forever-auction-house.md`: how Forever's auction house works, with sources.
-- `TESTING.md`: the current build's in-game checklist and the quick run before every release.
+- `TESTING.md`: the current build's in-game checklist and the 5-minute check before every release
+  (six steps at most, Tyler's limit).
   `docs/testing-history.md`: the older detailed checklists, by section number.
 - `README.md`: credit, license, install. License: MIT for the changes made here; Simon's original
   code has no license and is used with his permission. CurseForge uses "All Rights Reserved".

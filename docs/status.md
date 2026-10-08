@@ -83,12 +83,17 @@ Linen Cloth Value 33c with 712 listed at 33c and 2 at 3c (the outliers were igno
 faded Post button's tooltip shows the reason. The right-click unlock step has only a screenshot of
 "Not posted: the item is on your mouse pointer..." on Ritual Bands, no note: either the item was
 still on the pointer when Post was clicked (expected message) or it was still locked after the
-right-click (the bug). Asked Tyler which.
+right-click (the bug). Tyler: he was holding the item (Win+Shift+S hid the pointer in the
+screenshot); the fix works.
+
+The 15-minute pre-release quick run was too long for Tyler; replaced by a 5-minute, six-step check
+(`TESTING.md`, Before every release; test page collection `builds/0-5-release/results`).
 
 Open:
-- Tyler's answer on the right-click unlock step.
-- Then: the release quick run (`TESTING.md`, Before every release), and whether the Sniper and
-  Auctions tab notes (`docs/roadmap.md`, 0.5) go into 0.5 or wait.
+- Tyler runs the 5-minute check on build 4. Then, when he says 0.5 is ready: pull request into
+  `main`, the Release workflow, changelog heading `## 0.5 (date)`.
+- The Sniper and Auctions tab notes (`docs/roadmap.md`, 0.5): Claude recommended leaving them for
+  after 0.5; Tyler has not decided.
 - Asked Tyler: whether to do the Sniper and Auctions tab notes in `docs/roadmap.md` (0.5) tonight
   (he asked what they were; explained 2026-10-08, waiting); whether today's market price should
   count in the usual price. FB-002's suspected bug: he does not remember. Damaged gear (FB-003):
