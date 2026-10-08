@@ -89,9 +89,13 @@ screenshot); the fix works.
 The 15-minute pre-release quick run was too long for Tyler; replaced by a 5-minute, six-step check
 (`TESTING.md`, Before every release; test page collection `builds/0-5-release/results`).
 
+Release check on build 4 (Tyler, 2026-10-08, `builds/0-5-release/results`): all six steps pass
+(open, buy one linen cloth, post, Auctions tab, a Sniper round, the Materials line on Herb Baked
+Egg).
+
 Open:
-- Tyler runs the 5-minute check on build 4. Then, when he says 0.5 is ready: pull request into
-  `main`, the Release workflow, changelog heading `## 0.5 (date)`.
+- When Tyler says 0.5 is ready: changelog heading `## 0.5 (date)`, pull request into `main`,
+  merge, the Release workflow (AGENTS.md, Releases).
 - The Sniper and Auctions tab notes (`docs/roadmap.md`, 0.5): Claude recommended leaving them for
   after 0.5; Tyler has not decided.
 - Asked Tyler: whether to do the Sniper and Auctions tab notes in `docs/roadmap.md` (0.5) tonight
