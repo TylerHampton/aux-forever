@@ -4,6 +4,7 @@ local aux = require 'aux'
 local post = require 'aux.tabs.post'
 local info = require 'aux.util.info'
 local scan = require 'aux.core.scan'
+local money = require 'aux.util.money'
 
 function status(enabled)
 	return (enabled and aux.color.green'on' or aux.color.red'off')
@@ -61,6 +62,24 @@ function SlashCmdList.AUX(command)
             aux.print('Open the auction house first.')
         else
             scan.measure_item_list()
+        end
+    elseif arguments[1] == 'price' then
+        -- auxForever (0.5): /aux price <item link or exact name>
+        local target = strmatch(command, '^%s*price%s+(.-)%s*$') or ''
+        local item_id, suffix_id
+        if strfind(target, 'item:', 1, true) then
+            item_id, suffix_id = info.parse_link(target)
+        elseif target ~= '' then
+            item_id, suffix_id = info.item_id(target), 0
+        end
+        if not item_id then
+            aux.print('Usage: /aux price followed by an item link (Shift-click the item) or its exact name.')
+        else
+            local item_info = info.item(item_id)
+            aux.print('Price data for ' .. (item_info and item_info.link or ('item ' .. item_id)) .. ':')
+            for _, line in ipairs(require('aux.core.history').report(item_id .. ':' .. (suffix_id or 0), function(amount) return money.to_string(amount, true) end)) do
+                aux.print('  ' .. line)
+            end
         end
     elseif arguments[1] == 'memory' then
         aux.print(memory_report())
@@ -151,6 +170,7 @@ function SlashCmdList.AUX(command)
 		aux.print('- debug [' .. status(aux.account_data.debug_timing) .. '] (search timing log)')
 		aux.print('- debug list (times the item list of the whole auction house)')
 		aux.print('- memory (how much memory aux uses)')
+		aux.print('- price <item> (what aux has recorded for an item)')
         aux.print('- clear post')
     end
 end

@@ -18,10 +18,12 @@ M.font_size = aux.immutable-{
     large = 18,
 }
 
--- auxForever (0.5, docs/clicks.md): the gray line at the bottom of a row's tooltip that says what
--- its clicks do, e.g. "Click: select · Right-click: search". A tooltip holding only the hint (alone)
--- has no blank line above it.
+-- auxForever (0.5, docs/clicks.md): the gray lines at the bottom of a row's tooltip that say what its
+-- clicks do. The text is "Click: select  ·  Right-click: search"; each click gets its own line, the
+-- click on the left and what it does on the right (one wrapped paragraph was hard to read, Tyler
+-- build 1). A tooltip holding only the hint (alone) has no blank line above it.
 M.HINT_SEPARATOR = '  ·  '
+local HINT_GRAY = {.62, .60, .56}
 function M.add_click_hint(tooltip, text, alone)
     if not text or text == '' then
         return
@@ -29,7 +31,23 @@ function M.add_click_hint(tooltip, text, alone)
     if not alone then
         tooltip:AddLine(' ')
     end
-    tooltip:AddLine(text, .62, .60, .56, true)
+    local r, g, b = HINT_GRAY[1], HINT_GRAY[2], HINT_GRAY[3]
+    -- split by hand: aux.split only handles one-character separators
+    local parts, start = {}, 1
+    while true do
+        local i, j = strfind(text, HINT_SEPARATOR, start, true)
+        tinsert(parts, strsub(text, start, (i or 0) - 1))
+        if not i then break end
+        start = j + 1
+    end
+    for _, part in ipairs(parts) do
+        local click, action = strmatch(part, '^(.-):%s*(.*)$')
+        if click then
+            tooltip:AddDoubleLine(click, action, r, g, b, r, g, b)
+        else
+            tooltip:AddLine(part, r, g, b)
+        end
+    end
 end
 
 do

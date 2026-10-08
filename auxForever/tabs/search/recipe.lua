@@ -247,7 +247,9 @@ function M.recipe_cost_tooltip(tooltip, parts)
         tooltip:AddDoubleLine(name, right, 1, 1, 1)
     end
     if missing < #rows then
-        tooltip:AddDoubleLine(missing > 0 and ('Total, without ' .. missing .. ' unpriced') or 'Total', money.to_string(total, true) .. (missing > 0 and '+' or ''), aux.color.label.enabled())
+        -- colors given in full: a color object's four values would make the right side red
+        local r, g, b = aux.color.label.enabled()
+        tooltip:AddDoubleLine(missing > 0 and ('Total, without ' .. missing .. ' unpriced') or 'Total', money.to_string(total, true) .. (missing > 0 and '+' or ''), r, g, b, 1, 1, 1)
     else
         tooltip:AddLine('Search or scan at the auction house to learn prices.', aux.color.label.enabled())
     end

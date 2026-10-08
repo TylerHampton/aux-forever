@@ -4,7 +4,8 @@ Last updated 2026-10-08 (0.5 build session).
 
 ## 0.5: where it stands (2026-10-08, build session on `claude/youthful-curie-ghbvlt`)
 
-Branch `claude/youthful-curie-ghbvlt` from `main` (dd040f9), TOC `forever-0.5`. Test build 1 is out
+Branch `claude/youthful-curie-ghbvlt` from `main` (dd040f9), TOC `forever-0.5`. Test build 2 is out
+(see Build 1 results below). Test build 1 was
 (zip sent to Tyler; test page https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ, results in
 ArtifactData collection `builds/0-5-dev1/results`). No new files, so `/reload` is enough. All six
 handoff items are built, each with tests that fail without the change; none is tried in game yet.
@@ -25,12 +26,33 @@ handoff items are built, each with tests that fail without the change; none is t
 6. FB-007 (5a935e1): the cost line under the reagent list; its position comes from Blizzard's
    source, not seen in game yet.
 
+Build 1 results (Tyler, 2026-10-08, test page collection `builds/0-5-dev1/results`): 14 pass, 5
+fail, 3 skipped, 1 unmarked (Full scan memory: 17.8 MB, 9.9 MB after a cleanup, 3,457 items of
+history; fine). Failures and what was done (build 2, `builds/0-5-dev2/results`):
+- Right-click a Post price row: BugSack "attempt to index global 'selected_item'" (tabs/post/
+  frame.lua:87). Leaving the Post tab clears selected_item before its name was read. Fixed; the
+  build 1 test missed it because it used tab 4 (Auctions) for Post (Post is tab 3).
+- Click hints: one wrapped gray paragraph, hard to read (Saved Searches). Now one line per click,
+  click left, action right (`gui.add_click_hint`). aux.split only handles one-character separators.
+- Quantity box: Tyler: the cursor mark "looks like its a bug". Removed.
+- Price tooltips "not even close" (Tel'Abim Banana: Value 2s 61c, listings 38c to 1s). Analysis:
+  the search table at the same moment showed 44% of usual at 38c, so the usual price was 87c; the
+  tooltip's 2s 61c is exactly 3 x 87c, the price of his stack of 3 (Shift multiplies by the stack;
+  Windows' screenshot keys Win+Shift+S hold Shift). So two things: the stack total was not labeled
+  (fixed: "for 3"), and the usual price on day one of 0.5 rests only on the daily lows recorded by
+  0.4.1 (Simon's method), because today's market price only counts after midnight, as in Simon's
+  aux. Proposed to Tyler: count today's market price in the usual price as the newest day. Not
+  built; waiting for his answer. `/aux price <item>` added to see what was recorded.
+- Post locked test step: Tyler did not understand it; reworded (optional).
+- Not a failure but found in a screenshot: the recipe cost tooltip's Total was red (colors passed
+  as a color's four values). Fixed.
+
 Open:
-- Tyler to test build 1 (`TESTING.md`, Current build, 23 steps; same on the test page).
-- Asked Tyler, no answer yet: whether to do the Sniper and Auctions tab notes in `docs/roadmap.md`
-  (0.5) tonight; what bug he suspected in FB-002 (inference: the right-click went into Blizzard's
-  hidden Sell tab, which also starts a search of its own); the damaged gear check (FB-003, test
-  step 8).
+- Tyler to test build 2 (`TESTING.md`, Current build, 9 steps; same on the test page).
+- Asked Tyler: whether to do the Sniper and Auctions tab notes in `docs/roadmap.md` (0.5) tonight
+  (he asked what they were; explained 2026-10-08, waiting); whether today's market price should
+  count in the usual price. FB-002's suspected bug: he does not remember. Damaged gear (FB-003):
+  skipped in build 1.
 - Mockup page for this build's visual items: https://claude.ai/artifact/SX8EwZHbgqS94ZBGhUtJCg
 
 ## 0.5: start here (handoff written 2026-10-08 by the feedback-logging session; done, see above)

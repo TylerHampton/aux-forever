@@ -261,6 +261,10 @@ Unknowns: none that block a fix.
 Ask Tyler: what bug do you suspect in this section, and have you seen the addon lock up after a
 right-click on a bag item yourself? Steps if so.
 
+Answer (Tyler, 2026-10-08): he does not remember what the bug was. Found while building 0.5: the
+right-click went into Blizzard's hidden Sell tab (docs/clicks.md, Built in 0.5); that is the most
+likely candidate, not confirmed.
+
 ### FB-003: Clicking Post sometimes does nothing and shows no error
 
 - Received: 2026-10-08 (said 2026-10-07)

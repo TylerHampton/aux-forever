@@ -571,7 +571,8 @@ function M.create(parent)
 
     -- auxForever (0.5, FB-001): Darkhorse did not see that the gray "Other" box took typing. The box
     -- is now labeled QUANTITY, always shows how many you are buying (the buttons fill it in), sits a
-    -- little wider, and shows a text cursor mark while not being typed in (mockup approved by Tyler)
+    -- little wider (mockup approved by Tyler; the text cursor mark of the mockup looked like a bug in
+    -- game, Tyler build 1, and was removed)
     other_input = gui.editbox(bar)
     other_input:SetPoint('LEFT', chips[4], 'RIGHT', 6, 0)
     other_input:SetWidth(92)
@@ -588,16 +589,9 @@ function M.create(parent)
     other_input.caption:SetPoint('TOP', 0, -4)
     other_input.caption:SetTextColor(aux.color.label.enabled())
     other_input.caption:SetText('QUANTITY')
-    other_input.caret = other_input:CreateTexture(nil, 'OVERLAY')
-    other_input.caret:SetColorTexture(aux.color.label.enabled())
-    other_input.caret:SetAlpha(.7)
-    other_input.caret:SetSize(1, 14)
-    other_input.caret:SetPoint('BOTTOMRIGHT', -9, 8)
     other_input:SetScript('OnEnter', function(self) self.hovered = true end)
     other_input:SetScript('OnLeave', function(self) self.hovered = false end)
-    other_input.focus_gain = function(self) self.caret:Hide() end
     other_input.focus_loss = function(self)
-        self.caret:Show()
         -- left empty: show the quantity being bought again
         if self:GetText() == '' and current and current.quantity then
             self:SetText(tostring(current.quantity))

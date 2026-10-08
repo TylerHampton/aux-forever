@@ -369,6 +369,32 @@ function M.finish_collector(collector)
 	collector.items, collector.count, collector.partial = {}, 0, {}
 end
 
+-- auxForever (0.5): /aux price <item>. What aux keeps for an item, in plain words, so a price that
+-- looks wrong can be checked against what was recorded (Tyler, build 1). money_text formats copper.
+function M.report(item_key, money_text)
+	if not data[item_key] then
+		return {'No price history for this item yet.'}
+	end
+	local record = read_record(item_key)
+	local entry = cached(item_key)
+	local lines = {}
+	tinsert(lines, format('Usual price (Value): %s, from %d past %s; seen %s', entry.value and money_text(entry.value) or '?', #record.points, #record.points == 1 and 'day' or 'days', age_text(entry.age) or '?'))
+	if record.points[1] == nil then
+		tinsert(lines, 'With no past days yet, the usual price is today\'s price. Today counts from tomorrow on.')
+	else
+		tinsert(lines, 'Today is not part of the usual price until the day ends.')
+	end
+	tinsert(lines, format('Today: lowest %s; market %s', record.low and money_text(record.low) or '?', record.market and (money_text(record.market) .. format(' (cheapest fifth of %d listed)', record.units or 0)) or '? (no complete look today)'))
+	local parts = {}
+	for _, point in ipairs(record.points) do
+		tinsert(parts, format('%s %s', age_text(today() - point.day), money_text(point.value)) .. (point.units and format(' (%d listed)', point.units) or ' (lowest, 0.4)'))
+	end
+	if #parts > 0 then
+		tinsert(lines, 'Past days: ' .. table.concat(parts, ', '))
+	end
+	return lines
+end
+
 -- auxForever: /aux memory detail
 function M.memory_counts()
 	local cached_n, today_n = 0, 0

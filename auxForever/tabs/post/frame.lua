@@ -82,9 +82,11 @@ end)
 -- it, click the chosen one again to let go of it; right-click searches the item like every other
 -- row in aux. (Right-click used to clear the price and double-click set the quantity.)
 function M.search_selected_item()
-	if selected_item then
+	-- the name is read first: leaving the Post tab clears selected_item (0.5 build 1 error)
+	local name = selected_item and selected_item.name
+	if name then
 		aux.set_tab(1)
-		search_tab.set_filter(strlower(selected_item.name) .. '/exact')
+		search_tab.set_filter(strlower(name) .. '/exact')
 		search_tab.execute(nil, false)
 	end
 end
@@ -117,7 +119,9 @@ local function bid_selected(data)
 end
 bid_listing:SetHandler('OnClick', function(table, row_data, column, button)
 	price_click(bid_selected, set_bid_selection, row_data, button)
-	price_hint(bid_selected)(table, row_data)
+	if button ~= 'RightButton' then
+		price_hint(bid_selected)(table, row_data)
+	end
 end)
 bid_listing:SetHandler('OnEnter', price_hint(bid_selected))
 bid_listing:SetHandler('OnLeave', hide_hint)
@@ -139,7 +143,9 @@ local function buyout_selected(data)
 end
 buyout_listing:SetHandler('OnClick', function(table, row_data, column, button)
 	price_click(buyout_selected, set_buyout_selection, row_data, button)
-	price_hint(buyout_selected)(table, row_data)
+	if button ~= 'RightButton' then
+		price_hint(buyout_selected)(table, row_data)
+	end
 end)
 buyout_listing:SetHandler('OnEnter', price_hint(buyout_selected))
 buyout_listing:SetHandler('OnLeave', hide_hint)

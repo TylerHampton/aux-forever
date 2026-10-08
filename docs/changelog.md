@@ -35,6 +35,10 @@ A change that comes from a player's feedback credits them by in-game name at the
   prices (or the vendor price when a vendor sells it for less), anywhere in the world. A gray "+"
   means some materials have no price yet; hover the line for each material's price and where it
   comes from. (suggested by Garsterson)
+- Tooltips: with Shift held (prices for the whole stack), Value, Today and the vendor prices say
+  "for 3" so they are not read as the price of one.
+- `/aux price <item>` prints what aux has recorded for an item: the usual price and how many days
+  it rests on, today's lowest and market price, and each past day.
 
 ## 0.4.1 (2026-10-06)
 

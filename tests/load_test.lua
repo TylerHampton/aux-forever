@@ -2470,7 +2470,7 @@ try('clicks 0.5', function()
   local button = 'RightButton'
   set(G, 'GetMouseButtonClicked', function() return button end)
   local used
-  aux.set_tab(4)
+  aux.set_tab(3) -- Post
   local post_tab = aux.get_tab()
   local real_post_use = post_tab.USE_ITEM
   post_tab.USE_ITEM = function(id, suffix) used = id .. ':' .. suffix end
@@ -2483,7 +2483,7 @@ try('clicks 0.5', function()
   button = 'RightButton'
   post_tab.USE_ITEM = real_post_use
   -- on the Auctions tab a right-click searches it
-  aux.set_tab(5)
+  aux.set_tab(4) -- Auctions
   executed = 0
   shortcut.on_post_item(location)
   check('FB-002: right-click a bag item on another tab searches it', aux.get_tab().name == 'Search' and executed == 1)
@@ -2516,10 +2516,11 @@ try('clicks 0.5', function()
   post.buyout_listing.handlers.OnClick(post.buyout_listing, data, nil, 'LeftButton')
   check('clicks: clicking the chosen price again lets go of it', post.get_buyout_selection() == nil)
   post.buyout_listing.handlers.OnClick(post.buyout_listing, data, nil, 'LeftButton')
-  aux.set_tab(4)
+  aux.set_tab(3) -- Post
   executed = 0
   post.buyout_listing.handlers.OnClick(post.buyout_listing, data, nil, 'RightButton')
   check('clicks: right-click a price row searches the item', aux.get_tab().name == 'Search' and search.search_box:GetText() == 'linen cloth/exact')
+  post.selected_item = {key = '7101:0', item_id = 7101, name = 'Linen Cloth', quality = 1, count = 20, max_stack = 20, commodity = true}
   check('clicks: right-click no longer clears the price', post.get_buyout_selection() == record)
   check('clicks: double-click on a price row does nothing now', post.buyout_listing.handlers.OnDoubleClick == nil and post.bid_listing.handlers.OnDoubleClick == nil)
   post.selected_item = nil
@@ -2610,6 +2611,77 @@ try('FB-007: recipe cost line', function()
     G.C_TradeSkillUI = nil
   end
   aux.account_data.merchant_buy[7203] = nil
+end)
+
+
+-- 0.5 build 1 results (Tyler, 2026-10-08)
+try('0.5 build 1 fixes', function()
+  local req = loadstring("select(2, ...) 'aux.test58'; return require")('auxForever', addon)
+  local aux = req 'aux'
+  local gui = req 'aux.gui'
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local tooltip = loadstring("select(2, ...) 'aux.core.tooltip'; return _M")('auxForever', addon)
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  set(G, 'GameTooltip_SetDefaultAnchor', function(t, owner) t:SetOwner(owner) end)
+
+  -- right-click a Post price row raised "attempt to index global 'selected_item'": leaving the Post
+  -- tab clears it before the name was read
+  aux.set_tab(3)
+  post.selected_item = {key = '7101:0', item_id = 7101, name = 'Linen Cloth', quality = 1, count = 20, max_stack = 20, commodity = true}
+  local ok, err = pcall(post.buyout_listing.handlers.OnClick, post.buyout_listing, {record = {unit_price = 12, count = 5}}, nil, 'RightButton')
+  check('build 1: right-click a Post price row works from the Post tab', ok and aux.get_tab().name == 'Search' and search.search_box:GetText() == 'linen cloth/exact')
+  if not ok then print('  ', err) end
+
+  -- click hints: one line per click, the click on the left
+  local doubles, singles = {}, 0
+  local tip = new_frame()
+  rawset(tip, 'AddDoubleLine', function(_, a, b) tinsert(doubles, a .. '=' .. b) end)
+  rawset(tip, 'AddLine', function() singles = singles + 1 end)
+  gui.add_click_hint(tip, 'Click: run' .. gui.HINT_SEPARATOR .. 'Alt-drag: reorder', true)
+  check('build 1: each click on its own line', #doubles == 2 and doubles[1] == 'Click=run' and doubles[2] == 'Alt-drag=reorder' and singles == 0)
+
+  -- the quantity box has no cursor mark (it looked like a bug)
+  local bar = loadstring("select(2, ...) 'aux.gui.buy_bar'; return _M")('auxForever', addon)
+  check('build 1: no cursor mark in the quantity box', bar.other_input.caret == nil)
+
+  -- the recipe cost tooltip's total is not red
+  local today = h.today()
+  h.write_record('7401:0', {day = today, points = {{day = today - 1, value = 50}}})
+  local total_args
+  local tip2 = new_frame()
+  rawset(tip2, 'AddDoubleLine', function(_, a, b, lr, lg, lb, rr, rg, rb) if a == 'Total' then total_args = {rr, rg, rb} end end)
+  search.recipe_cost_tooltip(tip2, {reagents = {{item_id = 7401, count = 1}}})
+  check('build 1: the cost total is white, not red', total_args and total_args[1] == 1 and total_args[2] == 1 and total_args[3] == 1)
+
+  -- with Shift held, tooltip prices are for the stack and say so
+  rawset(AuxTooltip, 'NumLines', function() return 0 end)
+  set(G, 'IsShiftKeyDown', function() return true end)
+  local lines = {}
+  local tip3 = new_frame()
+  rawset(tip3, 'AddLine', function(_, t) tinsert(lines, plain(t)) end)
+  tooltip.extend_tooltip(tip3, '|cffffffff|Hitem:7401::::::0:0|h[X]|h|r', 3)
+  rawset(AuxTooltip, 'NumLines', nil)
+  local value_line
+  for _, l in ipairs(lines) do if l:find('^Value') then value_line = l end end
+  check('build 1: a stack\'s Value says it is for the stack', value_line and value_line:find('for 3', 1, true) ~= nil)
+  rawset(G, 'IsShiftKeyDown', nil); G.IsShiftKeyDown = function() return false end
+
+  -- /aux price shows what aux recorded
+  local printed = {}
+  set(DEFAULT_CHAT_FRAME, 'AddMessage', function(_, t) tinsert(printed, plain(t)) end)
+  h.write_record('7402:0', {day = today, low = 38, market = 40, units = 83, points = {{day = today - 1, value = 87, units = 60}, {day = today - 3, value = 90}}})
+  SlashCmdList.AUX('price |cffffffff|Hitem:7402::::::0:0|h[Banana]|h|r')
+  local out = table.concat(printed, '\n')
+  check('/aux price: the usual price and its days', out:find('Usual price (Value):', 1, true) and out:find('from 2 past days', 1, true))
+  check('/aux price: today\'s lowest and market', out:find('lowest 38c', 1, true) and out:find('market 40c (cheapest fifth of 83 listed)', 1, true))
+  check('/aux price: the past days', out:find('1 day ago 87c (60 listed)', 1, true) and out:find('3 days ago 90c (lowest, 0.4)', 1, true))
+
+  post.selected_item = nil
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
 end)
 
 print('done, errors: ' .. errors)
