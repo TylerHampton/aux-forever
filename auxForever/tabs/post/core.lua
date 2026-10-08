@@ -52,6 +52,9 @@ StaticPopupDialogs.AUX_POST_CONFIRM = {
         confirm_post()
     end,
     OnCancel = function()
+        if pending_post then
+            post_outcome = 'cancelled'
+        end
         pending_post = nil
         posting = nil
     end,
@@ -70,6 +73,22 @@ function aux.event.AUX_LOADED()
     aux.event_listener('AUCTION_HOUSE_POST_ERROR', function()
         if pending_post then
             StaticPopup_Show('AUX_POST_CONFIRM', AUCTION_POSTING_ERROR_TEXT)
+        end
+    end)
+    -- auxForever (0.5, FB-003): the game's own error text while a post is under way (it shows it in
+    -- red at the top of the screen, easy to miss) is repeated in the Post tab if the post fails
+    aux.event_listener('UI_ERROR_MESSAGE', function(_, text)
+        if posting and type(text) == 'string' then
+            post_error_text = text
+        end
+    end)
+    aux.event_listener('AUCTION_HOUSE_SHOW_ERROR', function()
+        if posting then
+            post_outcome = 'refused'
+            StaticPopup_Hide('AUX_POST_CONFIRM')
+            pending_post = nil
+            posting = nil
+            last_post_update = nil
         end
     end)
     aux.event_listener('BAG_UPDATE', function()
@@ -295,6 +314,76 @@ function price_update()
     end
 end
 
+-- auxForever (0.5, FB-003): a post that does not happen always says why, in the Post tab (left,
+-- under Duration) and in chat. Darkhorse clicked Post once and nothing happened, with no message.
+local message, message_color, message_until
+
+function M.show_post_message(text, color, seconds)
+    message, message_color, message_until = text, color or aux.color.red, GetTime() + (seconds or 12)
+    if color ~= aux.color.positive then
+        aux.print(text)
+    end
+    refresh = true
+end
+
+local NOT_POSTED = {
+    gone = 'Not posted: the item is no longer in your bags.',
+    locked = 'Not posted: the item is locked. Put it down if it is on your cursor, or finish the trade or mail it is in.',
+    damaged = 'Not posted: this item must be repaired first.',
+    invalid = 'Not posted: the auction house does not accept this item.',
+    refused = 'Not posted: the auction house refused it.',
+    timeout = 'No answer from the auction house. Check the Auctions tab before posting again.',
+    cancelled = 'Not posted: you cancelled it.',
+    unchanged = 'Not posted, as far as aux can tell: the item is still in your bags.',
+}
+M.NOT_POSTED = NOT_POSTED
+
+-- why no bag slot with the item can be posted (find_item_location found none)
+function M.missing_item_reason(item_key)
+    local reason = 'gone'
+    for slot in info.inventory() do
+        local item_info = info.container_item(unpack(slot))
+        if item_info and item_info.item_key == item_key then
+            local durability, max_durability = C_Container.GetContainerItemDurability(unpack(slot))
+            if item_info.locked then
+                return 'locked'
+            elseif durability and max_durability and durability < max_durability then
+                reason = 'damaged'
+            elseif reason == 'gone' then
+                reason = 'invalid'
+            end
+        end
+    end
+    return reason
+end
+
+-- how many of the item are in the bags, postable or not
+function M.bag_count(item_key)
+    local count = 0
+    for slot in info.inventory() do
+        local item_info = info.container_item(unpack(slot))
+        if item_info and item_info.item_key == item_key then
+            count = count + (item_info.count or 1)
+        end
+    end
+    return count
+end
+
+-- the message after a post ends: how many left the bags against how many were meant to
+function M.post_result_text(outcome, wanted, posted, name, error_text)
+    if posted > 0 then
+        if posted < wanted then
+            return 'Posted ' .. posted .. ' of ' .. wanted .. ' × ' .. name .. (error_text and ('. The game said: ' .. error_text) or ''), aux.color.gold
+        end
+        return 'Posted ' .. posted .. ' × ' .. name, aux.color.positive
+    end
+    local text = NOT_POSTED[outcome] or NOT_POSTED.unchanged
+    if error_text then
+        text = text .. ' The game said: ' .. error_text
+    end
+    return text, aux.color.red
+end
+
 -- Finds a bag slot holding the item that can be put up for auction
 function find_item_location(item_key)
     for slot in info.inventory() do
@@ -341,10 +430,15 @@ function post_auction()
 
     local location = find_item_location(item_key)
     if not location then
+        show_post_message(NOT_POSTED[missing_item_reason(item_key)])
         return
     end
 
     StaticPopup_Hide('AUX_POST_CONFIRM')
+    post_outcome, post_error_text, message = nil, nil, nil
+    local bags_before = bag_count(item_key)
+    local wanted = post_quantity()
+    local name = selected_item.name or '?'
     local post
     if selected_item.commodity then
         post = {
@@ -380,6 +474,7 @@ function post_auction()
         while posting do
             -- waits longer while a confirmation dialog is open
             if GetTime() - last_post_update > (pending_post and 60 or 5) then
+                post_outcome = post_outcome or 'timeout'
                 StaticPopup_Hide('AUX_POST_CONFIRM')
                 pending_post = nil
                 posting = nil
@@ -392,6 +487,11 @@ function post_auction()
             end
         end
 
+        do
+            local posted = max(0, bags_before - bag_count(item_key))
+            show_post_message(post_result_text(post_outcome, wanted, posted, name, post_error_text))
+            post_outcome, post_error_text = nil, nil
+        end
         update_inventory_records()
         local all_posted = true
         for _, record in pairs(inventory_records) do
@@ -451,32 +551,43 @@ local function set_post_enabled(enabled)
     end
 end
 
+-- auxForever (0.5, FB-003): why the Post button is faded, shown next to it (nil when it is not)
+function M.disabled_reason()
+    if not selected_item then
+        return
+    elseif posting then
+        return 'Posting...'
+    elseif get_unit_buyout_price() > 0 and get_unit_start_price() > get_unit_buyout_price() then
+        return 'The starting bid is above the buyout.'
+    elseif selected_item.commodity and get_unit_buyout_price() == 0 then
+        return 'Type a price to post.'
+    elseif not selected_item.commodity and get_unit_start_price() == 0 then
+        return 'Type a price to post.'
+    elseif stack_count_input:GetNumber() == 0 then
+        return 'Choose how many to post.'
+    elseif deposit_amount() > GetMoney() then
+        return 'Not enough money for the deposit.'
+    end
+end
+
+local shown_message
+function update_post_message(reason)
+    local text
+    if message and GetTime() < message_until then
+        text = message_color(message)
+    else
+        text = reason and aux.color.label.enabled(reason) or ''
+    end
+    if text ~= shown_message then
+        shown_message = text
+        post_message:SetText(text)
+    end
+end
+
 function validate_parameters()
-    if posting or not selected_item then
-        set_post_enabled(false)
-        return
-    end
-    if get_unit_buyout_price() > 0 and get_unit_start_price() > get_unit_buyout_price() then
-        set_post_enabled(false)
-        return
-    end
-    if selected_item.commodity and get_unit_buyout_price() == 0 then
-        set_post_enabled(false)
-        return
-    end
-    if not selected_item.commodity and get_unit_start_price() == 0 then
-        set_post_enabled(false)
-        return
-    end
-    if stack_count_input:GetNumber() == 0 then
-        set_post_enabled(false)
-        return
-    end
-    if deposit_amount() > GetMoney() then
-        set_post_enabled(false)
-        return
-    end
-    set_post_enabled(true)
+    local reason = disabled_reason()
+    update_post_message(reason)
+    set_post_enabled(selected_item and not reason and true or false)
 end
 
 -- auxForever: how many units the current settings post (one auction per item for gear)

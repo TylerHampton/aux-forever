@@ -14,6 +14,11 @@ A change that comes from a player's feedback credits them by in-game name at the
   ("Value"), up to 14 days are kept, and tooltips say when aux last saw the item ("seen 3 days
   ago", darker when a week old or more). Your 0.4.1 price history is converted, not wiped. Going
   back to 0.4.1 after this version starts the price history over.
+- Post tab: a post that does not happen always says why, under Duration and in chat: the item left
+  your bags, is locked, needs a repair, was refused (with the game's own reason), or the auction
+  house did not answer. A post that went through says "Posted". When the Post button is faded,
+  the same place says why (no price, the starting bid above the buyout, not enough money for the
+  deposit). (reported by Darkhorse)
 
 ## 0.4.1 (2026-10-06)
 

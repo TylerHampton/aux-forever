@@ -23,6 +23,16 @@ Price data (docs/price-data.md, "Plan for 0.5"):
       next to what the auction house shows. An item seen over a week ago shows its age darker.
 - [ ] 4. Sniper: Start; it still finds deals with the default rule.
 
+FB-003, posts that say nothing (Post tab, the left column under Duration):
+- [ ] 5. Select a piece of gear, type a starting bid above the buyout: the Post button fades and
+      the left column says "The starting bid is above the buyout."
+- [ ] 6. Post an item normally: "Posting..." then, in green, "Posted 1 × <item>".
+- [ ] 7. Pick an item on the left, then pick it up onto the cursor and click Post: "Not posted:
+      the item is locked..." in red, also in chat.
+- [ ] 8. If you have damaged gear: does it show in the Post tab's list? If it does, Post should
+      say "Not posted: this item must be repaired first." (or show the game's own reason). Note
+      what you see either way.
+
 ## Before every release: the quick run
 
 A short pass over everything, so a release never breaks something old. About 15 minutes.

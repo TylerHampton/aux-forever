@@ -455,6 +455,16 @@ do
     label:SetJustifyH('LEFT')
     price_note = label
 end
+do
+    -- auxForever (0.5, FB-003): what happened to the last post, or why Post is faded; left column,
+    -- under Duration, above the line
+    local label = gui.label(frame.parameters, gui.font_size.small)
+    label:SetJustifyH('LEFT')
+    label:SetJustifyV('TOP')
+    label:SetPoint('TOPLEFT', frame.parameters, 'TOPLEFT', 14, ROW3 - 2)
+    label:SetPoint('BOTTOMRIGHT', frame.parameters, 'TOPLEFT', RIGHT_X - 16, -162)
+    post_message = label
+end
 
 do
     local line = frame.parameters:CreateTexture(nil, 'ARTWORK')

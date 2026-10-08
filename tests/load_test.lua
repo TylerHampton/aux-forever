@@ -2304,4 +2304,95 @@ try('price data 0.5: tooltip age', function()
   check('tooltip: an old price is dimmed', old:find('seen 9 days ago', 1, true) ~= nil and old ~= fresh:gsub('3 days', '9 days'))
 end)
 
+
+-- FB-003 (Darkhorse): clicking Post did nothing and said nothing. Every way a post can end says
+-- what happened, and a faded Post button says why.
+try('FB-003: posts always say what happened', function()
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  -- a fake bag: slot 1 holds the item
+  local bag = {}
+  local function link(id) return '|cffffffff|Hitem:' .. id .. '::::::0:0|h[Sword]|h|r' end
+  set(C_Container, 'GetContainerNumSlots', function(b) return b == 0 and #bag or 0 end)
+  set(C_Container, 'GetContainerItemLink', function(b, i) return bag[i] and link(bag[i].id) end)
+  set(C_Container, 'GetContainerItemInfo', function(b, i) local it = bag[i]; return it and {stackCount = it.count or 1, isLocked = it.locked or false, iconFileID = 1, hasLoot = false} end)
+  set(C_Container, 'GetContainerItemDurability', function(b, i) local it = bag[i]; if it and it.max then return it.dur, it.max end end)
+  set(G, 'GetItemInfo', function(x) local id = tonumber(tostring(x):match('item:(%d+)') or x); if id == 7001 then return 'Sword', link(7001), 2, 20, 1, 'Weapon', 'Sword', 1, 'INVTYPE_WEAPON', 1, 100 end end)
+  set(AuxTooltip, 'NumLines', function() return 0 end)
+  for _, k in ipairs{'ITEM_BIND_ON_PICKUP', 'ITEM_BIND_QUEST', 'ITEM_SOULBOUND'} do set(G, k, k) end
+  local posts = 0
+  set(C_AuctionHouse, 'PostItem', function() posts = posts + 1 return false end)
+  set(post.stack_count_input, 'GetNumber', function() return 1 end)
+  set(post.duration_dropdown, 'GetIndex', function() return 2 end)
+  local shown
+  set(post.post_message, 'SetText', function(self, t) shown = t end)
+  local printed = {}
+  set(DEFAULT_CHAT_FRAME, 'AddMessage', function(_, t) tinsert(printed, t) end)
+  set(ItemLocation, 'CreateFromBagAndSlot', function(_, b, i) return {IsValid = function() return true end, bag = b, slot = i} end)
+  set(C_AuctionHouse, 'IsSellItemValid', function(location) local it = bag[location.slot]; return it and not it.locked and not (it.max and it.dur < it.max) or false end)
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local function message() post.validate_parameters(); return plain(shown) end
+  local function select_sword()
+    post.selected_item = {key = '7001:0', item_id = 7001, name = 'Sword', quality = 2, count = 1, max_stack = 1}
+    post.set_unit_start_price(5000)
+    post.set_unit_buyout_price(9000)
+  end
+  post.frame:Show()
+
+  -- the item left the bags
+  bag = {}
+  select_sword()
+  post.post_auction()
+  check('FB-003: an item no longer in the bags says so', message():find('no longer in your bags', 1, true) and posts == 0)
+  check('FB-003: the reason is also in chat', printed[#printed] and printed[#printed]:find('no longer in your bags', 1, true))
+
+  -- damaged gear (Darkhorse thought his might have been)
+  bag = {{id = 7001, dur = 10, max = 50}}
+  post.post_auction()
+  check('FB-003: damaged gear says it needs a repair', message():find('must be repaired', 1, true) and posts == 0)
+
+  -- locked (on the cursor, in a trade)
+  bag = {{id = 7001, locked = true}}
+  post.post_auction()
+  check('FB-003: a locked item says so', message():find('locked', 1, true) and posts == 0)
+
+  -- the auction house never answers
+  bag = {{id = 7001}}
+  post.post_auction()
+  check('FB-003: the post is sent', posts == 1)
+  check('FB-003: Post fades and says it is posting', message():find('Posting...', 1, true))
+  for _ = 1, 70 do tick() end
+  check('FB-003: no answer says so', message():find('No answer from the auction house', 1, true))
+
+  -- the auction house refuses it, with the game's own red text repeated
+  select_sword()
+  post.post_auction()
+  fire('UI_ERROR_MESSAGE', 1, 'Item must be repaired')
+  fire('AUCTION_HOUSE_SHOW_ERROR', 1)
+  for _ = 1, 3 do tick() end
+  local m = message()
+  check('FB-003: a refused post says so with the game\'s text', m:find('refused', 1, true) and m:find('Item must be repaired', 1, true))
+
+  -- a post that went through says so too
+  select_sword()
+  post.post_auction()
+  bag = {}
+  fire('BAG_UPDATE', 0)
+  for _ = 1, 3 do tick() end
+  check('FB-003: a post that went through says Posted', message():find('Posted 1 × Sword', 1, true))
+
+  -- a faded Post button says why
+  bag = {{id = 7001}}
+  for _ = 1, 200 do tick() end
+  select_sword()
+  post.set_unit_start_price(9500)
+  check('FB-003: a bid above the buyout is explained', message():find('starting bid is above the buyout', 1, true))
+  post.set_unit_start_price(5000)
+  check('FB-003: a valid post shows no reason', message() == '')
+
+  post.selected_item = nil
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+end)
+
 print('done, errors: ' .. errors)
