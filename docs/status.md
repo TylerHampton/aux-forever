@@ -1,8 +1,113 @@
 # Status
 
-Last updated 2026-10-08.
+Last updated 2026-10-08 (0.5 build session).
 
-## 0.5: start here (handoff written 2026-10-08 by the feedback-logging session)
+## 0.5: where it stands (2026-10-08, build session on `claude/youthful-curie-ghbvlt`)
+
+Branch `claude/youthful-curie-ghbvlt` from `main` (dd040f9), TOC `forever-0.5`. Test build 2 is out
+(see Build 1 results below). Test build 1 was
+(zip sent to Tyler; test page https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ, results in
+ArtifactData collection `builds/0-5-dev1/results`). No new files, so `/reload` is enough. All six
+handoff items are built, each with tests that fail without the change; none is tried in game yet.
+
+1. Price data (e1c852a): market price per day from complete views, usual price weighted to recent
+   days (half-life 7 days, 14 days kept), "seen N days ago" in tooltips, history version 3 with
+   lazy conversion of version 2. Details: `docs/price-data.md`, start of "Plan for 0.5".
+2. FB-003 (7a187c7): every way a post ends says what happened (Post tab, left column under
+   Duration, and chat on failure); a faded Post button says why. PostItem's return value is read
+   as "needs confirmation" (as aux's code always did), not as a failure: unverified against the
+   API docs, inferred from the code.
+3. FB-006 (31ac02c): `gui/listing.lua` lays out again on show and on content size change; the last
+   column is anchored to the right edge.
+4. Click standard and FB-002 (140996a): Tyler approved the standard on 2026-10-08. Blizzard's
+   Forever bag code sends a right-click to `AuctionHouseFrame:SetPostItem`; aux follows it.
+   Details and what was not changed: `docs/clicks.md`, "Built in 0.5".
+5. FB-001 (6f77958): option B of the mockup (Tyler: "Everything looks good").
+6. FB-007 (5a935e1): the cost line under the reagent list; its position comes from Blizzard's
+   source, not seen in game yet.
+
+Build 1 results (Tyler, 2026-10-08, test page collection `builds/0-5-dev1/results`): 14 pass, 5
+fail, 3 skipped, 1 unmarked (Full scan memory: 17.8 MB, 9.9 MB after a cleanup, 3,457 items of
+history; fine). Failures and what was done (build 2, `builds/0-5-dev2/results`):
+- Right-click a Post price row: BugSack "attempt to index global 'selected_item'" (tabs/post/
+  frame.lua:87). Leaving the Post tab clears selected_item before its name was read. Fixed; the
+  build 1 test missed it because it used tab 4 (Auctions) for Post (Post is tab 3).
+- Click hints: one wrapped gray paragraph, hard to read (Saved Searches). Now one line per click,
+  click left, action right (`gui.add_click_hint`). aux.split only handles one-character separators.
+- Quantity box: Tyler: the cursor mark "looks like its a bug". Removed.
+- Price tooltips "not even close" (Tel'Abim Banana: Value 2s 61c, listings 38c to 1s). Analysis:
+  the search table at the same moment showed 44% of usual at 38c, so the usual price was 87c; the
+  tooltip's 2s 61c is exactly 3 x 87c, the price of his stack of 3 (Shift multiplies by the stack;
+  Windows' screenshot keys Win+Shift+S hold Shift). So two things: the stack total was not labeled
+  (fixed: "for 3"), and the usual price on day one of 0.5 rests only on the daily lows recorded by
+  0.4.1 (Simon's method), because today's market price only counts after midnight, as in Simon's
+  aux. Proposed to Tyler: count today's market price in the usual price as the newest day. Not
+  built; waiting for his answer. `/aux price <item>` added to see what was recorded.
+- Post locked test step: Tyler did not understand it; reworded (optional).
+- Not a failure but found in a screenshot: the recipe cost tooltip's Total was red (colors passed
+  as a color's four values). Fixed.
+
+Build 2 results (Tyler, 2026-10-08, `builds/0-5-dev2/results`): Post right-click, hints, quantity
+box pass; stack label works ("Value: 2s 61c for 3" with Shift, 87c without). `/aux price` on the
+banana confirmed the analysis: usual 87c from 2 past days, both 0.4.1 daily lows (87c two days
+ago, 11c three days ago); today lowest 38c, market 39c (cheapest fifth of 82 listed). Light Feather:
+usual 4c (0.4.1 lows), lowest today 7c with 1,861 listed. Fixed after build 2 (5338888, not yet in a
+zip): the cost tooltip's prices were gold (the game's default right color), the Post locked message
+was cut off.
+
+Price question (Tyler, 2026-10-08): players do a full scan, post and leave within minutes, and need
+to trust the tooltip away from the auction house; heavy averaging that lags the market loses that.
+Claude's proposal sent the same day (waiting for Tyler): tooltips and the recipe cost show the
+latest market price (the most recent complete look, with its age), and the multi-day usual price
+stays for finding deals (Sniper, the search % column, percentage filters), shown in the tooltip only
+when it differs a lot from the latest. Not built.
+
+Tyler approved the proposal ("Yes build it, the text examples are enough"). Built in build 3:
+`history.latest`, tooltips and the recipe cost use it, "usually ..." at a 30% gap; details in
+`docs/price-data.md`. Test page collection `builds/0-5-dev3/results`.
+
+Build 3 results (Tyler, 2026-10-08, `builds/0-5-dev3/results`): banana tooltip 38c each (pass);
+Full scan alone recorded Rough Dynamite at 30c, its lowest listing, so Full scan prices look right;
+Linen Cloth 32c with 296 listed at 23c ("The full scan NOR the search fixed the tooltip??"): the
+average of the cheapest 20% is too deep for big markets. Also: hovering the faded Post button did
+nothing; the Full scan looks stuck for 7 to 8 seconds before its bar moves (Tyler: help impatient
+players see a scan is running); a right-clicked bag item stayed locked (Blizzard's hidden Sell tab
+calls C_Item.LockItem on it, source: Blizzard_AuctionHouseSharedTemplates.lua, forever branch), so
+it could not be picked up and aux posted from another stack. All four fixed in build 4
+(`builds/0-5-dev4/results`): market price = middle of the cheapest 5% of units, the right-clicked
+item is cleared from Blizzard's Sell tab (ClearPostItem), a Post button tooltip, status bar text
+during a Full scan.
+
+Build 4 results (Tyler, 2026-10-08, `builds/0-5-dev4/results`): Full scan status text passes;
+Linen Cloth Value 33c with 712 listed at 33c and 2 at 3c (the outliers were ignored: right); the
+faded Post button's tooltip shows the reason. The right-click unlock step has only a screenshot of
+"Not posted: the item is on your mouse pointer..." on Ritual Bands, no note: either the item was
+still on the pointer when Post was clicked (expected message) or it was still locked after the
+right-click (the bug). Tyler: he was holding the item (Win+Shift+S hid the pointer in the
+screenshot); the fix works.
+
+The 15-minute pre-release quick run was too long for Tyler; replaced by a 5-minute, six-step check
+(`TESTING.md`, Before every release; test page collection `builds/0-5-release/results`).
+
+Release check on build 4 (Tyler, 2026-10-08, `builds/0-5-release/results`): all six steps pass
+(open, buy one linen cloth, post, Auctions tab, a Sniper round, the Materials line on Herb Baked
+Egg).
+
+Release (Tyler, 2026-10-08: "Yes"): he also asked to stress Full scans. Added: a second login line
+saying when the last Full scan was (`full_scan_reminder` in `aux-addon.lua`), a "Get the most out
+of it: run a Full scan" section and a corrected "Prices" section on the CurseForge page
+(`docs/curseforge.md`, `docs/curseforge-description.md`). Changelog dated, with Darkhorse and
+Garsterson credited on each change from their feedback and named at the top. Then the pull request
+into `main`, merged, and the Release workflow (`v0.5`).
+- The Sniper and Auctions tab notes (`docs/roadmap.md`, 0.5): Claude recommended leaving them for
+  after 0.5; Tyler has not decided.
+- Asked Tyler: whether to do the Sniper and Auctions tab notes in `docs/roadmap.md` (0.5) tonight
+  (he asked what they were; explained 2026-10-08, waiting); whether today's market price should
+  count in the usual price. FB-002's suspected bug: he does not remember. Damaged gear (FB-003):
+  skipped in build 1.
+- Mockup page for this build's visual items: https://claude.ai/artifact/SX8EwZHbgqS94ZBGhUtJCg
+
+## 0.5: start here (handoff written 2026-10-08 by the feedback-logging session; done, see above)
 
 Tyler is opening a new chat on 2026-10-08 to build 0.5 the same night. Everything it needs is in
 the repository; this list is the order of work. Read `AGENTS.md` first, then this, then the files

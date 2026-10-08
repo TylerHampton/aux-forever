@@ -18,6 +18,38 @@ M.font_size = aux.immutable-{
     large = 18,
 }
 
+-- auxForever (0.5, docs/clicks.md): the gray lines at the bottom of a row's tooltip that say what its
+-- clicks do. The text is "Click: select  ·  Right-click: search"; each click gets its own line, the
+-- click on the left and what it does on the right (one wrapped paragraph was hard to read, Tyler
+-- build 1). A tooltip holding only the hint (alone) has no blank line above it.
+M.HINT_SEPARATOR = '  ·  '
+local HINT_GRAY = {.62, .60, .56}
+function M.add_click_hint(tooltip, text, alone)
+    if not text or text == '' then
+        return
+    end
+    if not alone then
+        tooltip:AddLine(' ')
+    end
+    local r, g, b = HINT_GRAY[1], HINT_GRAY[2], HINT_GRAY[3]
+    -- split by hand: aux.split only handles one-character separators
+    local parts, start = {}, 1
+    while true do
+        local i, j = strfind(text, HINT_SEPARATOR, start, true)
+        tinsert(parts, strsub(text, start, (i or 0) - 1))
+        if not i then break end
+        start = j + 1
+    end
+    for _, part in ipairs(parts) do
+        local click, action = strmatch(part, '^(.-):%s*(.*)$')
+        if click then
+            tooltip:AddDoubleLine(click, action, r, g, b, r, g, b)
+        else
+            tooltip:AddLine(part, r, g, b)
+        end
+    end
+end
+
 do
     local id = 1
     function M.unique_name()
@@ -479,6 +511,19 @@ do
             else
                 self.primary_status_bar:SetStatusBarColor(.30, .32, .35, .6)
                 self:SetBackdropBorderColor(aux.color.window.border())
+            end
+        end
+        -- auxForever (0.5): a short text in the bar, e.g. what a Full scan is doing
+        local text = self.primary_status_bar:CreateFontString(nil, 'OVERLAY')
+        text:SetFont(font, font_size.small, '')
+        text:SetPoint('LEFT', 8, 0)
+        text:SetPoint('RIGHT', -8, 0)
+        text:SetTextColor(aux.color.text.enabled())
+        self.text = text
+        function self:set_text(value)
+            if value ~= self.shown_text then
+                self.shown_text = value
+                text:SetText(value or '')
             end
         end
         function self:set_done(done)

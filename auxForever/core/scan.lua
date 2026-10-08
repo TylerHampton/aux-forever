@@ -367,7 +367,9 @@ function M.item_key_string(item_key)
     return item_key.itemID .. ':' .. (item_key.itemSuffix or 0)
 end
 
--- Returns the auction records for one item key, or nil if the auction house did not answer.
+-- Returns the auction records for one item key, or nil if the auction house did not answer, and
+-- whether every auction of the item was read (a failed request for more leaves the view incomplete:
+-- auxForever 0.5, only complete views give a market price).
 function search(item_key)
     local key_info = item_key_info(item_key)
     if not key_info then
@@ -375,7 +377,7 @@ function search(item_key)
     end
     wait_item(item_key.itemID)
 
-    local records = {}
+    local records, complete = {}, true
     if key_info.isCommodity then
         local item_id = item_key.itemID
         local function match(id) return id == item_id end
@@ -388,6 +390,7 @@ function search(item_key)
         end
         while not C_AuctionHouse.HasFullCommoditySearchResults(item_id) do
             if not request(function() C_AuctionHouse.RequestMoreCommoditySearchResults(item_id) end, events, match) then
+                complete = false
                 break
             end
         end
@@ -410,6 +413,7 @@ function search(item_key)
         end
         while not C_AuctionHouse.HasFullItemSearchResults(item_key) do
             if not request(function() C_AuctionHouse.RequestMoreItemSearchResults(item_key) end, events, match) then
+                complete = false
                 break
             end
         end
@@ -421,13 +425,23 @@ function search(item_key)
             end
         end
     end
-    return records
+    return records, complete
 end
 
-function process_auction(auction, page, total)
+-- auxForever (0.5): a complete view of one item is its market price for the day
+local function record_view(records, complete)
+    if complete and records and #records > 0 then
+        history.record_view_of(records)
+    end
+end
+
+function process_auction(auction, page, total, collector)
     -- a fast mode row only knows the lowest price, which may be a bid: it is not price history
     if not auction.fast then
         history.process_auction(auction)
+        if collector then
+            history.collect(collector, auction)
+        end
     end
     auction.page = page
     auction.blizzard_query = get_query().blizzard_query
@@ -443,7 +457,8 @@ function scan_item_keys(item_keys)
     local last_page = min(blizzard_query.last_page or math.huge, #item_keys - 1)
     for page = first_page, last_page do
         local t_item = GetTime()
-        local records = search(item_keys[page + 1])
+        local records, complete = search(item_keys[page + 1])
+        record_view(records, complete)
         if timing then
             timing.items = timing.items + 1
             local seconds = GetTime() - t_item
@@ -490,7 +505,9 @@ function scan_item_list(results)
     for i, result in ipairs(results) do
         if (result.totalQuantity or 0) > 0 then
             if open[item_key_string(result.itemKey)] then
-                for _, record in ipairs(search(result.itemKey) or empty) do
+                local records, complete = search(result.itemKey)
+                record_view(records, complete)
+                for _, record in ipairs(records or empty) do
                     process_auction(record)
                     check_aborted(scan_state)
                 end
@@ -525,10 +542,11 @@ end
 -- auxForever: one item's auctions, for code running inside a scan (the sniper). They count as
 -- price history like any search.
 function M.read_item(item_key)
-    local records = search(item_key)
+    local records, complete = search(item_key)
     for _, record in ipairs(records or empty) do
         history.process_auction(record)
     end
+    record_view(records, complete)
     return records
 end
 
@@ -550,14 +568,17 @@ function replicate()
         end
     end
 
+    -- auxForever (0.5): each item's prices are gathered while the list is read and recorded once at
+    -- the end (core/history.lua); the gathered numbers are dropped after that
+    local collector = history.new_collector()
     local pending = {}
     for index = 0, count - 1 do
         local record, item_id = info.replicate_record(index)
         if record then
-            process_auction(record, nil, count)
+            process_auction(record, nil, count, collector)
             check_aborted(scan_state)
         else
-            pending[index] = true
+            pending[index] = item_id or true
             if item_id then
                 info.request_item(item_id)
             end
@@ -575,12 +596,20 @@ function replicate()
             local record = info.replicate_record(index)
             if record then
                 pending[index] = nil
-                process_auction(record, nil, count)
+                process_auction(record, nil, count, collector)
                 processed = processed + 1
                 if processed >= 100 then break end
             end
         end
     end
+    -- an item with auctions that never loaded was not seen completely: no market price for it
+    for _, item_id in pairs(pending) do
+        if item_id ~= true then
+            collector.partial[item_id] = true
+        end
+    end
+    history.finish_collector(collector)
+    check_aborted(scan_state)
 end
 
 -- auxForever: /aux debug list. Times the item list of the whole auction house without opening any

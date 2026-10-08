@@ -19,9 +19,10 @@ frame.listing:SetPoint('BOTTOMRIGHT', aux.frame.content, 'BOTTOMRIGHT', 0, 0)
 listing = auction_listing.new(frame.listing, 22, auction_listing.bids_columns)
 listing:SetSort(1, 2, 3, 4, 5, 6, 7, 8)
 listing:Reset()
+listing.alt_hint = 'Alt-click: buyout  ·  Alt-right-click: bid'
 listing:SetHandler('OnClick', function(row, button)
 	if IsAltKeyDown() and aux.account_data.action_shortcuts then
-		if listing:GetSelection().record == row.record then
+		if listing:GetSelection() and listing:GetSelection().record == row.record then
 			if button == 'LeftButton' then
 				buyout_button:Click()
 			elseif button == 'RightButton' then

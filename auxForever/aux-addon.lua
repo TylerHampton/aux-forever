@@ -36,10 +36,32 @@ do
 			for _, f in ipairs(handlers2) do f(arg1, ...) end
             sort(account_data.auctionable_items, function(a, b) return strlen(a) < strlen(b) or (strlen(a) == strlen(b) and a < b) end)
             print('loaded. aux by shirsig, re-imagined by a fan. /aux for help')
+            print(full_scan_reminder(account_data.replicate_time, time()))
 		else
 			_M[event](arg1, ...)
 		end
 	end)
+end
+
+-- auxForever (0.5): the second line at login and after /reload. Tooltip prices and recipe costs come
+-- from scans, and a Full scan records every price at once, so it says when the last one was and
+-- asks for one (Tyler, 2026-10-08: players should get the value out of auxForever).
+function M.full_scan_reminder(last, now)
+    local scan = color.accent.background('Full scan')
+    if not last or last <= 0 then
+        return 'Tip: at the auction house, click ' .. scan .. ' (top right of aux). It records every price, so your tooltips and recipe costs are right anywhere in the world.'
+    end
+    local hours = floor(max(0, now - last) / 3600)
+    local age
+    if hours < 1 then
+        age = 'less than an hour ago'
+    elseif hours < 24 then
+        age = hours .. (hours == 1 and ' hour ago' or ' hours ago')
+    else
+        local days = floor(hours / 24)
+        age = days .. (days == 1 and ' day ago' or ' days ago')
+    end
+    return 'Last ' .. scan .. ': ' .. age .. '. Run one on each visit to the auction house to keep your tooltip prices current.'
 end
 
 function event.AUX_LOADED()
@@ -106,9 +128,13 @@ function event.AUX_LOADED()
         })
         -- Forever: the first test version recorded item prices divided by the number of auctions
         -- in a search row, which made recorded values far too low. Start the price history over.
-        if faction_data.history_version ~= 2 then
+        -- auxForever (0.5): version 3 adds market prices and day numbers. A version 2 line (0.4) is
+        -- converted when it is first read (core/history.lua), keeping every daily low.
+        if faction_data.history_version == 2 then
+            faction_data.history_version = 3
+        elseif faction_data.history_version ~= 3 then
             faction_data.history = {}
-            faction_data.history_version = 2
+            faction_data.history_version = 3
         end
     end
 end

@@ -3,6 +3,7 @@ select(2, ...) 'aux.tabs.search'
 local aux = require 'aux'
 local info = require 'aux.util.info'
 local money = require 'aux.util.money'
+local history = require 'aux.core.history'
 
 -- auxForever (0.4): recipe search. Forever has retail's profession window, which can tell an addon
 -- the materials of any recipe at the moment it is asked (C_TradeSkillUI.GetRecipeSchematic). A
@@ -192,6 +193,124 @@ function M.recipe_entry_name(entry)
         .. '  ' .. aux.color.label.enabled('(' .. n .. (n == 1 and ' material)' or ' materials)'))
 end
 
+-- auxForever (0.5, FB-007): what one craft's materials cost, anywhere in the world, from prices aux
+-- already keeps. Each material at its vendor price when a vendor sells it without limit for less,
+-- else at its latest price (the latest look at it, as in tooltips; build 3, was the usual price).
+-- Returns the cost of the priced ones, how many have no price, and a row per material for the
+-- tooltip: {item_id, count, cost, source = 'vendor' | 'latest', age}.
+function M.recipe_usual_cost(parts)
+    local total, missing, rows = 0, 0, {}
+    for _, part in ipairs(parts.reagents) do
+        local usual, age = history.latest(part.item_id .. ':0')
+        local vendor, limited = info.merchant_buy_info(part.item_id)
+        local row = {item_id = part.item_id, count = part.count}
+        if vendor and not limited and (not usual or vendor <= usual) then
+            row.cost, row.source = ceil(vendor) * part.count, 'vendor'
+        elseif usual then
+            row.cost, row.source, row.age = ceil(usual) * part.count, 'latest', age
+        end
+        if row.cost then
+            total = total + row.cost
+        else
+            missing = missing + 1
+        end
+        tinsert(rows, row)
+    end
+    return total, missing, rows
+end
+
+-- the line's text: "Materials  1g 24s", a gray "+" when some have no price, "no price yet" for none
+function M.recipe_cost_text(parts)
+    local total, missing = recipe_usual_cost(parts)
+    local text = aux.color.label.enabled('Materials  ')
+    if #parts.reagents > 0 and missing == #parts.reagents then
+        return text .. aux.color.label.disabled('no price yet')
+    end
+    return text .. money.to_string(total, true) .. (missing > 0 and aux.color.label.disabled('+') or '')
+end
+
+function M.recipe_cost_tooltip(tooltip, parts)
+    local total, missing, rows = recipe_usual_cost(parts)
+    tooltip:AddLine('Materials for 1 craft', 1, 1, 1)
+    tooltip:AddLine('Prices from your latest scans', aux.color.label.enabled())
+    for _, row in ipairs(rows) do
+        local item_info = info.item(row.item_id)
+        if not item_info then info.request_item(row.item_id) end
+        local name = (item_info and item_info.name or ('item ' .. row.item_id)) .. (row.count > 1 and (' ×' .. row.count) or '')
+        local right
+        if not row.cost then
+            right = aux.color.label.disabled('no price yet')
+        else
+            local source = row.source == 'vendor' and 'vendor' or ('seen ' .. (history.age_text(row.age) or '?'))
+            local dim = row.source == 'latest' and row.age and row.age >= history.OLD_DAYS
+            right = money.to_string(row.cost, true) .. '  ' .. (dim and aux.color.label.disabled or aux.color.label.enabled)(source)
+        end
+        -- white on both sides, like aux's tables: the game's default right color is gold, which
+        -- colored every price (Tyler, build 2)
+        tooltip:AddDoubleLine(name, right, 1, 1, 1, 1, 1, 1)
+    end
+    if missing < #rows then
+        -- colors given in full: a color object's four values would make the right side red
+        local r, g, b = aux.color.label.enabled()
+        tooltip:AddDoubleLine(missing > 0 and ('Total, without ' .. missing .. ' unpriced') or 'Total', money.to_string(total, true) .. (missing > 0 and '+' or ''), r, g, b, 1, 1, 1)
+    else
+        tooltip:AddLine('Search or scan at the auction house to learn prices.', aux.color.label.enabled())
+    end
+end
+
+-- the line under Blizzard's reagent list (in the 20 pixel gap above any optional reagents), set
+-- when a recipe is shown (the form's Init), never per frame
+do
+    local line, line_parts
+
+    local function update_line(form)
+        local recipe = form.GetRecipeInfo and form:GetRecipeInfo()
+        line_parts = recipe and recipe.recipeID and recipe_parts(recipe.recipeID)
+        local reagents = type(form.Reagents) == 'table' and form.Reagents
+        if not line_parts or #line_parts.reagents == 0 or (reagents and not reagents:IsShown()) then
+            line:Hide()
+            return
+        end
+        line.text:SetText(recipe_cost_text(line_parts))
+        line:SetWidth(max(60, line.text:GetStringWidth() + 8))
+        line:Show()
+        if GameTooltip:IsOwned(line) then
+            line:GetScript('OnEnter')(line)
+        end
+    end
+
+    M.update_cost_line = update_line
+
+    function M.create_cost_line()
+        local form = ProfessionsFrame and ProfessionsFrame.CraftingPage and ProfessionsFrame.CraftingPage.SchematicForm
+        if line or type(form) ~= 'table' or not form.Init then
+            return
+        end
+        line = CreateFrame('Frame', nil, form)
+        line:SetHeight(14)
+        if type(form.Reagents) == 'table' then
+            line:SetPoint('TOPLEFT', form.Reagents, 'BOTTOMLEFT', 0, -3)
+        else
+            line:SetPoint('BOTTOMLEFT', form, 'BOTTOMLEFT', 30, 50)
+        end
+        line:EnableMouse(true)
+        line.text = line:CreateFontString(nil, 'OVERLAY', 'GameFontHighlightSmall')
+        line.text:SetPoint('LEFT', 0, 0)
+        line.text:SetJustifyH('LEFT')
+        line:SetScript('OnEnter', function(self)
+            if not line_parts then return end
+            GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+            recipe_cost_tooltip(GameTooltip, line_parts)
+            GameTooltip:Show()
+        end)
+        line:SetScript('OnLeave', function() GameTooltip:Hide() end)
+        line:Hide()
+        M.recipe_cost_line = line
+        hooksecurefunc(form, 'Init', function(self) update_line(self) end)
+        if form:IsShown() then update_line(form) end
+    end
+end
+
 -- the button on the profession window, shown while aux is open at the auction house
 do
     local button
@@ -219,9 +338,11 @@ do
         aux.event_listener('ADDON_LOADED', function(name)
             if name == 'Blizzard_Professions' then
                 create_button()
+                create_cost_line()
             end
         end)
         create_button()
+        create_cost_line()
         aux.event_listener('AUCTION_HOUSE_SHOW', function()
             create_button()
             if button then button:Show() end

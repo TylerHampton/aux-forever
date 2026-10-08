@@ -76,9 +76,23 @@ function M.is_auctionable(item_id, item_info)
     return known
 end
 
+-- auxForever (0.5): how fresh the usual price is, after Value: "  seen 3 days ago", gray, darker when
+-- the newest price is a week old or more
+function M.age_suffix(age)
+    local text = history.age_text(age)
+    if not text then
+        return ''
+    end
+    local color = age >= history.OLD_DAYS and aux.color.label.disabled or aux.color.label.enabled
+    return '  ' .. color('seen ' .. text)
+end
+
 function extend_tooltip(tooltip, link, quantity)
     local item_id, suffix_id = info.parse_link(link)
     quantity = IsShiftKeyDown() and quantity or 1
+    -- auxForever (0.5): with Shift held the prices are for the whole stack; say so ("for 3"). In build
+    -- 1 a stack's Value read as a far too high price per item (Windows' screenshot keys hold Shift).
+    local per = quantity > 1 and ('  ' .. aux.color.label.enabled('for ' .. quantity)) or ''
     local item_info = info.item(item_id)
     -- auxForever: the disenchant table is only worked out when one of its lines is shown
     if item_info and (settings.disenchant_distribution or settings.disenchant_value) then
@@ -105,9 +119,9 @@ function extend_tooltip(tooltip, link, quantity)
         local price, limited = info.merchant_buy_info(item_id)
         if price then
             if settings.money_icons then
-                tooltip:AddLine('Vendor Buy ' .. (limited and '(limited): ' or ': ') .. GetCoinTextureString(price * quantity), aux.color.tooltip.merchant())
+                tooltip:AddLine('Vendor Buy ' .. (limited and '(limited): ' or ': ') .. GetCoinTextureString(price * quantity) .. per, aux.color.tooltip.merchant())
             else
-                tooltip:AddLine('Vendor Buy ' .. (limited and '(limited): ' or ': ') .. money.to_string2(price * quantity), aux.color.tooltip.merchant())
+                tooltip:AddLine('Vendor Buy ' .. (limited and '(limited): ' or ': ') .. money.to_string2(price * quantity) .. per, aux.color.tooltip.merchant())
             end
         end
     end
@@ -115,29 +129,34 @@ function extend_tooltip(tooltip, link, quantity)
         local price = item_info and item_info.sell_price
         if price ~= 0 then
             if settings.money_icons then
-                tooltip:AddLine('Vendor: ' .. (price and GetCoinTextureString(price * quantity) or UNKNOWN), aux.color.tooltip.merchant())
+                tooltip:AddLine('Vendor: ' .. (price and GetCoinTextureString(price * quantity) .. per or UNKNOWN), aux.color.tooltip.merchant())
             else
-                tooltip:AddLine('Vendor: ' .. (price and money.to_string2(price * quantity) or UNKNOWN), aux.color.tooltip.merchant())
+                tooltip:AddLine('Vendor: ' .. (price and money.to_string2(price * quantity) .. per or UNKNOWN), aux.color.tooltip.merchant())
             end
         end
     end
     local auctionable = not item_info or is_auctionable(item_id, item_info)
     local item_key = (item_id or 0) .. ':' .. (suffix_id or 0)
+    -- auxForever (0.5, build 3): Value is the latest look at the item (what players just saw at the
+    -- auction house); the multi-day usual price shows under it only when the two differ a lot
+    local latest, age = history.latest(item_key)
     local value = history.value(item_key)
     if auctionable then
         if settings.value then
-            if settings.money_icons then
-                tooltip:AddLine('Value: ' .. (value and GetCoinTextureString(value * quantity) or UNKNOWN), aux.color.tooltip.value())
-            else
-                tooltip:AddLine('Value: ' .. (value and money.to_string2(value * quantity) or UNKNOWN), aux.color.tooltip.value())
+            local function coins(amount)
+                return settings.money_icons and GetCoinTextureString(amount) or money.to_string2(amount)
+            end
+            tooltip:AddLine('Value: ' .. (latest and coins(latest * quantity) .. per .. age_suffix(age) or UNKNOWN), aux.color.tooltip.value())
+            if history.usually_differs(latest, value) then
+                tooltip:AddLine('  ' .. aux.color.label.enabled('usually ') .. coins(value * quantity), aux.color.label.enabled())
             end
         end
         if settings.daily  then
             local market_value = history.market_value(item_key)
             if settings.money_icons then
-                tooltip:AddLine('Today: ' .. (market_value and GetCoinTextureString(market_value * quantity) .. ' (' .. gui.percentage_historical(aux.round(market_value / value * 100)) .. ')' or UNKNOWN))
+                tooltip:AddLine('Today: ' .. (market_value and GetCoinTextureString(market_value * quantity) .. per .. ' (' .. gui.percentage_historical(aux.round(market_value / value * 100)) .. ')' or UNKNOWN))
             else
-                tooltip:AddLine('Today: ' .. (market_value and money.to_string2(market_value * quantity) .. ' (' .. gui.percentage_historical(aux.round(market_value / value * 100)) .. ')' or UNKNOWN), aux.color.tooltip.value())
+                tooltip:AddLine('Today: ' .. (market_value and money.to_string2(market_value * quantity) .. per .. ' (' .. gui.percentage_historical(aux.round(market_value / value * 100)) .. ')' or UNKNOWN), aux.color.tooltip.value())
             end
         end
     end

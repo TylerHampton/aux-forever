@@ -53,12 +53,20 @@ local function create_row(item_listing, row_index)
 	row:SetPoint('TOPRIGHT', content_frame, 0, -((row_index - 1) * ROW_HEIGHT))
 	row:EnableMouse(true)
 	row:SetScript('OnMouseUp', item_listing.on_click)
+	-- auxForever (0.5, docs/clicks.md): the row's clicks in a gray line
+	local HINT = 'Click: select to post' .. gui.HINT_SEPARATOR .. 'Right-click: search'
 	row:SetScript('OnEnter', function()
 		row.mouseover = true
 		row.highlight:Show()
+		if row.item_record then
+			GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
+			gui.add_click_hint(GameTooltip, HINT, true)
+			GameTooltip:Show()
+		end
 	end)
 	row:SetScript('OnLeave', function()
 		row.mouseover = false
+		GameTooltip:Hide()
 		if not selected(row.item_record) then
 			row.highlight:Hide()
 		end
@@ -70,6 +78,8 @@ local function create_row(item_listing, row_index)
 	row.item:SetPoint('RIGHT', -2.5, 0)
 	row.item.button:SetScript('OnEnter', function(self)
 		info.set_tooltip(row.item_record.link, self, 'ANCHOR_RIGHT')
+		gui.add_click_hint(GameTooltip, HINT)
+		GameTooltip:Show()
 	end)
 	row.item.button:SetScript('OnLeave', function() GameTooltip:Hide() end)
 

@@ -78,20 +78,53 @@ bid_listing = listing.new(frame.bid_listing)
 bid_listing:SetSelection(function(data)
 	return selected_item and (data.record == get_bid_selection() or data.record.historical_value and get_bid_selection() and get_bid_selection().historical_value)
 end)
-bid_listing:SetHandler('OnClick', function(table, row_data, column, button)
+-- auxForever (0.5, docs/clicks.md): the price lists follow the click standard. Click a price to use
+-- it, click the chosen one again to let go of it; right-click searches the item like every other
+-- row in aux. (Right-click used to clear the price and double-click set the quantity.)
+function M.search_selected_item()
+	-- the name is read first: leaving the Post tab clears selected_item (0.5 build 1 error)
+	local name = selected_item and selected_item.name
+	if name then
+		aux.set_tab(1)
+		search_tab.set_filter(strlower(name) .. '/exact')
+		search_tab.execute(nil, false)
+	end
+end
+
+local function price_click(is_selected, set_selection, row_data, button)
 	if button == 'RightButton' then
-        if row_data.record == get_bid_selection() or row_data.record.historical_value and get_bid_selection() and get_bid_selection().historical_value then
-            set_bid_selection()
-        end
+		search_selected_item()
+	elseif is_selected(row_data) then
+		set_selection()
 	else
-		set_bid_selection(row_data.record)
+		set_selection(row_data.record)
 	end
 	refresh = true
+end
+
+local function price_hint(is_selected)
+	return function(st, row_data)
+		GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
+		gui.add_click_hint(GameTooltip, (is_selected(row_data) and 'Click again: let go of this price' or 'Click: use this price') .. gui.HINT_SEPARATOR .. 'Right-click: search', true)
+		GameTooltip:Show()
+	end
+end
+
+local function hide_hint()
+	GameTooltip:Hide()
+end
+
+local function bid_selected(data)
+	return selected_item and (data.record == get_bid_selection() or data.record.historical_value and get_bid_selection() and get_bid_selection().historical_value) and true or false
+end
+bid_listing:SetHandler('OnClick', function(table, row_data, column, button)
+	price_click(bid_selected, set_bid_selection, row_data, button)
+	if button ~= 'RightButton' then
+		price_hint(bid_selected)(table, row_data)
+	end
 end)
-bid_listing:SetHandler('OnDoubleClick', function(table, row_data, column, button)
-	stack_size_input:SetNumber(row_data.record.stack_size)
-	refresh = true
-end)
+bid_listing:SetHandler('OnEnter', price_hint(bid_selected))
+bid_listing:SetHandler('OnLeave', hide_hint)
 
 buyout_listing = listing.new(frame.buyout_listing)
 -- auxForever: same structure as the other tables: units for sale (aux's Auctions and Stack Size
@@ -105,20 +138,17 @@ buyout_listing:SetColInfo{
 buyout_listing:SetSelection(function(data)
 	return selected_item and (data.record == get_buyout_selection() or data.record.historical_value and get_buyout_selection() and get_buyout_selection().historical_value)
 end)
+local function buyout_selected(data)
+	return selected_item and (data.record == get_buyout_selection() or data.record.historical_value and get_buyout_selection() and get_buyout_selection().historical_value) and true or false
+end
 buyout_listing:SetHandler('OnClick', function(table, row_data, column, button)
-	if button == 'RightButton' then
-        if row_data.record == get_buyout_selection() or row_data.record.historical_value and get_buyout_selection() and get_buyout_selection().historical_value then
-            set_buyout_selection()
-        end
-	else
-		set_buyout_selection(row_data.record)
+	price_click(buyout_selected, set_buyout_selection, row_data, button)
+	if button ~= 'RightButton' then
+		price_hint(buyout_selected)(table, row_data)
 	end
-	refresh = true
 end)
-buyout_listing:SetHandler('OnDoubleClick', function(table, row_data, column, button)
-	stack_size_input:SetNumber(row_data.record.stack_size)
-	refresh = true
-end)
+buyout_listing:SetHandler('OnEnter', price_hint(buyout_selected))
+buyout_listing:SetHandler('OnLeave', hide_hint)
 
 -- auxForever: the top panel of the Post tab, redesigned (post pricing mockup): the item with a
 -- hide toggle; quantity and duration on the left; on the right the price with a Match lowest /
@@ -455,6 +485,18 @@ do
     label:SetJustifyH('LEFT')
     price_note = label
 end
+do
+    -- auxForever (0.5, FB-003): what happened to the last post, or why Post is faded; left column,
+    -- under Duration, above the line
+    local label = gui.label(frame.parameters, gui.font_size.small)
+    label:SetJustifyH('LEFT')
+    label:SetJustifyV('TOP')
+    -- two lines when needed (a gui.label is one line by default, which cut the text off, build 2)
+    label:SetWordWrap(true)
+    label:SetPoint('TOPLEFT', frame.parameters, 'TOPLEFT', 14, ROW3 - 2)
+    label:SetPoint('BOTTOMRIGHT', frame.parameters, 'TOPLEFT', RIGHT_X - 16, -162)
+    post_message = label
+end
 
 do
     local line = frame.parameters:CreateTexture(nil, 'ARTWORK')
@@ -479,6 +521,18 @@ do
         self:GetFontString():SetTextColor(aux.color.accent.text())
     end
     btn:SetScript('OnClick', post_auction)
+    -- auxForever (0.5): hovering a faded Post button says why (Tyler, build 3: "hovering the greyed
+    -- out button does nothing"); the same reason is shown in the left column
+    btn:SetMotionScriptsWhileDisabled(true)
+    btn:SetScript('OnEnter', function(self)
+        local reason = disabled_reason()
+        if reason and not self:IsEnabled() then
+            GameTooltip:SetOwner(self, 'ANCHOR_TOP')
+            GameTooltip:AddLine(reason, 1, 1, 1, true)
+            GameTooltip:Show()
+        end
+    end)
+    btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
     post_button = btn
 end
 do

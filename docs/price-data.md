@@ -3,6 +3,10 @@
 Written 2026-10-08 for Tyler and for any agent touching prices. Facts come from the code (file and
 function named); anything else is marked as an inference or an opinion.
 
+Note (0.5): the sections up to "Plan for 0.5" describe the 0.4 data as it was when this file was
+written. 0.5 changed what is recorded and how the usual price is worked out; what was built is
+at the start of "Plan for 0.5".
+
 ## In one paragraph
 
 aux keeps one short line of text per item: the lowest price it saw for that item today, plus the
@@ -87,7 +91,45 @@ For comparison, from memory and not checked: TSM's "market value" averages the c
 the listings over about two weeks instead of taking the single lowest auction. Check TSM's own
 documentation before relying on this.
 
-## Plan for 0.5 (decided 2026-10-08)
+## Plan for 0.5 (decided 2026-10-08, built 2026-10-08)
+
+Built on 2026-10-08 as planned, with these details settled while building (`core/history.lua`):
+- Record line (history version 3): `day#low#market#units#points`, points `day@price@units`. `day`
+  is a calendar day number (days since 1 January 1970), so time zones and summer time never merge
+  or skip a day. A point's price is that day's market price, or its lowest when no complete view
+  was seen that day.
+- Version 2 lines (0.4.x) are converted when an item is first read, not all at login, so login
+  stays as fast as before. A 0.4 line is recognized by its first field (a 10 digit timestamp).
+- Market price: average of the cheapest 20% of the units (at least one unit), rounded up.
+  `MARKET_SHARE`, `MAX_POINTS` (14), `HALF_LIFE` (7 days) and `OLD_DAYS` (7) are constants at the
+  top of the file.
+- The age shown is "seen N days ago": days since aux last saw the item (today counts), from
+  `history.value_and_age`. Tooltips add it after Value, darker from 7 days on.
+- The Full scan still records each auction's low as it goes (so an interrupted scan keeps its
+  lows) and records market prices once per item at the end. Items whose auctions did not all load
+  get no market price.
+- Weights are relative, so converted items' usual prices can shift where their old lows varied:
+  recent days now count more. Steady prices stay the same (tested).
+
+Changed after testing (build 3, Tyler's decision 2026-10-08): players do a full scan, post and
+leave within minutes, and need to trust the tooltip away from the auction house. On day one the
+usual price rested only on 0.4.1's daily lows (Tel'Abim Banana: usual 87c from one old low, while
+today's market was 39c), and today's price would only count after midnight. So there are now two
+numbers with two jobs:
+- **Latest price** (`history.latest`): the market price of the most recent complete look (its
+  lowest when there was none that day), with its age. Shown as Value in tooltips and used by the
+  recipe cost line.
+- **Usual price** (`history.value`): the multi-day weighted median above. Used to find deals: the
+  Sniper's rule, the search % column, the Post tab's % badge, the percentage and profit filters,
+  disenchant values. Tooltips show it as a gray "usually ..." line only when it differs from the
+  latest by 30% or more (`USUALLY_SHARE`).
+- Build 3 test: a Full scan alone recorded Rough Dynamite at 30c, the same as its lowest listing
+  (514 listed), so Full scan prices look right. Linen Cloth showed 32c while 296 were listed at
+  23c: the average of the cheapest 20% reached up to 36c in a deep market. Build 4 changed the
+  market price to the middle unit price of the cheapest 5% of the units (`MARKET_SHARE = .05`),
+  which gives 24c there and still ignores one odd cheap auction.
+
+The plan as written before building:
 
 Tyler: "I do want you to make changes to the data and make it better, [...] as this is going to be
 like an improved version of the original." His concerns: storing too much, slowing the addon, and

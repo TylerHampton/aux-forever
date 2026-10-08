@@ -134,6 +134,28 @@ Not proposed: changing Shift and Ctrl on rows, the Alt shortcuts, or the text bo
 They match Blizzard or the original aux, which is the direction Tyler set (AGENTS.md, Design
 language).
 
+### Built in 0.5 (2026-10-08)
+
+Tyler approved the standard and the hover hint mockup on 2026-10-08 ("Everything looks good"). Built:
+- Right-click a bag item (FB-002): checked in Blizzard's UI source for Forever (branch `forever` of
+  Gethe/wow-ui-source, `Blizzard_UIPanels_Game/Mainline/ContainerFrame.lua`,
+  `ContainerFrameItemButton_OnClick`): with `AuctionHouseFrame` shown, a right-click on a bag item
+  that can be sold calls `AuctionHouseFrame:SetPostItem`, which puts it into Blizzard's own Sell tab
+  (and starts a search for it). aux keeps that window shown but invisible, so the item went there:
+  Darkhorse's "nothing happened". aux now follows that call (`hooksecurefunc`, a right-click only,
+  not while Blizzard's window is shown) and uses the item in aux (`core/shortcut.lua`). Items the
+  game says cannot be sold still go to Blizzard's default right-click (use or equip).
+- Shift-, Alt- and right-click from the bags in a tab without its own use (Sniper, Auctions, Bids)
+  switch to Search and search the item.
+- Clicking the selected row again lets go of it in every result table (`gui/auction_listing.lua`)
+  and in the Post tab's price lists. Alt-click on the selected row stays the opt-in shortcut.
+- Post tab price lists: right-click searches the item; double-click no longer sets the quantity.
+- Hover hint: every aux row shows a gray line with its clicks (`gui.add_click_hint`): result rows
+  and their item tooltips (Alt shortcuts listed only when turned on), the Post tab's bag list and
+  price lists, Saved Searches.
+- Not changed: Shift and Ctrl on rows, the Alt shortcuts, right-click on text boxes, the Sniper's
+  hold (part of the Sniper rework, `docs/roadmap.md`).
+
 ### For the session building 0.5
 
 - Show Tyler the standard table above (and the hover hint mockup) for an OK before changing clicks.

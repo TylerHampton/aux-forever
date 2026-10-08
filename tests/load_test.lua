@@ -1371,11 +1371,12 @@ try('sniper round', function()
   local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
   local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
   local function days(key, value)
-    h.write_record(key, {next_push = h.get_next_push(), data_points = {{value = value, time = 3}, {value = value, time = 2}, {value = value, time = 1}}})
+    local d = h.today()
+    h.write_record(key, {day = d, points = {{value = value, day = d - 1}, {value = value, day = d - 2}, {value = value, day = d - 3}}})
   end
   days('201:0', 2200); days('203:0', 600); days('204:0', 5000)
   -- the kilt was only seen today: a usual price, but not one to show
-  h.write_record('202:0', {next_push = h.get_next_push(), daily_min_buyout = 1500, data_points = {}})
+  h.write_record('202:0', {day = h.today(), low = 1500, points = {}})
   local items = {
     {id = 201, name = 'Kingsblood', commodity = true, min = 850, qty = 41, sell = 50, stack = 20, auctions = {{buyout = 850, qty = 12}, {buyout = 900, qty = 29}}},
     {id = 202, name = 'Ritual Kilt', min = 1500, qty = 1, sell = 2200, auctions = {{buyout = 1500}}},
@@ -1472,7 +1473,8 @@ try('sniper: judging items reuses the history cache', function()
   local persistence = req 'aux.util.persistence'
   local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
   local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
-  h.write_record('401:0', {next_push = h.get_next_push(), data_points = {{value = 500, time = 3}, {value = 500, time = 2}, {value = 500, time = 1}}})
+  local d = h.today()
+  h.write_record('401:0', {day = d, points = {{value = 500, day = d - 1}, {value = 500, day = d - 2}, {value = 500, day = d - 3}}})
   local real_read, reads = persistence.read, 0
   rawset(persistence, 'read', function(...) reads = reads + 1; return real_read(...) end)
   local real_info = G.GetItemInfo
@@ -2144,6 +2146,662 @@ try('recipe search', function()
   G.ProfessionsFrame, G.C_TradeSkillUI = nil, nil
   aux.frame.__shown = was_shown
   restore()
+end)
+
+
+-- 0.5: better price data (docs/price-data.md, "Plan for 0.5")
+try('price data 0.5', function()
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local persistence = loadstring("select(2, ...) 'aux.test50'; return require")('auxForever', addon) 'aux.util.persistence'
+  local today = h.today()
+
+  -- one very cheap auction among many barely moves the market price; today's lowest is that auction
+  local records = {{item_key = '9001:0', buyout_price = 1, count = 1}}
+  for i = 1, 20 do tinsert(records, {item_key = '9001:0', buyout_price = 5000, count = 5}) end
+  for _, r in ipairs(records) do h.process_auction(r) end
+  h.record_view_of(records)
+  local market, units = h.today_market('9001:0')
+  check('price: today\'s lowest is the cheap auction', h.market_value('9001:0') == 1)
+  check('price: one cheap auction barely moves the market price', market and market >= 950 and units == 101)
+  check('price: with no past days the usual price is the market price', h.value('9001:0') == market)
+
+  -- build 4: in a deep market the market price stays near the cheapest real listings (Linen Cloth in
+  -- build 3: 32c, the average of the cheapest fifth, while 296 were listed at 23c)
+  local linen = {23, 296, 24, 196, 25, 73, 30, 361, 33, 326, 34, 274, 35, 292, 36, 1148, 37, 2628, 38, 2272, 39, 1597, 40, 1153}
+  local deep = h.market_price(linen)
+  check('price: a deep market\'s price is near its lowest listings', deep <= 25)
+  check('price: one odd cheap auction does not set it', h.market_price({1, 1, 1000, 100}) == 1000)
+
+  -- gear rows: an item search row is auction_count auctions of one item
+  check('price: units of a gear row', h.record_units({count = 1, auction_count = 4}) == 4 and h.record_units({count = 20}) == 20)
+
+  -- recent days outweigh old ones: three recent days at 100 against five days a month old at 200
+  local points = {}
+  for d = 1, 3 do tinsert(points, {day = today - d, value = 100}) end
+  for d = 25, 29 do tinsert(points, {day = today - d, value = 200}) end
+  h.write_record('9002:0', {day = today, points = points})
+  check('price: recent days count more in the usual price', h.value('9002:0') == 100)
+
+  -- a day ends: its market price becomes a past day, its lowest is kept only without a market price
+  h.write_record('9003:0', {day = today - 1, low = 50, market = 80, units = 12, points = {}})
+  local r = h.read_record('9003:0')
+  check('price: a finished day keeps its market price and units', #r.points == 1 and r.points[1].value == 80 and r.points[1].units == 12 and r.points[1].day == today - 1 and r.low == nil)
+  h.write_record('9004:0', {day = today - 1, low = 50, points = {}})
+  check('price: a day without a complete view keeps its lowest', h.read_record('9004:0').points[1].value == 50)
+  local many = {}
+  for d = 1, 20 do tinsert(many, {day = today - 1 - d, value = d}) end
+  h.write_record('9005:0', {day = today - 1, low = 7, points = many})
+  check('price: at most 14 past days are kept', #h.read_record('9005:0').points == 14)
+
+  -- the age of a price: seen today, or how many days since the newest day
+  local _, age = h.value_and_age('9001:0')
+  check('price: seen today', age == 0 and h.age_text(age) == 'today')
+  _, age = h.value_and_age('9002:0')
+  check('price: seen 1 day ago', age == 1 and h.age_text(age) == '1 day ago' and h.age_text(9) == '9 days ago')
+
+  -- version 2 (0.4) lines are converted: every old daily low survives with its day
+  local old_schema = {'tuple', '#', {next_push='number'}, {daily_min_buyout='number'}, {data_points={'list', ';', {'tuple', '@', {value='number'}, {time='number'}}}}}
+  local function midnight_after(days_ago)
+    local t = os.date('*t', os.time() - days_ago * 86400)
+    t.hour, t.min, t.sec = 24, 0, 0
+    return os.time(t)
+  end
+  local old_points = {}
+  local old_values = {300, 310, 290, 900, 305}
+  for i, v in ipairs(old_values) do tinsert(old_points, {value = v, time = midnight_after(i)}) end
+  h.data['9006:0'] = persistence.write(old_schema, {next_push = midnight_after(0), daily_min_buyout = 280, data_points = old_points})
+  local converted = h.read_record('9006:0')
+  local all_kept = #converted.points == #old_values
+  for i, v in ipairs(old_values) do
+    all_kept = all_kept and converted.points[i].value == v and converted.points[i].day == today - i
+  end
+  check('price: a 0.4 line keeps every daily low with its day', all_kept)
+  check('price: a 0.4 line keeps today\'s lowest', converted.low == 280 and converted.day == today)
+  check('price: the converted usual price is the old one for steady prices', h.value('9006:0') == 305)
+  h.write_record('9006:0', converted)
+  check('price: the converted line is saved in the 0.5 form', not h.data['9006:0']:find('^%d%d%d%d%d%d%d%d'))
+  -- a stale day 0.4 line (last scanned days ago) moves its lowest into the past days
+  h.data['9007:0'] = persistence.write(old_schema, {next_push = midnight_after(3), daily_min_buyout = 444, data_points = {}})
+  local stale = h.read_record('9007:0')
+  check('price: a stale 0.4 day becomes a past day', #stale.points == 1 and stale.points[1].value == 444 and stale.points[1].day == today - 3)
+
+  -- day numbers are calendar days
+  check('price: day numbers', h.day_number_of(1970, 1, 1) == 0 and h.day_number_of(2000, 3, 1) == 11017 and h.day_number_of(2026, 10, 8) - h.day_number_of(2026, 10, 7) == 1)
+end)
+
+try('price data 0.5: full scan', function()
+  local req = loadstring("select(2, ...) 'aux.test51'; return require")('auxForever', addon)
+  local scan = req 'aux.core.scan'
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  -- two items, auctions mixed: item 9101 has 50 units at 100c and one at 5c, item 9102 3 at 700c
+  local list = {}
+  for i = 1, 10 do tinsert(list, {id = 9101, count = 5, buyout = 500}) ; if i == 4 then tinsert(list, {id = 9102, count = 1, buyout = 700}) end end
+  tinsert(list, 3, {id = 9101, count = 1, buyout = 5})
+  tinsert(list, {id = 9102, count = 2, buyout = 1400})
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  local fired
+  set(C_AuctionHouse, 'ReplicateItems', function() fired = true end)
+  set(C_AuctionHouse, 'GetNumReplicateItems', function() return #list end)
+  set(C_AuctionHouse, 'GetReplicateItemInfo', function(i)
+    local a = list[i + 1]
+    return 'Item', 1, a.count, 1, true, 1, nil, 0, 0, a.buyout, 0, false, nil, 'Seller', nil, 0, a.id, true
+  end)
+  set(C_AuctionHouse, 'GetReplicateItemLink', function(i) return '|cffffffff|Hitem:' .. list[i + 1].id .. '::::::0:0|h[Item]|h|r' end)
+  set(G, 'GetItemInfo', function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id ~= 9101 and id ~= 9102 then return end
+    return 'Item ' .. id, '|cffffffff|Hitem:' .. id .. '::::::0:0|h[Item]|h|r', 1, 10, 1, 'Trade Goods', 'Herb', 20, '', 1, 1
+  end)
+  local views = {}
+  local real_view = h.record_view
+  h.record_view = function(key, flat) views[key] = (views[key] or 0) + 1; return real_view(key, flat) end
+  local done
+  scan.start{type = 'list', queries = {{blizzard_query = {}}}, get_all = true, quiet = true, on_complete = function() done = true end}
+  for _ = 1, 10 do tick() end
+  fire('REPLICATE_ITEM_LIST_UPDATE')
+  for _ = 1, 80 do tick() end
+  h.record_view = real_view
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  check('full scan: finished', fired and done)
+  check('full scan: each item recorded once', views['9101:0'] == 1 and views['9102:0'] == 1)
+  local m1, u1 = h.today_market('9101:0')
+  local m2, u2 = h.today_market('9102:0')
+  -- 9101: 51 units; the cheapest 5% is 3 units (one at 5c, two at 100c); the middle one is 100c
+  check('full scan: market price and units, whatever the order', m1 == 100 and u1 == 51 and m2 == 700 and u2 == 3)
+  check('full scan: today\'s lowest', h.market_value('9101:0') == 5)
+end)
+
+-- 0.5: a view that missed auctions (a request for more went unanswered) gives no market price
+try('price data 0.5: incomplete view', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local run, restore = fake_ah{{id = 9201, name = 'Partial Robe', min = 900, qty = 2, auctions = {{buyout = 900}, {buyout = 950}}}}
+  local real_full = C_AuctionHouse.HasFullItemSearchResults
+  rawset(C_AuctionHouse, 'HasFullItemSearchResults', function() return false end)
+  rawset(C_AuctionHouse, 'RequestMoreItemSearchResults', function() end)
+  search.set_filter('partial robe/exact')
+  search.execute(nil, false)
+  run(400)
+  rawset(C_AuctionHouse, 'HasFullItemSearchResults', real_full)
+  rawset(C_AuctionHouse, 'RequestMoreItemSearchResults', nil)
+  check('incomplete: today\'s lowest is still recorded', h.market_value('9201:0') == 900)
+  check('incomplete: no market price', h.today_market('9201:0') == nil)
+  restore()
+end)
+
+-- 0.5: the usual price in tooltips says how fresh it is
+try('price data 0.5: tooltip age', function()
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local tooltip = loadstring("select(2, ...) 'aux.core.tooltip'; return _M")('auxForever', addon)
+  local today = h.today()
+  h.write_record('9301:0', {day = today, points = {{day = today - 3, value = 1000}}})
+  h.write_record('9302:0', {day = today, points = {{day = today - 9, value = 1000}}})
+  local function value_line(id)
+    local lines = {}
+    local tip = new_frame()
+    rawset(tip, 'AddLine', function(_, text) tinsert(lines, text) end)
+    tooltip.extend_tooltip(tip, '|cffffffff|Hitem:' .. id .. '::::::0:0|h[X]|h|r', 1)
+    for _, l in ipairs(lines) do if l:find('^Value') then return l end end
+  end
+  rawset(AuxTooltip, 'NumLines', function() return 0 end)
+  local fresh, old = value_line(9301) or '', value_line(9302) or ''
+  rawset(AuxTooltip, 'NumLines', nil)
+  check('tooltip: Value says when it was seen', fresh:find('seen 3 days ago', 1, true) ~= nil)
+  check('tooltip: an old price is dimmed', old:find('seen 9 days ago', 1, true) ~= nil and old ~= fresh:gsub('3 days', '9 days'))
+end)
+
+
+-- FB-003 (Darkhorse): clicking Post did nothing and said nothing. Every way a post can end says
+-- what happened, and a faded Post button says why.
+try('FB-003: posts always say what happened', function()
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  -- a fake bag: slot 1 holds the item
+  local bag = {}
+  local function link(id) return '|cffffffff|Hitem:' .. id .. '::::::0:0|h[Sword]|h|r' end
+  set(C_Container, 'GetContainerNumSlots', function(b) return b == 0 and #bag or 0 end)
+  set(C_Container, 'GetContainerItemLink', function(b, i) return bag[i] and link(bag[i].id) end)
+  set(C_Container, 'GetContainerItemInfo', function(b, i) local it = bag[i]; return it and {stackCount = it.count or 1, isLocked = it.locked or false, iconFileID = 1, hasLoot = false} end)
+  set(C_Container, 'GetContainerItemDurability', function(b, i) local it = bag[i]; if it and it.max then return it.dur, it.max end end)
+  set(G, 'GetItemInfo', function(x) local id = tonumber(tostring(x):match('item:(%d+)') or x); if id == 7001 then return 'Sword', link(7001), 2, 20, 1, 'Weapon', 'Sword', 1, 'INVTYPE_WEAPON', 1, 100 end end)
+  set(AuxTooltip, 'NumLines', function() return 0 end)
+  for _, k in ipairs{'ITEM_BIND_ON_PICKUP', 'ITEM_BIND_QUEST', 'ITEM_SOULBOUND'} do set(G, k, k) end
+  local posts = 0
+  set(C_AuctionHouse, 'PostItem', function() posts = posts + 1 return false end)
+  set(post.stack_count_input, 'GetNumber', function() return 1 end)
+  set(post.duration_dropdown, 'GetIndex', function() return 2 end)
+  local shown
+  set(post.post_message, 'SetText', function(self, t) shown = t end)
+  local printed = {}
+  set(DEFAULT_CHAT_FRAME, 'AddMessage', function(_, t) tinsert(printed, t) end)
+  set(ItemLocation, 'CreateFromBagAndSlot', function(_, b, i) return {IsValid = function() return true end, bag = b, slot = i} end)
+  set(C_AuctionHouse, 'IsSellItemValid', function(location) local it = bag[location.slot]; return it and not it.locked and not (it.max and it.dur < it.max) or false end)
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local function message() post.validate_parameters(); return plain(shown) end
+  local function select_sword()
+    post.selected_item = {key = '7001:0', item_id = 7001, name = 'Sword', quality = 2, count = 1, max_stack = 1}
+    post.set_unit_start_price(5000)
+    post.set_unit_buyout_price(9000)
+  end
+  post.frame:Show()
+
+  -- the item left the bags
+  bag = {}
+  select_sword()
+  post.post_auction()
+  check('FB-003: an item no longer in the bags says so', message():find('no longer in your bags', 1, true) and posts == 0)
+  check('FB-003: the reason is also in chat', printed[#printed] and printed[#printed]:find('no longer in your bags', 1, true))
+
+  -- damaged gear (Darkhorse thought his might have been)
+  bag = {{id = 7001, dur = 10, max = 50}}
+  post.post_auction()
+  check('FB-003: damaged gear says it needs a repair', message():find('must be repaired', 1, true) and posts == 0)
+
+  -- locked (on the cursor, in a trade)
+  bag = {{id = 7001, locked = true}}
+  post.post_auction()
+  check('FB-003: a locked item says so', message():find('mouse pointer', 1, true) and posts == 0)
+
+  -- the auction house never answers
+  bag = {{id = 7001}}
+  post.post_auction()
+  check('FB-003: the post is sent', posts == 1)
+  check('FB-003: Post fades and says it is posting', message():find('Posting...', 1, true))
+  for _ = 1, 70 do tick() end
+  check('FB-003: no answer says so', message():find('No answer from the auction house', 1, true))
+
+  -- the auction house refuses it, with the game's own red text repeated
+  select_sword()
+  post.post_auction()
+  fire('UI_ERROR_MESSAGE', 1, 'Item must be repaired')
+  fire('AUCTION_HOUSE_SHOW_ERROR', 1)
+  for _ = 1, 3 do tick() end
+  local m = message()
+  check('FB-003: a refused post says so with the game\'s text', m:find('refused', 1, true) and m:find('Item must be repaired', 1, true))
+
+  -- a post that went through says so too
+  select_sword()
+  post.post_auction()
+  bag = {}
+  fire('BAG_UPDATE', 0)
+  for _ = 1, 3 do tick() end
+  check('FB-003: a post that went through says Posted', message():find('Posted 1 × Sword', 1, true))
+
+  -- a faded Post button says why
+  bag = {{id = 7001}}
+  for _ = 1, 200 do tick() end
+  select_sword()
+  post.set_unit_start_price(9500)
+  check('FB-003: a bid above the buyout is explained', message():find('starting bid is above the buyout', 1, true))
+  post.set_unit_start_price(5000)
+  check('FB-003: a valid post shows no reason', message() == '')
+
+  post.selected_item = nil
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+end)
+
+
+-- FB-006 (Garsterson): after resizing and a scale change, the Recent Searches header stuck out of
+-- the window. Tables lay out again when shown and when their content area changes size, and the
+-- last column is anchored to the right edge instead of keeping an old width.
+try('FB-006: list headers follow the window', function()
+  local listing = loadstring("select(2, ...) 'aux.test55'; return require")('auxForever', addon) 'aux.gui.listing'
+  local parent = new_frame()
+  local st = listing.new(parent)
+  local right = 400
+  rawset(st, 'GetHeight', function() return 200 end)
+  rawset(st.contentFrame, 'GetLeft', function() return 0 end)
+  rawset(st.contentFrame, 'GetRight', function() return right end)
+  st:SetColInfo{{name = 'Name', width = .7}, {name = 'Alert', width = .3}}
+  st:SetData{}
+  local function anchors(f)
+    local points = {}
+    rawset(f, 'ClearAllPoints', function() points = {} end)
+    rawset(f, 'SetPoint', function(_, p, rel) tinsert(points, p) end)
+    rawset(f, 'SetWidth', function(_, w) f.__w = w end)
+    return function() return points end
+  end
+  local first, last = anchors(st.headCols[1]), anchors(st.headCols[2])
+  -- the window shrinks while the table is hidden (another sub tab), then the table is shown
+  right = 200
+  st.__scripts.OnShow(st)
+  check('FB-006: a table shown again uses its new width', st.headCols[1].__w == 140)
+  local lp = last()
+  local stretches = false
+  for _, p in ipairs(lp) do if p == 'TOPRIGHT' then stretches = true end end
+  check('FB-006: the last header column is anchored to the right edge', stretches)
+  check('FB-006: content size changes lay the table out again', st.contentFrame.__scripts.OnSizeChanged ~= nil)
+  right = 300
+  st.contentFrame.__scripts.OnSizeChanged(st.contentFrame)
+  check('FB-006: after a content size change the widths follow', st.headCols[1].__w == 210)
+end)
+
+
+-- 0.5 click standard (docs/clicks.md), with FB-002 (Darkhorse): right-click a bag item
+try('clicks 0.5', function()
+  local req = loadstring("select(2, ...) 'aux.test56'; return require")('auxForever', addon)
+  local aux = req 'aux'
+  local shortcut = loadstring("select(2, ...) 'aux.core.shortcut'; return _M")('auxForever', addon)
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local al = req 'aux.gui.auction_listing'
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  local was_shown = aux.frame.__shown
+  set(G, 'GameTooltip_SetDefaultAnchor', function(t, owner) t:SetOwner(owner) end)
+  aux.frame.__shown = true
+  local link = '|cffffffff|Hitem:7101::::::0:0|h[Linen Cloth]|h|r'
+  set(G, 'GetItemInfo', function(x) local id = tonumber(tostring(x):match('item:(%d+)') or x); if id == 7101 then return 'Linen Cloth', link, 1, 5, 1, 'Trade Goods', 'Cloth', 20, '', 1, 10 end end)
+  local executed = 0
+  local real_execute = search.execute
+  search.execute = function() executed = executed + 1 end
+
+  -- Alt-click from the bags on the Sniper tab: switches to Search and searches it (did nothing)
+  aux.set_tab(2)
+  set(G, 'IsAltKeyDown', function() return true end)
+  shortcut.on_modified_click(link)
+  rawset(G, 'IsAltKeyDown', nil); G.IsAltKeyDown = G.IsShiftKeyDown
+  check('clicks: Alt-click a bag item on the Sniper tab searches it', aux.get_tab() and aux.get_tab().name == 'Search' and search.search_box:GetText() == 'linen cloth/exact' and executed == 1)
+
+  -- FB-002: right-click a bag item (Blizzard sends it to AuctionHouseFrame:SetPostItem)
+  local hooked
+  set(G, 'hooksecurefunc', function(t, name, f) if t == AuctionHouseFrame and name == 'SetPostItem' then hooked = f end end)
+  set(AuctionHouseFrame, 'SetPostItem', function() end)
+  shortcut.post_item_hooked = nil
+  shortcut.hook_post_item()
+  check('FB-002: aux follows Blizzard\'s post item', hooked ~= nil)
+  local location = {IsValid = function() return true end}
+  set(C_Item, 'GetItemLink', function(l) return l == location and link or nil end)
+  local button = 'RightButton'
+  set(G, 'GetMouseButtonClicked', function() return button end)
+  local used
+  aux.set_tab(3) -- Post
+  local post_tab = aux.get_tab()
+  local real_post_use = post_tab.USE_ITEM
+  post_tab.USE_ITEM = function(id, suffix) used = id .. ':' .. suffix end
+  if hooked then hooked(AuctionHouseFrame, location) end
+  check('FB-002: right-click a bag item on the Post tab selects it for posting', used == '7101:0')
+  used = nil
+  button = 'LeftButton'
+  shortcut.on_post_item(location)
+  check('FB-002: only a right-click', used == nil)
+  button = 'RightButton'
+  post_tab.USE_ITEM = real_post_use
+  -- on the Auctions tab a right-click searches it
+  aux.set_tab(4) -- Auctions
+  executed = 0
+  shortcut.on_post_item(location)
+  check('FB-002: right-click a bag item on another tab searches it', aux.get_tab().name == 'Search' and executed == 1)
+
+  -- click the selected row again to let go of it, in every table
+  local rt = al.new(new_frame(), 19, al.search_columns)
+  local function grec(key, price) return {count = 1, item_key = key, search_signature = key, name = key, requirement = 0, unit_buyout_price = price, buyout_price = price, unit_bid_price = 0, bid_price = 0, high_bid = 0, duration = 2, link = link} end
+  local ra = grec('ka', 100)
+  rt:SetDatabase({ra, grec('kb', 200)})
+  local row = {rt = rt, record = ra}
+  rt.OnClick(row, 'LeftButton')
+  check('clicks: a click selects', rt:GetSelection() and rt:GetSelection().record == ra)
+  check('clicks: the hint says click again to let go', rt:ClickHint(row):find('Click again: let go', 1, true) ~= nil)
+  rt.OnClick(row, 'LeftButton')
+  check('clicks: clicking the selected row again lets go', rt:GetSelection() == nil)
+  check('clicks: the hint says click to select and right-click to search', rt:ClickHint(row):find('Click: select', 1, true) and rt:ClickHint(row):find('Right-click: search', 1, true))
+  rt.alt_hint = 'Alt-click: buy'
+  rt.OnClick(row, 'LeftButton')
+  aux.account_data.action_shortcuts = true
+  check('clicks: Alt shortcuts are in the hint only when turned on', rt:ClickHint(row):find('Alt-click: buy', 1, true) ~= nil)
+  aux.account_data.action_shortcuts = false
+  check('clicks: and not otherwise', rt:ClickHint(row):find('Alt', 1, true) == nil)
+
+  -- the Post tab's price lists: click the chosen price again to let go; right-click searches
+  post.selected_item = {key = '7101:0', item_id = 7101, name = 'Linen Cloth', quality = 1, count = 20, max_stack = 20, commodity = true}
+  local record = {unit_price = 12, count = 5}
+  local data = {record = record}
+  post.buyout_listing.handlers.OnClick(post.buyout_listing, data, nil, 'LeftButton')
+  check('clicks: a price is chosen with a click', post.get_buyout_selection() == record)
+  post.buyout_listing.handlers.OnClick(post.buyout_listing, data, nil, 'LeftButton')
+  check('clicks: clicking the chosen price again lets go of it', post.get_buyout_selection() == nil)
+  post.buyout_listing.handlers.OnClick(post.buyout_listing, data, nil, 'LeftButton')
+  aux.set_tab(3) -- Post
+  executed = 0
+  post.buyout_listing.handlers.OnClick(post.buyout_listing, data, nil, 'RightButton')
+  check('clicks: right-click a price row searches the item', aux.get_tab().name == 'Search' and search.search_box:GetText() == 'linen cloth/exact')
+  post.selected_item = {key = '7101:0', item_id = 7101, name = 'Linen Cloth', quality = 1, count = 20, max_stack = 20, commodity = true}
+  check('clicks: right-click no longer clears the price', post.get_buyout_selection() == record)
+  check('clicks: double-click on a price row does nothing now', post.buyout_listing.handlers.OnDoubleClick == nil and post.bid_listing.handlers.OnDoubleClick == nil)
+  post.selected_item = nil
+
+  -- Saved Searches list their clicks
+  check('clicks: Saved Searches hints', search.FAVORITE_HINT:find('Ctrl-right-click: rename', 1, true) and search.RECENT_HINT:find('Right-click: add to favorites', 1, true))
+
+  search.execute = real_execute
+  aux.frame.__shown = was_shown
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+end)
+
+
+-- FB-001 (Darkhorse): the gray "Other" box did not look like a place to type. It is labeled
+-- QUANTITY and always holds the number being bought; the buttons fill it in.
+try('FB-001: the quantity box', function()
+  local bar = loadstring("select(2, ...) 'aux.gui.buy_bar'; return _M")('auxForever', addon)
+  local tiers = {{count = 6, commodity_unit_price = 6}, {count = 100, commodity_unit_price = 7}}
+  bar.clear()
+  bar.show_commodity{item_id = 321, name = 'Mageroyal', max_stack = 20, tiers = function() return tiers end}
+  tick()
+  local box = bar.other_input
+  rawset(box, 'GetNumber', function(self) return tonumber(self.__text) or 0 end)
+  check('FB-001: the box is labeled Quantity', box.caption and box.caption.__text == 'QUANTITY')
+  check('FB-001: the box shows the quantity being bought from the start', box:GetText() == '20')
+  bar.chips[2].__scripts.OnClick(bar.chips[2])
+  tick()
+  check('FB-001: a button fills the box in', box:GetText() == '5' and bar.primary_label():find('^Buy 5 for') ~= nil)
+  box:SetText('37')
+  box.change(box, true)
+  tick()
+  check('FB-001: typing a number changes what is bought', bar.primary_label():find('^Buy 37 for') ~= nil)
+  box:SetText('')
+  box.focus_loss(box)
+  check('FB-001: left empty, the box shows the quantity again', box:GetText() == '37')
+  bar.clear()
+end)
+
+
+-- FB-007 (Garsterson): what a recipe's materials cost, in the profession window, anywhere
+try('FB-007: recipe cost line', function()
+  local req = loadstring("select(2, ...) 'aux.test57'; return require")('auxForever', addon)
+  local aux = req 'aux'
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local today = h.today()
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  h.write_record('7201:0', {day = today, points = {{day = today - 1, value = 26}}})   -- Mageroyal, usual 26c
+  h.write_record('7202:0', {day = today, points = {{day = today - 9, value = 41}}})   -- Stranglekelp, old
+  h.write_record('7203:0', {day = today, points = {{day = today - 1, value = 90}}})   -- Empty Vial: usual 90c...
+  aux.account_data.merchant_buy[7203] = '20#0'                                         -- ...but a vendor sells it for 20c
+  local parts = {name = 'Lesser Mana Potion', reagents = {{item_id = 7201, count = 2}, {item_id = 7202, count = 1}, {item_id = 7203, count = 1}}}
+  local total, missing, rows = search.recipe_usual_cost(parts)
+  check('FB-007: usual prices times amounts, vendor when cheaper', total == 2 * 26 + 41 + 20 and missing == 0)
+  check('FB-007: where each price comes from', rows[1].source == 'latest' and rows[1].age == 1 and rows[3].source == 'vendor')
+  check('FB-007: the line', plain(search.recipe_cost_text(parts)):find('Materials', 1, true) and not plain(search.recipe_cost_text(parts)):find('+', 1, true))
+  -- one material without a price: the sum of the others and a "+"
+  local some = {name = 'X', reagents = {{item_id = 7201, count = 1}, {item_id = 7299, count = 3}}}
+  total, missing = search.recipe_usual_cost(some)
+  check('FB-007: a material with no price leaves a +', total == 26 and missing == 1 and plain(search.recipe_cost_text(some)):find('+', 1, true))
+  local none = {name = 'Y', reagents = {{item_id = 7298, count = 1}, {item_id = 7299, count = 1}}}
+  check('FB-007: no material priced says no price yet', plain(search.recipe_cost_text(none)):find('no price yet', 1, true))
+  -- the tooltip names the price basis and each material's source and age
+  local lines = {}
+  local tip = new_frame()
+  rawset(tip, 'AddLine', function(_, t) tinsert(lines, plain(t)) end)
+  rawset(tip, 'AddDoubleLine', function(_, a, b) tinsert(lines, plain(a) .. ' | ' .. plain(b)) end)
+  search.recipe_cost_tooltip(tip, parts)
+  local all = table.concat(lines, '\n')
+  check('FB-007: tooltip explains the prices', all:find('Prices from your latest scans', 1, true) ~= nil)
+  check('FB-007: tooltip shows sources and ages', all:find('seen 1 day ago', 1, true) and all:find('seen 9 days ago', 1, true) and all:find('vendor', 1, true))
+  lines = {}
+  search.recipe_cost_tooltip(tip, some)
+  all = table.concat(lines, '\n')
+  check('FB-007: tooltip names the unpriced material', all:find('no price yet', 1, true) and all:find('without 1 unpriced', 1, true))
+  -- the line on the profession window: set when a recipe is shown, no auction house needed
+  check('FB-007: the line exists on the profession window', search.recipe_cost_line ~= nil)
+  if search.recipe_cost_line then
+    local schematic = {name = 'Lesser Mana Potion', outputItemID = 7210, quantityMin = 1,
+      reagentSlotSchematics = {{reagents = {{itemID = 7201}}, quantityRequired = 2}, {reagents = {{itemID = 7202}}, quantityRequired = 1}}}
+    G.C_TradeSkillUI = {GetRecipeSchematic = function() return schematic end}
+    local form = new_frame()
+    rawset(form, 'GetRecipeInfo', function() return {recipeID = 555} end)
+    local text
+    rawset(search.recipe_cost_line.text, 'SetText', function(_, t) text = t end)
+    search.update_cost_line(form)
+    check('FB-007: the line shows the recipe\'s cost', plain(text):find('Materials', 1, true) and search.recipe_cost_line.__shown)
+    G.C_TradeSkillUI = nil
+  end
+  aux.account_data.merchant_buy[7203] = nil
+end)
+
+
+-- 0.5 build 1 results (Tyler, 2026-10-08)
+try('0.5 build 1 fixes', function()
+  local req = loadstring("select(2, ...) 'aux.test58'; return require")('auxForever', addon)
+  local aux = req 'aux'
+  local gui = req 'aux.gui'
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local tooltip = loadstring("select(2, ...) 'aux.core.tooltip'; return _M")('auxForever', addon)
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  set(G, 'GameTooltip_SetDefaultAnchor', function(t, owner) t:SetOwner(owner) end)
+
+  -- right-click a Post price row raised "attempt to index global 'selected_item'": leaving the Post
+  -- tab clears it before the name was read
+  aux.set_tab(3)
+  post.selected_item = {key = '7101:0', item_id = 7101, name = 'Linen Cloth', quality = 1, count = 20, max_stack = 20, commodity = true}
+  local ok, err = pcall(post.buyout_listing.handlers.OnClick, post.buyout_listing, {record = {unit_price = 12, count = 5}}, nil, 'RightButton')
+  check('build 1: right-click a Post price row works from the Post tab', ok and aux.get_tab().name == 'Search' and search.search_box:GetText() == 'linen cloth/exact')
+  if not ok then print('  ', err) end
+
+  -- click hints: one line per click, the click on the left
+  local doubles, singles = {}, 0
+  local tip = new_frame()
+  rawset(tip, 'AddDoubleLine', function(_, a, b) tinsert(doubles, a .. '=' .. b) end)
+  rawset(tip, 'AddLine', function() singles = singles + 1 end)
+  gui.add_click_hint(tip, 'Click: run' .. gui.HINT_SEPARATOR .. 'Alt-drag: reorder', true)
+  check('build 1: each click on its own line', #doubles == 2 and doubles[1] == 'Click=run' and doubles[2] == 'Alt-drag=reorder' and singles == 0)
+
+  -- the quantity box has no cursor mark (it looked like a bug)
+  local bar = loadstring("select(2, ...) 'aux.gui.buy_bar'; return _M")('auxForever', addon)
+  check('build 1: no cursor mark in the quantity box', bar.other_input.caret == nil)
+
+  -- the recipe cost tooltip's total is not red
+  local today = h.today()
+  h.write_record('7401:0', {day = today, points = {{day = today - 1, value = 50}}})
+  local total_args
+  local tip2 = new_frame()
+  rawset(tip2, 'AddDoubleLine', function(_, a, b, lr, lg, lb, rr, rg, rb) if a == 'Total' then total_args = {rr, rg, rb} end end)
+  search.recipe_cost_tooltip(tip2, {reagents = {{item_id = 7401, count = 1}}})
+  check('build 1: the cost total is white, not red', total_args and total_args[1] == 1 and total_args[2] == 1 and total_args[3] == 1)
+  local row_args
+  rawset(tip2, 'AddDoubleLine', function(_, a, b, lr, lg, lb, rr, rg, rb) if a ~= 'Total' then row_args = {rr, rg, rb} end end)
+  search.recipe_cost_tooltip(tip2, {reagents = {{item_id = 7401, count = 1}}})
+  check('build 2: each material\'s price is white, not the game\'s gold', row_args and row_args[1] == 1 and row_args[2] == 1 and row_args[3] == 1)
+  check('build 2: the locked message fits in two lines', #post.NOT_POSTED.locked <= 80)
+
+  -- with Shift held, tooltip prices are for the stack and say so
+  rawset(AuxTooltip, 'NumLines', function() return 0 end)
+  set(G, 'IsShiftKeyDown', function() return true end)
+  local lines = {}
+  local tip3 = new_frame()
+  rawset(tip3, 'AddLine', function(_, t) tinsert(lines, plain(t)) end)
+  tooltip.extend_tooltip(tip3, '|cffffffff|Hitem:7401::::::0:0|h[X]|h|r', 3)
+  rawset(AuxTooltip, 'NumLines', nil)
+  local value_line
+  for _, l in ipairs(lines) do if l:find('^Value') then value_line = l end end
+  check('build 1: a stack\'s Value says it is for the stack', value_line and value_line:find('for 3', 1, true) ~= nil)
+  rawset(G, 'IsShiftKeyDown', nil); G.IsShiftKeyDown = function() return false end
+
+  -- /aux price shows what aux recorded
+  local printed = {}
+  set(DEFAULT_CHAT_FRAME, 'AddMessage', function(_, t) tinsert(printed, plain(t)) end)
+  h.write_record('7402:0', {day = today, low = 38, market = 40, units = 83, points = {{day = today - 1, value = 87, units = 60}, {day = today - 3, value = 90}}})
+  SlashCmdList.AUX('price |cffffffff|Hitem:7402::::::0:0|h[Banana]|h|r')
+  local out = table.concat(printed, '\n')
+  check('/aux price: the tooltip Value and the usual price', out:find('Value in tooltips (latest look, seen today): 40c', 1, true) and out:find('Usual price, for finding deals:', 1, true) and out:find('from 2 past days', 1, true))
+  check('/aux price: today\'s lowest and market', out:find('lowest 38c', 1, true) and out:find('market 40c (of 83 listed)', 1, true))
+  check('/aux price: the past days', out:find('1 day ago 87c (60 listed)', 1, true) and out:find('3 days ago 90c (lowest, 0.4)', 1, true))
+
+  post.selected_item = nil
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+end)
+
+
+-- build 3 (Tyler, 2026-10-08): players scan, post and leave; the tooltip shows the latest look at an
+-- item, and the multi-day usual price stays for finding deals
+try('0.5 build 3: latest price in tooltips', function()
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local tooltip = loadstring("select(2, ...) 'aux.core.tooltip'; return _M")('auxForever', addon)
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local today = h.today()
+  -- the banana of build 1: two old daily lows, today's market 39c
+  h.write_record('7501:0', {day = today, low = 38, market = 39, units = 82, points = {{day = today - 2, value = 87}, {day = today - 3, value = 11}}})
+  local latest, age = h.latest('7501:0')
+  check('build 3: the latest price is today\'s market price', latest == 39 and age == 0)
+  check('build 3: the usual price stays for deals', h.value('7501:0') == 87)
+  -- not seen today: the newest past day, with its age
+  h.write_record('7502:0', {day = today, points = {{day = today - 4, value = 120}, {day = today - 5, value = 100}}})
+  latest, age = h.latest('7502:0')
+  check('build 3: not seen today, the newest day and its age', latest == 120 and age == 4)
+  local function tip_lines(id)
+    local lines = {}
+    local tip = new_frame()
+    rawset(tip, 'AddLine', function(_, t) tinsert(lines, plain(t)) end)
+    rawset(AuxTooltip, 'NumLines', function() return 0 end)
+    tooltip.extend_tooltip(tip, '|cffffffff|Hitem:' .. id .. '::::::0:0|h[X]|h|r', 1)
+    rawset(AuxTooltip, 'NumLines', nil)
+    return table.concat(lines, '\n')
+  end
+  local banana = tip_lines(7501)
+  check('build 3: tooltip Value is the latest price', banana:find('Value: 0.39  seen today', 1, true) ~= nil)
+  check('build 3: a big gap adds "usually"', banana:find('usually 0.87', 1, true) ~= nil)
+  local steady = tip_lines(7502)
+  check('build 3: no "usually" when the two are close', steady:find('usually', 1, true) == nil)
+  -- the recipe cost uses the latest price too
+  local total = search.recipe_usual_cost({reagents = {{item_id = 7501, count = 2}}})
+  check('build 3: the recipe cost uses the latest price', total == 78)
+end)
+
+
+-- build 3 results (Tyler, 2026-10-08)
+try('0.5 build 3 results', function()
+  local req = loadstring("select(2, ...) 'aux.test59'; return require")('auxForever', addon)
+  local aux = req 'aux'
+  local shortcut = loadstring("select(2, ...) 'aux.core.shortcut'; return _M")('auxForever', addon)
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  local was_shown = aux.frame.__shown
+  aux.frame.__shown = true
+
+  -- a right-clicked bag item stayed locked in Blizzard's hidden Sell tab: aux empties it
+  local cleared = 0
+  set(AuctionHouseFrame, 'ClearPostItem', function() cleared = cleared + 1 end)
+  set(G, 'GetMouseButtonClicked', function() return 'RightButton' end)
+  local link = '|cffffffff|Hitem:7101::::::0:0|h[Linen Cloth]|h|r'
+  set(C_Item, 'GetItemLink', function() return link end)
+  set(G, 'GetItemInfo', function(x) local id = tonumber(tostring(x):match('item:(%d+)') or x); if id == 7101 then return 'Linen Cloth', link, 1, 5, 1, 'Trade Goods', 'Cloth', 20, '', 1, 10 end end)
+  aux.set_tab(3)
+  shortcut.on_post_item({IsValid = function() return true end})
+  check('build 3: the right-clicked item is taken back from Blizzard\'s Sell tab (unlocked)', cleared == 1)
+
+  -- hovering a faded Post button says why
+  local tip_text
+  set(GameTooltip, 'AddLine', function(_, t) tip_text = t end)
+  post.selected_item = {key = '7101:0', item_id = 7101, name = 'Linen Cloth', quality = 1, count = 20, max_stack = 20}
+  post.set_unit_start_price(900)
+  post.set_unit_buyout_price(500)
+  rawset(post.post_button, 'IsEnabled', function() return false end)
+  post.post_button.__scripts.OnEnter(post.post_button)
+  rawset(post.post_button, 'IsEnabled', nil)
+  check('build 3: hovering a faded Post button says why', tip_text and tip_text:find('starting bid is above the buyout', 1, true) ~= nil)
+  post.selected_item = nil
+
+  -- a Full scan says it is waiting for the auction house, then how far it is
+  local texts = {}
+  set(aux.status_bar.text, 'SetText', function(_, t) tinsert(texts, t) end)
+  local scan_button
+  for _, f in ipairs(frames) do if f.__text == 'Full scan' and f.__scripts.OnClick then scan_button = f end end
+  local list = {{id = 7101, count = 5, buyout = 50}, {id = 7101, count = 5, buyout = 55}}
+  set(C_AuctionHouse, 'ReplicateItems', function() end)
+  set(C_AuctionHouse, 'GetNumReplicateItems', function() return #list end)
+  set(C_AuctionHouse, 'GetReplicateItemInfo', function(i) local a = list[i + 1]; return 'Item', 1, a.count, 1, true, 1, nil, 0, 0, a.buyout, 0, false, nil, 'Seller', nil, 0, a.id, true end)
+  set(C_AuctionHouse, 'GetReplicateItemLink', function() return link end)
+  if scan_button then scan_button.__scripts.OnClick(scan_button) end
+  for _ = 1, 3 do tick() end
+  check('build 3: a Full scan says it is waiting for the auction house', texts[1] and texts[1]:find('waiting for the auction house', 1, true) ~= nil)
+  fire('REPLICATE_ITEM_LIST_UPDATE')
+  for _ = 1, 60 do tick() end
+  local joined = table.concat(texts, '|')
+  check('build 3: then how far it is, and nothing when done', joined:find('reading auctions, 100%', 1, true) ~= nil and texts[#texts] == '')
+
+  aux.frame.__shown = was_shown
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+end)
+
+
+-- 0.5 release (Tyler, 2026-10-08): the login line asks for Full scans, saying when the last one was
+try('0.5: Full scan reminder at login', function()
+  local aux = loadstring("select(2, ...) 'aux.test60'; return require")('auxForever', addon) 'aux'
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local now = 2000000000
+  check('reminder: never scanned asks for one', plain(aux.full_scan_reminder(0, now)):find('click Full scan (top right of aux)', 1, true) ~= nil)
+  check('reminder: hours ago', plain(aux.full_scan_reminder(now - 2 * 3600 - 5, now)):find('Last Full scan: 2 hours ago.', 1, true) ~= nil)
+  check('reminder: days ago', plain(aux.full_scan_reminder(now - 3 * 86400, now)):find('Last Full scan: 3 days ago.', 1, true) ~= nil)
+  check('reminder: just now', plain(aux.full_scan_reminder(now - 60, now)):find('less than an hour ago', 1, true) ~= nil)
+  local src = io.open('aux-addon.lua'):read('*a')
+  check('reminder: printed at login', src:find("print(full_scan_reminder(account_data.replicate_time, time()))", 1, true) ~= nil)
 end)
 
 print('done, errors: ' .. errors)

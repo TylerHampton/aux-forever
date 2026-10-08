@@ -6,6 +6,56 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.5 (2026-10-08)
+
+Better prices, clearer posting and clicks that work the same everywhere, with player feedback from
+Darkhorse and Garsterson. Run a Full scan on each visit to the auction house: it keeps the prices in
+your tooltips and recipe costs current.
+
+- Price data: aux now records a market price from every complete look at an item (Full scan, normal
+  searches, the Sniper's checks): the middle price of the cheapest twentieth of what is listed,
+  close to the cheapest listings with a real amount behind them. One odd cheap auction no longer
+  sets the price. Tooltips show the price from your latest scan as Value, with
+  when aux saw it ("seen today", "seen 3 days ago", darker when a week old or more), so a quick
+  scan before posting is what you see afterwards anywhere in the world. When that is far from the
+  usual price of the last two weeks, a gray "usually ..." line shows it. The usual price, with
+  recent days counting more, is what the Sniper and the % columns compare against. Your 0.4.1
+  price history is converted, not wiped. Going back to 0.4.1 after this version starts the price
+  history over.
+- Post tab: a post that does not happen always says why, under Duration and in chat: the item left
+  your bags, is locked, needs a repair, was refused (with the game's own reason), or the auction
+  house did not answer. A post that went through says "Posted". When the Post button is faded,
+  the same place says why (no price, the starting bid above the buyout, not enough money for the
+  deposit). (reported by Darkhorse)
+- The Saved Searches lists and the Post tab's price lists lay out their columns again when shown
+  and when resized, and their last column always ends at the window's edge. After a resize and a
+  scale change, the Recent Searches header could stick out of the window. (reported by Garsterson)
+- Right-click an item in your bags to bring it into aux: the Post tab selects it, the Search tab
+  searches it. (suggested by Darkhorse)
+- Clicks work the same way everywhere. Shift- and Alt-click from the bags now also work from the
+  Sniper, Auctions and Bids tabs (they switch to Search). Click a selected row again to let go of
+  it, in every table. In the Post tab's price
+  lists, right-click searches the item like every other row, and click a chosen price again to let
+  go of it. Hovering any row shows a gray line with what its clicks do.
+- Buy bar: the box for typing how many to buy is labeled QUANTITY and always shows the number you
+  are buying; the quantity buttons fill it in, and typing any number changes it. It used to be a
+  gray "Other" that looked like a button. (suggested by Darkhorse)
+- Profession window: a line under the reagents says what one craft's materials cost at the prices
+  of your latest scans (or the vendor price when a vendor sells it for less), anywhere in the world. A gray "+"
+  means some materials have no price yet; hover the line for each material's price and where it
+  comes from. (suggested by Garsterson)
+- Tooltips: with Shift held (prices for the whole stack), Value, Today and the vendor prices say
+  "for 3" so they are not read as the price of one.
+- Full scan: the status bar says "waiting for the auction house" during the several seconds before
+  the list arrives, then how far it is, so the scan never looks stuck.
+- Post tab: hovering a faded Post button says why it is faded.
+- Right-clicking a bag item into the Post tab no longer leaves it locked (Blizzard's hidden Sell
+  tab held on to it, so it could not be picked up).
+- At login and after a reload, aux says when your last Full scan was and asks for one on each visit
+  to the auction house.
+- `/aux price <item>` prints what aux has recorded for an item: the Value shown in tooltips, the
+  usual price and how many days it rests on, today's lowest and market price, and each past day.
+
 ## 0.4.1 (2026-10-06)
 
 Performance, memory and fixes from a week of testing.

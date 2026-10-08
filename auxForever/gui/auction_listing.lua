@@ -607,7 +607,36 @@ local methods = {
                 GameTooltip:SetHyperlink(row.record.link)
             end
             GameTooltip_ShowCompareItem()
+            gui.add_click_hint(GameTooltip, rt:ClickHint(row))
+            GameTooltip:Show()
         end
+    end,
+
+    -- auxForever (0.5, docs/clicks.md): the clicks of a row, for the gray line at the bottom of its
+    -- tooltips. A tab adds its Alt shortcuts with rt.alt_hint (shown only when they are turned on).
+    ClickHint = function(self, row)
+        local parts = {}
+        local selection = self:GetSelection()
+        local selected = selection and selection.record == row.record
+        if row.record and row.record.fast then
+            tinsert(parts, 'Click: see its auctions')
+        elseif selected then
+            tinsert(parts, 'Click again: let go')
+        else
+            tinsert(parts, 'Click: select')
+        end
+        tinsert(parts, 'Right-click: search')
+        if not self.rowInfo.single_item then
+            if self.expanded[row.expandKey] then
+                tinsert(parts, 'Double-click: collapse')
+            elseif row.expandable then
+                tinsert(parts, 'Double-click: expand')
+            end
+        end
+        if selected and self.alt_hint and aux.account_data.action_shortcuts then
+            tinsert(parts, self.alt_hint)
+        end
+        return table.concat(parts, gui.HINT_SEPARATOR)
     end,
 
     OnIconLeave = function()
@@ -616,21 +645,12 @@ local methods = {
 
     OnEnter = function(self)
         local rt = self.rt
-
-        if self.record and self.record.fast then
+        -- auxForever (0.5): every row says what its clicks do, in one gray line (was: only grouped
+        -- and fast rows, in white)
+        if self.record then
             GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
-            GameTooltip:AddLine('Click to see this item\'s auctions.', 1, 1, 1, true)
+            gui.add_click_hint(GameTooltip, rt:ClickHint(self), true)
             GameTooltip:Show()
-        elseif not rt.rowInfo.single_item then
-            if rt.expanded[self.expandKey] then
-                GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
-                GameTooltip:AddLine('Double-click to collapse this item.', 1, 1, 1, true)
-                GameTooltip:Show()
-            elseif self.expandable then
-                GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
-                GameTooltip:AddLine('Double-click to expand this item.', 1, 1, 1, true)
-                GameTooltip:Show()
-            end
         end
 
         self.highlight:Show()
@@ -651,6 +671,14 @@ local methods = {
                 local selection = self.rt:GetSelection()
                 if not selection or selection.record ~= self.record then
                     self.rt:SetSelectedRecord(self.record)
+                elseif not IsAltKeyDown() then
+                    -- auxForever (0.5, docs/clicks.md): clicking the selected row again lets go of
+                    -- it, in every table (Alt-click on it is the opt-in buy/cancel shortcut)
+                    self.rt:SetSelectedRecord()
+                end
+                -- the hint line follows the new state
+                if GameTooltip:IsShown() and GameTooltip:GetOwner() == UIParent then
+                    self.rt.OnEnter(self)
                 end
             end
 	        do (self.rt.handlers.OnClick or pass)(self, button) end
