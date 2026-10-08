@@ -410,7 +410,9 @@ Steps / setup (as told; Tyler is not sure of the exact scale):
 3. Shrink the window with the resize corner.
 4. Something sticks out past the window's edge.
 
-Screenshot (picture to be added as `docs/feedback/FB-006-1.png` once Tyler agrees): Search tab, Saved Searches sub tab, the
+Screenshot (cropped, added with Tyler's OK): ![FB-006-1](feedback/FB-006-1.png)
+
+What it shows: Search tab, Saved Searches sub tab, the
 settings menu open (Background 100%, Scale 150%, Default duration 2h). The window's right edge is
 at the close button, but the gray header bar of the "Recent Searches" list runs on past it, about a
 fifth of the window's width further, over the game world. The list's two rows ("[Copp...",

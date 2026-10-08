@@ -87,14 +87,103 @@ For comparison, from memory and not checked: TSM's "market value" averages the c
 the listings over about two weeks instead of taking the single lowest auction. Check TSM's own
 documentation before relying on this.
 
-What a better version could look like (opinion, for 0.5 planning; Tyler decides):
-- During a Full scan, which sees every auction, record per item a price that resists outliers, for
-  example the average price of the cheapest part of what is listed (a share of the units, not one
-  auction), plus how many units were listed.
-- Keep the date of the last price, and show old prices dimmed or with their age.
-- Weight recent days more (for example halve a day's weight every week or two).
-- Every user of `history.value` (list above) would change at once, and existing history would need
-  converting or a fresh start. That makes it a minor-version change with tests, not a patch.
-- A first step that changes nothing for players: a `/aux debug` line that prints, for a few items
-  after a Full scan, today's lowest next to the average of the cheapest part of the listings, to
-  see how far apart they are on Forever.
+## Plan for 0.5 (decided 2026-10-08)
+
+Tyler: "I do want you to make changes to the data and make it better, [...] as this is going to be
+like an improved version of the original." His concerns: storing too much, slowing the addon, and
+what else a change this basic could break. He left the engineering to Claude. The plan below is
+Claude's; numbers marked "start with" are first settings to check in game, not measured.
+
+### What changes
+
+1. **Two prices per day instead of one.** Keep today's lowest (as now, "Today" in tooltips) and add
+   a **market price**: the average unit price of the cheapest 20% of the units listed (start
+   with 20%; at least the cheapest auction), plus how many units were listed. One cheap auction
+   then moves the market price only a little.
+2. **Only from complete views of an item.** The market price needs every auction of the item, so it
+   is recorded when aux has seen all of them: the Full scan, a full-mode search (one search per
+   item returns all its auctions: `search` in `core/scan.lua` asks for more until
+   `HasFull...SearchResults`; if a request for more fails, the view is not complete and records no
+   market price), and the Sniper reading one item (`scan.read_item`). Fast mode
+   rows already feed nothing (`process_auction` in `core/scan.lua` skips `auction.fast`). If an
+   item is seen completely more than once a day, the latest view wins.
+3. **Full scan collects, then records.** The Full scan's auctions arrive in no item order, so it
+   gathers (unit price, count) per item in a temporary table while it runs and records each item
+   once at the end, yielding every few hundred items (AGENTS.md, Performance). Use flat number
+   arrays per item, not a table per auction. The table is dropped when the scan ends.
+4. **Usual price from market prices, recent days counting more.** Weighted median of the daily
+   market prices (old converted days use their daily low), weight halving every 7 days (start
+   with 7; today it is about every 70 days). Keep up to 14 days of points (start with 14; today 11).
+5. **Age is shown.** The usual price comes with how many days old its newest point is, shown in
+   tooltips and the recipe cost tooltip ("usual, 3 days"), dimmed when old (start with 7 days).
+6. **Smaller dates.** Store days as day numbers (5 digits) instead of full timestamps (10 digits),
+   which pays for most of the added numbers.
+
+### What stays the same
+
+- `history.value`, `history.market_value` and `history.value_and_days` keep their names and
+  meaning (a price per unit), so the places that use prices (list above: tooltips, search
+  percentages, Post tab, Sniper, filters, disenchant) need no rewrite. Their numbers change, which
+  is the point.
+- Where it is stored (saved variables, per realm and faction), lazy unpacking (an item's line is
+  only unpacked when asked for), the in-memory caches.
+
+### How much code
+
+- `core/history.lua` (144 lines): most of it rewritten (record format, market price, usual price,
+  conversion).
+- `core/scan.lua`: the four places that feed history (`process_auction`, `scan_item_keys`, the Full
+  scan loop, `read_item`) hand over an item's auctions together instead of one at a time.
+- `aux-addon.lua`: `history_version` 3 with a conversion of version 2 (the mechanism exists: it is
+  how the first test version's bad prices were reset).
+- `core/tooltip.lua`: the age next to Value.
+- Tests in `tests/load_test.lua` (existing history tests at "fast: its auctions are price history",
+  the Sniper history-cache tests and the memory tests must keep passing), plus new ones below.
+- Nothing else is rewritten.
+
+### Cost (estimates from the record format, not measured)
+
+- Saved data: today about 220 characters per item; with the market price, the units listed and
+  shorter dates, about 300. With every item on the auction house (about 7,700, the Sniper's count)
+  that is roughly 2 MB now and under 3 MB after: under 1 MB more in the worst case. aux settles at
+  about 10 to 17 MB in play (`docs/status.md`), so this is small.
+- Login: unchanged. Lines are unpacked only when an item is asked about.
+- Full scan: sorting each item's prices once at the end. A few hundred thousand numbers at most,
+  spread over frames with `aux.coro_wait()`; inference: well under a second of work in total.
+- Searches and the Sniper: one extra sort per item read, which is small next to the server's
+  request limit (0.4s per item, measured in 0.2.1).
+
+### Risks and how each is handled
+
+1. **Prices players see will change.** Usual prices of items with outlier lows go up. The Sniper may
+   find more or fewer deals, the Post tab's "% of usual" badge shifts. Intended; check the Sniper's
+   default deal rule against the new numbers in game.
+2. **Converting old history.** A bug there could wipe everyone's history. Test the conversion with
+   real-looking version 2 lines, and check that every old daily low survives.
+3. **Going back to 0.4.1 after 0.5** starts the price history over (0.4.1 resets any version that is
+   not 2). Acceptable for a beta with few players; say so in the changelog.
+4. **Memory during a Full scan.** Temporary, dropped at the end; test with the memory harness
+   (`/aux memory`, the "rounds keep no memory" style tests).
+5. **Two different days for "today".** Unchanged: the day still ends at local midnight.
+
+### Tests to add (each fails without the change)
+
+- One very cheap auction among many barely moves the market price, while today's lowest is that
+  cheap auction.
+- A Full scan records each item once, with the right market price and units, whatever order the
+  auctions arrive in.
+- Version 2 history converts: every old daily low is kept and the usual price is unchanged right
+  after conversion.
+- Recent days outweigh old ones in the usual price.
+- No per-frame work and no memory kept after a Full scan ends.
+
+### In game (for the 0.5 test page)
+
+- After a Full scan, `/aux memory` before and after: the difference stays under about 1 MB.
+- Tooltips on a few trade goods: Value, Today and the age look sensible next to the auction house.
+- The Sniper still finds deals with the default rule.
+
+### Open (unverified)
+
+- Whether Forever's auction house is shared between factions. If it is, history could be kept per
+  realm instead of per realm and faction. Check before changing; not part of the plan above.

@@ -2,6 +2,45 @@
 
 Last updated 2026-10-08.
 
+## 0.5: start here (handoff written 2026-10-08 by the feedback-logging session)
+
+Tyler is opening a new chat on 2026-10-08 to build 0.5 the same night. Everything it needs is in
+the repository; this list is the order of work. Read `AGENTS.md` first, then this, then the files
+named.
+
+- **Branch:** a new branch from the latest `main`. The feedback log and these notes were merged
+  into `main` from `claude/exciting-tesla-3jksts` (if that pull request is still open, merge it or
+  read from that branch). TOC version `forever-0.5`. Changelog heading `## 0.5 (date)` when
+  released.
+- **No 0.4.2** (Tyler): every small fix found since 0.4.1 goes into 0.5.
+- **Scope, in this order** (each with a test that fails without it; AGENTS.md, Tests):
+  1. **Better price data:** `docs/price-data.md`, "Plan for 0.5" (what changes, what stays, cost,
+     risks, tests). Foundation for 6. No layout change except the age next to Value in tooltips.
+  2. **FB-003, silent failed post:** every way `post_auction` (`tabs/post/core.lua`) can stop
+     without a word gets a message saying why. Details in `docs/feedback.md`, FB-003. Ask Tyler for
+     the damaged-gear check listed there if it helps; do not wait for it.
+  3. **FB-006, Recent Searches header sticks out** after resizing and a scale change
+     (`gui/listing.lua` fixed column widths). Screenshot and steps in the entry.
+  4. **FB-002, right-click a bag item loads it into the Post tab.** Check Blizzard's Forever bag
+     click code first (the entry explains why: aux keeps Blizzard's window invisible but open, and
+     the click may go there). Ask Tyler what bug he suspected there (entry, Ask Tyler).
+  5. **FB-001, the buy bar's quantity box** should look like a place to type. Visual: mockup first.
+  6. **FB-007, crafting cost in the profession window**, anywhere in the world, at usual prices;
+     design decided in the entry (one line, "+" when a material has no price, tooltip with
+     details). Visual: mockup first.
+  7. Only if Tyler wants them tonight (ask): the 0.5 notes in `docs/roadmap.md` (Sniper hold and
+     buy feedback, Auctions tab starting bid).
+- **Not in 0.5 tonight:** the redesign with Tyler's designer friend (direction: TSM and the
+  original aux, AGENTS.md Design language); the designs are not in the repository yet.
+- **Mockups:** show the FB-001 and FB-007 mockups together early, so Tyler can approve them while
+  steps 1 to 4 are built.
+- **Credit** (Tyler's rule, `docs/feedback.md` Credit): changelog lines for FB-001, FB-002, FB-003
+  end "(suggested by Darkhorse)" or "(reported by Darkhorse)"; FB-006 "(reported by
+  Garsterson)", FB-007 "(suggested by Garsterson)". Not FB-004 (rejected) or FB-005 (praise).
+- **When an entry is done:** set its status in `docs/feedback.md` (index and entry), add its
+  in-game check to `TESTING.md` and the build's test page, give Tyler the zip and say whether
+  `/reload` is enough or a full restart is needed (new files need a restart).
+
 ## Start here (where things stand right now)
 
 - Released: 0.4.1 (2026-10-06) is the latest; `main` is at its merge (#8, ea73c6a).
@@ -19,7 +58,7 @@ Last updated 2026-10-08.
   Decisions the same day: no 0.4.2, so FB-006 and the other small fixes go into 0.5; FB-007 is a
   line in the recipe's detail panel at usual prices, with a "+" when a material has no price
   (design in the entry). Tyler asked how aux stores prices: `docs/price-data.md` (new) explains it
-  and lists its weak points for 0.5 planning.
+  and lists its weak points; Tyler then decided to improve it in 0.5 (plan in that file).
 - Versioning decision (2026-10-05): fixes to an unreleased version go into that version, so the
   build 2 and 3 fixes are part of 0.4, not 0.4.1. 0.4.1 is for fixes after 0.4 is released.
 - **0.4.1 release (2026-10-06):** build 6 passed except one case, fixed before release: a Live
