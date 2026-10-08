@@ -33,6 +33,19 @@ shirsig (Simon), rebuilt to run on World of Warcraft: Forever. The search filter
 searches, price history and the way aux works are his. auxForever adapts them to Forever's modern
 auction house and gives the window a new look.
 
+## Get the most out of it: run a Full scan
+
+**Every time you visit the auction house, click Full scan (top right of the aux window).** It reads
+every auction at once and records the price of everything listed. After that, anywhere in the
+world:
+
+- item tooltips show what an item sells for (Value, with how long ago aux saw it),
+- the profession window shows what a recipe's materials cost,
+- the Sniper and the search results know what a good deal is.
+
+Prices are only as fresh as your last scan, so aux tells you at login when your last Full scan
+was. The game allows one Full scan every 15 minutes.
+
 ## Beta
 
 auxForever is in beta. Searching, buying, posting and the price history all work in game; each
@@ -209,10 +222,14 @@ and reads it back in plain English, so it is the easiest way to learn them. A fe
 
 Simon's [aux page](https://www.curseforge.com/wow/addons/aux) describes every filter in detail.
 
-## Historical value
+## Prices
 
-The historical value is a slightly time-weighted median of up to 12 saved daily values, where a
-daily value is the lowest unit buyout price seen for the item over that day.
+- **Value** in tooltips is the market price from your latest look at an item (a Full scan or a
+  search): the middle price of the cheapest twentieth of what was listed, so one odd cheap auction
+  does not set it. It shows when aux saw it ("seen today", "seen 3 days ago").
+- **The usual price** is a median of up to 14 days, recent days counting more. The Sniper and the
+  % columns compare against it, and tooltips show it as "usually ..." when it is far from the
+  latest price.
 
 ## Install
 

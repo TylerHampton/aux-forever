@@ -93,9 +93,12 @@ Release check on build 4 (Tyler, 2026-10-08, `builds/0-5-release/results`): all 
 (open, buy one linen cloth, post, Auctions tab, a Sniper round, the Materials line on Herb Baked
 Egg).
 
-Open:
-- When Tyler says 0.5 is ready: changelog heading `## 0.5 (date)`, pull request into `main`,
-  merge, the Release workflow (AGENTS.md, Releases).
+Release (Tyler, 2026-10-08: "Yes"): he also asked to stress Full scans. Added: a second login line
+saying when the last Full scan was (`full_scan_reminder` in `aux-addon.lua`), a "Get the most out
+of it: run a Full scan" section and a corrected "Prices" section on the CurseForge page
+(`docs/curseforge.md`, `docs/curseforge-description.md`). Changelog dated, with Darkhorse and
+Garsterson credited on each change from their feedback and named at the top. Then the pull request
+into `main`, merged, and the Release workflow (`v0.5`).
 - The Sniper and Auctions tab notes (`docs/roadmap.md`, 0.5): Claude recommended leaving them for
   after 0.5; Tyler has not decided.
 - Asked Tyler: whether to do the Sniper and Auctions tab notes in `docs/roadmap.md` (0.5) tonight

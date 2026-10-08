@@ -6,7 +6,11 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
-## 0.5 (in progress)
+## 0.5 (2026-10-08)
+
+Better prices, clearer posting and clicks that work the same everywhere, with player feedback from
+Darkhorse and Garsterson. Run a Full scan on each visit to the auction house: it keeps the prices in
+your tooltips and recipe costs current.
 
 - Price data: aux now records a market price from every complete look at an item (Full scan, normal
   searches, the Sniper's checks): the middle price of the cheapest twentieth of what is listed,
@@ -26,10 +30,11 @@ A change that comes from a player's feedback credits them by in-game name at the
 - The Saved Searches lists and the Post tab's price lists lay out their columns again when shown
   and when resized, and their last column always ends at the window's edge. After a resize and a
   scale change, the Recent Searches header could stick out of the window. (reported by Garsterson)
-- Clicks work the same way everywhere (docs/clicks.md). Right-click an item in your bags to bring it
-  into aux: the Post tab selects it, the Search tab searches it. (suggested by Darkhorse) Shift- and
-  Alt-click from the bags now also work from the Sniper, Auctions and Bids tabs (they switch to
-  Search). Click a selected row again to let go of it, in every table. In the Post tab's price
+- Right-click an item in your bags to bring it into aux: the Post tab selects it, the Search tab
+  searches it. (suggested by Darkhorse)
+- Clicks work the same way everywhere. Shift- and Alt-click from the bags now also work from the
+  Sniper, Auctions and Bids tabs (they switch to Search). Click a selected row again to let go of
+  it, in every table. In the Post tab's price
   lists, right-click searches the item like every other row, and click a chosen price again to let
   go of it. Hovering any row shows a gray line with what its clicks do.
 - Buy bar: the box for typing how many to buy is labeled QUANTITY and always shows the number you
@@ -46,8 +51,10 @@ A change that comes from a player's feedback credits them by in-game name at the
 - Post tab: hovering a faded Post button says why it is faded.
 - Right-clicking a bag item into the Post tab no longer leaves it locked (Blizzard's hidden Sell
   tab held on to it, so it could not be picked up).
-- `/aux price <item>` prints what aux has recorded for an item: the usual price and how many days
-  it rests on, today's lowest and market price, and each past day.
+- At login and after a reload, aux says when your last Full scan was and asks for one on each visit
+  to the auction house.
+- `/aux price <item>` prints what aux has recorded for an item: the Value shown in tooltips, the
+  usual price and how many days it rests on, today's lowest and market price, and each past day.
 
 ## 0.4.1 (2026-10-06)
 

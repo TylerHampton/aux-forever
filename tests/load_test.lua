@@ -2790,4 +2790,18 @@ try('0.5 build 3 results', function()
   for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
 end)
 
+
+-- 0.5 release (Tyler, 2026-10-08): the login line asks for Full scans, saying when the last one was
+try('0.5: Full scan reminder at login', function()
+  local aux = loadstring("select(2, ...) 'aux.test60'; return require")('auxForever', addon) 'aux'
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local now = 2000000000
+  check('reminder: never scanned asks for one', plain(aux.full_scan_reminder(0, now)):find('click Full scan (top right of aux)', 1, true) ~= nil)
+  check('reminder: hours ago', plain(aux.full_scan_reminder(now - 2 * 3600 - 5, now)):find('Last Full scan: 2 hours ago.', 1, true) ~= nil)
+  check('reminder: days ago', plain(aux.full_scan_reminder(now - 3 * 86400, now)):find('Last Full scan: 3 days ago.', 1, true) ~= nil)
+  check('reminder: just now', plain(aux.full_scan_reminder(now - 60, now)):find('less than an hour ago', 1, true) ~= nil)
+  local src = io.open('aux-addon.lua'):read('*a')
+  check('reminder: printed at login', src:find("print(full_scan_reminder(account_data.replicate_time, time()))", 1, true) ~= nil)
+end)
+
 print('done, errors: ' .. errors)
