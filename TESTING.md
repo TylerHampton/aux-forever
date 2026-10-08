@@ -33,6 +33,12 @@ FB-003, posts that say nothing (Post tab, the left column under Duration):
       say "Not posted: this item must be repaired first." (or show the game's own reason). Note
       what you see either way.
 
+FB-006, the Recent Searches header (Garsterson's steps):
+- [ ] 9. Scale 100%, make the window large, set Scale to 140% or 150%, open Search, Saved
+      Searches, then shrink the window with the resize corner. Neither list's header sticks out
+      past the window. Try the same with another sub tab open while resizing, then switch back.
+- [ ] 10. The Post tab's two price lists: resize the window; their headers stay inside.
+
 ## Before every release: the quick run
 
 A short pass over everything, so a release never breaks something old. About 15 minutes.

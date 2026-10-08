@@ -72,6 +72,21 @@ local handlers = {
     end,
 }
 
+-- a column after the previous one (or at the left edge); the last one stretches to the right edge
+local function place_column(col, left, first, right, width)
+    col:ClearAllPoints()
+    if first then
+        col:SetPoint('TOPLEFT', left, 'TOPLEFT', 0, 0)
+    else
+        col:SetPoint('TOPLEFT', left, 'TOPRIGHT')
+    end
+    if right then
+        col:SetPoint('TOPRIGHT', right, 'TOPRIGHT', 0, 0)
+    else
+        col:SetWidth(width)
+    end
+end
+
 local methods = {
     Update = function(self)
 	    if #self.colInfo > 1 or self.colInfo[1].name then
@@ -102,10 +117,13 @@ local methods = {
 		    self:AddColumn()
 	    end
 
+	    -- auxForever (0.5, FB-006): the last column reaches the right edge by its anchor, not by a width
+	    -- worked out earlier, so the header can never stick out of the window when that width is stale
+	    local last = #self.colInfo
 	    for i, col in ipairs(self.headCols) do
 		    if self.colInfo[i] then
 			    col:Show()
-			    col:SetWidth(self.colInfo[i].width * width)
+			    place_column(col, i == 1 and self.contentFrame or self.headCols[i - 1], i == 1, i == last and self.contentFrame, self.colInfo[i].width * width)
 			    col:SetHeight(self.headHeight)
 			    col.text:SetText(self.colInfo[i].name or '')
 			    col.text:SetJustifyH(self.colInfo[i].headAlign or 'CENTER')
@@ -130,7 +148,7 @@ local methods = {
 			    for j, col in ipairs(row.cols) do
 				    if self.headCols[j] and self.colInfo[j] then
 					    col:Show()
-					    col:SetWidth(self.colInfo[j].width * width)
+					    place_column(col, j == 1 and row or row.cols[j - 1], j == 1, j == last and row, self.colInfo[j].width * width)
 					    col.text:SetJustifyH(self.colInfo[j].align or 'LEFT')
 				    else
 					    col:Hide()
@@ -284,11 +302,23 @@ function M.new(parent)
     st:SetScript('OnSizeChanged', function(self)
         if self.colInfo then self:Update() end
     end)
+    -- auxForever (0.5, FB-006): a table resized or rescaled while hidden (another sub tab open) is laid
+    -- out again when shown, and when its content area changes size (the scroll bar appearing)
+    st:SetScript('OnShow', function(self)
+        if self.colInfo then self:Update() end
+    end)
 
     local contentFrame = CreateFrame('Frame', nil, st)
     contentFrame:SetPoint('TOPLEFT', 0, 0)
     contentFrame:SetPoint('BOTTOMRIGHT', 0, 0)
     st.contentFrame = contentFrame
+    contentFrame:SetScript('OnSizeChanged', function()
+        if st.colInfo and not st.updating then
+            st.updating = true
+            st:Update()
+            st.updating = false
+        end
+    end)
 
     local scrollFrame = CreateFrame('ScrollFrame', st:GetName() .. 'ScrollFrame', st, 'FauxScrollFrameTemplate')
     scrollFrame:SetScript('OnVerticalScroll', function(self, offset)

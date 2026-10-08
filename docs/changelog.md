@@ -19,6 +19,9 @@ A change that comes from a player's feedback credits them by in-game name at the
   house did not answer. A post that went through says "Posted". When the Post button is faded,
   the same place says why (no price, the starting bid above the buyout, not enough money for the
   deposit). (reported by Darkhorse)
+- The Saved Searches lists and the Post tab's price lists lay out their columns again when shown
+  and when resized, and their last column always ends at the window's edge. After a resize and a
+  scale change, the Recent Searches header could stick out of the window. (reported by Garsterson)
 
 ## 0.4.1 (2026-10-06)
 

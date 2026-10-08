@@ -2395,4 +2395,40 @@ try('FB-003: posts always say what happened', function()
   for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
 end)
 
+
+-- FB-006 (Garsterson): after resizing and a scale change, the Recent Searches header stuck out of
+-- the window. Tables lay out again when shown and when their content area changes size, and the
+-- last column is anchored to the right edge instead of keeping an old width.
+try('FB-006: list headers follow the window', function()
+  local listing = loadstring("select(2, ...) 'aux.test55'; return require")('auxForever', addon) 'aux.gui.listing'
+  local parent = new_frame()
+  local st = listing.new(parent)
+  local right = 400
+  rawset(st, 'GetHeight', function() return 200 end)
+  rawset(st.contentFrame, 'GetLeft', function() return 0 end)
+  rawset(st.contentFrame, 'GetRight', function() return right end)
+  st:SetColInfo{{name = 'Name', width = .7}, {name = 'Alert', width = .3}}
+  st:SetData{}
+  local function anchors(f)
+    local points = {}
+    rawset(f, 'ClearAllPoints', function() points = {} end)
+    rawset(f, 'SetPoint', function(_, p, rel) tinsert(points, p) end)
+    rawset(f, 'SetWidth', function(_, w) f.__w = w end)
+    return function() return points end
+  end
+  local first, last = anchors(st.headCols[1]), anchors(st.headCols[2])
+  -- the window shrinks while the table is hidden (another sub tab), then the table is shown
+  right = 200
+  st.__scripts.OnShow(st)
+  check('FB-006: a table shown again uses its new width', st.headCols[1].__w == 140)
+  local lp = last()
+  local stretches = false
+  for _, p in ipairs(lp) do if p == 'TOPRIGHT' then stretches = true end end
+  check('FB-006: the last header column is anchored to the right edge', stretches)
+  check('FB-006: content size changes lay the table out again', st.contentFrame.__scripts.OnSizeChanged ~= nil)
+  right = 300
+  st.contentFrame.__scripts.OnSizeChanged(st.contentFrame)
+  check('FB-006: after a content size change the widths follow', st.headCols[1].__w == 210)
+end)
+
 print('done, errors: ' .. errors)
