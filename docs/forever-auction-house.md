@@ -103,6 +103,23 @@ visible confirmation, but gives no evidence. **Unverified**; needs an in-game te
   therefore prices items in whole silver and undercuts them by 1 silver; trade goods use copper
   when `SupportsCopperValues()` allows it. Not confirmed from Blizzard's code.
 
+**Confirmed from Blizzard's Forever UI source** (branch `forever` of Gethe/wow-ui-source, read
+2026-10-08):
+
+- A plain right-click on a bag item with `AuctionHouseFrame` shown calls
+  `AuctionHouseFrame:SetPostItem(itemLocation)` when the item can be sold
+  (`Blizzard_UIPanels_Game/Mainline/ContainerFrame.lua`, `ContainerFrameItemButton_OnClick`).
+  That switches Blizzard's window to its Sell view, starts a search for the item, and locks the bag
+  item (`C_Item.LockItem` in `AuctionHouseInteractableItemDisplayMixin:SetItemLocation`,
+  `Blizzard_AuctionHouseSharedTemplates.lua`). `ClearPostItem` unlocks it. aux follows the call
+  and clears it (`core/shortcut.lua`).
+- The profession window's recipe form (`ProfessionsFrame.CraftingPage.SchematicForm`) has
+  `Init(recipeInfo)` and a `Reagents` container; `OptionalReagents` sits 20 pixels below it.
+
+**Observed in game (Tyler, 0.5 build 3):** after a Full scan, Rough Dynamite was recorded at 30c,
+the same as its lowest listing with 514 listed. Likely but not certain that no search of it ran
+first, so the Full scan's prices per unit look right (Likely).
+
 Durations: three options, durations 1-3 in the API. Auctionator's Forever build, WOW4E_AH_Trader
 and wow-artisan say 2, 8 and 24 hours; one guide site says 12, 24 and 48. The time-left bands in
 our test topped out at 24 hours, which fits 2/8/24. aux reads the labels from the game, so

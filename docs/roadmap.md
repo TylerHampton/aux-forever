@@ -32,7 +32,21 @@ else is batched, about a week of real use.
    and sold Sniper deals at the bottom; both done. Not picked for now: a dash instead of "?" in
    the Sniper's Usual column, and "?" in the Search tab's Seller column.
 
-## 0.5: notes for planning (from Tyler's 0.4.1 testing)
+## After 0.5: candidates for 0.5.1 and 0.6 (none decided)
+
+0.5 was released on 2026-10-08 (`docs/changelog.md`). Not built in 0.5, carried over:
+
+- **Sniper rework (0.6):** the hold on a selected deal (released by itself after a purchase, after
+  a while, or when the mouse leaves the window?), and an obvious outcome for each buy in a fast
+  market. Tyler's notes in the 0.5 section below. Claude suggested on 2026-10-08 to leave it for
+  after 0.5; Tyler did not decide.
+- **Auctions tab:** the starting bid of your own auctions, if `GetOwnedAuctionInfo` gives it
+  (unverified).
+- **Redesign (0.6 or later):** with Tyler's designer friend; not in the repository yet.
+- **0.5.1 material** (fixes and small things only): the loose ends in `docs/status.md`, "Open after
+  0.5", and whatever players report on 0.5 (`docs/feedback.md`, from FB-008).
+
+## 0.5: notes for planning, built and released 2026-10-08 (from Tyler's 0.4.1 testing)
 
 - No 0.4.2 (Tyler, 2026-10-08): fixes and small things found after 0.4.1 go into 0.5, unless one
   is bad enough for a hotfix. Player feedback planned or proposed for 0.5: `docs/feedback.md`

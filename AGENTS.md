@@ -110,7 +110,12 @@ Load order is the TOC (`auxForever/auxForever.toc`).
   per item key; full scan with `ReplicateItems`). Fast mode (`params.fast`) stops at the browse
   list: one row per item (`info.browse_record`, `record.fast`); `params.on_item_list` hands the raw
   list to the Sniper. `util/scan.lua`, `util/info.lua`: helpers and
-  item/auction records. `core/history.lua`: price history ("usual price"; see `docs/price-data.md`).
+  item/auction records. `core/history.lua`: price history (`docs/price-data.md`). Two prices since
+  0.5: `history.latest` (market price of the latest complete look, shown as Value in tooltips and
+  used by the recipe cost) and `history.value` (the multi-day usual price, used to find deals: the
+  Sniper, % columns, filters). A complete look (Full scan, full-mode search, `scan.read_item`) feeds
+  `history.record_view`; single auctions feed `process_auction` (today's lowest only).
+  `/aux price <item>` prints what was recorded.
 - `util/filter.lua`: aux's search language: parsing, the post filters and their validators.
 - `gui/auction_listing.lua`: the result tables (columns Lvl, Item, For sale, ...).
   `gui/buy_bar.lua`: buying under the search results.
@@ -118,7 +123,11 @@ Load order is the TOC (`auxForever/auxForever.toc`).
   (favorites and recent), `quick.lua` (quick search menu), `filter.lua` (Filter Builder logic:
   condition tree, search text, "In words"), `frame.lua` (Search tab widgets),
   `builder.lua` (Filter Builder rows and menus), `recipe.lua` (recipe search: the button on the
-  profession window, Alt-click on a recipe, the cost line).
+  profession window, Alt-click on a recipe, the cost line in the bottom bar, and since 0.5 the
+  Materials line under the profession window's reagents).
+- `core/shortcut.lua`: clicks on items outside aux (bags, links, recipes), including right-click on
+  a bag item (0.5, follows Blizzard's `AuctionHouseFrame:SetPostItem`). The click standard is in
+  `docs/clicks.md`; row click hints come from `gui.add_click_hint`.
 - `tabs/sniper/`: the Sniper tab (0.3): `core.lua` (rounds over the whole item list, the deal
   rule `judge`, checking a candidate's real auctions, buying), `frame.lua` (controls and table).
 - `tabs/post/`: posting (auto price, undercut mode, deposit, "You get"). `tabs/auctions/`,
@@ -173,6 +182,20 @@ aux runs inside the game; every frame it spends time in costs the player frame r
   constant `AUCTION_CUT = .05`. Deposits come from the game (`CalculateItemDeposit`).
 - On Forever the newest listing at a price sells first, so the Post tab matches the lowest price by
   default; undercut mode (goblin switch) goes one step below. Undercut mode always starts off.
+- Tabs by number: Search 1, Sniper 2, Post 3, Auctions 4, Bids 5. A test that switches to the wrong
+  number passes for the wrong reason (this hid a Post tab error in 0.5).
+- Leaving the Post tab clears `selected_item` (its `CLOSE`): read what you need from it before
+  `aux.set_tab`.
+- `aux.split` only works with one-character separators.
+- `GameTooltip:AddDoubleLine` takes six color numbers; passing a color object's four values colors
+  the right side wrongly, and leaving them out makes it the game's gold.
+- `gui.label` is one line by default; call `SetWordWrap(true)` for messages that can be longer.
+- Blizzard's auction house window stays open but invisible under aux. Anything that puts an item
+  into Blizzard's Sell tab (a right-click on a bag item) locks that item (`C_Item.LockItem`);
+  `AuctionHouseFrame:ClearPostItem()` releases it.
+- Blizzard's own UI source for Forever is on GitHub: branch `forever` of `Gethe/wow-ui-source`
+  (clone with `--filter=blob:none --no-checkout`, then check out single files). Read it before
+  guessing how a Blizzard frame behaves.
 - Filter Builder: write `and`/`or` with a count (`and2`); a bare `and` takes everything after it.
   The builder and the search bar stay in sync both ways; `loading` and `syncing` flags in
   `tabs/search/filter.lua` stop them from feeding back into each other.
