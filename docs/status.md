@@ -47,8 +47,23 @@ history; fine). Failures and what was done (build 2, `builds/0-5-dev2/results`):
 - Not a failure but found in a screenshot: the recipe cost tooltip's Total was red (colors passed
   as a color's four values). Fixed.
 
+Build 2 results (Tyler, 2026-10-08, `builds/0-5-dev2/results`): Post right-click, hints, quantity
+box pass; stack label works ("Value: 2s 61c for 3" with Shift, 87c without). `/aux price` on the
+banana confirmed the analysis: usual 87c from 2 past days, both 0.4.1 daily lows (87c two days
+ago, 11c three days ago); today lowest 38c, market 39c (cheapest fifth of 82 listed). Light Feather:
+usual 4c (0.4.1 lows), lowest today 7c with 1,861 listed. Fixed after build 2 (5338888, not yet in a
+zip): the cost tooltip's prices were gold (the game's default right color), the Post locked message
+was cut off.
+
+Price question (Tyler, 2026-10-08): players do a full scan, post and leave within minutes, and need
+to trust the tooltip away from the auction house; heavy averaging that lags the market loses that.
+Claude's proposal sent the same day (waiting for Tyler): tooltips and the recipe cost show the
+latest market price (the most recent complete look, with its age), and the multi-day usual price
+stays for finding deals (Sniper, the search % column, percentage filters), shown in the tooltip only
+when it differs a lot from the latest. Not built.
+
 Open:
-- Tyler to test build 2 (`TESTING.md`, Current build, 9 steps; same on the test page).
+- Tyler's answer on the price proposal above, then build 3.
 - Asked Tyler: whether to do the Sniper and Auctions tab notes in `docs/roadmap.md` (0.5) tonight
   (he asked what they were; explained 2026-10-08, waiting); whether today's market price should
   count in the usual price. FB-002's suspected bug: he does not remember. Damaged gear (FB-003):
