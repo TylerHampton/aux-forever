@@ -35,7 +35,9 @@ index). Forever runs on the modern client and uses the modern auction house (`C_
 - Every auction has an ID, so aux can buy the selected auction directly.
 - A full scan of the whole auction house is allowed once every 15 minutes.
 
-The look, the tabs, the search filter language, saved searches and price history are unchanged.
+The tabs, the search filter language and saved searches work as in aux. The window has a new look,
+and the price history was improved in 0.5 (a market price per day that one cheap auction cannot
+set, and the age of each price in tooltips; see `docs/price-data.md`).
 
 ## Install
 
@@ -54,21 +56,21 @@ The look, the tabs, the search filter language, saved searches and price history
 
 ## Status
 
-In testing. Searching works in game. See `TESTING.md` for what to check and
-`docs/forever-auction-house.md` for how Forever's auction house works.
+Released as a beta on CurseForge (unlisted). The latest version is on the
+[Releases](https://github.com/TylerHampton/aux-forever/releases) page; what changed in each version
+is in `docs/changelog.md`. All tabs work in game: Search, Sniper, Post, Auctions and Bids, plus
+recipe costs in the profession window.
 
-Known gaps:
+To get good prices in tooltips and recipe costs, run a Full scan (top right of the aux window) on
+each visit to the auction house.
 
-- Crafting cost in the profession window is not shown (Forever uses a different profession UI).
-- Buying happens in the buy bar under the Search results. Gear and other single items are bought
-  one at a time at the price on the button. Trade goods ("commodities") cannot be bought by row on
-  Forever, since the game always sells the cheapest units first: the bar offers quantities sized to
-  the item's stack, each with its cost. Buy asks the server for the real price and nothing is
-  bought until Confirm. A server price above the shown cost is cancelled and the listings re-read.
+Report problems on the [issue tracker](https://github.com/TylerHampton/aux-forever/issues), with
+the error text if BugSack shows one.
 
 ## Layout
 
 - `AGENTS.md` is the guide for AI agents working on this repository (Claude, Gemini, Jules).
+- `docs/status.md` is where things stand; `TESTING.md` is the in-game checklist.
 
 - `auxForever/` is the addon (named `aux-addon` in the early commits). The first commit in this repository is the unmodified upstream code,
   so `git diff` against it shows every change made for Forever.
