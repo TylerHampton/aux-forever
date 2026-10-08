@@ -18,6 +18,20 @@ M.font_size = aux.immutable-{
     large = 18,
 }
 
+-- auxForever (0.5, docs/clicks.md): the gray line at the bottom of a row's tooltip that says what
+-- its clicks do, e.g. "Click: select · Right-click: search". A tooltip holding only the hint (alone)
+-- has no blank line above it.
+M.HINT_SEPARATOR = '  ·  '
+function M.add_click_hint(tooltip, text, alone)
+    if not text or text == '' then
+        return
+    end
+    if not alone then
+        tooltip:AddLine(' ')
+    end
+    tooltip:AddLine(text, .62, .60, .56, true)
+end
+
 do
     local id = 1
     function M.unique_name()

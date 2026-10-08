@@ -22,6 +22,12 @@ A change that comes from a player's feedback credits them by in-game name at the
 - The Saved Searches lists and the Post tab's price lists lay out their columns again when shown
   and when resized, and their last column always ends at the window's edge. After a resize and a
   scale change, the Recent Searches header could stick out of the window. (reported by Garsterson)
+- Clicks work the same way everywhere (docs/clicks.md). Right-click an item in your bags to bring it
+  into aux: the Post tab selects it, the Search tab searches it. (suggested by Darkhorse) Shift- and
+  Alt-click from the bags now also work from the Sniper, Auctions and Bids tabs (they switch to
+  Search). Click a selected row again to let go of it, in every table. In the Post tab's price
+  lists, right-click searches the item like every other row, and click a chosen price again to let
+  go of it. Hovering any row shows a gray line with what its clicks do.
 
 ## 0.4.1 (2026-10-06)
 

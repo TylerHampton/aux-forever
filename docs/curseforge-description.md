@@ -143,6 +143,8 @@ from aux on Classic:
 
 **Listings (Search, Auctions and Bids)**
 
+- Hover a row: a gray line at the bottom of its tooltip lists what its clicks do.
+- Click a row to select it; click it again to let go of it.
 - Double-click a row with a blue count to expand it.
 - Right-click a row to search for that item.
 - Shift-click a row to link the item in chat; Ctrl-click to preview it.
@@ -152,7 +154,8 @@ from aux on Classic:
 **Search**
 
 - Tab accepts an autocompletion.
-- Shift-click or Alt-click an item in your bags to search for it.
+- Right-click, Shift-click or Alt-click an item in your bags to search for it (from the Sniper,
+  Auctions or Bids tab too: aux switches to Search).
 - The clock button next to the arrows opens your quick searches. Pin the ones you use often.
 - Alt-click a recipe in the profession window to search it with its materials.
 
@@ -160,8 +163,9 @@ from aux on Classic:
 
 - Prices take `g`, `s` and `c` for gold, silver and copper. A number alone counts as gold, and
   decimals work (`1.5g` is 1g 50s).
-- Shift-click or Alt-click an item in your bags to select it.
-- Right-click an item in the list to search for it.
+- Right-click, Shift-click or Alt-click an item in your bags to select it.
+- Right-click an item in the list, or a row in the price lists, to search for it.
+- Click a price in the lists to use it; click it again to let go of it.
 
 ## Search filters
 

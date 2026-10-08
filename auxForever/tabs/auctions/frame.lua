@@ -131,9 +131,10 @@ M.columns = {
 listing = auction_listing.new(frame.listing, 22, columns)
 listing:SetSort(2, 7)
 listing:Reset()
+listing.alt_hint = 'Alt-click: cancel'
 listing:SetHandler('OnClick', function(row, button)
 	if IsAltKeyDown() and aux.account_data.action_shortcuts then
-		if listing:GetSelection().record == row.record then
+		if listing:GetSelection() and listing:GetSelection().record == row.record then
             cancel_button:Click()
 		end
 	elseif button == 'RightButton' then

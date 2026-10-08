@@ -479,7 +479,8 @@ for _ = 1, 5 do
     local table = auction_listing.new(frame.results.list, 19, auction_listing.search_columns)
     table:SetHandler('OnClick', function(row, button)
 	    if IsAltKeyDown() and aux.account_data.action_shortcuts then
-		    if current_search().table:GetSelection().record == row.record then
+		    local selection = current_search().table:GetSelection()
+		    if selection and selection.record == row.record then
 			    if button == 'LeftButton' then
 	                buy_bar.primary_click()
 	            elseif button == 'RightButton' then
@@ -492,9 +493,11 @@ for _ = 1, 5 do
 	    end
     end)
     table:SetHandler('OnSelectionChanged', function(rt, datum)
+        -- nothing selected (the selected row clicked again): on_update empties the buy bar
         if not datum then return end
         find_auction(datum.record)
     end)
+    table.alt_hint = 'Alt-click: buy' .. gui.HINT_SEPARATOR .. 'Alt-right-click: bid'
     table:Hide()
     tinsert(tables, table)
 end

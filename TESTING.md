@@ -39,6 +39,20 @@ FB-006, the Recent Searches header (Garsterson's steps):
       past the window. Try the same with another sub tab open while resizing, then switch back.
 - [ ] 10. The Post tab's two price lists: resize the window; their headers stay inside.
 
+Clicks (docs/clicks.md) and FB-002:
+- [ ] 11. Post tab: right-click a sellable item in your bags. It is selected in the Post tab
+      (Blizzard's window does not appear). Try a bag addon too, if you use one.
+- [ ] 12. Search tab: right-click a bag item searches it. Sniper tab: right-click, Shift-click or
+      Alt-click a bag item switches to Search and searches it.
+- [ ] 13. Right-click something that cannot be sold (soulbound gear): Blizzard's normal right-click
+      (equip or use), nothing in aux.
+- [ ] 14. Search results: click a row (the buy bar shows it), click it again: let go, the buy bar
+      empties. Same in the Auctions and Bids tabs.
+- [ ] 15. Post tab price lists: click a price (it is used), click it again (let go); right-click a
+      price row searches the item.
+- [ ] 16. Hover a result row, a row's icon, a Post bag item and a Saved Search: a gray line lists
+      the clicks. Say if it is too much or easy to miss.
+
 ## Before every release: the quick run
 
 A short pass over everything, so a release never breaks something old. About 15 minutes.

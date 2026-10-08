@@ -2,6 +2,7 @@ select(2, ...) 'aux.tabs.search'
 
 local aux = require 'aux'
 local filter_util = require 'aux.util.filter'
+local gui = require 'aux.gui'
 
 StaticPopupDialogs.AUX_REMOVE_FAVORITE_CONFIRMATION = {
     text = 'Are you sure you want to remove this search from your favorites?',
@@ -101,6 +102,13 @@ function new_recent_search(filter_string, prettified, recipe)
 	update_search_listings()
 end
 
+-- auxForever (0.5, docs/clicks.md): Simon's clicks stay, and the tooltip now lists them
+do
+	local sep = gui.HINT_SEPARATOR
+	RECENT_HINT = 'Click: run' .. sep .. 'Shift-click: put in the search bar' .. sep .. 'Shift-right-click: add to the search bar' .. sep .. 'Right-click: add to favorites'
+	FAVORITE_HINT = 'Click: run' .. sep .. 'Shift-click: put in the search bar' .. sep .. 'Shift-right-click: add to the search bar' .. sep .. 'Right-click: remove' .. sep .. 'Ctrl-right-click: rename' .. sep .. 'Alt-click: alert on or off' .. sep .. 'Alt-drag: reorder'
+end
+
 handlers = {
 	OnClick = function(st, data, _, button)
         if IsAltKeyDown() and st == favorite_searches_listing then
@@ -162,6 +170,7 @@ handlers = {
 			GameTooltip:AddLine(' ')
 		end
 		GameTooltip:AddLine(gsub(data.search.prettified, ';', '\n\n'), 255/255, 254/255, 250/255, true)
+		gui.add_click_hint(GameTooltip, st == favorite_searches_listing and FAVORITE_HINT or RECENT_HINT)
 		GameTooltip:Show()
 	end,
 	OnLeave = function()

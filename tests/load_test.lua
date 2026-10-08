@@ -2431,4 +2431,105 @@ try('FB-006: list headers follow the window', function()
   check('FB-006: after a content size change the widths follow', st.headCols[1].__w == 210)
 end)
 
+
+-- 0.5 click standard (docs/clicks.md), with FB-002 (Darkhorse): right-click a bag item
+try('clicks 0.5', function()
+  local req = loadstring("select(2, ...) 'aux.test56'; return require")('auxForever', addon)
+  local aux = req 'aux'
+  local shortcut = loadstring("select(2, ...) 'aux.core.shortcut'; return _M")('auxForever', addon)
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local al = req 'aux.gui.auction_listing'
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  local was_shown = aux.frame.__shown
+  set(G, 'GameTooltip_SetDefaultAnchor', function(t, owner) t:SetOwner(owner) end)
+  aux.frame.__shown = true
+  local link = '|cffffffff|Hitem:7101::::::0:0|h[Linen Cloth]|h|r'
+  set(G, 'GetItemInfo', function(x) local id = tonumber(tostring(x):match('item:(%d+)') or x); if id == 7101 then return 'Linen Cloth', link, 1, 5, 1, 'Trade Goods', 'Cloth', 20, '', 1, 10 end end)
+  local executed = 0
+  local real_execute = search.execute
+  search.execute = function() executed = executed + 1 end
+
+  -- Alt-click from the bags on the Sniper tab: switches to Search and searches it (did nothing)
+  aux.set_tab(2)
+  set(G, 'IsAltKeyDown', function() return true end)
+  shortcut.on_modified_click(link)
+  rawset(G, 'IsAltKeyDown', nil); G.IsAltKeyDown = G.IsShiftKeyDown
+  check('clicks: Alt-click a bag item on the Sniper tab searches it', aux.get_tab() and aux.get_tab().name == 'Search' and search.search_box:GetText() == 'linen cloth/exact' and executed == 1)
+
+  -- FB-002: right-click a bag item (Blizzard sends it to AuctionHouseFrame:SetPostItem)
+  local hooked
+  set(G, 'hooksecurefunc', function(t, name, f) if t == AuctionHouseFrame and name == 'SetPostItem' then hooked = f end end)
+  set(AuctionHouseFrame, 'SetPostItem', function() end)
+  shortcut.post_item_hooked = nil
+  shortcut.hook_post_item()
+  check('FB-002: aux follows Blizzard\'s post item', hooked ~= nil)
+  local location = {IsValid = function() return true end}
+  set(C_Item, 'GetItemLink', function(l) return l == location and link or nil end)
+  local button = 'RightButton'
+  set(G, 'GetMouseButtonClicked', function() return button end)
+  local used
+  aux.set_tab(4)
+  local post_tab = aux.get_tab()
+  local real_post_use = post_tab.USE_ITEM
+  post_tab.USE_ITEM = function(id, suffix) used = id .. ':' .. suffix end
+  if hooked then hooked(AuctionHouseFrame, location) end
+  check('FB-002: right-click a bag item on the Post tab selects it for posting', used == '7101:0')
+  used = nil
+  button = 'LeftButton'
+  shortcut.on_post_item(location)
+  check('FB-002: only a right-click', used == nil)
+  button = 'RightButton'
+  post_tab.USE_ITEM = real_post_use
+  -- on the Auctions tab a right-click searches it
+  aux.set_tab(5)
+  executed = 0
+  shortcut.on_post_item(location)
+  check('FB-002: right-click a bag item on another tab searches it', aux.get_tab().name == 'Search' and executed == 1)
+
+  -- click the selected row again to let go of it, in every table
+  local rt = al.new(new_frame(), 19, al.search_columns)
+  local function grec(key, price) return {count = 1, item_key = key, search_signature = key, name = key, requirement = 0, unit_buyout_price = price, buyout_price = price, unit_bid_price = 0, bid_price = 0, high_bid = 0, duration = 2, link = link} end
+  local ra = grec('ka', 100)
+  rt:SetDatabase({ra, grec('kb', 200)})
+  local row = {rt = rt, record = ra}
+  rt.OnClick(row, 'LeftButton')
+  check('clicks: a click selects', rt:GetSelection() and rt:GetSelection().record == ra)
+  check('clicks: the hint says click again to let go', rt:ClickHint(row):find('Click again: let go', 1, true) ~= nil)
+  rt.OnClick(row, 'LeftButton')
+  check('clicks: clicking the selected row again lets go', rt:GetSelection() == nil)
+  check('clicks: the hint says click to select and right-click to search', rt:ClickHint(row):find('Click: select', 1, true) and rt:ClickHint(row):find('Right-click: search', 1, true))
+  rt.alt_hint = 'Alt-click: buy'
+  rt.OnClick(row, 'LeftButton')
+  aux.account_data.action_shortcuts = true
+  check('clicks: Alt shortcuts are in the hint only when turned on', rt:ClickHint(row):find('Alt-click: buy', 1, true) ~= nil)
+  aux.account_data.action_shortcuts = false
+  check('clicks: and not otherwise', rt:ClickHint(row):find('Alt', 1, true) == nil)
+
+  -- the Post tab's price lists: click the chosen price again to let go; right-click searches
+  post.selected_item = {key = '7101:0', item_id = 7101, name = 'Linen Cloth', quality = 1, count = 20, max_stack = 20, commodity = true}
+  local record = {unit_price = 12, count = 5}
+  local data = {record = record}
+  post.buyout_listing.handlers.OnClick(post.buyout_listing, data, nil, 'LeftButton')
+  check('clicks: a price is chosen with a click', post.get_buyout_selection() == record)
+  post.buyout_listing.handlers.OnClick(post.buyout_listing, data, nil, 'LeftButton')
+  check('clicks: clicking the chosen price again lets go of it', post.get_buyout_selection() == nil)
+  post.buyout_listing.handlers.OnClick(post.buyout_listing, data, nil, 'LeftButton')
+  aux.set_tab(4)
+  executed = 0
+  post.buyout_listing.handlers.OnClick(post.buyout_listing, data, nil, 'RightButton')
+  check('clicks: right-click a price row searches the item', aux.get_tab().name == 'Search' and search.search_box:GetText() == 'linen cloth/exact')
+  check('clicks: right-click no longer clears the price', post.get_buyout_selection() == record)
+  check('clicks: double-click on a price row does nothing now', post.buyout_listing.handlers.OnDoubleClick == nil and post.bid_listing.handlers.OnDoubleClick == nil)
+  post.selected_item = nil
+
+  -- Saved Searches list their clicks
+  check('clicks: Saved Searches hints', search.FAVORITE_HINT:find('Ctrl-right-click: rename', 1, true) and search.RECENT_HINT:find('Right-click: add to favorites', 1, true))
+
+  search.execute = real_execute
+  aux.frame.__shown = was_shown
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+end)
+
 print('done, errors: ' .. errors)
