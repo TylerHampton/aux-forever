@@ -1,11 +1,14 @@
 # Status
 
-Last updated 2026-10-05 (before a context compaction of Claude's session).
+Last updated 2026-10-08.
 
 ## Start here (where things stand right now)
 
-- Released: 0.3 and 0.3.1 (GitHub Releases `v0.3`, `v0.3.1`, uploaded to CurseForge by Tyler).
-  `main` is at the 0.3.1 merge (#6).
+- Released: 0.4.1 (2026-10-06) is the latest; `main` is at its merge (#8, ea73c6a).
+- **Player feedback log (started 2026-10-08):** `docs/feedback.md`. Tyler passes on what players
+  say; one Claude session records it there (no fixes in that session) and a separate session or
+  agent fixes from it. Check its index for entries with status `new` or `confirmed` before
+  planning 0.4.x or 0.5.
 - Versioning decision (2026-10-05): fixes to an unreleased version go into that version, so the
   build 2 and 3 fixes are part of 0.4, not 0.4.1. 0.4.1 is for fixes after 0.4 is released.
 - **0.4.1 release (2026-10-06):** build 6 passed except one case, fixed before release: a Live
