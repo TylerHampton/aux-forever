@@ -246,7 +246,7 @@ local function create_menu()
     menu:SetScript('OnShow', function()
         recent_offset = 0
         update_quick_menu()
-        gui.set_selected(history_button)
+        gui.set_selected(history_button, true)
     end)
     menu:SetScript('OnHide', function()
         gui.set_default(history_button)

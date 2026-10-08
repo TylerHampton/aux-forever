@@ -456,7 +456,7 @@ do
 
     popup:SetScript('OnShow', function()
         refresh()
-        gui.set_selected(btn)
+        gui.set_selected(btn, true)
     end)
     popup:SetScript('OnHide', function()
         gui.set_default(btn)

@@ -16,7 +16,7 @@ page of the Paper file.
 
 - [ ] 1. Open the auction house: no BugSack error. The window is near black with square corners, a
   darker band along the top and bottom, "aux" white and "Forever" gold, the open tab outlined in
-  gold.
+  gold. The thin black edges look even (not faint, blurry or doubled) at your Scale setting.
 - [ ] 2. Search tab: search `cloth`. Column headers are raised gray plates; click "Buyout each"
   twice: the name turns white with a gold arrow that flips. Click a row: it turns gold with a gold
   bar on its left. Moving the mouse over other rows only lightens them.

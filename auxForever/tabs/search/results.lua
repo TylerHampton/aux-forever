@@ -376,7 +376,7 @@ do
             last_look = look
             -- auxForever (0.6): on is lit like a selected tab, paused like a chosen option
             if look == 'on' then
-                gui.set_selected(mode_button)
+                gui.set_selected(mode_button, true)
             elseif look == 'paused' then
                 gui.style_choice(mode_button, true)
             else

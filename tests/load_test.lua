@@ -304,6 +304,15 @@ try('restyle', function()
   local ok = pcall(gui.set_gradient, tex, .3)
   G.CreateColor = nil
   check('gradient falls back without an error', ok)
+  -- an input's red border for a bad value survives typing in it and clicking away
+  local box = gui.editbox(new_frame())
+  local shown_border
+  for _, t in ipairs(box.aux_border.pieces) do rawset(t, 'SetVertexColor', function(_, r, g, b) shown_border = {r, g, b} end) end
+  box:SetBackdropBorderColor(1, 0, 0, 1)
+  box.__scripts.OnEditFocusGained(box)
+  check('gold while typing', math.abs(shown_border[1] - 229 / 255) < .001)
+  box.__scripts.OnEditFocusLost(box)
+  check('red again after typing', shown_border[1] == 1 and shown_border[2] == 0)
   check('named seller shown', auction_listing.seller_text{owner = 'Violet Toes'} == 'Violet Toes')
   check('several sellers counted', auction_listing.seller_text{seller_count = 12}:find('12 sellers') ~= nil)
   check('unknown seller', auction_listing.seller_text{seller_count = 1} == '?')
@@ -555,7 +564,13 @@ try('post panel', function()
   local colors = {}
   rawset(post.post_button, 'GetFontString', function(self) return self.label end)
   rawset(post.post_button.label, 'SetTextColor', function(_, r) colors[#colors + 1] = r end)
+  rawset(post.post_button, 'IsEnabled', function() return false end)
+  post.post_button:Disable()
+  rawset(post.post_button, 'IsEnabled', nil)
   post.post_button:Enable()
+  local enable_calls = #colors
+  post.post_button:Enable()
+  check('enabling an enabled button redraws nothing', #colors == enable_calls)
   rawset(post.post_button, 'IsEnabled', function() return false end)
   post.post_button:Disable()
   rawset(post.post_button, 'IsEnabled', nil)

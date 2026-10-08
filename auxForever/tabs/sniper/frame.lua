@@ -354,7 +354,8 @@ do
             run_button:SetText(running and 'Stop' or 'Start')
             if running then
                 gui.set_default(run_button)
-                run_button:GetFontString():SetFont(gui.font, gui.font_size.large)
+                local _, size = run_button:GetFontString():GetFont()
+                run_button:GetFontString():SetFont(gui.font, size and size > 0 and size or gui.font_size.medium)
             else
                 gui.set_primary(run_button)
             end

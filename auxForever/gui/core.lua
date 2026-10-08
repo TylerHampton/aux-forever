@@ -334,16 +334,22 @@ function M.button(parent, text_height)
     label:SetJustifyV('MIDDLE')
     button:SetFontString(label)
 
+    -- redrawn only when the state changes: some callers run ten times a second
     button.default_Enable = button.Enable
     function button:Enable()
+        if self.aux_enabled == true then return end
+        self.aux_enabled = true
         self:default_Enable()
         apply_look(self)
     end
     button.default_Disable = button.Disable
     function button:Disable()
+        if self.aux_enabled == false then return end
+        self.aux_enabled = false
         self:default_Disable()
         apply_look(self)
     end
+    button.aux_enabled = true
 
     button.label = label
     apply_look(button, 'default')
@@ -359,9 +365,9 @@ function M.style_choice(btn, selected)
     apply_look(btn, selected and 'choice_on' or 'choice')
 end
 
--- a selected tab, or a toggle that is on (Sound, Live)
+-- a selected tab, or a toggle that is on (Sound, Live); off is the default look
 function M.set_selected(btn, selected)
-    apply_look(btn, (selected == nil or selected) and 'selected' or 'default')
+    apply_look(btn, selected and 'selected' or 'default')
 end
 
 -- auxForever: the main action of a view (Search, Post, Buy): gold outline and label
@@ -446,6 +452,16 @@ function M.editbox(parent)
     editbox:SetHeight(24)
     editbox:SetTextColor(0, 0, 0, 0)
     set_frame_style(editbox, aux.color.input.background, aux.color.input.border)
+    -- auxForever (0.6): a border set while not typing (red for a bad value, gold for the buy bar's
+    -- own quantity) is remembered and comes back when typing ends; while typing it is gold
+    local set_border = editbox.SetBackdropBorderColor
+    editbox.aux_rest_border = {aux.color.input.border()}
+    function editbox:SetBackdropBorderColor(r, g, b, a)
+        if not self.focused then
+            self.aux_rest_border = {r, g, b, a}
+            set_border(self, r, g, b, a)
+        end
+    end
     editbox:SetScript('OnEscapePressed', function(self)
         self:ClearFocus()
         do (self.escape or pass)(self) end
@@ -462,16 +478,16 @@ function M.editbox(parent)
         self.overlay:Hide()
         self:SetTextColor(1, 1, 1)
         -- auxForever (0.6): a gold outline while typing
-        self:SetBackdropBorderColor(229 / 255, 190 / 255, 91 / 255, .6)
         self.focused = true
+        set_border(self, 229 / 255, 190 / 255, 91 / 255, .6)
         self:HighlightText()
         do (self.focus_gain or pass)(self) end
     end)
     editbox:SetScript('OnEditFocusLost', function(self)
         self.overlay:Show()
         self:SetTextColor(0, 0, 0, 0)
-        self:SetBackdropBorderColor(aux.color.input.border())
         self.focused = false
+        set_border(self, unpack(self.aux_rest_border))
         self:HighlightText(0, 0)
         self:SetScript('OnUpdate', nil)
         do (self.focus_loss or pass)(self) end

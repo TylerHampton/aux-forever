@@ -27,6 +27,12 @@ Build 1 (not tried in game yet): a restyle only, no change to searching, buying 
 - Not matched: the font (Forever loads no addon fonts; sizes stay as they were, the game font
   needs them), the layouts of each screen (the kit screens mostly follow the existing layouts;
   differences such as the Fast/Full sunken track are approximated with two buttons).
+- Edges are 1-unit lines; at some Scale settings they may render uneven. If so, set their size with
+  `PixelUtil` in `create_shape` (`gui/core.lua`).
+- The test page (artifact LUCZVgJV27irizAyKHTjhJ) could not be read from this session ("not
+  found"); build 1's steps are only in `TESTING.md`.
+- Not pushed yet: this Mac had no GitHub login (`gh auth login`), so CI has not run. Tests pass
+  locally under LuaJIT 2.1, not lua5.1.
 - Open question for Tyler: zebra rows. He asked for a zebra version of an earlier design; the kit
   says no stripes, so build 1 has none. Easy to add back.
 
