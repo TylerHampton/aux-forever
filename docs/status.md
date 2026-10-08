@@ -66,9 +66,20 @@ Tyler approved the proposal ("Yes build it, the text examples are enough"). Buil
 `history.latest`, tooltips and the recipe cost use it, "usually ..." at a 30% gap; details in
 `docs/price-data.md`. Test page collection `builds/0-5-dev3/results`.
 
+Build 3 results (Tyler, 2026-10-08, `builds/0-5-dev3/results`): banana tooltip 38c each (pass);
+Full scan alone recorded Rough Dynamite at 30c, its lowest listing, so Full scan prices look right;
+Linen Cloth 32c with 296 listed at 23c ("The full scan NOR the search fixed the tooltip??"): the
+average of the cheapest 20% is too deep for big markets. Also: hovering the faded Post button did
+nothing; the Full scan looks stuck for 7 to 8 seconds before its bar moves (Tyler: help impatient
+players see a scan is running); a right-clicked bag item stayed locked (Blizzard's hidden Sell tab
+calls C_Item.LockItem on it, source: Blizzard_AuctionHouseSharedTemplates.lua, forever branch), so
+it could not be picked up and aux posted from another stack. All four fixed in build 4
+(`builds/0-5-dev4/results`): market price = middle of the cheapest 5% of units, the right-clicked
+item is cleared from Blizzard's Sell tab (ClearPostItem), a Post button tooltip, status bar text
+during a Full scan.
+
 Open:
-- Tyler to test build 3 (`TESTING.md`, Current build, 6 steps). Step 3 checks that a Full scan
-  alone records correct prices (unverified so far).
+- Tyler to test build 4 (`TESTING.md`, Current build, 5 steps).
 - Asked Tyler: whether to do the Sniper and Auctions tab notes in `docs/roadmap.md` (0.5) tonight
   (he asked what they were; explained 2026-10-08, waiting); whether today's market price should
   count in the usual price. FB-002's suspected bug: he does not remember. Damaged gear (FB-003):

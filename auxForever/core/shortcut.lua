@@ -69,6 +69,13 @@ function M.on_post_item(item_location)
     end
     local link = item_location and item_location.IsValid and item_location:IsValid() and C_Item.GetItemLink(item_location)
     if type(link) == 'string' and strfind(link, 'item:', 1, true) then
+        -- Blizzard's Sell tab locks the item it holds (C_Item.LockItem in its item display), so the
+        -- bag item could not be picked up or posted by aux afterwards (Tyler, build 3). Empty it.
+        if AuctionHouseFrame.ClearPostItem then
+            AuctionHouseFrame:ClearPostItem()
+        elseif C_Item.UnlockItem then
+            C_Item.UnlockItem(item_location)
+        end
         use_item(info.parse_link(link))
     end
 end

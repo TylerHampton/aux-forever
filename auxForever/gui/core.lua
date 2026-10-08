@@ -513,6 +513,19 @@ do
                 self:SetBackdropBorderColor(aux.color.window.border())
             end
         end
+        -- auxForever (0.5): a short text in the bar, e.g. what a Full scan is doing
+        local text = self.primary_status_bar:CreateFontString(nil, 'OVERLAY')
+        text:SetFont(font, font_size.small, '')
+        text:SetPoint('LEFT', 8, 0)
+        text:SetPoint('RIGHT', -8, 0)
+        text:SetTextColor(aux.color.text.enabled())
+        self.text = text
+        function self:set_text(value)
+            if value ~= self.shown_text then
+                self.shown_text = value
+                text:SetText(value or '')
+            end
+        end
         function self:set_done(done)
             self.done = done and true or false
             paint(self)

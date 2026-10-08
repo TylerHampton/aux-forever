@@ -123,8 +123,11 @@ numbers with two jobs:
   Sniper's rule, the search % column, the Post tab's % badge, the percentage and profit filters,
   disenchant values. Tooltips show it as a gray "usually ..." line only when it differs from the
   latest by 30% or more (`USUALLY_SHARE`).
-- Unverified: whether a Full scan alone records correct prices (the replicate data's stack format
-  on Forever). Test step in build 3: Full scan, then `/aux price` on an item.
+- Build 3 test: a Full scan alone recorded Rough Dynamite at 30c, the same as its lowest listing
+  (514 listed), so Full scan prices look right. Linen Cloth showed 32c while 296 were listed at
+  23c: the average of the cheapest 20% reached up to 36c in a deep market. Build 4 changed the
+  market price to the middle unit price of the cheapest 5% of the units (`MARKET_SHARE = .05`),
+  which gives 24c there and still ignores one odd cheap auction.
 
 The plan as written before building:
 

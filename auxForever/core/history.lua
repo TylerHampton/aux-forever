@@ -9,8 +9,9 @@ local persistence = require 'aux.util.persistence'
 -- Per item, one packed line in the saved variables:
 --   day         the day number (days since 1 January 1970, local calendar) the "today" fields belong to
 --   low         today's lowest unit buyout seen by any scan ("Today" in tooltips)
---   market      today's market price: the average unit price of the cheapest 20% of the units listed,
---               recorded only from a complete view of the item (every auction of it was seen)
+--   market      today's market price: the middle unit price of the cheapest 5% of the units listed
+--               (build 4; was the average of the cheapest 20%), recorded only from a complete view of
+--               the item (every auction of it was seen)
 --   units       how many units that complete view listed
 --   points      up to 14 past days: day number, that day's price (its market price, or its lowest
 --               price when no complete view was seen that day) and its units
@@ -22,7 +23,7 @@ local history_schema = {'tuple', '#', {day='number'}, {low='number'}, {market='n
 -- the 0.4 format (history_version 2): when the day ends (a timestamp), today's lowest, past lows
 local old_schema = {'tuple', '#', {next_push='number'}, {daily_min_buyout='number'}, {data_points={'list', ';', {'tuple', '@', {value='number'}, {time='number'}}}}}
 
-M.MARKET_SHARE = .2
+M.MARKET_SHARE = .05
 M.MAX_POINTS = 14
 M.HALF_LIFE = 7
 -- a usual price whose newest data is this many days old is shown dimmed
@@ -167,7 +168,10 @@ function M.record_units(record)
 end
 
 -- Market price of a list of unit prices and counts, flat: {price1, count1, price2, count2, ...}.
--- The average of the cheapest MARKET_SHARE of the units (at least one unit). Sorts the list.
+-- The middle unit price of the cheapest MARKET_SHARE of the units (at least one unit): close to the
+-- cheapest price that has a real amount behind it, and one odd cheap auction does not set it.
+-- Build 3 averaged the cheapest 20%, which in a deep market reached far above the lowest listing
+-- (Linen Cloth: 32c with 2,600 units listed at 23c to 36c; Tyler, 2026-10-08).
 function M.market_price(flat)
 	local n = #flat / 2
 	if n == 0 then
@@ -183,17 +187,16 @@ function M.market_price(flat)
 		return
 	end
 	sort(order, function(a, b) return flat[2 * a - 1] < flat[2 * b - 1] end)
-	local wanted = max(1, ceil(total * MARKET_SHARE))
-	local left, sum = wanted, 0
+	local middle = ceil(max(1, ceil(total * MARKET_SHARE)) / 2)
+	local seen, price = 0
 	for _, i in ipairs(order) do
-		local take = min(left, flat[2 * i])
-		sum = sum + take * flat[2 * i - 1]
-		left = left - take
-		if left <= 0 then
+		seen = seen + flat[2 * i]
+		price = flat[2 * i - 1]
+		if seen >= middle then
 			break
 		end
 	end
-	return ceil(sum / wanted), total, flat[2 * order[1] - 1]
+	return price, total, flat[2 * order[1] - 1]
 end
 
 -- One complete view of an item (every auction of it): flat unit prices and counts as above. Sets
@@ -406,7 +409,7 @@ function M.report(item_key, money_text)
 	else
 		tinsert(lines, 'Today is not part of the usual price until the day ends.')
 	end
-	tinsert(lines, format('Today: lowest %s; market %s', record.low and money_text(record.low) or '?', record.market and (money_text(record.market) .. format(' (cheapest fifth of %d listed)', record.units or 0)) or '? (no complete look today)'))
+	tinsert(lines, format('Today: lowest %s; market %s', record.low and money_text(record.low) or '?', record.market and (money_text(record.market) .. format(' (of %d listed)', record.units or 0)) or '? (no complete look today)'))
 	local parts = {}
 	for _, point in ipairs(record.points) do
 		tinsert(parts, format('%s %s', age_text(today() - point.day), money_text(point.value)) .. (point.units and format(' (%d listed)', point.units) or ' (lowest, 0.4)'))

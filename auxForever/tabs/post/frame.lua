@@ -521,6 +521,18 @@ do
         self:GetFontString():SetTextColor(aux.color.accent.text())
     end
     btn:SetScript('OnClick', post_auction)
+    -- auxForever (0.5): hovering a faded Post button says why (Tyler, build 3: "hovering the greyed
+    -- out button does nothing"); the same reason is shown in the left column
+    btn:SetMotionScriptsWhileDisabled(true)
+    btn:SetScript('OnEnter', function(self)
+        local reason = disabled_reason()
+        if reason and not self:IsEnabled() then
+            GameTooltip:SetOwner(self, 'ANCHOR_TOP')
+            GameTooltip:AddLine(reason, 1, 1, 1, true)
+            GameTooltip:Show()
+        end
+    end)
+    btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
     post_button = btn
 end
 do

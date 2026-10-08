@@ -8,9 +8,10 @@ A change that comes from a player's feedback credits them by in-game name at the
 
 ## 0.5 (in progress)
 
-- Price data: aux now records a market price, the average of the cheapest fifth of what is listed,
-  from every complete look at an item (Full scan, normal searches, the Sniper's checks). One cheap
-  auction no longer sets the price. Tooltips show the price from your latest scan as Value, with
+- Price data: aux now records a market price from every complete look at an item (Full scan, normal
+  searches, the Sniper's checks): the middle price of the cheapest twentieth of what is listed,
+  close to the cheapest listings with a real amount behind them. One odd cheap auction no longer
+  sets the price. Tooltips show the price from your latest scan as Value, with
   when aux saw it ("seen today", "seen 3 days ago", darker when a week old or more), so a quick
   scan before posting is what you see afterwards anywhere in the world. When that is far from the
   usual price of the last two weeks, a gray "usually ..." line shows it. The usual price, with
@@ -40,6 +41,11 @@ A change that comes from a player's feedback credits them by in-game name at the
   comes from. (suggested by Garsterson)
 - Tooltips: with Shift held (prices for the whole stack), Value, Today and the vendor prices say
   "for 3" so they are not read as the price of one.
+- Full scan: the status bar says "waiting for the auction house" during the several seconds before
+  the list arrives, then how far it is, so the scan never looks stuck.
+- Post tab: hovering a faded Post button says why it is faded.
+- Right-clicking a bag item into the Post tab no longer leaves it locked (Blizzard's hidden Sell
+  tab held on to it, so it could not be picked up).
 - `/aux price <item>` prints what aux has recorded for an item: the usual price and how many days
   it rests on, today's lowest and market price, and each past day.
 

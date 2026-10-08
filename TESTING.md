@@ -8,23 +8,21 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.5, test build 3
+## Current build: 0.5, test build 4
 
-A /reload is enough (no new files). Build 2: everything passed except two small things, fixed here
-(gold prices in the cost tooltip, the cut-off Post message). New in build 3: tooltips show the
-price of your latest scan (Tyler's decision, docs/price-data.md).
+A /reload is enough (no new files). Build 3: the banana tooltip matched (38c each), a Full scan
+alone recorded Rough Dynamite at its lowest listing (30c); Linen Cloth read 32c with 23c listings,
+fixed here.
 
-- [ ] 1. Build 3 installed, no BugSack error.
-- [ ] 2. Search Tel'Abim Banana (or any trade good), then hover one in your bags: Value is close to
-      the cheapest listings you just saw, "seen today". If the usual price is far off, a gray
-      "usually ..." line shows under it.
-- [ ] 3. Run a Full scan without searching first (wait for the 15 minutes if needed). Then
-      `/aux price ` and Shift-click a trade good you have not searched today. The first line's price
-      should be close to what the auction house shows for it. Screenshot please.
-- [ ] 4. Recipe cost tooltip: prices white, the header says "Prices from your latest scans", each
-      material "seen today" or "vendor".
-- [ ] 5. Post tab: an item on your mouse pointer and Post: the red line fits (two lines at most).
-- [ ] 6. Sniper: Start, deals still show.
+- [ ] 1. Build 4 installed, no BugSack error.
+- [ ] 2. Search Linen Cloth, then hover it in your bags: Value is within a copper or two of the
+      cheapest listings.
+- [ ] 3. Full scan: the bar at the bottom left says "Full scan: waiting for the auction house..."
+      right away, then "reading auctions, N%", then nothing when done.
+- [ ] 4. Post tab: right-click a bag item into the Post tab, then left-click the same stack in your
+      bags: it picks up normally. Put it back, click Post: it posts.
+- [ ] 5. Post tab: make the Post button fade (starting bid above the buyout), hover it: a tooltip
+      says why.
 
 Build 1 checklist (passed or skipped, kept for the release run): price data conversion, Full
 scan memory (9.9 MB after a cleanup with 3,457 items of history), Sniper deals, posting,

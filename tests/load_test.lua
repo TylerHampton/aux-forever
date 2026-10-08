@@ -2165,6 +2165,13 @@ try('price data 0.5', function()
   check('price: one cheap auction barely moves the market price', market and market >= 950 and units == 101)
   check('price: with no past days the usual price is the market price', h.value('9001:0') == market)
 
+  -- build 4: in a deep market the market price stays near the cheapest real listings (Linen Cloth in
+  -- build 3: 32c, the average of the cheapest fifth, while 296 were listed at 23c)
+  local linen = {23, 296, 24, 196, 25, 73, 30, 361, 33, 326, 34, 274, 35, 292, 36, 1148, 37, 2628, 38, 2272, 39, 1597, 40, 1153}
+  local deep = h.market_price(linen)
+  check('price: a deep market\'s price is near its lowest listings', deep <= 25)
+  check('price: one odd cheap auction does not set it', h.market_price({1, 1, 1000, 100}) == 1000)
+
   -- gear rows: an item search row is auction_count auctions of one item
   check('price: units of a gear row', h.record_units({count = 1, auction_count = 4}) == 4 and h.record_units({count = 20}) == 20)
 
@@ -2260,8 +2267,8 @@ try('price data 0.5: full scan', function()
   check('full scan: each item recorded once', views['9101:0'] == 1 and views['9102:0'] == 1)
   local m1, u1 = h.today_market('9101:0')
   local m2, u2 = h.today_market('9102:0')
-  -- 9101: 51 units, cheapest 11 (20%): one at 5c and ten at 100c -> 1005 / 11 = 92c (rounded up)
-  check('full scan: market price and units, whatever the order', m1 == 92 and u1 == 51 and m2 == 700 and u2 == 3)
+  -- 9101: 51 units; the cheapest 5% is 3 units (one at 5c, two at 100c); the middle one is 100c
+  check('full scan: market price and units, whatever the order', m1 == 100 and u1 == 51 and m2 == 700 and u2 == 3)
   check('full scan: today\'s lowest', h.market_value('9101:0') == 5)
 end)
 
@@ -2682,7 +2689,7 @@ try('0.5 build 1 fixes', function()
   SlashCmdList.AUX('price |cffffffff|Hitem:7402::::::0:0|h[Banana]|h|r')
   local out = table.concat(printed, '\n')
   check('/aux price: the tooltip Value and the usual price', out:find('Value in tooltips (latest look, seen today): 40c', 1, true) and out:find('Usual price, for finding deals:', 1, true) and out:find('from 2 past days', 1, true))
-  check('/aux price: today\'s lowest and market', out:find('lowest 38c', 1, true) and out:find('market 40c (cheapest fifth of 83 listed)', 1, true))
+  check('/aux price: today\'s lowest and market', out:find('lowest 38c', 1, true) and out:find('market 40c (of 83 listed)', 1, true))
   check('/aux price: the past days', out:find('1 day ago 87c (60 listed)', 1, true) and out:find('3 days ago 90c (lowest, 0.4)', 1, true))
 
   post.selected_item = nil
@@ -2724,6 +2731,63 @@ try('0.5 build 3: latest price in tooltips', function()
   -- the recipe cost uses the latest price too
   local total = search.recipe_usual_cost({reagents = {{item_id = 7501, count = 2}}})
   check('build 3: the recipe cost uses the latest price', total == 78)
+end)
+
+
+-- build 3 results (Tyler, 2026-10-08)
+try('0.5 build 3 results', function()
+  local req = loadstring("select(2, ...) 'aux.test59'; return require")('auxForever', addon)
+  local aux = req 'aux'
+  local shortcut = loadstring("select(2, ...) 'aux.core.shortcut'; return _M")('auxForever', addon)
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  local was_shown = aux.frame.__shown
+  aux.frame.__shown = true
+
+  -- a right-clicked bag item stayed locked in Blizzard's hidden Sell tab: aux empties it
+  local cleared = 0
+  set(AuctionHouseFrame, 'ClearPostItem', function() cleared = cleared + 1 end)
+  set(G, 'GetMouseButtonClicked', function() return 'RightButton' end)
+  local link = '|cffffffff|Hitem:7101::::::0:0|h[Linen Cloth]|h|r'
+  set(C_Item, 'GetItemLink', function() return link end)
+  set(G, 'GetItemInfo', function(x) local id = tonumber(tostring(x):match('item:(%d+)') or x); if id == 7101 then return 'Linen Cloth', link, 1, 5, 1, 'Trade Goods', 'Cloth', 20, '', 1, 10 end end)
+  aux.set_tab(3)
+  shortcut.on_post_item({IsValid = function() return true end})
+  check('build 3: the right-clicked item is taken back from Blizzard\'s Sell tab (unlocked)', cleared == 1)
+
+  -- hovering a faded Post button says why
+  local tip_text
+  set(GameTooltip, 'AddLine', function(_, t) tip_text = t end)
+  post.selected_item = {key = '7101:0', item_id = 7101, name = 'Linen Cloth', quality = 1, count = 20, max_stack = 20}
+  post.set_unit_start_price(900)
+  post.set_unit_buyout_price(500)
+  rawset(post.post_button, 'IsEnabled', function() return false end)
+  post.post_button.__scripts.OnEnter(post.post_button)
+  rawset(post.post_button, 'IsEnabled', nil)
+  check('build 3: hovering a faded Post button says why', tip_text and tip_text:find('starting bid is above the buyout', 1, true) ~= nil)
+  post.selected_item = nil
+
+  -- a Full scan says it is waiting for the auction house, then how far it is
+  local texts = {}
+  set(aux.status_bar.text, 'SetText', function(_, t) tinsert(texts, t) end)
+  local scan_button
+  for _, f in ipairs(frames) do if f.__text == 'Full scan' and f.__scripts.OnClick then scan_button = f end end
+  local list = {{id = 7101, count = 5, buyout = 50}, {id = 7101, count = 5, buyout = 55}}
+  set(C_AuctionHouse, 'ReplicateItems', function() end)
+  set(C_AuctionHouse, 'GetNumReplicateItems', function() return #list end)
+  set(C_AuctionHouse, 'GetReplicateItemInfo', function(i) local a = list[i + 1]; return 'Item', 1, a.count, 1, true, 1, nil, 0, 0, a.buyout, 0, false, nil, 'Seller', nil, 0, a.id, true end)
+  set(C_AuctionHouse, 'GetReplicateItemLink', function() return link end)
+  if scan_button then scan_button.__scripts.OnClick(scan_button) end
+  for _ = 1, 3 do tick() end
+  check('build 3: a Full scan says it is waiting for the auction house', texts[1] and texts[1]:find('waiting for the auction house', 1, true) ~= nil)
+  fire('REPLICATE_ITEM_LIST_UPDATE')
+  for _ = 1, 60 do tick() end
+  local joined = table.concat(texts, '|')
+  check('build 3: then how far it is, and nothing when done', joined:find('reading auctions, 100%', 1, true) ~= nil and texts[#texts] == '')
+
+  aux.frame.__shown = was_shown
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
 end)
 
 print('done, errors: ' .. errors)

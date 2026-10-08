@@ -294,26 +294,36 @@ do
     btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
     btn:SetMotionScriptsWhileDisabled(true)
     btn:SetScript('OnClick', function()
-        local count = 0
+        local count, shown_percent = 0
         scan.start{
             type = 'list',
             queries = {{blizzard_query = {}}},
             get_all = true,
             on_scan_start = function()
                 status_bar:update_status(0, 0)
+                -- auxForever (0.5): the server takes several seconds before the list arrives; say
+                -- so, or the scan looks stuck (Tyler, build 3)
+                status_bar:set_text('Full scan: waiting for the auction house...')
                 post.clear_auctions()
                 search.clear_selection()
             end,
             on_auction = function(auction_record, total)
                 count = count + 1
                 status_bar:update_status(count / total, 0)
+                local percent = floor(count / total * 100)
+                if percent ~= shown_percent then
+                    shown_percent = percent
+                    status_bar:set_text(format('Full scan: reading auctions, %d%%', percent))
+                end
                 post.record_scanned_auction(auction_record)
             end,
             on_abort = function()
                 status_bar:update_status(1, 1)
+                status_bar:set_text()
             end,
             on_complete = function()
                 status_bar:update_status(1, 1)
+                status_bar:set_text()
                 print('full scan complete: ' .. count .. ' auctions recorded')
             end,
         }
