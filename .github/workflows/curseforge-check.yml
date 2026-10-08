@@ -1,0 +1,22 @@
+name: CurseForge check
+
+# Asks CurseForge, with the CF_API_KEY secret, which game version an upload would use. Uploads
+# nothing. Runs by hand (Actions tab, CurseForge check, "Run workflow") and when the upload script
+# changes.
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/scripts/curseforge.sh'
+      - '.github/workflows/curseforge-check.yml'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ask CurseForge
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+        run: bash .github/scripts/curseforge.sh check

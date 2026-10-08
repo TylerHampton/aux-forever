@@ -85,8 +85,11 @@ workflow (`.github/workflows/release.yml`) on `main`: Actions tab, Release, "Run
 an agent, trigger the workflow through the GitHub API; Claude's session cannot push tags). It reads
 the version from the TOC, runs the tests, builds `auxForever-<version>.zip`, creates the tag
 `v<version>` and publishes a GitHub Release (pre-release while in beta) with the version's notes
-from `docs/changelog.md`. Pushing a matching `v<version>` tag does the same. CurseForge is uploaded
-by hand by Tyler (see `docs/curseforge.md`).
+from `docs/changelog.md`. Pushing a matching `v<version>` tag does the same. The same workflow then
+uploads the zip to CurseForge (project 1727417) as a Beta file with the version's notes, using the
+repository secret `CF_API_KEY` (`.github/scripts/curseforge.sh`; the CurseForge check workflow
+shows which game version an upload would use, without uploading). The CurseForge page description
+is still pasted by hand by Tyler (see `docs/curseforge.md`).
 
 ### Packaging
 

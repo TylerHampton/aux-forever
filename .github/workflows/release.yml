@@ -1,7 +1,8 @@
 name: Release
 
 # Publishes a GitHub Release with the installable zip attached and the version's notes from
-# docs/changelog.md. Two ways to start it:
+# docs/changelog.md, then uploads the same zip to CurseForge as a Beta file (when the CF_API_KEY
+# secret is set). Two ways to start it:
 #   - Actions tab, Release, "Run workflow" on main: releases the version in auxForever.toc and
 #     creates its tag (v0.2.1 for forever-0.2.1).
 #   - pushing a tag like v0.2.1; the tag must match the version in auxForever.toc.
@@ -64,3 +65,17 @@ jobs:
           body_path: notes.md
           files: auxForever-${{ env.VERSION }}.zip
           prerelease: true
+
+      # CurseForge (project 1727417): the same tested zip as a Beta file, with the version's notes.
+      # Skipped while the CF_API_KEY secret is not set; if it fails, the GitHub release above is
+      # already published and the file can be uploaded by hand.
+      - name: Upload to CurseForge
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+        run: |
+          if [ -z "$CF_API_KEY" ]; then
+            echo "CF_API_KEY is not set: upload to CurseForge by hand."
+            exit 0
+          fi
+          awk -v v="$VERSION" 'index($0, "## " v " ") == 1 {p = 1; next} /^## / && p {exit} p' docs/changelog.md > curseforge-notes.md
+          bash .github/scripts/curseforge.sh upload "auxForever-$VERSION.zip" curseforge-notes.md

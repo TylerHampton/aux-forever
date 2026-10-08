@@ -5,9 +5,13 @@ Last updated 2026-10-08, after the 0.5 release.
 ## Start here (for the next session: 0.5.1 or 0.6)
 
 - **Released: 0.5** on 2026-10-08. `main` is at its merge (PR #11, e27b711); tag `v0.5`; GitHub
-  pre-release https://github.com/TylerHampton/aux-forever/releases/tag/v0.5. Tyler uploads to
-  CurseForge by hand (description from `docs/curseforge-description.md`, changelog from the 0.5
-  section of `docs/changelog.md`).
+  pre-release https://github.com/TylerHampton/aux-forever/releases/tag/v0.5. Tyler uploaded 0.5 to
+  CurseForge by hand.
+- **CurseForge uploads are automatic from the next release on:** the Release workflow uploads the
+  zip as a Beta file with the changelog (project 1727417, secret `CF_API_KEY` set by Tyler on
+  2026-10-08). The CurseForge check workflow confirmed the token works and that CurseForge lists
+  game version 1.60.1 under "WoW Forever" (id 17053). Not yet used for a real upload; watch the
+  first one. The page description is still pasted by hand when it changes.
 - **Which version next:** Tyler has not chosen. Rules (`docs/roadmap.md`): 0.5.x is bug fixes,
   speed and small things only; new features go into 0.6. If players report bugs in 0.5, they go
   into 0.5.1 (or a hotfix if bad: money spent wrongly, repeated errors, a broken tab, lost data).
