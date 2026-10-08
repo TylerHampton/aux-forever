@@ -38,7 +38,10 @@ Tyler owns the project and tests every change in the game. He is not a programme
 - He tests in game and reports with screenshots and BugSack error text. Each bug report becomes a
   fix plus a test that fails without the fix.
 - Feedback from players reaches us through Tyler and is logged in `docs/feedback.md` (rules at
-  the top of that file) before anyone fixes it.
+  the top of that file) before anyone fixes it. A player's problem is treated as the addon's
+  problem, never as the player's mistake: the addon should make players good at the auction house
+  through clear screens and clear information (Tyler). Changes that come from feedback credit the
+  player by in-game name in `docs/changelog.md`.
 
 ## Workflow
 
@@ -107,7 +110,7 @@ Load order is the TOC (`auxForever/auxForever.toc`).
   per item key; full scan with `ReplicateItems`). Fast mode (`params.fast`) stops at the browse
   list: one row per item (`info.browse_record`, `record.fast`); `params.on_item_list` hands the raw
   list to the Sniper. `util/scan.lua`, `util/info.lua`: helpers and
-  item/auction records. `core/history.lua`: price history ("usual price").
+  item/auction records. `core/history.lua`: price history ("usual price"; see `docs/price-data.md`).
 - `util/filter.lua`: aux's search language: parsing, the post filters and their validators.
 - `gui/auction_listing.lua`: the result tables (columns Lvl, Item, For sale, ...).
   `gui/buy_bar.lua`: buying under the search results.
@@ -178,7 +181,10 @@ aux runs inside the game; every frame it spends time in costs the player frame r
 
 Dark slate panels, warm off-white text, one amber accent (`227, 164, 59`) for the selected and
 primary things, rounded corners, the game font. Money coming in is green (`positive`), going out red
-(`negative`). Tokens are in `color.lua`. Keep new screens in this style. Mockups so far were made
+(`negative`). Tokens are in `color.lua`. Keep new screens in this style. Direction (Tyler,
+2026-10-08): auxForever should resemble TSM and the original aux, not Blizzard's auction house or
+Auctionator; a player request to move toward the traditional layout was rejected
+(`docs/feedback.md`, FB-004). Mockups so far were made
 as interactive HTML pages; an HTML file Tyler can open in a browser works the same way.
 
 ## Where to find more
@@ -187,6 +193,10 @@ as interactive HTML pages; an HTML file Tyler can open in a browser works the sa
 - `docs/feedback.md`: every piece of player feedback, one numbered entry each (FB-001, ...),
   with the player's exact words and its status. Check it before planning a version; update an
   entry's status when you fix or build it.
+- `docs/clicks.md`: every click and modifier click in the addon, and the click standard for 0.5.
+  Check it before adding or changing a click.
+- `docs/price-data.md`: where aux keeps prices (price history, the "usual price"), how they are
+  recorded and used, and their known weak points.
 - `docs/changelog.md`: what changed in each version; add an entry when the version number changes.
 - `docs/roadmap.md`: what each version is for. A patch version (0.3.x) is bug fixes, speed and
   small things only, no new features; new features go into the next minor version (0.4).

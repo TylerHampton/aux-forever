@@ -3,6 +3,9 @@
 What changed in each version, newest first. The text under each version is ready to paste into the
 CurseForge file's changelog box.
 
+A change that comes from a player's feedback credits them by in-game name at the end of its line:
+"(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
+
 ## 0.4.1 (2026-10-06)
 
 Performance, memory and fixes from a week of testing.

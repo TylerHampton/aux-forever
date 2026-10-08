@@ -34,6 +34,26 @@ else is batched, about a week of real use.
 
 ## 0.5: notes for planning (from Tyler's 0.4.1 testing)
 
+- No 0.4.2 (Tyler, 2026-10-08): fixes and small things found after 0.4.1 go into 0.5, unless one
+  is bad enough for a hotfix. Player feedback planned or proposed for 0.5: `docs/feedback.md`
+  (index), so far FB-001, FB-002, FB-003, FB-006 (planned), FB-007 (planned, design decided).
+- Consistent clicks (Tyler, 2026-10-08: predictable clicks "across all of the different
+  modules"): click map, findings and proposed standard in `docs/clicks.md`. Includes FB-002
+  (right-click from the bags). Tyler approves the standard before it is built.
+- Better price data (decided by Tyler, 2026-10-08: "I do want you to make changes to the data and
+  make it better"): a market price per day that one cheap auction cannot set, recent days counting
+  more, the age of a price shown. Plan, cost, risks and tests: `docs/price-data.md`, "Plan for
+  0.5". Build it first: the recipe cost (FB-007), the Sniper and the Post tab rest on it.
+
+- Redesign (Tyler, told to Darkhorse on 2026-10-07): Tyler and a UI designer friend are working on
+  "a massive .5-.6 update". The friend has "a whole design concept laid out"; prototypes to be
+  shown to testers. Tyler: "quite transformative, it's geared toward TSM users", "more visually
+  simple", "It's too confusing rn". Direction decided by Tyler on 2026-10-08: it follows TSM and
+  the original aux, not Blizzard's auction house or Auctionator ("This should much more closely
+  resemble TSM and the original aux like it already does"; a request for the opposite was rejected,
+  `docs/feedback.md` FB-004). Player feedback that bears on it: FB-001 to FB-005. Not yet in the
+  repository; mockup before building, as for every visual change.
+
 - Sniper rework ("a big work in progress"): Tyler is unsure about the hold until the selected deal
   is clicked again; consider releasing it by itself (after a purchase, after a while, when the
   mouse leaves the window). Buying in a fast market: hard to tell whether you got the item while
