@@ -37,6 +37,8 @@ Tyler owns the project and tests every change in the game. He is not a programme
 - Avoid filler words such as delve, leverage, robust, seamless, crucial, notably.
 - He tests in game and reports with screenshots and BugSack error text. Each bug report becomes a
   fix plus a test that fails without the fix.
+- Feedback from players reaches us through Tyler and is logged in `docs/feedback.md` (rules at
+  the top of that file) before anyone fixes it.
 
 ## Workflow
 
@@ -182,6 +184,9 @@ as interactive HTML pages; an HTML file Tyler can open in a browser works the sa
 ## Where to find more
 
 - `docs/status.md`: current state, decisions, open items. Keep it up to date.
+- `docs/feedback.md`: every piece of player feedback, one numbered entry each (FB-001, ...),
+  with the player's exact words and its status. Check it before planning a version; update an
+  entry's status when you fix or build it.
 - `docs/changelog.md`: what changed in each version; add an entry when the version number changes.
 - `docs/roadmap.md`: what each version is for. A patch version (0.3.x) is bug fixes, speed and
   small things only, no new features; new features go into the next minor version (0.4).
