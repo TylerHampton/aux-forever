@@ -1,8 +1,51 @@
 # Status
 
-Last updated 2026-10-08 (0.5 build session).
+Last updated 2026-10-08, after the 0.5 release.
 
-## 0.5: where it stands (2026-10-08, build session on `claude/youthful-curie-ghbvlt`)
+## Start here (for the next session: 0.5.1 or 0.6)
+
+- **Released: 0.5** on 2026-10-08. `main` is at its merge (PR #11, e27b711); tag `v0.5`; GitHub
+  pre-release https://github.com/TylerHampton/aux-forever/releases/tag/v0.5. Tyler uploads to
+  CurseForge by hand (description from `docs/curseforge-description.md`, changelog from the 0.5
+  section of `docs/changelog.md`).
+- **Which version next:** Tyler has not chosen. Rules (`docs/roadmap.md`): 0.5.x is bug fixes,
+  speed and small things only; new features go into 0.6. If players report bugs in 0.5, they go
+  into 0.5.1 (or a hotfix if bad: money spent wrongly, repeated errors, a broken tab, lost data).
+- **Candidates, none decided** (details in `docs/roadmap.md`, "After 0.5"):
+  1. Sniper rework (0.6): the hold on a selected deal, clear feedback on each buy in a fast market.
+  2. Auctions tab: show the starting bid of your own auctions, if the game gives it (unverified).
+  3. The redesign with Tyler's designer friend (0.6 or later; TSM and the original aux direction,
+     AGENTS.md Design language). Designs are not in the repository yet.
+  4. Small loose ends from 0.5 (0.5.1 material), listed under "Open after 0.5" below.
+- **Player feedback:** `docs/feedback.md`. FB-001, FB-002, FB-003, FB-006, FB-007 are done in 0.5;
+  FB-004 rejected (direction); FB-005 praise. New entries start at FB-008 and are recorded by a
+  separate feedback session, not by the session that builds.
+- **How Tyler tests** (worked well all through 0.5): each build gets a zip (sent with the file tool)
+  and steps on the test page https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (republish
+  `index.html` with a new `BUILD` id and steps; Tyler marks Pass/Fail with notes and screenshots;
+  read them with ArtifactData, collection `builds/<build id>/results`, and download screenshots with
+  Artifact read, `path` = the asset id, one at a time). Keep `TESTING.md` "Current build" in step
+  with the page. The pre-release check is six steps, about 5 minutes (Tyler's limit).
+- **Things that confused testing before** (check these first when a screenshot looks wrong):
+  Tyler screenshots with Win+Shift+S, which holds Shift (tooltip prices then show the whole stack,
+  "for 3") and hides the item on the mouse pointer.
+
+## Open after 0.5 (loose ends, none urgent)
+
+- Damaged gear and posting (FB-003): never tried in game. The Post tab says "must be repaired"
+  if aux finds damaged gear it cannot post; whether Forever lists damaged gear at all is unknown.
+- Converted 0.4.1 history: until about two weeks of 0.5 days are recorded, "usually ..." lines
+  and the Sniper's percentages still lean on 0.4.1's daily lows, some of them single cheap
+  auctions (Linen Cloth "usually 8c" while it sold at 23c to 33c). Expected to wash out; check
+  again after a couple of weeks of play.
+- The "usually" threshold (30%, `USUALLY_SHARE`) and the market price share (5%,
+  `MARKET_SHARE`) in `core/history.lua` are first settings, checked on a few items only.
+- The tooltip "Today" line (setting `/aux tooltip daily`, off for Tyler) still shows today's
+  lowest and its percentage of the usual price; untouched in 0.5.
+- `docs/curseforge.md` and `-description.md` were updated for 0.5; check the Usage section again
+  whenever clicks change.
+
+## 0.5 build log (2026-10-08, branch `claude/youthful-curie-ghbvlt`, released as PR #11)
 
 Branch `claude/youthful-curie-ghbvlt` from `main` (dd040f9), TOC `forever-0.5`. Test build 2 is out
 (see Build 1 results below). Test build 1 was
@@ -149,7 +192,7 @@ named.
   in-game check to `TESTING.md` and the build's test page, give Tyler the zip and say whether
   `/reload` is enough or a full restart is needed (new files need a restart).
 
-## Start here (where things stand right now)
+## Earlier notes (0.4.1 and before)
 
 - Released: 0.4.1 (2026-10-06) is the latest; `main` is at its merge (#8, ea73c6a).
 - **Player feedback log (started 2026-10-08):** `docs/feedback.md`. Tyler passes on what players
