@@ -328,7 +328,7 @@ end
 
 local NOT_POSTED = {
     gone = 'Not posted: the item is no longer in your bags.',
-    locked = 'Not posted: the item is locked. Put it down if it is on your cursor, or finish the trade or mail it is in.',
+    locked = 'Not posted: the item is on your mouse pointer, or in a trade or the mail.',
     damaged = 'Not posted: this item must be repaired first.',
     invalid = 'Not posted: the auction house does not accept this item.',
     refused = 'Not posted: the auction house refused it.',

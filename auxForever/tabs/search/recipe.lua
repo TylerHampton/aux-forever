@@ -244,7 +244,9 @@ function M.recipe_cost_tooltip(tooltip, parts)
             local dim = row.source == 'usual' and row.age and row.age >= history.OLD_DAYS
             right = money.to_string(row.cost, true) .. '  ' .. (dim and aux.color.label.disabled or aux.color.label.enabled)(source)
         end
-        tooltip:AddDoubleLine(name, right, 1, 1, 1)
+        -- white on both sides, like aux's tables: the game's default right color is gold, which
+        -- colored every price (Tyler, build 2)
+        tooltip:AddDoubleLine(name, right, 1, 1, 1, 1, 1, 1)
     end
     if missing < #rows then
         -- colors given in full: a color object's four values would make the right side red

@@ -491,6 +491,8 @@ do
     local label = gui.label(frame.parameters, gui.font_size.small)
     label:SetJustifyH('LEFT')
     label:SetJustifyV('TOP')
+    -- two lines when needed (a gui.label is one line by default, which cut the text off, build 2)
+    label:SetWordWrap(true)
     label:SetPoint('TOPLEFT', frame.parameters, 'TOPLEFT', 14, ROW3 - 2)
     label:SetPoint('BOTTOMRIGHT', frame.parameters, 'TOPLEFT', RIGHT_X - 16, -162)
     post_message = label

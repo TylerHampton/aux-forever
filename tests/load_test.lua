@@ -2355,7 +2355,7 @@ try('FB-003: posts always say what happened', function()
   -- locked (on the cursor, in a trade)
   bag = {{id = 7001, locked = true}}
   post.post_auction()
-  check('FB-003: a locked item says so', message():find('locked', 1, true) and posts == 0)
+  check('FB-003: a locked item says so', message():find('mouse pointer', 1, true) and posts == 0)
 
   -- the auction house never answers
   bag = {{id = 7001}}
@@ -2656,6 +2656,11 @@ try('0.5 build 1 fixes', function()
   rawset(tip2, 'AddDoubleLine', function(_, a, b, lr, lg, lb, rr, rg, rb) if a == 'Total' then total_args = {rr, rg, rb} end end)
   search.recipe_cost_tooltip(tip2, {reagents = {{item_id = 7401, count = 1}}})
   check('build 1: the cost total is white, not red', total_args and total_args[1] == 1 and total_args[2] == 1 and total_args[3] == 1)
+  local row_args
+  rawset(tip2, 'AddDoubleLine', function(_, a, b, lr, lg, lb, rr, rg, rb) if a ~= 'Total' then row_args = {rr, rg, rb} end end)
+  search.recipe_cost_tooltip(tip2, {reagents = {{item_id = 7401, count = 1}}})
+  check('build 2: each material\'s price is white, not the game\'s gold', row_args and row_args[1] == 1 and row_args[2] == 1 and row_args[3] == 1)
+  check('build 2: the locked message fits in two lines', #post.NOT_POSTED.locked <= 80)
 
   -- with Shift held, tooltip prices are for the stack and say so
   rawset(AuxTooltip, 'NumLines', function() return 0 end)
