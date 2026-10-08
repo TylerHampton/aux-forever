@@ -38,7 +38,10 @@ Tyler owns the project and tests every change in the game. He is not a programme
 - He tests in game and reports with screenshots and BugSack error text. Each bug report becomes a
   fix plus a test that fails without the fix.
 - Feedback from players reaches us through Tyler and is logged in `docs/feedback.md` (rules at
-  the top of that file) before anyone fixes it.
+  the top of that file) before anyone fixes it. A player's problem is treated as the addon's
+  problem, never as the player's mistake: the addon should make players good at the auction house
+  through clear screens and clear information (Tyler). Changes that come from feedback credit the
+  player by in-game name in `docs/changelog.md`.
 
 ## Workflow
 
