@@ -8,28 +8,23 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.5, test build 2
+## Current build: 0.5, test build 3
 
-A /reload is enough (no new files). Build 1 results (Tyler, 2026-10-08): 14 passed, 5 failed, the
-rest skipped; the failures are fixed below or explained in `docs/status.md`. Only these steps:
+A /reload is enough (no new files). Build 2: everything passed except two small things, fixed here
+(gold prices in the cost tooltip, the cut-off Post message). New in build 3: tooltips show the
+price of your latest scan (Tyler's decision, docs/price-data.md).
 
-- [ ] 1. Build 2 installed, no BugSack error.
-- [ ] 2. Post tab: right-click a row in a price list. No error; aux switches to Search and searches
-      the item. (Build 1: BugSack error.)
-- [ ] 3. Hover a Saved Search, a result row and a Post bag item: the clicks are listed one per
-      line, the click on the left and what it does on the right. (Build 1: one cramped paragraph.)
-- [ ] 4. The quantity box on the buy bar has no cursor mark any more. Does it read as a place to
-      type now?
-- [ ] 5. Recipe cost tooltip: the Total is white, not red.
-- [ ] 6. Hover a stack of a trade good in your bags while holding Shift: Value ends in "for N"
-      (the price of the whole stack). Without Shift: the price of one, no "for".
-- [ ] 7. Type `/aux price ` and Shift-click a Tel'Abim Banana (or any trade good) into the chat
-      box, press Enter. Send a screenshot of the lines it prints.
-- [ ] 8. Optional, skipped in build 1: select gear, type a starting bid above the buyout: Post
-      fades and the left column says why.
-- [ ] 9. Optional: click an item in the Post tab list. In your bags, left-click the same item so it
-      sticks to your mouse pointer. Keep it there and click Post: a red "Not posted: the item is
-      locked..." line. Press Escape to drop the item back.
+- [ ] 1. Build 3 installed, no BugSack error.
+- [ ] 2. Search Tel'Abim Banana (or any trade good), then hover one in your bags: Value is close to
+      the cheapest listings you just saw, "seen today". If the usual price is far off, a gray
+      "usually ..." line shows under it.
+- [ ] 3. Run a Full scan without searching first (wait for the 15 minutes if needed). Then
+      `/aux price ` and Shift-click a trade good you have not searched today. The first line's price
+      should be close to what the auction house shows for it. Screenshot please.
+- [ ] 4. Recipe cost tooltip: prices white, the header says "Prices from your latest scans", each
+      material "seen today" or "vendor".
+- [ ] 5. Post tab: an item on your mouse pointer and Post: the red line fits (two lines at most).
+- [ ] 6. Sniper: Start, deals still show.
 
 Build 1 checklist (passed or skipped, kept for the release run): price data conversion, Full
 scan memory (9.9 MB after a cleanup with 3,457 items of history), Sniper deals, posting,

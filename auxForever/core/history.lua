@@ -258,7 +258,9 @@ local function cached(item_key)
 	if not entry or entry.day ~= today() then
 		local record = read_record(item_key)
 		local seen = record.low and record.day or (record.points[1] and record.points[1].day)
-		entry = { value = compute_value(record), day = today(), days = #record.points, age = seen and today() - seen or nil }
+		-- the latest price: today's (market, else lowest) when seen today, else the newest past day's
+		local latest = day_price(record) or (record.points[1] and record.points[1].value)
+		entry = { value = compute_value(record), latest = latest, day = today(), days = #record.points, age = seen and today() - seen or nil }
 		value_cache[item_key] = entry
 	end
 	return entry
@@ -290,6 +292,25 @@ function M.value_and_age(item_key)
 	end
 	local entry = cached(item_key)
 	return entry.value, entry.age
+end
+
+-- auxForever (0.5, build 3): the price of the latest complete look at the item (its market price, or
+-- its lowest when no complete look was had that day) and how many days ago that was. Tooltips and
+-- the recipe cost show this: players scan, post and leave, and need the tooltip to match the
+-- auction house they just saw (Tyler, 2026-10-08). The multi-day usual price (value) stays for
+-- finding deals: the Sniper, the search % column and the percentage filters.
+function M.latest(item_key)
+	if not data[item_key] then
+		return
+	end
+	local entry = cached(item_key)
+	return entry.latest, entry.age
+end
+
+-- the usual price differs this much or more from the latest: tooltips add "usually ..."
+M.USUALLY_SHARE = .3
+function M.usually_differs(latest, usual)
+	return latest and usual and usual > 0 and abs(latest - usual) / usual >= USUALLY_SHARE or false
 end
 
 -- "today", "1 day ago", "9 days ago"
@@ -378,7 +399,8 @@ function M.report(item_key, money_text)
 	local record = read_record(item_key)
 	local entry = cached(item_key)
 	local lines = {}
-	tinsert(lines, format('Usual price (Value): %s, from %d past %s; seen %s', entry.value and money_text(entry.value) or '?', #record.points, #record.points == 1 and 'day' or 'days', age_text(entry.age) or '?'))
+	tinsert(lines, format('Value in tooltips (latest look, seen %s): %s', age_text(entry.age) or '?', entry.latest and money_text(entry.latest) or '?'))
+	tinsert(lines, format('Usual price, for finding deals: %s, from %d past %s', entry.value and money_text(entry.value) or '?', #record.points, #record.points == 1 and 'day' or 'days'))
 	if record.points[1] == nil then
 		tinsert(lines, 'With no past days yet, the usual price is today\'s price. Today counts from tomorrow on.')
 	else

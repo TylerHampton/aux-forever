@@ -111,6 +111,21 @@ Built on 2026-10-08 as planned, with these details settled while building (`core
 - Weights are relative, so converted items' usual prices can shift where their old lows varied:
   recent days now count more. Steady prices stay the same (tested).
 
+Changed after testing (build 3, Tyler's decision 2026-10-08): players do a full scan, post and
+leave within minutes, and need to trust the tooltip away from the auction house. On day one the
+usual price rested only on 0.4.1's daily lows (Tel'Abim Banana: usual 87c from one old low, while
+today's market was 39c), and today's price would only count after midnight. So there are now two
+numbers with two jobs:
+- **Latest price** (`history.latest`): the market price of the most recent complete look (its
+  lowest when there was none that day), with its age. Shown as Value in tooltips and used by the
+  recipe cost line.
+- **Usual price** (`history.value`): the multi-day weighted median above. Used to find deals: the
+  Sniper's rule, the search % column, the Post tab's % badge, the percentage and profit filters,
+  disenchant values. Tooltips show it as a gray "usually ..." line only when it differs from the
+  latest by 30% or more (`USUALLY_SHARE`).
+- Unverified: whether a Full scan alone records correct prices (the replicate data's stack format
+  on Forever). Test step in build 3: Full scan, then `/aux price` on an item.
+
 The plan as written before building:
 
 Tyler: "I do want you to make changes to the data and make it better, [...] as this is going to be

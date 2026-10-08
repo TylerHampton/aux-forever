@@ -137,13 +137,18 @@ function extend_tooltip(tooltip, link, quantity)
     end
     local auctionable = not item_info or is_auctionable(item_id, item_info)
     local item_key = (item_id or 0) .. ':' .. (suffix_id or 0)
-    local value, age = history.value_and_age(item_key)
+    -- auxForever (0.5, build 3): Value is the latest look at the item (what players just saw at the
+    -- auction house); the multi-day usual price shows under it only when the two differ a lot
+    local latest, age = history.latest(item_key)
+    local value = history.value(item_key)
     if auctionable then
         if settings.value then
-            if settings.money_icons then
-                tooltip:AddLine('Value: ' .. (value and GetCoinTextureString(value * quantity) .. per .. age_suffix(age) or UNKNOWN), aux.color.tooltip.value())
-            else
-                tooltip:AddLine('Value: ' .. (value and money.to_string2(value * quantity) .. per .. age_suffix(age) or UNKNOWN), aux.color.tooltip.value())
+            local function coins(amount)
+                return settings.money_icons and GetCoinTextureString(amount) or money.to_string2(amount)
+            end
+            tooltip:AddLine('Value: ' .. (latest and coins(latest * quantity) .. per .. age_suffix(age) or UNKNOWN), aux.color.tooltip.value())
+            if history.usually_differs(latest, value) then
+                tooltip:AddLine('  ' .. aux.color.label.enabled('usually ') .. coins(value * quantity), aux.color.label.enabled())
             end
         end
         if settings.daily  then

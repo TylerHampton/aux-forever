@@ -195,18 +195,19 @@ end
 
 -- auxForever (0.5, FB-007): what one craft's materials cost, anywhere in the world, from prices aux
 -- already keeps. Each material at its vendor price when a vendor sells it without limit for less,
--- else at its usual price. Returns the cost of the priced ones, how many have no price, and a row
--- per material for the tooltip: {item_id, count, cost, source = 'vendor' | 'usual', age}.
+-- else at its latest price (the latest look at it, as in tooltips; build 3, was the usual price).
+-- Returns the cost of the priced ones, how many have no price, and a row per material for the
+-- tooltip: {item_id, count, cost, source = 'vendor' | 'latest', age}.
 function M.recipe_usual_cost(parts)
     local total, missing, rows = 0, 0, {}
     for _, part in ipairs(parts.reagents) do
-        local usual, age = history.value_and_age(part.item_id .. ':0')
+        local usual, age = history.latest(part.item_id .. ':0')
         local vendor, limited = info.merchant_buy_info(part.item_id)
         local row = {item_id = part.item_id, count = part.count}
         if vendor and not limited and (not usual or vendor <= usual) then
             row.cost, row.source = ceil(vendor) * part.count, 'vendor'
         elseif usual then
-            row.cost, row.source, row.age = ceil(usual) * part.count, 'usual', age
+            row.cost, row.source, row.age = ceil(usual) * part.count, 'latest', age
         end
         if row.cost then
             total = total + row.cost
@@ -231,7 +232,7 @@ end
 function M.recipe_cost_tooltip(tooltip, parts)
     local total, missing, rows = recipe_usual_cost(parts)
     tooltip:AddLine('Materials for 1 craft', 1, 1, 1)
-    tooltip:AddLine('Usual prices from aux\'s price history', aux.color.label.enabled())
+    tooltip:AddLine('Prices from your latest scans', aux.color.label.enabled())
     for _, row in ipairs(rows) do
         local item_info = info.item(row.item_id)
         if not item_info then info.request_item(row.item_id) end
@@ -240,8 +241,8 @@ function M.recipe_cost_tooltip(tooltip, parts)
         if not row.cost then
             right = aux.color.label.disabled('no price yet')
         else
-            local source = row.source == 'vendor' and 'vendor' or ('usual, ' .. (history.age_text(row.age) or '?'))
-            local dim = row.source == 'usual' and row.age and row.age >= history.OLD_DAYS
+            local source = row.source == 'vendor' and 'vendor' or ('seen ' .. (history.age_text(row.age) or '?'))
+            local dim = row.source == 'latest' and row.age and row.age >= history.OLD_DAYS
             right = money.to_string(row.cost, true) .. '  ' .. (dim and aux.color.label.disabled or aux.color.label.enabled)(source)
         end
         -- white on both sides, like aux's tables: the game's default right color is gold, which

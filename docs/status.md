@@ -62,8 +62,13 @@ latest market price (the most recent complete look, with its age), and the multi
 stays for finding deals (Sniper, the search % column, percentage filters), shown in the tooltip only
 when it differs a lot from the latest. Not built.
 
+Tyler approved the proposal ("Yes build it, the text examples are enough"). Built in build 3:
+`history.latest`, tooltips and the recipe cost use it, "usually ..." at a 30% gap; details in
+`docs/price-data.md`. Test page collection `builds/0-5-dev3/results`.
+
 Open:
-- Tyler's answer on the price proposal above, then build 3.
+- Tyler to test build 3 (`TESTING.md`, Current build, 6 steps). Step 3 checks that a Full scan
+  alone records correct prices (unverified so far).
 - Asked Tyler: whether to do the Sniper and Auctions tab notes in `docs/roadmap.md` (0.5) tonight
   (he asked what they were; explained 2026-10-08, waiting); whether today's market price should
   count in the usual price. FB-002's suspected bug: he does not remember. Damaged gear (FB-003):

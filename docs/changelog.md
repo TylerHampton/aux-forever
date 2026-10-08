@@ -8,12 +8,15 @@ A change that comes from a player's feedback credits them by in-game name at the
 
 ## 0.5 (in progress)
 
-- Price data: aux now records a market price per day, the average of the cheapest fifth of what is
-  listed, from every complete look at an item (Full scan, normal searches, the Sniper's checks).
-  One cheap auction no longer sets the day's price. Recent days count more in the usual price
-  ("Value"), up to 14 days are kept, and tooltips say when aux last saw the item ("seen 3 days
-  ago", darker when a week old or more). Your 0.4.1 price history is converted, not wiped. Going
-  back to 0.4.1 after this version starts the price history over.
+- Price data: aux now records a market price, the average of the cheapest fifth of what is listed,
+  from every complete look at an item (Full scan, normal searches, the Sniper's checks). One cheap
+  auction no longer sets the price. Tooltips show the price from your latest scan as Value, with
+  when aux saw it ("seen today", "seen 3 days ago", darker when a week old or more), so a quick
+  scan before posting is what you see afterwards anywhere in the world. When that is far from the
+  usual price of the last two weeks, a gray "usually ..." line shows it. The usual price, with
+  recent days counting more, is what the Sniper and the % columns compare against. Your 0.4.1
+  price history is converted, not wiped. Going back to 0.4.1 after this version starts the price
+  history over.
 - Post tab: a post that does not happen always says why, under Duration and in chat: the item left
   your bags, is locked, needs a repair, was refused (with the game's own reason), or the auction
   house did not answer. A post that went through says "Posted". When the Post button is faded,
@@ -31,8 +34,8 @@ A change that comes from a player's feedback credits them by in-game name at the
 - Buy bar: the box for typing how many to buy is labeled QUANTITY and always shows the number you
   are buying; the quantity buttons fill it in, and typing any number changes it. It used to be a
   gray "Other" that looked like a button. (suggested by Darkhorse)
-- Profession window: a line under the reagents says what one craft's materials cost at aux's usual
-  prices (or the vendor price when a vendor sells it for less), anywhere in the world. A gray "+"
+- Profession window: a line under the reagents says what one craft's materials cost at the prices
+  of your latest scans (or the vendor price when a vendor sells it for less), anywhere in the world. A gray "+"
   means some materials have no price yet; hover the line for each material's price and where it
   comes from. (suggested by Garsterson)
 - Tooltips: with Shift held (prices for the whole stack), Value, Today and the vendor prices say

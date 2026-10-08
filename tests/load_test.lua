@@ -2575,7 +2575,7 @@ try('FB-007: recipe cost line', function()
   local parts = {name = 'Lesser Mana Potion', reagents = {{item_id = 7201, count = 2}, {item_id = 7202, count = 1}, {item_id = 7203, count = 1}}}
   local total, missing, rows = search.recipe_usual_cost(parts)
   check('FB-007: usual prices times amounts, vendor when cheaper', total == 2 * 26 + 41 + 20 and missing == 0)
-  check('FB-007: where each price comes from', rows[1].source == 'usual' and rows[1].age == 1 and rows[3].source == 'vendor')
+  check('FB-007: where each price comes from', rows[1].source == 'latest' and rows[1].age == 1 and rows[3].source == 'vendor')
   check('FB-007: the line', plain(search.recipe_cost_text(parts)):find('Materials', 1, true) and not plain(search.recipe_cost_text(parts)):find('+', 1, true))
   -- one material without a price: the sum of the others and a "+"
   local some = {name = 'X', reagents = {{item_id = 7201, count = 1}, {item_id = 7299, count = 3}}}
@@ -2590,8 +2590,8 @@ try('FB-007: recipe cost line', function()
   rawset(tip, 'AddDoubleLine', function(_, a, b) tinsert(lines, plain(a) .. ' | ' .. plain(b)) end)
   search.recipe_cost_tooltip(tip, parts)
   local all = table.concat(lines, '\n')
-  check('FB-007: tooltip explains the prices', all:find("Usual prices from aux's price history", 1, true) ~= nil)
-  check('FB-007: tooltip shows sources and ages', all:find('usual, 1 day ago', 1, true) and all:find('usual, 9 days ago', 1, true) and all:find('vendor', 1, true))
+  check('FB-007: tooltip explains the prices', all:find('Prices from your latest scans', 1, true) ~= nil)
+  check('FB-007: tooltip shows sources and ages', all:find('seen 1 day ago', 1, true) and all:find('seen 9 days ago', 1, true) and all:find('vendor', 1, true))
   lines = {}
   search.recipe_cost_tooltip(tip, some)
   all = table.concat(lines, '\n')
@@ -2681,12 +2681,49 @@ try('0.5 build 1 fixes', function()
   h.write_record('7402:0', {day = today, low = 38, market = 40, units = 83, points = {{day = today - 1, value = 87, units = 60}, {day = today - 3, value = 90}}})
   SlashCmdList.AUX('price |cffffffff|Hitem:7402::::::0:0|h[Banana]|h|r')
   local out = table.concat(printed, '\n')
-  check('/aux price: the usual price and its days', out:find('Usual price (Value):', 1, true) and out:find('from 2 past days', 1, true))
+  check('/aux price: the tooltip Value and the usual price', out:find('Value in tooltips (latest look, seen today): 40c', 1, true) and out:find('Usual price, for finding deals:', 1, true) and out:find('from 2 past days', 1, true))
   check('/aux price: today\'s lowest and market', out:find('lowest 38c', 1, true) and out:find('market 40c (cheapest fifth of 83 listed)', 1, true))
   check('/aux price: the past days', out:find('1 day ago 87c (60 listed)', 1, true) and out:find('3 days ago 90c (lowest, 0.4)', 1, true))
 
   post.selected_item = nil
   for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+end)
+
+
+-- build 3 (Tyler, 2026-10-08): players scan, post and leave; the tooltip shows the latest look at an
+-- item, and the multi-day usual price stays for finding deals
+try('0.5 build 3: latest price in tooltips', function()
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local tooltip = loadstring("select(2, ...) 'aux.core.tooltip'; return _M")('auxForever', addon)
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local today = h.today()
+  -- the banana of build 1: two old daily lows, today's market 39c
+  h.write_record('7501:0', {day = today, low = 38, market = 39, units = 82, points = {{day = today - 2, value = 87}, {day = today - 3, value = 11}}})
+  local latest, age = h.latest('7501:0')
+  check('build 3: the latest price is today\'s market price', latest == 39 and age == 0)
+  check('build 3: the usual price stays for deals', h.value('7501:0') == 87)
+  -- not seen today: the newest past day, with its age
+  h.write_record('7502:0', {day = today, points = {{day = today - 4, value = 120}, {day = today - 5, value = 100}}})
+  latest, age = h.latest('7502:0')
+  check('build 3: not seen today, the newest day and its age', latest == 120 and age == 4)
+  local function tip_lines(id)
+    local lines = {}
+    local tip = new_frame()
+    rawset(tip, 'AddLine', function(_, t) tinsert(lines, plain(t)) end)
+    rawset(AuxTooltip, 'NumLines', function() return 0 end)
+    tooltip.extend_tooltip(tip, '|cffffffff|Hitem:' .. id .. '::::::0:0|h[X]|h|r', 1)
+    rawset(AuxTooltip, 'NumLines', nil)
+    return table.concat(lines, '\n')
+  end
+  local banana = tip_lines(7501)
+  check('build 3: tooltip Value is the latest price', banana:find('Value: 0.39  seen today', 1, true) ~= nil)
+  check('build 3: a big gap adds "usually"', banana:find('usually 0.87', 1, true) ~= nil)
+  local steady = tip_lines(7502)
+  check('build 3: no "usually" when the two are close', steady:find('usually', 1, true) == nil)
+  -- the recipe cost uses the latest price too
+  local total = search.recipe_usual_cost({reagents = {{item_id = 7501, count = 2}}})
+  check('build 3: the recipe cost uses the latest price', total == 78)
 end)
 
 print('done, errors: ' .. errors)
