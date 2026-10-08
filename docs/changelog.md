@@ -28,6 +28,9 @@ A change that comes from a player's feedback credits them by in-game name at the
   Search). Click a selected row again to let go of it, in every table. In the Post tab's price
   lists, right-click searches the item like every other row, and click a chosen price again to let
   go of it. Hovering any row shows a gray line with what its clicks do.
+- Buy bar: the box for typing how many to buy is labeled QUANTITY and always shows the number you
+  are buying; the quantity buttons fill it in, and typing any number changes it. It used to be a
+  gray "Other" that looked like a button. (suggested by Darkhorse)
 
 ## 0.4.1 (2026-10-06)
 

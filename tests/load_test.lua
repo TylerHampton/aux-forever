@@ -2532,4 +2532,30 @@ try('clicks 0.5', function()
   for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
 end)
 
+
+-- FB-001 (Darkhorse): the gray "Other" box did not look like a place to type. It is labeled
+-- QUANTITY and always holds the number being bought; the buttons fill it in.
+try('FB-001: the quantity box', function()
+  local bar = loadstring("select(2, ...) 'aux.gui.buy_bar'; return _M")('auxForever', addon)
+  local tiers = {{count = 6, commodity_unit_price = 6}, {count = 100, commodity_unit_price = 7}}
+  bar.clear()
+  bar.show_commodity{item_id = 321, name = 'Mageroyal', max_stack = 20, tiers = function() return tiers end}
+  tick()
+  local box = bar.other_input
+  rawset(box, 'GetNumber', function(self) return tonumber(self.__text) or 0 end)
+  check('FB-001: the box is labeled Quantity', box.caption and box.caption.__text == 'QUANTITY')
+  check('FB-001: the box shows the quantity being bought from the start', box:GetText() == '20')
+  bar.chips[2].__scripts.OnClick(bar.chips[2])
+  tick()
+  check('FB-001: a button fills the box in', box:GetText() == '5' and bar.primary_label():find('^Buy 5 for') ~= nil)
+  box:SetText('37')
+  box.change(box, true)
+  tick()
+  check('FB-001: typing a number changes what is bought', bar.primary_label():find('^Buy 37 for') ~= nil)
+  box:SetText('')
+  box.focus_loss(box)
+  check('FB-001: left empty, the box shows the quantity again', box:GetText() == '37')
+  bar.clear()
+end)
+
 print('done, errors: ' .. errors)

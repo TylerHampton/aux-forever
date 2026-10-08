@@ -8,7 +8,8 @@ local money = require 'aux.util.money'
 --
 -- Commodities (stackable trade goods) cannot be bought by row on Forever: whichever row is
 -- selected, the game sells the cheapest units first. So for them the bar offers quantities sized
--- to the item's stack (e.g. 1, 5, 10, 20), each showing what it costs, plus an Other box:
+-- to the item's stack (e.g. 1, 5, 10, 20), each showing what it costs, plus a Quantity box that
+-- always holds the number being bought (the buttons fill it in, typing changes it; FB-001):
 --   1. Buy asks the server for the real price
 --   2. nothing is bought until Confirm; the button shows the exact price
 --   3. a server price above the shown cost is cancelled and the item's listings are re-read
@@ -23,6 +24,8 @@ local ACCENT_TEXT = {.10, .08, .03}
 local CONFIRM = {.25, .68, .42}
 local CONFIRM_TEXT = {.02, .08, .05}
 local NEUTRAL = {.12, .13, .15}
+local INPUT_BORDER = {.23, .25, .27}
+local INPUT_HOVER = {.38, .41, .45}
 
 local NONE, COMMODITY, ITEM = aux.enum(3)
 local IDLE, QUOTING, QUOTED, BUYING = aux.enum(4)
@@ -166,8 +169,11 @@ local function update_commodity()
             chip:Hide()
         end
     end
+    -- auxForever (0.5, FB-001): the box is amber when it holds a number of your own, lighter while
+    -- hovered or typed in, so it reads as a place to type
     local custom = not aux.key(current.quantities, n)
-    other_input:SetBackdropBorderColor((custom and ACCENT or {.23, .25, .27})[1], (custom and ACCENT or {.23, .25, .27})[2], (custom and ACCENT or {.23, .25, .27})[3], 1)
+    local border = custom and ACCENT or (other_input.focused or other_input.hovered) and INPUT_HOVER or INPUT_BORDER
+    other_input:SetBackdropBorderColor(border[1], border[2], border[3], 1)
 
     -- the bar redraws every frame: a button hidden and shown again each frame drops any click
     -- that started before the hide, so Cancel is only shown or hidden when that changes
@@ -384,7 +390,7 @@ function M.show_commodity(params)
     local start = max(1, min(params.max_stack or 1, available()))
     current.quantity = start
     other_input:Show()
-    other_input:SetText(aux.key(current.quantities, start) and '' or tostring(start))
+    other_input:SetText(tostring(start))
     other_input.overlay:SetText(other_input.formatter(other_input:GetText()))
     anchor_lines(other_input, 14)
     show_common(params)
@@ -553,7 +559,8 @@ function M.create(parent)
         chip:SetScript('OnClick', function()
             if current and current.quantities and current.quantities[i] then
                 set_quantity(current.quantities[i])
-                other_input:SetText('')
+                other_input:SetText(tostring(current.quantities[i]))
+                other_input.overlay:SetText(other_input.formatter(other_input:GetText()))
                 other_input:ClearFocus()
                 update()
             end
@@ -562,16 +569,44 @@ function M.create(parent)
         chips[i] = chip
     end
 
+    -- auxForever (0.5, FB-001): Darkhorse did not see that the gray "Other" box took typing. The box
+    -- is now labeled QUANTITY, always shows how many you are buying (the buttons fill it in), sits a
+    -- little wider, and shows a text cursor mark while not being typed in (mockup approved by Tyler)
     other_input = gui.editbox(bar)
     other_input:SetPoint('LEFT', chips[4], 'RIGHT', 6, 0)
-    other_input:SetWidth(56)
+    other_input:SetWidth(92)
     other_input:SetHeight(42)
     other_input:SetNumeric(true)
+    other_input:SetMaxLetters(5)
     other_input:SetAlignment('CENTER')
-    other_input:SetFontSize(gui.font_size.medium)
-    other_input.formatter = function(text)
-        return text == '' and aux.color.label.enabled'Other' or text
+    other_input:SetFontSize(gui.font_size.large)
+    other_input:SetTextInsets(4, 4, 14, 2)
+    other_input.overlay:ClearAllPoints()
+    other_input.overlay:SetPoint('BOTTOMLEFT', 4, 5)
+    other_input.overlay:SetPoint('BOTTOMRIGHT', -4, 5)
+    other_input.caption = gui.label(other_input, 10)
+    other_input.caption:SetPoint('TOP', 0, -4)
+    other_input.caption:SetTextColor(aux.color.label.enabled())
+    other_input.caption:SetText('QUANTITY')
+    other_input.caret = other_input:CreateTexture(nil, 'OVERLAY')
+    other_input.caret:SetColorTexture(aux.color.label.enabled())
+    other_input.caret:SetAlpha(.7)
+    other_input.caret:SetSize(1, 14)
+    other_input.caret:SetPoint('BOTTOMRIGHT', -9, 8)
+    other_input:SetScript('OnEnter', function(self) self.hovered = true end)
+    other_input:SetScript('OnLeave', function(self) self.hovered = false end)
+    other_input.focus_gain = function(self) self.caret:Hide() end
+    other_input.focus_loss = function(self)
+        self.caret:Show()
+        -- left empty: show the quantity being bought again
+        if self:GetText() == '' and current and current.quantity then
+            self:SetText(tostring(current.quantity))
+        end
     end
+    other_input.formatter = function(text)
+        return text == '' and aux.color.label.enabled'type' or text
+    end
+    M.other_input, M.chips = other_input, chips
     other_input.change = function(self)
         if state == IDLE and self:GetText() ~= '' then
             set_quantity(self:GetNumber())

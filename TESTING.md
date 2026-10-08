@@ -53,6 +53,13 @@ Clicks (docs/clicks.md) and FB-002:
 - [ ] 16. Hover a result row, a row's icon, a Post bag item and a Saved Search: a gray line lists
       the clicks. Say if it is too much or easy to miss.
 
+FB-001, the quantity box on the buy bar:
+- [ ] 17. Select a trade good in Search. The box right of the quantity buttons is labeled QUANTITY,
+      darker than the buttons, and shows the number being bought (the stack at first).
+- [ ] 18. Click 5: the box says 5. Click in the box, type 37, press Enter: it asks the price for 37
+      (Confirm 37...). Clear the box and click elsewhere: it shows the quantity again.
+- [ ] 19. Does it read as a place to type? Screenshot welcome.
+
 ## Before every release: the quick run
 
 A short pass over everything, so a release never breaks something old. About 15 minutes.
