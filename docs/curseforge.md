@@ -19,8 +19,12 @@ Project settings, modeled on shirsig's aux page:
 | Issues link | https://github.com/TylerHampton/aux-forever/issues |
 | Visibility | Unlisted for now |
 
-Each new file: the zip from the version's GitHub Release (or the zip Claude sends), display name `auxForever <version>`, release type Beta, game version
-1.60.1, and the changelog text for that version from `docs/changelog.md`.
+Each new file is uploaded by the Release workflow (since after 0.5, 2026-10-08): the same zip as
+the GitHub Release, display name `auxForever <version>`, release type Beta, the game version
+CurseForge lists for the TOC's Interface (16001 is 1.60.1), and the version's changelog from
+`docs/changelog.md`. It needs the repository secret `CF_API_KEY` (a CurseForge API token, set up
+by Tyler). If that upload fails, upload by hand with the same values. The description below is
+not part of an upload: paste `docs/curseforge-description.md` by hand when it changes.
 
 ---
 
