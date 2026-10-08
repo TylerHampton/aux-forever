@@ -15,10 +15,15 @@ For whoever records feedback:
   summary:" before it.
 - Keep three things apart and labeled: what the player said, what Tyler added, and what the
   recorder infers (likely cause, code area). An inference is never written as a fact.
-- Names: the handle Tyler gives (in-game or Discord name). No real names, email addresses or other
-  contact details: this repository is public.
-- Screenshots go in `docs/feedback/` as `FB-<id>-<n>.png` and are linked from the entry. BugSack
-  error text goes in the entry in full, in a code block.
+- Names: the player's in-game character name (Tyler, 2026-10-08: "In game names are fine they
+  are very public"). No real names, Discord account IDs, email addresses or other contact details:
+  this repository is public. If a player asks not to be named, replace their name in every entry
+  with a label ("Player A") and note the change in the commit message.
+- Screenshots (Tyler's choice, 2026-10-08): save one in `docs/feedback/` as `FB-<id>-<n>.png` only
+  when the picture itself matters to the fix (a layout problem, an error window). Before saving,
+  tell Tyler what is visible in it (chat lines, other players' names, his character, guild, gold)
+  and crop out what the fix does not need. Every other screenshot is described in words in the
+  entry. BugSack error text goes in the entry in full, in a code block.
 - IDs are never reused or renumbered. Entries are never deleted; a wrong or duplicate entry gets
   status `duplicate` or `wont-fix` with a reason.
 - Add the entry to the index table and commit after every batch, so nothing is lost if a session
