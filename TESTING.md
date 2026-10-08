@@ -60,6 +60,17 @@ FB-001, the quantity box on the buy bar:
       (Confirm 37...). Clear the box and click elsewhere: it shows the quantity again.
 - [ ] 19. Does it read as a place to type? Screenshot welcome.
 
+FB-007, recipe cost in the profession window (away from the auction house too):
+- [ ] 20. Away from the auction house, open a profession and pick a recipe whose materials you
+      have scanned. Under the reagent list: "Materials" and a price, in small gray text.
+- [ ] 21. Hover the line: one row per material with its cost and "vendor" or "usual, N days ago";
+      the total at the bottom. Does the total look right?
+- [ ] 22. A recipe with a material aux has no price for: the price ends in a gray "+", and the
+      tooltip says which material has "no price yet". A recipe with nothing priced says "no price
+      yet".
+- [ ] 23. Switch between a few recipes: the line changes with each, and does not overlap anything
+      (screenshot welcome; the line's place is a guess until seen in game).
+
 ## Before every release: the quick run
 
 A short pass over everything, so a release never breaks something old. About 15 minutes.

@@ -2558,4 +2558,58 @@ try('FB-001: the quantity box', function()
   bar.clear()
 end)
 
+
+-- FB-007 (Garsterson): what a recipe's materials cost, in the profession window, anywhere
+try('FB-007: recipe cost line', function()
+  local req = loadstring("select(2, ...) 'aux.test57'; return require")('auxForever', addon)
+  local aux = req 'aux'
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local today = h.today()
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  h.write_record('7201:0', {day = today, points = {{day = today - 1, value = 26}}})   -- Mageroyal, usual 26c
+  h.write_record('7202:0', {day = today, points = {{day = today - 9, value = 41}}})   -- Stranglekelp, old
+  h.write_record('7203:0', {day = today, points = {{day = today - 1, value = 90}}})   -- Empty Vial: usual 90c...
+  aux.account_data.merchant_buy[7203] = '20#0'                                         -- ...but a vendor sells it for 20c
+  local parts = {name = 'Lesser Mana Potion', reagents = {{item_id = 7201, count = 2}, {item_id = 7202, count = 1}, {item_id = 7203, count = 1}}}
+  local total, missing, rows = search.recipe_usual_cost(parts)
+  check('FB-007: usual prices times amounts, vendor when cheaper', total == 2 * 26 + 41 + 20 and missing == 0)
+  check('FB-007: where each price comes from', rows[1].source == 'usual' and rows[1].age == 1 and rows[3].source == 'vendor')
+  check('FB-007: the line', plain(search.recipe_cost_text(parts)):find('Materials', 1, true) and not plain(search.recipe_cost_text(parts)):find('+', 1, true))
+  -- one material without a price: the sum of the others and a "+"
+  local some = {name = 'X', reagents = {{item_id = 7201, count = 1}, {item_id = 7299, count = 3}}}
+  total, missing = search.recipe_usual_cost(some)
+  check('FB-007: a material with no price leaves a +', total == 26 and missing == 1 and plain(search.recipe_cost_text(some)):find('+', 1, true))
+  local none = {name = 'Y', reagents = {{item_id = 7298, count = 1}, {item_id = 7299, count = 1}}}
+  check('FB-007: no material priced says no price yet', plain(search.recipe_cost_text(none)):find('no price yet', 1, true))
+  -- the tooltip names the price basis and each material's source and age
+  local lines = {}
+  local tip = new_frame()
+  rawset(tip, 'AddLine', function(_, t) tinsert(lines, plain(t)) end)
+  rawset(tip, 'AddDoubleLine', function(_, a, b) tinsert(lines, plain(a) .. ' | ' .. plain(b)) end)
+  search.recipe_cost_tooltip(tip, parts)
+  local all = table.concat(lines, '\n')
+  check('FB-007: tooltip explains the prices', all:find("Usual prices from aux's price history", 1, true) ~= nil)
+  check('FB-007: tooltip shows sources and ages', all:find('usual, 1 day ago', 1, true) and all:find('usual, 9 days ago', 1, true) and all:find('vendor', 1, true))
+  lines = {}
+  search.recipe_cost_tooltip(tip, some)
+  all = table.concat(lines, '\n')
+  check('FB-007: tooltip names the unpriced material', all:find('no price yet', 1, true) and all:find('without 1 unpriced', 1, true))
+  -- the line on the profession window: set when a recipe is shown, no auction house needed
+  check('FB-007: the line exists on the profession window', search.recipe_cost_line ~= nil)
+  if search.recipe_cost_line then
+    local schematic = {name = 'Lesser Mana Potion', outputItemID = 7210, quantityMin = 1,
+      reagentSlotSchematics = {{reagents = {{itemID = 7201}}, quantityRequired = 2}, {reagents = {{itemID = 7202}}, quantityRequired = 1}}}
+    G.C_TradeSkillUI = {GetRecipeSchematic = function() return schematic end}
+    local form = new_frame()
+    rawset(form, 'GetRecipeInfo', function() return {recipeID = 555} end)
+    local text
+    rawset(search.recipe_cost_line.text, 'SetText', function(_, t) text = t end)
+    search.update_cost_line(form)
+    check('FB-007: the line shows the recipe\'s cost', plain(text):find('Materials', 1, true) and search.recipe_cost_line.__shown)
+    G.C_TradeSkillUI = nil
+  end
+  aux.account_data.merchant_buy[7203] = nil
+end)
+
 print('done, errors: ' .. errors)

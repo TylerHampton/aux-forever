@@ -31,6 +31,10 @@ A change that comes from a player's feedback credits them by in-game name at the
 - Buy bar: the box for typing how many to buy is labeled QUANTITY and always shows the number you
   are buying; the quantity buttons fill it in, and typing any number changes it. It used to be a
   gray "Other" that looked like a button. (suggested by Darkhorse)
+- Profession window: a line under the reagents says what one craft's materials cost at aux's usual
+  prices (or the vendor price when a vendor sells it for less), anywhere in the world. A gray "+"
+  means some materials have no price yet; hover the line for each material's price and where it
+  comes from. (suggested by Garsterson)
 
 ## 0.4.1 (2026-10-06)
 
