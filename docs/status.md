@@ -13,6 +13,9 @@ Last updated 2026-10-08.
   tab's bag list). FB-004's direction (closer to Blizzard's auction house) was rejected by Tyler:
   the redesign follows TSM and the original aux. Players are not asked follow-up questions; open
   questions for Tyler are under "Ask Tyler" in each entry.
+  Second batch (2026-10-08): FB-006 and FB-007 from Garsterson (Tyler's brother): the Recent
+  Searches header sticks out of the window after resizing and a scale change; crafting cost in the
+  profession window anywhere in the world (Tyler: cost only, no profit).
 - Versioning decision (2026-10-05): fixes to an unreleased version go into that version, so the
   build 2 and 3 fixes are part of 0.4, not 0.4.1. 0.4.1 is for fixes after 0.4 is released.
 - **0.4.1 release (2026-10-06):** build 6 passed except one case, fixed before release: a Live

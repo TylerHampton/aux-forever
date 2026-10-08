@@ -105,6 +105,8 @@ For whoever fixes or builds from it:
 | [FB-003](#fb-003-clicking-post-sometimes-does-nothing-and-shows-no-error) | 2026-10-08 | Darkhorse | bug | Post | S2 | Clicking Post sometimes does nothing and shows no error | new |
 | [FB-004](#fb-004-the-ui-is-the-biggest-issue-closer-to-the-traditional-auction-house-layout) | 2026-10-08 | Darkhorse | ux | Overall | n/a | The UI is his biggest issue; wants it closer to the traditional auction house | wont-fix (direction; Tyler: follow TSM and aux) |
 | [FB-005](#fb-005-praise-the-list-of-sellable-items-on-the-left-of-the-post-tab) | 2026-10-08 | Darkhorse | praise | Post | n/a | Praise: the list of sellable items on the Post tab | new |
+| [FB-006](#fb-006-after-resizing-and-changing-the-scale-the-recent-searches-header-sticks-out-of-the-window) | 2026-10-08 | Garsterson | bug | Window | S3 | After resizing and changing the scale, the Recent Searches header sticks out of the window | new |
+| [FB-007](#fb-007-crafting-cost-in-the-profession-window-anywhere-in-the-world) | 2026-10-08 | Garsterson | request | Recipe search | n/a | Crafting cost in the profession window, anywhere in the world | new |
 
 ## Players
 
@@ -119,6 +121,9 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
   reason (Tyler, 2026-10-08). Knows the retail "search every ingredient" feature
   (`docs/roadmap.md`, 0.4). Asked for recipe search before 0.4. Spelling of the in-game name not
   yet confirmed (Tyler wrote "Hot Pocket").
+- **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
+  him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
+  words.
 
 ## Entries
 
@@ -381,6 +386,129 @@ Unknowns: none.
 
 Ask Tyler: nothing.
 
+### FB-006: After resizing and changing the scale, the Recent Searches header sticks out of the window
+
+- Received: 2026-10-08
+- From: Garsterson (1 report)
+- Where: told to Tyler; Tyler retold it
+- Source: [source](feedback/sources/2026-10-08-garsterson-via-tyler.md)
+- Version: unknown (the Scale setting exists since 0.2.1)
+- Type: bug
+- Area: Window (seen on Search, Saved Searches)
+- Severity: S3 (looks broken; nothing lost)
+- Status: new
+- Proposed: 0.4.x
+
+Said (Tyler's summary):
+> He had the issue in the screenshot when he, at 100% scale, made the window large, then raised
+> the scale to 140%, I think. Then when he shrunk the window, after doing that, he was able to get
+> an element to bleed off of the add-on itself, the window of the add-on itself.
+
+Steps / setup (as told; Tyler is not sure of the exact scale):
+1. Settings, Scale at 100%. Make the aux window large with the resize corner.
+2. Raise Scale to about 140% (the screenshot shows 150%).
+3. Shrink the window with the resize corner.
+4. Something sticks out past the window's edge.
+
+Screenshot (picture to be added as `docs/feedback/FB-006-1.png` once Tyler agrees): Search tab, Saved Searches sub tab, the
+settings menu open (Background 100%, Scale 150%, Default duration 2h). The window's right edge is
+at the close button, but the gray header bar of the "Recent Searches" list runs on past it, about a
+fifth of the window's width further, over the game world. The list's two rows ("[Copp...",
+"[Tin O...") are cut off by the settings menu, not by the bug. The "Favorite Searches" list on the
+left looks right.
+
+Tyler's notes: none beyond the steps.
+
+Recorder's notes:
+- Fact (code): the two lists split the Saved Searches area in half by anchors
+  (`frame.saved.favorite`, `frame.saved.recent` in `auxForever/tabs/search/frame.lua`), so the
+  panels follow the window. Their column headers do not: `gui/listing.lua` sets each header and
+  cell to a fixed width (`col:SetWidth(colInfo.width * width)`, with `width` read from
+  `contentFrame:GetRight() - GetLeft()`), recalculated only in `Update`, which runs from the
+  table's `OnSizeChanged`.
+- Inference, unverified: the header kept a width computed for the larger window. Either
+  `OnSizeChanged` did not fire for this table when the window shrank (the Saved Searches sub tab
+  may have been hidden at the time, or a scale change does not count as a size change), or
+  `GetRight`/`GetLeft` gave values from before the change. Why only the right list is affected is
+  not known.
+- Other tables built on `gui/listing.lua` may do the same: the Post tab's bid and buyout lists
+  (`tabs/post/frame.lua`). The search, Sniper, Auctions and Bids tables use
+  `gui/auction_listing.lua`, which resizes differently (`fit_rows`); check them too.
+- Related, fixed in 0.4.1: the resize corner made the window jump (`frame.lua`, aux's own sizing).
+
+Unknowns: the exact scale and whether the Saved Searches sub tab was open while resizing. A fix
+should hold for any order of resize, scale change and sub tab switch: for example recalculate the
+column widths when the table is shown and after the scale changes, or size columns by anchors
+instead of fixed widths.
+
+Ask Tyler: nothing; the steps are enough to try.
+
+### FB-007: Crafting cost in the profession window, anywhere in the world
+
+- Received: 2026-10-08
+- From: Garsterson (1 report)
+- Where: told to Tyler; Tyler retold it
+- Source: [source](feedback/sources/2026-10-08-garsterson-via-tyler.md)
+- Version: unknown
+- Type: request
+- Area: Recipe search (profession window)
+- Severity: n/a
+- Status: new
+- Proposed: 0.5 (a new feature; the roadmap keeps those out of patch versions)
+
+Said (Tyler's summary):
+> He wants there to be a tooltip in a sorry, in the professions menu. If you are out in the world
+> and you open up a recipe, you should be able to generate within the profession tab on that recipe
+> the price of crafting and the profit based on full scan data. If we're getting all this f- full
+> scan data, then we should be using it for things like this.
+
+> So one of his requests is having the total cost of crafting, if you were to purchase it based on
+> full scan data anywhere in the world, not necessarily just at the auction house, if that's
+> possible.
+
+What is asked: open a recipe in the profession window anywhere (not only at the auction house) and
+see what its materials would cost to buy, from prices aux already saved. Garsterson asked for cost
+and profit.
+
+Tyler's notes (scope): "Come to think of it, maybe not profit, maybe just cost of crafting based on
+the last full scan data. I don't think we need to bloat the user with information when we could
+just give them only what they need. We don't want to suffer from feature creep too much." So the
+request as Tyler shapes it: **cost only, no profit**. Tyler first said "tooltip", then "in the
+professions menu"; where exactly it shows is open (see Ask Tyler).
+
+Recorder's notes:
+- Fact (git history): Simon's aux had this for Classic: `core/crafting.lua` added "(Total Cost:
+  ...)" to Classic's profession window, each material at its vendor price if a vendor sells it
+  without limit, else its usual price (`history.value`); "?" when any material had no price. It
+  hooked Classic's frames only, did nothing on Forever, and was removed in 0.4.1 (commit 14eda02,
+  "recipe search does this job"). This request brings that idea back for Forever's profession
+  window. The removed file is the reference: `git show 14eda02^:auxForever/core/crafting.lua`.
+- Fact (code): the 0.4 recipe cost line (`recipe_costs` in `auxForever/tabs/search/recipe.lua`)
+  works only after a recipe search at the auction house: it prices materials from that search's
+  live auctions or the vendor price. Reading a recipe's materials anywhere works the same way
+  (`recipe_parts`, `C_TradeSkillUI.GetRecipeSchematic`).
+- Fact (code): aux does not keep "the last full scan" as such. Every scan (full scan, searches,
+  Sniper) feeds price history (`auxForever/core/history.lua`): per item, today's lowest buyout seen
+  (`market_value`) and up to 11 past daily lows, from which the usual price (`value`) is a weighted
+  median. History is saved, so it is there away from the auction house. Vendor prices aux has seen
+  are saved too (`info.merchant_buy_info`).
+- Inference: "based on full scan data" therefore has to mean one of: the usual price (steady, what
+  Simon used), today's lowest (fresh, but one cheap auction can make it look too low, and it is
+  empty on a day with no scan), or a new store of the last full scan's prices (more memory).
+  Tyler's choice; see Ask Tyler.
+- Performance (AGENTS.md): compute the cost only when a recipe is selected, not per frame, and use
+  the history cache (`value_and_days`), not unpacking per material.
+
+Unknowns: whether Garsterson wants it on hover or always visible. Work from Tyler's scope (cost only)
+and keep it to one short line.
+
+Ask Tyler:
+1. Where should it show: a line in the recipe's detail panel (as Simon's aux did), or a tooltip
+   when hovering the recipe?
+2. Which price: usual price, today's lowest, or a saved copy of the last full scan?
+3. When a material has no price yet: show "?", or show the cost of the rest and name what is
+   missing (as the 0.4 recipe line does)?
+
 ## Before this log
 
 Feedback before 2026-10-08 was recorded in other files, not here:
@@ -390,4 +518,4 @@ Feedback before 2026-10-08 was recorded in other files, not here:
   (0.3.1).
 - Tyler's own in-game test results, build by build: `docs/status.md` and `docs/testing-history.md`.
 - Tyler's notes for the Sniper rework and the Auctions tab: `docs/roadmap.md`, 0.5.
-- Tyler's brother found the gear posting error fixed in 0.1.1 (`docs/status.md`, Fixed in 0.1.1).
+- Tyler's brother (Garsterson) found the gear posting error fixed in 0.1.1 (`docs/status.md`, Fixed in 0.1.1).
