@@ -6,6 +6,15 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.5 (in progress)
+
+- Price data: aux now records a market price per day, the average of the cheapest fifth of what is
+  listed, from every complete look at an item (Full scan, normal searches, the Sniper's checks).
+  One cheap auction no longer sets the day's price. Recent days count more in the usual price
+  ("Value"), up to 14 days are kept, and tooltips say when aux last saw the item ("seen 3 days
+  ago", darker when a week old or more). Your 0.4.1 price history is converted, not wiped. Going
+  back to 0.4.1 after this version starts the price history over.
+
 ## 0.4.1 (2026-10-06)
 
 Performance, memory and fixes from a week of testing.

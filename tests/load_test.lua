@@ -1371,11 +1371,12 @@ try('sniper round', function()
   local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
   local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
   local function days(key, value)
-    h.write_record(key, {next_push = h.get_next_push(), data_points = {{value = value, time = 3}, {value = value, time = 2}, {value = value, time = 1}}})
+    local d = h.today()
+    h.write_record(key, {day = d, points = {{value = value, day = d - 1}, {value = value, day = d - 2}, {value = value, day = d - 3}}})
   end
   days('201:0', 2200); days('203:0', 600); days('204:0', 5000)
   -- the kilt was only seen today: a usual price, but not one to show
-  h.write_record('202:0', {next_push = h.get_next_push(), daily_min_buyout = 1500, data_points = {}})
+  h.write_record('202:0', {day = h.today(), low = 1500, points = {}})
   local items = {
     {id = 201, name = 'Kingsblood', commodity = true, min = 850, qty = 41, sell = 50, stack = 20, auctions = {{buyout = 850, qty = 12}, {buyout = 900, qty = 29}}},
     {id = 202, name = 'Ritual Kilt', min = 1500, qty = 1, sell = 2200, auctions = {{buyout = 1500}}},
@@ -1472,7 +1473,8 @@ try('sniper: judging items reuses the history cache', function()
   local persistence = req 'aux.util.persistence'
   local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
   local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
-  h.write_record('401:0', {next_push = h.get_next_push(), data_points = {{value = 500, time = 3}, {value = 500, time = 2}, {value = 500, time = 1}}})
+  local d = h.today()
+  h.write_record('401:0', {day = d, points = {{value = 500, day = d - 1}, {value = 500, day = d - 2}, {value = 500, day = d - 3}}})
   local real_read, reads = persistence.read, 0
   rawset(persistence, 'read', function(...) reads = reads + 1; return real_read(...) end)
   local real_info = G.GetItemInfo
@@ -2144,6 +2146,162 @@ try('recipe search', function()
   G.ProfessionsFrame, G.C_TradeSkillUI = nil, nil
   aux.frame.__shown = was_shown
   restore()
+end)
+
+
+-- 0.5: better price data (docs/price-data.md, "Plan for 0.5")
+try('price data 0.5', function()
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local persistence = loadstring("select(2, ...) 'aux.test50'; return require")('auxForever', addon) 'aux.util.persistence'
+  local today = h.today()
+
+  -- one very cheap auction among many barely moves the market price; today's lowest is that auction
+  local records = {{item_key = '9001:0', buyout_price = 1, count = 1}}
+  for i = 1, 20 do tinsert(records, {item_key = '9001:0', buyout_price = 5000, count = 5}) end
+  for _, r in ipairs(records) do h.process_auction(r) end
+  h.record_view_of(records)
+  local market, units = h.today_market('9001:0')
+  check('price: today\'s lowest is the cheap auction', h.market_value('9001:0') == 1)
+  check('price: one cheap auction barely moves the market price', market and market >= 950 and units == 101)
+  check('price: with no past days the usual price is the market price', h.value('9001:0') == market)
+
+  -- gear rows: an item search row is auction_count auctions of one item
+  check('price: units of a gear row', h.record_units({count = 1, auction_count = 4}) == 4 and h.record_units({count = 20}) == 20)
+
+  -- recent days outweigh old ones: three recent days at 100 against five days a month old at 200
+  local points = {}
+  for d = 1, 3 do tinsert(points, {day = today - d, value = 100}) end
+  for d = 25, 29 do tinsert(points, {day = today - d, value = 200}) end
+  h.write_record('9002:0', {day = today, points = points})
+  check('price: recent days count more in the usual price', h.value('9002:0') == 100)
+
+  -- a day ends: its market price becomes a past day, its lowest is kept only without a market price
+  h.write_record('9003:0', {day = today - 1, low = 50, market = 80, units = 12, points = {}})
+  local r = h.read_record('9003:0')
+  check('price: a finished day keeps its market price and units', #r.points == 1 and r.points[1].value == 80 and r.points[1].units == 12 and r.points[1].day == today - 1 and r.low == nil)
+  h.write_record('9004:0', {day = today - 1, low = 50, points = {}})
+  check('price: a day without a complete view keeps its lowest', h.read_record('9004:0').points[1].value == 50)
+  local many = {}
+  for d = 1, 20 do tinsert(many, {day = today - 1 - d, value = d}) end
+  h.write_record('9005:0', {day = today - 1, low = 7, points = many})
+  check('price: at most 14 past days are kept', #h.read_record('9005:0').points == 14)
+
+  -- the age of a price: seen today, or how many days since the newest day
+  local _, age = h.value_and_age('9001:0')
+  check('price: seen today', age == 0 and h.age_text(age) == 'today')
+  _, age = h.value_and_age('9002:0')
+  check('price: seen 1 day ago', age == 1 and h.age_text(age) == '1 day ago' and h.age_text(9) == '9 days ago')
+
+  -- version 2 (0.4) lines are converted: every old daily low survives with its day
+  local old_schema = {'tuple', '#', {next_push='number'}, {daily_min_buyout='number'}, {data_points={'list', ';', {'tuple', '@', {value='number'}, {time='number'}}}}}
+  local function midnight_after(days_ago)
+    local t = os.date('*t', os.time() - days_ago * 86400)
+    t.hour, t.min, t.sec = 24, 0, 0
+    return os.time(t)
+  end
+  local old_points = {}
+  local old_values = {300, 310, 290, 900, 305}
+  for i, v in ipairs(old_values) do tinsert(old_points, {value = v, time = midnight_after(i)}) end
+  h.data['9006:0'] = persistence.write(old_schema, {next_push = midnight_after(0), daily_min_buyout = 280, data_points = old_points})
+  local converted = h.read_record('9006:0')
+  local all_kept = #converted.points == #old_values
+  for i, v in ipairs(old_values) do
+    all_kept = all_kept and converted.points[i].value == v and converted.points[i].day == today - i
+  end
+  check('price: a 0.4 line keeps every daily low with its day', all_kept)
+  check('price: a 0.4 line keeps today\'s lowest', converted.low == 280 and converted.day == today)
+  check('price: the converted usual price is the old one for steady prices', h.value('9006:0') == 305)
+  h.write_record('9006:0', converted)
+  check('price: the converted line is saved in the 0.5 form', not h.data['9006:0']:find('^%d%d%d%d%d%d%d%d'))
+  -- a stale day 0.4 line (last scanned days ago) moves its lowest into the past days
+  h.data['9007:0'] = persistence.write(old_schema, {next_push = midnight_after(3), daily_min_buyout = 444, data_points = {}})
+  local stale = h.read_record('9007:0')
+  check('price: a stale 0.4 day becomes a past day', #stale.points == 1 and stale.points[1].value == 444 and stale.points[1].day == today - 3)
+
+  -- day numbers are calendar days
+  check('price: day numbers', h.day_number_of(1970, 1, 1) == 0 and h.day_number_of(2000, 3, 1) == 11017 and h.day_number_of(2026, 10, 8) - h.day_number_of(2026, 10, 7) == 1)
+end)
+
+try('price data 0.5: full scan', function()
+  local req = loadstring("select(2, ...) 'aux.test51'; return require")('auxForever', addon)
+  local scan = req 'aux.core.scan'
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  -- two items, auctions mixed: item 9101 has 50 units at 100c and one at 5c, item 9102 3 at 700c
+  local list = {}
+  for i = 1, 10 do tinsert(list, {id = 9101, count = 5, buyout = 500}) ; if i == 4 then tinsert(list, {id = 9102, count = 1, buyout = 700}) end end
+  tinsert(list, 3, {id = 9101, count = 1, buyout = 5})
+  tinsert(list, {id = 9102, count = 2, buyout = 1400})
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  local fired
+  set(C_AuctionHouse, 'ReplicateItems', function() fired = true end)
+  set(C_AuctionHouse, 'GetNumReplicateItems', function() return #list end)
+  set(C_AuctionHouse, 'GetReplicateItemInfo', function(i)
+    local a = list[i + 1]
+    return 'Item', 1, a.count, 1, true, 1, nil, 0, 0, a.buyout, 0, false, nil, 'Seller', nil, 0, a.id, true
+  end)
+  set(C_AuctionHouse, 'GetReplicateItemLink', function(i) return '|cffffffff|Hitem:' .. list[i + 1].id .. '::::::0:0|h[Item]|h|r' end)
+  set(G, 'GetItemInfo', function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id ~= 9101 and id ~= 9102 then return end
+    return 'Item ' .. id, '|cffffffff|Hitem:' .. id .. '::::::0:0|h[Item]|h|r', 1, 10, 1, 'Trade Goods', 'Herb', 20, '', 1, 1
+  end)
+  local views = {}
+  local real_view = h.record_view
+  h.record_view = function(key, flat) views[key] = (views[key] or 0) + 1; return real_view(key, flat) end
+  local done
+  scan.start{type = 'list', queries = {{blizzard_query = {}}}, get_all = true, quiet = true, on_complete = function() done = true end}
+  for _ = 1, 10 do tick() end
+  fire('REPLICATE_ITEM_LIST_UPDATE')
+  for _ = 1, 80 do tick() end
+  h.record_view = real_view
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  check('full scan: finished', fired and done)
+  check('full scan: each item recorded once', views['9101:0'] == 1 and views['9102:0'] == 1)
+  local m1, u1 = h.today_market('9101:0')
+  local m2, u2 = h.today_market('9102:0')
+  -- 9101: 51 units, cheapest 11 (20%): one at 5c and ten at 100c -> 1005 / 11 = 92c (rounded up)
+  check('full scan: market price and units, whatever the order', m1 == 92 and u1 == 51 and m2 == 700 and u2 == 3)
+  check('full scan: today\'s lowest', h.market_value('9101:0') == 5)
+end)
+
+-- 0.5: a view that missed auctions (a request for more went unanswered) gives no market price
+try('price data 0.5: incomplete view', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local run, restore = fake_ah{{id = 9201, name = 'Partial Robe', min = 900, qty = 2, auctions = {{buyout = 900}, {buyout = 950}}}}
+  local real_full = C_AuctionHouse.HasFullItemSearchResults
+  rawset(C_AuctionHouse, 'HasFullItemSearchResults', function() return false end)
+  rawset(C_AuctionHouse, 'RequestMoreItemSearchResults', function() end)
+  search.set_filter('partial robe/exact')
+  search.execute(nil, false)
+  run(400)
+  rawset(C_AuctionHouse, 'HasFullItemSearchResults', real_full)
+  rawset(C_AuctionHouse, 'RequestMoreItemSearchResults', nil)
+  check('incomplete: today\'s lowest is still recorded', h.market_value('9201:0') == 900)
+  check('incomplete: no market price', h.today_market('9201:0') == nil)
+  restore()
+end)
+
+-- 0.5: the usual price in tooltips says how fresh it is
+try('price data 0.5: tooltip age', function()
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local tooltip = loadstring("select(2, ...) 'aux.core.tooltip'; return _M")('auxForever', addon)
+  local today = h.today()
+  h.write_record('9301:0', {day = today, points = {{day = today - 3, value = 1000}}})
+  h.write_record('9302:0', {day = today, points = {{day = today - 9, value = 1000}}})
+  local function value_line(id)
+    local lines = {}
+    local tip = new_frame()
+    rawset(tip, 'AddLine', function(_, text) tinsert(lines, text) end)
+    tooltip.extend_tooltip(tip, '|cffffffff|Hitem:' .. id .. '::::::0:0|h[X]|h|r', 1)
+    for _, l in ipairs(lines) do if l:find('^Value') then return l end end
+  end
+  rawset(AuxTooltip, 'NumLines', function() return 0 end)
+  local fresh, old = value_line(9301) or '', value_line(9302) or ''
+  rawset(AuxTooltip, 'NumLines', nil)
+  check('tooltip: Value says when it was seen', fresh:find('seen 3 days ago', 1, true) ~= nil)
+  check('tooltip: an old price is dimmed', old:find('seen 9 days ago', 1, true) ~= nil and old ~= fresh:gsub('3 days', '9 days'))
 end)
 
 print('done, errors: ' .. errors)

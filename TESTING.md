@@ -8,18 +8,20 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.4.1, test build 6 (last check before release)
+## Current build: 0.5, test build 1
 
-A /reload is enough. The test page has the same steps. Build 5 passed the quick run.
+A full game restart is not needed for this build unless a step says so; a /reload is enough. Do
+the steps in order. Price data first, because everything priced rests on it.
 
-- [ ] 1. Build 6 installed, no BugSack error.
-- [ ] 2. Live on a search, then a saved recipe search: Live turns off; the recipe's items and cost
-      line show.
-- [ ] 3. Live on again, then Search in aux (or Alt-click a recipe): the same.
-- [ ] 4. The Live button still repeats a search with a countdown.
-- [ ] 5. Sniper: trade good deals say "Checking what is left..." first, then buy (Buy, Confirm)
-      without "Internal auction error". Try two or three.
-- [ ] 6. Sniper: a gear deal still buys.
+Price data (docs/price-data.md, "Plan for 0.5"):
+- [ ] 1. Log in with your 0.4.1 price history: no BugSack error. Hover a trade good you scanned
+      before: Value still shows a price (the old history was converted, not wiped), with
+      "seen N days ago" after it in gray.
+- [ ] 2. `/aux memory`, note the number. Run a Full scan. When it says "full scan complete",
+      `/aux memory` again: after a cleanup the difference stays under about 1 MB.
+- [ ] 3. After the Full scan, hover a few trade goods: Value, Today and "seen today" look sensible
+      next to what the auction house shows. An item seen over a week ago shows its age darker.
+- [ ] 4. Sniper: Start; it still finds deals with the default rule.
 
 ## Before every release: the quick run
 

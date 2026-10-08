@@ -106,9 +106,13 @@ function event.AUX_LOADED()
         })
         -- Forever: the first test version recorded item prices divided by the number of auctions
         -- in a search row, which made recorded values far too low. Start the price history over.
-        if faction_data.history_version ~= 2 then
+        -- auxForever (0.5): version 3 adds market prices and day numbers. A version 2 line (0.4) is
+        -- converted when it is first read (core/history.lua), keeping every daily low.
+        if faction_data.history_version == 2 then
+            faction_data.history_version = 3
+        elseif faction_data.history_version ~= 3 then
             faction_data.history = {}
-            faction_data.history_version = 2
+            faction_data.history_version = 3
         end
     end
 end

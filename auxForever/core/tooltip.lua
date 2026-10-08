@@ -76,6 +76,17 @@ function M.is_auctionable(item_id, item_info)
     return known
 end
 
+-- auxForever (0.5): how fresh the usual price is, after Value: "  seen 3 days ago", gray, darker when
+-- the newest price is a week old or more
+function M.age_suffix(age)
+    local text = history.age_text(age)
+    if not text then
+        return ''
+    end
+    local color = age >= history.OLD_DAYS and aux.color.label.disabled or aux.color.label.enabled
+    return '  ' .. color('seen ' .. text)
+end
+
 function extend_tooltip(tooltip, link, quantity)
     local item_id, suffix_id = info.parse_link(link)
     quantity = IsShiftKeyDown() and quantity or 1
@@ -123,13 +134,13 @@ function extend_tooltip(tooltip, link, quantity)
     end
     local auctionable = not item_info or is_auctionable(item_id, item_info)
     local item_key = (item_id or 0) .. ':' .. (suffix_id or 0)
-    local value = history.value(item_key)
+    local value, age = history.value_and_age(item_key)
     if auctionable then
         if settings.value then
             if settings.money_icons then
-                tooltip:AddLine('Value: ' .. (value and GetCoinTextureString(value * quantity) or UNKNOWN), aux.color.tooltip.value())
+                tooltip:AddLine('Value: ' .. (value and GetCoinTextureString(value * quantity) .. age_suffix(age) or UNKNOWN), aux.color.tooltip.value())
             else
-                tooltip:AddLine('Value: ' .. (value and money.to_string2(value * quantity) or UNKNOWN), aux.color.tooltip.value())
+                tooltip:AddLine('Value: ' .. (value and money.to_string2(value * quantity) .. age_suffix(age) or UNKNOWN), aux.color.tooltip.value())
             end
         end
         if settings.daily  then
