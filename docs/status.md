@@ -39,6 +39,9 @@ Built (tests pass in both looks; checks for Tyler in `TESTING.md`, Current build
   Release) run both. The harness now keeps the colors set on stub frames (`__text_color`,
   `__texture_color`, `__vertex_color`).
 
+Test page: build id `0-6-build-2` (6 steps, the same as `TESTING.md`), results in ArtifactData
+collection `builds/0-6-build-2/results`.
+
 Open questions for Tyler:
 - The CurseForge player's in-game name (changelog credit, FB-008) and which of the not-obvious
   commands above belong in Settings.
