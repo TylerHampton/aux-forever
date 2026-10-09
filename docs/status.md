@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-09: 0.6 build 4 (two looks, zebra rows, the new Settings menu) is on branch
+Last updated 2026-10-09: 0.6 build 5 (two themes, zebra rows, the new Settings menu, coin colors) is on branch
 `claude/eager-dijkstra-drmz2k`, built on Webster's `design` branch. Not tried in game yet.
 
 ## 0.6 build 2 (2026-10-09, branch `claude/eager-dijkstra-drmz2k`)
@@ -64,8 +64,30 @@ gamepad bag features, which likely caused it (inference). The Clean Up button
 search box; Tyler does not see it, which the code does not explain (open). Not auxForever's to fix:
 changing Blizzard's bag frames from an addon risks breaking them further.
 
-Test page: build id `0-6-build-4` (6 steps, the same as `TESTING.md`), results in ArtifactData
-collection `builds/0-6-build-4/results`.
+Build 4 in game (Tyler, 2026-10-09, test page `0-6-build-4`): open, table, buy bar, other tabs,
+Classic all fine (Classic: pass; other tabs: pass; no notes on open and table, their screenshots
+look right: gray edges on the Filter Builder boxes, zebra rows). Findings:
+- The Buy button showed "4s 60c" without coin colors (it used the plain form). Tyler: g, s and c
+  must have their coin colors everywhere, as a global rule. Fixed in build 5: buy bar buttons,
+  recipe line, Sniper prices and profit; rule in AGENTS.md (Design language). Classic's primary
+  and confirm looks are no longer solid filled (dark amber or green with an outline) so the coin
+  colors stay readable on them.
+- "It should be called theme, not look." The Settings row and its texts say Theme (build 5).
+- Bid prices: Tyler found it confusing and asked whether "per stack" makes sense. It does not on
+  Forever (bids only on gear, one item per auction, few sellers set one). Removed from Settings
+  (build 5); `/aux post bid` stays and applies at once. FB-008.
+- Sniper (open, not changed): first time it listed deals by "% of usual". Every deal in Tyler's
+  screenshot is priced 1s 00c, with usuals like 90s (Trapper's Shirt) and 79s (Fading Echo). Likely
+  real 1-silver listings (items on Forever are listed in whole silver, so 1s is the floor) against a
+  usual price raised by high asking prices (`docs/price-data.md`, weak points: it records listings,
+  not sales). His profit setting was 5c, which lets almost any 1s listing through. To check: Tyler
+  runs `/aux price` on two of the deals and searches them; read the chat output before changing the
+  Sniper.
+
+Build 5: coin colors everywhere, Theme, Bid prices out of Settings (above).
+
+Test page: build id `0-6-build-5` (5 steps, the same as `TESTING.md`), results in ArtifactData
+collection `builds/0-6-build-5/results`.
 
 Open questions for Tyler:
 - The CurseForge player's in-game name (changelog credit, FB-008) and which of the not-obvious

@@ -65,8 +65,11 @@ local function style_button(button, look, _, enabled)
 end
 
 -- Money for button labels: the coloured g/s/c of money.to_string vanish on the coloured buttons
+-- Money for button labels. auxForever (0.6, Tyler): g, s and c always have their coin colors,
+-- wherever money is shown; the label's own color is kept for the numbers. (They were plain
+-- because the coin colors vanished on 0.5's solid amber buttons; no button is filled that way now.)
 local function plain_money(amount)
-    return money.to_string(amount, true, nil, nil, true)
+    return money.to_string(amount, true)
 end
 
 local function fit_width(button, min_width)

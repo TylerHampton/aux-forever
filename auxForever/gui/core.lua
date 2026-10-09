@@ -462,12 +462,14 @@ local LOOKS = {
     },
     classic = {
         default = {fill = {29, 32, 36, 1}, border = {47, 52, 58, 1}, text = {243, 239, 230, 1}},
-        primary = {fill = {227, 164, 59, 1}, border = {227, 164, 59, 1}, text = {26, 20, 8, 1}, disabled_border = {47, 52, 58, 1}},
+        -- dark amber with an amber outline rather than 0.5's solid amber: coin colors (g, s, c) in a
+        -- label must stay readable (Tyler, 0.6)
+        primary = {fill = {58, 46, 21, 1}, border = {227, 164, 59, 1}, text = {245, 212, 143, 1}, disabled_border = {47, 52, 58, 1}},
         selected = {fill = {29, 32, 36, 1}, border = {227, 164, 59, 1}, text = {243, 239, 230, 1}},
         choice = {fill = {29, 32, 36, 1}, border = {47, 52, 58, 1}, text = {243, 239, 230, 1}},
         choice_on = {fill = {58, 46, 21, 1}, border = {227, 164, 59, 1}, text = {245, 212, 143, 1}},
         tab = {fill = {0, 0, 0, 0}, border = {0, 0, 0, 0}, text = {168, 164, 155, 1}},
-        confirm = {fill = {63, 174, 106, 1}, border = {63, 174, 106, 1}, text = {255, 255, 255, 1}},
+        confirm = {fill = {24, 52, 36, 1}, border = {111, 211, 154, 1}, text = {111, 211, 154, 1}},
         menu = {fill = {29, 32, 36, 1}, border = {0, 0, 0, 0}, text = {243, 239, 230, 1}},
         disabled = {fill = {29, 32, 36, 1}, text = {125, 122, 115, 1}},
     },

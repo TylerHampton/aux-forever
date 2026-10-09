@@ -236,7 +236,12 @@ Rules for both looks (each one has caused a bug or would):
   classic` (GitHub Actions runs both). In game, check every change in New; Classic gets one short
   pass per version (open each tab).
 
-Money coming in is green (`positive`), going out red (`negative`). Keep new screens in this style.
+Money coming in is green (`positive`), going out red (`negative`). Money always shows its coin
+letters in their colors (gold `g`, silver `s`, copper `c`, from `money.to_string`), wherever a player
+reads it: tables, buttons, labels, the recipe line (Tyler, 0.6). To tint a price, pass the color as
+`money.to_string`'s fourth argument (it colors the numbers only); never wrap the whole text in one
+color or use the no-color form, except for the raw text of a typing field and search text. In
+player-facing text the two looks are called themes (Tyler, 0.6). Keep new screens in this style.
 Direction (Tyler,
 2026-10-08): auxForever should resemble TSM and the original aux, not Blizzard's auction house or
 Auctionator; a player request to move toward the traditional layout was rejected

@@ -8,33 +8,22 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.6 build 4: the New look, Classic look switch, zebra rows, the new Settings menu
+## Current build: 0.6 build 5: coin colors, Theme, Bid prices out of Settings
 
-Branch `claude/eager-dijkstra-drmz2k` (Webster's build 1 plus this). Builds 1 and 2 were never
-tried in game, so their checks are folded in here. Build 3 changed only the Settings menu (the
-mockup Tyler approved); build 4 shortens "Bid prices" so it no longer runs under its buttons. Only looks and Settings changed, nothing about searching,
-buying or posting. `/reload` is enough after copying the folder (no new files).
+Branch `claude/eager-dijkstra-drmz2k`. Build 4 passed in game (2026-10-09; results in
+`docs/status.md`), so only what changed after it is checked here. `/reload` is enough (no new files).
 
-- [ ] 1. Open the auction house: no BugSack error. The window is near black (a little lighter than
-  pure black) with square corners and a darker band along the top and bottom. Search tab, open the
-  Filter Builder: every text box has a gray edge and is easy to tell apart from the panel.
-- [ ] 2. Search `cloth`: every second row is a little lighter (dark gray zebra rows). Column
-  headers are raised plates; click "Buyout each" twice: the name turns white with a gold arrow that
-  flips. Click a row: it turns gold with a gold bar on its left. The mouse over other rows only
-  lightens them, also on a striped row.
-- [ ] 3. Buy bar: the chosen quantity box is outlined in gold, the Buy button has a gold outline and
-  label. Press Buy: Confirm turns green. Cancel.
-- [ ] 4. Post, Auctions, Bids, Sniper: open each. Nothing looks broken (text cut off, a button with
-  no outline, an orange fill left from before). Settings (gear): Background 50% fades the whole
-  window, bands included. Set it back.
-- [ ] 5. Settings (gear): the menu is wide with two columns, like the mockup: Window and Posting on
-  the left, Tooltip lines on the right, switches instead of boxes. Switch Value off, hover an item in
-  your bags: no "Value" line; switch it on: it is back. Posting, Bid prices: Item; open the Post tab
-  and pick an item: a bid table sits next to the buyouts. Set it back to Off: it goes away.
-- [ ] 6. Settings, Look: click Classic. "Classic after a reload" and a Reload now button appear.
-  Click Reload now, open the auction house: slate panels, rounded corners, amber accent, zebra rows
-  in the search results, no BugSack error. Open each tab once. Then Settings, New, Reload now: the
-  New look is back.
+- [ ] 1. Search `linen cloth`, select a row. The Buy button reads "Buy 20 for 4s 60c" with the s in
+  silver and the c in copper, as in the table. Press it: Confirm shows its price the same way.
+  Cancel.
+- [ ] 2. Settings (gear): the row is called Theme (not Look). There is no Bid prices row; Posting
+  has only Default duration. Pick Classic: "Classic theme after a reload". Pick New again.
+- [ ] 3. Sniper: Start, wait for a few deals. The Profit each column is green with silver s and
+  copper c. Stop.
+- [ ] 4. A recipe search (Alt-click a recipe in the profession window, or a saved Recipe search):
+  the bottom line's "materials", "sells" and "profit" amounts have colored s, g and c.
+- [ ] 5. Theme Classic, Reload now: the Search and Buy buttons are dark amber with an amber
+  outline (not solid amber), and the prices on them are readable. Back to New, Reload now.
 
 ## Before every release: the 5-minute check
 

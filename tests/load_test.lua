@@ -586,7 +586,7 @@ try('post panel', function()
   rawset(post.post_button, 'IsEnabled', function() return false end)
   post.post_button:Disable()
   rawset(post.post_button, 'IsEnabled', nil)
-  check('post button: gold label, gray when disabled', math.abs(colors[#colors - 1] - pick(229, 26) / 255) < .001 and math.abs(colors[#colors] - pick(107, 125) / 255) < .001)
+  check('post button: gold label, gray when disabled', math.abs(colors[#colors - 1] - pick(229, 245) / 255) < .001 and math.abs(colors[#colors] - pick(107, 125) / 255) < .001)
 
   check('typed price note', plain(post.price_note_text()) == 'Your own price')
   post.set_buyout_selection({unit_price = 69})
@@ -2160,14 +2160,16 @@ try('recipe search', function()
   check('recipe: the search knows its recipe', s.recipe and s.recipe.name == 'Robe Kit')
   -- materials: 3 x 64s + 2g 20s = 4g 12s; sells for 1g 85s less 5% = 1g 75s 75c: a loss
   search.update_results_summary(true)
-  local summary = search.recipe_label.__text or ''
+  -- the coin letters carry their own colors (0.6), so compare the text without color codes
+  local function uncolored(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local summary = uncolored(search.recipe_label.__text)
   check('recipe: the line adds up the craft', summary:find('materials 4g 12s', 1, true) ~= nil and summary:find('sells 1g 75s 75c after cut', 1, true) ~= nil and summary:find('loss 2g 36s 25c', 1, true) ~= nil)
   -- Tyler, 0.4: the cost crowded the line next to the sub tabs and was cut off; it is in the bottom bar
   check('recipe: the cost is in the bottom bar, not next to the sub tabs', summary:find('Robe Kit', 1, true) ~= nil and not (search.results_summary(s) or ''):find('materials', 1, true))
   -- Tyler, 0.4: "materials ?" did not say which material had no price (Gray Dye, not for sale)
   local without = {}
   for _, r in ipairs(s.records) do if r.item_id ~= 103 then tinsert(without, r) end end
-  local partial = search.recipe_summary{recipe = s.recipe, records = without}
+  local partial = uncolored(search.recipe_summary{recipe = s.recipe, records = without})
   local info = loadstring("select(2, ...) 'aux.util.info'; return _M")('auxForever', addon)
   local dye = info.item(103).name
   check('recipe: a material without a price is named', partial:find('materials 1g 92s + ' .. dye .. ' (no price)', 1, true) ~= nil)
@@ -2911,6 +2913,30 @@ try('0.6: looks', function()
   check('new look: blacks toned back', P.panel.background[1] >= 16 and P.window.background[1] >= 24)
 end)
 
+-- 0.6, Tyler build 4: g, s and c keep their coin colors wherever money is shown, buttons included
+try('0.6: coin colors everywhere', function()
+  local money = loadstring("select(2, ...) 'aux.test63'; return require")('auxForever', addon) 'aux.util.money'
+  local bar_env = loadstring("select(2, ...) 'aux.gui.buy_bar'; return _M")('auxForever', addon)
+  local recipe_env = loadstring("select(2, ...) 'aux.tabs.search.recipe'; return _M")('auxForever', addon)
+  local sniper_env = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local bar = loadstring("select(2, ...) 'aux.test64'; return require")('auxForever', addon) 'aux.gui.buy_bar'
+  bar.show_item{record = {item_id = 7101, name = 'Sword', buyout_price = 460, bid_price = 0, count = 1, link = 'x'}, name = 'Sword', texture = 1, on_buy = function() end, on_bid = function() end, busy = function() return false end}
+  for _ = 1, 3 do tick() end
+  local text = ''
+  for _, f in ipairs(frames) do
+    if type(f.__text) == 'string' and f.__text:find('^Buy for') then text = f.__text end
+  end
+  check('coins: the Buy button money has a silver s and a copper c', text:find('Buy for', 1, true) ~= nil and text:find(money.SILVER_TEXT, 1, true) ~= nil and text:find(money.COPPER_TEXT, 1, true) ~= nil)
+  bar.clear()
+  -- no money is ever written without its coin colors outside typing fields and search text
+  local plain = 0
+  for _, file in ipairs{'gui/buy_bar.lua', 'tabs/search/recipe.lua', 'tabs/sniper/frame.lua'} do
+    local src = io.open(file):read('*a')
+    for _ in src:gmatch('to_string%([^\n]-, *nil, *nil, *true%)') do plain = plain + 1 end
+  end
+  check('coins: no money without coin colors on buttons, the recipe line or the Sniper', plain == 0)
+end)
+
 -- 0.6, Tyler 2026-10-09: zebra rows, every second row dark gray, under hover and selection
 try('0.6: zebra rows', function()
   local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
@@ -2942,7 +2968,10 @@ try('0.6: settings', function()
   check('settings: no reload button while the look is the one in use', a.reload_button.__shown == false)
   a.look_buttons[other].__scripts.OnClick(a.look_buttons[other])
   check('settings: picking the other look saves it', a.account_data.theme == other)
-  check('settings: and offers a reload', a.reload_button.__shown == true and a.reload_note.__text:find('after a reload', 1, true) ~= nil)
+  check('settings: and offers a reload', a.reload_button.__shown == true and a.reload_note.__text:find('theme after a reload', 1, true) ~= nil)
+  -- Tyler, build 4: players see it as the Theme, not the Look
+  local src = io.open('frame.lua'):read('*a')
+  check('settings: the row is called Theme', src:find("row(popup, LEFT_X, -110, 30, 'Theme',", 1, true) ~= nil and not src:find("30, 'Look',", 1, true))
   local reloaded
   G.ReloadUI = function() reloaded = true end
   a.reload_button.__scripts.OnClick(a.reload_button)
@@ -2975,14 +3004,10 @@ try('0.6: settings', function()
   check('settings: a switch moves with its line', box:GetChecked() == not was)
   box.__scripts.OnClick(box)
   check('settings: and back again', box:GetChecked() == was)
-  -- Bid prices on the Post tab (/aux post bid), applied at once instead of after a reload
+  -- build 4 (Tyler): Bid prices left the menu (bids are rare on Forever and "per stack" means
+  -- nothing there); /aux post bid still shows or hides the bid table at once
   local post_env = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
-  local bids = a.bid_buttons
-  check('settings: bid prices has Off, Item and Stack', bids.off and bids.unit and bids.stack)
-  bids.unit.__scripts.OnClick(bids.unit)
-  check('settings: Item shows the bid column per item', a.account_data.post_bid == 'unit' and post_env.frame.bid_listing.__shown == true)
-  bids.off.__scripts.OnClick(bids.off)
-  check('settings: Off hides it again', a.account_data.post_bid == nil and post_env.frame.bid_listing.__shown == false)
+  check('settings: no Bid prices row', a.bid_buttons == nil)
   SlashCmdList.AUX('post bid stack')
   check('settings: the chat command shows it at once too', a.account_data.post_bid == 'stack' and post_env.frame.bid_listing.__shown == true)
   SlashCmdList.AUX('post bid off')

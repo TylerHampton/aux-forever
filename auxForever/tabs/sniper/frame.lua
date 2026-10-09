@@ -44,7 +44,8 @@ end
 
 local function price_text(record, amount)
     if record.deal_gone then
-        return aux.color.label.disabled(money.to_string(amount, true, nil, nil, true))
+        -- a deal that is gone: gray numbers, coin letters still in their colors (Tyler, 0.6)
+        return money.to_string(amount, true, nil, aux.color.label.disabled)
     end
     return money.to_string(amount, true)
 end
@@ -156,7 +157,7 @@ M.columns = {
             if record.deal_gone then
                 cell.text:SetText(price_text(record, record.deal_profit))
             else
-                cell.text:SetText(aux.color.green(money.to_string(record.deal_profit, true, nil, nil, true)))
+                cell.text:SetText(money.to_string(record.deal_profit, true, nil, aux.color.green))
             end
         end,
         cmp = function(a, b, desc)

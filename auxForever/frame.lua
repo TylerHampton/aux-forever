@@ -362,7 +362,8 @@ do
     settings_button = btn
 
     -- auxForever (0.6): two columns, as in the mockup Tyler approved (2026-10-09): Window and Posting
-    -- on the left, the tooltip lines on the right, each setting a row with its control at the right
+    -- on the left, the tooltip lines on the right, each setting a row with its control at the right.
+    -- The player-facing name of a look is "theme" (Tyler, build 4).
     local WIDTH, PAD, COLUMN = 600, 14, 271
     local LEFT_X, RIGHT_X = PAD, WIDTH - PAD - COLUMN
     local popup = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
@@ -476,8 +477,8 @@ do
 
     -- the look, New or Classic. Widgets are built once with the look of this login, so a new choice
     -- shows after a reload; the button for it appears once there is one.
-    local look_row = row(popup, LEFT_X, -110, 30, 'Look',
-        nil, {'New: near black, square corners, gold accent. Classic: the look of auxForever 0.5, slate panels, rounded corners, amber accent.', 'Shows after a reload.'})
+    local look_row = row(popup, LEFT_X, -110, 30, 'Theme',
+        nil, {'New: near black, square corners, gold accent. Classic: the theme of auxForever 0.5, slate panels, rounded corners, amber accent.', 'Shows after a reload.'})
     local look_buttons = choices(look_row, {{'new', 'New'}, {'classic', 'Classic'}}, 64)
     for name, b in pairs(look_buttons) do
         b:SetScript('OnClick', function()
@@ -510,20 +511,9 @@ do
         for i = 1, 3 do length_buttons[i] = by_code[i] end
     end
     M.auction_length_buttons = length_buttons
-    -- the bid column (/aux post bid): off, the bid per item, or per stack. A short name: the
-    -- three choices take most of the row (a longer name ran under them, Tyler build 3); the
-    -- tooltip explains it
-    local bid_row = row(posting, 0, -46, 30, 'Bid prices',
-        nil, {'A table of the starting bids of other auctions next to their buyouts on the Post tab, per item or per stack. Only a table: it does not change how you post.', '/aux post bid'})
-    local bid_buttons = choices(bid_row, {{'off', 'Off'}, {'unit', 'Item'}, {'stack', 'Stack'}}, 44)
-    for key, b in pairs(bid_buttons) do
-        b:SetScript('OnClick', function()
-            account_data.post_bid = key ~= 'off' and key or nil
-            post.apply_bid_layout()
-            refresh_settings()
-        end)
-    end
-    M.bid_buttons = bid_buttons
+    -- Bid prices (/aux post bid) was here in build 3 and taken out in build 4: on Forever only gear
+    -- can have bids, few sellers set one, and gear is one item per auction, so "per stack" means
+    -- nothing (Tyler: "does the stack option even make any sense?"). The chat command stays.
 
     -- right column: the tooltip lines, also /aux tooltip ... (a player on CurseForge asked for the
     -- chat settings in this menu, FB-008). Kept per character, like the chat commands.
@@ -571,10 +561,6 @@ do
             b:SetText(info.duration_hours(i) .. 'h')
             gui.style_choice(b, account_data.post_duration == i)
         end
-        local bid = account_data.post_bid or 'off'
-        for key, b in pairs(bid_buttons) do
-            gui.style_choice(b, bid == key)
-        end
         local chosen = account_data.theme == 'classic' and 'classic' or 'new'
         for name, b in pairs(look_buttons) do
             gui.style_choice(b, chosen == name)
@@ -582,7 +568,7 @@ do
         -- a reload is only needed when the choice differs from what is on screen
         local pending = chosen ~= theme
         if pending then
-            reload_note:SetText((chosen == 'new' and 'New' or 'Classic') .. ' after a reload')
+            reload_note:SetText((chosen == 'new' and 'New' or 'Classic') .. ' theme after a reload')
             reload_row:Show()
         else
             reload_note:SetText('')

@@ -553,9 +553,10 @@ Design (Claude's decision on point 3, with the rest filled in; build from this, 
 - Area: Settings
 - Severity: n/a
 - Status: in-progress claude/eager-dijkstra-drmz2k. Built in 0.6 build 3: a two-column Settings
-  menu with switches for the seven `/aux tooltip ...` lines and a three-way Bid prices choice
-  (`/aux post bid`), from a mockup Tyler approved (2026-10-09). Left as chat only: ignore owner,
-  action shortcuts, debug (see below).
+  menu with switches for the seven `/aux tooltip ...` lines, from a mockup Tyler approved
+  (2026-10-09). Tooltip switches tested in game (build 4, pass). A Bid prices choice was added in
+  build 3 and removed in build 4 (Tyler, see below). Left as chat only: ignore owner, action
+  shortcuts, debug, post bid.
 - Proposed: 0.6
 
 Said: not available. Tyler's summary: "a user on CurseForge talked about how some of the chat
@@ -587,6 +588,13 @@ something only pertaining to tooltips?" On the Alt-click shortcuts: "Isnt this d
 could buy a stack of 1000 on accident?" (they buy gear in one click and a stack in two, so they stay
 chat only). On the mockup (https://claude.ai/artifact/21FjqFGt2vzbVo9BDG5d6j): "I actually really
 like what you made here in the mock-up" ... "I love this layout."
+
+Tyler's notes, build 4 test (2026-10-09): "Tooltip stuff is good. Bid row setting is probably
+broken, but im not sure how its supposed to work. With this bid price option, does the stack option
+even make any sense?" Recorder: on Forever only items (gear) can have bids, trade goods cannot, and
+an item auction holds one item, so "per stack" means the same as "per item" or nothing; Tyler's
+screenshots show every Auction Bid as "---". The setting did not earn a place in the menu and was
+removed; this was the recorder's own wrong recommendation, not Tyler's or the player's.
 
 Ask Tyler: the player's in-game name (for the changelog credit) and, if he has it, the comment's
 exact words.
