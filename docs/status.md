@@ -52,9 +52,14 @@ Build 4: "Bid prices on the Post tab" and its gray line ran under the Off / Item
 (Tyler's screenshot); the row is now just "Bid prices", explained in its tooltip. Tyler also saw
 his bags (Blizzard's Combined Backpack) with the items in reverse order and no cleanup button. Not
 from auxForever as far as the code shows: it only reads bag contents and hooks clicks
-(`core/shortcut.lua`, unchanged in 0.6), and never touches bag settings or bag buttons. Asked
-Tyler to log in once with auxForever off to be sure; his UI addon (EllesmereUI) is the likely
-cause (inference).
+(`core/shortcut.lua`, unchanged in 0.6), and never touches bag settings or bag buttons. Resolved
+the same day: with EllesmereUI's bag module off, the bags are Blizzard's Combined Backpack, and
+its layout is Blizzard's own. Forever's UI source (`Gethe/wow-ui-source`, branch `forever`, 1.60.1
+build 70291, `Blizzard_UIPanels_Game/Mainline/ContainerFrame.lua`) anchors the first slot at the
+bottom right (`ContainerFrameCombinedBagsMixin:GetInitialItemAnchor`, BOTTOMRIGHT of the money
+frame), so items fill from the bottom and the short row is at the top left; the Clean Up button
+(`BagItemAutoSortButton`) sits at the top right next to the search box. No online reports of broken
+bags were found (2026-10-09).
 
 Test page: build id `0-6-build-4` (6 steps, the same as `TESTING.md`), results in ArtifactData
 collection `builds/0-6-build-4/results`.
