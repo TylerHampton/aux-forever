@@ -31,7 +31,7 @@ end
 local function caption(parent, text, size, color)
     local label = gui.label(parent, size or gui.font_size.small)
     label:SetText(text)
-    label:SetTextColor((color or aux.color.label.enabled)())
+    gui.text_color(label, color or aux.color.label.enabled)
     return label
 end
 
@@ -209,7 +209,7 @@ local function create_row()
     row.type_btn.chevron:SetTexture(TEXTURES .. 'chevron.tga')
     row.type_btn.chevron:SetSize(9, 9)
     row.type_btn.chevron:SetPoint('RIGHT', -8, 0)
-    row.type_btn.chevron:SetVertexColor(aux.color.label.enabled())
+    gui.vertex_color(row.type_btn.chevron, aux.color.label.enabled)
     row.type_btn:SetScript('OnClick', function(self)
         open_condition_menu(self, function(key)
             local node = row.item.node
@@ -264,9 +264,11 @@ local function create_row()
 
     row.remove = choice_button(row, CROSS, 24)
     row.remove:SetPoint('RIGHT', -4, 0)
-    row.remove:SetBackdropColor(0, 0, 0, 0)
-    row.remove:SetBackdropBorderColor(0, 0, 0, 0)
-    row.remove:GetFontString():SetTextColor(aux.color.label.enabled())
+    gui.themed(function()
+        row.remove:SetBackdropColor(0, 0, 0, 0)
+        row.remove:SetBackdropBorderColor(0, 0, 0, 0)
+        row.remove:GetFontString():SetTextColor(aux.color.label.enabled())
+    end)
     row.remove:SetScript('OnClick', function()
         local item = row.item
         for i, node in ipairs(item.parent.items) do

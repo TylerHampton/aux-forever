@@ -61,6 +61,7 @@ The test harness stubs the WoW API in plain Lua 5.1 and loads every file in TOC 
 ```
 cd auxForever
 lua5.1 ../tests/load_test.lua      # must end with: done, errors: 0
+lua5.1 ../tests/load_test.lua classic   # the same in the Classic look (0.6)
 for f in $(find . -name '*.lua'); do luac5.1 -p "$f"; done   # syntax check
 ```
 
@@ -105,10 +106,11 @@ Load order is the TOC (`auxForever/auxForever.toc`).
 - `libs/package.lua`: the module system (see gotchas). `compat.lua`: old Classic function names
   mapped to modern ones.
 - `aux-addon.lua`: events, saved variables (`account_data` defaults), tab switching.
-- `frame.lua`: the main window: top bar (logo, tabs, settings gear with opacity and auction
-  length, Full scan, Blizzard UI, close), resize grip, credit label.
-- `color.lua`: the palette. `gui/core.lua`: widgets (button, label, editbox, dropdown, checkbox,
-  status bar, rounded styling, `style_choice`, `set_primary`, background opacity).
+- `frame.lua`: the main window: top bar (logo, tabs, settings gear with opacity, scale, auction
+  length, look and the tooltip lines, Full scan, Blizzard UI, close), resize grip, credit label.
+- `color.lua`: the palettes of the two looks (New, Classic; see Design language). `gui/core.lua`:
+  widgets (button, label, editbox, dropdown, checkbox, status bar, square or rounded shapes, button
+  looks, `themed` and `settle_theme`, zebra rows, background opacity).
 - `core/scan.lua`: the scan engine, rewritten for `C_AuctionHouse` (browse query, then one search
   per item key; full scan with `ReplicateItems`). Fast mode (`params.fast`) stops at the browse
   list: one row per item (`info.browse_record`, `record.fast`); `params.on_item_list` hands the raw
@@ -205,13 +207,35 @@ aux runs inside the game; every frame it spends time in costs the player frame r
 
 ## Design language
 
-Since 0.6, the UI Kit in the Paper file "auxForever Screens" (pages "UI Kit" and "New"): near-black
-surfaces with black 1px edges and square corners, raised controls lighter at the top
-(`gui.add_sheen`), sunken tables and inputs, one gold accent (`229, 190, 91`) for what is selected
-or primary, the game font. Buttons get a look with `gui.apply_look` (`default`, `primary`,
-`selected`, `choice`, `choice_on`, `tab`, `menu`, `confirm`; `gui/core.lua`), not hand-set colors.
-Money coming in is green (`positive`), going out red (`negative`). Tokens are in `color.lua`. Keep
-new screens in this style. Direction (Tyler,
+Since 0.6 there are two looks, picked in Settings (account-wide, `account_data.theme`) and applied
+at the next login or `/reload` (Tyler, 2026-10-09: keep the 0.5 look as an option, move forward with
+Webster's). Both share one layout; only colors and shapes differ.
+
+- **New** (the default): Christian Webster's UI Kit, Paper file "auxForever Screens" (pages "UI
+  Kit" and "New"). Near-black surfaces with black 1px edges and square corners, raised controls
+  lighter at the top (`gui.add_sheen`), sunken tables and inputs with a gray edge, one gold accent
+  (`229, 190, 91`), zebra rows in dark gray. Its blacks are a little lighter than the kit's so text
+  boxes stand out (Tyler, 2026-10-09).
+- **Classic**: the 0.5 look. Dark slate panels, warm off-white text, amber accent
+  (`227, 164, 59`), rounded corners (`textures/corner-*.tga`), flat buttons.
+
+Rules for both looks (each one has caused a bug or would):
+- Colors come from `color.lua` (`PALETTES.new` and `PALETTES.classic` name the same colors; a test
+  checks it). Add a new color to both. Never write color numbers in a tab file.
+- Buttons get a look with `gui.apply_look` (`default`, `primary`, `selected`, `choice`,
+  `choice_on`, `tab`, `menu`, `confirm`; `gui/core.lua` has a table per look), not hand-set colors.
+- The look is only known once the saved settings load, after every file has built its widgets. So
+  a color set while a file loads must go through `gui.themed(function() ... end)` (or
+  `gui.text_color`, `gui.texture_color`, `gui.vertex_color`): Classic paints those again at login.
+  A plain `label:SetTextColor(aux.color.x())` at load stays in New's colors under Classic. Colors
+  set later (in an update or a click) need nothing special. Colored text made once at load (like
+  `TIME_LEFT_STRINGS`) goes in `gui.themed` too.
+- Run the tests in both looks: `lua5.1 ../tests/load_test.lua` and `lua5.1 ../tests/load_test.lua
+  classic` (GitHub Actions runs both). In game, check every change in New; Classic gets one short
+  pass per version (open each tab).
+
+Money coming in is green (`positive`), going out red (`negative`). Keep new screens in this style.
+Direction (Tyler,
 2026-10-08): auxForever should resemble TSM and the original aux, not Blizzard's auction house or
 Auctionator; a player request to move toward the traditional layout was rejected
 (`docs/feedback.md`, FB-004). Mockups so far were made

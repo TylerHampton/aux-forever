@@ -16,12 +16,14 @@ local HEAD_HEIGHT = 27
 local HEAD_SPACE = 2
 
 -- Forever: labels come from the auction house's time left bands
-local TIME_LEFT_STRINGS = {
-    aux.color.red(info.time_left_label(1)), -- Short
-    aux.color.orange(info.time_left_label(2)), -- Medium
-    aux.color.yellow(info.time_left_label(3)), -- Long
-    aux.color.blue(info.time_left_label(4)), -- Very Long
-}
+-- (colored text is fixed once made, so made again in Classic's colors: gui.themed)
+local TIME_LEFT_STRINGS = {}
+gui.themed(function()
+    TIME_LEFT_STRINGS[1] = aux.color.red(info.time_left_label(1)) -- Short
+    TIME_LEFT_STRINGS[2] = aux.color.orange(info.time_left_label(2)) -- Medium
+    TIME_LEFT_STRINGS[3] = aux.color.yellow(info.time_left_label(3)) -- Long
+    TIME_LEFT_STRINGS[4] = aux.color.blue(info.time_left_label(4)) -- Very Long
+end)
 
 -- auxForever: Forever names the seller only when one player sells at a row's price
 function M.seller_text(record)
@@ -998,6 +1000,7 @@ local function create_row(rt, i)
     row:SetScript('OnDoubleClick', rt.OnDoubleClick)
     row:SetPoint('TOPLEFT', 0, -(HEAD_HEIGHT + HEAD_SPACE + (i - 1) * rt.ROW_HEIGHT))
     row:SetPoint('TOPRIGHT', 0, -(HEAD_HEIGHT + HEAD_SPACE + (i - 1) * rt.ROW_HEIGHT))
+    gui.row_stripe(row, i)
     row.highlight = gui.row_selection(row)
     row.hover = gui.row_hover(row)
 
@@ -1096,7 +1099,7 @@ function M.new(parent, row_height, columns)
     scrollBar:SetWidth(10)
     local thumbTex = scrollBar:GetThumbTexture()
     thumbTex:SetPoint('CENTER', 0, 0)
-    thumbTex:SetColorTexture(229 / 255, 190 / 255, 91 / 255, .35)
+    gui.texture_color(thumbTex, aux.color.scrollbar)
     thumbTex:SetHeight(150)
     thumbTex:SetWidth(6)
     _G[scrollBar:GetName() .. 'ScrollUpButton']:Hide()
@@ -1121,19 +1124,19 @@ function M.new(parent, row_height, columns)
         local text = cell:CreateFontString()
         text:SetJustifyH('CENTER')
         text:SetFont(gui.font, 12)
-        text:SetTextColor(aux.color.header.text())
+        gui.text_color(text, aux.color.header.text)
         cell:SetFontString(text)
         if not column.toggle then cell:SetText(column.title or '') end -- TODO
         text:SetAllPoints()
 
         -- auxForever (0.6, the UI Kit): a raised plate with a black edge, 1px below the table's top
-        gui.set_frame_style(cell, aux.color.header.background, aux.color.window.border, 0, 0, 1, 0)
+        gui.set_frame_style(cell, aux.color.header.background, aux.color.window.border, 0, 0, 1, 0, 0)
         gui.add_sheen(cell, .26)
-        gui.add_highlight(cell)
+        gui.add_highlight(cell, 0)
         local arrow = cell:CreateTexture(nil, 'OVERLAY')
         arrow:SetTexture([[Interface\AddOns\auxForever\textures\chevron.tga]])
         arrow:SetSize(9, 9)
-        arrow:SetVertexColor(aux.color.accent.background())
+        gui.vertex_color(arrow, aux.color.accent.background)
         arrow:Hide()
         cell.arrow = arrow
 

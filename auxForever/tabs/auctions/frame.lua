@@ -162,7 +162,7 @@ do
     local detail = gui.label(frame, gui.font_size.small)
     detail:SetPoint('TOPLEFT', label, 'BOTTOMLEFT', 0, -2)
     detail:SetJustifyH('LEFT')
-    detail:SetTextColor(aux.color.label.enabled())
+    gui.text_color(detail, aux.color.label.enabled)
     checked_label = detail
 end
 -- on the right: Cancel undercut, and which auction it cancels next
@@ -176,7 +176,7 @@ do
     local label = gui.label(frame, gui.font_size.small)
     label:SetPoint('RIGHT', btn, 'LEFT', -10, 0)
     label:SetJustifyH('RIGHT')
-    label:SetTextColor(aux.color.label.enabled())
+    gui.text_color(label, aux.color.label.enabled)
     next_label = label
 end
 
@@ -196,7 +196,7 @@ do
     label:SetPoint('LEFT', cancel_button, 'RIGHT', 10, 0)
     label:SetPoint('RIGHT', aux.frame.content, 'BOTTOMRIGHT', -200, 0)
     label:SetJustifyH('LEFT')
-    label:SetTextColor(aux.color.label.enabled())
+    gui.text_color(label, aux.color.label.enabled)
     selection_label = label
 end
 

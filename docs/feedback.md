@@ -107,6 +107,7 @@ For whoever fixes or builds from it:
 | [FB-005](#fb-005-praise-the-list-of-sellable-items-on-the-left-of-the-post-tab) | 2026-10-08 | Darkhorse | praise | Post | n/a | Praise: the list of sellable items on the Post tab | new |
 | [FB-006](#fb-006-after-resizing-and-changing-the-scale-the-recent-searches-header-sticks-out-of-the-window) | 2026-10-08 | Garsterson | bug | Window | S3 | After resizing and changing the scale, the Recent Searches header sticks out of the window | fixed 0.5 31ac02c |
 | [FB-007](#fb-007-crafting-cost-in-the-profession-window-anywhere-in-the-world) | 2026-10-08 | Garsterson | request | Recipe search | n/a | Crafting cost in the profession window, anywhere in the world | built 0.5 5a935e1 |
+| [FB-008](#fb-008-chat-command-settings-should-also-be-in-the-settings-menu) | 2026-10-09 | CurseForge player (name not recorded yet) | request | Settings | n/a | Chat command settings should also be in the Settings menu | in-progress claude/eager-dijkstra-drmz2k (tooltip lines built) |
 
 ## Players
 
@@ -539,6 +540,47 @@ Design (Claude's decision on point 3, with the rest filled in; build from this, 
 - How good the number is depends on how the usual price is worked out; see `docs/price-data.md`,
   "Is it the best way?" (one cheap auction can set a day's price; the cheapest unit understates the
   cost of buying many).
+
+### FB-008: Chat command settings should also be in the Settings menu
+
+- Received: 2026-10-09
+- From: a player commenting on CurseForge (1 report). In-game name not recorded yet.
+- Where: CurseForge comment
+- Source: not saved; only Tyler's retelling below. The comment's exact words are not in the
+  repository.
+- Version: unknown (likely forever-0.5, the version on CurseForge)
+- Type: request
+- Area: Settings
+- Severity: n/a
+- Status: in-progress claude/eager-dijkstra-drmz2k. Built: the seven `/aux tooltip ...` lines as
+  checkboxes in Settings. The rest waits on Tyler (Ask Tyler).
+- Proposed: 0.6
+
+Said: not available. Tyler's summary: "a user on CurseForge talked about how some of the chat
+commands should be built into the settings."
+
+Tyler's notes: "I pushed back a little bit on that saying like aux debug and like aux price are not
+commands I would want in the settings menu, but I'm sure there's some in there that are like
+effectively toggles and they could be added in addition to being a CLI command or a chat command,
+they could also be in the settings menu. If any of the choices are obvious, then just go ahead and
+build those in. And then if any aren't obvious, just ask me." (2026-10-09)
+
+Recorder's notes (the building session):
+- Built as obvious: the tooltip lines (Value, Today, Vendor sell price, Vendor buy price,
+  Disenchant value, Disenchants into, Coin icons). Plain on/off, per character like the chat
+  commands, which keep working.
+- Already in Settings before: Background (`/aux opacity`), Scale (`/aux scale`), Default duration
+  (`/aux post duration`). Undercut mode is on the Post tab.
+- Left out on purpose: `debug`, `debug list`, `memory`, `price` (tools, not settings; Tyler).
+- Not obvious, asked: `action shortcuts` (Alt-click buys or cancels at once), `ignore owner`
+  (scanning speed against seller names), `post full scan`, `post bid` (three choices), `clear item
+  cache`, `clear post` (actions that delete data).
+
+Unknowns: which commands the player had in mind. Built so it holds either way: every plain on/off
+the player would meet in tooltips is now in the menu.
+
+Ask Tyler: the player's in-game name (for the changelog credit) and, if he has it, the comment's
+exact words. The not-obvious commands above: which, if any, go into Settings.
 
 ## Before this log
 

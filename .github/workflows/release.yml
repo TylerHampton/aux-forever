@@ -44,6 +44,9 @@ jobs:
           cd auxForever
           lua5.1 ../tests/load_test.lua | tee ../test-output.txt
           tail -n 1 ../test-output.txt | grep -qx 'done, errors: 0'
+          # the Classic look (0.6) gets the same tests
+          lua5.1 ../tests/load_test.lua classic | tee ../test-output-classic.txt
+          tail -n 1 ../test-output-classic.txt | grep -qx 'done, errors: 0'
 
       - name: Package
         run: zip -qr "auxForever-$VERSION.zip" auxForever -x '*.git*'

@@ -1,8 +1,50 @@
 # Status
 
-Last updated 2026-10-08: 0.6 build 1 (the new look) is on branch `design`.
+Last updated 2026-10-09: 0.6 build 2 (two looks, zebra rows, tooltip settings) is on branch
+`claude/eager-dijkstra-drmz2k`, built on Webster's `design` branch. Not tried in game yet.
 
-## 0.6: the new look (started 2026-10-08, branch `design`)
+## 0.6 build 2 (2026-10-09, branch `claude/eager-dijkstra-drmz2k`)
+
+Tyler, 2026-10-09: Webster (Christian Webster, GitHub `webguh`, a collaborator who does UI design for
+work) made build 1 on the branch `design`; he is done with it. Tyler wants three ways to see the
+auction house by 1.0: Blizzard's (the Blizzard UI button), the 0.5 look (Classic) and Webster's
+(New). New is the default, also for players updating from 0.5. Tyler plans about one release a
+week; 0.6 is not to be released yet.
+
+Built (tests pass in both looks; checks for Tyler in `TESTING.md`, Current build):
+- Look switch: Settings, Look: New or Classic, saved in `account_data.theme` (account-wide). It
+  takes effect at the next login or reload; a Reload now button appears when the choice differs
+  from what is on screen. Classic is the 0.5 palette and rounded corners on Webster's layout (same
+  sizes and positions), flat buttons (no sheen), no top and bottom bands.
+- How it works (`gui/core.lua`, "the look"): widgets are built while the files load, before the
+  saved settings exist. Shapes wait until `gui.settle_theme` (called at the end of `AUX_LOADED` in
+  `aux-addon.lua`) and are then built square or rounded. Every color set at load goes through
+  `gui.themed`; for Classic that list is painted again, then dropped. In New nothing is painted
+  twice. Color objects keep their numbers in a table that `aux.set_palette` rewrites, so colors read
+  later follow the look. AGENTS.md, Design language, has the rules.
+- Zebra rows (Tyler): every second row of the result tables (`auction_listing`) and the other tables
+  (`listing`) has a faint light shade (`color.stripe`, white 4% in New, 3.5% in Classic as in
+  0.5), under hover and selection. The Post tab's bag list has none (it had none in 0.5 either).
+- New look, blacks toned back (Tyler: "it's hard to tell where the text boxes are", the Filter
+  Builder; "I do like the blackness of it"): window 22 to 26, panels 12 to 19, bands 11 to 16,
+  sunken fields 10 to 12 with a gray edge (64) instead of black. A test keeps the edge at least 30
+  levels lighter than the panel.
+- Settings, TOOLTIP LINES (this character): the seven `/aux tooltip` lines as checkboxes (FB-008,
+  a CurseForge player). Not added, waiting on Tyler: action shortcuts, ignore owner, post full scan,
+  post bid, clear item cache, clear post. Left out on purpose: debug, memory, price.
+- Hard-coded colors moved into the palettes: scroll bar thumb, input focus edge, status bar, the
+  Post tab's switch track, the buy bar's chosen quantity (now the `selected` look, redrawn only when
+  the choice changes).
+- Tests: `lua5.1 ../tests/load_test.lua classic` runs every test in Classic; the workflows (Tests,
+  Release) run both. The harness now keeps the colors set on stub frames (`__text_color`,
+  `__texture_color`, `__vertex_color`).
+
+Open questions for Tyler:
+- The CurseForge player's in-game name (changelog credit, FB-008) and which of the not-obvious
+  commands above belong in Settings.
+- His tweaks to Webster's look (he will send screenshots).
+
+## 0.6 build 1: the new look (2026-10-08, branch `design`, by Webster)
 
 Tyler asked to "take the ui kit and screens and make the addon look like that". The design is the
 Paper file "auxForever Screens", pages "UI Kit" (every color, size and control) and "New" (the seven
@@ -34,7 +76,8 @@ Build 1 (not tried in game yet): a restyle only, no change to searching, buying 
 - Tests and syntax check pass under Lua 5.1.5 (built from lua.org source on Tyler's collaborator's
   Mac; Homebrew has no lua@5.1).
 - Open question for Tyler: zebra rows. He asked for a zebra version of an earlier design; the kit
-  says no stripes, so build 1 has none. Easy to add back.
+  says no stripes, so build 1 has none. Easy to add back. (Answered 2026-10-09: add them back in
+  dark gray; done in build 2.)
 
 ## Start here (for the next session: 0.5.1 or 0.6)
 

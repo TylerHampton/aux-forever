@@ -8,27 +8,30 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.6 build 1, the new look (branch `design`)
+## Current build: 0.6 build 2: the New look, Classic look switch, zebra rows, tooltip settings
 
-Only colors and shapes changed, nothing about searching, buying or posting. `/reload` is enough
-after copying the folder (no new files). Compare each screen with the matching screen on the "New"
-page of the Paper file.
+Branch `claude/eager-dijkstra-drmz2k` (Webster's build 1 plus this). Build 1 was never tried in
+game, so its checks are folded in here. Only looks and Settings changed, nothing about searching,
+buying or posting. `/reload` is enough after copying the folder (no new files).
 
-- [ ] 1. Open the auction house: no BugSack error. The window is near black with square corners, a
-  darker band along the top and bottom, "aux" white and "Forever" gold, the open tab outlined in
-  gold. The thin black edges look even (not faint, blurry or doubled) at your Scale setting.
-- [ ] 2. Search tab: search `cloth`. Column headers are raised gray plates; click "Buyout each"
-  twice: the name turns white with a gold arrow that flips. Click a row: it turns gold with a gold
-  bar on its left. Moving the mouse over other rows only lightens them.
-- [ ] 3. Buy bar: the quantity boxes are gray, the chosen one outlined in gold; the Buy button has a
-  gold outline and label. Press Buy: Confirm turns green. Cancel.
-- [ ] 4. Sub tabs, Live, Fast/Full: the open sub tab is outlined in gold. Live on is outlined in
-  gold; Fast/Full shows the chosen one in dark gold.
-- [ ] 5. Post, Auctions, Bids, Sniper: open each. Nothing looks broken (text cut off, a button with
-  no outline, an orange fill left from before). Post: Match lowest / Undercut and 12h/24h/48h show
-  the chosen one in dark gold.
-- [ ] 6. Settings (gear): set Background to 50%. The whole window fades, including the top and
-  bottom bands. Set it back.
+- [ ] 1. Open the auction house: no BugSack error. The window is near black (a little lighter than
+  pure black) with square corners and a darker band along the top and bottom. Search tab, open the
+  Filter Builder: every text box has a gray edge and is easy to tell apart from the panel.
+- [ ] 2. Search `cloth`: every second row is a little lighter (dark gray zebra rows). Column
+  headers are raised plates; click "Buyout each" twice: the name turns white with a gold arrow that
+  flips. Click a row: it turns gold with a gold bar on its left. The mouse over other rows only
+  lightens them, also on a striped row.
+- [ ] 3. Buy bar: the chosen quantity box is outlined in gold, the Buy button has a gold outline and
+  label. Press Buy: Confirm turns green. Cancel.
+- [ ] 4. Post, Auctions, Bids, Sniper: open each. Nothing looks broken (text cut off, a button with
+  no outline, an orange fill left from before). Settings (gear): Background 50% fades the whole
+  window, bands included. Set it back.
+- [ ] 5. Settings, TOOLTIP LINES: untick Value, then hover an item in your bags: no "Value" line.
+  Tick it again: the line is back. Each box's tooltip says what it shows.
+- [ ] 6. Settings, Look: click Classic. "Classic after a reload" and a Reload now button appear.
+  Click Reload now, open the auction house: slate panels, rounded corners, amber accent, zebra rows
+  in the search results, no BugSack error. Open each tab once. Then Settings, New, Reload now: the
+  New look is back.
 
 ## Before every release: the 5-minute check
 

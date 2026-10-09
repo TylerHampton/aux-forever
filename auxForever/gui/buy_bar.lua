@@ -24,8 +24,6 @@ local ACCENT = 'primary'
 local ACCENT_TEXT = nil
 local CONFIRM = 'confirm'
 local CONFIRM_TEXT = nil
-local GOLD = {229 / 255, 190 / 255, 91 / 255}
-local INPUT_BORDER = {0, 0, 0}
 local INPUT_HOVER = {.42, .42, .42}
 
 local NONE, COMMODITY, ITEM = aux.enum(3)
@@ -155,16 +153,18 @@ local function update_commodity()
                 chip.cost:SetText(money.to_string(chip_total, true))
                 chip:Enable()
             end
-            if selected then
-                chip:SetBackdropColor(46 / 255, 39 / 255, 22 / 255, 1)
-                chip:SetBackdropBorderColor(GOLD[1], GOLD[2], GOLD[3], 1)
-                chip.amount:SetTextColor(1, 1, 1)
-                chip.cost:SetTextColor(1, 1, 1)
-            else
-                chip:SetBackdropColor(aux.color.content.background())
-                chip:SetBackdropBorderColor(aux.color.content.border())
-                chip.amount:SetTextColor(aux.color.text.enabled())
-                chip.cost:SetTextColor(.75, .75, .75)
+            -- the chosen one has the selected look (gold outline), the others the default look; a
+            -- chip that cannot be bought keeps its colors and shows '-'
+            if selected ~= chip.aux_selected then
+                chip.aux_selected = selected
+                gui.apply_look(chip, selected and 'selected' or 'default', true)
+                if selected then
+                    chip.amount:SetTextColor(1, 1, 1)
+                    chip.cost:SetTextColor(1, 1, 1)
+                else
+                    chip.amount:SetTextColor(aux.color.text.enabled())
+                    chip.cost:SetTextColor(.75, .75, .75)
+                end
             end
         else
             chip:Hide()
@@ -173,8 +173,13 @@ local function update_commodity()
     -- auxForever (0.5, FB-001): the box is amber when it holds a number of your own, lighter while
     -- hovered or typed in, so it reads as a place to type
     local custom = not aux.key(current.quantities, n)
-    local border = custom and GOLD or (other_input.focused or other_input.hovered) and INPUT_HOVER or INPUT_BORDER
-    other_input:SetBackdropBorderColor(border[1], border[2], border[3], 1)
+    if custom then
+        other_input:SetBackdropBorderColor(aux.color.accent.background())
+    elseif other_input.focused or other_input.hovered then
+        other_input:SetBackdropBorderColor(INPUT_HOVER[1], INPUT_HOVER[2], INPUT_HOVER[3], 1)
+    else
+        other_input:SetBackdropBorderColor(aux.color.input.border())
+    end
 
     -- the bar redraws every frame: a button hidden and shown again each frame drops any click
     -- that started before the hide, so Cancel is only shown or hidden when that changes
@@ -499,7 +504,7 @@ function M.create(parent)
     M.frame = bar
     -- auxForever (0.6, the UI Kit): no box of its own, a black line above it
     local edge = bar:CreateTexture(nil, 'BORDER')
-    edge:SetColorTexture(aux.color.window.border())
+    gui.texture_color(edge, aux.color.window.border)
     edge:SetPoint('TOPLEFT')
     edge:SetPoint('TOPRIGHT')
     edge:SetHeight(1)
@@ -556,7 +561,7 @@ function M.create(parent)
         end
         chip.amount = gui.label(chip, gui.font_size.medium)
         chip.amount:SetPoint('TOP', 0, -5)
-        chip.amount:SetTextColor(aux.color.text.enabled())
+        gui.text_color(chip.amount, aux.color.text.enabled)
         chip.cost = gui.label(chip, gui.font_size.small)
         chip.cost:SetPoint('BOTTOM', 0, 5)
         local highlight = chip:CreateTexture(nil, 'HIGHLIGHT')
@@ -593,7 +598,7 @@ function M.create(parent)
     other_input.overlay:SetPoint('BOTTOMRIGHT', -4, 5)
     other_input.caption = gui.label(other_input, 10)
     other_input.caption:SetPoint('TOP', 0, -4)
-    other_input.caption:SetTextColor(aux.color.label.enabled())
+    gui.text_color(other_input.caption, aux.color.label.enabled)
     other_input.caption:SetText('QUANTITY')
     other_input:SetScript('OnEnter', function(self) self.hovered = true end)
     other_input:SetScript('OnLeave', function(self) self.hovered = false end)
@@ -645,7 +650,7 @@ function M.create(parent)
 
     line1 = gui.label(bar, gui.font_size.medium)
     line1:SetJustifyH('LEFT')
-    line1:SetTextColor(aux.color.text.enabled())
+    gui.text_color(line1, aux.color.text.enabled)
 
     line2 = gui.label(bar, gui.font_size.small)
     line2:SetJustifyH('LEFT')

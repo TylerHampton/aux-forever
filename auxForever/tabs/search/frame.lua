@@ -212,7 +212,7 @@ do
     icon:SetTexture([[Interface\AddOns\auxForever\textures\search.tga]])
     icon:SetSize(14, 14)
     icon:SetPoint('LEFT', 7, 0)
-    icon:SetVertexColor(aux.color.label.enabled())
+    gui.vertex_color(icon, aux.color.label.enabled)
     editbox:SetTextInsets(26, 1.5, 3, 3)
     editbox.overlay:SetPoint('LEFT', 26, 0)
     search_icon = icon
@@ -253,7 +253,7 @@ do
     label:SetPoint('TOPLEFT', new_filter_button, 'TOPRIGHT', 12, 0)
     label:SetPoint('BOTTOMRIGHT', aux.frame.content, 'TOPRIGHT', -10, 8)
     label:SetJustifyH('RIGHT')
-    label:SetTextColor(aux.color.label.enabled())
+    gui.text_color(label, aux.color.label.enabled)
     results_summary_label = label
 end
 do
@@ -275,7 +275,7 @@ do
     label:SetPoint('LEFT', clear_button, 'RIGHT', 14, 0)
     label:SetPoint('RIGHT', aux.credit_label, 'LEFT', -16, 0)
     label:SetJustifyH('LEFT')
-    label:SetTextColor(aux.color.label.enabled())
+    gui.text_color(label, aux.color.label.enabled)
     recipe_label = label
 end
 buy_bar.create(frame.results)

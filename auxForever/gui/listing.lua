@@ -213,14 +213,14 @@ local methods = {
         -- a header
         local plate = CreateFrame('Frame', nil, col)
         plate:SetAllPoints()
-        gui.set_frame_style(plate, aux.color.header.background, aux.color.window.border, 0, 0, 1, 0)
+        gui.set_frame_style(plate, aux.color.header.background, aux.color.window.border, 0, 0, 1, 0, 0)
         gui.add_sheen(plate, .26)
         col.plate = plate
 
 	    local text = plate:CreateFontString()
 	    text:SetAllPoints()
 	    text:SetFont(gui.font, 12)
-	    text:SetTextColor(aux.color.header.text())
+	    gui.text_color(text, aux.color.header.text)
         col.text = text
 
         tinsert(self.headCols, col)
@@ -268,6 +268,7 @@ local methods = {
             row:SetPoint('TOPLEFT', 0, -(self.headHeight + HEAD_SPACE + (rowNum - 1) * ROW_HEIGHT))
             row:SetPoint('TOPRIGHT', 0, -(self.headHeight + HEAD_SPACE + (rowNum - 1) * ROW_HEIGHT))
         end
+        gui.row_stripe(row, rowNum)
         row.highlight = gui.row_selection(row)
         row.hover = gui.row_hover(row)
         row.st = self
@@ -334,7 +335,7 @@ function M.new(parent)
     scroll_bar:SetWidth(10)
     local thumbTex = scroll_bar:GetThumbTexture()
     thumbTex:SetPoint('CENTER', 0, 0)
-    thumbTex:SetColorTexture(229 / 255, 190 / 255, 91 / 255, .35)
+    gui.texture_color(thumbTex, aux.color.scrollbar)
     thumbTex:SetHeight(150)
     thumbTex:SetWidth(6)
     _G[scroll_bar:GetName() .. 'ScrollUpButton']:Hide()

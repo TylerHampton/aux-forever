@@ -127,13 +127,12 @@ do
 		local band = frame:CreateTexture(nil, 'BACKGROUND', nil, -5)
 		band:SetTexture([[Interface\Buttons\WHITE8X8]])
 		-- fades with the Background setting, like the window
-		gui.register_background({SetBackdropColor = function(_, ...) band:SetVertexColor(...) end},
-			function() return 11 / 255, 11 / 255, 11 / 255, 1 end)
+		gui.register_background({SetBackdropColor = function(_, ...) band:SetVertexColor(...) end}, color.band)
 		band:SetPoint(point .. 'LEFT', 1, point == 'TOP' and -1 or 1)
 		band:SetPoint(point .. 'RIGHT', -1, point == 'TOP' and -1 or 1)
 		band:SetHeight(height - 1)
 		local edge = frame:CreateTexture(nil, 'BORDER')
-		edge:SetColorTexture(color.window.border())
+		gui.texture_color(edge, color.band_edge)
 		edge:SetHeight(1)
 		edge:SetPoint(point == 'TOP' and 'TOPLEFT' or 'BOTTOMLEFT', band, point == 'TOP' and 'BOTTOMLEFT' or 'TOPLEFT')
 		edge:SetPoint(point == 'TOP' and 'TOPRIGHT' or 'BOTTOMRIGHT', band, point == 'TOP' and 'BOTTOMRIGHT' or 'TOPRIGHT')
@@ -155,7 +154,7 @@ do
 	local logo = gui.label(frame, 20)
 	logo:SetFont(gui.font_bold, 20)
 	logo:SetPoint('LEFT', frame, 'TOPLEFT', 12, -TOP_BAR_HEIGHT / 2)
-	logo:SetText(color.text.enabled'aux' .. color.accent.background'Forever')
+	gui.themed(function() logo:SetText(color.text.enabled'aux' .. color.accent.background'Forever') end)
 	logo_label = logo
 end
 do
@@ -231,10 +230,12 @@ do
 	btn:SetPoint('RIGHT', frame, 'TOPRIGHT', -6, -TOP_BAR_HEIGHT / 2)
 	gui.set_size(btn, 26, 26)
 	btn:SetText('\195\151')
-	btn:SetBackdropColor(0, 0, 0, 0)
-	btn:SetBackdropBorderColor(0, 0, 0, 0)
-	btn.aux_sheen:SetShown(false)
-	btn:GetFontString():SetTextColor(.85, .85, .85)
+	gui.themed(function()
+		btn:SetBackdropColor(0, 0, 0, 0)
+		btn:SetBackdropBorderColor(0, 0, 0, 0)
+		btn.aux_sheen:SetShown(false)
+		btn:GetFontString():SetTextColor(.85, .85, .85)
+	end)
 	btn:SetScript('OnClick', function() frame:Hide() end)
 	btn:SetScript('OnEnter', function(self)
 		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOM')
@@ -342,7 +343,8 @@ do
     scan_button = btn
 end
 do
-    -- auxForever: settings (background opacity, scale, default duration), behind a gear in the top bar
+    -- auxForever: settings (background opacity, scale, default duration, look, tooltip lines), behind
+    -- a gear in the top bar
     local btn = gui.button(frame)
     btn:SetPoint('RIGHT', scan_button, 'LEFT', -4, 0)
     gui.set_size(btn, 26, 26)
@@ -362,7 +364,7 @@ do
     local popup = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
     gui.set_panel_style(popup)
     popup:SetFrameStrata('DIALOG')
-    gui.set_size(popup, 250, 138)
+    gui.set_size(popup, 270, 138)
     popup:SetPoint('TOPRIGHT', btn, 'BOTTOMRIGHT', 0, -4)
     popup:EnableMouse(true)
     popup:Hide()
@@ -371,13 +373,13 @@ do
     local title = gui.label(popup, gui.font_size.small)
     title:SetPoint('TOPLEFT', 12, -10)
     title:SetText('SETTINGS')
-    title:SetTextColor(color.accent.background())
+    gui.text_color(title, color.accent.background)
 
     local function row_label(text, y)
         local label = gui.label(popup, gui.font_size.medium)
         label:SetPoint('TOPLEFT', 12, y)
         label:SetText(text)
-        label:SetTextColor(color.text.enabled())
+        gui.text_color(label, color.text.enabled)
         return label
     end
 
@@ -391,7 +393,7 @@ do
         value:SetWidth(46)
         value:SetJustifyH('CENTER')
         value:SetPoint('RIGHT', plus, 'LEFT', -2, 0)
-        value:SetTextColor(color.text.enabled())
+        gui.text_color(value, color.text.enabled)
         local minus = gui.button(popup, gui.font_size.large)
         gui.set_size(minus, 26, 24)
         minus:SetPoint('RIGHT', value, 'LEFT', -2, 0)
@@ -421,6 +423,83 @@ do
     M.scale_buttons = {scale_minus, scale_plus}
     M.scale_value = scale_value
 
+    -- auxForever (0.6): the look, New or Classic. Widgets are built once with the look of this
+    -- login, so a new choice shows after a reload; the button for it appears once there is one.
+    row_label('Look', -136)
+    local look_buttons = {}
+    for i, name in ipairs{'classic', 'new'} do
+        local b = gui.button(popup, gui.font_size.small)
+        gui.set_size(b, 58, 24)
+        if i == 1 then
+            b:SetPoint('TOPRIGHT', -10, -131)
+        else
+            b:SetPoint('RIGHT', look_buttons.classic, 'LEFT', -3, 0)
+        end
+        b:SetText(name == 'new' and 'New' or 'Classic')
+        b:SetScript('OnClick', function()
+            account_data.theme = name
+            refresh_settings()
+        end)
+        b:SetScript('OnEnter', function(self)
+            GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+            GameTooltip:AddLine(name == 'new' and 'New look' or 'Classic look')
+            GameTooltip:AddLine(name == 'new' and 'Near black, square corners, gold accent.' or 'The look of auxForever 0.5: slate panels, rounded corners, amber accent.', 1, 1, 1, true)
+            GameTooltip:AddLine('Shows after a reload.', .6, .6, .6)
+            GameTooltip:Show()
+        end)
+        b:SetScript('OnLeave', function() GameTooltip:Hide() end)
+        look_buttons[name] = b
+    end
+    local reload_note = gui.label(popup, gui.font_size.small)
+    reload_note:SetPoint('TOPLEFT', 12, -168)
+    local reload_button = gui.button(popup, gui.font_size.small)
+    gui.set_size(reload_button, 90, 22)
+    reload_button:SetPoint('TOPRIGHT', -10, -163)
+    reload_button:SetText('Reload now')
+    gui.set_primary(reload_button)
+    reload_button:SetScript('OnClick', function() ReloadUI() end)
+    M.look_buttons, M.reload_button, M.reload_note = look_buttons, reload_button, reload_note
+
+    -- auxForever (0.6): the tooltip lines, also /aux tooltip ... (a player on CurseForge asked for the
+    -- chat settings in this menu, FB-008). They are kept per character, like the chat commands.
+    local TOOLTIP_LINES = {
+        {'value', 'Value', 'The market price from your latest look at the item.'},
+        {'daily', 'Today', "Today's lowest price, and how it compares with the usual price."},
+        {'merchant_sell', 'Vendor sell price', 'What a vendor pays you for it.'},
+        {'merchant_buy', 'Vendor buy price', 'What a vendor sells it for, once you have seen it at one.'},
+        {'disenchant_value', 'Disenchant value', 'What its disenchant materials are worth.'},
+        {'disenchant_distribution', 'Disenchants into', 'Which materials it can give, and how likely each is.'},
+        {'money_icons', 'Coin icons', 'Show prices in tooltips with gold, silver and copper coins.'},
+    }
+    local tooltip_title = gui.label(popup, gui.font_size.small)
+    tooltip_title:SetText('TOOLTIP LINES (this character)')
+    gui.text_color(tooltip_title, color.accent.background)
+    local tooltip_rows = {}
+    for i, line in ipairs(TOOLTIP_LINES) do
+        local key = line[1]
+        local box = gui.checkbox(popup)
+        box:SetPoint('TOPLEFT', tooltip_title, 'BOTTOMLEFT', 0, -8 - (i - 1) * 22)
+        local label = gui.label(popup, gui.font_size.medium)
+        label:SetPoint('LEFT', box, 'RIGHT', 8, 0)
+        label:SetText(line[2])
+        gui.text_color(label, color.text.enabled)
+        box:SetScript('OnClick', function()
+            character_data.tooltip[key] = not character_data.tooltip[key]
+            refresh_settings()
+        end)
+        box:SetScript('OnEnter', function(self)
+            GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+            GameTooltip:AddLine(line[2])
+            GameTooltip:AddLine(line[3], 1, 1, 1, true)
+            GameTooltip:AddLine('/aux tooltip does the same in chat.', .6, .6, .6)
+            GameTooltip:Show()
+        end)
+        box:SetScript('OnLeave', function() GameTooltip:Hide() end)
+        box.key = key
+        tooltip_rows[i] = box
+    end
+    M.tooltip_boxes = tooltip_rows
+
     local function refresh()
         local opacity = account_data.background_opacity
         opacity_value:SetText(percent(opacity))
@@ -434,7 +513,28 @@ do
             b:SetText(info.duration_hours(i) .. 'h')
             gui.style_choice(b, account_data.post_duration == i)
         end
+        local chosen = account_data.theme == 'classic' and 'classic' or 'new'
+        for name, b in pairs(look_buttons) do
+            gui.style_choice(b, chosen == name)
+        end
+        -- a reload is only needed when the choice differs from what is on screen
+        local pending = chosen ~= theme
+        if pending then
+            reload_note:SetText((chosen == 'new' and 'New' or 'Classic') .. ' after a reload')
+            reload_button:Show()
+        else
+            reload_note:SetText('')
+            reload_button:Hide()
+        end
+        local top = pending and -198 or -170
+        tooltip_title:ClearAllPoints()
+        tooltip_title:SetPoint('TOPLEFT', 12, top)
+        for _, box in ipairs(tooltip_rows) do
+            box:SetChecked(character_data.tooltip[box.key] and true or false)
+        end
+        popup:SetHeight(-top + 30 + #tooltip_rows * 22)
     end
+    M.refresh_settings = refresh
     function M.set_background_opacity(opacity)
         account_data.background_opacity = gui.set_background_opacity(opacity)
         refresh()
@@ -477,6 +577,6 @@ do
     local label = gui.label(frame, gui.font_size.small)
     label:SetPoint('RIGHT', frame, 'BOTTOMRIGHT', -26, BOTTOM_BAR_HEIGHT / 2)
     label:SetText('aux by shirsig, re-imagined by a fan')
-    label:SetTextColor(color.text.disabled())
+    gui.text_color(label, color.text.disabled)
     M.credit_label = label
 end

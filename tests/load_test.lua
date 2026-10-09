@@ -34,6 +34,10 @@ local function new_frame(name)
       if self.__height then return self.__font, self.__height, '' end
       return 'font', 12, ''
     end end
+    -- colors are kept so a test can read them back (0.6: the Classic look repaints)
+    if k == 'SetTextColor' then return function(self, ...) self.__text_color = {...} end end
+    if k == 'SetColorTexture' then return function(self, ...) self.__texture_color = {...} end end
+    if k == 'SetVertexColor' then return function(self, ...) self.__vertex_color = {...} end end
     if k == 'IsEnabled' then return function() return true end end
     if k == 'GetChecked' or k == 'IsMouseOver' or k == 'HasFocus' or k == 'IsForbidden' then return function() return false end end
     if NUMERIC[k] then return function()
@@ -84,6 +88,13 @@ local function fire(event, ...)
     if f.__events[event] and f.__scripts.OnEvent then try(event, f.__scripts.OnEvent, f, event, ...) end
   end
 end
+-- `lua5.1 ../tests/load_test.lua classic` runs everything again in the Classic look: the saved
+-- settings ask for it, as they would after a player picked Classic (they load after the files)
+THEME = (arg and arg[1] == 'classic') and 'classic' or 'new'
+if THEME == 'classic' then G.aux = {account = {theme = 'classic'}} end
+-- a value the test expects, by look
+local function pick(new, classic) if THEME == 'classic' then return classic end return new end
+print('look: ' .. THEME)
 fire('ADDON_LOADED', 'auxForever')
 fire('PLAYER_LOGIN')
 fire('ADDON_LOADED', 'Blizzard_AuctionHouseUI')
@@ -265,11 +276,12 @@ try('restyle', function()
   local auction_listing = require 'aux.gui.auction_listing'
   local colored = {}
   local button = gui.button(new_frame())
-  check('button has a square fill', button.aux_fill and #button.aux_fill.pieces == 1)
-  check('button has a 1px outline on four sides', button.aux_border and #button.aux_border.pieces == 4)
+  -- New: square (one fill, four 1px edges). Classic: rounded (four corners and three or four straight pieces)
+  check('button has a square fill (Classic: rounded)', button.aux_fill and #button.aux_fill.pieces == pick(1, 7))
+  check('button has a 1px outline on four sides (Classic: rounded)', button.aux_border and #button.aux_border.pieces == pick(4, 8))
   for _, t in ipairs(button.aux_fill.pieces) do rawset(t, 'SetVertexColor', function(_, r) colored[#colored + 1] = r end) end
   button:SetBackdropColor(.5, .5, .5, 1)
-  check('SetBackdropColor recolors the fill', #colored == 1 and colored[1] == .5)
+  check('SetBackdropColor recolors the fill', #colored == pick(1, 7) and colored[1] == .5)
   -- 0.6, the UI Kit: looks. Default buttons have a gold label, the primary one a gold outline,
   -- disabled ones a gray label; a selected tab stays lit although it is disabled
   local function label_color(b)
@@ -280,16 +292,16 @@ try('restyle', function()
   local b2 = gui.button(new_frame())
   local c2 = label_color(b2)
   gui.set_default(b2)
-  check('default button: gold label', math.abs(c2()[1] - 229 / 255) < .001 and math.abs(c2()[3] - 91 / 255) < .001)
+  check('default button: gold label (Classic: light)', math.abs(c2()[1] - pick(229, 243) / 255) < .001 and math.abs(c2()[3] - pick(91, 230) / 255) < .001)
   local border
   rawset(b2, 'SetBackdropBorderColor', function(_, r, g, bl) border = {r, g, bl} end)
   gui.set_primary(b2)
-  check('primary button: gold outline', border and math.abs(border[1] - 229 / 255) < .001)
+  check('primary button: gold outline (Classic: amber)', border and math.abs(border[1] - pick(229, 227) / 255) < .001)
   rawset(b2, 'IsEnabled', function() return false end)
   b2:Disable()
-  check('disabled button: gray label', math.abs(c2()[1] - 107 / 255) < .001)
+  check('disabled button: gray label', math.abs(c2()[1] - pick(107, 125) / 255) < .001)
   gui.apply_look(b2, 'selected', true)
-  check('selected look drawn on a disabled tab', c2()[1] == 1 and c2()[2] == 1)
+  check('selected look drawn on a disabled tab', math.abs(c2()[1] - pick(255, 243) / 255) < .001 and math.abs(c2()[2] - pick(255, 239) / 255) < .001)
   check('a button has the raised gradient', b2.aux_sheen ~= nil)
   -- selection and hover of a table row are separate: hover never shows the gold bar
   local row = new_frame()
@@ -310,7 +322,7 @@ try('restyle', function()
   for _, t in ipairs(box.aux_border.pieces) do rawset(t, 'SetVertexColor', function(_, r, g, b) shown_border = {r, g, b} end) end
   box:SetBackdropBorderColor(1, 0, 0, 1)
   box.__scripts.OnEditFocusGained(box)
-  check('gold while typing', math.abs(shown_border[1] - 229 / 255) < .001)
+  check('gold while typing (Classic: the usual edge)', math.abs(shown_border[1] - pick(229, 58) / 255) < .001)
   box.__scripts.OnEditFocusLost(box)
   check('red again after typing', shown_border[1] == 1 and shown_border[2] == 0)
   check('named seller shown', auction_listing.seller_text{owner = 'Violet Toes'} == 'Violet Toes')
@@ -397,16 +409,16 @@ try('status bar idle color', function()
   local color
   rawset(bar.primary_status_bar, 'SetStatusBarColor', function(_, r) color = r end)
   bar:update_status(0, 0)
-  check('amber while loading', color == .59)
+  check('amber while loading', math.abs(color - pick(150, 227) / 255) < .001)
   bar:update_status(1, 1)
-  check('faint when idle', color == 1)
+  check('faint when idle', math.abs(color - pick(255, 77) / 255) < .001)
   bar:set_done(true)
-  check('dark gold when a search has finished', math.abs(color - 42 / 255) < .001)
+  check('dark gold when a search has finished', math.abs(color - pick(42, 58) / 255) < .001)
   bar:update_status(0, 0)
-  check('amber again while loading', color == .59)
+  check('amber again while loading', math.abs(color - pick(150, 227) / 255) < .001)
   bar:update_status(1, 1)
   bar:set_done(false)
-  check('faint after leaving the search', color == 1)
+  check('faint after leaving the search', math.abs(color - pick(255, 77) / 255) < .001)
 
   -- the search tab turns it gold for a finished search shown in the results, and off when leaving
   local aux = require 'aux'
@@ -574,7 +586,7 @@ try('post panel', function()
   rawset(post.post_button, 'IsEnabled', function() return false end)
   post.post_button:Disable()
   rawset(post.post_button, 'IsEnabled', nil)
-  check('post button: gold label, gray when disabled', math.abs(colors[#colors - 1] - 229 / 255) < .001 and math.abs(colors[#colors] - 107 / 255) < .001)
+  check('post button: gold label, gray when disabled', math.abs(colors[#colors - 1] - pick(229, 26) / 255) < .001 and math.abs(colors[#colors] - pick(107, 125) / 255) < .001)
 
   check('typed price note', plain(post.price_note_text()) == 'Your own price')
   post.set_buyout_selection({unit_price = 69})
@@ -651,7 +663,7 @@ try('post auto price', function()
   local plain = function(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
   post.update_item_configuration()
   check('deposit shown as money going out', plain(post.deposit.__text):find('^Deposit %-') ~= nil)
-  check('you get shown in green', post.net_summary.__text:find('You get ', 1, true) == 1 and post.net_summary.__text:upper():find('4DCC66', 1, true) ~= nil)
+  check('you get shown in green', post.net_summary.__text:find('You get ', 1, true) == 1 and post.net_summary.__text:upper():find(pick('4DCC66', '6FD39A'), 1, true) ~= nil)
   aux.set_tab(4)
   check('post: leaving the tab ends gold', aux.status_bar.done == false)
   post.selected_item = nil
@@ -672,7 +684,7 @@ try('post money details', function()
   post.set_unit_buyout_price(4)
   post.update_item_configuration()
   check('vendor warning when a vendor pays more', plain(post.net_detail.__text):find('a vendor pays') ~= nil)
-  check('you get turns red below vendor price', post.net_summary.__text:upper():find('E8574A', 1, true) ~= nil)
+  check('you get turns red below vendor price', post.net_summary.__text:upper():find(pick('E8574A', 'FF0000'), 1, true) ~= nil)
   rawset(post.stack_count_input, 'GetNumber', function() return 1 end)
   rawset(post.stack_size_input, 'GetNumber', function() return 1 end)
   post.set_unit_buyout_price(100)
@@ -2854,6 +2866,107 @@ try('0.5: Full scan reminder at login', function()
   check('reminder: just now', plain(aux.full_scan_reminder(now - 60, now)):find('less than an hour ago', 1, true) ~= nil)
   local src = io.open('aux-addon.lua'):read('*a')
   check('reminder: printed at login', src:find("print(full_scan_reminder(account_data.replicate_time, time()))", 1, true) ~= nil)
+end)
+
+-- 0.6: two looks, New (default) and Classic, picked in Settings and applied at login. Run with the
+-- argument `classic` to check everything in the Classic look (the workflows run both).
+try('0.6: looks', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local gui_env = loadstring("select(2, ...) 'aux.gui'; return _M")('auxForever', addon)
+  local auction_listing = loadstring("select(2, ...) 'aux.test61'; return require")('auxForever', addon) 'aux.gui.auction_listing'
+  local sniper_env = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local function near(x, n) return x and math.abs(x - n / 255) < .002 end
+  check('looks: the saved look is in use', a.theme == THEME and a.account_data.theme == THEME)
+  -- both palettes name the same colors, so no widget is left without one in either look
+  local new_paths, classic_paths = a.palette_paths(a.PALETTES.new), a.palette_paths(a.PALETTES.classic)
+  local same = true
+  for k in pairs(new_paths) do if not classic_paths[k] then same = false; print('  missing in classic: ' .. k) end end
+  for k in pairs(classic_paths) do if not new_paths[k] then same = false; print('  missing in new: ' .. k) end end
+  check('looks: both palettes have the same colors', same)
+  -- the colors in use are the look's
+  local r = a.color.accent.background()
+  check('looks: accent color of the look', near(r, pick(229, 227)))
+  -- widgets made while the files loaded (before the look was known) carry the look's colors
+  check('looks: a label made at load has the look\'s color', a.credit_label.__text_color and near(a.credit_label.__text_color[1], pick(107, 125)))
+  check('looks: colored text made at load follows the look', auction_listing.time_left(1):upper():find(pick('E8574A', 'FF0000'), 1, true) ~= nil)
+  check('looks: the window is square in New, rounded in Classic', #a.frame.aux_fill.pieces == pick(1, 7))
+  local fill = a.frame.aux_fill.pieces[1]
+  check('looks: the window fill has the look\'s color', fill.__vertex_color and near(fill.__vertex_color[1], pick(26, 22)))
+  check('looks: column headers are square in both', #sniper_env.listing.headCells[1].aux_fill.pieces == 1)
+  check('looks: the top bands only show in New', select(4, a.color.band_edge()) == pick(1, 0) and select(4, a.color.band()) == pick(1, 0))
+  -- nothing is kept once the look is applied: painting costs nothing more while playing
+  check('looks: nothing kept after login', gui_env.pending_paint == nil and gui_env.pending_shapes == nil and gui_env.pending_sheens == nil)
+  check('looks: every color at login painted without an error', gui_env.theme_error == nil)
+  local ran = 0
+  gui_env.themed(function() ran = ran + 1 end)
+  check('looks: painting after login runs once and is not kept', ran == 1 and gui_env.pending_paint == nil)
+  -- an unknown look is the New look
+  check('looks: unknown name is New', a.set_palette('bogus') == 'new')
+  a.set_palette(THEME)
+  -- Tyler, 2026-10-09: text boxes were hard to find on the near black panels (Filter Builder). In
+  -- New a sunken field has a gray edge and is darker than the panel around it.
+  local P = a.PALETTES.new
+  check('new look: an input edge stands out from the panel', P.input.border[1] - P.panel.background[1] >= 30)
+  check('new look: an input is darker than the panel', P.input.background[1] < P.panel.background[1])
+  check('new look: blacks toned back', P.panel.background[1] >= 16 and P.window.background[1] >= 24)
+end)
+
+-- 0.6, Tyler 2026-10-09: zebra rows, every second row dark gray, under hover and selection
+try('0.6: zebra rows', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local sniper_env = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  -- rows are made when a table gets its height
+  G.__geometry = {size = 300, edge = 100}
+  local rt = sniper_env.listing
+  rt.__scripts.OnSizeChanged(rt)
+  local rows = rt.rows
+  check('zebra: first row plain', rows[1] and rows[1].stripe == nil)
+  check('zebra: second row striped', rows[2] and rows[2].stripe ~= nil)
+  check('zebra: third row plain', rows[3] and rows[3].stripe == nil)
+  local c = rows[2] and rows[2].stripe and rows[2].stripe.__texture_color
+  check('zebra: a faint light shade (dark gray on the table)', c and c[1] == 1 and c[4] > 0 and c[4] < .08)
+  local st = loadstring("select(2, ...) 'aux.test62'; return require")('auxForever', addon) 'aux.gui.listing'
+  local t = st.new(new_frame())
+  t:SetColInfo({{name = 'A', width = 1}})
+  t:SetData({{cols = {{value = 'x'}}}, {cols = {{value = 'y'}}}})
+  check('zebra: the other tables too', t.rows[2] and t.rows[2].stripe ~= nil and t.rows[1].stripe == nil)
+  G.__geometry = nil
+end)
+
+-- 0.6: Settings has the look (with a reload button when the choice changes) and the tooltip lines
+-- (a player on CurseForge asked for the chat settings in the menu, FB-008)
+try('0.6: settings', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local other = THEME == 'new' and 'classic' or 'new'
+  a.refresh_settings()
+  check('settings: no reload button while the look is the one in use', a.reload_button.__shown == false)
+  a.look_buttons[other].__scripts.OnClick(a.look_buttons[other])
+  check('settings: picking the other look saves it', a.account_data.theme == other)
+  check('settings: and offers a reload', a.reload_button.__shown == true and a.reload_note.__text:find('after a reload', 1, true) ~= nil)
+  local reloaded
+  G.ReloadUI = function() reloaded = true end
+  a.reload_button.__scripts.OnClick(a.reload_button)
+  check('settings: Reload now reloads', reloaded)
+  a.look_buttons[THEME].__scripts.OnClick(a.look_buttons[THEME])
+  check('settings: back to the look in use, no reload needed', a.account_data.theme == THEME and a.reload_button.__shown == false)
+  check('settings: colors stay those of this login until the reload', a.theme == THEME)
+  -- tooltip lines: each box flips its line and shows its state
+  local keys = {}
+  for _, box in ipairs(a.tooltip_boxes) do keys[box.key] = true end
+  local all = true
+  for _, k in ipairs{'value', 'daily', 'merchant_sell', 'merchant_buy', 'disenchant_value', 'disenchant_distribution', 'money_icons'} do
+    if not keys[k] then all = false end
+  end
+  check('settings: every /aux tooltip line has a box', all and #a.tooltip_boxes == 7)
+  local box = a.tooltip_boxes[1]
+  local checked
+  rawset(box, 'SetChecked', function(_, v) checked = v end)
+  local before = a.character_data.tooltip[box.key]
+  box.__scripts.OnClick(box)
+  check('settings: a box turns its tooltip line off and on', a.character_data.tooltip[box.key] == not before and checked == not before)
+  box.__scripts.OnClick(box)
+  check('settings: and back', a.character_data.tooltip[box.key] == before and checked == before)
+  rawset(box, 'SetChecked', nil)
 end)
 
 print('done, errors: ' .. errors)

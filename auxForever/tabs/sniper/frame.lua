@@ -183,7 +183,7 @@ do
     label:SetPoint('CENTER', 0, 0)
     label:SetWidth(600)
     label:SetWordWrap(true) -- two lines; gui.label is one line by default, which cut it to "round..."
-    label:SetTextColor(aux.color.label.enabled())
+    gui.text_color(label, aux.color.label.enabled)
     empty_label = label
 end
 
@@ -242,7 +242,7 @@ do
     local label = gui.label(frame, gui.font_size.medium)
     label:SetPoint('RIGHT', editbox, 'LEFT', -6, 0)
     label:SetText('% of usual, profit at least')
-    label:SetTextColor(aux.color.label.enabled())
+    gui.text_color(label, aux.color.label.enabled)
     profit_label = label
 end
 do
@@ -267,7 +267,7 @@ do
     local label = gui.label(frame, gui.font_size.medium)
     label:SetPoint('RIGHT', editbox, 'LEFT', -6, 0)
     label:SetText('Deal: at most')
-    label:SetTextColor(aux.color.label.enabled())
+    gui.text_color(label, aux.color.label.enabled)
 end
 
 gui.horizontal_line(frame, -40)

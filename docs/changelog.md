@@ -8,13 +8,21 @@ A change that comes from a player's feedback credits them by in-game name at the
 
 ## 0.6 (in progress)
 
-- New look, from the new UI Kit and screen mockups: near-black panels with black edges and square corners, raised buttons that are lighter
-  at the top, one gold color for what is selected or the main action. The selected tab, sub tab and
+- Two looks, picked in Settings (the gear): New (below, the default) and Classic, the look of 0.5.
+  A Reload now button appears when you change it.
+- Settings has the tooltip lines as checkboxes: Value, Today, vendor prices, disenchant value and
+  results, coin icons. The `/aux tooltip` commands still work (suggested by a player on CurseForge).
+- Tables have zebra rows again, every second row in dark gray.
+- New look, designed by Webster, from his UI Kit and screen mockups: near-black panels with black
+  edges and square corners, raised buttons that are lighter at the top, one gold color for what is
+  selected or the main action. The selected tab, sub tab and
   quantity have a gold outline; the main button of each screen (Search, Post, Buy, Start) has a gold
   outline and label instead of a solid orange fill. Tables have raised column headers, the sorted
   column is white with a gold arrow, and the selected row is gold with a bar at its left edge. The
   percentages, money in and out, and warnings use softer colors. The game's own font is kept:
   Forever does not load fonts from addons.
+- New look: the blacks are a little lighter and text boxes have a gray edge, so they stand out
+  from the panels (the Filter Builder's boxes were hard to find).
 
 ## 0.5 (2026-10-08)
 

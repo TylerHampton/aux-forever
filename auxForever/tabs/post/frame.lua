@@ -321,7 +321,7 @@ do
 end
 do
     local line = frame.parameters:CreateTexture(nil, 'ARTWORK')
-    line:SetColorTexture(aux.color.panel.border())
+    gui.texture_color(line, aux.color.panel.border)
     line:SetWidth(1)
     line:SetPoint('TOPLEFT', RIGHT_X - 14, ROW1 + 4)
     line:SetPoint('BOTTOMLEFT', frame.parameters, 'TOPLEFT', RIGHT_X - 14, ROW3 - 34)
@@ -331,14 +331,14 @@ do
     local label = gui.label(frame.parameters, gui.font_size.small)
     label:SetPoint('TOPLEFT', RIGHT_X, ROW1 - 8)
     label:SetText('PRICE PER ITEM')
-    label:SetTextColor(aux.color.header.text())
+    gui.text_color(label, aux.color.header.text)
     price_caption = label
 end
 do
     -- the pricing mode: Match lowest (default) or Undercut with the goblin
     local switch = CreateFrame('Frame', nil, frame.parameters, 'BackdropTemplate')
     -- auxForever (0.6, the UI Kit): a sunken track with one lit option
-    gui.set_frame_style(switch, function() return 9 / 255, 9 / 255, 9 / 255, 1 end, aux.color.input.border)
+    gui.set_frame_style(switch, aux.color.status.track, aux.color.input.border)
     gui.set_size(switch, 204, 30)
     switch:SetPoint('TOPRIGHT', -40, ROW1 + 2)
     local match = small_button(switch, 'Match lowest', 98)
@@ -487,7 +487,7 @@ end
 
 do
     local line = frame.parameters:CreateTexture(nil, 'ARTWORK')
-    line:SetColorTexture(aux.color.panel.border())
+    gui.texture_color(line, aux.color.panel.border)
     line:SetHeight(1)
     line:SetPoint('TOPLEFT', 10, -166)
     line:SetPoint('TOPRIGHT', -10, -166)
@@ -516,7 +516,7 @@ end
 do
     local function summary_label()
         local label = gui.label(frame.parameters, gui.font_size.medium)
-        label:SetTextColor(aux.color.label.enabled())
+        gui.text_color(label, aux.color.label.enabled)
         return label
     end
     -- what is posted on the left; the money right next to the Post button: the deposit going out
