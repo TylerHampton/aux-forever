@@ -3,6 +3,20 @@
 Last updated 2026-10-09: 0.6 build 6 (two themes, zebra rows, the new Settings menu, coin colors, Sniper rules) is on branch
 `claude/eager-dijkstra-drmz2k`, built on Webster's `design` branch. Not tried in game yet.
 
+## Start here (next session, after 2026-10-09)
+
+Tyler stopped for the night after build 6. Pick up here:
+- Branch `claude/eager-dijkstra-drmz2k` (from Webster's `design`), TOC `forever-0.6`, not released.
+  No pull request yet; Tyler plans about one release a week, so 0.6 is not to ship yet.
+- Build 6 (Sniper: no gray items, deals need 3 days with a complete look) is sent but not tested:
+  test page build id `0-6-build-6`, results in ArtifactData `builds/0-6-build-6/results`.
+- Waiting on Tyler: (1) the thin-market rule for items with one listing (A everything, B stackable
+  goods only, C wait and see, recommended); (2) `/aux price ` plus a Shift-clicked Trapper's Shirt,
+  to explain why the name lookup found no history while the Sniper had a usual of 90s; (3) the
+  CurseForge player's in-game name for FB-008; (4) his tweaks to the New theme (screenshots).
+- Suggested to Tyler: Sniper "profit at least" 1g instead of his 5c.
+- Zips are named `auxForever-0.6-build<n>.zip`; the next one is build 7.
+
 ## 0.6 build 2 (2026-10-09, branch `claude/eager-dijkstra-drmz2k`)
 
 Tyler, 2026-10-09: Webster (Christian Webster, GitHub `webguh`, a collaborator who does UI design for
