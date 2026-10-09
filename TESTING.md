@@ -8,11 +8,11 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.6 build 3: the New look, Classic look switch, zebra rows, the new Settings menu
+## Current build: 0.6 build 4: the New look, Classic look switch, zebra rows, the new Settings menu
 
 Branch `claude/eager-dijkstra-drmz2k` (Webster's build 1 plus this). Builds 1 and 2 were never
-tried in game, so their checks are folded in here. Build 3 changes only the Settings menu (the
-mockup Tyler approved). Only looks and Settings changed, nothing about searching,
+tried in game, so their checks are folded in here. Build 3 changed only the Settings menu (the
+mockup Tyler approved); build 4 shortens "Bid prices" so it no longer runs under its buttons. Only looks and Settings changed, nothing about searching,
 buying or posting. `/reload` is enough after copying the folder (no new files).
 
 - [ ] 1. Open the auction house: no BugSack error. The window is near black (a little lighter than

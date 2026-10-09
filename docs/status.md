@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-09: 0.6 build 3 (two looks, zebra rows, the new Settings menu) is on branch
+Last updated 2026-10-09: 0.6 build 4 (two looks, zebra rows, the new Settings menu) is on branch
 `claude/eager-dijkstra-drmz2k`, built on Webster's `design` branch. Not tried in game yet.
 
 ## 0.6 build 2 (2026-10-09, branch `claude/eager-dijkstra-drmz2k`)
@@ -48,8 +48,16 @@ prices (`/aux post bid`) now applies at once from the menu and the chat command
 (`post.apply_bid_layout`); it used to need a reload. Ignore owner, action shortcuts (Tyler: risky,
 buys gear in one click) and debug stay chat only.
 
-Test page: build id `0-6-build-3` (6 steps, the same as `TESTING.md`), results in ArtifactData
-collection `builds/0-6-build-3/results`.
+Build 4: "Bid prices on the Post tab" and its gray line ran under the Off / Item / Stack buttons
+(Tyler's screenshot); the row is now just "Bid prices", explained in its tooltip. Tyler also saw
+his bags (Blizzard's Combined Backpack) with the items in reverse order and no cleanup button. Not
+from auxForever as far as the code shows: it only reads bag contents and hooks clicks
+(`core/shortcut.lua`, unchanged in 0.6), and never touches bag settings or bag buttons. Asked
+Tyler to log in once with auxForever off to be sure; his UI addon (EllesmereUI) is the likely
+cause (inference).
+
+Test page: build id `0-6-build-4` (6 steps, the same as `TESTING.md`), results in ArtifactData
+collection `builds/0-6-build-4/results`.
 
 Open questions for Tyler:
 - The CurseForge player's in-game name (changelog credit, FB-008) and which of the not-obvious

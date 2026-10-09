@@ -510,9 +510,11 @@ do
         for i = 1, 3 do length_buttons[i] = by_code[i] end
     end
     M.auction_length_buttons = length_buttons
-    -- the bid column (/aux post bid): off, the bid per item, or per stack
-    local bid_row = row(posting, 0, -46, 36, 'Bid prices on the Post tab', 'A bid column next to buyouts',
-        {'Shows the starting bids of other auctions next to their buyouts, per item or per stack. Only a column: it does not change how you post.', '/aux post bid'})
+    -- the bid column (/aux post bid): off, the bid per item, or per stack. A short name: the
+    -- three choices take most of the row (a longer name ran under them, Tyler build 3); the
+    -- tooltip explains it
+    local bid_row = row(posting, 0, -46, 30, 'Bid prices',
+        nil, {'A table of the starting bids of other auctions next to their buyouts on the Post tab, per item or per stack. Only a table: it does not change how you post.', '/aux post bid'})
     local bid_buttons = choices(bid_row, {{'off', 'Off'}, {'unit', 'Item'}, {'stack', 'Stack'}}, 44)
     for key, b in pairs(bid_buttons) do
         b:SetScript('OnClick', function()
