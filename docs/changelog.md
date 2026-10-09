@@ -19,6 +19,9 @@ A change that comes from a player's feedback credits them by in-game name at the
 - Prices show the gold, silver and copper letters in their coin colors everywhere, also on the Buy
   and Confirm buttons, the recipe line and the Sniper.
 - Tables have zebra rows again, every second row in dark gray.
+- Sniper: gray items are never deals, and a usual price counts only when it rests on at least 3
+  days with a complete look at the item (a Full scan or a Full search), so a few old asking prices
+  cannot make junk look like a bargain.
 - New look, designed by Webster, from his UI Kit and screen mockups: near-black panels with black
   edges and square corners, raised buttons that are lighter at the top, one gold color for what is
   selected or the main action. The selected tab, sub tab and

@@ -8,22 +8,17 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.6 build 5: coin colors, Theme, Bid prices out of Settings
+## Current build: 0.6 build 6: the Sniper leaves out grays and thin price history
 
-Branch `claude/eager-dijkstra-drmz2k`. Build 4 passed in game (2026-10-09; results in
-`docs/status.md`), so only what changed after it is checked here. `/reload` is enough (no new files).
+Branch `claude/eager-dijkstra-drmz2k`. Build 5 passed in game (2026-10-09). Only the Sniper changed.
+`/reload` is enough (no new files).
 
-- [ ] 1. Search `linen cloth`, select a row. The Buy button reads "Buy 20 for 4s 60c" with the s in
-  silver and the c in copper, as in the table. Press it: Confirm shows its price the same way.
-  Cancel.
-- [ ] 2. Settings (gear): the row is called Theme (not Look). There is no Bid prices row; Posting
-  has only Default duration. Pick Classic: "Classic theme after a reload". Pick New again.
-- [ ] 3. Sniper: Start, wait for a few deals. The Profit each column is green with silver s and
-  copper c. Stop.
-- [ ] 4. A recipe search (Alt-click a recipe in the profession window, or a saved Recipe search):
-  the bottom line's "materials", "sells" and "profit" amounts have colored s, g and c.
-- [ ] 5. Theme Classic, Reload now: the Search and Buy buttons are dark amber with an amber
-  outline (not solid amber), and the prices on them are readable. Back to New, Reload now.
+- [ ] 1. Sniper: Start and let one round finish. No gray item (gray name) is in the list, not even
+  "below vendor". Fading Echo is gone.
+- [ ] 2. The deals left have a usual price that looks believable for what the item is. Note any
+  that still look like junk, with a screenshot.
+- [ ] 3. Stop. With no deals, the message under the table says gray items are left out and deals
+  need 3 days with a Full scan.
 
 ## Before every release: the 5-minute check
 

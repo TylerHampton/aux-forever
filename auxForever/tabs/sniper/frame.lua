@@ -340,7 +340,7 @@ function M.update_deals()
     if #shown > 0 then
         empty_label:SetText('')
     elseif running then
-        empty_label:SetText('No deals yet. The whole auction house is checked every round.\nDeals against the usual price need ' .. MIN_DAYS .. ' days of price history; Full scans build it.')
+        empty_label:SetText('No deals yet. The whole auction house is checked every round; gray items are left out.\nDeals against the usual price need ' .. MIN_DAYS .. ' days with a Full scan (or a Full search of the item).')
     else
         empty_label:SetText('Press Start to watch the whole auction house for deals.')
     end

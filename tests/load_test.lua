@@ -1436,7 +1436,8 @@ try('sniper round', function()
   local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
   local function days(key, value)
     local d = h.today()
-    h.write_record(key, {day = d, points = {{value = value, day = d - 1}, {value = value, day = d - 2}, {value = value, day = d - 3}}})
+    -- three days of Full scans (a complete look counts the units listed)
+    h.write_record(key, {day = d, points = {{value = value, day = d - 1, units = 10}, {value = value, day = d - 2, units = 10}, {value = value, day = d - 3, units = 10}}})
   end
   days('201:0', 2200); days('203:0', 600); days('204:0', 5000)
   -- the kilt was only seen today: a usual price, but not one to show
@@ -1538,7 +1539,7 @@ try('sniper: judging items reuses the history cache', function()
   local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
   local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
   local d = h.today()
-  h.write_record('401:0', {day = d, points = {{value = 500, day = d - 1}, {value = 500, day = d - 2}, {value = 500, day = d - 3}}})
+  h.write_record('401:0', {day = d, points = {{value = 500, day = d - 1, units = 4}, {value = 500, day = d - 2, units = 4}, {value = 500, day = d - 3, units = 4}}})
   local real_read, reads = persistence.read, 0
   rawset(persistence, 'read', function(...) reads = reads + 1; return real_read(...) end)
   local real_info = G.GetItemInfo
@@ -2911,6 +2912,31 @@ try('0.6: looks', function()
   check('new look: an input edge stands out from the panel', P.input.border[1] - P.panel.background[1] >= 30)
   check('new look: an input is darker than the panel', P.input.background[1] < P.panel.background[1])
   check('new look: blacks toned back', P.panel.background[1] >= 16 and P.window.background[1] >= 24)
+end)
+
+-- 0.6, Tyler build 5: the Sniper is for making money. Fading Echo (gray) and Trapper's Shirt showed
+-- as deals at 1s against usual prices of 79s and 90s that no one pays.
+try('0.6: sniper leaves out grays and thin history', function()
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local d = h.today()
+  local real_info = G.GetItemInfo
+  local quality = 0
+  G.GetItemInfo = function(id) return 'Fading Echo', 'link', quality, 1, 1, 'Junk', 'Junk', 1, '', 1, 50 end
+  local full = {{value = 7900, day = d - 1, units = 13}, {value = 7900, day = d - 2, units = 13}, {value = 7900, day = d - 3, units = 13}}
+  h.write_record('601:0', {day = d, points = full})
+  local usual, vendor, days = sniper.item_facts('601:0', 601)
+  check('sniper: a gray item has no usual price and no vendor price', usual == nil and vendor == 0 and days == 0)
+  check('sniper: so a gray item is never a deal, even below vendor price', sniper.judge(100, usual, vendor, days, 60, 0) == nil)
+  quality = 1
+  usual, vendor, days = sniper.item_facts('601:0', 601)
+  check('sniper: a white item with 3 days of Full scans can be a deal', usual == 7900 and days == 3 and sniper.judge(100, usual, vendor, days, 60, 500) ~= nil)
+  -- Fading Echo's history: yesterday a complete look (1s, 1 listed), before that two 0.4 lowest-only days at 79s
+  h.write_record('602:0', {day = d, points = {{value = 100, day = d - 1, units = 1}, {value = 7900, day = d - 3}, {value = 7900, day = d - 4}}})
+  usual, vendor, days = sniper.item_facts('602:0', 602)
+  check('sniper: only days with a complete look count', days == 1)
+  check('sniper: so Fading Echo at 1s is not a deal', sniper.judge(100, usual, vendor, days, 60, 5) == nil)
+  G.GetItemInfo = real_info
 end)
 
 -- 0.6, Tyler build 4: g, s and c keep their coin colors wherever money is shown, buttons included

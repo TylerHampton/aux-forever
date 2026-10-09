@@ -71,8 +71,14 @@ end
 -- usual price, vendor price, days of history; nil when the client has not loaded the item yet
 -- Runs for every item whose price changed (all of them in the first round), so it builds no tables:
 -- the vendor price straight from the game, the history from its cache.
+-- auxForever (0.6, Tyler): the Sniper is for making money, so
+-- - gray (poor) items are never a deal: "gray items definitely cannot be in the sniper". They get
+--   no usual price and no vendor price, so judge finds nothing, below vendor price included.
+-- - the days counted are days of complete looks only (history.value_and_complete_days), so a usual
+--   price resting on a few old asking prices cannot make a deal.
+POOR = 0
 function M.item_facts(key, item_id)
-    local name, _, _, _, _, _, _, _, _, _, sell_price = GetItemInfo(item_id)
+    local name, _, quality, _, _, _, _, _, _, _, sell_price = GetItemInfo(item_id)
     if not name then
         -- the game drops item data now and then; aux's own saved item list still has the vendor price
         info.request_item(item_id)
@@ -80,9 +86,12 @@ function M.item_facts(key, item_id)
         if not saved then
             return
         end
-        sell_price = saved.sell_price
+        quality, sell_price = saved.quality, saved.sell_price
     end
-    local usual, days = history.value_and_days(key)
+    if quality == POOR then
+        return nil, 0, 0
+    end
+    local usual, days = history.value_and_complete_days(key)
     return usual, sell_price or 0, days
 end
 

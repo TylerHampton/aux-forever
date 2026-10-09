@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-09: 0.6 build 5 (two themes, zebra rows, the new Settings menu, coin colors) is on branch
+Last updated 2026-10-09: 0.6 build 6 (two themes, zebra rows, the new Settings menu, coin colors, Sniper rules) is on branch
 `claude/eager-dijkstra-drmz2k`, built on Webster's `design` branch. Not tried in game yet.
 
 ## 0.6 build 2 (2026-10-09, branch `claude/eager-dijkstra-drmz2k`)
@@ -86,8 +86,30 @@ look right: gray edges on the Filter Builder boxes, zebra rows). Findings:
 
 Build 5: coin colors everywhere, Theme, Bid prices out of Settings (above).
 
-Test page: build id `0-6-build-5` (5 steps, the same as `TESTING.md`), results in ArtifactData
-collection `builds/0-6-build-5/results`.
+Build 5 in game (Tyler, test page `0-6-build-5`): buy button, settings, Sniper colors pass; recipe
+line and Classic buttons unmarked, screenshots look right (colored g/s/c; Classic Search and Buy
+dark amber with an outline).
+
+Sniper check (Tyler, 2026-10-09, `/aux price` and searches): Fading Echo (gray) is 13 listed at 1s
+by 2 sellers; its usual of 79s rests on two 0.4 days that kept only the lowest asking price (no
+listed count), while yesterday's complete look saw 1s. Trapper's Shirt: one listing at 1s, and
+`/aux price Trapper's Shirt` said "No price history for this item yet" although the Sniper showed a
+usual of 90s; unexplained (open: maybe the name lookup finds another item id; ask for the command
+with a Shift-clicked link). Tyler: "gray items definitely cannot be in the sniper", "Sniper is to
+make money", and junk with a single listing should stay out ("who's going to buy it?").
+
+Build 6 (Sniper):
+- Gray (poor quality) items are never deals, below vendor price included
+  (`sniper.item_facts` gives them no prices).
+- The 3 days of history a deal needs (`MIN_DAYS`) count only days with a complete look, i.e.
+  points with a listed count (`history.value_and_complete_days`), not 0.4 lines or days that only
+  saw single auctions. The usual price itself is unchanged (still from all days).
+- Not done, asked Tyler: a rule against thin markets (an item with one listing). Gear is often one
+  listing too, so a "too few listed" rule would also hide real gear deals; needs his call.
+- Tyler's profit setting was 5c, which lets 30c deals through; suggested 1g.
+
+Test page: build id `0-6-build-6` (3 steps, the same as `TESTING.md`), results in ArtifactData
+collection `builds/0-6-build-6/results`.
 
 Open questions for Tyler:
 - The CurseForge player's in-game name (changelog credit, FB-008) and which of the not-obvious
