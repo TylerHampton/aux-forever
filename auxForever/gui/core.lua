@@ -1055,6 +1055,48 @@ function M.slider(parent)
     return slider
 end
 
+-- auxForever (0.6): an on/off switch (Settings): a sunken track with a knob, on at the right in the
+-- accent color, off at the left in gray. Square in New, rounded ends in Classic. SetChecked(on)
+-- moves it; a click calls switch.on_click(switch).
+function M.switch(parent)
+    local switch = CreateFrame('Button', nil, parent, 'BackdropTemplate')
+    set_size(switch, 38, 20)
+    set_frame_style(switch, aux.color.input.background, aux.color.input.border, nil, nil, nil, nil, 10)
+    local knob = CreateFrame('Frame', nil, switch, 'BackdropTemplate')
+    set_size(knob, 14, 14)
+    set_frame_style(knob, aux.color.switch_knob, aux.color.switch_knob, nil, nil, nil, nil, 7)
+    switch.knob = knob
+    switch.highlight = add_highlight(switch, 10)
+    function switch:SetChecked(on)
+        self.checked = on and true or false
+        knob:ClearAllPoints()
+        if self.checked then
+            knob:SetPoint('RIGHT', -3, 0)
+            self:SetBackdropColor(aux.color.accent.selected())
+            self:SetBackdropBorderColor(aux.color.accent.background())
+            knob:SetBackdropColor(aux.color.accent.background())
+            knob:SetBackdropBorderColor(aux.color.accent.background())
+        else
+            knob:SetPoint('LEFT', 3, 0)
+            self:SetBackdropColor(aux.color.input.background())
+            self:SetBackdropBorderColor(aux.color.input.border())
+            knob:SetBackdropColor(aux.color.switch_knob())
+            knob:SetBackdropBorderColor(aux.color.switch_knob())
+        end
+    end
+    function switch:GetChecked()
+        return self.checked
+    end
+    switch:SetScript('OnClick', function(self)
+        if SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON then PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON) end
+        do (self.on_click or pass)(self) end
+    end)
+    switch:SetChecked(false)
+    -- in the look's colors once it is known (a switch made while the files load)
+    themed(function() switch:SetChecked(switch.checked) end)
+    return switch
+end
+
 function M.checkbox(parent)
     local checkbox = CreateFrame('CheckButton', nil, parent, 'UICheckButtonTemplate,BackdropTemplate')
     checkbox:SetWidth(16)

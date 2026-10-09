@@ -10,8 +10,12 @@ A change that comes from a player's feedback credits them by in-game name at the
 
 - Two looks, picked in Settings (the gear): New (below, the default) and Classic, the look of 0.5.
   A Reload now button appears when you change it.
-- Settings has the tooltip lines as checkboxes: Value, Today, vendor prices, disenchant value and
-  results, coin icons. The `/aux tooltip` commands still work (suggested by a player on CurseForge).
+- A wider Settings menu in two columns: Window (background, scale, look) and Posting (default
+  duration, bid prices) on the left, the tooltip lines on the right, each with an on/off switch:
+  Value, Today, vendor prices, disenchant value and results, coin icons. The `/aux` commands still
+  work (suggested by a player on CurseForge).
+- Bid prices on the Post tab (`/aux post bid`) is in Settings and shows or hides the bid table at
+  once; it used to need a reload.
 - Tables have zebra rows again, every second row in dark gray.
 - New look, designed by Webster, from his UI Kit and screen mockups: near-black panels with black
   edges and square corners, raised buttons that are lighter at the top, one gold color for what is

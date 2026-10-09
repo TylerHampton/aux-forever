@@ -106,8 +106,10 @@ Load order is the TOC (`auxForever/auxForever.toc`).
 - `libs/package.lua`: the module system (see gotchas). `compat.lua`: old Classic function names
   mapped to modern ones.
 - `aux-addon.lua`: events, saved variables (`account_data` defaults), tab switching.
-- `frame.lua`: the main window: top bar (logo, tabs, settings gear with opacity, scale, auction
-  length, look and the tooltip lines, Full scan, Blizzard UI, close), resize grip, credit label.
+- `frame.lua`: the main window: top bar (logo, tabs, the settings gear, Full scan, Blizzard UI,
+  close), resize grip, credit label. Settings (0.6) is two columns, approved by Tyler from a mockup:
+  Window (background, scale, look) and Posting (duration, bid prices) left, tooltip line switches
+  right. A setting that also has a chat command must behave the same from both.
 - `color.lua`: the palettes of the two looks (New, Classic; see Design language). `gui/core.lua`:
   widgets (button, label, editbox, dropdown, checkbox, status bar, square or rounded shapes, button
   looks, `themed` and `settle_theme`, zebra rows, background opacity).

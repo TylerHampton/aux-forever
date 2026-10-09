@@ -579,9 +579,10 @@ function M.layout_parameters(commodity)
 end
 layout_parameters(true)
 
-function aux.event.AUX_LOADED()
-	mode_switch:SetChecked(aux.account_data.post_undercut)
-	if aux.account_data.post_bid then
+-- the bid column (/aux post bid, Settings): bids and buyouts side by side, or buyouts alone. Applied
+-- at login and again whenever the setting changes (0.6: it used to need a reload).
+function M.apply_bid_layout()
+    if aux.account_data.post_bid then
         frame.bid_listing:Show()
         bid_listing:SetColInfo{
             {name='For sale', width=.2, align='CENTER'},
@@ -600,5 +601,24 @@ function aux.event.AUX_LOADED()
             {name='Auction Buyout\n(per item)', width=.43, align='RIGHT'},
             {name='% Hist.\nValue', width=.22, align='CENTER'},
         }
-	end
+    else
+        frame.bid_listing:Hide()
+        frame.buyout_listing:ClearAllPoints()
+        frame.buyout_listing:SetPoint('TOPLEFT', frame.parameters, 'BOTTOMLEFT', 0, -2.5)
+        frame.buyout_listing:SetPoint('BOTTOMLEFT', frame.inventory, 'BOTTOMRIGHT', 2.5, 0)
+        frame.buyout_listing:SetPoint('BOTTOMRIGHT', 0, 0)
+        buyout_listing:SetColInfo{
+            {name='For sale', width=.18, align='CENTER'},
+            {name='Time Left', width=.17, align='CENTER'},
+            {name='Auction Buyout (per item)', width=.45, align='RIGHT'},
+            {name='% Hist. Value', width=.2, align='CENTER'},
+        }
+    end
+    -- the tables are filled again on the next update
+    refresh = true
+end
+
+function aux.event.AUX_LOADED()
+	mode_switch:SetChecked(aux.account_data.post_undercut)
+	apply_bid_layout()
 end

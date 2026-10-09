@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-09: 0.6 build 2 (two looks, zebra rows, tooltip settings) is on branch
+Last updated 2026-10-09: 0.6 build 3 (two looks, zebra rows, the new Settings menu) is on branch
 `claude/eager-dijkstra-drmz2k`, built on Webster's `design` branch. Not tried in game yet.
 
 ## 0.6 build 2 (2026-10-09, branch `claude/eager-dijkstra-drmz2k`)
@@ -39,8 +39,17 @@ Built (tests pass in both looks; checks for Tyler in `TESTING.md`, Current build
   Release) run both. The harness now keeps the colors set on stub frames (`__text_color`,
   `__texture_color`, `__vertex_color`).
 
-Test page: build id `0-6-build-2` (6 steps, the same as `TESTING.md`), results in ArtifactData
-collection `builds/0-6-build-2/results`.
+Build 3 (same day): the Settings menu as in the mockup Tyler approved
+(https://claude.ai/artifact/21FjqFGt2vzbVo9BDG5d6j): 600 wide, two columns. Left: WINDOW
+(Background, Scale, Look, and the reload row when the look changes) and POSTING (Default duration,
+Bid prices Off / Item / Stack, which moves up when no reload waits). Right: TOOLTIP LINES with an
+on/off switch each (`gui.switch`: square in New, rounded in Classic; color `switch_knob`). Bid
+prices (`/aux post bid`) now applies at once from the menu and the chat command
+(`post.apply_bid_layout`); it used to need a reload. Ignore owner, action shortcuts (Tyler: risky,
+buys gear in one click) and debug stay chat only.
+
+Test page: build id `0-6-build-3` (6 steps, the same as `TESTING.md`), results in ArtifactData
+collection `builds/0-6-build-3/results`.
 
 Open questions for Tyler:
 - The CurseForge player's in-game name (changelog credit, FB-008) and which of the not-obvious

@@ -48,6 +48,8 @@ M.PALETTES = {
 		-- every second table row (Tyler, 2026-10-09: zebra rows in dark gray)
 		stripe = {255, 255, 255, .04},
 		scrollbar = {229, 190, 91, .35},
+		-- the knob of a switch that is off (gui.switch)
+		switch_knob = {110, 110, 110, 1},
 		status = {track = {9, 9, 9, 1}, buffer = {89, 71, 36, .6}, loading = {150, 120, 61, 1}, idle = {255, 255, 255, .06}},
 		-- money coming to the player (green) and going out (red)
 		positive = {77, 204, 102, 1},
@@ -77,6 +79,7 @@ M.PALETTES = {
 		hover = {255, 255, 255, .08},
 		stripe = {255, 255, 255, .035},
 		scrollbar = {47, 52, 58, 1},
+		switch_knob = {125, 122, 115, 1},
 		status = {track = {22, 24, 27, .97}, buffer = {107, 107, 107, .7}, loading = {227, 163, 59, .55}, idle = {77, 82, 89, .6}},
 		positive = {111, 211, 154, 1},
 		negative = {255, 138, 126, 1},

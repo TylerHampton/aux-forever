@@ -2960,13 +2960,33 @@ try('0.6: settings', function()
   check('settings: every /aux tooltip line has a box', all and #a.tooltip_boxes == 7)
   local box = a.tooltip_boxes[1]
   local checked
+  local own_set_checked = rawget(box, 'SetChecked')
   rawset(box, 'SetChecked', function(_, v) checked = v end)
   local before = a.character_data.tooltip[box.key]
   box.__scripts.OnClick(box)
   check('settings: a box turns its tooltip line off and on', a.character_data.tooltip[box.key] == not before and checked == not before)
   box.__scripts.OnClick(box)
   check('settings: and back', a.character_data.tooltip[box.key] == before and checked == before)
-  rawset(box, 'SetChecked', nil)
+  rawset(box, 'SetChecked', own_set_checked)
+  -- build 3 (Tyler approved the mockup): the tooltip lines are switches, not checkboxes
+  check('settings: tooltip lines are switches', box.knob ~= nil and box.on_click ~= nil)
+  local was = a.character_data.tooltip[box.key]
+  box.__scripts.OnClick(box)
+  check('settings: a switch moves with its line', box:GetChecked() == not was)
+  box.__scripts.OnClick(box)
+  check('settings: and back again', box:GetChecked() == was)
+  -- Bid prices on the Post tab (/aux post bid), applied at once instead of after a reload
+  local post_env = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local bids = a.bid_buttons
+  check('settings: bid prices has Off, Item and Stack', bids.off and bids.unit and bids.stack)
+  bids.unit.__scripts.OnClick(bids.unit)
+  check('settings: Item shows the bid column per item', a.account_data.post_bid == 'unit' and post_env.frame.bid_listing.__shown == true)
+  bids.off.__scripts.OnClick(bids.off)
+  check('settings: Off hides it again', a.account_data.post_bid == nil and post_env.frame.bid_listing.__shown == false)
+  SlashCmdList.AUX('post bid stack')
+  check('settings: the chat command shows it at once too', a.account_data.post_bid == 'stack' and post_env.frame.bid_listing.__shown == true)
+  SlashCmdList.AUX('post bid off')
+  check('settings: and hides it', a.account_data.post_bid == nil and post_env.frame.bid_listing.__shown == false)
 end)
 
 print('done, errors: ' .. errors)

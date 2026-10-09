@@ -361,144 +361,200 @@ do
     btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
     settings_button = btn
 
+    -- auxForever (0.6): two columns, as in the mockup Tyler approved (2026-10-09): Window and Posting
+    -- on the left, the tooltip lines on the right, each setting a row with its control at the right
+    local WIDTH, PAD, COLUMN = 600, 14, 271
+    local LEFT_X, RIGHT_X = PAD, WIDTH - PAD - COLUMN
     local popup = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
     gui.set_panel_style(popup)
     popup:SetFrameStrata('DIALOG')
-    gui.set_size(popup, 270, 138)
+    gui.set_size(popup, WIDTH, 292)
     popup:SetPoint('TOPRIGHT', btn, 'BOTTOMRIGHT', 0, -4)
     popup:EnableMouse(true)
     popup:Hide()
     settings_popup = popup
 
     local title = gui.label(popup, gui.font_size.small)
-    title:SetPoint('TOPLEFT', 12, -10)
+    title:SetPoint('TOPLEFT', PAD, -12)
     title:SetText('SETTINGS')
     gui.text_color(title, color.accent.background)
 
-    local function row_label(text, y)
-        local label = gui.label(popup, gui.font_size.medium)
-        label:SetPoint('TOPLEFT', 12, y)
+    local divider = popup:CreateTexture(nil, 'ARTWORK')
+    divider:SetWidth(1)
+    divider:SetPoint('TOPLEFT', WIDTH / 2, -34)
+    divider:SetPoint('BOTTOMLEFT', WIDTH / 2, PAD)
+    gui.texture_color(divider, color.window.border)
+
+    local function section(parent, x, y, text)
+        local label = gui.label(parent, gui.font_size.small)
+        label:SetPoint('TOPLEFT', x, y)
         label:SetText(text)
-        gui.text_color(label, color.text.enabled)
+        gui.text_color(label, color.accent.background)
         return label
     end
 
+    -- a row: its name on the left (with a short gray line under it when there is a hint), its
+    -- control at the right; hovering the row explains it
+    local function row(parent, x, y, height, name, hint, tip)
+        local r = CreateFrame('Frame', nil, parent)
+        r:SetPoint('TOPLEFT', x, y)
+        gui.set_size(r, COLUMN, height)
+        r:EnableMouse(true)
+        local label = gui.label(r, gui.font_size.medium)
+        label:SetText(name)
+        gui.text_color(label, color.text.enabled)
+        if hint then
+            label:SetPoint('TOPLEFT', 0, -3)
+            local small = gui.label(r, gui.font_size.small)
+            small:SetPoint('TOPLEFT', label, 'BOTTOMLEFT', 0, -2)
+            small:SetText(hint)
+            r.hint = small
+        else
+            label:SetPoint('LEFT', 0, 0)
+        end
+        r.label = label
+        if tip then
+            r:SetScript('OnEnter', function(self)
+                GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+                GameTooltip:AddLine(name)
+                GameTooltip:AddLine(tip[1], 1, 1, 1, true)
+                if tip[2] then GameTooltip:AddLine(tip[2], .6, .6, .6) end
+                GameTooltip:Show()
+            end)
+            r:SetScript('OnLeave', function() GameTooltip:Hide() end)
+        end
+        return r
+    end
+
     -- a value with - and + at the right of a row
-    local function stepper(y)
-        local plus = gui.button(popup, gui.font_size.large)
+    local function stepper(r)
+        local plus = gui.button(r, gui.font_size.large)
         gui.set_size(plus, 26, 24)
-        plus:SetPoint('TOPRIGHT', -10, y + 5)
+        plus:SetPoint('RIGHT', 0, 0)
         plus:SetText('+')
-        local value = gui.label(popup, gui.font_size.medium)
+        local value = gui.label(r, gui.font_size.medium)
         value:SetWidth(46)
         value:SetJustifyH('CENTER')
         value:SetPoint('RIGHT', plus, 'LEFT', -2, 0)
         gui.text_color(value, color.text.enabled)
-        local minus = gui.button(popup, gui.font_size.large)
+        local minus = gui.button(r, gui.font_size.large)
         gui.set_size(minus, 26, 24)
         minus:SetPoint('RIGHT', value, 'LEFT', -2, 0)
         minus:SetText('-')
         return minus, value, plus
     end
 
+    -- one lit option out of a few, right-aligned; returns the buttons by key
+    local function choices(r, options, width)
+        local buttons = {}
+        local previous
+        for i = #options, 1, -1 do
+            local b = gui.button(r, gui.font_size.small)
+            gui.set_size(b, width, 24)
+            if previous then
+                b:SetPoint('RIGHT', previous, 'LEFT', -3, 0)
+            else
+                b:SetPoint('RIGHT', 0, 0)
+            end
+            b:SetText(options[i][2])
+            buttons[options[i][1]] = b
+            previous = b
+        end
+        return buttons
+    end
+
     local function percent(x) return floor(x * 100 + .5) .. '%' end
 
-    row_label('Background', -40)
-    local opacity_minus, opacity_value, opacity_plus = stepper(-40)
-    row_label('Scale', -72)
-    local scale_minus, scale_value, scale_plus = stepper(-72)
-    row_label('Default duration', -104)
-    local length_buttons = {}
-    for i = 3, 1, -1 do
-        local b = gui.button(popup, gui.font_size.small)
-        gui.set_size(b, 38, 24)
-        if i == 3 then
-            b:SetPoint('TOPRIGHT', -10, -99)
-        else
-            b:SetPoint('RIGHT', length_buttons[i + 1], 'LEFT', -3, 0)
-        end
-        length_buttons[i] = b
-    end
-    M.auction_length_buttons = length_buttons
+    -- left column: Window
+    section(popup, LEFT_X, -34, 'WINDOW')
+    local opacity_minus, opacity_value, opacity_plus = stepper(row(popup, LEFT_X, -50, 30, 'Background',
+        nil, {'How solid the window is, from 50% to 100%. Text and buttons stay solid.', '/aux opacity'}))
+    local scale_minus, scale_value, scale_plus = stepper(row(popup, LEFT_X, -80, 30, 'Scale',
+        nil, {'The size of the whole window, from 70% to 150%.', '/aux scale'}))
     M.scale_buttons = {scale_minus, scale_plus}
     M.scale_value = scale_value
 
-    -- auxForever (0.6): the look, New or Classic. Widgets are built once with the look of this
-    -- login, so a new choice shows after a reload; the button for it appears once there is one.
-    row_label('Look', -136)
-    local look_buttons = {}
-    for i, name in ipairs{'classic', 'new'} do
-        local b = gui.button(popup, gui.font_size.small)
-        gui.set_size(b, 58, 24)
-        if i == 1 then
-            b:SetPoint('TOPRIGHT', -10, -131)
-        else
-            b:SetPoint('RIGHT', look_buttons.classic, 'LEFT', -3, 0)
-        end
-        b:SetText(name == 'new' and 'New' or 'Classic')
+    -- the look, New or Classic. Widgets are built once with the look of this login, so a new choice
+    -- shows after a reload; the button for it appears once there is one.
+    local look_row = row(popup, LEFT_X, -110, 30, 'Look',
+        nil, {'New: near black, square corners, gold accent. Classic: the look of auxForever 0.5, slate panels, rounded corners, amber accent.', 'Shows after a reload.'})
+    local look_buttons = choices(look_row, {{'new', 'New'}, {'classic', 'Classic'}}, 64)
+    for name, b in pairs(look_buttons) do
         b:SetScript('OnClick', function()
             account_data.theme = name
             refresh_settings()
         end)
-        b:SetScript('OnEnter', function(self)
-            GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-            GameTooltip:AddLine(name == 'new' and 'New look' or 'Classic look')
-            GameTooltip:AddLine(name == 'new' and 'Near black, square corners, gold accent.' or 'The look of auxForever 0.5: slate panels, rounded corners, amber accent.', 1, 1, 1, true)
-            GameTooltip:AddLine('Shows after a reload.', .6, .6, .6)
-            GameTooltip:Show()
-        end)
-        b:SetScript('OnLeave', function() GameTooltip:Hide() end)
-        look_buttons[name] = b
     end
-    local reload_note = gui.label(popup, gui.font_size.small)
-    reload_note:SetPoint('TOPLEFT', 12, -168)
-    local reload_button = gui.button(popup, gui.font_size.small)
+    local reload_row = row(popup, LEFT_X, -140, 28, '')
+    local reload_note = reload_row.label
+    reload_note:SetFont(gui.font, gui.font_size.small)
+    gui.text_color(reload_note, color.label.enabled)
+    local reload_button = gui.button(reload_row, gui.font_size.small)
     gui.set_size(reload_button, 90, 22)
-    reload_button:SetPoint('TOPRIGHT', -10, -163)
+    reload_button:SetPoint('RIGHT', 0, 0)
     reload_button:SetText('Reload now')
     gui.set_primary(reload_button)
     reload_button:SetScript('OnClick', function() ReloadUI() end)
     M.look_buttons, M.reload_button, M.reload_note = look_buttons, reload_button, reload_note
 
-    -- auxForever (0.6): the tooltip lines, also /aux tooltip ... (a player on CurseForge asked for the
-    -- chat settings in this menu, FB-008). They are kept per character, like the chat commands.
-    local TOOLTIP_LINES = {
-        {'value', 'Value', 'The market price from your latest look at the item.'},
-        {'daily', 'Today', "Today's lowest price, and how it compares with the usual price."},
-        {'merchant_sell', 'Vendor sell price', 'What a vendor pays you for it.'},
-        {'merchant_buy', 'Vendor buy price', 'What a vendor sells it for, once you have seen it at one.'},
-        {'disenchant_value', 'Disenchant value', 'What its disenchant materials are worth.'},
-        {'disenchant_distribution', 'Disenchants into', 'Which materials it can give, and how likely each is.'},
-        {'money_icons', 'Coin icons', 'Show prices in tooltips with gold, silver and copper coins.'},
-    }
-    local tooltip_title = gui.label(popup, gui.font_size.small)
-    tooltip_title:SetText('TOOLTIP LINES (this character)')
-    gui.text_color(tooltip_title, color.accent.background)
-    local tooltip_rows = {}
-    for i, line in ipairs(TOOLTIP_LINES) do
-        local key = line[1]
-        local box = gui.checkbox(popup)
-        box:SetPoint('TOPLEFT', tooltip_title, 'BOTTOMLEFT', 0, -8 - (i - 1) * 22)
-        local label = gui.label(popup, gui.font_size.medium)
-        label:SetPoint('LEFT', box, 'RIGHT', 8, 0)
-        label:SetText(line[2])
-        gui.text_color(label, color.text.enabled)
-        box:SetScript('OnClick', function()
-            character_data.tooltip[key] = not character_data.tooltip[key]
+    -- left column: Posting. It moves up when no reload is waiting (see refresh).
+    local posting = CreateFrame('Frame', nil, popup)
+    gui.set_size(posting, COLUMN, 100)
+    section(posting, 0, 0, 'POSTING')
+    local length_row = row(posting, 0, -16, 30, 'Default duration',
+        nil, {'How long new auctions last unless you pick another length on the Post tab.', '/aux post duration'})
+    local length_buttons = {}
+    do
+        -- the hours come from the auction house (util/info.lua, loaded later): written in refresh
+        local by_code = choices(length_row, {{1, ''}, {2, ''}, {3, ''}}, 38)
+        for i = 1, 3 do length_buttons[i] = by_code[i] end
+    end
+    M.auction_length_buttons = length_buttons
+    -- the bid column (/aux post bid): off, the bid per item, or per stack
+    local bid_row = row(posting, 0, -46, 36, 'Bid prices on the Post tab', 'A bid column next to buyouts',
+        {'Shows the starting bids of other auctions next to their buyouts, per item or per stack. Only a column: it does not change how you post.', '/aux post bid'})
+    local bid_buttons = choices(bid_row, {{'off', 'Off'}, {'unit', 'Item'}, {'stack', 'Stack'}}, 44)
+    for key, b in pairs(bid_buttons) do
+        b:SetScript('OnClick', function()
+            account_data.post_bid = key ~= 'off' and key or nil
+            post.apply_bid_layout()
             refresh_settings()
         end)
-        box:SetScript('OnEnter', function(self)
-            GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-            GameTooltip:AddLine(line[2])
-            GameTooltip:AddLine(line[3], 1, 1, 1, true)
-            GameTooltip:AddLine('/aux tooltip does the same in chat.', .6, .6, .6)
-            GameTooltip:Show()
-        end)
-        box:SetScript('OnLeave', function() GameTooltip:Hide() end)
-        box.key = key
-        tooltip_rows[i] = box
     end
-    M.tooltip_boxes = tooltip_rows
+    M.bid_buttons = bid_buttons
+
+    -- right column: the tooltip lines, also /aux tooltip ... (a player on CurseForge asked for the
+    -- chat settings in this menu, FB-008). Kept per character, like the chat commands.
+    local TOOLTIP_LINES = {
+        {'value', 'Value', 'Price from your latest scan', 'The market price from your latest look at the item.'},
+        {'daily', 'Today', "Today's lowest, against the usual", "Today's lowest price, and how it compares with the usual price."},
+        {'merchant_sell', 'Vendor sell price', nil, 'What a vendor pays you for it.'},
+        {'merchant_buy', 'Vendor buy price', nil, 'What a vendor sells it for, once you have seen it at one.'},
+        {'disenchant_value', 'Disenchant value', nil, 'What its disenchant materials are worth.'},
+        {'disenchant_distribution', 'Disenchants into', nil, 'Which materials it can give, and how likely each is.'},
+        {'money_icons', 'Coin icons', 'Gold, silver and copper coins', 'Show prices in tooltips with gold, silver and copper coins instead of text.'},
+    }
+    local tooltip_title = section(popup, RIGHT_X, -34, 'TOOLTIP LINES')
+    local character_note = gui.label(popup, gui.font_size.small)
+    character_note:SetPoint('LEFT', tooltip_title, 'RIGHT', 4, 0)
+    character_note:SetText('(this character)')
+    local tooltip_switches = {}
+    local y = -50
+    for i, line in ipairs(TOOLTIP_LINES) do
+        local key = line[1]
+        local height = line[3] and 36 or 30
+        local r = row(popup, RIGHT_X, y, height, line[2], line[3], {line[4], '/aux tooltip'})
+        y = y - height
+        local switch = gui.switch(r)
+        switch:SetPoint('RIGHT', 0, 0)
+        switch.key = key
+        switch.on_click = function()
+            character_data.tooltip[key] = not character_data.tooltip[key]
+            refresh_settings()
+        end
+        tooltip_switches[i] = switch
+    end
+    M.tooltip_boxes = tooltip_switches
 
     local function refresh()
         local opacity = account_data.background_opacity
@@ -513,6 +569,10 @@ do
             b:SetText(info.duration_hours(i) .. 'h')
             gui.style_choice(b, account_data.post_duration == i)
         end
+        local bid = account_data.post_bid or 'off'
+        for key, b in pairs(bid_buttons) do
+            gui.style_choice(b, bid == key)
+        end
         local chosen = account_data.theme == 'classic' and 'classic' or 'new'
         for name, b in pairs(look_buttons) do
             gui.style_choice(b, chosen == name)
@@ -521,18 +581,17 @@ do
         local pending = chosen ~= theme
         if pending then
             reload_note:SetText((chosen == 'new' and 'New' or 'Classic') .. ' after a reload')
-            reload_button:Show()
+            reload_row:Show()
         else
             reload_note:SetText('')
-            reload_button:Hide()
+            reload_row:Hide()
         end
-        local top = pending and -198 or -170
-        tooltip_title:ClearAllPoints()
-        tooltip_title:SetPoint('TOPLEFT', 12, top)
-        for _, box in ipairs(tooltip_rows) do
-            box:SetChecked(character_data.tooltip[box.key] and true or false)
+        if pending then reload_button:Show() else reload_button:Hide() end
+        posting:ClearAllPoints()
+        posting:SetPoint('TOPLEFT', LEFT_X, pending and -176 or -148)
+        for _, switch in ipairs(tooltip_switches) do
+            switch:SetChecked(character_data.tooltip[switch.key] and true or false)
         end
-        popup:SetHeight(-top + 30 + #tooltip_rows * 22)
     end
     M.refresh_settings = refresh
     function M.set_background_opacity(opacity)

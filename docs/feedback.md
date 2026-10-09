@@ -107,7 +107,7 @@ For whoever fixes or builds from it:
 | [FB-005](#fb-005-praise-the-list-of-sellable-items-on-the-left-of-the-post-tab) | 2026-10-08 | Darkhorse | praise | Post | n/a | Praise: the list of sellable items on the Post tab | new |
 | [FB-006](#fb-006-after-resizing-and-changing-the-scale-the-recent-searches-header-sticks-out-of-the-window) | 2026-10-08 | Garsterson | bug | Window | S3 | After resizing and changing the scale, the Recent Searches header sticks out of the window | fixed 0.5 31ac02c |
 | [FB-007](#fb-007-crafting-cost-in-the-profession-window-anywhere-in-the-world) | 2026-10-08 | Garsterson | request | Recipe search | n/a | Crafting cost in the profession window, anywhere in the world | built 0.5 5a935e1 |
-| [FB-008](#fb-008-chat-command-settings-should-also-be-in-the-settings-menu) | 2026-10-09 | CurseForge player (name not recorded yet) | request | Settings | n/a | Chat command settings should also be in the Settings menu | in-progress claude/eager-dijkstra-drmz2k (tooltip lines built) |
+| [FB-008](#fb-008-chat-command-settings-should-also-be-in-the-settings-menu) | 2026-10-09 | CurseForge player (name not recorded yet) | request | Settings | n/a | Chat command settings should also be in the Settings menu | in-progress claude/eager-dijkstra-drmz2k (built in 0.6 build 3) |
 
 ## Players
 
@@ -552,8 +552,10 @@ Design (Claude's decision on point 3, with the rest filled in; build from this, 
 - Type: request
 - Area: Settings
 - Severity: n/a
-- Status: in-progress claude/eager-dijkstra-drmz2k. Built: the seven `/aux tooltip ...` lines as
-  checkboxes in Settings. The rest waits on Tyler (Ask Tyler).
+- Status: in-progress claude/eager-dijkstra-drmz2k. Built in 0.6 build 3: a two-column Settings
+  menu with switches for the seven `/aux tooltip ...` lines and a three-way Bid prices choice
+  (`/aux post bid`), from a mockup Tyler approved (2026-10-09). Left as chat only: ignore owner,
+  action shortcuts, debug (see below).
 - Proposed: 0.6
 
 Said: not available. Tyler's summary: "a user on CurseForge talked about how some of the chat
@@ -579,8 +581,15 @@ Recorder's notes (the building session):
 Unknowns: which commands the player had in mind. Built so it holds either way: every plain on/off
 the player would meet in tooltips is now in the menu.
 
+Tyler's notes, 2026-10-09 (on build 2): "this picture is not what I envisioned at all for the
+settings menu" ... "I envision toggles, not checkboxes" ... "What it seems that you've built is
+something only pertaining to tooltips?" On the Alt-click shortcuts: "Isnt this dangerous cause they
+could buy a stack of 1000 on accident?" (they buy gear in one click and a stack in two, so they stay
+chat only). On the mockup (https://claude.ai/artifact/21FjqFGt2vzbVo9BDG5d6j): "I actually really
+like what you made here in the mock-up" ... "I love this layout."
+
 Ask Tyler: the player's in-game name (for the changelog credit) and, if he has it, the comment's
-exact words. The not-obvious commands above: which, if any, go into Settings.
+exact words.
 
 ## Before this log
 
