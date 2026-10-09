@@ -52,14 +52,17 @@ Build 4: "Bid prices on the Post tab" and its gray line ran under the Off / Item
 (Tyler's screenshot); the row is now just "Bid prices", explained in its tooltip. Tyler also saw
 his bags (Blizzard's Combined Backpack) with the items in reverse order and no cleanup button. Not
 from auxForever as far as the code shows: it only reads bag contents and hooks clicks
-(`core/shortcut.lua`, unchanged in 0.6), and never touches bag settings or bag buttons. Resolved
-the same day: with EllesmereUI's bag module off, the bags are Blizzard's Combined Backpack, and
-its layout is Blizzard's own. Forever's UI source (`Gethe/wow-ui-source`, branch `forever`, 1.60.1
-build 70291, `Blizzard_UIPanels_Game/Mainline/ContainerFrame.lua`) anchors the first slot at the
-bottom right (`ContainerFrameCombinedBagsMixin:GetInitialItemAnchor`, BOTTOMRIGHT of the money
-frame), so items fill from the bottom and the short row is at the top left; the Clean Up button
-(`BagItemAutoSortButton`) sits at the top right next to the search box. No online reports of broken
-bags were found (2026-10-09).
+(`core/shortcut.lua`, unchanged in 0.6), and never touches bag settings or bag buttons. Cause found
+the same day: Blizzard's patch of 2026-10-08 (build 70291) changed the bags, not auxForever. In
+Forever's UI source (`Gethe/wow-ui-source`, branch `forever`, diff of builds 70245 and 70291,
+`Blizzard_UIPanels_Game/Mainline/ContainerFrame.lua`) the mouse and keyboard sort
+`SortItemsBottomRight` (highest slot first, so the first slot showed at the top left) was replaced
+by one ascending sort for everyone, while the first item is still anchored at the bottom right. So
+the first slot now shows at the bottom right: the order Tyler saw as inverted. The same patch added
+gamepad bag features, which likely caused it (inference). The Clean Up button
+(`BagItemAutoSortButton`) is unchanged in the code and still placed at the top right next to the
+search box; Tyler does not see it, which the code does not explain (open). Not auxForever's to fix:
+changing Blizzard's bag frames from an addon risks breaking them further.
 
 Test page: build id `0-6-build-4` (6 steps, the same as `TESTING.md`), results in ArtifactData
 collection `builds/0-6-build-4/results`.
