@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-10: 0.6 released on GitHub and CurseForge; 0.6.0.1 build 1 (recipe button fix) sent to Tyler.
+Last updated 2026-10-10: 0.6.0.1 (recipe button fix) tested by Tyler and released.
 
 ## Start here (next session, after the 0.6 release)
 
@@ -27,6 +27,8 @@ Last updated 2026-10-10: 0.6 released on GitHub and CurseForge; 0.6.0.1 build 1 
   moved the checkbox from BOTTOMLEFT (17, 11) to BOTTOMRIGHT. Fix: `recipe_button_spot` /
   `place_button` in `tabs/search/recipe.lua` put the button left of the checkbox when the checkbox
   is anchored on the right (read from its `GetPoint`), placed again on each `Init`.
+  Tested in game 2026-10-10 (`builds/0-6-1-build-1/results`: the button sits left of Track
+  Recipe, the search works) and released as 0.6.0.1.
 - Changelogs list every change with detail (AGENTS.md, Tyler 2026-10-10).
 - Test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (last used: `0-6-release`, the
   5-minute check, passed). Zips are named `auxForever-<version>-build<n>.zip`.
