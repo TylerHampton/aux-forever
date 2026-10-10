@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-10: 0.6 build 6 merged into `claude/upbeat-davinci-jqwq9d`; Post panel mockup waiting on Tyler.
+Last updated 2026-10-10: 0.6 build 7 (the new Post panel, option A) on `claude/upbeat-davinci-jqwq9d`, sent to Tyler with build 6's Sniper checks; not tried in game yet.
 
 ## Start here (next session, after 2026-10-09)
 
@@ -30,11 +30,25 @@ list or the auctions table. The ? button stays (move it if needed). Pay homage t
 original aux: aux's README says its look was "based on the retail addOn TSM" and its post price
 input "inspired by the retail addOn TSM" (github.com/shirsig/aux-addon-vanilla).
 
-Mockup (not approved yet): https://claude.ai/artifact/FQAKTqLUF4NQrSiAXV8ERK. Today's panel and
-three options: A three columns (setup, price, receipt; recommended), B price in the middle with
-the math as one line at the bottom, C original aux style (labels above fields, two result tiles:
-auction house against vendor). A also has a trade goods board. Numbers in the mockup are examples.
-Waiting on Tyler's pick.
+Mockup: https://claude.ai/artifact/FQAKTqLUF4NQrSiAXV8ERK (today's panel and options A, B, C).
+Tyler picked A (2026-10-10) with two tweaks: keep the goblin on Undercut, and a red warning
+triangle when a vendor pays more ("they should not be able to miss it"). He also sent a goblin
+picture found online as the model for a new goblin; it looks like a stock icon (Icons8 style) that
+needs a license or a credit link, so it was not copied or traced. `textures/goblin.tga` is a new,
+original drawing in the same flat style (big ears, two greens, yellow eyes, a grin with teeth),
+drawn with Python/PIL at 16x and scaled to 64x64.
+
+Build 7 (same day): option A built (`tabs/post/frame.lua`, `update_item_configuration` and
+`price_note_text` in `tabs/post/core.lua`). New file `textures/warning.tga` (white triangle, black
+mark, tinted with the palette red), so a **full game restart** is needed. New receipt widgets:
+`cut_label`/`cut_summary`, `net_label`, `deposit_label`, `receipt_line`, `vendor_warning` (shown
+or hidden only when it changes), `usual_caption`. `posting_summary` is now "Total, N items" and
+`total_summary`, `net_summary`, `deposit` hold only the amounts. Two new lines on screen, approved
+with the mockup: the auction house cut, and "Bid equals buyout, so it posts as buyout only" for
+gear (what `item_post_prices` already did). The "On Forever the newest listing..." sentence left
+the note; it stays in the ? tooltip. Layout sized for the smallest window (panel about 777 wide):
+the % column ends at the middle divider there. Not tried in game; test page build id
+`0-6-build-7` (11 steps: 8 Post, build 6's 3 Sniper), results in `builds/0-6-build-7/results`.
 
 ## 0.6 build 2 (2026-10-09, branch `claude/eager-dijkstra-drmz2k`)
 

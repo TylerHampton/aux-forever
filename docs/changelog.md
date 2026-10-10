@@ -30,6 +30,12 @@ A change that comes from a player's feedback credits them by in-game name at the
   column is white with a gold arrow, and the selected row is gold with a bar at its left edge. The
   percentages, money in and out, and warnings use softer colors. The game's own font is kept:
   Forever does not load fonts from addons.
+- Post tab: the panel above the listings is laid out again in three columns: what you post on the
+  left, the price in the middle, and a receipt on the right (total, the auction house cut, what you
+  get, the deposit, Post). The price fields are narrower, the "% of usual" is plain text, and when
+  a vendor pays more than the auction house a red warning box with a warning triangle says so.
+  Gear whose starting bid equals its buyout says that it posts as buyout only. A new goblin on the
+  Undercut button.
 - New look: the blacks are a little lighter and text boxes have a gray edge, so they stand out
   from the panels (the Filter Builder's boxes were hard to find).
 

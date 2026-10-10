@@ -520,7 +520,7 @@ function M.price_note_text()
     local selection = get_buyout_selection() or get_bid_selection()
     local note
     if not selection then
-        return aux.color.label.enabled('Your own price')
+        note = aux.color.label.enabled('Your own price')
     elseif selection.historical_value then
         note = aux.color.label.enabled('The usual price for this item')
     elseif selection.own then
@@ -532,7 +532,14 @@ function M.price_note_text()
             note = note .. aux.color.gold('. Gear is priced in whole silver')
         end
     else
-        note = aux.color.label.enabled('Same as the lowest listing. On Forever the newest listing at a price sells first')
+        note = aux.color.label.enabled('Same as the lowest listing')
+    end
+    -- gear: a starting bid equal to the buyout is left out when posting (item_post_prices)
+    if selected_item and not selected_item.commodity and get_unit_buyout_price() > 0 then
+        local bid = item_post_prices(get_unit_start_price(), get_unit_buyout_price())
+        if not bid and get_unit_start_price() <= get_unit_buyout_price() then
+            note = note .. '\n' .. aux.color.label.disabled('Bid equals buyout, so it posts as buyout only')
+        end
     end
     return note
 end
@@ -601,7 +608,7 @@ function M.post_quantity()
 end
 
 function update_item_configuration()
-    local summary = {posting_summary, total_summary, deposit, net_summary, net_detail, price_note, price_caption, mode_switch}
+    local summary = {posting_summary, total_summary, cut_label, cut_summary, receipt_line, net_label, net_summary, net_detail, deposit_label, deposit, price_note, price_caption, usual_caption, mode_switch}
 	if not selected_item then
         refresh_button:Disable()
 
@@ -618,6 +625,7 @@ function update_item_configuration()
         duration_dropdown:Hide()
         hide_checkbox:Hide()
         for _, region in ipairs(summary) do region:Hide() end
+        vendor_warning:Hide()
         post_button:SetText('Post')
     else
 		-- Forever: commodities have no bids, only a buyout price per unit; gear is posted one per auction
@@ -650,27 +658,36 @@ function update_item_configuration()
         local quantity = post_quantity()
         local unit_price = get_unit_buyout_price() > 0 and get_unit_buyout_price() or get_unit_start_price()
         local total = unit_price * quantity
-        posting_summary:SetText('Posting ' .. aux.color.text.enabled(quantity .. (quantity == 1 and ' item' or ' items')))
-        total_summary:SetText((get_unit_buyout_price() > 0 and 'Total ' or 'Starting bids ') .. money.to_string(total, true))
+        local items = quantity .. (quantity == 1 and ' item' or ' items')
+        posting_summary:SetText((get_unit_buyout_price() > 0 and 'Total, ' or 'Starting bids, ') .. items)
+        total_summary:SetText(money.to_string(total, true))
+        cut_summary:SetText(aux.color.negative('-') .. money.to_string(total - floor(total * (1 - AUCTION_CUT)), true, nil, aux.color.negative))
         do
             -- money going out in red (bright red when it is more than the player has), coming in green
             local amount = deposit_amount()
             local out = amount > GetMoney() and aux.color.red or aux.color.negative
-            deposit:SetText('Deposit ' .. out('-') .. money.to_string(amount, true, nil, out))
+            deposit:SetText(out('-') .. money.to_string(amount, true, nil, out))
         end
         do
-            -- what the sale brings in; red, with a note, when a vendor would pay more for these
+            -- what the sale brings in; red, with the warning box, when a vendor would pay more
             local net = floor(total * (1 - AUCTION_CUT))
             local vendor = (selected_item.unit_vendor_price or 0) * quantity
             local below_vendor = vendor > 0 and net < vendor
             local color = below_vendor and aux.color.red or aux.color.positive
-            net_summary:SetText('You get ' .. money.to_string(net, true, nil, color))
-            local each = quantity > 1 and (money.to_string(floor(unit_price * (1 - AUCTION_CUT)), true) .. aux.color.label.enabled(' each')) or ''
+            net_summary:SetText(money.to_string(net, true, nil, color))
+            local parts = {}
+            if quantity > 1 then
+                tinsert(parts, money.to_string(floor(unit_price * (1 - AUCTION_CUT)), true) .. ' each')
+            end
             if below_vendor then
-                local vendor_text = aux.color.red('a vendor pays ') .. money.to_string(selected_item.unit_vendor_price, true, nil, aux.color.red) .. aux.color.red(quantity > 1 and ' each' or '')
-                net_detail:SetText(each ~= '' and (each .. aux.color.label.enabled(' · ') .. vendor_text) or vendor_text)
-            else
-                net_detail:SetText(each)
+                vendor_warning.amount:SetText(money.to_string(vendor, true))
+            elseif vendor > 0 then
+                tinsert(parts, 'vendor pays ' .. money.to_string(vendor, true))
+            end
+            net_detail:SetText(table.concat(parts, ', '))
+            -- shown or hidden only when it changes (AGENTS.md: never hide and show every frame)
+            if below_vendor ~= vendor_warning:IsShown() then
+                if below_vendor then vendor_warning:Show() else vendor_warning:Hide() end
             end
         end
         post_button:SetText('Post ' .. quantity .. (quantity == 1 and ' item' or ' items'))

@@ -150,14 +150,20 @@ end)
 buyout_listing:SetHandler('OnEnter', price_hint(buyout_selected))
 buyout_listing:SetHandler('OnLeave', hide_hint)
 
--- auxForever: the top panel of the Post tab, redesigned (post pricing mockup): the item with a
--- hide toggle; quantity and duration on the left; on the right the price with a Match lowest /
--- Undercut switch, a "% of usual" badge and a note on how the price was chosen; along the bottom
--- what will be posted, the total, the deposit, what you get after the auction house cut, and Post.
+-- auxForever (0.6, option A of the Post panel mockup, Tyler 2026-10-10): three columns. Left, what
+-- is posted: the item, Count or Quantity, Duration, the post message and Hide from this list.
+-- Middle, the price: Match lowest / Undercut with ?, narrow price fields with "% of usual" as plain
+-- text, and a note on how the price was chosen. Right, a receipt: total, the auction house cut,
+-- what you get, the vendor comparison (a red warning when a vendor pays more), the deposit, Post.
 -- The widgets keep the names the posting logic in core.lua uses.
 AUCTION_CUT = .05 -- the auction house keeps 5% of a sale
-local LEFT_X, RIGHT_X = 12, 268
-local ROW1, ROW2, ROW3 = -58, -90, -122
+local LEFT_X = 12 -- the left column
+local COUNT_X, DURATION_X = 99, 72 -- where the Count field and the Duration buttons start
+local PRICE_X = 247 -- the middle column
+local FIELD_X, FIELD_W = PRICE_X + 70, 112 -- the price fields; the % fits at the smallest window
+local RECEIPT_X, RECEIPT_W = -264, 252 -- the right column, from the panel's right edge
+local ROW1, ROW2 = -58, -90
+local PRICE_ROW1, PRICE_ROW2 = -58, -92
 
 local function small_button(parent, text, width, size)
     local btn = gui.button(parent, size or gui.font_size.medium)
@@ -187,6 +193,7 @@ do
 end
 do
 	item = gui.item(frame.parameters)
+    gui.set_size(item, 228, 40) -- stays inside the left column
     item:SetPoint('TOPLEFT', 8, -6)
     item:SetScale(.9)
     item.button:SetScript('OnEnter', function(self)
@@ -218,7 +225,7 @@ do
 end
 do
     local checkbox = gui.checkbox(frame.parameters)
-    checkbox:SetPoint('TOPRIGHT', -122, -16)
+    checkbox:SetPoint('BOTTOMLEFT', LEFT_X, 12)
     checkbox:SetScript('OnClick', function(self)
         local settings = read_settings()
         settings.hidden = self:GetChecked()
@@ -234,22 +241,22 @@ end
 -- a number with -, + and Max; everything is a child of the edit box so it shows and hides with it
 local function stepper(caption_text)
     local editbox = gui.editbox(frame.parameters)
-    gui.set_size(editbox, 54, 26)
+    gui.set_size(editbox, 44, 26)
     editbox:SetFontSize(17)
     editbox:SetAlignment('CENTER')
     editbox:SetNumeric(true)
     editbox.reset_text = '1'
     editbox.max_value = 1
-    local minus = small_button(editbox, '-')
+    local minus = small_button(editbox, '-', 24)
     minus:SetPoint('RIGHT', editbox, 'LEFT', -3, 0)
     minus:SetScript('OnClick', function() editbox:SetNumber(editbox:GetNumber() - 1) end)
-    local plus = small_button(editbox, '+')
+    local plus = small_button(editbox, '+', 24)
     plus:SetPoint('LEFT', editbox, 'RIGHT', 3, 0)
     plus:SetScript('OnClick', function() editbox:SetNumber(editbox:GetNumber() + 1) end)
     local max_button = small_button(editbox, 'Max', 38, gui.font_size.small)
     max_button:SetPoint('LEFT', plus, 'RIGHT', 3, 0)
     max_button:SetScript('OnClick', function() editbox:SetNumber(editbox.max_value) end)
-    editbox.caption = caption(editbox, minus, caption_text, LEFT_X - 86)
+    editbox.caption = caption(editbox, minus, caption_text, LEFT_X - (COUNT_X - 27))
     return editbox
 end
 do
@@ -285,15 +292,15 @@ end
 do
     -- three buttons in place of the old dropdown; they answer the same calls as the dropdown did
     local holder = CreateFrame('Frame', nil, frame.parameters)
-    gui.set_size(holder, 138, 26)
+    gui.set_size(holder, 126, 26)
     holder.buttons = {}
     for i = 1, 3 do
-        local btn = small_button(holder, '', 44, gui.font_size.small)
-        btn:SetPoint('TOPLEFT', (i - 1) * 47, 0)
+        local btn = small_button(holder, '', 40, gui.font_size.small)
+        btn:SetPoint('TOPLEFT', (i - 1) * 43, 0)
         btn:SetScript('OnClick', function() holder:SetIndex(i) end)
         holder.buttons[i] = btn
     end
-    caption(holder, holder, 'Duration', LEFT_X - 86)
+    caption(holder, holder, 'Duration', LEFT_X - DURATION_X)
     function holder:SetOptions()
         for i, btn in ipairs(self.buttons) do
             btn:SetText(info.duration_hours(i) .. 'h')
@@ -319,20 +326,28 @@ do
     holder:SetOptions()
     duration_dropdown = holder
 end
-do
+-- the lines between the three columns
+for _, anchor in ipairs{{'TOPLEFT', PRICE_X - 15}, {'TOPRIGHT', RECEIPT_X - 14}} do
     local line = frame.parameters:CreateTexture(nil, 'ARTWORK')
     gui.texture_color(line, aux.color.panel.border)
     line:SetWidth(1)
-    line:SetPoint('TOPLEFT', RIGHT_X - 14, ROW1 + 4)
-    line:SetPoint('BOTTOMLEFT', frame.parameters, 'TOPLEFT', RIGHT_X - 14, ROW3 - 34)
+    line:SetPoint('TOP', frame.parameters, anchor[1], anchor[2], -8)
+    line:SetPoint('BOTTOM', frame.parameters, anchor[1] == 'TOPLEFT' and 'BOTTOMLEFT' or 'BOTTOMRIGHT', anchor[2], 8)
 end
 
+-- the headings over the price fields and the percentages
 do
     local label = gui.label(frame.parameters, gui.font_size.small)
-    label:SetPoint('TOPLEFT', RIGHT_X, ROW1 - 8)
-    label:SetText('PRICE PER ITEM')
-    gui.text_color(label, aux.color.header.text)
+    label:SetJustifyH('RIGHT')
+    label:SetPoint('BOTTOMRIGHT', frame.parameters, 'TOPLEFT', FIELD_X + FIELD_W, PRICE_ROW1 - 1)
+    label:SetText('PER ITEM')
+    gui.text_color(label, aux.color.label.disabled)
     price_caption = label
+    local usual = gui.label(frame.parameters, gui.font_size.small)
+    usual:SetPoint('BOTTOMLEFT', frame.parameters, 'TOPLEFT', FIELD_X + FIELD_W + 10, PRICE_ROW1 - 1)
+    usual:SetText('OF USUAL')
+    gui.text_color(usual, aux.color.label.disabled)
+    usual_caption = usual
 end
 do
     -- the pricing mode: Match lowest (default) or Undercut with the goblin
@@ -340,7 +355,7 @@ do
     -- auxForever (0.6, the UI Kit): a sunken track with one lit option
     gui.set_frame_style(switch, aux.color.status.track, aux.color.input.border)
     gui.set_size(switch, 204, 30)
-    switch:SetPoint('TOPRIGHT', -40, ROW1 + 2)
+    switch:SetPoint('TOPLEFT', PRICE_X, -8)
     local match = small_button(switch, 'Match lowest', 98)
     match:SetPoint('LEFT', 2, 0)
     local undercut = small_button(switch, 'Undercut', 100)
@@ -380,18 +395,18 @@ do
     help:SetScript('OnLeave', function() GameTooltip:Hide() end)
 end
 
--- "100% of usual": the price compared with the item's usual (historical) price
+-- "125%": the price compared with the item's usual (historical) price, plain text under OF USUAL
 local function badge(parent)
-    local f = CreateFrame('Frame', nil, parent, 'BackdropTemplate')
-    gui.set_frame_style(f, function() return 9 / 255, 9 / 255, 9 / 255, 1 end, aux.color.input.border)
-    gui.set_size(f, 112, 24)
-    local text = gui.label(f, gui.font_size.small)
-    text:SetPoint('CENTER')
+    local f = CreateFrame('Frame', nil, parent)
+    gui.set_size(f, 60, 24)
+    local text = gui.label(f, gui.font_size.medium)
+    text:SetPoint('LEFT')
+    f.text = text
     function f:SetText(value)
         if value == '---' then
-            text:SetText(aux.color.label.disabled('no usual price yet'))
+            text:SetText(aux.color.label.disabled('none'))
         else
-            text:SetText(value .. aux.color.label.enabled(' of usual'))
+            text:SetText(value)
         end
     end
     return f
@@ -400,8 +415,8 @@ end
 local function price_input(get_price, set_price, on_user_input)
     local editbox = gui.editbox(frame.parameters)
     editbox:SetAlignment('RIGHT')
-    editbox:SetFontSize(19)
-    editbox:SetTextInsets(8, 10, 3, 3)
+    editbox:SetFontSize(18)
+    editbox:SetTextInsets(8, 9, 3, 3)
     editbox.formatter = function()
         return money.to_string(get_price(), true)
     end
@@ -419,7 +434,7 @@ local function price_input(get_price, set_price, on_user_input)
         self:SetText(money.to_string(get_price(), true, nil, nil, true))
     end
     editbox.caption = gui.label(editbox, gui.font_size.small)
-    editbox.caption:SetPoint('RIGHT', editbox, 'LEFT', -10, 0)
+    editbox.caption:SetPoint('LEFT', editbox, 'LEFT', PRICE_X - FIELD_X, 0)
     editbox.badge = badge(editbox)
     editbox.badge:SetPoint('LEFT', editbox, 'RIGHT', 10, 0)
     return editbox
@@ -468,8 +483,11 @@ do
     unit_buyout_price_input = editbox
 end
 do
+    -- how the price was chosen; a second line when gear's bid equals its buyout
     local label = gui.label(frame.parameters, gui.font_size.small)
     label:SetJustifyH('LEFT')
+    label:SetJustifyV('TOP')
+    label:SetWordWrap(true)
     price_note = label
 end
 do
@@ -480,22 +498,15 @@ do
     label:SetJustifyV('TOP')
     -- two lines when needed (a gui.label is one line by default, which cut the text off, build 2)
     label:SetWordWrap(true)
-    label:SetPoint('TOPLEFT', frame.parameters, 'TOPLEFT', 14, ROW3 - 2)
-    label:SetPoint('BOTTOMRIGHT', frame.parameters, 'TOPLEFT', RIGHT_X - 16, -162)
+    label:SetPoint('TOPLEFT', frame.parameters, 'TOPLEFT', LEFT_X + 2, ROW2 - 32)
+    label:SetPoint('BOTTOMRIGHT', frame.parameters, 'TOPLEFT', PRICE_X - 28, -180)
     post_message = label
 end
 
 do
-    local line = frame.parameters:CreateTexture(nil, 'ARTWORK')
-    gui.texture_color(line, aux.color.panel.border)
-    line:SetHeight(1)
-    line:SetPoint('TOPLEFT', 10, -166)
-    line:SetPoint('TOPRIGHT', -10, -166)
-end
-do
     local btn = gui.button(frame.parameters, gui.font_size.large)
-    btn:SetPoint('TOPRIGHT', -10, -175)
-    gui.set_size(btn, 140, 30)
+    btn:SetPoint('BOTTOMRIGHT', -12, 10)
+    gui.set_size(btn, RECEIPT_W, 30)
     btn:SetText('Post')
     gui.set_primary(btn)
     btn:SetScript('OnClick', post_auction)
@@ -513,29 +524,72 @@ do
     btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
     post_button = btn
 end
+-- the receipt: a label on the left of the right column and its amount on the right
 do
-    local function summary_label()
-        local label = gui.label(frame.parameters, gui.font_size.medium)
+    local function row(y, size)
+        local label = gui.label(frame.parameters, size or gui.font_size.small)
+        label:SetPoint('TOPLEFT', frame.parameters, 'TOPRIGHT', RECEIPT_X, y)
         gui.text_color(label, aux.color.label.enabled)
-        return label
+        local amount = gui.label(frame.parameters, size or gui.font_size.medium)
+        amount:SetJustifyH('RIGHT')
+        amount:SetPoint('TOPRIGHT', frame.parameters, 'TOPRIGHT', -12, y)
+        gui.text_color(amount, aux.color.text.enabled)
+        return label, amount
     end
-    -- what is posted on the left; the money right next to the Post button: the deposit going out
-    -- (red) and what the sale brings in after the auction house cut (green, larger)
-    posting_summary = summary_label()
-    posting_summary:SetPoint('LEFT', frame.parameters, 'TOPLEFT', 14, -190)
-    total_summary = summary_label()
-    total_summary:SetPoint('LEFT', posting_summary, 'RIGHT', 24, 0)
-    net_summary = summary_label()
-    net_summary:SetFont(gui.font, gui.font_size.large)
-    net_summary:SetPoint('BOTTOMRIGHT', post_button, 'LEFT', -16, -2)
-    -- under "You get": the amount per item, and a warning when a vendor pays more
+    -- "Total, 6 items" and the total
+    posting_summary, total_summary = row(-12)
+    -- the auction house cut, money going out
+    cut_label, cut_summary = row(-32)
+    cut_label:SetText('Auction house cut ' .. AUCTION_CUT * 100 .. '%')
+    local line = frame.parameters:CreateTexture(nil, 'ARTWORK')
+    gui.texture_color(line, aux.color.panel.border)
+    line:SetHeight(1)
+    line:SetPoint('TOPLEFT', frame.parameters, 'TOPRIGHT', RECEIPT_X, -52)
+    line:SetPoint('TOPRIGHT', frame.parameters, 'TOPRIGHT', -12, -52)
+    receipt_line = line
+    -- what the sale brings in, larger; green, or red when a vendor pays more
+    net_label, net_summary = row(-60, gui.font_size.large)
+    -- the label a size smaller, moved down so the two sit on one line
+    net_label:SetFont(gui.font, gui.font_size.medium)
+    net_label:SetPoint('TOPLEFT', frame.parameters, 'TOPRIGHT', RECEIPT_X, -62)
+    gui.text_color(net_label, aux.color.text.enabled)
+    net_label:SetText('You get')
+    -- under it: the amount per item and what a vendor pays, when the auction house pays more
     net_detail = gui.label(frame.parameters, gui.font_size.small)
-    net_detail:SetPoint('TOPRIGHT', post_button, 'LEFT', -16, -1)
-    deposit = summary_label()
-    deposit:SetPoint('RIGHT', net_summary, 'LEFT', -22, 0)
-    -- the deposit explained on mouse over (a label cannot take the mouse, so a frame over it)
+    net_detail:SetPoint('TOPLEFT', frame.parameters, 'TOPRIGHT', RECEIPT_X, -84)
+    net_detail:SetPoint('TOPRIGHT', frame.parameters, 'TOPRIGHT', -12, -84)
+    net_detail:SetJustifyH('LEFT')
+    gui.text_color(net_detail, aux.color.label.disabled)
+    -- Tyler (2026-10-10): when a vendor pays more, players must not miss it; a red box with the
+    -- warning triangle in place of the gray line
+    local warning = CreateFrame('Frame', nil, frame.parameters, 'BackdropTemplate')
+    gui.set_frame_style(warning, function() local r, g, b = aux.color.red(); return r, g, b, .16 end, aux.color.red)
+    warning:SetPoint('TOPLEFT', frame.parameters, 'TOPRIGHT', RECEIPT_X, -102)
+    warning:SetPoint('TOPRIGHT', frame.parameters, 'TOPRIGHT', -12, -102)
+    warning:SetHeight(26)
+    local icon = warning:CreateTexture(nil, 'ARTWORK')
+    icon:SetTexture([[Interface\AddOns\auxForever\textures\warning.tga]])
+    icon:SetSize(20, 20)
+    icon:SetPoint('LEFT', 6, 0)
+    gui.vertex_color(icon, aux.color.red)
+    local text = gui.label(warning, gui.font_size.medium)
+    text:SetPoint('LEFT', icon, 'RIGHT', 6, 0)
+    gui.text_color(text, aux.color.red)
+    text:SetText('Vendor pays more')
+    warning.amount = gui.label(warning, gui.font_size.medium)
+    warning.amount:SetJustifyH('RIGHT')
+    warning.amount:SetPoint('RIGHT', -8, 0)
+    gui.text_color(warning.amount, aux.color.text.enabled)
+    warning:Hide()
+    vendor_warning = warning
+    -- the deposit, just above Post: paid now, back if the item sells
+    deposit_label, deposit = row(-154)
+    gui.text_color(deposit_label, aux.color.label.disabled)
+    deposit_label:SetText('Deposit now, back if it sells')
+    -- the deposit explained on mouse over (a label cannot take the mouse, so a frame over the row)
     local hover = CreateFrame('Frame', nil, frame.parameters)
-    hover:SetAllPoints(deposit)
+    hover:SetPoint('TOPLEFT', deposit_label, 'TOPLEFT')
+    hover:SetPoint('BOTTOMRIGHT', deposit, 'BOTTOMRIGHT')
     hover:EnableMouse(true)
     hover:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_TOP')
@@ -546,35 +600,39 @@ do
     hover:SetScript('OnLeave', function() GameTooltip:Hide() end)
 end
 
--- trade goods: stack size, stacks and one price; gear: a count, a starting bid and a buyout
+-- trade goods: a quantity and one price; gear: a count, a starting bid and a buyout
 function M.layout_parameters(commodity)
-    local function at(region, y, x, right)
+    local function at(region, y, x, width)
         region:ClearAllPoints()
         region:SetPoint('TOPLEFT', frame.parameters, 'TOPLEFT', x, y)
-        if right then
-            region:SetPoint('TOPRIGHT', frame.parameters, 'TOPRIGHT', right, y)
+        if width then
+            region:SetWidth(width)
         end
     end
+    at(stack_count_input, ROW1, COUNT_X)
+    at(duration_dropdown, ROW2, DURATION_X)
+    -- the note fills the middle column, between the two dividers
+    local function note(y)
+        price_note:ClearAllPoints()
+        price_note:SetPoint('TOPLEFT', frame.parameters, 'TOPLEFT', PRICE_X, y)
+        price_note:SetPoint('BOTTOMRIGHT', frame.parameters, 'BOTTOMRIGHT', RECEIPT_X - 28, 10)
+    end
     if commodity then
-        at(stack_count_input, ROW1, 115)
-        at(duration_dropdown, ROW2, 86)
         stack_count_input.caption:SetText('Quantity')
-        at(unit_buyout_price_input, ROW2 + 2, RIGHT_X, -134)
-        unit_buyout_price_input:SetHeight(34)
+        at(unit_buyout_price_input, PRICE_ROW1 + 2, FIELD_X, FIELD_W)
+        unit_buyout_price_input:SetHeight(32)
         unit_buyout_price_input:SetFontSize(20)
-        unit_buyout_price_input.caption:Hide()
-        at(price_note, ROW2 - 40, RIGHT_X, -12)
+        unit_buyout_price_input.caption:SetText('Price')
+        note(PRICE_ROW1 - 40)
     else
-        at(stack_count_input, ROW1, 115)
-        at(duration_dropdown, ROW2, 86)
         stack_count_input.caption:SetText('Count')
-        at(unit_start_price_input, ROW2 + 1, RIGHT_X + 82, -134)
+        at(unit_start_price_input, PRICE_ROW1, FIELD_X, FIELD_W)
         unit_start_price_input:SetHeight(28)
-        at(unit_buyout_price_input, ROW3 + 1, RIGHT_X + 82, -134)
+        at(unit_buyout_price_input, PRICE_ROW2, FIELD_X, FIELD_W)
         unit_buyout_price_input:SetHeight(28)
-        unit_buyout_price_input:SetFontSize(19)
-        unit_buyout_price_input.caption:Show()
-        at(price_note, ROW3 - 34, RIGHT_X, -12)
+        unit_buyout_price_input:SetFontSize(18)
+        unit_buyout_price_input.caption:SetText('Buyout')
+        note(PRICE_ROW2 - 36)
     end
 end
 layout_parameters(true)
