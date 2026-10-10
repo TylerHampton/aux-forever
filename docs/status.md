@@ -25,9 +25,9 @@ no branch has unmerged work. Start the next version from the latest `main`.
   after its tests pass, merge (Tyler asked for it); trigger `release.yml` on `main` through the
   GitHub API; read the "Upload to CurseForge" step's log for `{"id": ...}` and "Uploaded."; then
   update this file in a small PR. Run the 5-minute check (`TESTING.md`) before a minor release.
-- **Version numbers** (Tyler, 2026-10-10): a fix right after a release gets a fourth number,
-  0.6.0.1 after 0.6. Not decided yet: whether later fixes are 0.6.0.2 or 0.6.1 (`docs/roadmap.md`
-  still describes 0.6.x as the fix versions). Ask Tyler before numbering the next fix.
+- **Version numbers** (Tyler, 2026-10-10): a bug fix raises the fourth number (0.6 -> 0.6.0.1
+  -> 0.6.0.2); a bigger update within the same version raises the third (0.6.1); new features are
+  the next minor version (0.7). Tyler has another bug fix coming in a new chat: that is 0.6.0.2.
 - **Changelogs** list every change with a little detail, grouped by area (Tyler: never "minor bug
   fixes"); rule in AGENTS.md.
 - **Next version:** not chosen. Candidates are in `docs/roadmap.md`, "After 0.6". Tyler planned

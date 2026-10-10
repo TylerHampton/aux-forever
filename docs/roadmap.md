@@ -1,9 +1,9 @@
 # Roadmap and versions
 
 Set by Tyler on 2026-10-05. Version numbers are `0.MINOR.PATCH`, written `forever-0.2.1` in the
-TOC. Every release gets an entry in `docs/changelog.md`. A fix right after a release gets a fourth
-number: 0.6.0.1 after 0.6 (Tyler, 2026-10-10); whether later fixes are 0.6.0.2 or 0.6.1 is not
-decided yet.
+TOC. Every release gets an entry in `docs/changelog.md`. Numbering (Tyler, 2026-10-10): a bug fix
+raises the fourth number (0.6 -> 0.6.0.1 -> 0.6.0.2); a bigger update within the same version
+raises the third (0.6.1); new features are the next minor version (0.7).
 
 ## After 0.6: candidates for the next version (none decided)
 
