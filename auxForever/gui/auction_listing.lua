@@ -16,12 +16,14 @@ local HEAD_HEIGHT = 27
 local HEAD_SPACE = 2
 
 -- Forever: labels come from the auction house's time left bands
-local TIME_LEFT_STRINGS = {
-    aux.color.red(info.time_left_label(1)), -- Short
-    aux.color.orange(info.time_left_label(2)), -- Medium
-    aux.color.yellow(info.time_left_label(3)), -- Long
-    aux.color.blue(info.time_left_label(4)), -- Very Long
-}
+-- (colored text is fixed once made, so made again in Classic's colors: gui.themed)
+local TIME_LEFT_STRINGS = {}
+gui.themed(function()
+    TIME_LEFT_STRINGS[1] = aux.color.red(info.time_left_label(1)) -- Short
+    TIME_LEFT_STRINGS[2] = aux.color.orange(info.time_left_label(2)) -- Medium
+    TIME_LEFT_STRINGS[3] = aux.color.yellow(info.time_left_label(3)) -- Long
+    TIME_LEFT_STRINGS[4] = aux.color.blue(info.time_left_label(4)) -- Very Long
+end)
 
 -- auxForever: Forever names the seller only when one player sells at a row's price
 function M.seller_text(record)
@@ -653,14 +655,12 @@ local methods = {
             GameTooltip:Show()
         end
 
-        self.highlight:Show()
+        self.hover:Show()
     end,
 
     OnLeave = function(self)
         GameTooltip:Hide()
-        if not self.rt.selected or self.rt.selected.search_signature ~= self.record.search_signature then
-            self.highlight:Hide()
-        end
+        self.hover:Hide()
     end,
 
     OnClick = function(self, button)
@@ -782,17 +782,19 @@ local methods = {
 		    FauxScrollFrame_SetOffset(self.scrollFrame, maxOffset)
 	    end
 
-        for _, cell in pairs(self.headCells) do
-            local tex = cell:GetNormalTexture()
-            tex:SetColorTexture(aux.color.header.background())
-        end
-
-        if #self.sorts > 0 then
-            local last_sort = self.sorts[1]
-            if last_sort.descending then
-                self.headCells[last_sort.index]:GetNormalTexture():SetColorTexture(.89, .64, .23, .3)
+        -- auxForever (0.6, the UI Kit): the sorted column's name is white with a gold arrow
+        local last_sort = self.sorts[1]
+        for i, cell in pairs(self.headCells) do
+            local sorted = last_sort and last_sort.index == i
+            cell:GetFontString():SetTextColor((sorted and aux.color.text.enabled or aux.color.header.text)())
+            if sorted then
+                local width = cell:GetFontString():GetStringWidth() or 0
+                cell.arrow:ClearAllPoints()
+                cell.arrow:SetPoint('RIGHT', cell, 'CENTER', -width / 2 - 3, 0)
+                cell.arrow:SetRotation(last_sort.descending and 0 or math.pi)
+                cell.arrow:Show()
             else
-                self.headCells[last_sort.index]:GetNormalTexture():SetColorTexture(.42, .6, .85, .3)
+                cell.arrow:Hide()
             end
         end
 
@@ -998,11 +1000,9 @@ local function create_row(rt, i)
     row:SetScript('OnDoubleClick', rt.OnDoubleClick)
     row:SetPoint('TOPLEFT', 0, -(HEAD_HEIGHT + HEAD_SPACE + (i - 1) * rt.ROW_HEIGHT))
     row:SetPoint('TOPRIGHT', 0, -(HEAD_HEIGHT + HEAD_SPACE + (i - 1) * rt.ROW_HEIGHT))
-    local highlight = row:CreateTexture()
-    highlight:SetAllPoints()
-    highlight:SetColorTexture(aux.color.selected())
-    highlight:Hide()
-    row.highlight = highlight
+    gui.row_stripe(row, i)
+    row.highlight = gui.row_selection(row)
+    row.hover = gui.row_hover(row)
 
     row.cells = {}
     for j, column in ipairs(rt.columns) do
@@ -1024,23 +1024,11 @@ local function create_row(rt, i)
             cell:SetPoint('TOPLEFT', row.cells[j - 1], 'TOPRIGHT')
         end
 
-        if mod(j, 2) == 1 then
-            local tex = cell:CreateTexture()
-            tex:SetAllPoints()
-            tex:SetColorTexture(1, 1, 1, .025)
-        end
-
         if column.init then
             column.init(rt, cell)
         end
 
         tinsert(row.cells, cell)
-    end
-
-    if mod(i, 2) == 0 then
-        local tex = row:CreateTexture()
-        tex:SetAllPoints()
-        tex:SetColorTexture(1, 1, 1, .035)
     end
 
     row:Hide()
@@ -1111,9 +1099,9 @@ function M.new(parent, row_height, columns)
     scrollBar:SetWidth(10)
     local thumbTex = scrollBar:GetThumbTexture()
     thumbTex:SetPoint('CENTER', 0, 0)
-    thumbTex:SetColorTexture(aux.color.content.border())
+    gui.texture_color(thumbTex, aux.color.scrollbar)
     thumbTex:SetHeight(150)
-    thumbTex:SetWidth(scrollBar:GetWidth())
+    thumbTex:SetWidth(6)
     _G[scrollBar:GetName() .. 'ScrollUpButton']:Hide()
     _G[scrollBar:GetName() .. 'ScrollDownButton']:Hide()
 
@@ -1136,22 +1124,21 @@ function M.new(parent, row_height, columns)
         local text = cell:CreateFontString()
         text:SetJustifyH('CENTER')
         text:SetFont(gui.font, 12)
-        text:SetTextColor(aux.color.label.enabled())
+        gui.text_color(text, aux.color.header.text)
         cell:SetFontString(text)
         if not column.toggle then cell:SetText(column.title or '') end -- TODO
         text:SetAllPoints()
 
-        local tex = cell:CreateTexture()
-        tex:SetAllPoints()
-        tex:SetColorTexture(aux.color.header.background())
-        cell:SetNormalTexture(tex)
-
-        local tex = cell:CreateTexture()
-        tex:SetAllPoints()
-        tex:SetTexture([[Interface\Buttons\UI-Listbox-Highlight]])
-        tex:SetTexCoord(.025, .957, .087, .931)
-        tex:SetAlpha(.2)
-        cell:SetHighlightTexture(tex)
+        -- auxForever (0.6, the UI Kit): a raised plate with a black edge, 1px below the table's top
+        gui.set_frame_style(cell, aux.color.header.background, aux.color.window.border, 0, 0, 1, 0, 0)
+        gui.add_sheen(cell, .26)
+        gui.add_highlight(cell, 0)
+        local arrow = cell:CreateTexture(nil, 'OVERLAY')
+        arrow:SetTexture([[Interface\AddOns\auxForever\textures\chevron.tga]])
+        arrow:SetSize(9, 9)
+        gui.vertex_color(arrow, aux.color.accent.background)
+        arrow:Hide()
+        cell.arrow = arrow
 
         tinsert(rt.headCells, cell)
     end

@@ -263,7 +263,13 @@ local function cached(item_key)
 		local seen = record.low and record.day or (record.points[1] and record.points[1].day)
 		-- the latest price: today's (market, else lowest) when seen today, else the newest past day's
 		local latest = day_price(record) or (record.points[1] and record.points[1].value)
-		entry = { value = compute_value(record), latest = latest, day = today(), days = #record.points, age = seen and today() - seen or nil }
+		-- complete: past days with a complete look (a Full scan or full search, which counts what is
+		-- listed), not only the lowest price of a single auction or a 0.4 line
+		local complete = 0
+		for _, point in ipairs(record.points) do
+			if point.units then complete = complete + 1 end
+		end
+		entry = { value = compute_value(record), latest = latest, day = today(), days = #record.points, complete = complete, age = seen and today() - seen or nil }
 		value_cache[item_key] = entry
 	end
 	return entry
@@ -286,6 +292,17 @@ function M.value_and_days(item_key)
 	end
 	local entry = cached(item_key)
 	return entry.value, entry.days
+end
+
+-- auxForever (0.6): the usual price and how many past days of complete looks it rests on. The
+-- Sniper counts only those: Fading Echo's usual of 79s came from two 0.4 days that only kept the
+-- lowest asking price, while a complete look yesterday saw it at 1s (Tyler, build 5).
+function M.value_and_complete_days(item_key)
+	if not data[item_key] then
+		return nil, 0
+	end
+	local entry = cached(item_key)
+	return entry.value, entry.complete
 end
 
 -- auxForever (0.5): the usual price and how many days ago aux last saw the item (0: today), or nil

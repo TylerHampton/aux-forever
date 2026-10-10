@@ -27,6 +27,13 @@ jobs:
           lua5.1 ../tests/load_test.lua | tee ../test-output.txt
           tail -n 1 ../test-output.txt | grep -qx 'done, errors: 0'
 
+      # 0.6: the same tests in the Classic look, so a change that breaks one look is caught
+      - name: Load test, Classic look
+        working-directory: auxForever
+        run: |
+          lua5.1 ../tests/load_test.lua classic | tee ../test-output-classic.txt
+          tail -n 1 ../test-output-classic.txt | grep -qx 'done, errors: 0'
+
       - name: Package the addon
         run: |
           mkdir -p dist

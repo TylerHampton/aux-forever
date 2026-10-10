@@ -144,6 +144,8 @@ from aux on Classic:
 
 **Tooltip**
 
+The same lines can be turned on and off in Settings (the gear), under Tooltip lines (from 0.6).
+
 - `/aux tooltip value`
 - `/aux tooltip daily`
 - `/aux tooltip disenchant value`

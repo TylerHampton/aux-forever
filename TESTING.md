@@ -8,10 +8,17 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: none yet (0.5 released 2026-10-08)
+## Current build: 0.6 build 6: the Sniper leaves out grays and thin price history
 
-The next session puts its first test build's steps here. 0.5's build steps and results are in
-`docs/status.md` (0.5 build log).
+Branch `claude/eager-dijkstra-drmz2k`. Build 5 passed in game (2026-10-09). Only the Sniper changed.
+`/reload` is enough (no new files).
+
+- [ ] 1. Sniper: Start and let one round finish. No gray item (gray name) is in the list, not even
+  "below vendor". Fading Echo is gone.
+- [ ] 2. The deals left have a usual price that looks believable for what the item is. Note any
+  that still look like junk, with a screenshot.
+- [ ] 3. Stop. With no deals, the message under the table says gray items are left out and deals
+  need 3 days with a Full scan.
 
 ## Before every release: the 5-minute check
 

@@ -24,9 +24,9 @@ function M:render()
 
         if item_record then
 			row.item_record = item_record
-			if self.selected and self.selected(item_record) or row.mouseover then
+			if self.selected and self.selected(item_record) then
 				row.highlight:Show()
-			elseif not row.mouse_over then
+			else
 				row.highlight:Hide()
 			end
 			row.item.texture:SetTexture(item_record.texture)
@@ -57,7 +57,7 @@ local function create_row(item_listing, row_index)
 	local HINT = 'Click: select to post' .. gui.HINT_SEPARATOR .. 'Right-click: search'
 	row:SetScript('OnEnter', function()
 		row.mouseover = true
-		row.highlight:Show()
+		row.hover:Show()
 		if row.item_record then
 			GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
 			gui.add_click_hint(GameTooltip, HINT, true)
@@ -67,9 +67,7 @@ local function create_row(item_listing, row_index)
 	row:SetScript('OnLeave', function()
 		row.mouseover = false
 		GameTooltip:Hide()
-		if not selected(row.item_record) then
-			row.highlight:Hide()
-		end
+		row.hover:Hide()
 	end)
 
 	row.item = gui.item(row)
@@ -83,11 +81,8 @@ local function create_row(item_listing, row_index)
 	end)
 	row.item.button:SetScript('OnLeave', function() GameTooltip:Hide() end)
 
-	local highlight = row:CreateTexture()
-	highlight:SetAllPoints(row)
-	highlight:Hide()
-	highlight:SetColorTexture(aux.color.selected())
-	row.highlight = highlight
+	row.highlight = gui.row_selection(row)
+	row.hover = gui.row_hover(row)
 
 	row:Hide()
 	return row
@@ -131,9 +126,9 @@ function M.new(parent, on_click, selected)
 	scroll_bar:SetWidth(10)
 	local thumbTex = scroll_bar:GetThumbTexture()
 	thumbTex:SetPoint('CENTER', 0, 0)
-	thumbTex:SetColorTexture(aux.color.content.border())
+	gui.texture_color(thumbTex, aux.color.scrollbar)
 	thumbTex:SetHeight(150)
-	thumbTex:SetWidth(scroll_bar:GetWidth())
+	thumbTex:SetWidth(6)
 	_G[scroll_bar:GetName() .. 'ScrollUpButton']:Hide()
 	_G[scroll_bar:GetName() .. 'ScrollDownButton']:Hide()
 

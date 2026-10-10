@@ -1,6 +1,169 @@
 # Status
 
-Last updated 2026-10-10 (FB-008 and the audience rule; no code changes since the 0.5 release).
+Last updated 2026-10-09: 0.6 build 6 (two themes, zebra rows, the new Settings menu, coin colors, Sniper rules) is on branch
+`claude/eager-dijkstra-drmz2k`, built on Webster's `design` branch. Not tried in game yet.
+
+## Start here (next session, after 2026-10-09)
+
+Tyler stopped for the night after build 6. Pick up here:
+- Branch `claude/eager-dijkstra-drmz2k` (from Webster's `design`), TOC `forever-0.6`, not released.
+  No pull request yet; Tyler plans about one release a week, so 0.6 is not to ship yet.
+- Build 6 (Sniper: no gray items, deals need 3 days with a complete look) is sent but not tested:
+  test page build id `0-6-build-6`, results in ArtifactData `builds/0-6-build-6/results`.
+- Waiting on Tyler: (1) the thin-market rule for items with one listing (A everything, B stackable
+  goods only, C wait and see, recommended); (2) `/aux price ` plus a Shift-clicked Trapper's Shirt,
+  to explain why the name lookup found no history while the Sniper had a usual of 90s; (3) the
+  CurseForge player's in-game name for FB-008; (4) his tweaks to the New theme (screenshots).
+- Suggested to Tyler: Sniper "profit at least" 1g instead of his 5c.
+- Zips are named `auxForever-0.6-build<n>.zip`; the next one is build 7.
+
+## 0.6 build 2 (2026-10-09, branch `claude/eager-dijkstra-drmz2k`)
+
+Tyler, 2026-10-09: Webster (Christian Webster, GitHub `webguh`, a collaborator who does UI design for
+work) made build 1 on the branch `design`; he is done with it. Tyler wants three ways to see the
+auction house by 1.0: Blizzard's (the Blizzard UI button), the 0.5 look (Classic) and Webster's
+(New). New is the default, also for players updating from 0.5. Tyler plans about one release a
+week; 0.6 is not to be released yet.
+
+Built (tests pass in both looks; checks for Tyler in `TESTING.md`, Current build):
+- Look switch: Settings, Look: New or Classic, saved in `account_data.theme` (account-wide). It
+  takes effect at the next login or reload; a Reload now button appears when the choice differs
+  from what is on screen. Classic is the 0.5 palette and rounded corners on Webster's layout (same
+  sizes and positions), flat buttons (no sheen), no top and bottom bands.
+- How it works (`gui/core.lua`, "the look"): widgets are built while the files load, before the
+  saved settings exist. Shapes wait until `gui.settle_theme` (called at the end of `AUX_LOADED` in
+  `aux-addon.lua`) and are then built square or rounded. Every color set at load goes through
+  `gui.themed`; for Classic that list is painted again, then dropped. In New nothing is painted
+  twice. Color objects keep their numbers in a table that `aux.set_palette` rewrites, so colors read
+  later follow the look. AGENTS.md, Design language, has the rules.
+- Zebra rows (Tyler): every second row of the result tables (`auction_listing`) and the other tables
+  (`listing`) has a faint light shade (`color.stripe`, white 4% in New, 3.5% in Classic as in
+  0.5), under hover and selection. The Post tab's bag list has none (it had none in 0.5 either).
+- New look, blacks toned back (Tyler: "it's hard to tell where the text boxes are", the Filter
+  Builder; "I do like the blackness of it"): window 22 to 26, panels 12 to 19, bands 11 to 16,
+  sunken fields 10 to 12 with a gray edge (64) instead of black. A test keeps the edge at least 30
+  levels lighter than the panel.
+- Settings, TOOLTIP LINES (this character): the seven `/aux tooltip` lines as checkboxes (FB-008,
+  a CurseForge player). Not added, waiting on Tyler: action shortcuts, ignore owner, post full scan,
+  post bid, clear item cache, clear post. Left out on purpose: debug, memory, price.
+- Hard-coded colors moved into the palettes: scroll bar thumb, input focus edge, status bar, the
+  Post tab's switch track, the buy bar's chosen quantity (now the `selected` look, redrawn only when
+  the choice changes).
+- Tests: `lua5.1 ../tests/load_test.lua classic` runs every test in Classic; the workflows (Tests,
+  Release) run both. The harness now keeps the colors set on stub frames (`__text_color`,
+  `__texture_color`, `__vertex_color`).
+
+Build 3 (same day): the Settings menu as in the mockup Tyler approved
+(https://claude.ai/artifact/21FjqFGt2vzbVo9BDG5d6j): 600 wide, two columns. Left: WINDOW
+(Background, Scale, Look, and the reload row when the look changes) and POSTING (Default duration,
+Bid prices Off / Item / Stack, which moves up when no reload waits). Right: TOOLTIP LINES with an
+on/off switch each (`gui.switch`: square in New, rounded in Classic; color `switch_knob`). Bid
+prices (`/aux post bid`) now applies at once from the menu and the chat command
+(`post.apply_bid_layout`); it used to need a reload. Ignore owner, action shortcuts (Tyler: risky,
+buys gear in one click) and debug stay chat only.
+
+Build 4: "Bid prices on the Post tab" and its gray line ran under the Off / Item / Stack buttons
+(Tyler's screenshot); the row is now just "Bid prices", explained in its tooltip. Tyler also saw
+his bags (Blizzard's Combined Backpack) with the items in reverse order and no cleanup button. Not
+from auxForever as far as the code shows: it only reads bag contents and hooks clicks
+(`core/shortcut.lua`, unchanged in 0.6), and never touches bag settings or bag buttons. Cause found
+the same day: Blizzard's patch of 2026-10-08 (build 70291) changed the bags, not auxForever. In
+Forever's UI source (`Gethe/wow-ui-source`, branch `forever`, diff of builds 70245 and 70291,
+`Blizzard_UIPanels_Game/Mainline/ContainerFrame.lua`) the mouse and keyboard sort
+`SortItemsBottomRight` (highest slot first, so the first slot showed at the top left) was replaced
+by one ascending sort for everyone, while the first item is still anchored at the bottom right. So
+the first slot now shows at the bottom right: the order Tyler saw as inverted. The same patch added
+gamepad bag features, which likely caused it (inference). The Clean Up button
+(`BagItemAutoSortButton`) is unchanged in the code and still placed at the top right next to the
+search box; Tyler does not see it, which the code does not explain (open). Not auxForever's to fix:
+changing Blizzard's bag frames from an addon risks breaking them further.
+
+Build 4 in game (Tyler, 2026-10-09, test page `0-6-build-4`): open, table, buy bar, other tabs,
+Classic all fine (Classic: pass; other tabs: pass; no notes on open and table, their screenshots
+look right: gray edges on the Filter Builder boxes, zebra rows). Findings:
+- The Buy button showed "4s 60c" without coin colors (it used the plain form). Tyler: g, s and c
+  must have their coin colors everywhere, as a global rule. Fixed in build 5: buy bar buttons,
+  recipe line, Sniper prices and profit; rule in AGENTS.md (Design language). Classic's primary
+  and confirm looks are no longer solid filled (dark amber or green with an outline) so the coin
+  colors stay readable on them.
+- "It should be called theme, not look." The Settings row and its texts say Theme (build 5).
+- Bid prices: Tyler found it confusing and asked whether "per stack" makes sense. It does not on
+  Forever (bids only on gear, one item per auction, few sellers set one). Removed from Settings
+  (build 5); `/aux post bid` stays and applies at once. FB-008.
+- Sniper (open, not changed): first time it listed deals by "% of usual". Every deal in Tyler's
+  screenshot is priced 1s 00c, with usuals like 90s (Trapper's Shirt) and 79s (Fading Echo). Likely
+  real 1-silver listings (items on Forever are listed in whole silver, so 1s is the floor) against a
+  usual price raised by high asking prices (`docs/price-data.md`, weak points: it records listings,
+  not sales). His profit setting was 5c, which lets almost any 1s listing through. To check: Tyler
+  runs `/aux price` on two of the deals and searches them; read the chat output before changing the
+  Sniper.
+
+Build 5: coin colors everywhere, Theme, Bid prices out of Settings (above).
+
+Build 5 in game (Tyler, test page `0-6-build-5`): buy button, settings, Sniper colors pass; recipe
+line and Classic buttons unmarked, screenshots look right (colored g/s/c; Classic Search and Buy
+dark amber with an outline).
+
+Sniper check (Tyler, 2026-10-09, `/aux price` and searches): Fading Echo (gray) is 13 listed at 1s
+by 2 sellers; its usual of 79s rests on two 0.4 days that kept only the lowest asking price (no
+listed count), while yesterday's complete look saw 1s. Trapper's Shirt: one listing at 1s, and
+`/aux price Trapper's Shirt` said "No price history for this item yet" although the Sniper showed a
+usual of 90s; unexplained (open: maybe the name lookup finds another item id; ask for the command
+with a Shift-clicked link). Tyler: "gray items definitely cannot be in the sniper", "Sniper is to
+make money", and junk with a single listing should stay out ("who's going to buy it?").
+
+Build 6 (Sniper):
+- Gray (poor quality) items are never deals, below vendor price included
+  (`sniper.item_facts` gives them no prices).
+- The 3 days of history a deal needs (`MIN_DAYS`) count only days with a complete look, i.e.
+  points with a listed count (`history.value_and_complete_days`), not 0.4 lines or days that only
+  saw single auctions. The usual price itself is unchanged (still from all days).
+- Not done, asked Tyler: a rule against thin markets (an item with one listing). Gear is often one
+  listing too, so a "too few listed" rule would also hide real gear deals; needs his call.
+- Tyler's profit setting was 5c, which lets 30c deals through; suggested 1g.
+
+Test page: build id `0-6-build-6` (3 steps, the same as `TESTING.md`), results in ArtifactData
+collection `builds/0-6-build-6/results`.
+
+Open questions for Tyler:
+- The CurseForge player's in-game name (changelog credit, FB-008) and which of the not-obvious
+  commands above belong in Settings.
+- His tweaks to Webster's look (he will send screenshots).
+
+## 0.6 build 1: the new look (2026-10-08, branch `design`, by Webster)
+
+Tyler asked to "take the ui kit and screens and make the addon look like that". The design is the
+Paper file "auxForever Screens", pages "UI Kit" (every color, size and control) and "New" (the seven
+screens). A "New v2" page with a Barlow design was tried in an earlier session; it is no longer in
+the file, so it is not what was built. TOC `forever-0.6`.
+
+Build 1 (not tried in game yet): a restyle only, no change to searching, buying or posting.
+- `color.lua`: the kit's values (gold 229,190,91; black edges; text #EBEBEB; status colors for the
+  percentages and money). Key names unchanged, so every caller keeps working.
+- `gui/core.lua`: square shapes (the rounded corner textures are no longer used), `add_sheen` (a
+  black gradient over a raised control's fill plus a light top line; falls back to a flat shade if
+  the client's `SetGradient` differs), button looks (`apply_look`; Enable and Disable redraw), tabs
+  as raised buttons 1px apart, gold outline on a focused input, the status bar as a sunken track,
+  `row_selection` and `row_hover` for tables.
+- Tables: raised header plates, sorted column white with a gold chevron (`chevron.tga` rotated), no
+  stripes (the kit says "no stripes"), selected row gold 13% with a 2px gold bar, hover white 6%.
+- Window: darker bands top and bottom that fade with the Background setting; status bar 265x22 in
+  the bottom band; logo "aux" white, "Forever" gold.
+- Buy bar: no box of its own, quantity chips 64px (80 for the stack), Buy 160px with the primary
+  look, Confirm green. The kit's 80px chips and 190px Buy do not fit the 1000px minimum window
+  next to the Quantity box, so they are a little narrower.
+- Not matched: the font (Forever loads no addon fonts; sizes stay as they were, the game font
+  needs them), the layouts of each screen (the kit screens mostly follow the existing layouts;
+  differences such as the Fast/Full sunken track are approximated with two buttons).
+- Edges are 1-unit lines; at some Scale settings they may render uneven. If so, set their size with
+  `PixelUtil` in `create_shape` (`gui/core.lua`).
+- The test page (artifact LUCZVgJV27irizAyKHTjhJ) could not be read from this session ("not
+  found"); build 1's steps are only in `TESTING.md`.
+- Tests and syntax check pass under Lua 5.1.5 (built from lua.org source on Tyler's collaborator's
+  Mac; Homebrew has no lua@5.1).
+- Open question for Tyler: zebra rows. He asked for a zebra version of an earlier design; the kit
+  says no stripes, so build 1 has none. Easy to add back. (Answered 2026-10-09: add them back in
+  dark gray; done in build 2.)
 
 ## Start here (for the next session: 0.5.1 or 0.6)
 
@@ -22,8 +185,8 @@ Last updated 2026-10-10 (FB-008 and the audience rule; no code changes since the
      AGENTS.md Design language). Designs are not in the repository yet.
   4. Small loose ends from 0.5 (0.5.1 material), listed under "Open after 0.5" below.
 - **Player feedback:** `docs/feedback.md`. FB-001, FB-002, FB-003, FB-006, FB-007 are done in 0.5;
-  FB-004 rejected (direction); FB-005 praise; FB-008 (Classic stacks) wont-fix. New entries start at
-  FB-009 and are recorded by a separate feedback session, not by the session that builds.
+  FB-004 rejected (direction); FB-005 praise; FB-009 (Classic stacks, Maggew) wont-fix. New entries start
+  at FB-010 and are recorded by a separate feedback session, not by the session that builds.
 - **Audience (Tyler, 2026-10-10):** auxForever is for intermediate players who know Forever's modern
   auction house. Requests for things that auction house does not have are answered, not built
   (AGENTS.md, the exception after "a player's problem is the addon's problem").

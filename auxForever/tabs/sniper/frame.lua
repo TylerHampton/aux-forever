@@ -44,7 +44,8 @@ end
 
 local function price_text(record, amount)
     if record.deal_gone then
-        return aux.color.label.disabled(money.to_string(amount, true, nil, nil, true))
+        -- a deal that is gone: gray numbers, coin letters still in their colors (Tyler, 0.6)
+        return money.to_string(amount, true, nil, aux.color.label.disabled)
     end
     return money.to_string(amount, true)
 end
@@ -156,7 +157,7 @@ M.columns = {
             if record.deal_gone then
                 cell.text:SetText(price_text(record, record.deal_profit))
             else
-                cell.text:SetText(aux.color.green(money.to_string(record.deal_profit, true, nil, nil, true)))
+                cell.text:SetText(money.to_string(record.deal_profit, true, nil, aux.color.green))
             end
         end,
         cmp = function(a, b, desc)
@@ -183,7 +184,7 @@ do
     label:SetPoint('CENTER', 0, 0)
     label:SetWidth(600)
     label:SetWordWrap(true) -- two lines; gui.label is one line by default, which cut it to "round..."
-    label:SetTextColor(aux.color.label.enabled())
+    gui.text_color(label, aux.color.label.enabled)
     empty_label = label
 end
 
@@ -214,7 +215,7 @@ do
     btn:SetText('Sound')
     btn:SetScript('OnClick', function()
         aux.account_data.sniper_sound = not aux.account_data.sniper_sound
-        gui.style_choice(btn, aux.account_data.sniper_sound)
+        gui.set_selected(btn, aux.account_data.sniper_sound)
     end)
     sound_button = btn
 end
@@ -242,7 +243,7 @@ do
     local label = gui.label(frame, gui.font_size.medium)
     label:SetPoint('RIGHT', editbox, 'LEFT', -6, 0)
     label:SetText('% of usual, profit at least')
-    label:SetTextColor(aux.color.label.enabled())
+    gui.text_color(label, aux.color.label.enabled)
     profit_label = label
 end
 do
@@ -267,7 +268,7 @@ do
     local label = gui.label(frame, gui.font_size.medium)
     label:SetPoint('RIGHT', editbox, 'LEFT', -6, 0)
     label:SetText('Deal: at most')
-    label:SetTextColor(aux.color.label.enabled())
+    gui.text_color(label, aux.color.label.enabled)
 end
 
 gui.horizontal_line(frame, -40)
@@ -339,7 +340,7 @@ function M.update_deals()
     if #shown > 0 then
         empty_label:SetText('')
     elseif running then
-        empty_label:SetText('No deals yet. The whole auction house is checked every round.\nDeals against the usual price need ' .. MIN_DAYS .. ' days of price history; Full scans build it.')
+        empty_label:SetText('No deals yet. The whole auction house is checked every round; gray items are left out.\nDeals against the usual price need ' .. MIN_DAYS .. ' days with a Full scan (or a Full search of the item).')
     else
         empty_label:SetText('Press Start to watch the whole auction house for deals.')
     end
@@ -353,8 +354,9 @@ do
             last_run = running
             run_button:SetText(running and 'Stop' or 'Start')
             if running then
-                gui.style_choice(run_button, false)
-                run_button:GetFontString():SetFont(gui.font, gui.font_size.large)
+                gui.set_default(run_button)
+                local _, size = run_button:GetFontString():GetFont()
+                run_button:GetFontString():SetFont(gui.font, size and size > 0 and size or gui.font_size.medium)
             else
                 gui.set_primary(run_button)
             end
@@ -378,5 +380,5 @@ end
 function aux.event.AUX_LOADED()
     percent_input:SetText(tostring(aux.account_data.sniper_percent))
     profit_input:SetText(money.to_string(aux.account_data.sniper_profit, nil, true, nil, true))
-    gui.style_choice(sound_button, aux.account_data.sniper_sound)
+    gui.set_selected(sound_button, aux.account_data.sniper_sound)
 end

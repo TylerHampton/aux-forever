@@ -34,6 +34,10 @@ local function new_frame(name)
       if self.__height then return self.__font, self.__height, '' end
       return 'font', 12, ''
     end end
+    -- colors are kept so a test can read them back (0.6: the Classic look repaints)
+    if k == 'SetTextColor' then return function(self, ...) self.__text_color = {...} end end
+    if k == 'SetColorTexture' then return function(self, ...) self.__texture_color = {...} end end
+    if k == 'SetVertexColor' then return function(self, ...) self.__vertex_color = {...} end end
     if k == 'IsEnabled' then return function() return true end end
     if k == 'GetChecked' or k == 'IsMouseOver' or k == 'HasFocus' or k == 'IsForbidden' then return function() return false end end
     if NUMERIC[k] then return function()
@@ -84,6 +88,13 @@ local function fire(event, ...)
     if f.__events[event] and f.__scripts.OnEvent then try(event, f.__scripts.OnEvent, f, event, ...) end
   end
 end
+-- `lua5.1 ../tests/load_test.lua classic` runs everything again in the Classic look: the saved
+-- settings ask for it, as they would after a player picked Classic (they load after the files)
+THEME = (arg and arg[1] == 'classic') and 'classic' or 'new'
+if THEME == 'classic' then G.aux = {account = {theme = 'classic'}} end
+-- a value the test expects, by look
+local function pick(new, classic) if THEME == 'classic' then return classic end return new end
+print('look: ' .. THEME)
 fire('ADDON_LOADED', 'auxForever')
 fire('PLAYER_LOGIN')
 fire('ADDON_LOADED', 'Blizzard_AuctionHouseUI')
@@ -258,18 +269,62 @@ try('lists follow the window size', function()
   G.__geometry = nil
 end)
 
--- Visual refresh: rounded styling keeps the old backdrop color calls working; seller column text
+-- Visual refresh: square styling (0.6, the UI Kit) keeps the old backdrop color calls working; seller column text
 try('restyle', function()
   local require = loadstring("select(2, ...) 'aux.test4'; return require")('auxForever', addon)
   local gui = require 'aux.gui'
   local auction_listing = require 'aux.gui.auction_listing'
   local colored = {}
   local button = gui.button(new_frame())
-  check('button has a rounded fill', button.aux_fill and #button.aux_fill.pieces == 7)
-  check('button has a rounded outline', button.aux_border and #button.aux_border.pieces == 8)
+  -- New: square (one fill, four 1px edges). Classic: rounded (four corners and three or four straight pieces)
+  check('button has a square fill (Classic: rounded)', button.aux_fill and #button.aux_fill.pieces == pick(1, 7))
+  check('button has a 1px outline on four sides (Classic: rounded)', button.aux_border and #button.aux_border.pieces == pick(4, 8))
   for _, t in ipairs(button.aux_fill.pieces) do rawset(t, 'SetVertexColor', function(_, r) colored[#colored + 1] = r end) end
   button:SetBackdropColor(.5, .5, .5, 1)
-  check('SetBackdropColor recolors every fill piece', #colored == 7 and colored[1] == .5)
+  check('SetBackdropColor recolors the fill', #colored == pick(1, 7) and colored[1] == .5)
+  -- 0.6, the UI Kit: looks. Default buttons have a gold label, the primary one a gold outline,
+  -- disabled ones a gray label; a selected tab stays lit although it is disabled
+  local function label_color(b)
+    local c
+    rawset(b, 'GetFontString', function() return {SetTextColor = function(_, r, g, bl, a) c = {r, g, bl, a} end, GetFont = function() return 'f', 15 end, SetFont = function() end} end)
+    return function() return c end
+  end
+  local b2 = gui.button(new_frame())
+  local c2 = label_color(b2)
+  gui.set_default(b2)
+  check('default button: gold label (Classic: light)', math.abs(c2()[1] - pick(229, 243) / 255) < .001 and math.abs(c2()[3] - pick(91, 230) / 255) < .001)
+  local border
+  rawset(b2, 'SetBackdropBorderColor', function(_, r, g, bl) border = {r, g, bl} end)
+  gui.set_primary(b2)
+  check('primary button: gold outline (Classic: amber)', border and math.abs(border[1] - pick(229, 227) / 255) < .001)
+  rawset(b2, 'IsEnabled', function() return false end)
+  b2:Disable()
+  check('disabled button: gray label', math.abs(c2()[1] - pick(107, 125) / 255) < .001)
+  gui.apply_look(b2, 'selected', true)
+  check('selected look drawn on a disabled tab', math.abs(c2()[1] - pick(255, 243) / 255) < .001 and math.abs(c2()[2] - pick(255, 239) / 255) < .001)
+  check('a button has the raised gradient', b2.aux_sheen ~= nil)
+  -- selection and hover of a table row are separate: hover never shows the gold bar
+  local row = new_frame()
+  local sel = gui.row_selection(row)
+  check('row selection starts hidden', not sel:IsShown())
+  sel:Show()
+  check('row selection shows', sel:IsShown())
+  -- a client whose SetGradient wants numbers must not break loading
+  local tex = new_frame()
+  rawset(tex, 'SetGradient', function() error('bad argument') end)
+  G.CreateColor = function(r, g, b, a) return {r, g, b, a} end
+  local ok = pcall(gui.set_gradient, tex, .3)
+  G.CreateColor = nil
+  check('gradient falls back without an error', ok)
+  -- an input's red border for a bad value survives typing in it and clicking away
+  local box = gui.editbox(new_frame())
+  local shown_border
+  for _, t in ipairs(box.aux_border.pieces) do rawset(t, 'SetVertexColor', function(_, r, g, b) shown_border = {r, g, b} end) end
+  box:SetBackdropBorderColor(1, 0, 0, 1)
+  box.__scripts.OnEditFocusGained(box)
+  check('gold while typing (Classic: the usual edge)', math.abs(shown_border[1] - pick(229, 58) / 255) < .001)
+  box.__scripts.OnEditFocusLost(box)
+  check('red again after typing', shown_border[1] == 1 and shown_border[2] == 0)
   check('named seller shown', auction_listing.seller_text{owner = 'Violet Toes'} == 'Violet Toes')
   check('several sellers counted', auction_listing.seller_text{seller_count = 12}:find('12 sellers') ~= nil)
   check('unknown seller', auction_listing.seller_text{seller_count = 1} == '?')
@@ -346,7 +401,7 @@ try('undercut mode', function()
   post_env.selected_item = nil
 end)
 
--- The status bar is amber only while something loads, dim gray when idle
+-- The status bar is amber only while something loads, a faint fill when idle, dark gold when done
 try('status bar idle color', function()
   local require = loadstring("select(2, ...) 'aux.test7'; return require")('auxForever', addon)
   local gui = require 'aux.gui'
@@ -354,16 +409,16 @@ try('status bar idle color', function()
   local color
   rawset(bar.primary_status_bar, 'SetStatusBarColor', function(_, r) color = r end)
   bar:update_status(0, 0)
-  check('amber while loading', color == .89)
+  check('amber while loading', math.abs(color - pick(150, 227) / 255) < .001)
   bar:update_status(1, 1)
-  check('gray when idle', color == .30)
+  check('faint when idle', math.abs(color - pick(255, 77) / 255) < .001)
   bar:set_done(true)
-  check('gold when a search has finished', color == .23)
+  check('dark gold when a search has finished', math.abs(color - pick(42, 58) / 255) < .001)
   bar:update_status(0, 0)
-  check('amber again while loading', color == .89)
+  check('amber again while loading', math.abs(color - pick(150, 227) / 255) < .001)
   bar:update_status(1, 1)
   bar:set_done(false)
-  check('gray after leaving the search', color == .30)
+  check('faint after leaving the search', math.abs(color - pick(255, 77) / 255) < .001)
 
   -- the search tab turns it gold for a finished search shown in the results, and off when leaving
   local aux = require 'aux'
@@ -521,8 +576,17 @@ try('post panel', function()
   local colors = {}
   rawset(post.post_button, 'GetFontString', function(self) return self.label end)
   rawset(post.post_button.label, 'SetTextColor', function(_, r) colors[#colors + 1] = r end)
-  post.post_button:Enable(); post.post_button:Disable()
-  check('post button keeps its dark text', colors[#colors] < .2 and colors[#colors - 1] < .2)
+  rawset(post.post_button, 'IsEnabled', function() return false end)
+  post.post_button:Disable()
+  rawset(post.post_button, 'IsEnabled', nil)
+  post.post_button:Enable()
+  local enable_calls = #colors
+  post.post_button:Enable()
+  check('enabling an enabled button redraws nothing', #colors == enable_calls)
+  rawset(post.post_button, 'IsEnabled', function() return false end)
+  post.post_button:Disable()
+  rawset(post.post_button, 'IsEnabled', nil)
+  check('post button: gold label, gray when disabled', math.abs(colors[#colors - 1] - pick(229, 245) / 255) < .001 and math.abs(colors[#colors] - pick(107, 125) / 255) < .001)
 
   check('typed price note', plain(post.price_note_text()) == 'Your own price')
   post.set_buyout_selection({unit_price = 69})
@@ -599,7 +663,7 @@ try('post auto price', function()
   local plain = function(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
   post.update_item_configuration()
   check('deposit shown as money going out', plain(post.deposit.__text):find('^Deposit %-') ~= nil)
-  check('you get shown in green', post.net_summary.__text:find('You get ', 1, true) == 1 and post.net_summary.__text:upper():find('6FD39A', 1, true) ~= nil)
+  check('you get shown in green', post.net_summary.__text:find('You get ', 1, true) == 1 and post.net_summary.__text:upper():find(pick('4DCC66', '6FD39A'), 1, true) ~= nil)
   aux.set_tab(4)
   check('post: leaving the tab ends gold', aux.status_bar.done == false)
   post.selected_item = nil
@@ -620,7 +684,7 @@ try('post money details', function()
   post.set_unit_buyout_price(4)
   post.update_item_configuration()
   check('vendor warning when a vendor pays more', plain(post.net_detail.__text):find('a vendor pays') ~= nil)
-  check('you get turns red below vendor price', post.net_summary.__text:upper():find('FF0000', 1, true) ~= nil)
+  check('you get turns red below vendor price', post.net_summary.__text:upper():find(pick('E8574A', 'FF0000'), 1, true) ~= nil)
   rawset(post.stack_count_input, 'GetNumber', function() return 1 end)
   rawset(post.stack_size_input, 'GetNumber', function() return 1 end)
   post.set_unit_buyout_price(100)
@@ -955,7 +1019,7 @@ try('blizzard ui button', function()
   a.hook_blizzard_frame(); a.hook_blizzard_frame()
   check('the Blizzard window is hooked only once', hooks.OnShow == nil and hooks.OnHide == nil)
   local lit
-  rawset(a.blizzard_button, 'SetBackdropBorderColor', function(self, r, g, b) lit = (r == a.color.blizzard()) end)
+  rawset(a.blizzard_button, 'SetBackdropBorderColor', function(self, r, g, b) local br, bg, bb = a.color.blizzard(); lit = (r == br and g == bg and b == bb) end)
   a.blizzard_button.__scripts.OnClick(a.blizzard_button)
   check('Blizzard window shown and brought to the front', a.blizzard_frame_shown() and raised == 1)
   check('button lit while shown', lit == true)
@@ -1372,7 +1436,8 @@ try('sniper round', function()
   local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
   local function days(key, value)
     local d = h.today()
-    h.write_record(key, {day = d, points = {{value = value, day = d - 1}, {value = value, day = d - 2}, {value = value, day = d - 3}}})
+    -- three days of Full scans (a complete look counts the units listed)
+    h.write_record(key, {day = d, points = {{value = value, day = d - 1, units = 10}, {value = value, day = d - 2, units = 10}, {value = value, day = d - 3, units = 10}}})
   end
   days('201:0', 2200); days('203:0', 600); days('204:0', 5000)
   -- the kilt was only seen today: a usual price, but not one to show
@@ -1474,7 +1539,7 @@ try('sniper: judging items reuses the history cache', function()
   local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
   local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
   local d = h.today()
-  h.write_record('401:0', {day = d, points = {{value = 500, day = d - 1}, {value = 500, day = d - 2}, {value = 500, day = d - 3}}})
+  h.write_record('401:0', {day = d, points = {{value = 500, day = d - 1, units = 4}, {value = 500, day = d - 2, units = 4}, {value = 500, day = d - 3, units = 4}}})
   local real_read, reads = persistence.read, 0
   rawset(persistence, 'read', function(...) reads = reads + 1; return real_read(...) end)
   local real_info = G.GetItemInfo
@@ -2096,14 +2161,16 @@ try('recipe search', function()
   check('recipe: the search knows its recipe', s.recipe and s.recipe.name == 'Robe Kit')
   -- materials: 3 x 64s + 2g 20s = 4g 12s; sells for 1g 85s less 5% = 1g 75s 75c: a loss
   search.update_results_summary(true)
-  local summary = search.recipe_label.__text or ''
+  -- the coin letters carry their own colors (0.6), so compare the text without color codes
+  local function uncolored(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local summary = uncolored(search.recipe_label.__text)
   check('recipe: the line adds up the craft', summary:find('materials 4g 12s', 1, true) ~= nil and summary:find('sells 1g 75s 75c after cut', 1, true) ~= nil and summary:find('loss 2g 36s 25c', 1, true) ~= nil)
   -- Tyler, 0.4: the cost crowded the line next to the sub tabs and was cut off; it is in the bottom bar
   check('recipe: the cost is in the bottom bar, not next to the sub tabs', summary:find('Robe Kit', 1, true) ~= nil and not (search.results_summary(s) or ''):find('materials', 1, true))
   -- Tyler, 0.4: "materials ?" did not say which material had no price (Gray Dye, not for sale)
   local without = {}
   for _, r in ipairs(s.records) do if r.item_id ~= 103 then tinsert(without, r) end end
-  local partial = search.recipe_summary{recipe = s.recipe, records = without}
+  local partial = uncolored(search.recipe_summary{recipe = s.recipe, records = without})
   local info = loadstring("select(2, ...) 'aux.util.info'; return _M")('auxForever', addon)
   local dye = info.item(103).name
   check('recipe: a material without a price is named', partial:find('materials 1g 92s + ' .. dye .. ' (no price)', 1, true) ~= nil)
@@ -2802,6 +2869,175 @@ try('0.5: Full scan reminder at login', function()
   check('reminder: just now', plain(aux.full_scan_reminder(now - 60, now)):find('less than an hour ago', 1, true) ~= nil)
   local src = io.open('aux-addon.lua'):read('*a')
   check('reminder: printed at login', src:find("print(full_scan_reminder(account_data.replicate_time, time()))", 1, true) ~= nil)
+end)
+
+-- 0.6: two looks, New (default) and Classic, picked in Settings and applied at login. Run with the
+-- argument `classic` to check everything in the Classic look (the workflows run both).
+try('0.6: looks', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local gui_env = loadstring("select(2, ...) 'aux.gui'; return _M")('auxForever', addon)
+  local auction_listing = loadstring("select(2, ...) 'aux.test61'; return require")('auxForever', addon) 'aux.gui.auction_listing'
+  local sniper_env = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local function near(x, n) return x and math.abs(x - n / 255) < .002 end
+  check('looks: the saved look is in use', a.theme == THEME and a.account_data.theme == THEME)
+  -- both palettes name the same colors, so no widget is left without one in either look
+  local new_paths, classic_paths = a.palette_paths(a.PALETTES.new), a.palette_paths(a.PALETTES.classic)
+  local same = true
+  for k in pairs(new_paths) do if not classic_paths[k] then same = false; print('  missing in classic: ' .. k) end end
+  for k in pairs(classic_paths) do if not new_paths[k] then same = false; print('  missing in new: ' .. k) end end
+  check('looks: both palettes have the same colors', same)
+  -- the colors in use are the look's
+  local r = a.color.accent.background()
+  check('looks: accent color of the look', near(r, pick(229, 227)))
+  -- widgets made while the files loaded (before the look was known) carry the look's colors
+  check('looks: a label made at load has the look\'s color', a.credit_label.__text_color and near(a.credit_label.__text_color[1], pick(107, 125)))
+  check('looks: colored text made at load follows the look', auction_listing.time_left(1):upper():find(pick('E8574A', 'FF0000'), 1, true) ~= nil)
+  check('looks: the window is square in New, rounded in Classic', #a.frame.aux_fill.pieces == pick(1, 7))
+  local fill = a.frame.aux_fill.pieces[1]
+  check('looks: the window fill has the look\'s color', fill.__vertex_color and near(fill.__vertex_color[1], pick(26, 22)))
+  check('looks: column headers are square in both', #sniper_env.listing.headCells[1].aux_fill.pieces == 1)
+  check('looks: the top bands only show in New', select(4, a.color.band_edge()) == pick(1, 0) and select(4, a.color.band()) == pick(1, 0))
+  -- nothing is kept once the look is applied: painting costs nothing more while playing
+  check('looks: nothing kept after login', gui_env.pending_paint == nil and gui_env.pending_shapes == nil and gui_env.pending_sheens == nil)
+  check('looks: every color at login painted without an error', gui_env.theme_error == nil)
+  local ran = 0
+  gui_env.themed(function() ran = ran + 1 end)
+  check('looks: painting after login runs once and is not kept', ran == 1 and gui_env.pending_paint == nil)
+  -- an unknown look is the New look
+  check('looks: unknown name is New', a.set_palette('bogus') == 'new')
+  a.set_palette(THEME)
+  -- Tyler, 2026-10-09: text boxes were hard to find on the near black panels (Filter Builder). In
+  -- New a sunken field has a gray edge and is darker than the panel around it.
+  local P = a.PALETTES.new
+  check('new look: an input edge stands out from the panel', P.input.border[1] - P.panel.background[1] >= 30)
+  check('new look: an input is darker than the panel', P.input.background[1] < P.panel.background[1])
+  check('new look: blacks toned back', P.panel.background[1] >= 16 and P.window.background[1] >= 24)
+end)
+
+-- 0.6, Tyler build 5: the Sniper is for making money. Fading Echo (gray) and Trapper's Shirt showed
+-- as deals at 1s against usual prices of 79s and 90s that no one pays.
+try('0.6: sniper leaves out grays and thin history', function()
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local d = h.today()
+  local real_info = G.GetItemInfo
+  local quality = 0
+  G.GetItemInfo = function(id) return 'Fading Echo', 'link', quality, 1, 1, 'Junk', 'Junk', 1, '', 1, 50 end
+  local full = {{value = 7900, day = d - 1, units = 13}, {value = 7900, day = d - 2, units = 13}, {value = 7900, day = d - 3, units = 13}}
+  h.write_record('601:0', {day = d, points = full})
+  local usual, vendor, days = sniper.item_facts('601:0', 601)
+  check('sniper: a gray item has no usual price and no vendor price', usual == nil and vendor == 0 and days == 0)
+  check('sniper: so a gray item is never a deal, even below vendor price', sniper.judge(100, usual, vendor, days, 60, 0) == nil)
+  quality = 1
+  usual, vendor, days = sniper.item_facts('601:0', 601)
+  check('sniper: a white item with 3 days of Full scans can be a deal', usual == 7900 and days == 3 and sniper.judge(100, usual, vendor, days, 60, 500) ~= nil)
+  -- Fading Echo's history: yesterday a complete look (1s, 1 listed), before that two 0.4 lowest-only days at 79s
+  h.write_record('602:0', {day = d, points = {{value = 100, day = d - 1, units = 1}, {value = 7900, day = d - 3}, {value = 7900, day = d - 4}}})
+  usual, vendor, days = sniper.item_facts('602:0', 602)
+  check('sniper: only days with a complete look count', days == 1)
+  check('sniper: so Fading Echo at 1s is not a deal', sniper.judge(100, usual, vendor, days, 60, 5) == nil)
+  G.GetItemInfo = real_info
+end)
+
+-- 0.6, Tyler build 4: g, s and c keep their coin colors wherever money is shown, buttons included
+try('0.6: coin colors everywhere', function()
+  local money = loadstring("select(2, ...) 'aux.test63'; return require")('auxForever', addon) 'aux.util.money'
+  local bar_env = loadstring("select(2, ...) 'aux.gui.buy_bar'; return _M")('auxForever', addon)
+  local recipe_env = loadstring("select(2, ...) 'aux.tabs.search.recipe'; return _M")('auxForever', addon)
+  local sniper_env = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local bar = loadstring("select(2, ...) 'aux.test64'; return require")('auxForever', addon) 'aux.gui.buy_bar'
+  bar.show_item{record = {item_id = 7101, name = 'Sword', buyout_price = 460, bid_price = 0, count = 1, link = 'x'}, name = 'Sword', texture = 1, on_buy = function() end, on_bid = function() end, busy = function() return false end}
+  for _ = 1, 3 do tick() end
+  local text = ''
+  for _, f in ipairs(frames) do
+    if type(f.__text) == 'string' and f.__text:find('^Buy for') then text = f.__text end
+  end
+  check('coins: the Buy button money has a silver s and a copper c', text:find('Buy for', 1, true) ~= nil and text:find(money.SILVER_TEXT, 1, true) ~= nil and text:find(money.COPPER_TEXT, 1, true) ~= nil)
+  bar.clear()
+  -- no money is ever written without its coin colors outside typing fields and search text
+  local plain = 0
+  for _, file in ipairs{'gui/buy_bar.lua', 'tabs/search/recipe.lua', 'tabs/sniper/frame.lua'} do
+    local src = io.open(file):read('*a')
+    for _ in src:gmatch('to_string%([^\n]-, *nil, *nil, *true%)') do plain = plain + 1 end
+  end
+  check('coins: no money without coin colors on buttons, the recipe line or the Sniper', plain == 0)
+end)
+
+-- 0.6, Tyler 2026-10-09: zebra rows, every second row dark gray, under hover and selection
+try('0.6: zebra rows', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local sniper_env = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  -- rows are made when a table gets its height
+  G.__geometry = {size = 300, edge = 100}
+  local rt = sniper_env.listing
+  rt.__scripts.OnSizeChanged(rt)
+  local rows = rt.rows
+  check('zebra: first row plain', rows[1] and rows[1].stripe == nil)
+  check('zebra: second row striped', rows[2] and rows[2].stripe ~= nil)
+  check('zebra: third row plain', rows[3] and rows[3].stripe == nil)
+  local c = rows[2] and rows[2].stripe and rows[2].stripe.__texture_color
+  check('zebra: a faint light shade (dark gray on the table)', c and c[1] == 1 and c[4] > 0 and c[4] < .08)
+  local st = loadstring("select(2, ...) 'aux.test62'; return require")('auxForever', addon) 'aux.gui.listing'
+  local t = st.new(new_frame())
+  t:SetColInfo({{name = 'A', width = 1}})
+  t:SetData({{cols = {{value = 'x'}}}, {cols = {{value = 'y'}}}})
+  check('zebra: the other tables too', t.rows[2] and t.rows[2].stripe ~= nil and t.rows[1].stripe == nil)
+  G.__geometry = nil
+end)
+
+-- 0.6: Settings has the look (with a reload button when the choice changes) and the tooltip lines
+-- (a player on CurseForge asked for the chat settings in the menu, FB-008)
+try('0.6: settings', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local other = THEME == 'new' and 'classic' or 'new'
+  a.refresh_settings()
+  check('settings: no reload button while the look is the one in use', a.reload_button.__shown == false)
+  a.look_buttons[other].__scripts.OnClick(a.look_buttons[other])
+  check('settings: picking the other look saves it', a.account_data.theme == other)
+  check('settings: and offers a reload', a.reload_button.__shown == true and a.reload_note.__text:find('theme after a reload', 1, true) ~= nil)
+  -- Tyler, build 4: players see it as the Theme, not the Look
+  local src = io.open('frame.lua'):read('*a')
+  check('settings: the row is called Theme', src:find("row(popup, LEFT_X, -110, 30, 'Theme',", 1, true) ~= nil and not src:find("30, 'Look',", 1, true))
+  local reloaded
+  G.ReloadUI = function() reloaded = true end
+  a.reload_button.__scripts.OnClick(a.reload_button)
+  check('settings: Reload now reloads', reloaded)
+  a.look_buttons[THEME].__scripts.OnClick(a.look_buttons[THEME])
+  check('settings: back to the look in use, no reload needed', a.account_data.theme == THEME and a.reload_button.__shown == false)
+  check('settings: colors stay those of this login until the reload', a.theme == THEME)
+  -- tooltip lines: each box flips its line and shows its state
+  local keys = {}
+  for _, box in ipairs(a.tooltip_boxes) do keys[box.key] = true end
+  local all = true
+  for _, k in ipairs{'value', 'daily', 'merchant_sell', 'merchant_buy', 'disenchant_value', 'disenchant_distribution', 'money_icons'} do
+    if not keys[k] then all = false end
+  end
+  check('settings: every /aux tooltip line has a box', all and #a.tooltip_boxes == 7)
+  local box = a.tooltip_boxes[1]
+  local checked
+  local own_set_checked = rawget(box, 'SetChecked')
+  rawset(box, 'SetChecked', function(_, v) checked = v end)
+  local before = a.character_data.tooltip[box.key]
+  box.__scripts.OnClick(box)
+  check('settings: a box turns its tooltip line off and on', a.character_data.tooltip[box.key] == not before and checked == not before)
+  box.__scripts.OnClick(box)
+  check('settings: and back', a.character_data.tooltip[box.key] == before and checked == before)
+  rawset(box, 'SetChecked', own_set_checked)
+  -- build 3 (Tyler approved the mockup): the tooltip lines are switches, not checkboxes
+  check('settings: tooltip lines are switches', box.knob ~= nil and box.on_click ~= nil)
+  local was = a.character_data.tooltip[box.key]
+  box.__scripts.OnClick(box)
+  check('settings: a switch moves with its line', box:GetChecked() == not was)
+  box.__scripts.OnClick(box)
+  check('settings: and back again', box:GetChecked() == was)
+  -- build 4 (Tyler): Bid prices left the menu (bids are rare on Forever and "per stack" means
+  -- nothing there); /aux post bid still shows or hides the bid table at once
+  local post_env = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  check('settings: no Bid prices row', a.bid_buttons == nil)
+  SlashCmdList.AUX('post bid stack')
+  check('settings: the chat command shows it at once too', a.account_data.post_bid == 'stack' and post_env.frame.bid_listing.__shown == true)
+  SlashCmdList.AUX('post bid off')
+  check('settings: and hides it', a.account_data.post_bid == nil and post_env.frame.bid_listing.__shown == false)
 end)
 
 print('done, errors: ' .. errors)

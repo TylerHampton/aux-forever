@@ -6,6 +6,33 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.6 (in progress)
+
+- Two themes, picked in Settings (the gear): New (below, the default) and Classic, the look of 0.5.
+  A Reload now button appears when you change it. In Classic the main buttons (Search, Buy, Post)
+  are dark amber with an amber outline instead of solid amber, so prices on them stay readable.
+- A wider Settings menu in two columns: Window (background, scale, theme) and Posting (default
+  duration) on the left, the tooltip lines on the right, each with an on/off switch:
+  Value, Today, vendor prices, disenchant value and results, coin icons. The `/aux` commands still
+  work (suggested by a player on CurseForge).
+- `/aux post bid` shows or hides the Post tab's bid table at once; it used to need a reload.
+- Prices show the gold, silver and copper letters in their coin colors everywhere, also on the Buy
+  and Confirm buttons, the recipe line and the Sniper.
+- Tables have zebra rows again, every second row in dark gray.
+- Sniper: gray items are never deals, and a usual price counts only when it rests on at least 3
+  days with a complete look at the item (a Full scan or a Full search), so a few old asking prices
+  cannot make junk look like a bargain.
+- New look, designed by Webster, from his UI Kit and screen mockups: near-black panels with black
+  edges and square corners, raised buttons that are lighter at the top, one gold color for what is
+  selected or the main action. The selected tab, sub tab and
+  quantity have a gold outline; the main button of each screen (Search, Post, Buy, Start) has a gold
+  outline and label instead of a solid orange fill. Tables have raised column headers, the sorted
+  column is white with a gold arrow, and the selected row is gold with a bar at its left edge. The
+  percentages, money in and out, and warnings use softer colors. The game's own font is kept:
+  Forever does not load fonts from addons.
+- New look: the blacks are a little lighter and text boxes have a gray edge, so they stand out
+  from the panels (the Filter Builder's boxes were hard to find).
+
 ## 0.5 (2026-10-08)
 
 Better prices, clearer posting and clicks that work the same everywhere, with player feedback from
