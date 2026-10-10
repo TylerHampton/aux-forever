@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-10: 0.6 released on GitHub and CurseForge.
+Last updated 2026-10-10: 0.6 released on GitHub and CurseForge; 0.6.1 build 1 (recipe button fix) sent to Tyler.
 
 ## Start here (next session, after the 0.6 release)
 
@@ -20,6 +20,13 @@ Last updated 2026-10-10: 0.6 released on GitHub and CurseForge.
   the CurseForge player's in-game name for FB-008 (changelog credit); Tyler's tweaks to the New
   theme; Sniper "profit at least" 1g suggested instead of his 5c (his "below vendor" deals profit
   6c to 2s).
+- **0.6.1 build 1** (2026-10-10, branch `claude/upbeat-davinci-jqwq9d`, not tried in game):
+  Tyler found "Search in aux" covering Blizzard's Track Recipe checkbox. Cause, from Forever's UI
+  source (Gethe/wow-ui-source, branch `forever`, `Blizzard_Professions/Camelot/
+  Blizzard_ProfessionsCrafting.lua`, diff of builds 70245 and 70291): Blizzard's 2026-10-08 patch
+  moved the checkbox from BOTTOMLEFT (17, 11) to BOTTOMRIGHT. Fix: `recipe_button_spot` /
+  `place_button` in `tabs/search/recipe.lua` put the button left of the checkbox when the checkbox
+  is anchored on the right (read from its `GetPoint`), placed again on each `Init`.
 - Changelogs list every change with detail (AGENTS.md, Tyler 2026-10-10).
 - Test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (last used: `0-6-release`, the
   5-minute check, passed). Zips are named `auxForever-<version>-build<n>.zip`.

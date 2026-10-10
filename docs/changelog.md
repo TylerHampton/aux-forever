@@ -6,6 +6,15 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.6.1 (in progress)
+
+### Fixes
+
+- The "Search in aux" button on the profession window no longer covers Blizzard's Track Recipe
+  checkbox. Blizzard's patch of October 8 moved that checkbox from the bottom left of the recipe
+  panel to the bottom right, where the button has been since 0.4; the button now sits just left
+  of the checkbox wherever Blizzard puts it (reported by Tyler).
+
 ## 0.6 (2026-10-10)
 
 A new look by Webster, with the 0.5 look kept as the Classic theme, a redesigned Post tab, a bigger
