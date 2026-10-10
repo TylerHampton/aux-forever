@@ -662,7 +662,10 @@ try('post auto price', function()
   post.update_item(item)
   check('post: gold once the listings are in', aux.status_bar.done == true)
   local plain = function(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local stub_deposit = C_AuctionHouse.CalculateCommodityDeposit
+  C_AuctionHouse.CalculateCommodityDeposit = function() return 120 end
   post.update_item_configuration()
+  C_AuctionHouse.CalculateCommodityDeposit = stub_deposit
   check('deposit shown as money going out', plain(post.deposit.__text):find('^%-') ~= nil and plain(post.deposit_label.__text):find('^Deposit') ~= nil)
   check('you get shown in green', post.net_summary.__text:upper():find(pick('4DCC66', '6FD39A'), 1, true) ~= nil)
   aux.set_tab(4)
@@ -695,6 +698,16 @@ try('post money details', function()
   rawset(post.stack_size_input, 'GetNumber', function() return 1 end)
   post.set_unit_buyout_price(100)
   post.update_item_configuration()
+  local layout = loadstring("select(2, ...) 'aux.tabs.post'; return price_layout")('auxForever', addon)
+  check('post layout: OF USUAL fits left of the divider at the smallest window', 777 + layout.divider_from_right - layout.usual_x >= 64)
+  check('post layout: the headings sit above the first price field', layout.header_y >= layout.first_row + 4)
+  rawset(post.stack_count_input, 'GetNumber', function() return 1 end)
+  rawset(post.stack_size_input, 'GetNumber', function() return 1 end)
+  local deposit = C_AuctionHouse.CalculateCommodityDeposit
+  C_AuctionHouse.CalculateCommodityDeposit = function() return 0 end
+  post.update_item_configuration()
+  check('no deposit shows 0c, not -0c', plain(post.deposit.__text) == '0c')
+  C_AuctionHouse.CalculateCommodityDeposit = deposit
   check('no per item amount for a single item', plain(post.net_detail.__text) == 'vendor pays 5c' and post.vendor_warning.__shown ~= true)
   post.selected_item = {key = '2:0', item_id = 2, name = 'Staff', quality = 2, count = 1, unit_vendor_price = 0}
   post.set_unit_start_price(1500); post.set_unit_buyout_price(1500)

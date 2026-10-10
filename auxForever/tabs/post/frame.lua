@@ -160,10 +160,15 @@ AUCTION_CUT = .05 -- the auction house keeps 5% of a sale
 local LEFT_X = 12 -- the left column
 local COUNT_X, DURATION_X = 99, 72 -- where the Count field and the Duration buttons start
 local PRICE_X = 247 -- the middle column
-local FIELD_X, FIELD_W = PRICE_X + 70, 112 -- the price fields; the % fits at the smallest window
+local FIELD_X, FIELD_W = PRICE_X + 68, 104 -- the price fields
+local USUAL_X = FIELD_X + FIELD_W + 8 -- the % of usual, left of the middle divider
 local RECEIPT_X, RECEIPT_W = -264, 252 -- the right column, from the panel's right edge
 local ROW1, ROW2 = -58, -90
-local PRICE_ROW1, PRICE_ROW2 = -58, -92
+local PRICE_ROW1, PRICE_ROW2 = -62, -96
+local HEADER_Y = PRICE_ROW1 + 6 -- the bottom of PER ITEM and OF USUAL, clear of the first field
+-- for the layout test: the smallest window (1000 wide) leaves the panel about 777 wide (build 7:
+-- OF USUAL ran into the divider there, and PER ITEM into the first field)
+M.price_layout = {usual_x = USUAL_X, divider_from_right = RECEIPT_X - 14, header_y = HEADER_Y, first_row = PRICE_ROW1}
 
 local function small_button(parent, text, width, size)
     local btn = gui.button(parent, size or gui.font_size.medium)
@@ -339,12 +344,12 @@ end
 do
     local label = gui.label(frame.parameters, gui.font_size.small)
     label:SetJustifyH('RIGHT')
-    label:SetPoint('BOTTOMRIGHT', frame.parameters, 'TOPLEFT', FIELD_X + FIELD_W, PRICE_ROW1 - 1)
+    label:SetPoint('BOTTOMRIGHT', frame.parameters, 'TOPLEFT', FIELD_X + FIELD_W, HEADER_Y)
     label:SetText('PER ITEM')
     gui.text_color(label, aux.color.label.disabled)
     price_caption = label
     local usual = gui.label(frame.parameters, gui.font_size.small)
-    usual:SetPoint('BOTTOMLEFT', frame.parameters, 'TOPLEFT', FIELD_X + FIELD_W + 10, PRICE_ROW1 - 1)
+    usual:SetPoint('BOTTOMLEFT', frame.parameters, 'TOPLEFT', USUAL_X, HEADER_Y)
     usual:SetText('OF USUAL')
     gui.text_color(usual, aux.color.label.disabled)
     usual_caption = usual
@@ -436,7 +441,7 @@ local function price_input(get_price, set_price, on_user_input)
     editbox.caption = gui.label(editbox, gui.font_size.small)
     editbox.caption:SetPoint('LEFT', editbox, 'LEFT', PRICE_X - FIELD_X, 0)
     editbox.badge = badge(editbox)
-    editbox.badge:SetPoint('LEFT', editbox, 'RIGHT', 10, 0)
+    editbox.badge:SetPoint('LEFT', editbox, 'RIGHT', USUAL_X - FIELD_X - FIELD_W, 0)
     return editbox
 end
 do
@@ -619,7 +624,7 @@ function M.layout_parameters(commodity)
     end
     if commodity then
         stack_count_input.caption:SetText('Quantity')
-        at(unit_buyout_price_input, PRICE_ROW1 + 2, FIELD_X, FIELD_W)
+        at(unit_buyout_price_input, PRICE_ROW1, FIELD_X, FIELD_W)
         unit_buyout_price_input:SetHeight(32)
         unit_buyout_price_input:SetFontSize(20)
         unit_buyout_price_input.caption:SetText('Price')

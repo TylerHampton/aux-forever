@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-10: 0.6 build 7 (the new Post panel, option A) on `claude/upbeat-davinci-jqwq9d`, sent to Tyler with build 6's Sniper checks; not tried in game yet.
+Last updated 2026-10-10: 0.6 build 8 (Post panel spacing fixes after build 7's test) on `claude/upbeat-davinci-jqwq9d`; not tried in game yet.
 
 ## Start here (next session, after 2026-10-09)
 
@@ -49,6 +49,19 @@ gear (what `item_post_prices` already did). The "On Forever the newest listing..
 the note; it stays in the ? tooltip. Layout sized for the smallest window (panel about 777 wide):
 the % column ends at the middle divider there. Not tried in game; test page build id
 `0-6-build-7` (11 steps: 8 Post, build 6's 3 Sniper), results in `builds/0-6-build-7/results`.
+
+Build 7 in game (Tyler, 2026-10-10, `builds/0-6-build-7/results`): goblin and bid note pass;
+gear, trade goods, vendor warning (both themes), posting and both tooltips look right in the
+screenshots. Found: PER ITEM overlapped the top of the first price field; at a narrow window OF
+USUAL was cut off by the divider; Linen Cloth's deposit read "-0c". Build 8 fixes all three
+(`price_layout` in `tabs/post/frame.lua` and a test that fails on build 7's numbers). Sniper: no
+gray items (pass). Every deal was "below vendor" with Usual "?", and Tyler wrote "I guess my data
+is just gone idk". Not lost: the Post tab shows "% of usual" for the same items, so the history is
+there. Inferred cause: build 6 counts only PAST days with a complete look (`cached` in
+`core/history.lua`, today is not counted), and complete looks exist only since 0.5 (2026-10-08),
+so no item can reach `MIN_DAYS` = 3 before 2026-10-11 at the earliest. Asked Tyler whether today's
+Full scan should count. The empty-list step was written wrongly on the page (Stop then Clear shows
+"Press Start..."; the gray-items message shows only while running); rewritten for build 8.
 
 ## 0.6 build 2 (2026-10-09, branch `claude/eager-dijkstra-drmz2k`)
 

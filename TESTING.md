@@ -8,37 +8,18 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.6 build 7: the new Post panel, plus build 6's Sniper checks
+## Current build: 0.6 build 8: Post panel spacing fixes
 
-Branch `claude/upbeat-davinci-jqwq9d`. Build 6 was never tested, so its three Sniper steps are here
-too. **Full game restart needed** (new texture: the warning triangle; the goblin picture changed).
+Branch `claude/upbeat-davinci-jqwq9d`. Build 7 tested 2026-10-10: the panel works (goblin, gear,
+trade goods, vendor warning, bid note, posting, tooltips, Classic). Fixed here: PER ITEM ran into
+the first price field, OF USUAL was cut off by the divider at the smallest window, and a trade
+good with no deposit showed "-0c". `/reload` is enough (no new files).
 
-Post tab (New theme):
-- [ ] 1. Goblin: the Undercut button shows the new goblin (faded while off, bright while on).
-- [ ] 2. Gear: pick a piece of gear. Three columns: the item, Count and Duration on the left; Match
-  lowest / Undercut / ? over two narrow price fields with the % under OF USUAL in the middle; on
-  the right Total, Auction house cut 5%, You get, the deposit and a wide Post button at the bottom.
-- [ ] 3. Trade goods: pick cloth. Quantity instead of Count, one Price field, and under You get a
-  gray line with the amount each and what a vendor pays.
-- [ ] 4. Vendor warning: on an item a vendor buys, type a price below what the vendor pays. A red
-  box with the red warning triangle says "Vendor pays more" with the vendor's amount, and You get
-  turns red. Raise the price again: the box goes away.
-- [ ] 5. Gear with the starting bid equal to the buyout: a gray second line under the price note
-  says "Bid equals buyout, so it posts as buyout only".
-- [ ] 6. Make the window as narrow as it goes (resize grip). Nothing overlaps: the % stays left of
-  the line, the receipt and the Post button stay whole.
-- [ ] 7. Post one cheap item. It posts; the message shows in the left column under Duration.
-  Hovering the deposit line explains the deposit; hovering ? explains Match lowest and Undercut.
-- [ ] 8. Classic theme (Settings, Theme, Classic, Reload now): the Post tab looks right, the
-  warning box is readable. Switch back to New.
-
-Sniper (from build 6):
-- [ ] 9. Start and let one round finish. No gray item (gray name) is in the list, not even
-  "below vendor". Fading Echo is gone.
-- [ ] 10. The deals left have a usual price that looks believable for what the item is. Note any
-  that still look like junk, with a screenshot.
-- [ ] 11. Stop. With no deals, the message under the table says gray items are left out and deals
-  need 3 days with a Full scan.
+- [ ] 1. Post tab, any item: PER ITEM and OF USUAL sit clearly above the first price field.
+- [ ] 2. Make the window as narrow as it goes: OF USUAL is whole, left of the divider line.
+- [ ] 3. Linen Cloth, quantity 1: the deposit line says 0c, not -0c.
+- [ ] 4. Sniper: press Start and let one round finish with no deals (or Clear while it runs). The
+  message under the table says gray items are left out and deals need 3 days with a Full scan.
 
 ## Before every release: the 5-minute check
 

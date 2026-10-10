@@ -666,7 +666,8 @@ function update_item_configuration()
             -- money going out in red (bright red when it is more than the player has), coming in green
             local amount = deposit_amount()
             local out = amount > GetMoney() and aux.color.red or aux.color.negative
-            deposit:SetText(out('-') .. money.to_string(amount, true, nil, out))
+            -- no deposit (cheap trade goods): a plain 0c, not "-0c"
+            deposit:SetText(amount > 0 and (out('-') .. money.to_string(amount, true, nil, out)) or money.to_string(0, true))
         end
         do
             -- what the sale brings in; red, with the warning box, when a vendor would pay more
