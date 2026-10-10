@@ -22,6 +22,13 @@ So:
 - Never write an entry as "user error". At most, write what the player expected and why the addon
   did not meet it.
 
+One rare exception (Tyler, 2026-10-10, after FB-008): when the player asks for something Forever's
+auction house itself does not have, such as Classic stacks, the problem is not the addon's.
+auxForever is for intermediate players who know the modern auction house; teaching the auction
+house is not its job. Record the entry as usual, set it `wont-fix` with this reason, and give Tyler
+a reply he can send the player. The test is narrow: the request must be impossible or meaningless
+on Forever's auction house. A screen that is merely confusing still falls under the main rule.
+
 ## Credit
 
 When a change comes from a player's feedback, its line in `docs/changelog.md` (which is also the
@@ -107,6 +114,7 @@ For whoever fixes or builds from it:
 | [FB-005](#fb-005-praise-the-list-of-sellable-items-on-the-left-of-the-post-tab) | 2026-10-08 | Darkhorse | praise | Post | n/a | Praise: the list of sellable items on the Post tab | new |
 | [FB-006](#fb-006-after-resizing-and-changing-the-scale-the-recent-searches-header-sticks-out-of-the-window) | 2026-10-08 | Garsterson | bug | Window | S3 | After resizing and changing the scale, the Recent Searches header sticks out of the window | fixed 0.5 31ac02c |
 | [FB-007](#fb-007-crafting-cost-in-the-profession-window-anywhere-in-the-world) | 2026-10-08 | Garsterson | request | Recipe search | n/a | Crafting cost in the profession window, anywhere in the world | built 0.5 5a935e1 |
+| [FB-008](#fb-008-post-cloth-in-several-stacks-of-a-chosen-size) | 2026-10-10 | Maggew | request | Post | n/a | Post cloth in several stacks of a chosen size, as in Classic | wont-fix (Forever has no stacks; Tyler: not the addon's job) |
 
 ## Players
 
@@ -121,6 +129,8 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
   reason (Tyler, 2026-10-08). Knows the retail "search every ingredient" feature
   (`docs/roadmap.md`, 0.4). Asked for recipe search before 0.4. Spelling of the in-game name not
   yet confirmed (Tyler wrote "Hot Pocket").
+- **Maggew**: CurseForge commenter (CurseForge name; in-game name unknown). Plays with Classic
+  auction house habits (FB-008).
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
   words.
@@ -539,6 +549,50 @@ Design (Claude's decision on point 3, with the rest filled in; build from this, 
 - How good the number is depends on how the usual price is worked out; see `docs/price-data.md`,
   "Is it the best way?" (one cheap auction can set a day's price; the cheapest unit understates the
   cost of buying many).
+
+### FB-008: Post cloth in several stacks of a chosen size
+
+- Received: 2026-10-10 (said on 2026-10-09, about an hour before Tyler's screenshot)
+- From: Maggew (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-09-maggew-curseforge.md)
+- Version: unknown
+- Type: request
+- Area: Post
+- Severity: n/a
+- Status: wont-fix (Tyler, 2026-10-10: Forever's auction house has no stacks, and teaching the
+  modern auction house is not the addon's job; see "How we read feedback", the exception)
+- Proposed: none
+
+Said:
+> Please make it so that I can sell multiple stacks. So for example, I have a hundred linen cloth.
+> I want to sell them in stacks of five. Right now, it makes me redo it over and over and over...
+> Maybe I'm able to do it, but because I don't have enough money, it wasn't able to show me I could
+> do it??
+
+> It just seemed a little odd because sometimes I like to make multiple post-stacks in different
+> quantities, like five, four, ten. That way you can totally capitalize and dominate the market
+
+Steps / setup: wants to post 100 Linen Cloth as 20 stacks of 5 in one go, as Classic aux did.
+
+Tyler's notes: replied on CurseForge that Forever has no stacks: the auction house groups all units
+of an item into one pile per price, so 122 Linen Cloth at 23c are posted at once by typing 122 in
+the Quantity field. Decision (2026-10-10): not built; the addon is for intermediate players who know
+the modern auction house. This entry is why the exception to "How we read feedback" exists.
+
+Recorder's notes:
+- Inference from the code and `docs/forever-auction-house.md`: cloth is a commodity. The Post tab
+  shows one Quantity box for it and posts one listing at a price per unit
+  (`tabs/post/core.lua`, `post_auction`). Buyers type how many they want and the game fills it from
+  the cheapest price first, so 20 x 5 at a price looks the same to buyers as 100 at that price.
+- What the player wants underneath (control how much is on the market and at what price) is
+  already possible: post part of the stock (a smaller Quantity), or post batches at different prices.
+- "Because I don't have enough money": likely the Post tab's faded Post button with "Not enough
+  money for the deposit" (`disabled_reason`). Not confirmed.
+
+Unknowns: his in-game name; which message he saw about money. Neither changes the decision.
+
+Ask Tyler: none.
 
 ## Before this log
 

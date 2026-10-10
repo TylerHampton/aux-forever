@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-08, after the 0.5 release.
+Last updated 2026-10-10 (FB-008 and the audience rule; no code changes since the 0.5 release).
 
 ## Start here (for the next session: 0.5.1 or 0.6)
 
@@ -22,8 +22,11 @@ Last updated 2026-10-08, after the 0.5 release.
      AGENTS.md Design language). Designs are not in the repository yet.
   4. Small loose ends from 0.5 (0.5.1 material), listed under "Open after 0.5" below.
 - **Player feedback:** `docs/feedback.md`. FB-001, FB-002, FB-003, FB-006, FB-007 are done in 0.5;
-  FB-004 rejected (direction); FB-005 praise. New entries start at FB-008 and are recorded by a
-  separate feedback session, not by the session that builds.
+  FB-004 rejected (direction); FB-005 praise; FB-008 (Classic stacks) wont-fix. New entries start at
+  FB-009 and are recorded by a separate feedback session, not by the session that builds.
+- **Audience (Tyler, 2026-10-10):** auxForever is for intermediate players who know Forever's modern
+  auction house. Requests for things that auction house does not have are answered, not built
+  (AGENTS.md, the exception after "a player's problem is the addon's problem").
 - **How Tyler tests** (worked well all through 0.5): each build gets a zip (sent with the file tool)
   and steps on the test page https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (republish
   `index.html` with a new `BUILD` id and steps; Tyler marks Pass/Fail with notes and screenshots;

@@ -40,8 +40,12 @@ Tyler owns the project and tests every change in the game. He is not a programme
 - Feedback from players reaches us through Tyler and is logged in `docs/feedback.md` (rules at
   the top of that file) before anyone fixes it. A player's problem is treated as the addon's
   problem, never as the player's mistake: the addon should make players good at the auction house
-  through clear screens and clear information (Tyler). Changes that come from feedback credit the
-  player by in-game name in `docs/changelog.md`.
+  through clear screens and clear information (Tyler). One rare exception (Tyler, 2026-10-10):
+  when a player asks for something Forever's auction house itself does not have (for example
+  Classic stacks), the feedback is answered and recorded as `wont-fix`, not built. auxForever is for
+  intermediate players who know the modern auction house; teaching it is not the addon's job.
+  When in doubt, the main rule applies. Changes that come from feedback credit the player by
+  in-game name in `docs/changelog.md`.
 
 ## Workflow
 
