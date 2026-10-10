@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-10: 0.6 released on GitHub and CurseForge; 0.6.1 build 1 (recipe button fix) sent to Tyler.
+Last updated 2026-10-10: 0.6 released on GitHub and CurseForge; 0.6.0.1 build 1 (recipe button fix) sent to Tyler.
 
 ## Start here (next session, after the 0.6 release)
 
@@ -20,7 +20,7 @@ Last updated 2026-10-10: 0.6 released on GitHub and CurseForge; 0.6.1 build 1 (r
   the CurseForge player's in-game name for FB-008 (changelog credit); Tyler's tweaks to the New
   theme; Sniper "profit at least" 1g suggested instead of his 5c (his "below vendor" deals profit
   6c to 2s).
-- **0.6.1 build 1** (2026-10-10, branch `claude/upbeat-davinci-jqwq9d`, not tried in game):
+- **0.6.0.1 build 1** (Tyler: a fix right after a release is 0.6.0.1, not 0.6.1) (2026-10-10, branch `claude/upbeat-davinci-jqwq9d`, not tried in game):
   Tyler found "Search in aux" covering Blizzard's Track Recipe checkbox. Cause, from Forever's UI
   source (Gethe/wow-ui-source, branch `forever`, `Blizzard_Professions/Camelot/
   Blizzard_ProfessionsCrafting.lua`, diff of builds 70245 and 70291): Blizzard's 2026-10-08 patch

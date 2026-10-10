@@ -6,7 +6,7 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
-## 0.6.1 (in progress)
+## 0.6.0.1 (in progress)
 
 ### Fixes
 

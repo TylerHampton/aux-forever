@@ -8,9 +8,9 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.6.1 build 1: Search in aux next to Track Recipe
+## Current build: 0.6.0.1 build 1: Search in aux next to Track Recipe
 
-Branch `claude/upbeat-davinci-jqwq9d`, TOC `forever-0.6.1`. `/reload` is enough (no new files).
+Branch `claude/upbeat-davinci-jqwq9d`, TOC `forever-0.6.0.1`. `/reload` is enough (no new files).
 
 - [ ] 1. At the auction house with aux open, open a profession window and pick a recipe: "Search
   in aux" sits just left of the Track Recipe checkbox, not on top of it. Both can be clicked.

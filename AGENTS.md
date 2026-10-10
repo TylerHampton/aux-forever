@@ -267,7 +267,8 @@ as interactive HTML pages; an HTML file Tyler can open in a browser works the sa
   by area, plus fixes and anything the player must do to update (Tyler, 2026-10-10: never "minor
   bug fixes" without saying which). It is also the CurseForge file's changelog.
 - `docs/roadmap.md`: what each version is for. A patch version (0.3.x) is bug fixes, speed and
-  small things only, no new features; new features go into the next minor version (0.4).
+  small things only, no new features; new features go into the next minor version (0.4). A fix
+  right after a release gets a fourth number: 0.6.0.1 after 0.6 (Tyler, 2026-10-10).
 - `docs/forever-auction-house.md`: how Forever's auction house works, with sources.
 - `TESTING.md`: the current build's in-game checklist and the 5-minute check before every release
   (six steps at most, Tyler's limit).
