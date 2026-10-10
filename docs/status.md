@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-10: 0.6 is ready to release (PR #15); waiting on the 5-minute pre-release check.
+Last updated 2026-10-10: 0.6 released on GitHub (v0.6); CurseForge upload being retried after a fix to the upload script.
 
 ## Start here (next session, after 2026-10-09)
 
@@ -88,7 +88,11 @@ Build 10 in game: "of usual" under the percentage and the Sniper's third line lo
 PR https://github.com/TylerHampton/aux-forever/pull/15 opened. Pre-release check passed
 (Tyler, 2026-10-10, test page `0-6-release`: open, buy, post, Auctions "Tied with 130 others",
 a Sniper round, the Materials line). The changelog was rewritten in full on Tyler's request (rule
-now in AGENTS.md). Then: merge PR 15 and run the Release workflow on `main`.
+now in AGENTS.md). PR 15 merged (49cc8cf); the Release workflow published the GitHub release
+v0.6 (https://github.com/TylerHampton/aux-forever/releases/tag/v0.6), but the first automatic
+CurseForge upload failed: 400 "Invalid JSON" in `metadata`. Cause: `curl -F` treats ";" in the
+changelog text as a field option and cut the JSON; reproduced locally. Fixed with `--form-string`
+in `.github/scripts/curseforge.sh` (PR after #15), then the Release workflow was run again.
 
 ## 0.6 build 2 (2026-10-09, branch `claude/eager-dijkstra-drmz2k`)
 
