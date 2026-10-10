@@ -784,11 +784,11 @@ function update_item(item)
 
     -- start from the lowest listing once the listings are in (auto_pick_price)
     auto_price_key = item.key
-    if not listings_known(item.key) then
-        refresh_entries()
-    else
-        listings_ready[item.key] = true
-    end
+    -- auxForever (0.6.0.2): every pick reads the item's listings fresh, as Refresh does. Listings
+    -- kept from a full scan or an earlier pick could be an hour old and grouped by listing, so the
+    -- price was matched to auctions that had sold or missed newer ones (Tyler, Scroll of Stamina:
+    -- 27 at 13s from the full scan, 42 after Refresh).
+    refresh_entries()
     update_post_done()
 
     refresh = true
@@ -869,9 +869,8 @@ function refresh_entries()
 		set_bid_selection()
         set_buyout_selection()
         auto_price_key = item_key
-        listings_ready[item_key] = nil
-        update_post_done()
-        bid_records[item_key], buyout_records[item_key] = nil, nil
+        -- only the item being posted keeps its listings; any other is read again when picked
+        clear_auctions()
         local query = scan_util.item_query(selected_item.item_id)
 
 		scan.start{
@@ -918,30 +917,11 @@ function refresh_entries()
 	end
 end
 
--- auxForever: a full scan reads every auction on the auction house (69,591 in Tyler's, 0.4.1) and
--- aux kept the listings of every item for the Post tab, all session long: about 30 MB after a
--- cleanup. The Post tab only shows items in your bags, so the full scan now keeps theirs alone;
--- any other item's listings are read when it is picked, as before.
-local scan_keys
-
+-- forget every item's listings
 function M.clear_auctions()
     bid_records, buyout_records = {}, {}
     aux.wipe(listings_ready)
-    scan_keys = {}
-    for slot in info.inventory() do
-        local item_info = info.container_item(unpack(slot))
-        if item_info then
-            scan_keys[item_info.item_key] = true
-        end
-    end
     update_post_done()
-end
-
--- an auction from a full scan: kept only for items in the bags
-function M.record_scanned_auction(auction)
-    if scan_keys and scan_keys[auction.item_key] then
-        record_auction(auction)
-    end
 end
 
 -- /aux memory detail: items whose listings the Post tab keeps
@@ -949,11 +929,6 @@ function M.memory_counts()
     local n = 0
     for _ in pairs(bid_records) do n = n + 1 end
     return n
-end
-
--- whether the listings of an item are known (from a full scan or an earlier read)
-function M.listings_known(item_key)
-    return bid_records[item_key] ~= nil
 end
 
 function M.record_auction(auction)

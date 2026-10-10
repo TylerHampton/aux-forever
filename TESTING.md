@@ -8,10 +8,18 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: none (0.6.0.1 released 2026-10-10)
+## Current build: 0.6.0.2 build 1 (Post tab reads listings fresh)
 
-The last build, 0.6.0.1 build 1 (Search in aux next to Track Recipe), passed in game and was
-released. The next build starts its steps here.
+Install the zip, then `/reload` (no full restart needed).
+
+- [ ] 1. Talk to an auctioneer and run a Full scan. When it finishes, open the Post tab and click
+  an item that has many listings at the same price (Scroll of Stamina was the example): the
+  status bar fills, and each price shows as one row with the total for sale, as after Refresh.
+- [ ] 2. The price box starts at the lowest listing in that table ("Same as the lowest listing").
+- [ ] 3. Click a second item, then the first one again: each click reads the listings again
+  (the status bar fills each time), with no BugSack error.
+- [ ] 4. Post part of a stack (for example 1 of 2): after "Posted", the table reads the
+  listings again (the status bar fills) and the price starts at the lowest listing again.
 
 ## Before every release: the 5-minute check
 

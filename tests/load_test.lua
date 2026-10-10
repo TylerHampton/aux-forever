@@ -634,10 +634,15 @@ try('post auto price', function()
   local aux = require 'aux'
   local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
   post.clear_auctions()
-  local function listing(price, own)
-    post.record_auction({item_key = '4422:0', commodity = true, unit_buyout_price = price, count = 5, duration = 2, owner = own and 'P' or 'Someone'})
-  end
-  listing(300); listing(240); listing(290)
+  -- picking an item searches it (0.6.0.2); the search answers with these listings
+  local scan_exports = require 'aux.core.scan'
+  local real_start = scan_exports.start
+  rawset(scan_exports, 'start', function(params)
+    for _, price in ipairs{300, 240, 290} do
+      params.on_auction({item_key = '4422:0', commodity = true, unit_buyout_price = price, count = 5, duration = 2, owner = 'Someone'})
+    end
+    params.on_complete()
+  end)
   local item = {key = '4422:0', item_id = 4422, commodity = true, name = 'Scroll of Stamina', quality = 1, count = 2, max_stack = 5}
   post.set_undercut_mode(false)
   post.update_item(item)
@@ -671,6 +676,7 @@ try('post auto price', function()
   aux.set_tab(4)
   check('post: leaving the tab ends gold', aux.status_bar.done == false)
   post.selected_item = nil
+  rawset(scan_exports, 'start', real_start)
 end)
 
 -- Post: per-item amount and the vendor warning under "You get"; deposit explained on mouse over
@@ -2078,24 +2084,32 @@ try('sniper: a selected gear deal is checked again and the rounds hold', functio
   restore()
 end)
 
--- Tyler, 0.4.1: after a full scan (69,591 auctions) aux held 42 MB after a cleanup: the Post tab kept
--- the listings of every item. It keeps only the items in the bags now.
-try('full scan keeps Post listings for bag items only', function()
+-- Tyler, 0.6.0.1: the Post tab showed Scroll of Stamina from the last full scan (27 at 13s, split
+-- by listing) and the real listings only after Refresh (42 at 13s). Picking an item now always
+-- searches it, and the full scan no longer hands listings to the Post tab.
+try('post: picking an item reads its listings fresh', function()
   local req = loadstring("select(2, ...) 'aux.test46'; return require")('auxForever', addon)
-  local info = req 'aux.util.info'
+  local scan_exports = req 'aux.core.scan'
   local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
-  local real_inventory, real_container = info.inventory, info.container_item
-  rawset(info, 'inventory', function()
-    local done = false
-    return function() if not done then done = true return {0, 1} end end
-  end)
-  rawset(info, 'container_item', function() return {item_key = '111:0'} end)
+  local real_start, searches, answer = scan_exports.start, 0, nil
+  rawset(scan_exports, 'start', function(params) searches = searches + 1; answer = params end)
   post.clear_auctions()
-  post.record_scanned_auction({item_key = '111:0', commodity = true, unit_buyout_price = 50, count = 5, duration = 2, owner = 'Someone'})
-  post.record_scanned_auction({item_key = '222:0', commodity = true, unit_buyout_price = 70, count = 9, duration = 2, owner = 'Someone'})
-  check('full scan: an item in the bags keeps its listings', post.listings_known('111:0'))
-  check('full scan: an item not in the bags is not kept', not post.listings_known('222:0'))
-  rawset(info, 'inventory', real_inventory); rawset(info, 'container_item', real_container)
+  -- listings known from earlier (a full scan, an earlier pick): old prices
+  post.record_auction({item_key = '4422:0', commodity = true, unit_buyout_price = 1300, count = 6, duration = 4, owner = 'Someone'})
+  post.record_auction({item_key = '765:0', commodity = true, unit_buyout_price = 50, count = 5, duration = 2, owner = 'Someone'})
+  local item = {key = '4422:0', item_id = 4422, commodity = true, name = 'Scroll of Stamina', quality = 1, count = 2, max_stack = 5}
+  post.update_item(item)
+  check('fresh listings: picking an item searches it', searches == 1)
+  check('fresh listings: old listings are not shown', post.memory_counts() == 0)
+  answer.on_auction({item_key = '4422:0', commodity = true, unit_buyout_price = 1200, count = 42, duration = 4, owner = 'Someone'})
+  answer.on_complete()
+  post.on_update()
+  check('fresh listings: the price comes from the search', post.get_unit_buyout_price() == 1200)
+  post.update_item(item)
+  check('fresh listings: picking it again searches again', searches == 2)
+  check('fresh listings: a full scan no longer feeds the Post tab', post.record_scanned_auction == nil)
+  rawset(scan_exports, 'start', real_start)
+  post.selected_item = nil
   post.clear_auctions()
 end)
 

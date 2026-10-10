@@ -1,11 +1,22 @@
 # Status
 
-Last updated 2026-10-10 (end of the session that built and released 0.6 and 0.6.0.1).
+Last updated 2026-10-10 (0.6.0.2 build 1 built, waiting for Tyler's test).
 
 ## Start here (next session)
 
-**Where things stand:** 0.6 and 0.6.0.1 are released and on `main`. No build is in progress and
-no branch has unmerged work. Start the next version from the latest `main`.
+**Where things stand:** 0.6 and 0.6.0.1 are released and on `main`. **0.6.0.2 build 1** is on
+branch `claude/kind-rubin-olf9zf`, waiting for Tyler's test in game (steps in `TESTING.md`).
+
+- **0.6.0.2 build 1** (2026-10-10): the Post tab always searches the picked item. Tyler's
+  screenshots: Scroll of Stamina showed the last Full scan's listings (27 at 13s, one row per
+  listing, some rows without a time left) and the real ones only after Refresh (42 at 13s). Cause:
+  `update_item` skipped the search when listings were already known (`listings_known`, from the
+  full scan since 0.4.1, or from an earlier pick, as in the original aux), and full-scan listings
+  are grouped by price, quantity, time left and owner while a commodity search gives one row per
+  price. Tyler's decision after Claude's recommendation: always search, the full scan no longer
+  feeds the Post tab (`record_scanned_auction`, `listings_known` and the bag-item filter removed;
+  `refresh_entries` keeps only the picked item's listings). Test: `post: picking an item reads its
+  listings fresh`. Not yet tested in game.
 
 - **Released 0.6.0.1** on 2026-10-10 (PR #18, `main` b17b9bc): "Search in aux" no longer covers
   Blizzard's Track Recipe checkbox (details below). Tag `v0.6.0.1`, GitHub pre-release
@@ -27,7 +38,7 @@ no branch has unmerged work. Start the next version from the latest `main`.
   update this file in a small PR. Run the 5-minute check (`TESTING.md`) before a minor release.
 - **Version numbers** (Tyler, 2026-10-10): a bug fix raises the fourth number (0.6 -> 0.6.0.1
   -> 0.6.0.2); a bigger update within the same version raises the third (0.6.1); new features are
-  the next minor version (0.7). Tyler has another bug fix coming in a new chat: that is 0.6.0.2.
+  the next minor version (0.7).
 - **Changelogs** list every change with a little detail, grouped by area (Tyler: never "minor bug
   fixes"); rule in AGENTS.md.
 - **Next version:** not chosen. Candidates are in `docs/roadmap.md`, "After 0.6". Tyler planned

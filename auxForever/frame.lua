@@ -2,7 +2,6 @@ select(2, ...) 'aux'
 
 local gui = require 'aux.gui'
 local scan = require 'aux.core.scan'
-local post = require 'aux.tabs.post'
 local search = require 'aux.tabs.search'
 local info = require 'aux.util.info'
 
@@ -318,7 +317,6 @@ do
                 -- auxForever (0.5): the server takes several seconds before the list arrives; say
                 -- so, or the scan looks stuck (Tyler, build 3)
                 status_bar:set_text('Full scan: waiting for the auction house...')
-                post.clear_auctions()
                 search.clear_selection()
             end,
             on_auction = function(auction_record, total)
@@ -329,7 +327,6 @@ do
                     shown_percent = percent
                     status_bar:set_text(format('Full scan: reading auctions, %d%%', percent))
                 end
-                post.record_scanned_auction(auction_record)
             end,
             on_abort = function()
                 status_bar:update_status(1, 1)

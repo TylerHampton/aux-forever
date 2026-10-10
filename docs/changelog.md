@@ -6,6 +6,21 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.6.0.2 (in testing)
+
+### Fixes
+
+- Post tab: picking an item now always reads its current listings from the auction house, the
+  same as pressing Refresh. Before, if you had run a Full scan, the Post tab showed that scan's
+  listings instead, which could be an hour old: the price it picked could match an auction that
+  had already sold or miss a newer, cheaper one. Those old listings were also split into one row
+  per listing (the same price shown several times, some rows without a time left). A Full scan
+  still records prices for tooltips, the Sniper and the % column (reported by Tyler).
+- Post tab: picking the same item again, or the next item after posting, reads its listings
+  again too, so other players' new auctions and sales since your last look show up.
+
+`/reload` is enough to update.
+
 ## 0.6.0.1 (2026-10-10)
 
 ### Fixes
