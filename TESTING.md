@@ -8,23 +8,16 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.6 build 9: Post panel spacing fixes, Sniper price history notice
+## Current build: 0.6 build 10: "of usual" under the percentage, one more Sniper line
 
-Branch `claude/upbeat-davinci-jqwq9d`. Build 7 tested 2026-10-10: the panel works (goblin, gear,
-trade goods, vendor warning, bid note, posting, tooltips, Classic). Fixed here: PER ITEM ran into
-the first price field, OF USUAL was cut off by the divider at the smallest window, and a trade
-good with no deposit showed "-0c". Build 9 adds the Sniper notice (step 5) and counts today's Full
-scan toward the 3 days. `/reload` is enough (no new files).
+Branch `claude/upbeat-davinci-jqwq9d`. Build 9 tested 2026-10-10: headings, the smallest window,
+the 0c deposit and the Sniper's price history line (none shown: fresh data, usual prices back)
+look right. Tyler's two changes are in here. `/reload` is enough (no new files).
 
-- [ ] 1. Post tab, any item: PER ITEM and OF USUAL sit clearly above the first price field.
-- [ ] 2. Make the window as narrow as it goes: OF USUAL is whole, left of the divider line.
-- [ ] 3. Linen Cloth, quantity 1: the deposit line says 0c, not -0c.
-- [ ] 4. Sniper: press Start and let one round finish with no deals (or Clear while it runs). The
-  message under the table says gray items are left out and deals need 3 days with a Full scan.
-- [ ] 5. Sniper, the line next to "Deals": after one round, it says how many days of Full scans
-  you have if fewer than 3 (today's Full scan counts now), and nothing once you have 3. If your
-  last Full scan is more than 2 days old it warns in orange instead, with a Full scan button that
-  works like the one at the top right.
+- [ ] 1. Post tab, gear and a trade good: each percentage has a small gray "of usual" under it,
+  beside its price field; there is no OF USUAL heading any more. PER ITEM stays above the fields.
+- [ ] 2. Sniper: Start, and while no deals are shown, the message under the table ends with a third
+  line: "Sniper works best with fresh Full scan data."
 
 ## Before every release: the 5-minute check
 

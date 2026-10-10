@@ -165,9 +165,9 @@ local USUAL_X = FIELD_X + FIELD_W + 8 -- the % of usual, left of the middle divi
 local RECEIPT_X, RECEIPT_W = -264, 252 -- the right column, from the panel's right edge
 local ROW1, ROW2 = -58, -90
 local PRICE_ROW1, PRICE_ROW2 = -62, -96
-local HEADER_Y = PRICE_ROW1 + 6 -- the bottom of PER ITEM and OF USUAL, clear of the first field
+local HEADER_Y = PRICE_ROW1 + 6 -- the bottom of PER ITEM, clear of the first field
 -- for the layout test: the smallest window (1000 wide) leaves the panel about 777 wide (build 7:
--- OF USUAL ran into the divider there, and PER ITEM into the first field)
+-- the % column ran into the divider there, and PER ITEM into the first field)
 M.price_layout = {usual_x = USUAL_X, divider_from_right = RECEIPT_X - 14, header_y = HEADER_Y, first_row = PRICE_ROW1}
 
 local function small_button(parent, text, width, size)
@@ -340,7 +340,7 @@ for _, anchor in ipairs{{'TOPLEFT', PRICE_X - 15}, {'TOPRIGHT', RECEIPT_X - 14}}
     line:SetPoint('BOTTOM', frame.parameters, anchor[1] == 'TOPLEFT' and 'BOTTOMLEFT' or 'BOTTOMRIGHT', anchor[2], 8)
 end
 
--- the headings over the price fields and the percentages
+-- the heading over the price fields
 do
     local label = gui.label(frame.parameters, gui.font_size.small)
     label:SetJustifyH('RIGHT')
@@ -348,11 +348,6 @@ do
     label:SetText('PER ITEM')
     gui.text_color(label, aux.color.label.disabled)
     price_caption = label
-    local usual = gui.label(frame.parameters, gui.font_size.small)
-    usual:SetPoint('BOTTOMLEFT', frame.parameters, 'TOPLEFT', USUAL_X, HEADER_Y)
-    usual:SetText('OF USUAL')
-    gui.text_color(usual, aux.color.label.disabled)
-    usual_caption = usual
 end
 do
     -- the pricing mode: Match lowest (default) or Undercut with the goblin
@@ -400,13 +395,19 @@ do
     help:SetScript('OnLeave', function() GameTooltip:Hide() end)
 end
 
--- "125%": the price compared with the item's usual (historical) price, plain text under OF USUAL
+-- "125%" with "of usual" under it (Tyler, build 9): the price compared with the item's usual
+-- (historical) price, beside its field
 local function badge(parent)
     local f = CreateFrame('Frame', nil, parent)
-    gui.set_size(f, 60, 24)
+    gui.set_size(f, 60, 30)
     local text = gui.label(f, gui.font_size.medium)
-    text:SetPoint('LEFT')
+    text:SetPoint('TOPLEFT', 0, -1)
     f.text = text
+    local under = gui.label(f, gui.font_size.small)
+    under:SetPoint('BOTTOMLEFT', 0, 0)
+    under:SetText('of usual')
+    gui.text_color(under, aux.color.label.disabled)
+    f.under = under
     function f:SetText(value)
         if value == '---' then
             text:SetText(aux.color.label.disabled('none'))

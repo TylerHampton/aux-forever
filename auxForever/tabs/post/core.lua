@@ -608,7 +608,7 @@ function M.post_quantity()
 end
 
 function update_item_configuration()
-    local summary = {posting_summary, total_summary, cut_label, cut_summary, receipt_line, net_label, net_summary, net_detail, deposit_label, deposit, price_note, price_caption, usual_caption, mode_switch}
+    local summary = {posting_summary, total_summary, cut_label, cut_summary, receipt_line, net_label, net_summary, net_detail, deposit_label, deposit, price_note, price_caption, mode_switch}
 	if not selected_item then
         refresh_button:Disable()
 

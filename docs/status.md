@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-10: 0.6 build 9 (Post panel spacing fixes, the Sniper's price history notice) on `claude/upbeat-davinci-jqwq9d`; not tried in game yet.
+Last updated 2026-10-10: 0.6 build 10 ("of usual" under the percentage, one more Sniper line) on `claude/upbeat-davinci-jqwq9d`; not tried in game yet.
 
 ## Start here (next session, after 2026-10-09)
 
@@ -74,6 +74,13 @@ item had while the round judged it, no extra work) is below 3 after the first ro
 nothing. A Full scan button beside it clicks `aux.full_scan_button` (exported from `frame.lua`).
 Redrawn only when the text changes (in `update_controls`, five times a second while the tab is
 shown). Note: `replicate_time` is set when a Full scan starts, even if the server never answers.
+
+Build 9 in game (Tyler, `builds/0-6-build-9/results`): headings clear of the fields, OF USUAL
+whole at the smallest window, deposit 0c, the Sniper shows usual prices again (4s, 10s; today's
+scan made 3 days) and no notice (fresh data). Tyler's notes, built in build 10: "Just put Of Usual
+below the percentage" (the heading is gone; each % has "of usual" under it, `badge` in
+`tabs/post/frame.lua`), and under the Sniper's running-with-no-deals message add "Sniper works best
+with fresh Full scan data." Test page build id `0-6-build-10`.
 
 ## 0.6 build 2 (2026-10-09, branch `claude/eager-dijkstra-drmz2k`)
 
