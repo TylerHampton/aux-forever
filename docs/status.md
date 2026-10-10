@@ -33,7 +33,17 @@ Ask Tyler which one at the start of the next session.
   price. Tyler's decision after Claude's recommendation: always search, the full scan no longer
   feeds the Post tab (`record_scanned_auction`, `listings_known` and the bag-item filter removed;
   `refresh_entries` keeps only the picked item's listings). Test: `post: picking an item reads its
-  listings fresh`. Not yet tested in game.
+  listings fresh`.
+- **Build 1 in game** (Tyler, 2026-10-09, `builds/0-6-0-2-build-1/results`): full scan then pick
+  (Scroll of Stamina, one row per price: 40 at 13s) pass; picking again pass; price step not
+  marked, but both screenshots show the price at the lowest listing ("Same as the lowest
+  listing"). After posting: Light Feather reloaded and showed his new auction in green, but the
+  first post of the evening (1 Wool Cloth) did not seem to reload; Tyler is unsure whether he
+  waited long enough, and every post after it reloaded. Not reproduced, cause unknown; watch for it.
+  Still open: Light Feather showed three rows at 8c (26 and 480 at 24h, his own 2 at 2h). The
+  commodity search itself returned two rows at that price, and `record_auction` merges only rows
+  with the same quantity, time left and owner. Proposed to Tyler: for commodities, one row per
+  price (his own separate). Waiting for his answer.
 
 - **Released 0.6.0.1** on 2026-10-09 (PR #18, `main` b17b9bc): "Search in aux" no longer covers
   Blizzard's Track Recipe checkbox (details below). Tag `v0.6.0.1`, GitHub pre-release
