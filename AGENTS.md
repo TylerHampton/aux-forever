@@ -263,6 +263,9 @@ as interactive HTML pages; an HTML file Tyler can open in a browser works the sa
 - `docs/price-data.md`: where aux keeps prices (price history, the "usual price"), how they are
   recorded and used, and their known weak points.
 - `docs/changelog.md`: what changed in each version; add an entry when the version number changes.
+  List every change with a little detail (what changed and why it matters to a player), grouped
+  by area, plus fixes and anything the player must do to update (Tyler, 2026-10-10: never "minor
+  bug fixes" without saying which). It is also the CurseForge file's changelog.
 - `docs/roadmap.md`: what each version is for. A patch version (0.3.x) is bug fixes, speed and
   small things only, no new features; new features go into the next minor version (0.4).
 - `docs/forever-auction-house.md`: how Forever's auction house works, with sources.

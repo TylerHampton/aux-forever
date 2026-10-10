@@ -85,9 +85,10 @@ with fresh Full scan data." Test page build id `0-6-build-10`.
 Build 10 in game: "of usual" under the percentage and the Sniper's third line look right
 (screenshots, `builds/0-6-build-10/results`). Tyler asked to release 0.6 to CurseForge
 (2026-10-10). Done: changelog dated, CurseForge description updated (Tyler pastes it by hand),
-PR https://github.com/TylerHampton/aux-forever/pull/15 opened. Waiting on the 5-minute
-pre-release check (test page build id `0-6-release`); after it passes: merge PR 15, then run the
-Release workflow on `main` (first automatic CurseForge upload; watch it).
+PR https://github.com/TylerHampton/aux-forever/pull/15 opened. Pre-release check passed
+(Tyler, 2026-10-10, test page `0-6-release`: open, buy, post, Auctions "Tied with 130 others",
+a Sniper round, the Materials line). The changelog was rewritten in full on Tyler's request (rule
+now in AGENTS.md). Then: merge PR 15 and run the Release workflow on `main`.
 
 ## 0.6 build 2 (2026-10-09, branch `claude/eager-dijkstra-drmz2k`)
 
