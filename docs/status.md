@@ -1,6 +1,12 @@
 # Status
 
-Last updated 2026-10-10 (0.6.0.2 build 1 built and held until 2026-10-11; see Release plan).
+Last updated 2026-10-09, 10 pm Mountain Time (0.6.0.2 build 1 built and held until 2026-10-10;
+see Release plan).
+
+**Dates:** Tyler is on Mountain Time (America/Denver). The session clock is UTC, which runs 6
+hours ahead: from 6 pm his time it already shows the next day. Write his date, not the UTC one
+(`TZ=America/Denver date`). Dates in older entries were taken from the UTC clock and can be one
+day ahead; the 0.6 and 0.6.0.1 releases went out the evening of 2026-10-09 his time.
 
 ## Start here (next session)
 
@@ -8,8 +14,9 @@ Last updated 2026-10-10 (0.6.0.2 build 1 built and held until 2026-10-11; see Re
 branch `claude/kind-rubin-olf9zf`, waiting for Tyler's test in game (steps in `TESTING.md`; test
 page build id `0-6-0-2-build-1`). No pull request yet.
 
-**Release plan (Tyler, 2026-10-10, evening):** hold this fix; do not release it tonight. Two files
-already went to CurseForge that day and he does not want a third within the hour. On 2026-10-11:
+**Release plan (Tyler, 2026-10-09, 10 pm Mountain Time):** hold this fix; do not release it
+tonight. Two files already went to CurseForge that evening and he does not want a third within
+the hour. On 2026-10-10:
 - if Tyler has a better idea to add, it goes into the same branch and the version becomes
   **0.6.1** (TOC `forever-0.6.1`, changelog heading renamed, this fix listed under it);
 - if not, **0.6.0.2** is released as it is (after his test passes): changelog date, PR to `main`,
