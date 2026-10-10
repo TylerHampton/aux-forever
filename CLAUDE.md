@@ -6,8 +6,8 @@ The shared guide for every AI agent on this project is AGENTS.md, loaded here:
 
 ## Claude Code specifics
 
-- Develop on the branch the session names, started from the latest `main`. Releases up to 0.5
-  (PR #11, 2026-10-08) are merged into `main`.
+- Develop on the branch the session names, started from the latest `main`. Releases up to
+  0.6.0.1 (PR #18, 2026-10-10) are merged into `main`.
 - Tyler's test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (how to use it:
   `docs/status.md`, Start here). Mockups for him are HTML artifacts too.
 - Zip for Tyler: named after the version and build, `auxForever-<version>-build<n>.zip` (for
