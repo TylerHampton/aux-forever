@@ -1,20 +1,28 @@
 # Status
 
-Last updated 2026-10-10: 0.6 released on GitHub (v0.6); CurseForge upload being retried after a fix to the upload script.
+Last updated 2026-10-10: 0.6 released on GitHub and CurseForge.
 
-## Start here (next session, after 2026-10-09)
+## Start here (next session, after the 0.6 release)
 
-Tyler stopped for the night after build 6. Pick up here:
-- Branch `claude/eager-dijkstra-drmz2k` (from Webster's `design`), TOC `forever-0.6`, not released.
-  No pull request yet; Tyler plans about one release a week, so 0.6 is not to ship yet.
-- Build 6 (Sniper: no gray items, deals need 3 days with a complete look) is sent but not tested:
-  test page build id `0-6-build-6`, results in ArtifactData `builds/0-6-build-6/results`.
-- Waiting on Tyler: (1) the thin-market rule for items with one listing (A everything, B stackable
-  goods only, C wait and see, recommended); (2) `/aux price ` plus a Shift-clicked Trapper's Shirt,
-  to explain why the name lookup found no history while the Sniper had a usual of 90s; (3) the
-  CurseForge player's in-game name for FB-008; (4) his tweaks to the New theme (screenshots).
-- Suggested to Tyler: Sniper "profit at least" 1g instead of his 5c.
-- Zips are named `auxForever-0.6-build<n>.zip`; the next one is build 7.
+- **Released: 0.6** on 2026-10-10. `main` has it (PR #15, 49cc8cf; upload fix PR #16, 8952465);
+  tag `v0.6`; GitHub pre-release https://github.com/TylerHampton/aux-forever/releases/tag/v0.6;
+  CurseForge Beta file id 9114535, uploaded by the Release workflow (run 38019960716), the first
+  automatic upload. CurseForge may hold a new file for review before players see it; check the
+  project's Files page if Tyler asks. The page description (`docs/curseforge-description.md`, updated
+  for 0.6) is still pasted by hand by Tyler.
+- First automatic upload failed (run 38019762742): `curl -F` cut the metadata JSON at a ";" in
+  the changelog. Fixed with `--form-string` in `.github/scripts/curseforge.sh`.
+- Next version: not chosen. 0.6.x is fixes and small things; features go into 0.7
+  (`docs/roadmap.md` rules). Tyler planned about one release a week.
+- Still open from 0.6: the thin-market rule for items with a single listing (A everything, B
+  stackable goods only, C wait and see, recommended); why `/aux price Trapper's Shirt` found no
+  history while the Sniper had a usual of 90s (ask for the command with a Shift-clicked link);
+  the CurseForge player's in-game name for FB-008 (changelog credit); Tyler's tweaks to the New
+  theme; Sniper "profit at least" 1g suggested instead of his 5c (his "below vendor" deals profit
+  6c to 2s).
+- Changelogs list every change with detail (AGENTS.md, Tyler 2026-10-10).
+- Test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (last used: `0-6-release`, the
+  5-minute check, passed). Zips are named `auxForever-<version>-build<n>.zip`.
 
 ## Post tab top panel redesign (2026-10-10, branch `claude/upbeat-davinci-jqwq9d`)
 
