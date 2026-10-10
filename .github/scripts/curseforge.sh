@@ -60,8 +60,10 @@ case "${1:-}" in
     metadata=$(jq -n --rawfile changelog "$notes" --arg name "auxForever $version" --argjson gv "$version_id" \
       '{changelog: $changelog, changelogType: "markdown", displayName: $name, gameVersions: [$gv], releaseType: "beta"}')
     echo "Uploading $zip to CurseForge project $PROJECT_ID as 'auxForever $version' (beta, game version id $version_id)"
+    # --form-string sends the JSON as written: with -F, curl reads a ";" in the changelog as the
+    # start of a field option and cuts the JSON there (0.6's first upload: "Invalid JSON")
     curl -sS --fail-with-body -H "X-Api-Token: $CF_API_KEY" \
-      -F "metadata=$metadata" -F "file=@$zip" "$API/projects/$PROJECT_ID/upload-file"
+      --form-string "metadata=$metadata" -F "file=@$zip" "$API/projects/$PROJECT_ID/upload-file"
     echo
     echo "Uploaded."
     ;;
