@@ -948,6 +948,27 @@ function M.record_auction(auction)
     end
     buyout_records[auction.item_key] = buyout_records[auction.item_key] or {}
     if auction.unit_buyout_price == 0 then return end
+    -- auxForever (0.6.0.2 build 2): a commodity is bought by quantity, cheapest first, so its
+    -- listings at one price are one row (yours apart), counted in units, with the longest time
+    -- left. The search can answer with several rows at one price (Tyler's Light Feather: 26 and
+    -- 480 at 8c); gear keeps one row per kind of auction.
+    if auction.commodity then
+	    local own, entry = info.is_player(auction.owner)
+	    for _, record in pairs(buyout_records[auction.item_key]) do
+		    if auction.unit_buyout_price == record.unit_price and own == record.own then
+			    entry = record
+		    end
+	    end
+	    if not entry then
+		    entry = { stack_size = 1, unit_price = auction.unit_buyout_price, duration = auction.duration, own = own, count = 0 }
+		    tinsert(buyout_records[auction.item_key], entry)
+	    end
+	    entry.count = entry.count + auction.count * (auction.auction_count or 1)
+	    if auction.duration and (not entry.duration or auction.duration > entry.duration) then
+		    entry.duration = auction.duration
+	    end
+	    return
+    end
     do
 	    local entry
 	    for _, record in pairs(buyout_records[auction.item_key]) do

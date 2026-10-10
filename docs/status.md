@@ -11,9 +11,9 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand:** 0.6 and 0.6.0.1 are released and on `main`. **0.6.0.2 build 1** is on
+**Where things stand:** 0.6 and 0.6.0.1 are released and on `main`. **0.6.0.2 build 2** is on
 branch `claude/kind-rubin-olf9zf`, waiting for Tyler's test in game (steps in `TESTING.md`; test
-page build id `0-6-0-2-build-1`). No pull request yet.
+page build id `0-6-0-2-build-2`). No pull request yet.
 
 **Release plan (Tyler, 2026-10-09, 10 pm Mountain Time):** hold this fix; do not release it
 tonight. Two files already went to CurseForge that evening and he does not want a third within
@@ -43,7 +43,9 @@ Ask Tyler which one at the start of the next session.
   Still open: Light Feather showed three rows at 8c (26 and 480 at 24h, his own 2 at 2h). The
   commodity search itself returned two rows at that price, and `record_auction` merges only rows
   with the same quantity, time left and owner. Proposed to Tyler: for commodities, one row per
-  price (his own separate). Waiting for his answer.
+  price (his own separate). Tyler said yes: built as **build 2** (`record_auction`: commodities
+  merge by price and owner, units added up, longest time left; test `post: one row per price for
+  commodities`). Not yet tested in game; test page build id `0-6-0-2-build-2`.
 
 - **Released 0.6.0.1** on 2026-10-09 (PR #18, `main` b17b9bc): "Search in aux" no longer covers
   Blizzard's Track Recipe checkbox (details below). Tag `v0.6.0.1`, GitHub pre-release

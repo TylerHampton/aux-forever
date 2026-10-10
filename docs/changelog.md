@@ -18,6 +18,11 @@ A change that comes from a player's feedback credits them by in-game name at the
   still records prices for tooltips, the Sniper and the % column (reported by Tyler).
 - Post tab: picking the same item again, or the next item after posting, reads its listings
   again too, so other players' new auctions and sales since your last look show up.
+- Post tab: trade goods and other items sold by quantity show one row per price, with the total
+  for sale and the longest time left; your own auctions at that price stay a row of their own, in
+  green. Before, the same price could appear on several rows (Light Feather: 26, 480 and 10 at 8c),
+  which made it hard to see how much was for sale at the lowest price. Gear keeps one row per kind
+  of auction (reported by Tyler).
 
 `/reload` is enough to update.
 

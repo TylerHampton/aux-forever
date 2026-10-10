@@ -775,6 +775,44 @@ try('table columns', function()
 end)
 
 -- Post price lists: units for sale, time left, price, % of usual
+-- Tyler, 0.6.0.2 build 1: Light Feather showed three rows at 8c (26 and 480 at 24h, his own 2 at
+-- 2h). A commodity is one row per price, yours apart, with the longest time left; gear is not merged.
+try('post: one row per price for commodities', function()
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local data
+  rawset(post.buyout_listing, 'SetData', function(_, rows) data = rows end)
+  post.clear_auctions()
+  local function listing(units, price, duration, own)
+    post.record_auction({item_key = '17056:0', commodity = true, unit_buyout_price = price, count = units, duration = duration, owner = own and 'P' or 'Someone'})
+  end
+  listing(10, 8, 3); listing(26, 8, 4); listing(480, 8, 4); listing(2, 8, 2, true); listing(196, 9, 4)
+  post.selected_item = {commodity = true, key = '17056:0', item_id = 17056, name = 'Light Feather', quality = 1, count = 12, max_stack = 200}
+  post.update_auction_listings()
+  local at8, own8, n = nil, nil, 0
+  for _, row in ipairs(data or {}) do
+    if not row.record.historical_value then
+      n = n + 1
+      if row.record.unit_price == 8 and not row.record.own then at8 = row end
+      if row.record.unit_price == 8 and row.record.own then own8 = row end
+    end
+  end
+  check('commodity rows: one row per price, yours apart', n == 3)
+  check('commodity rows: units added up', at8 and at8.cols[1].value == 516)
+  check('commodity rows: the longest time left', at8 and at8.record.duration == 4)
+  check('commodity rows: your own stay a row of their own', own8 ~= nil)
+  post.clear_auctions()
+  post.record_auction({item_key = '5210:0', unit_buyout_price = 700, unit_blizzard_bid = 700, count = 1, duration = 4, owner = 'Someone'})
+  post.record_auction({item_key = '5210:0', unit_buyout_price = 700, unit_blizzard_bid = 700, count = 1, duration = 2, owner = 'Someone'})
+  post.selected_item = {key = '5210:0', item_id = 5210, name = 'Blazing Wand', quality = 2, count = 1, max_stack = 1}
+  post.update_auction_listings()
+  n = 0
+  for _, row in ipairs(data or {}) do if not row.record.historical_value then n = n + 1 end end
+  check('gear rows: auctions with another time left stay apart', n == 2)
+  rawset(post.buyout_listing, 'SetData', nil)
+  post.selected_item = nil
+  post.clear_auctions()
+end)
+
 try('post listing columns', function()
   local require = loadstring("select(2, ...) 'aux.test14'; return require")('auxForever', addon)
   local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
