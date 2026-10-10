@@ -263,9 +263,10 @@ local function cached(item_key)
 		local seen = record.low and record.day or (record.points[1] and record.points[1].day)
 		-- the latest price: today's (market, else lowest) when seen today, else the newest past day's
 		local latest = day_price(record) or (record.points[1] and record.points[1].value)
-		-- complete: past days with a complete look (a Full scan or full search, which counts what is
-		-- listed), not only the lowest price of a single auction or a 0.4 line
-		local complete = 0
+		-- complete: days with a complete look (a Full scan or full search, which counts what is
+		-- listed), not only the lowest price of a single auction or a 0.4 line. Today counts once it
+		-- has one (Tyler, 0.6 build 9: a Full scan today is as real as one yesterday)
+		local complete = record.units and 1 or 0
 		for _, point in ipairs(record.points) do
 			if point.units then complete = complete + 1 end
 		end

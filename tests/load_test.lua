@@ -1455,6 +1455,32 @@ try('sniper deal rule', function()
   check('the usual price is never below the vendor price', pct == 50)
 end)
 
+-- 0.6 build 9 (Tyler): today's Full scan counts toward the days; the Sniper warns about stale prices
+try('sniper history notice', function()
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local d = h.today()
+  h.write_record('301:0', {day = d, points = {{value = 100, day = d - 1, units = 5}, {value = 100, day = d - 2, units = 5}}})
+  local _, days = h.value_and_complete_days('301:0')
+  check('history: two past days of Full scans count two', days == 2)
+  h.write_record('301:0', {day = d, market = 100, units = 5, low = 90, points = {{value = 100, day = d - 1, units = 5}, {value = 100, day = d - 2, units = 5}}})
+  _, days = h.value_and_complete_days('301:0')
+  check('history: a Full scan today counts as a third day', days == 3)
+
+  local day = 24 * 60 * 60
+  local now = 1000 * day
+  local text, kind = sniper.history_notice(now, now - 3 * day, 5, true)
+  check('notice: a Full scan three days ago warns', kind == 'stale' and text:find('3 days ago', 1, true) ~= nil)
+  text, kind = sniper.history_notice(now, now - day, 5, true)
+  check('notice: a Full scan yesterday with enough history says nothing', text == nil)
+  text, kind = sniper.history_notice(now, now - 3600, 2, true)
+  check('notice: too little history says how far along it is', kind == 'thin' and text:find('3 days of Full scans; you have 2 so far', 1, true) ~= nil)
+  text = sniper.history_notice(now, now - 3600, 0, false)
+  check('notice: before the first round it waits to know', text == nil)
+  text, kind = sniper.history_notice(now, 0, 0, false)
+  check('notice: never scanned says so at once', kind == 'thin')
+end)
+
 try('sniper round', function()
   local aux_require = loadstring("select(2, ...) 'aux.test32'; return require")('auxForever', addon)
   local aux = aux_require 'aux'
@@ -1480,6 +1506,18 @@ try('sniper round', function()
   sniper.start()
   run(60)
   check('sniper: a round completed', sniper.round >= 1)
+  check('sniper: three days of Full scans, no notice', sniper.history_days >= 3 and (sniper.notice_label.__text or '') == '')
+  local scanned = aux.account_data.replicate_time
+  aux.account_data.replicate_time = time() - 4 * 24 * 60 * 60
+  local sets = 0
+  local set_text = sniper.notice_label.SetText
+  rawset(sniper.notice_label, 'SetText', function(self, t) sets = sets + 1; return set_text(self, t) end)
+  sniper.update_controls(); sniper.update_controls()
+  check('sniper: a stale Full scan shows the warning and its button, drawn once', (sniper.notice_label.__text or ''):find('4 days ago', 1, true) ~= nil and sniper.notice_button.__shown == true and sets == 1)
+  aux.account_data.replicate_time = scanned
+  sniper.update_controls()
+  rawset(sniper.notice_label, 'SetText', nil)
+  check('sniper: a fresh Full scan hides it again', sniper.notice_button.__shown == false)
   local found = {}
   for _, deal in ipairs(sniper.deals) do found[deal.name] = deal end
   check('sniper: a trade good under its usual price', found.Kingsblood and found.Kingsblood.deal_reason == 'usual' and found.Kingsblood.unit_buyout_price == 850 and found.Kingsblood.deal_percent == 39)
@@ -2864,8 +2902,8 @@ try('0.5 build 3 results', function()
   -- a Full scan says it is waiting for the auction house, then how far it is
   local texts = {}
   set(aux.status_bar.text, 'SetText', function(_, t) tinsert(texts, t) end)
-  local scan_button
-  for _, f in ipairs(frames) do if f.__text == 'Full scan' and f.__scripts.OnClick then scan_button = f end end
+  -- the top bar's button (the Sniper's notice has a Full scan button too, build 9)
+  local scan_button = aux.full_scan_button
   local list = {{id = 7101, count = 5, buyout = 50}, {id = 7101, count = 5, buyout = 55}}
   set(C_AuctionHouse, 'ReplicateItems', function() end)
   set(C_AuctionHouse, 'GetNumReplicateItems', function() return #list end)

@@ -319,6 +319,31 @@ do
     ignore_button = btn
 end
 
+-- next to the deal count: the price history notice (history_notice) and a Full scan button
+do
+    local label = gui.label(frame, gui.font_size.small)
+    label:SetPoint('LEFT', deals_label, 'RIGHT', 18, 0)
+    label:SetJustifyH('LEFT')
+    notice_label = label
+    local btn = gui.button(frame, gui.font_size.small)
+    btn:SetPoint('LEFT', label, 'RIGHT', 8, 0)
+    btn:SetHeight(22)
+    btn:SetWidth(70)
+    btn:SetText('Full scan')
+    btn:SetScript('OnClick', function()
+        aux.full_scan_button:Click()
+    end)
+    btn:SetScript('OnEnter', function(self)
+        GameTooltip:SetOwner(self, 'ANCHOR_BOTTOM')
+        GameTooltip:AddLine('Full scan')
+        GameTooltip:AddLine('Records the price of everything on the auction house, like the Full scan button at the top right. The game allows one every 15 minutes.', 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
+    btn:Hide()
+    notice_button = btn
+end
+
 -- "2 to buy, 1 gone": a list of only gone deals no longer reads "0 found"
 function M.deals_count(shown)
     local open, gone = 0, 0
@@ -347,7 +372,7 @@ function M.update_deals()
 end
 
 do
-    local last_run, last_status, last_ignored
+    local last_run, last_status, last_ignored, last_notice
     -- the controls follow the state; only touched when something changed
     function M.update_controls()
         if running ~= last_run then
@@ -367,6 +392,13 @@ do
         if text ~= last_status then
             last_status = text
             status_label:SetText(text)
+        end
+        -- the price history notice; redrawn, and its button shown or hidden, only when it changes
+        local notice, kind = history_notice(time(), aux.account_data.replicate_time, history_days, history_days_known)
+        if notice ~= last_notice then
+            last_notice = notice
+            notice_label:SetText(notice and (kind == 'stale' and aux.color.orange(notice) or aux.color.label.enabled(notice)) or '')
+            if notice then notice_button:Show() else notice_button:Hide() end
         end
         local ignored = ignored_count()
         if ignored ~= last_ignored then

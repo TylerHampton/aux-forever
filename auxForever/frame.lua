@@ -305,6 +305,8 @@ do
     end)
     btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
     btn:SetMotionScriptsWhileDisabled(true)
+    -- the Sniper's notice has a Full scan button of its own that clicks this one (0.6 build 9)
+    M.full_scan_button = btn
     btn:SetScript('OnClick', function()
         local count, shown_percent = 0
         scan.start{

@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-10: 0.6 build 8 (Post panel spacing fixes after build 7's test) on `claude/upbeat-davinci-jqwq9d`; not tried in game yet.
+Last updated 2026-10-10: 0.6 build 9 (Post panel spacing fixes, the Sniper's price history notice) on `claude/upbeat-davinci-jqwq9d`; not tried in game yet.
 
 ## Start here (next session, after 2026-10-09)
 
@@ -62,6 +62,18 @@ there. Inferred cause: build 6 counts only PAST days with a complete look (`cach
 so no item can reach `MIN_DAYS` = 3 before 2026-10-11 at the earliest. Asked Tyler whether today's
 Full scan should count. The empty-list step was written wrongly on the page (Stop then Clear shows
 "Press Start..."; the gray-items message shows only while running); rewritten for build 8.
+
+Build 9 (same day, Tyler: "build it"): asked whether the Sniper should require a Full scan before
+it runs. Decided: a warning, not a lock (a lock would hide below vendor deals that need no
+history, the game allows a Full scan once every 15 minutes per account, and it would not shorten
+the 3 days). Built: today's complete look counts toward `MIN_DAYS` (`cached` in
+`core/history.lua`); `sniper.history_notice` (pure, tested) gives the line next to "Deals": orange
+"Your last Full scan was N days ago..." when `account_data.replicate_time` is more than 2 days old,
+else "...after 3 days of Full scans; you have N so far" while `history_days` (the most days any
+item had while the round judged it, no extra work) is below 3 after the first round, else
+nothing. A Full scan button beside it clicks `aux.full_scan_button` (exported from `frame.lua`).
+Redrawn only when the text changes (in `update_controls`, five times a second while the tab is
+shown). Note: `replicate_time` is set when a Full scan starts, even if the server never answers.
 
 ## 0.6 build 2 (2026-10-09, branch `claude/eager-dijkstra-drmz2k`)
 

@@ -18,6 +18,10 @@ A change that comes from a player's feedback credits them by in-game name at the
 - `/aux post bid` shows or hides the Post tab's bid table at once; it used to need a reload.
 - Prices show the gold, silver and copper letters in their coin colors everywhere, also on the Buy
   and Confirm buttons, the recipe line and the Sniper.
+- Sniper: a Full scan today now counts toward the 3 days a usual price needs. Next to the deal
+  count, a line says how many days of Full scans you have while it is fewer than 3, and warns when
+  your last Full scan is more than 2 days old, with a Full scan button. A warning only: the Sniper
+  always works, and deals below the vendor price need no history.
 - Tables have zebra rows again, every second row in dark gray.
 - Sniper: gray items are never deals, and a usual price counts only when it rests on at least 3
   days with a complete look at the item (a Full scan or a Full search), so a few old asking prices
