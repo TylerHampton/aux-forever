@@ -1,7 +1,6 @@
 # Status
 
 Last updated 2026-10-10: 0.6 build 6 merged into `claude/upbeat-davinci-jqwq9d`; Post panel mockup waiting on Tyler.
-`claude/eager-dijkstra-drmz2k`, built on Webster's `design` branch. Not tried in game yet.
 
 ## Start here (next session, after 2026-10-09)
 
