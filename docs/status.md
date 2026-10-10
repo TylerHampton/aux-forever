@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-09: 0.6 build 6 (two themes, zebra rows, the new Settings menu, coin colors, Sniper rules) is on branch
+Last updated 2026-10-10: 0.6 build 6 merged into `claude/upbeat-davinci-jqwq9d`; Post panel mockup waiting on Tyler.
 `claude/eager-dijkstra-drmz2k`, built on Webster's `design` branch. Not tried in game yet.
 
 ## Start here (next session, after 2026-10-09)
@@ -16,6 +16,26 @@ Tyler stopped for the night after build 6. Pick up here:
   CurseForge player's in-game name for FB-008; (4) his tweaks to the New theme (screenshots).
 - Suggested to Tyler: Sniper "profit at least" 1g instead of his 5c.
 - Zips are named `auxForever-0.6-build<n>.zip`; the next one is build 7.
+
+## Post tab top panel redesign (2026-10-10, branch `claude/upbeat-davinci-jqwq9d`)
+
+0.6 builds 1 to 6 were merged into this branch from `claude/eager-dijkstra-drmz2k`. Next build is
+build 7. Build 6 was never tested in game; Tyler wants one test page for everything (build 6's
+Sniper steps plus the Post panel).
+
+Tyler, 2026-10-10: the Post tab's top panel (item, Count, Duration, prices, Match lowest / Undercut,
+the money line, Post) "feels outdated"; change how it is presented only, no functions added or
+removed. His points: the price fields take far too much width for a price of at most
+"9999g 99s 99c"; the vendor line under "You get" is unreadable. Scope: only that panel, not the bag
+list or the auctions table. The ? button stays (move it if needed). Pay homage to TSM3 and the
+original aux: aux's README says its look was "based on the retail addOn TSM" and its post price
+input "inspired by the retail addOn TSM" (github.com/shirsig/aux-addon-vanilla).
+
+Mockup (not approved yet): https://claude.ai/artifact/FQAKTqLUF4NQrSiAXV8ERK. Today's panel and
+three options: A three columns (setup, price, receipt; recommended), B price in the middle with
+the math as one line at the bottom, C original aux style (labels above fields, two result tiles:
+auction house against vendor). A also has a trade goods board. Numbers in the mockup are examples.
+Waiting on Tyler's pick.
 
 ## 0.6 build 2 (2026-10-09, branch `claude/eager-dijkstra-drmz2k`)
 
