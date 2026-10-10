@@ -5,7 +5,7 @@ Last updated 2026-10-10 (0.6.0.2 build 1 built, waiting for Tyler's test).
 ## Start here (next session)
 
 **Where things stand:** 0.6 and 0.6.0.1 are released and on `main`. **0.6.0.2 build 1** is on
-branch `claude/kind-rubin-olf9zf`, waiting for Tyler's test in game (steps in `TESTING.md`).
+branch `claude/kind-rubin-olf9zf`, waiting for Tyler's test in game (steps in `TESTING.md`; test page build id `0-6-0-2-build-1`).
 
 - **0.6.0.2 build 1** (2026-10-10): the Post tab always searches the picked item. Tyler's
   screenshots: Scroll of Stamina showed the last Full scan's listings (27 at 13s, one row per
