@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-10: 0.6 build 10 ("of usual" under the percentage, one more Sniper line) on `claude/upbeat-davinci-jqwq9d`; not tried in game yet.
+Last updated 2026-10-10: 0.6 is ready to release (PR #15); waiting on the 5-minute pre-release check.
 
 ## Start here (next session, after 2026-10-09)
 
@@ -81,6 +81,13 @@ scan made 3 days) and no notice (fresh data). Tyler's notes, built in build 10: 
 below the percentage" (the heading is gone; each % has "of usual" under it, `badge` in
 `tabs/post/frame.lua`), and under the Sniper's running-with-no-deals message add "Sniper works best
 with fresh Full scan data." Test page build id `0-6-build-10`.
+
+Build 10 in game: "of usual" under the percentage and the Sniper's third line look right
+(screenshots, `builds/0-6-build-10/results`). Tyler asked to release 0.6 to CurseForge
+(2026-10-10). Done: changelog dated, CurseForge description updated (Tyler pastes it by hand),
+PR https://github.com/TylerHampton/aux-forever/pull/15 opened. Waiting on the 5-minute
+pre-release check (test page build id `0-6-release`); after it passes: merge PR 15, then run the
+Release workflow on `main` (first automatic CurseForge upload; watch it).
 
 ## 0.6 build 2 (2026-10-09, branch `claude/eager-dijkstra-drmz2k`)
 
