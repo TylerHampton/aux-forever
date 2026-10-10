@@ -64,6 +64,25 @@ Tyler owns the project and tests every change in the game. He is not a programme
 - Only one agent works on a branch at a time. If two run at once, use two branches.
 - Commit messages: a short summary line, then plain sentences on what and why. No em dashes.
 
+### Wrapping up a session (Tyler, 2026-10-09)
+
+When Tyler says or hints that he is stopping ("done for the night", "getting off", "that's it for
+today", "goodnight", or similar), wrap up without being asked. The session may be closed or its
+machine reclaimed at any time after that, so anything not pushed is lost.
+
+1. If code changed since the last push: run the tests (both looks) and the syntax check.
+2. Commit and push everything to the session's branch.
+3. `docs/status.md`, "Start here": where things stand (what is built, tested, released, waiting),
+   the next step, and open questions for Tyler. Use his date (Mountain Time).
+4. Record what was decided during the session where it belongs: rules about how to work in this
+   file, player feedback in `docs/feedback.md`, plans in `docs/roadmap.md`, unreleased changes in
+   `docs/changelog.md`, the current build's steps in `TESTING.md`.
+5. If he tested a build and has not said "done", read the test page results first.
+6. Reply in a few lines: what was saved, what is waiting, and what the next session starts with.
+
+Wrapping up never merges, releases or opens a pull request; those wait for Tyler to ask. If
+nothing changed since the last push, say so in one line.
+
 ### Tests (required before every push)
 
 The test harness stubs the WoW API in plain Lua 5.1 and loads every file in TOC order.
