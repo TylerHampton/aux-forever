@@ -8,16 +8,13 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.6 build 10: "of usual" under the percentage, one more Sniper line
+## Current build: 0.6.0.1 build 1: Search in aux next to Track Recipe
 
-Branch `claude/upbeat-davinci-jqwq9d`. Build 9 tested 2026-10-10: headings, the smallest window,
-the 0c deposit and the Sniper's price history line (none shown: fresh data, usual prices back)
-look right. Tyler's two changes are in here. `/reload` is enough (no new files).
+Branch `claude/upbeat-davinci-jqwq9d`, TOC `forever-0.6.0.1`. `/reload` is enough (no new files).
 
-- [ ] 1. Post tab, gear and a trade good: each percentage has a small gray "of usual" under it,
-  beside its price field; there is no OF USUAL heading any more. PER ITEM stays above the fields.
-- [ ] 2. Sniper: Start, and while no deals are shown, the message under the table ends with a third
-  line: "Sniper works best with fresh Full scan data."
+- [ ] 1. At the auction house with aux open, open a profession window and pick a recipe: "Search
+  in aux" sits just left of the Track Recipe checkbox, not on top of it. Both can be clicked.
+- [ ] 2. Click Search in aux: aux searches the recipe as before.
 
 ## Before every release: the 5-minute check
 

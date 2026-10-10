@@ -316,6 +316,29 @@ end
 do
     local button
 
+    -- Blizzard's patch of 2026-10-08 (Forever build 70291) moved the Track Recipe checkbox from the
+    -- bottom left of the recipe panel to the bottom right, under this button (Tyler, after 0.6).
+    -- When the checkbox sits on the right, the button goes just left of it; otherwise it keeps the
+    -- bottom right corner it had since 0.4.
+    function M.recipe_button_spot(form)
+        local track = form.TrackRecipeCheckbox
+        local point = type(track) == 'table' and track.GetPoint and track:GetPoint(1)
+        if type(point) == 'string' and strfind(point, 'RIGHT') then
+            return 'track', track
+        end
+        return 'corner'
+    end
+
+    function place_button(button, form)
+        local spot, track = recipe_button_spot(form)
+        button:ClearAllPoints()
+        if spot == 'track' then
+            button:SetPoint('RIGHT', track, 'LEFT', -8, 0)
+        else
+            button:SetPoint('BOTTOMRIGHT', form, 'BOTTOMRIGHT', -16, 12)
+        end
+    end
+
     local function create_button()
         local form = ProfessionsFrame and ProfessionsFrame.CraftingPage and ProfessionsFrame.CraftingPage.SchematicForm
         if button or type(form) ~= 'table' or not form.GetRecipeInfo then
@@ -323,7 +346,8 @@ do
         end
         button = CreateFrame('Button', nil, form, 'UIPanelButtonTemplate')
         button:SetSize(120, 22)
-        button:SetPoint('BOTTOMRIGHT', form, 'BOTTOMRIGHT', -16, 12)
+        place_button(button, form)
+        hooksecurefunc(form, 'Init', function(self) place_button(button, self) end)
         button:SetText('Search in aux')
         button:SetScript('OnClick', function()
             local recipe = form:GetRecipeInfo()

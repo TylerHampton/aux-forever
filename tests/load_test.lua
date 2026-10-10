@@ -2271,6 +2271,15 @@ try('recipe search', function()
   G.ProfessionsFrame = {CraftingPage = {SchematicForm = form}}
   fire('ADDON_LOADED', 'Blizzard_Professions')
   check('recipe: a Search in aux button on the profession window', search.recipe_button ~= nil and search.recipe_button.__text == 'Search in aux')
+  -- Forever build 70291 put Blizzard's Track Recipe checkbox at the bottom right, under the button
+  local track = new_frame()
+  rawset(track, 'GetPoint', function() return 'BOTTOMRIGHT' end)
+  check('recipe: no checkbox, the button keeps the corner', search.recipe_button_spot(form) == 'corner')
+  form.TrackRecipeCheckbox = track
+  check('recipe: the button moves left of a Track Recipe checkbox on the right', search.recipe_button_spot(form) == 'track')
+  rawset(track, 'GetPoint', function() return 'BOTTOMLEFT' end)
+  check('recipe: a checkbox on the left leaves the button in its corner', search.recipe_button_spot(form) == 'corner')
+  form.TrackRecipeCheckbox = nil
   search.search_box:SetText('')
   search.recipe_button.__scripts.OnClick(search.recipe_button)
   run(120)
