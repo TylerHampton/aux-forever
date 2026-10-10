@@ -11,16 +11,16 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand:** 0.6 and 0.6.0.1 are released and on `main`. **0.6.0.2 build 3** is on
+**Where things stand:** 0.6 and 0.6.0.1 are released and on `main`. **0.6.0.2 build 4** is on
 branch `claude/kind-rubin-olf9zf`, waiting for Tyler's test in game (builds 1 and 2 passed on
-2026-10-09); then the release (see Release plan). No pull request yet.
+2026-10-09, build 3 failed on gear on 2026-10-10); then the release (see Release plan). No pull request yet.
 
 **Release plan (Tyler, 2026-10-09, 10 pm Mountain Time):** hold this fix; do not release it
 tonight. Two files already went to CurseForge that evening and he does not want a third within
 the hour. On 2026-10-10:
 - if Tyler has a better idea to add, it goes into the same branch and the version becomes
   **0.6.1** (TOC `forever-0.6.1`, changelog heading renamed, this fix listed under it);
-- if not, **0.6.0.2** is released once build 3 passes (Tyler, 2026-10-10: the speed change
+- if not, **0.6.0.2** is released once build 4 passes (Tyler, 2026-10-10: the speed change
   goes into 0.6.0.2): changelog date, PR to `main`, Release workflow, as in "How a release goes"
   below.
 Ask Tyler which one at the start of the next session.
@@ -62,8 +62,20 @@ the date corrections across the docs. A session started from `main` does not hav
   (search request). It now takes the item key from the bag item (`C_AuctionHouse.GetItemKeyFromItem`,
   as Blizzard's Sell tab does on Forever: `Blizzard_AuctionHouseItemSellFrame.lua`, build 70338)
   and reads it with one request; the name search is the fallback when the item is not in the bags.
-  Test: `post: an item in the bags is read with one request`. Not yet tested in game; test page
-  build id `0-6-0-2-build-3`. Not measured: `/aux debug` prints where a search's time went.
+  Test: `post: an item in the bags is read with one request`. Not measured: `/aux debug` prints
+  where a search's time went.
+- **Build 3 in game** (Tyler, 2026-10-10, `builds/0-6-0-2-build-3/results`): speed pass, posting
+  pass, measuring skipped. Fail: Merc Sword (gear; the auction house lists "of the Owl", "of the
+  Eagle" and other versions) showed no listings, only the usual-price row. Its item key from the
+  bag holds the random suffix and the search by that key found nothing; Blizzard's Sell tab asks
+  for gear with `SendSellSearchQuery` (by item ID) instead (`Blizzard_AuctionHouseFrame.lua`,
+  `QueryItem`, `byItemID` = `isEquipment`). Also seen: the Post tab lists all versions of a gear
+  item as one item ("Merc Sword") and prices it against all of them (11s to 60s); that was so
+  before this version too, left for later.
+- **Build 4** (2026-10-10): the one request only for items that are not gear
+  (`GetItemKeyInfo(key).isEquipment` false); gear keeps the name search as in build 2. Test
+  extended (gear keeps the name search; fails without the check). Not yet tested in game; test
+  page build id `0-6-0-2-build-4`.
   Left alone: a re-pick may wait 1 second when the client does not announce results it already
   holds (`request`, the `cached` fallback); unconfirmed in game.
 

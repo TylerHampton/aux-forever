@@ -2159,7 +2159,9 @@ try('post: an item in the bags is read with one request', function()
   local info = req 'aux.util.info'
   local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
   local real_start, real_inventory, real_container = scan_exports.start, info.inventory, info.container_item
-  local real_key = rawget(C_AuctionHouse, 'GetItemKeyFromItem')
+  local real_key, real_key_info = rawget(C_AuctionHouse, 'GetItemKeyFromItem'), rawget(C_AuctionHouse, 'GetItemKeyInfo')
+  local equipment = false
+  rawset(C_AuctionHouse, 'GetItemKeyInfo', function() return {isEquipment = equipment} end)
   local params
   rawset(scan_exports, 'start', function(p) params = p end)
   local in_bags = true
@@ -2178,9 +2180,14 @@ try('post: an item in the bags is read with one request', function()
   post.update_item(item)
   query = params and params.queries[1]
   check('one request: not in the bags, the name search is the fallback', params ~= nil and not (query and query.item_keys))
+  -- Tyler, build 3: Merc Sword (gear with random suffixes) found nothing by its item key
+  in_bags, equipment, params = true, true, nil
+  post.update_item(item)
+  query = params and params.queries[1]
+  check('one request: gear keeps the name search', params ~= nil and not (query and query.item_keys))
   rawset(scan_exports, 'start', real_start)
   rawset(info, 'inventory', real_inventory); rawset(info, 'container_item', real_container)
-  rawset(C_AuctionHouse, 'GetItemKeyFromItem', real_key)
+  rawset(C_AuctionHouse, 'GetItemKeyFromItem', real_key); rawset(C_AuctionHouse, 'GetItemKeyInfo', real_key_info)
   post.selected_item = nil
   post.clear_auctions()
 end)

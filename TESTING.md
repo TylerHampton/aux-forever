@@ -8,17 +8,15 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.6.0.2 build 3 (faster Post tab)
+## Current build: 0.6.0.2 build 4 (faster Post tab, gear fixed)
 
-Install the zip, then `/reload` (no full restart needed). Builds 1 and 2 passed (fresh listings
-on every pick, one row per price); build 3 reads the picked item with one request instead of two.
+Install the zip, then `/reload` (no full restart needed). Build 3 made items load with one request
+but showed no listings for gear with random endings (Merc Sword); build 4 keeps the one request
+for everything except gear, which loads as in build 2.
 
-- [ ] 1. Post tab: click several items one after another (a trade good, a potion, a piece of
-  gear): each loads its listings, and it feels at least as quick as build 2.
-- [ ] 2. Optional, to measure: type `/aux debug` once, click an item, and copy the line it prints
-  in chat into the note. Type `/aux debug` again to turn it off.
-- [ ] 3. If you have gear with a random ending ("of the Bear"), click it: its listings load.
-- [ ] 4. Post one item: after "Posted", the table reads again, no BugSack error.
+- [ ] 1. Post tab: click Merc Sword (or other gear with random endings): its listings show again.
+- [ ] 2. Click a few trade goods and potions: each loads quickly, as in build 3.
+- [ ] 3. Post one item: after "Posted", the table reads again, no BugSack error.
 
 ## Before every release: the 5-minute check
 

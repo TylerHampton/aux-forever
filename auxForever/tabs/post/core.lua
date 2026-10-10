@@ -873,11 +873,14 @@ function refresh_entries()
         clear_auctions()
         -- auxForever (0.6.0.2 build 3): the item is in the bags, so the game gives its item key and
         -- its listings are read with one request, as Blizzard's Sell tab does
-        -- (Blizzard_AuctionHouseItemSellFrame.lua, GetItemKeyFromItem). The name search, one more
-        -- request (and one per random suffix for gear), is only the fallback.
+        -- (Blizzard_AuctionHouseItemSellFrame.lua, GetItemKeyFromItem). Not for gear: its key holds
+        -- the random suffix and finds nothing (Tyler, Merc Sword, build 3); Blizzard asks for gear
+        -- by item ID in another way (SendSellSearchQuery). Gear keeps the name search, which reads
+        -- every version of the item, as before.
         local location = find_item_location(item_key)
         local key = location and C_AuctionHouse.GetItemKeyFromItem and C_AuctionHouse.GetItemKeyFromItem(location)
-        local query = type(key) == 'table' and { item_keys = {key} } or scan_util.item_query(selected_item.item_id)
+        local key_info = type(key) == 'table' and C_AuctionHouse.GetItemKeyInfo(key)
+        local query = type(key_info) == 'table' and not key_info.isEquipment and { item_keys = {key} } or scan_util.item_query(selected_item.item_id)
 
 		scan.start{
             type = 'list',
