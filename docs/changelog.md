@@ -6,7 +6,10 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
-## 0.6 (in progress)
+## 0.6 (2026-10-10)
+
+A new look by Webster, with the 0.5 look kept as the Classic theme, a clearer Post tab and a Sniper
+that only trusts prices it has seen for 3 days. Run a Full scan on each visit to the auction house.
 
 - Two themes, picked in Settings (the gear): New (below, the default) and Classic, the look of 0.5.
   A Reload now button appears when you change it. In Classic the main buttons (Search, Buy, Post)
