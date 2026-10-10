@@ -374,15 +374,13 @@ do
         end
         if force or look ~= last_look then
             last_look = look
+            -- auxForever (0.6): on is lit like a selected tab, paused like a chosen option
             if look == 'on' then
-                mode_button:SetBackdropColor(aux.color.state.enabled())
-                mode_button:SetBackdropBorderColor(aux.color.state.enabled())
+                gui.set_selected(mode_button, true)
             elseif look == 'paused' then
-                mode_button:SetBackdropColor(aux.color.accent.selected())
-                mode_button:SetBackdropBorderColor(aux.color.accent.background())
+                gui.style_choice(mode_button, true)
             else
-                mode_button:SetBackdropColor(aux.color.content.background())
-                mode_button:SetBackdropBorderColor(aux.color.content.border())
+                gui.set_default(mode_button)
             end
         end
     end

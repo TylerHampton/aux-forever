@@ -50,7 +50,8 @@ from aux on Classic:
 - Completely independent replacement for the Blizzard auction house window, one click away from
   the unaltered Blizzard interface.
 - A resizable window that remembers its size and position.
-- Settings behind the gear: background opacity, window scale and the default auction length.
+- Settings behind the gear: two themes (New, and Classic for the 0.5 look), background opacity,
+  window scale, the default auction length, and an on/off switch for each tooltip line.
 - Many convenient shortcuts.
 
 **Search**
@@ -93,6 +94,8 @@ from aux on Classic:
   flashing game icon for new deals; deals that sell are marked gone and sit at the bottom, and
   items you never want can be ignored.
 - The buy bar offers only the units that are a deal, and the Sniper waits while you buy.
+- Gray items are never deals, and a usual price counts only after 3 days of Full scans. The Sniper
+  says how far along your price history is, and warns when your last Full scan is getting old.
 
 **Post**
 
@@ -100,8 +103,8 @@ from aux on Classic:
 - Trade goods are posted as one listing of any quantity, up to everything you have.
 - Reads the existing auctions for the item and starts at the lowest price (or one step below in
   undercut mode). Click any listing to use its price instead.
-- Shows what you get after the auction house cut, the deposit, and warns you when a vendor would pay
-  more.
+- A receipt beside the price: the total, the auction house cut, what you get and the deposit, with
+  a red warning you cannot miss when a vendor would pay more.
 - Remembers your settings per item. Prices are typed the aux way (see Usage).
 - After you post everything of an item, the next item in the list is selected.
 
@@ -143,6 +146,8 @@ from aux on Classic:
   and events. Useful for bug reports about memory.
 
 **Tooltip**
+
+The same lines can be turned on and off in Settings (the gear), under Tooltip lines (from 0.6).
 
 - `/aux tooltip value`
 - `/aux tooltip daily`

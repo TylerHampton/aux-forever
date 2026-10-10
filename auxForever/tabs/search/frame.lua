@@ -11,7 +11,7 @@ local auction_listing = require 'aux.gui.auction_listing'
 local buy_bar = require 'aux.gui.buy_bar'
 
 FILTER_SPACING = 27
-SUBTAB_WIDTH = 200
+SUBTAB_WIDTH = 150
 
 frame = CreateFrame('Frame', nil, aux.frame)
 frame:SetAllPoints(aux.frame.body)
@@ -140,7 +140,6 @@ do
     local btn = gui.button(frame)
     btn:SetHeight(25)
     btn:SetPoint('RIGHT', start_button, 'LEFT', -4, 0)
-    btn:SetBackdropColor(aux.color.state.enabled())
     btn:SetText('Resume')
     btn:SetScript('OnClick', function()
         execute(nil, true)
@@ -213,7 +212,7 @@ do
     icon:SetTexture([[Interface\AddOns\auxForever\textures\search.tga]])
     icon:SetSize(14, 14)
     icon:SetPoint('LEFT', 7, 0)
-    icon:SetVertexColor(aux.color.label.enabled())
+    gui.vertex_color(icon, aux.color.label.enabled)
     editbox:SetTextInsets(26, 1.5, 3, 3)
     editbox.overlay:SetPoint('LEFT', 26, 0)
     search_icon = icon
@@ -222,28 +221,28 @@ do
     gui.horizontal_line(frame, -40)
 end
 do
-    local btn = gui.button(frame, gui.font_size.large)
-    btn:SetPoint('BOTTOMLEFT', aux.frame.content, 'TOPLEFT', 10, 8)
+    local btn = gui.button(frame, gui.font_size.medium)
+    btn:SetPoint('BOTTOMLEFT', aux.frame.content, 'TOPLEFT', 8, 7)
     btn:SetWidth(SUBTAB_WIDTH)
-    btn:SetHeight(22)
+    btn:SetHeight(26)
     btn:SetText('Search Results')
     btn:SetScript('OnClick', function() set_subtab(RESULTS) end)
     search_results_button = btn
 end
 do
-    local btn = gui.button(frame, gui.font_size.large)
-    btn:SetPoint('TOPLEFT', search_results_button, 'TOPRIGHT', 5, 0)
+    local btn = gui.button(frame, gui.font_size.medium)
+    btn:SetPoint('TOPLEFT', search_results_button, 'TOPRIGHT', 2, 0)
     btn:SetWidth(SUBTAB_WIDTH)
-    btn:SetHeight(22)
+    btn:SetHeight(26)
     btn:SetText('Saved Searches')
     btn:SetScript('OnClick', function() set_subtab(SAVED) end)
     saved_searches_button = btn
 end
 do
-    local btn = gui.button(frame, gui.font_size.large)
-    btn:SetPoint('TOPLEFT', saved_searches_button, 'TOPRIGHT', 5, 0)
+    local btn = gui.button(frame, gui.font_size.medium)
+    btn:SetPoint('TOPLEFT', saved_searches_button, 'TOPRIGHT', 2, 0)
     btn:SetWidth(SUBTAB_WIDTH)
-    btn:SetHeight(22)
+    btn:SetHeight(26)
     btn:SetText('Filter Builder')
     btn:SetScript('OnClick', function() set_subtab(FILTER) end)
     new_filter_button = btn
@@ -254,7 +253,7 @@ do
     label:SetPoint('TOPLEFT', new_filter_button, 'TOPRIGHT', 12, 0)
     label:SetPoint('BOTTOMRIGHT', aux.frame.content, 'TOPRIGHT', -10, 8)
     label:SetJustifyH('RIGHT')
-    label:SetTextColor(aux.color.label.enabled())
+    gui.text_color(label, aux.color.label.enabled)
     results_summary_label = label
 end
 do
@@ -276,7 +275,7 @@ do
     label:SetPoint('LEFT', clear_button, 'RIGHT', 14, 0)
     label:SetPoint('RIGHT', aux.credit_label, 'LEFT', -16, 0)
     label:SetJustifyH('LEFT')
-    label:SetTextColor(aux.color.label.enabled())
+    gui.text_color(label, aux.color.label.enabled)
     recipe_label = label
 end
 buy_bar.create(frame.results)

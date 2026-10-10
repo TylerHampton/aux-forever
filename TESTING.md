@@ -8,10 +8,16 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: none yet (0.5 released 2026-10-08)
+## Current build: 0.6 build 10: "of usual" under the percentage, one more Sniper line
 
-The next session puts its first test build's steps here. 0.5's build steps and results are in
-`docs/status.md` (0.5 build log).
+Branch `claude/upbeat-davinci-jqwq9d`. Build 9 tested 2026-10-10: headings, the smallest window,
+the 0c deposit and the Sniper's price history line (none shown: fresh data, usual prices back)
+look right. Tyler's two changes are in here. `/reload` is enough (no new files).
+
+- [ ] 1. Post tab, gear and a trade good: each percentage has a small gray "of usual" under it,
+  beside its price field; there is no OF USUAL heading any more. PER ITEM stays above the fields.
+- [ ] 2. Sniper: Start, and while no deals are shown, the message under the table ends with a third
+  line: "Sniper works best with fresh Full scan data."
 
 ## Before every release: the 5-minute check
 

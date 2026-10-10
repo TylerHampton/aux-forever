@@ -2,6 +2,7 @@ select(2, ...) 'aux.tabs.search'
 
 local aux = require 'aux'
 local info = require 'aux.util.info'
+local gui = require 'aux.gui'
 
 local tab = aux.tab 'Search'
 
@@ -45,22 +46,20 @@ function tab.USE_ITEM(item_id)
 end
 
 function set_subtab(tab)
-    search_results_button:UnlockHighlight()
-    saved_searches_button:UnlockHighlight()
-    new_filter_button:UnlockHighlight()
+    -- auxForever (0.6): the open sub tab has the gold outline
+    gui.apply_look(search_results_button, tab == RESULTS and 'selected' or 'tab')
+    gui.apply_look(saved_searches_button, tab == SAVED and 'selected' or 'tab')
+    gui.apply_look(new_filter_button, tab == FILTER and 'selected' or 'tab')
     frame.results:Hide()
     frame.saved:Hide()
     frame.filter:Hide()
 
     if tab == RESULTS then
         frame.results:Show()
-        search_results_button:LockHighlight()
     elseif tab == SAVED then
         frame.saved:Show()
-        saved_searches_button:LockHighlight()
     elseif tab == FILTER then
         frame.filter:Show()
-        new_filter_button:LockHighlight()
         load_builder()
     end
     update_done()

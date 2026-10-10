@@ -19,13 +19,12 @@ local money = require 'aux.util.money'
 
 M.HEIGHT = 58
 
-local ACCENT = {.89, .64, .23}
-local ACCENT_TEXT = {.10, .08, .03}
-local CONFIRM = {.25, .68, .42}
-local CONFIRM_TEXT = {.02, .08, .05}
-local NEUTRAL = {.12, .13, .15}
-local INPUT_BORDER = {.23, .25, .27}
-local INPUT_HOVER = {.38, .41, .45}
+-- auxForever (0.6, the UI Kit): Buy has the primary look (gold outline), Confirm a green one
+local ACCENT = 'primary'
+local ACCENT_TEXT = nil
+local CONFIRM = 'confirm'
+local CONFIRM_TEXT = nil
+local INPUT_HOVER = {.42, .42, .42}
 
 local NONE, COMMODITY, ITEM = aux.enum(3)
 local IDLE, QUOTING, QUOTED, BUYING = aux.enum(4)
@@ -57,21 +56,20 @@ local function show_message(text, color, seconds)
     message_until = GetTime() + (seconds or 6)
 end
 
-local function style_button(button, colors, text_colors, enabled)
-    if enabled then
-        button:Enable()
-        button:SetBackdropColor(colors[1], colors[2], colors[3], 1)
-        button:GetFontString():SetTextColor(text_colors[1], text_colors[2], text_colors[3], 1)
-    else
-        button:Disable()
-        button:SetBackdropColor(NEUTRAL[1], NEUTRAL[2], NEUTRAL[3], 1)
-        button:GetFontString():SetTextColor(aux.color.text.disabled())
-    end
+-- runs up to ten times a second; the look is only redrawn when it or the button's state changed
+local function style_button(button, look, _, enabled)
+    enabled = enabled and true or false
+    if button.aux_look == look and button.aux_shown_enabled == enabled then return end
+    button.aux_look, button.aux_shown_enabled = look, enabled
+    if enabled then button:Enable() else button:Disable() end
 end
 
 -- Money for button labels: the coloured g/s/c of money.to_string vanish on the coloured buttons
+-- Money for button labels. auxForever (0.6, Tyler): g, s and c always have their coin colors,
+-- wherever money is shown; the label's own color is kept for the numbers. (They were plain
+-- because the coin colors vanished on 0.5's solid amber buttons; no button is filled that way now.)
 local function plain_money(amount)
-    return money.to_string(amount, true, nil, nil, true)
+    return money.to_string(amount, true)
 end
 
 local function fit_width(button, min_width)
@@ -149,7 +147,7 @@ local function update_commodity()
             chip:Show()
             local chip_total, _, chip_count = estimate(amount)
             chip.amount:SetText(amount == current.max_stack and amount .. ' stack' or amount)
-            chip:SetWidth(amount == current.max_stack and 76 or 54)
+            chip:SetWidth(amount == current.max_stack and 80 or 64)
             local selected = amount == n
             if chip_count < amount then
                 chip.cost:SetText('-')
@@ -158,12 +156,18 @@ local function update_commodity()
                 chip.cost:SetText(money.to_string(chip_total, true))
                 chip:Enable()
             end
-            if selected then
-                chip:SetBackdropColor(.23, .18, .08, 1)
-                chip:SetBackdropBorderColor(ACCENT[1], ACCENT[2], ACCENT[3], 1)
-            else
-                chip:SetBackdropColor(.12, .13, .15, 1)
-                chip:SetBackdropBorderColor(.23, .25, .27, 1)
+            -- the chosen one has the selected look (gold outline), the others the default look; a
+            -- chip that cannot be bought keeps its colors and shows '-'
+            if selected ~= chip.aux_selected then
+                chip.aux_selected = selected
+                gui.apply_look(chip, selected and 'selected' or 'default', true)
+                if selected then
+                    chip.amount:SetTextColor(1, 1, 1)
+                    chip.cost:SetTextColor(1, 1, 1)
+                else
+                    chip.amount:SetTextColor(aux.color.text.enabled())
+                    chip.cost:SetTextColor(.75, .75, .75)
+                end
             end
         else
             chip:Hide()
@@ -172,8 +176,13 @@ local function update_commodity()
     -- auxForever (0.5, FB-001): the box is amber when it holds a number of your own, lighter while
     -- hovered or typed in, so it reads as a place to type
     local custom = not aux.key(current.quantities, n)
-    local border = custom and ACCENT or (other_input.focused or other_input.hovered) and INPUT_HOVER or INPUT_BORDER
-    other_input:SetBackdropBorderColor(border[1], border[2], border[3], 1)
+    if custom then
+        other_input:SetBackdropBorderColor(aux.color.accent.background())
+    elseif other_input.focused or other_input.hovered then
+        other_input:SetBackdropBorderColor(INPUT_HOVER[1], INPUT_HOVER[2], INPUT_HOVER[3], 1)
+    else
+        other_input:SetBackdropBorderColor(aux.color.input.border())
+    end
 
     -- the bar redraws every frame: a button hidden and shown again each frame drops any click
     -- that started before the hide, so Cancel is only shown or hidden when that changes
@@ -496,9 +505,12 @@ function M.create(parent)
     default_parent = parent
     bar = CreateFrame('Frame', nil, parent, 'BackdropTemplate')
     M.frame = bar
-    gui.set_frame_style(bar, aux.color.panel.background, aux.color.panel.border)
-    bar:SetBackdropColor(.105, .10, .09, 1)
-    bar:SetBackdropBorderColor(.23, .20, .15, 1)
+    -- auxForever (0.6, the UI Kit): no box of its own, a black line above it
+    local edge = bar:CreateTexture(nil, 'BORDER')
+    gui.texture_color(edge, aux.color.window.border)
+    edge:SetPoint('TOPLEFT')
+    edge:SetPoint('TOPRIGHT')
+    edge:SetHeight(1)
     bar:SetPoint('BOTTOMLEFT', 0, 0)
     bar:SetPoint('BOTTOMRIGHT', 0, 0)
     bar:SetHeight(HEIGHT)
@@ -520,7 +532,7 @@ function M.create(parent)
     end)
 
     local icon_frame = CreateFrame('Frame', nil, bar, 'BackdropTemplate')
-    gui.set_content_style(icon_frame)
+    gui.set_well_style(icon_frame)
     gui.set_size(icon_frame, 38, 38)
     icon_frame:SetPoint('LEFT', 10, 0)
     icon = icon_frame:CreateTexture(nil, 'ARTWORK')
@@ -529,6 +541,7 @@ function M.create(parent)
     icon:SetTexCoord(.08, .92, .08, .92)
 
     name_label = gui.label(bar, gui.font_size.medium)
+    name_label:SetTextColor(1, 1, 1)
     name_label:SetPoint('TOPLEFT', icon_frame, 'TOPRIGHT', 8, -2)
     name_label:SetWidth(150)
     name_label:SetJustifyH('LEFT')
@@ -542,20 +555,21 @@ function M.create(parent)
     for i = 1, 4 do
         local chip = CreateFrame('Button', nil, bar, 'BackdropTemplate')
         gui.set_content_style(chip)
-        gui.set_size(chip, 54, 42)
+        gui.add_sheen(chip)
+        gui.set_size(chip, 64, 42)
         if i == 1 then
             chip:SetPoint('LEFT', icon_frame, 'RIGHT', 170, 0)
         else
-            chip:SetPoint('LEFT', chips[i - 1], 'RIGHT', 6, 0)
+            chip:SetPoint('LEFT', chips[i - 1], 'RIGHT', 1, 0)
         end
         chip.amount = gui.label(chip, gui.font_size.medium)
         chip.amount:SetPoint('TOP', 0, -5)
-        chip.amount:SetTextColor(aux.color.text.enabled())
+        gui.text_color(chip.amount, aux.color.text.enabled)
         chip.cost = gui.label(chip, gui.font_size.small)
         chip.cost:SetPoint('BOTTOM', 0, 5)
         local highlight = chip:CreateTexture(nil, 'HIGHLIGHT')
         highlight:SetAllPoints()
-        highlight:SetColorTexture(1, 1, 1, .08)
+        highlight:SetColorTexture(1, 1, 1, .06)
         chip:SetScript('OnClick', function()
             if current and current.quantities and current.quantities[i] then
                 set_quantity(current.quantities[i])
@@ -587,7 +601,7 @@ function M.create(parent)
     other_input.overlay:SetPoint('BOTTOMRIGHT', -4, 5)
     other_input.caption = gui.label(other_input, 10)
     other_input.caption:SetPoint('TOP', 0, -4)
-    other_input.caption:SetTextColor(aux.color.label.enabled())
+    gui.text_color(other_input.caption, aux.color.label.enabled)
     other_input.caption:SetText('QUANTITY')
     other_input:SetScript('OnEnter', function(self) self.hovered = true end)
     other_input:SetScript('OnLeave', function(self) self.hovered = false end)
@@ -618,7 +632,7 @@ function M.create(parent)
 
     primary_button = gui.button(bar, gui.font_size.medium)
     primary_button:SetPoint('RIGHT', -10, 0)
-    gui.set_size(primary_button, 130, 42)
+    gui.set_size(primary_button, 160, 42)
     primary_button:SetScript('OnClick', function() primary_click() end)
 
     cancel_button = gui.button(bar, gui.font_size.medium)
@@ -639,7 +653,7 @@ function M.create(parent)
 
     line1 = gui.label(bar, gui.font_size.medium)
     line1:SetJustifyH('LEFT')
-    line1:SetTextColor(aux.color.text.enabled())
+    gui.text_color(line1, aux.color.text.enabled)
 
     line2 = gui.label(bar, gui.font_size.small)
     line2:SetJustifyH('LEFT')

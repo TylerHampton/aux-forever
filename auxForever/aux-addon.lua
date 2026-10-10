@@ -1,6 +1,7 @@
 select(2, ...) 'aux'
 
 local post = require 'aux.tabs.post'
+local gui = require 'aux.gui'
 
 function M.print(...)
 	DEFAULT_CHAT_FRAME:AddMessage(LIGHTYELLOW_FONT_COLOR_CODE .. '<auxForever> ' .. join(map({...}, tostring), ' '))
@@ -88,6 +89,9 @@ function event.AUX_LOADED()
         replicate_time = 0,
         window = {},
         background_opacity = 1,
+        -- auxForever (0.6): the look, 'new' (Christian Webster's UI Kit) or 'classic' (the 0.5 look),
+        -- chosen in Settings and applied at the next login or /reload
+        theme = 'new',
         items = {},
         item_ids = {},
         unused_item_ids = {},
@@ -137,6 +141,8 @@ function event.AUX_LOADED()
             faction_data.history_version = 3
         end
     end
+    -- every file has built its widgets by now; paint them in the chosen look (gui.settle_theme)
+    account_data.theme = gui.settle_theme(account_data.theme)
 end
 
 tab_info = {}

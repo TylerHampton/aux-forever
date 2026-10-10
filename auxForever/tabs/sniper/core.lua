@@ -71,8 +71,14 @@ end
 -- usual price, vendor price, days of history; nil when the client has not loaded the item yet
 -- Runs for every item whose price changed (all of them in the first round), so it builds no tables:
 -- the vendor price straight from the game, the history from its cache.
+-- auxForever (0.6, Tyler): the Sniper is for making money, so
+-- - gray (poor) items are never a deal: "gray items definitely cannot be in the sniper". They get
+--   no usual price and no vendor price, so judge finds nothing, below vendor price included.
+-- - the days counted are days of complete looks only (history.value_and_complete_days), so a usual
+--   price resting on a few old asking prices cannot make a deal.
+POOR = 0
 function M.item_facts(key, item_id)
-    local name, _, _, _, _, _, _, _, _, _, sell_price = GetItemInfo(item_id)
+    local name, _, quality, _, _, _, _, _, _, _, sell_price = GetItemInfo(item_id)
     if not name then
         -- the game drops item data now and then; aux's own saved item list still has the vendor price
         info.request_item(item_id)
@@ -80,10 +86,36 @@ function M.item_facts(key, item_id)
         if not saved then
             return
         end
-        sell_price = saved.sell_price
+        quality, sell_price = saved.quality, saved.sell_price
     end
-    local usual, days = history.value_and_days(key)
+    if quality == POOR then
+        return nil, 0, 0
+    end
+    local usual, days = history.value_and_complete_days(key)
+    if days > history_days then
+        history_days = days
+    end
     return usual, sell_price or 0, days
+end
+
+-- auxForever (0.6 build 9, Tyler): the most days of complete looks any item has, seen while judging
+-- items (no extra work), and whether a whole round has been judged, so the notice below can say how
+-- far the price history is from MIN_DAYS
+history_days, history_days_known = 0, false
+STALE_SECONDS = 2 * 24 * 60 * 60
+
+-- The line next to the deal count: a warning when the last Full scan is more than two days old
+-- (usual prices may be out of date), or, while the price history is too short for deals against
+-- the usual price, how far along it is. nil when all is well. A warning, not a lock: below vendor
+-- deals need no history, and the game allows a Full scan only once every 15 minutes (Tyler, build 9).
+function M.history_notice(now, last_scan, days, known)
+    if last_scan and last_scan > 0 and now - last_scan > STALE_SECONDS then
+        local ago = floor((now - last_scan) / (24 * 60 * 60))
+        return 'Your last Full scan was ' .. ago .. (ago == 1 and ' day' or ' days') .. ' ago. Usual prices may be out of date.', 'stale'
+    end
+    if (known or not last_scan or last_scan <= 0) and days < MIN_DAYS then
+        return 'Deals against the usual price start after ' .. MIN_DAYS .. ' days of Full scans; you have ' .. days .. ' so far.', 'thin'
+    end
 end
 
 local function settings()
@@ -262,6 +294,7 @@ function start_round()
             active = false
             checking = nil
             round = round + 1
+            history_days_known = true
             last_seconds = GetTime() - t0
             if last_count then
                 mark_gone(seen)

@@ -105,8 +105,9 @@ function M.search_recipe(recipe_id)
     end)
 end
 
-local function plain_money(amount)
-    return money.to_string(amount, true, nil, nil, true)
+-- coin letters in their colors, numbers in the color given (or the line's own) (Tyler, 0.6)
+local function plain_money(amount, color)
+    return money.to_string(amount, true, nil, color)
 end
 
 -- Cost of a recipe from a search's records: materials (each the cheapest auction or the vendor
@@ -165,9 +166,9 @@ function M.recipe_summary(search)
         else
             text = text .. GAP .. 'sells ' .. plain_money(net) .. ' after cut' .. GAP
             if net >= cost then
-                text = text .. aux.color.green((missing and 'profit at most ' or 'profit ') .. plain_money(net - cost))
+                text = text .. aux.color.green(missing and 'profit at most ' or 'profit ') .. plain_money(net - cost, aux.color.green)
             else
-                text = text .. aux.color.red((missing and 'loss at least ' or 'loss ') .. plain_money(cost - net))
+                text = text .. aux.color.red(missing and 'loss at least ' or 'loss ') .. plain_money(cost - net, aux.color.red)
             end
         end
     end

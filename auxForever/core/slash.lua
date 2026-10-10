@@ -102,6 +102,8 @@ function SlashCmdList.AUX(command)
         aux.print('post full scan ' .. status(aux.account_data.post_full_scan))
     elseif arguments[1] == 'post' and arguments[2] == 'bid' then
         aux.account_data.post_bid = ({ unit = 'unit', stack = 'stack' })[arguments[3]]
+        post.apply_bid_layout()
+        aux.refresh_settings()
 	    aux.print('post bid ' .. aux.color.blue(aux.account_data.post_bid or 'off'))
     elseif arguments[1] == 'post' and arguments[2] == 'duration' and post_duration_code(arguments[3]) then
         -- Forever: accepts the hours of the auction house's options (e.g. 12, 24, 48)

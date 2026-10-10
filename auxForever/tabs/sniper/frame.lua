@@ -44,7 +44,8 @@ end
 
 local function price_text(record, amount)
     if record.deal_gone then
-        return aux.color.label.disabled(money.to_string(amount, true, nil, nil, true))
+        -- a deal that is gone: gray numbers, coin letters still in their colors (Tyler, 0.6)
+        return money.to_string(amount, true, nil, aux.color.label.disabled)
     end
     return money.to_string(amount, true)
 end
@@ -156,7 +157,7 @@ M.columns = {
             if record.deal_gone then
                 cell.text:SetText(price_text(record, record.deal_profit))
             else
-                cell.text:SetText(aux.color.green(money.to_string(record.deal_profit, true, nil, nil, true)))
+                cell.text:SetText(money.to_string(record.deal_profit, true, nil, aux.color.green))
             end
         end,
         cmp = function(a, b, desc)
@@ -183,7 +184,7 @@ do
     label:SetPoint('CENTER', 0, 0)
     label:SetWidth(600)
     label:SetWordWrap(true) -- two lines; gui.label is one line by default, which cut it to "round..."
-    label:SetTextColor(aux.color.label.enabled())
+    gui.text_color(label, aux.color.label.enabled)
     empty_label = label
 end
 
@@ -214,7 +215,7 @@ do
     btn:SetText('Sound')
     btn:SetScript('OnClick', function()
         aux.account_data.sniper_sound = not aux.account_data.sniper_sound
-        gui.style_choice(btn, aux.account_data.sniper_sound)
+        gui.set_selected(btn, aux.account_data.sniper_sound)
     end)
     sound_button = btn
 end
@@ -242,7 +243,7 @@ do
     local label = gui.label(frame, gui.font_size.medium)
     label:SetPoint('RIGHT', editbox, 'LEFT', -6, 0)
     label:SetText('% of usual, profit at least')
-    label:SetTextColor(aux.color.label.enabled())
+    gui.text_color(label, aux.color.label.enabled)
     profit_label = label
 end
 do
@@ -267,7 +268,7 @@ do
     local label = gui.label(frame, gui.font_size.medium)
     label:SetPoint('RIGHT', editbox, 'LEFT', -6, 0)
     label:SetText('Deal: at most')
-    label:SetTextColor(aux.color.label.enabled())
+    gui.text_color(label, aux.color.label.enabled)
 end
 
 gui.horizontal_line(frame, -40)
@@ -318,6 +319,31 @@ do
     ignore_button = btn
 end
 
+-- next to the deal count: the price history notice (history_notice) and a Full scan button
+do
+    local label = gui.label(frame, gui.font_size.small)
+    label:SetPoint('LEFT', deals_label, 'RIGHT', 18, 0)
+    label:SetJustifyH('LEFT')
+    notice_label = label
+    local btn = gui.button(frame, gui.font_size.small)
+    btn:SetPoint('LEFT', label, 'RIGHT', 8, 0)
+    btn:SetHeight(22)
+    btn:SetWidth(70)
+    btn:SetText('Full scan')
+    btn:SetScript('OnClick', function()
+        aux.full_scan_button:Click()
+    end)
+    btn:SetScript('OnEnter', function(self)
+        GameTooltip:SetOwner(self, 'ANCHOR_BOTTOM')
+        GameTooltip:AddLine('Full scan')
+        GameTooltip:AddLine('Records the price of everything on the auction house, like the Full scan button at the top right. The game allows one every 15 minutes.', 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
+    btn:Hide()
+    notice_button = btn
+end
+
 -- "2 to buy, 1 gone": a list of only gone deals no longer reads "0 found"
 function M.deals_count(shown)
     local open, gone = 0, 0
@@ -339,22 +365,23 @@ function M.update_deals()
     if #shown > 0 then
         empty_label:SetText('')
     elseif running then
-        empty_label:SetText('No deals yet. The whole auction house is checked every round.\nDeals against the usual price need ' .. MIN_DAYS .. ' days of price history; Full scans build it.')
+        empty_label:SetText('No deals yet. The whole auction house is checked every round; gray items are left out.\nDeals against the usual price need ' .. MIN_DAYS .. ' days with a Full scan (or a Full search of the item).\nSniper works best with fresh Full scan data.')
     else
         empty_label:SetText('Press Start to watch the whole auction house for deals.')
     end
 end
 
 do
-    local last_run, last_status, last_ignored
+    local last_run, last_status, last_ignored, last_notice
     -- the controls follow the state; only touched when something changed
     function M.update_controls()
         if running ~= last_run then
             last_run = running
             run_button:SetText(running and 'Stop' or 'Start')
             if running then
-                gui.style_choice(run_button, false)
-                run_button:GetFontString():SetFont(gui.font, gui.font_size.large)
+                gui.set_default(run_button)
+                local _, size = run_button:GetFontString():GetFont()
+                run_button:GetFontString():SetFont(gui.font, size and size > 0 and size or gui.font_size.medium)
             else
                 gui.set_primary(run_button)
             end
@@ -365,6 +392,13 @@ do
         if text ~= last_status then
             last_status = text
             status_label:SetText(text)
+        end
+        -- the price history notice; redrawn, and its button shown or hidden, only when it changes
+        local notice, kind = history_notice(time(), aux.account_data.replicate_time, history_days, history_days_known)
+        if notice ~= last_notice then
+            last_notice = notice
+            notice_label:SetText(notice and (kind == 'stale' and aux.color.orange(notice) or aux.color.label.enabled(notice)) or '')
+            if notice then notice_button:Show() else notice_button:Hide() end
         end
         local ignored = ignored_count()
         if ignored ~= last_ignored then
@@ -378,5 +412,5 @@ end
 function aux.event.AUX_LOADED()
     percent_input:SetText(tostring(aux.account_data.sniper_percent))
     profit_input:SetText(money.to_string(aux.account_data.sniper_profit, nil, true, nil, true))
-    gui.style_choice(sound_button, aux.account_data.sniper_sound)
+    gui.set_selected(sound_button, aux.account_data.sniper_sound)
 end
