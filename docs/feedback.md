@@ -114,7 +114,7 @@ For whoever fixes or builds from it:
 | [FB-005](#fb-005-praise-the-list-of-sellable-items-on-the-left-of-the-post-tab) | 2026-10-08 | Darkhorse | praise | Post | n/a | Praise: the list of sellable items on the Post tab | new |
 | [FB-006](#fb-006-after-resizing-and-changing-the-scale-the-recent-searches-header-sticks-out-of-the-window) | 2026-10-08 | Garsterson | bug | Window | S3 | After resizing and changing the scale, the Recent Searches header sticks out of the window | fixed 0.5 31ac02c |
 | [FB-007](#fb-007-crafting-cost-in-the-profession-window-anywhere-in-the-world) | 2026-10-08 | Garsterson | request | Recipe search | n/a | Crafting cost in the profession window, anywhere in the world | built 0.5 5a935e1 |
-| [FB-008](#fb-008-chat-command-settings-should-also-be-in-the-settings-menu) | 2026-10-09 | CurseForge player (name not recorded yet) | request | Settings | n/a | Chat command settings should also be in the Settings menu | in-progress claude/eager-dijkstra-drmz2k (built in 0.6 build 3) |
+| [FB-008](#fb-008-chat-command-settings-should-also-be-in-the-settings-menu) | 2026-10-09 | CurseForge player (name not recorded yet) | request | Settings | n/a | Chat command settings should also be in the Settings menu | built 0.6 (released 2026-10-10) |
 | [FB-009](#fb-009-post-cloth-in-several-stacks-of-a-chosen-size) | 2026-10-10 | Maggew | request | Post | n/a | Post cloth in several stacks of a chosen size, as in Classic | wont-fix (Forever has no stacks; Tyler: not the addon's job) |
 
 ## Players
@@ -563,7 +563,7 @@ Design (Claude's decision on point 3, with the rest filled in; build from this, 
 - Type: request
 - Area: Settings
 - Severity: n/a
-- Status: in-progress claude/eager-dijkstra-drmz2k. Built in 0.6 build 3: a two-column Settings
+- Status: built 0.6 (released 2026-10-10). Built in 0.6 build 3: a two-column Settings
   menu with switches for the seven `/aux tooltip ...` lines, from a mockup Tyler approved
   (2026-10-09). Tooltip switches tested in game (build 4, pass). A Bid prices choice was added in
   build 3 and removed in build 4 (Tyler, see below). Left as chat only: ignore owner, action

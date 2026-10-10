@@ -112,8 +112,8 @@ Load order is the TOC (`auxForever/auxForever.toc`).
 - `aux-addon.lua`: events, saved variables (`account_data` defaults), tab switching.
 - `frame.lua`: the main window: top bar (logo, tabs, the settings gear, Full scan, Blizzard UI,
   close), resize grip, credit label. Settings (0.6) is two columns, approved by Tyler from a mockup:
-  Window (background, scale, look) and Posting (duration, bid prices) left, tooltip line switches
-  right. A setting that also has a chat command must behave the same from both.
+  Window (background, scale, theme) and Posting (default duration) left, tooltip line switches
+  right (bid prices left Settings in 0.6 build 5; `/aux post bid` remains). A setting that also has a chat command must behave the same from both.
 - `color.lua`: the palettes of the two looks (New, Classic; see Design language). `gui/core.lua`:
   widgets (button, label, editbox, dropdown, checkbox, status bar, square or rounded shapes, button
   looks, `themed` and `settle_theme`, zebra rows, background opacity).
@@ -141,7 +141,10 @@ Load order is the TOC (`auxForever/auxForever.toc`).
   `docs/clicks.md`; row click hints come from `gui.add_click_hint`.
 - `tabs/sniper/`: the Sniper tab (0.3): `core.lua` (rounds over the whole item list, the deal
   rule `judge`, checking a candidate's real auctions, buying), `frame.lua` (controls and table).
-- `tabs/post/`: posting (auto price, undercut mode, deposit, "You get"). `tabs/auctions/`,
+- `tabs/post/`: posting (auto price, undercut mode, deposit, "You get"). Since 0.6 the top panel is
+  three columns (`frame.lua`, option A of the mockup): setup, price (with `price_layout`, checked
+  by a test at the smallest window), and a receipt with the red vendor warning (`vendor_warning`,
+  texture `textures/warning.tga`). `tabs/auctions/`,
   `tabs/bids/`: the other tabs. `core/slash.lua`: `/aux` commands.
 - `textures/*.tga`: icons and rounded corners (addon textures load; addon fonts do not).
 

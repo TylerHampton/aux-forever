@@ -1,7 +1,23 @@
 # Roadmap and versions
 
 Set by Tyler on 2026-10-05. Version numbers are `0.MINOR.PATCH`, written `forever-0.2.1` in the
-TOC. Every release gets an entry in `docs/changelog.md`.
+TOC. Every release gets an entry in `docs/changelog.md`. A fix right after a release gets a fourth
+number: 0.6.0.1 after 0.6 (Tyler, 2026-10-10); whether later fixes are 0.6.0.2 or 0.6.1 is not
+decided yet.
+
+## After 0.6: candidates for the next version (none decided)
+
+0.6 and 0.6.0.1 were released on 2026-10-10 (`docs/changelog.md`). Carried over or raised since:
+
+- **Sniper:** the hold on a selected deal and a clear outcome for each buy in a fast market (from
+  0.5, still open); a rule for items with a single listing (Tyler to decide, `docs/status.md`).
+- **Auctions tab:** the starting bid of your own auctions, if `GetOwnedAuctionInfo` gives it
+  (unverified).
+- **New theme tweaks** from Tyler (screenshots promised).
+- **Three ways to see the auction house by 1.0** (Tyler, 2026-10-09): Blizzard's (the Blizzard UI
+  button), Classic (the 0.5 look) and New (Webster's). Two of the three are in 0.6.
+- Whatever players report on 0.6 (`docs/feedback.md`, from FB-010).
+
 
 ## 0.4.1: performance first, then common-sense UX (released 2026-10-06)
 
@@ -32,7 +48,7 @@ else is batched, about a week of real use.
    and sold Sniper deals at the bottom; both done. Not picked for now: a dash instead of "?" in
    the Sniper's Usual column, and "?" in the Search tab's Seller column.
 
-## After 0.5: candidates for 0.5.1 and 0.6 (none decided)
+## After 0.5: candidates for 0.5.1 and 0.6 (superseded by After 0.6)
 
 0.5 was released on 2026-10-08 (`docs/changelog.md`). Not built in 0.5, carried over:
 

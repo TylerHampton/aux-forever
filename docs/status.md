@@ -1,39 +1,71 @@
 # Status
 
-Last updated 2026-10-10: 0.6.0.1 (recipe button fix) tested by Tyler and released.
+Last updated 2026-10-10 (end of the session that built and released 0.6 and 0.6.0.1).
 
-## Start here (next session, after the 0.6 release)
+## Start here (next session)
 
-- **Released: 0.6** on 2026-10-10. `main` has it (PR #15, 49cc8cf; upload fix PR #16, 8952465);
-  tag `v0.6`; GitHub pre-release https://github.com/TylerHampton/aux-forever/releases/tag/v0.6;
-  CurseForge Beta file id 9114535, uploaded by the Release workflow (run 38019960716), the first
-  automatic upload. CurseForge may hold a new file for review before players see it; check the
-  project's Files page if Tyler asks. The page description (`docs/curseforge-description.md`, updated
-  for 0.6) is still pasted by hand by Tyler.
-- First automatic upload failed (run 38019762742): `curl -F` cut the metadata JSON at a ";" in
-  the changelog. Fixed with `--form-string` in `.github/scripts/curseforge.sh`.
-- Next version: not chosen. 0.6.x is fixes and small things; features go into 0.7
-  (`docs/roadmap.md` rules). Tyler planned about one release a week.
-- Still open from 0.6: the thin-market rule for items with a single listing (A everything, B
-  stackable goods only, C wait and see, recommended); why `/aux price Trapper's Shirt` found no
-  history while the Sniper had a usual of 90s (ask for the command with a Shift-clicked link);
-  the CurseForge player's in-game name for FB-008 (changelog credit); Tyler's tweaks to the New
-  theme; Sniper "profit at least" 1g suggested instead of his 5c (his "below vendor" deals profit
-  6c to 2s).
-- **0.6.0.1 build 1** (Tyler: a fix right after a release is 0.6.0.1, not 0.6.1) (2026-10-10, branch `claude/upbeat-davinci-jqwq9d`, not tried in game):
-  Tyler found "Search in aux" covering Blizzard's Track Recipe checkbox. Cause, from Forever's UI
-  source (Gethe/wow-ui-source, branch `forever`, `Blizzard_Professions/Camelot/
-  Blizzard_ProfessionsCrafting.lua`, diff of builds 70245 and 70291): Blizzard's 2026-10-08 patch
-  moved the checkbox from BOTTOMLEFT (17, 11) to BOTTOMRIGHT. Fix: `recipe_button_spot` /
-  `place_button` in `tabs/search/recipe.lua` put the button left of the checkbox when the checkbox
-  is anchored on the right (read from its `GetPoint`), placed again on each `Init`.
-  Tested in game 2026-10-10 (`builds/0-6-1-build-1/results`: the button sits left of Track
-  Recipe, the search works) and released as 0.6.0.1.
-- Changelogs list every change with detail (AGENTS.md, Tyler 2026-10-10).
-- Test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (last used: `0-6-release`, the
-  5-minute check, passed). Zips are named `auxForever-<version>-build<n>.zip`.
+**Where things stand:** 0.6 and 0.6.0.1 are released and on `main`. No build is in progress and
+no branch has unmerged work. Start the next version from the latest `main`.
 
-## Post tab top panel redesign (2026-10-10, branch `claude/upbeat-davinci-jqwq9d`)
+- **Released 0.6.0.1** on 2026-10-10 (PR #18, `main` b17b9bc): "Search in aux" no longer covers
+  Blizzard's Track Recipe checkbox (details below). Tag `v0.6.0.1`, GitHub pre-release
+  https://github.com/TylerHampton/aux-forever/releases/tag/v0.6.0.1, CurseForge Beta file id
+  9114589 (Release run 38020724242). `/reload` was enough for players.
+- **Released 0.6** on 2026-10-10 (PR #15, 49cc8cf): Webster's new look plus the Classic theme,
+  the two-column Settings menu, the Post panel redesign (option A), the Sniper's 3-day rule and
+  price history line. Tag `v0.6`, CurseForge Beta file id 9114535. Needed a full game restart
+  (new texture `warning.tga`). Full list: `docs/changelog.md`, 0.6.
+- **CurseForge uploads are automatic and proven** (Release workflow, secret `CF_API_KEY`). The
+  first try failed: `curl -F` cut the metadata JSON at a ";" in the changelog; fixed with
+  `--form-string` in `.github/scripts/curseforge.sh` (PR #16). The project page description is
+  still pasted by hand by Tyler: `docs/curseforge-description.md` was updated for 0.6; ask Tyler
+  whether he has pasted it.
+- **How a release goes** (worked twice on 2026-10-10): Tyler tests the build on the test page,
+  says it is ready; the changelog section gets its date; a PR from the session branch to `main`;
+  after its tests pass, merge (Tyler asked for it); trigger `release.yml` on `main` through the
+  GitHub API; read the "Upload to CurseForge" step's log for `{"id": ...}` and "Uploaded."; then
+  update this file in a small PR. Run the 5-minute check (`TESTING.md`) before a minor release.
+- **Version numbers** (Tyler, 2026-10-10): a fix right after a release gets a fourth number,
+  0.6.0.1 after 0.6. Not decided yet: whether later fixes are 0.6.0.2 or 0.6.1 (`docs/roadmap.md`
+  still describes 0.6.x as the fix versions). Ask Tyler before numbering the next fix.
+- **Changelogs** list every change with a little detail, grouped by area (Tyler: never "minor bug
+  fixes"); rule in AGENTS.md.
+- **Next version:** not chosen. Candidates are in `docs/roadmap.md`, "After 0.6". Tyler planned
+  about one release a week; two went out on 2026-10-10.
+- **Open questions for Tyler** (none blocks anything):
+  1. Sniper: a rule for items with a single listing (A everything, B stackable goods only, C wait
+     and see; Claude recommends C).
+  2. `/aux price` with a Shift-clicked Trapper's Shirt link: the name lookup found no history
+     while the Sniper had a usual price of 90s (open since build 5).
+  3. The CurseForge player's in-game name for FB-008 (changelog credit).
+  4. His tweaks to the New theme (he said he would send screenshots).
+  5. Sniper "profit at least": his 5c lets through below-vendor deals worth 6c to 14c; 1g
+     suggested.
+  6. A seller name showed as "Áeçèéêëì Áæçèéìëì" on Fine Thread (0.6.0.1 test screenshot):
+     either a real name in accented letters or a text problem; unknown, ask for another example.
+- **How Tyler tests:** one test page, https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ
+  (`index.html` with a `BUILD` id and `AREAS` steps; he marks Pass/Fail with notes and
+  screenshots; read with ArtifactData, collection `builds/<build id>/results`, and download each
+  screenshot with Artifact read, `path` = the asset id). Last used: `0-6-1-build-1` (passed). He
+  often uploads screenshots without marking a status: read the screenshots. Zips:
+  `auxForever-<version>-build<n>.zip`, sent with the file tool; say whether `/reload` is enough.
+- **Mockups:** the Post panel mockup (options A, B, C, A chosen) is
+  https://claude.ai/artifact/FQAKTqLUF4NQrSiAXV8ERK (a Design canvas).
+- **Blizzard patches move things:** the 2026-10-08 patch (build 70291) reversed the bag order and
+  moved Track Recipe; a newer build 70334 (2026-10-09) exists in Gethe/wow-ui-source, branch
+  `forever`. When something in Blizzard's frames looks different, diff the builds there first.
+
+### 0.6.0.1: Search in aux and Track Recipe
+
+Tyler found "Search in aux" covering Blizzard's Track Recipe checkbox. Cause, from Forever's UI
+source (Gethe/wow-ui-source, branch `forever`, `Blizzard_Professions/Camelot/
+Blizzard_ProfessionsCrafting.lua`, diff of builds 70245 and 70291): Blizzard's 2026-10-08 patch
+moved the checkbox from BOTTOMLEFT (17, 11) to BOTTOMRIGHT. Fix: `recipe_button_spot` /
+`place_button` in `tabs/search/recipe.lua` put the button left of the checkbox when the checkbox
+is anchored on the right (read from its `GetPoint`), placed again on each `Init`. Tested in game
+2026-10-10 (`builds/0-6-1-build-1/results`) and released.
+
+## 0.6 build log, builds 7 to 10 and the release (2026-10-10, branch `claude/upbeat-davinci-jqwq9d`)
 
 0.6 builds 1 to 6 were merged into this branch from `claude/eager-dijkstra-drmz2k`. Next build is
 build 7. Build 6 was never tested in game; Tyler wants one test page for everything (build 6's
@@ -111,7 +143,7 @@ CurseForge upload failed: 400 "Invalid JSON" in `metadata`. Cause: `curl -F` tre
 changelog text as a field option and cut the JSON; reproduced locally. Fixed with `--form-string`
 in `.github/scripts/curseforge.sh` (PR after #15), then the Release workflow was run again.
 
-## 0.6 build 2 (2026-10-09, branch `claude/eager-dijkstra-drmz2k`)
+## 0.6 build log, builds 2 to 6 (2026-10-09, branch `claude/eager-dijkstra-drmz2k`)
 
 Tyler, 2026-10-09: Webster (Christian Webster, GitHub `webguh`, a collaborator who does UI design for
 work) made build 1 on the branch `design`; he is done with it. Tyler wants three ways to see the
@@ -259,7 +291,7 @@ Build 1 (not tried in game yet): a restyle only, no change to searching, buying 
   says no stripes, so build 1 has none. Easy to add back. (Answered 2026-10-09: add them back in
   dark gray; done in build 2.)
 
-## Start here (for the next session: 0.5.1 or 0.6)
+## Earlier start notes (after the 0.5 release; history, superseded by Start here above)
 
 - **Released: 0.5** on 2026-10-08. `main` is at its merge (PR #11, e27b711); tag `v0.5`; GitHub
   pre-release https://github.com/TylerHampton/aux-forever/releases/tag/v0.5. Tyler uploaded 0.5 to
@@ -294,7 +326,7 @@ Build 1 (not tried in game yet): a restyle only, no change to searching, buying 
   Tyler screenshots with Win+Shift+S, which holds Shift (tooltip prices then show the whole stack,
   "for 3") and hides the item on the mouse pointer.
 
-## Open after 0.5 (loose ends, none urgent)
+## Open after 0.5 (loose ends; still open unless noted in Start here)
 
 - Damaged gear and posting (FB-003): never tried in game. The Post tab says "must be repaired"
   if aux finds damaged gear it cannot post; whether Forever lists damaged gear at all is unknown.
