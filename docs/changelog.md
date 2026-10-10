@@ -23,6 +23,10 @@ A change that comes from a player's feedback credits them by in-game name at the
   green. Before, the same price could appear on several rows (Light Feather: 26, 480 and 10 at 8c),
   which made it hard to see how much was for sale at the lowest price. Gear keeps one row per kind
   of auction (reported by Tyler).
+- Post tab: listings load faster. Picking an item used to search the auction house for its name
+  first and then read its listings, two requests in a row; the item is in your bags, so it is now
+  read straight away with one request, as Blizzard's own Sell tab does. Gear with random endings
+  ("of the Bear") no longer reads every version of the item before yours.
 
 `/reload` is enough to update.
 

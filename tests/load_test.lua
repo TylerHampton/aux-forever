@@ -2151,6 +2151,40 @@ try('post: picking an item reads its listings fresh', function()
   post.clear_auctions()
 end)
 
+-- Tyler, 0.6.0.2: each pick searched the item's name first, then read its listings: two requests
+-- where Blizzard's Sell tab makes one. An item in the bags is now read by its item key.
+try('post: an item in the bags is read with one request', function()
+  local req = loadstring("select(2, ...) 'aux.test47'; return require")('auxForever', addon)
+  local scan_exports = req 'aux.core.scan'
+  local info = req 'aux.util.info'
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local real_start, real_inventory, real_container = scan_exports.start, info.inventory, info.container_item
+  local real_key = rawget(C_AuctionHouse, 'GetItemKeyFromItem')
+  local params
+  rawset(scan_exports, 'start', function(p) params = p end)
+  local in_bags = true
+  rawset(info, 'inventory', function()
+    local done = not in_bags
+    return function() if not done then done = true return {0, 1} end end
+  end)
+  rawset(info, 'container_item', function() return {item_key = '4422:0', auctionable = true, item_location = 'bag 0 slot 1'} end)
+  rawset(C_AuctionHouse, 'GetItemKeyFromItem', function(location) return location == 'bag 0 slot 1' and {itemID = 4422, itemLevel = 0, itemSuffix = 0} or nil end)
+  local item = {key = '4422:0', item_id = 4422, commodity = true, name = 'Scroll of Stamina', quality = 1, count = 2, max_stack = 5}
+  post.update_item(item)
+  local query = params and params.queries[1]
+  check('one request: the item key from the bags is searched', query and query.item_keys and query.item_keys[1].itemID == 4422)
+  check('one request: no name search first', query and query.blizzard_query == nil)
+  in_bags, params = false, nil
+  post.update_item(item)
+  query = params and params.queries[1]
+  check('one request: not in the bags, the name search is the fallback', params ~= nil and not (query and query.item_keys))
+  rawset(scan_exports, 'start', real_start)
+  rawset(info, 'inventory', real_inventory); rawset(info, 'container_item', real_container)
+  rawset(C_AuctionHouse, 'GetItemKeyFromItem', real_key)
+  post.selected_item = nil
+  post.clear_auctions()
+end)
+
 -- Tyler, 0.4.1: prices read "7s", not "7s 00c"
 try('money without zero parts', function()
   local req = loadstring("select(2, ...) 'aux.test45'; return require")('auxForever', addon)

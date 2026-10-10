@@ -871,7 +871,13 @@ function refresh_entries()
         auto_price_key = item_key
         -- only the item being posted keeps its listings; any other is read again when picked
         clear_auctions()
-        local query = scan_util.item_query(selected_item.item_id)
+        -- auxForever (0.6.0.2 build 3): the item is in the bags, so the game gives its item key and
+        -- its listings are read with one request, as Blizzard's Sell tab does
+        -- (Blizzard_AuctionHouseItemSellFrame.lua, GetItemKeyFromItem). The name search, one more
+        -- request (and one per random suffix for gear), is only the fallback.
+        local location = find_item_location(item_key)
+        local key = location and C_AuctionHouse.GetItemKeyFromItem and C_AuctionHouse.GetItemKeyFromItem(location)
+        local query = type(key) == 'table' and { item_keys = {key} } or scan_util.item_query(selected_item.item_id)
 
 		scan.start{
             type = 'list',

@@ -8,20 +8,17 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.6.0.2 build 2 (one row per price)
+## Current build: 0.6.0.2 build 3 (faster Post tab)
 
-Passed in game on 2026-10-09 (Tyler's screenshots); waiting for the release.
+Install the zip, then `/reload` (no full restart needed). Builds 1 and 2 passed (fresh listings
+on every pick, one row per price); build 3 reads the picked item with one request instead of two.
 
-Install the zip, then `/reload` (no full restart needed). Build 1 passed (fresh listings on every
-pick); build 2 adds one row per price for items sold by quantity.
-
-- [ ] 1. Post tab: click Light Feather (or any cloth, herb or other trade good with many
-  listings): each price is one row with the total for sale. Your own auctions at a price are a
-  separate green row.
-- [ ] 2. Post one of a trade good: after "Posted", the table reads again and your auction shows
-  as a green row at its price.
-- [ ] 3. Click a piece of gear (Merc Sword, Medicine Staff): the table loads as before, no
-  BugSack error.
+- [ ] 1. Post tab: click several items one after another (a trade good, a potion, a piece of
+  gear): each loads its listings, and it feels at least as quick as build 2.
+- [ ] 2. Optional, to measure: type `/aux debug` once, click an item, and copy the line it prints
+  in chat into the note. Type `/aux debug` again to turn it off.
+- [ ] 3. If you have gear with a random ending ("of the Bear"), click it: its listings load.
+- [ ] 4. Post one item: after "Posted", the table reads again, no BugSack error.
 
 ## Before every release: the 5-minute check
 
