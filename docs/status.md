@@ -1,11 +1,20 @@
 # Status
 
-Last updated 2026-10-10 (0.6.0.2 build 1 built, waiting for Tyler's test).
+Last updated 2026-10-10 (0.6.0.2 build 1 built and held until 2026-10-11; see Release plan).
 
 ## Start here (next session)
 
 **Where things stand:** 0.6 and 0.6.0.1 are released and on `main`. **0.6.0.2 build 1** is on
-branch `claude/kind-rubin-olf9zf`, waiting for Tyler's test in game (steps in `TESTING.md`; test page build id `0-6-0-2-build-1`).
+branch `claude/kind-rubin-olf9zf`, waiting for Tyler's test in game (steps in `TESTING.md`; test
+page build id `0-6-0-2-build-1`). No pull request yet.
+
+**Release plan (Tyler, 2026-10-10, evening):** hold this fix; do not release it tonight. Two files
+already went to CurseForge that day and he does not want a third within the hour. On 2026-10-11:
+- if Tyler has a better idea to add, it goes into the same branch and the version becomes
+  **0.6.1** (TOC `forever-0.6.1`, changelog heading renamed, this fix listed under it);
+- if not, **0.6.0.2** is released as it is (after his test passes): changelog date, PR to `main`,
+  Release workflow, as in "How a release goes" below.
+Ask Tyler which one at the start of the next session.
 
 - **0.6.0.2 build 1** (2026-10-10): the Post tab always searches the picked item. Tyler's
   screenshots: Scroll of Stamina showed the last Full scan's listings (27 at 13s, one row per
