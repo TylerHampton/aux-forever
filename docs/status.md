@@ -1,7 +1,7 @@
 # Status
 
-Last updated 2026-10-09, 10 pm Mountain Time (0.6.0.2 build 1 built and held until 2026-10-10;
-see Release plan).
+Last updated 2026-10-09, 10:30 pm Mountain Time (end of session: 0.6.0.2 build 2 tested and held
+for release on 2026-10-10; see Release plan).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -23,6 +23,11 @@ the hour. On 2026-10-10:
 - if not, **0.6.0.2** (build 2, tested) is released as it is: changelog date, PR to `main`,
   Release workflow, as in "How a release goes" below.
 Ask Tyler which one at the start of the next session.
+
+**Also on this branch, not yet on `main`:** two new rules in `AGENTS.md` from this session (dates
+in Tyler's Mountain Time; wrapping up a session without being asked when he says he is done) and
+the date corrections across the docs. A session started from `main` does not have them until the
+0.6.0.2 pull request is merged, so read `AGENTS.md` from this branch until then.
 
 - **0.6.0.2 build 1** (2026-10-09): the Post tab always searches the picked item. Tyler's
   screenshots: Scroll of Stamina showed the last Full scan's listings (27 at 13s, one row per
