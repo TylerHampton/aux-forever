@@ -12,15 +12,15 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 ## Start here (next session)
 
 **Where things stand:** 0.6 and 0.6.0.1 are released and on `main`. **0.6.0.2 build 2** is on
-branch `claude/kind-rubin-olf9zf`, waiting for Tyler's test in game (steps in `TESTING.md`; test
-page build id `0-6-0-2-build-2`). No pull request yet.
+branch `claude/kind-rubin-olf9zf`; it passed Tyler's test in game on 2026-10-09 and waits for the
+release (see Release plan). No pull request yet.
 
 **Release plan (Tyler, 2026-10-09, 10 pm Mountain Time):** hold this fix; do not release it
 tonight. Two files already went to CurseForge that evening and he does not want a third within
 the hour. On 2026-10-10:
 - if Tyler has a better idea to add, it goes into the same branch and the version becomes
   **0.6.1** (TOC `forever-0.6.1`, changelog heading renamed, this fix listed under it);
-- if not, **0.6.0.2** is released as it is (after his test passes): changelog date, PR to `main`,
+- if not, **0.6.0.2** (build 2, tested) is released as it is: changelog date, PR to `main`,
   Release workflow, as in "How a release goes" below.
 Ask Tyler which one at the start of the next session.
 
@@ -45,7 +45,12 @@ Ask Tyler which one at the start of the next session.
   with the same quantity, time left and owner. Proposed to Tyler: for commodities, one row per
   price (his own separate). Tyler said yes: built as **build 2** (`record_auction`: commodities
   merge by price and owner, units added up, longest time left; test `post: one row per price for
-  commodities`). Not yet tested in game; test page build id `0-6-0-2-build-2`.
+  commodities`). Test page build id `0-6-0-2-build-2`.
+- **Build 2 in game** (Tyler, 2026-10-09, `builds/0-6-0-2-build-2/results`): no steps marked,
+  three screenshots, all as expected. Light Feather: one row of 581 at 8c and his own 2 as a green
+  row. Tel'Abim Banana: after "Posted 1", the table read again and his 1 shows green at 26c. Merc
+  Sword (gear): loads as before, one row per kind of auction (5 at 12h and 1 at 24h, both 10s),
+  no error. **0.6.0.2 is ready to release** on 2026-10-10 unless Tyler adds something for 0.6.1.
 
 - **Released 0.6.0.1** on 2026-10-09 (PR #18, `main` b17b9bc): "Search in aux" no longer covers
   Blizzard's Track Recipe checkbox (details below). Tag `v0.6.0.1`, GitHub pre-release

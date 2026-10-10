@@ -10,6 +10,8 @@ Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to
 
 ## Current build: 0.6.0.2 build 2 (one row per price)
 
+Passed in game on 2026-10-09 (Tyler's screenshots); waiting for the release.
+
 Install the zip, then `/reload` (no full restart needed). Build 1 passed (fresh listings on every
 pick); build 2 adds one row per price for items sold by quantity.
 
