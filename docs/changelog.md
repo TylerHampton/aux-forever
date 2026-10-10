@@ -8,43 +8,97 @@ A change that comes from a player's feedback credits them by in-game name at the
 
 ## 0.6 (2026-10-10)
 
-A new look by Webster, with the 0.5 look kept as the Classic theme, a clearer Post tab and a Sniper
-that only trusts prices it has seen for 3 days. Run a Full scan on each visit to the auction house.
+A new look by Webster, with the 0.5 look kept as the Classic theme, a redesigned Post tab, a bigger
+Settings menu and a Sniper that only trusts prices it has seen for 3 days. Run a Full scan on each
+visit to the auction house: tooltips, recipe costs and the Sniper all work from it.
 
-- Two themes, picked in Settings (the gear): New (below, the default) and Classic, the look of 0.5.
-  A Reload now button appears when you change it. In Classic the main buttons (Search, Buy, Post)
-  are dark amber with an amber outline instead of solid amber, so prices on them stay readable.
-- A wider Settings menu in two columns: Window (background, scale, theme) and Posting (default
-  duration) on the left, the tooltip lines on the right, each with an on/off switch:
-  Value, Today, vendor prices, disenchant value and results, coin icons. The `/aux` commands still
-  work (suggested by a player on CurseForge).
-- `/aux post bid` shows or hides the Post tab's bid table at once; it used to need a reload.
-- Prices show the gold, silver and copper letters in their coin colors everywhere, also on the Buy
-  and Confirm buttons, the recipe line and the Sniper.
-- Sniper: a Full scan today now counts toward the 3 days a usual price needs. Next to the deal
-  count, a line says how many days of Full scans you have while it is fewer than 3, and warns when
-  your last Full scan is more than 2 days old, with a Full scan button. A warning only: the Sniper
-  always works, and deals below the vendor price need no history.
-- Tables have zebra rows again, every second row in dark gray.
-- Sniper: gray items are never deals, and a usual price counts only when it rests on at least 3
-  days with a complete look at the item (a Full scan or a Full search), so a few old asking prices
-  cannot make junk look like a bargain.
-- New look, designed by Webster, from his UI Kit and screen mockups: near-black panels with black
-  edges and square corners, raised buttons that are lighter at the top, one gold color for what is
-  selected or the main action. The selected tab, sub tab and
-  quantity have a gold outline; the main button of each screen (Search, Post, Buy, Start) has a gold
-  outline and label instead of a solid orange fill. Tables have raised column headers, the sorted
-  column is white with a gold arrow, and the selected row is gold with a bar at its left edge. The
-  percentages, money in and out, and warnings use softer colors. The game's own font is kept:
-  Forever does not load fonts from addons.
-- Post tab: the panel above the listings is laid out again in three columns: what you post on the
-  left, the price in the middle, and a receipt on the right (total, the auction house cut, what you
-  get, the deposit, Post). The price fields are narrower, the "% of usual" is plain text, and when
-  a vendor pays more than the auction house a red warning box with a warning triangle says so.
-  Gear whose starting bid equals its buyout says that it posts as buyout only. A new goblin on the
-  Undercut button.
-- New look: the blacks are a little lighter and text boxes have a gray edge, so they stand out
-  from the panels (the Filter Builder's boxes were hard to find).
+**Updating: fully restart the game** after replacing the folder. 0.6 adds a new picture file (the
+warning triangle), and the game only loads new files on a restart; `/reload` is not enough.
+
+### The new look and themes
+
+- New look, designed by Webster from his UI Kit and screen mockups: near-black panels with black
+  edges and square corners, raised buttons that are lighter at the top, and one gold color for
+  what is selected or the main action of a screen.
+- The selected tab, sub tab and buy quantity have a gold outline. The main button of each screen
+  (Search, Post, Buy, Start) has a gold outline and label instead of a solid orange fill.
+- Tables have raised column headers, the sorted column is white with a gold arrow, and the
+  selected row is gold with a bar at its left edge. Every second row is shaded dark gray (zebra
+  rows), which makes long lists easier to follow across.
+- Text boxes are a little lighter than the panels and have a gray edge, so you can see where to
+  type (the Filter Builder's boxes were hard to find in the first version of the look).
+- The percentages, money coming in and going out, and warnings use softer colors.
+- Two themes, picked in Settings (the gear, top right): New, the default, and Classic, the look of
+  0.5 with its slate panels, amber accent and rounded corners. Changing it shows a Reload now
+  button, since the theme is applied when the interface loads. In Classic the main buttons are now
+  dark amber with an amber outline instead of solid amber, so prices on them stay readable.
+- Money shows its gold, silver and copper letters in their coin colors everywhere a price appears:
+  tables, the Buy and Confirm buttons, the recipe line, the Sniper and the Post tab.
+- The game's own font is kept: Forever does not load fonts from addons.
+
+### Settings
+
+- The Settings menu is wider and in two columns. Left: Window (background opacity, scale, theme)
+  and Posting (default auction length). Right: Tooltip lines, each with an on/off switch: Value,
+  Today, vendor sell price, vendor buy price, disenchant value, disenchants into and coin icons.
+  These used to be chat commands only; the `/aux tooltip ...` commands still work and stay in step
+  with the switches (suggested by a player on CurseForge).
+- `/aux post bid` shows or hides the Post tab's bid table at once; it used to need a reload. It is
+  no longer offered in Settings: on Forever only gear can take bids, so the setting confused more
+  than it helped.
+
+### Post tab
+
+- The panel above the listings is laid out again in three columns: what you post, its price, and
+  what you get:
+  - Left: the item, Count (gear) or Quantity (trade goods), Duration, the message after a post,
+    and Hide from this list (moved here from the top right).
+  - Middle: Match lowest / Undercut and the ? button right above the prices they change, price
+    fields sized for real prices instead of half the window, and the percentage of the usual price
+    beside each field with "of usual" under it (it used to sit in boxes that looked like you could
+    type in them).
+  - Right, a receipt read top to bottom: the total for the items, the auction house cut (5%, now
+    shown as its own line), what you get, and the deposit, then a wide Post button.
+- When a vendor pays more than the auction house would, a red box with a red warning triangle says
+  "Vendor pays more" with the vendor's amount, and "You get" turns red. It used to be a line of
+  small red text that was easy to miss. When the auction house pays more, the vendor's price is a
+  quiet gray line under "You get", next to the amount per item.
+- The deposit line says "Deposit now, back if it sells" and sits apart from "You get": the deposit
+  is paid when you post and comes back when the item sells, so it was misleading right next to
+  what you get. A trade good with no deposit shows 0c instead of "-0c".
+- Gear whose starting bid equals its buyout gets a gray note: "Bid equals buyout, so it posts as
+  buyout only". The game rejects a bid equal to the buyout, so aux already left it out; now it
+  says so.
+- The note under the price is shorter ("Same as the lowest listing"). Why matching the lowest price
+  sells as fast as undercutting on Forever is still explained when you hover the ? button.
+- "Posting 1 item" moved into the Post button ("Post 14 items") and the total line ("Total, 14
+  items").
+- A new goblin on the Undercut button: a new drawing made for auxForever.
+- The layout fits the smallest window size without anything overlapping.
+
+### Sniper
+
+- Gray (poor quality) items are never deals, not even below the vendor price.
+- A deal against the usual price now needs the usual price to rest on at least 3 days with a
+  complete look at the item (a Full scan, or a Full search of the item). Before, a few old asking
+  prices could make junk look like a bargain (a Trapper's Shirt listed at 1s showed a usual price
+  of 90s). Deals below the vendor price need no history and always show.
+- Today's Full scan counts toward those 3 days, so scanning every day gives you usual-price deals
+  a day sooner.
+- A line next to the deal count tells you where your price history stands: how many days of Full
+  scans you have while it is fewer than 3, or an orange warning when your last Full scan is more
+  than 2 days old ("usual prices may be out of date"), with a Full scan button beside it. It is a
+  warning, not a lock: the Sniper always works.
+- While the Sniper runs with no deals, the message under the table explains that gray items are
+  left out, that deals against the usual price need 3 days with a Full scan, and that the Sniper
+  works best with fresh Full scan data.
+
+### Fixes during 0.6 testing
+
+- The Settings row for bid prices ran its gray line under the Off / Item / Stack buttons.
+- The Buy button showed its price without coin colors.
+- On the new Post panel: the PER ITEM heading touched the top of the price field, the percentage
+  heading was cut off by the divider in a narrow window, and an item with no deposit showed "-0c".
 
 ## 0.5 (2026-10-08)
 
