@@ -1,6 +1,6 @@
 # Clicks: what every click does in auxForever
 
-Written 2026-10-08 after Tyler asked whether clicks are predictable across the addon (prompted by
+Written 2026-10-07 after Tyler asked whether clicks are predictable across the addon (prompted by
 Darkhorse's right-click request, `docs/feedback.md` FB-002). Part 1 is a map of the code as of
 0.4.1 (facts, with files). Part 2 compares it with Blizzard and the original aux. Part 3 is the
 standard proposed for 0.5 (Claude's proposal; Tyler approves it before it is built, like a
@@ -79,7 +79,7 @@ tells a player that any of these exist.
   current tab; right-click a row to search its item; Shift/Ctrl on rows go to Blizzard; Alt-click
   shortcuts optional; right-click clears text boxes; the Saved Searches clicks above. auxForever
   kept all of these and added Shift-click from bags.
-- **TSM:** not compared. TSM's documentation found on 2026-10-08 does not describe its clicks on
+- **TSM:** not compared. TSM's documentation found on 2026-10-07 does not describe its clicks on
   auction rows or bag items (searched support.tradeskillmaster.com and blog.tradeskillmaster.com;
   the only documented ones seen were unrelated, such as right-click deleting a ledger entry).
   Unverified either way; check in game with TSM installed if TSM parity matters.
@@ -134,9 +134,9 @@ Not proposed: changing Shift and Ctrl on rows, the Alt shortcuts, or the text bo
 They match Blizzard or the original aux, which is the direction Tyler set (AGENTS.md, Design
 language).
 
-### Built in 0.5 (2026-10-08)
+### Built in 0.5 (2026-10-07)
 
-Tyler approved the standard and the hover hint mockup on 2026-10-08 ("Everything looks good"). Built:
+Tyler approved the standard and the hover hint mockup on 2026-10-07 ("Everything looks good"). Built:
 - Right-click a bag item (FB-002): checked in Blizzard's UI source for Forever (branch `forever` of
   Gethe/wow-ui-source, `Blizzard_UIPanels_Game/Mainline/ContainerFrame.lua`,
   `ContainerFrameItemButton_OnClick`): with `AuctionHouseFrame` shown, a right-click on a bag item

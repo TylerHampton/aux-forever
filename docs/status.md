@@ -3,10 +3,11 @@
 Last updated 2026-10-09, 10 pm Mountain Time (0.6.0.2 build 1 built and held until 2026-10-10;
 see Release plan).
 
-**Dates:** Tyler is on Mountain Time (America/Denver). The session clock is UTC, which runs 6
-hours ahead: from 6 pm his time it already shows the next day. Write his date, not the UTC one
-(`TZ=America/Denver date`). Dates in older entries were taken from the UTC clock and can be one
-day ahead; the 0.6 and 0.6.0.1 releases went out the evening of 2026-10-09 his time.
+**Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
+had written from the UTC clock were moved to his date, checked against the time of the commit
+that wrote each line (the 0.6 and 0.6.0.1 releases were on the evening of 2026-10-09 his time, not
+10-10). A few lines edited later could not be checked that way and may still be a day ahead. Dates
+of outside events (Blizzard patches, players' messages) were left as their source gave them.
 
 ## Start here (next session)
 
@@ -23,7 +24,7 @@ the hour. On 2026-10-10:
   Release workflow, as in "How a release goes" below.
 Ask Tyler which one at the start of the next session.
 
-- **0.6.0.2 build 1** (2026-10-10): the Post tab always searches the picked item. Tyler's
+- **0.6.0.2 build 1** (2026-10-09): the Post tab always searches the picked item. Tyler's
   screenshots: Scroll of Stamina showed the last Full scan's listings (27 at 13s, one row per
   listing, some rows without a time left) and the real ones only after Refresh (42 at 13s). Cause:
   `update_item` skipped the search when listings were already known (`listings_known`, from the
@@ -34,11 +35,11 @@ Ask Tyler which one at the start of the next session.
   `refresh_entries` keeps only the picked item's listings). Test: `post: picking an item reads its
   listings fresh`. Not yet tested in game.
 
-- **Released 0.6.0.1** on 2026-10-10 (PR #18, `main` b17b9bc): "Search in aux" no longer covers
+- **Released 0.6.0.1** on 2026-10-09 (PR #18, `main` b17b9bc): "Search in aux" no longer covers
   Blizzard's Track Recipe checkbox (details below). Tag `v0.6.0.1`, GitHub pre-release
   https://github.com/TylerHampton/aux-forever/releases/tag/v0.6.0.1, CurseForge Beta file id
   9114589 (Release run 38020724242). `/reload` was enough for players.
-- **Released 0.6** on 2026-10-10 (PR #15, 49cc8cf): Webster's new look plus the Classic theme,
+- **Released 0.6** on 2026-10-09 (PR #15, 49cc8cf): Webster's new look plus the Classic theme,
   the two-column Settings menu, the Post panel redesign (option A), the Sniper's 3-day rule and
   price history line. Tag `v0.6`, CurseForge Beta file id 9114535. Needed a full game restart
   (new texture `warning.tga`). Full list: `docs/changelog.md`, 0.6.
@@ -47,18 +48,18 @@ Ask Tyler which one at the start of the next session.
   `--form-string` in `.github/scripts/curseforge.sh` (PR #16). The project page description is
   still pasted by hand by Tyler: `docs/curseforge-description.md` was updated for 0.6; ask Tyler
   whether he has pasted it.
-- **How a release goes** (worked twice on 2026-10-10): Tyler tests the build on the test page,
+- **How a release goes** (worked twice on 2026-10-09): Tyler tests the build on the test page,
   says it is ready; the changelog section gets its date; a PR from the session branch to `main`;
   after its tests pass, merge (Tyler asked for it); trigger `release.yml` on `main` through the
   GitHub API; read the "Upload to CurseForge" step's log for `{"id": ...}` and "Uploaded."; then
   update this file in a small PR. Run the 5-minute check (`TESTING.md`) before a minor release.
-- **Version numbers** (Tyler, 2026-10-10): a bug fix raises the fourth number (0.6 -> 0.6.0.1
+- **Version numbers** (Tyler, 2026-10-09): a bug fix raises the fourth number (0.6 -> 0.6.0.1
   -> 0.6.0.2); a bigger update within the same version raises the third (0.6.1); new features are
   the next minor version (0.7).
 - **Changelogs** list every change with a little detail, grouped by area (Tyler: never "minor bug
   fixes"); rule in AGENTS.md.
 - **Next version:** not chosen. Candidates are in `docs/roadmap.md`, "After 0.6". Tyler planned
-  about one release a week; two went out on 2026-10-10.
+  about one release a week; two went out on 2026-10-09.
 - **Open questions for Tyler** (none blocks anything):
   1. Sniper: a rule for items with a single listing (A everything, B stackable goods only, C wait
      and see; Claude recommends C).
@@ -90,15 +91,15 @@ Blizzard_ProfessionsCrafting.lua`, diff of builds 70245 and 70291): Blizzard's 2
 moved the checkbox from BOTTOMLEFT (17, 11) to BOTTOMRIGHT. Fix: `recipe_button_spot` /
 `place_button` in `tabs/search/recipe.lua` put the button left of the checkbox when the checkbox
 is anchored on the right (read from its `GetPoint`), placed again on each `Init`. Tested in game
-2026-10-10 (`builds/0-6-1-build-1/results`) and released.
+2026-10-09 (`builds/0-6-1-build-1/results`) and released.
 
-## 0.6 build log, builds 7 to 10 and the release (2026-10-10, branch `claude/upbeat-davinci-jqwq9d`)
+## 0.6 build log, builds 7 to 10 and the release (2026-10-09, branch `claude/upbeat-davinci-jqwq9d`)
 
 0.6 builds 1 to 6 were merged into this branch from `claude/eager-dijkstra-drmz2k`. Next build is
 build 7. Build 6 was never tested in game; Tyler wants one test page for everything (build 6's
 Sniper steps plus the Post panel).
 
-Tyler, 2026-10-10: the Post tab's top panel (item, Count, Duration, prices, Match lowest / Undercut,
+Tyler, 2026-10-09: the Post tab's top panel (item, Count, Duration, prices, Match lowest / Undercut,
 the money line, Post) "feels outdated"; change how it is presented only, no functions added or
 removed. His points: the price fields take far too much width for a price of at most
 "9999g 99s 99c"; the vendor line under "You get" is unreadable. Scope: only that panel, not the bag
@@ -107,7 +108,7 @@ original aux: aux's README says its look was "based on the retail addOn TSM" and
 input "inspired by the retail addOn TSM" (github.com/shirsig/aux-addon-vanilla).
 
 Mockup: https://claude.ai/artifact/FQAKTqLUF4NQrSiAXV8ERK (today's panel and options A, B, C).
-Tyler picked A (2026-10-10) with two tweaks: keep the goblin on Undercut, and a red warning
+Tyler picked A (2026-10-09) with two tweaks: keep the goblin on Undercut, and a red warning
 triangle when a vendor pays more ("they should not be able to miss it"). He also sent a goblin
 picture found online as the model for a new goblin; it looks like a stock icon (Icons8 style) that
 needs a license or a credit link, so it was not copied or traced. `textures/goblin.tga` is a new,
@@ -126,7 +127,7 @@ the note; it stays in the ? tooltip. Layout sized for the smallest window (panel
 the % column ends at the middle divider there. Not tried in game; test page build id
 `0-6-build-7` (11 steps: 8 Post, build 6's 3 Sniper), results in `builds/0-6-build-7/results`.
 
-Build 7 in game (Tyler, 2026-10-10, `builds/0-6-build-7/results`): goblin and bid note pass;
+Build 7 in game (Tyler, 2026-10-09, `builds/0-6-build-7/results`): goblin and bid note pass;
 gear, trade goods, vendor warning (both themes), posting and both tooltips look right in the
 screenshots. Found: PER ITEM overlapped the top of the first price field; at a narrow window OF
 USUAL was cut off by the divider; Linen Cloth's deposit read "-0c". Build 8 fixes all three
@@ -160,9 +161,9 @@ with fresh Full scan data." Test page build id `0-6-build-10`.
 
 Build 10 in game: "of usual" under the percentage and the Sniper's third line look right
 (screenshots, `builds/0-6-build-10/results`). Tyler asked to release 0.6 to CurseForge
-(2026-10-10). Done: changelog dated, CurseForge description updated (Tyler pastes it by hand),
+(2026-10-09). Done: changelog dated, CurseForge description updated (Tyler pastes it by hand),
 PR https://github.com/TylerHampton/aux-forever/pull/15 opened. Pre-release check passed
-(Tyler, 2026-10-10, test page `0-6-release`: open, buy, post, Auctions "Tied with 130 others",
+(Tyler, 2026-10-09, test page `0-6-release`: open, buy, post, Auctions "Tied with 130 others",
 a Sniper round, the Materials line). The changelog was rewritten in full on Tyler's request (rule
 now in AGENTS.md). PR 15 merged (49cc8cf); the Release workflow published the GitHub release
 v0.6 (https://github.com/TylerHampton/aux-forever/releases/tag/v0.6), but the first automatic
@@ -172,7 +173,7 @@ in `.github/scripts/curseforge.sh` (PR after #15), then the Release workflow was
 
 ## 0.6 build log, builds 2 to 6 (2026-10-09, branch `claude/eager-dijkstra-drmz2k`)
 
-Tyler, 2026-10-09: Webster (Christian Webster, GitHub `webguh`, a collaborator who does UI design for
+Tyler, 2026-10-08: Webster (Christian Webster, GitHub `webguh`, a collaborator who does UI design for
 work) made build 1 on the branch `design`; he is done with it. Tyler wants three ways to see the
 auction house by 1.0: Blizzard's (the Blizzard UI button), the 0.5 look (Classic) and Webster's
 (New). New is the default, also for players updating from 0.5. Tyler plans about one release a
@@ -231,7 +232,7 @@ gamepad bag features, which likely caused it (inference). The Clean Up button
 search box; Tyler does not see it, which the code does not explain (open). Not auxForever's to fix:
 changing Blizzard's bag frames from an addon risks breaking them further.
 
-Build 4 in game (Tyler, 2026-10-09, test page `0-6-build-4`): open, table, buy bar, other tabs,
+Build 4 in game (Tyler, 2026-10-08, test page `0-6-build-4`): open, table, buy bar, other tabs,
 Classic all fine (Classic: pass; other tabs: pass; no notes on open and table, their screenshots
 look right: gray edges on the Filter Builder boxes, zebra rows). Findings:
 - The Buy button showed "4s 60c" without coin colors (it used the plain form). Tyler: g, s and c
@@ -315,17 +316,17 @@ Build 1 (not tried in game yet): a restyle only, no change to searching, buying 
 - Tests and syntax check pass under Lua 5.1.5 (built from lua.org source on Tyler's collaborator's
   Mac; Homebrew has no lua@5.1).
 - Open question for Tyler: zebra rows. He asked for a zebra version of an earlier design; the kit
-  says no stripes, so build 1 has none. Easy to add back. (Answered 2026-10-09: add them back in
+  says no stripes, so build 1 has none. Easy to add back. (Answered 2026-10-08: add them back in
   dark gray; done in build 2.)
 
 ## Earlier start notes (after the 0.5 release; history, superseded by Start here above)
 
-- **Released: 0.5** on 2026-10-08. `main` is at its merge (PR #11, e27b711); tag `v0.5`; GitHub
+- **Released: 0.5** on 2026-10-07. `main` is at its merge (PR #11, e27b711); tag `v0.5`; GitHub
   pre-release https://github.com/TylerHampton/aux-forever/releases/tag/v0.5. Tyler uploaded 0.5 to
   CurseForge by hand.
 - **CurseForge uploads are automatic from the next release on:** the Release workflow uploads the
   zip as a Beta file with the changelog (project 1727417, secret `CF_API_KEY` set by Tyler on
-  2026-10-08). The CurseForge check workflow confirmed the token works and that CurseForge lists
+  2026-10-07). The CurseForge check workflow confirmed the token works and that CurseForge lists
   game version 1.60.1 under "WoW Forever" (id 17053). Not yet used for a real upload; watch the
   first one. The page description is still pasted by hand when it changes.
 - **Which version next:** Tyler has not chosen. Rules (`docs/roadmap.md`): 0.5.x is bug fixes,
@@ -340,7 +341,7 @@ Build 1 (not tried in game yet): a restyle only, no change to searching, buying 
 - **Player feedback:** `docs/feedback.md`. FB-001, FB-002, FB-003, FB-006, FB-007 are done in 0.5;
   FB-004 rejected (direction); FB-005 praise; FB-009 (Classic stacks, Maggew) wont-fix. New entries start
   at FB-010 and are recorded by a separate feedback session, not by the session that builds.
-- **Audience (Tyler, 2026-10-10):** auxForever is for intermediate players who know Forever's modern
+- **Audience (Tyler, 2026-10-09):** auxForever is for intermediate players who know Forever's modern
   auction house. Requests for things that auction house does not have are answered, not built
   (AGENTS.md, the exception after "a player's problem is the addon's problem").
 - **How Tyler tests** (worked well all through 0.5): each build gets a zip (sent with the file tool)
@@ -368,7 +369,7 @@ Build 1 (not tried in game yet): a restyle only, no change to searching, buying 
 - `docs/curseforge.md` and `-description.md` were updated for 0.5; check the Usage section again
   whenever clicks change.
 
-## 0.5 build log (2026-10-08, branch `claude/youthful-curie-ghbvlt`, released as PR #11)
+## 0.5 build log (2026-10-07, branch `claude/youthful-curie-ghbvlt`, released as PR #11)
 
 Branch `claude/youthful-curie-ghbvlt` from `main` (dd040f9), TOC `forever-0.5`. Test build 2 is out
 (see Build 1 results below). Test build 1 was
@@ -385,14 +386,14 @@ handoff items are built, each with tests that fail without the change; none is t
    API docs, inferred from the code.
 3. FB-006 (31ac02c): `gui/listing.lua` lays out again on show and on content size change; the last
    column is anchored to the right edge.
-4. Click standard and FB-002 (140996a): Tyler approved the standard on 2026-10-08. Blizzard's
+4. Click standard and FB-002 (140996a): Tyler approved the standard on 2026-10-07. Blizzard's
    Forever bag code sends a right-click to `AuctionHouseFrame:SetPostItem`; aux follows it.
    Details and what was not changed: `docs/clicks.md`, "Built in 0.5".
 5. FB-001 (6f77958): option B of the mockup (Tyler: "Everything looks good").
 6. FB-007 (5a935e1): the cost line under the reagent list; its position comes from Blizzard's
    source, not seen in game yet.
 
-Build 1 results (Tyler, 2026-10-08, test page collection `builds/0-5-dev1/results`): 14 pass, 5
+Build 1 results (Tyler, 2026-10-07, test page collection `builds/0-5-dev1/results`): 14 pass, 5
 fail, 3 skipped, 1 unmarked (Full scan memory: 17.8 MB, 9.9 MB after a cleanup, 3,457 items of
 history; fine). Failures and what was done (build 2, `builds/0-5-dev2/results`):
 - Right-click a Post price row: BugSack "attempt to index global 'selected_item'" (tabs/post/
@@ -413,7 +414,7 @@ history; fine). Failures and what was done (build 2, `builds/0-5-dev2/results`):
 - Not a failure but found in a screenshot: the recipe cost tooltip's Total was red (colors passed
   as a color's four values). Fixed.
 
-Build 2 results (Tyler, 2026-10-08, `builds/0-5-dev2/results`): Post right-click, hints, quantity
+Build 2 results (Tyler, 2026-10-07, `builds/0-5-dev2/results`): Post right-click, hints, quantity
 box pass; stack label works ("Value: 2s 61c for 3" with Shift, 87c without). `/aux price` on the
 banana confirmed the analysis: usual 87c from 2 past days, both 0.4.1 daily lows (87c two days
 ago, 11c three days ago); today lowest 38c, market 39c (cheapest fifth of 82 listed). Light Feather:
@@ -421,7 +422,7 @@ usual 4c (0.4.1 lows), lowest today 7c with 1,861 listed. Fixed after build 2 (5
 zip): the cost tooltip's prices were gold (the game's default right color), the Post locked message
 was cut off.
 
-Price question (Tyler, 2026-10-08): players do a full scan, post and leave within minutes, and need
+Price question (Tyler, 2026-10-07): players do a full scan, post and leave within minutes, and need
 to trust the tooltip away from the auction house; heavy averaging that lags the market loses that.
 Claude's proposal sent the same day (waiting for Tyler): tooltips and the recipe cost show the
 latest market price (the most recent complete look, with its age), and the multi-day usual price
@@ -432,7 +433,7 @@ Tyler approved the proposal ("Yes build it, the text examples are enough"). Buil
 `history.latest`, tooltips and the recipe cost use it, "usually ..." at a 30% gap; details in
 `docs/price-data.md`. Test page collection `builds/0-5-dev3/results`.
 
-Build 3 results (Tyler, 2026-10-08, `builds/0-5-dev3/results`): banana tooltip 38c each (pass);
+Build 3 results (Tyler, 2026-10-07, `builds/0-5-dev3/results`): banana tooltip 38c each (pass);
 Full scan alone recorded Rough Dynamite at 30c, its lowest listing, so Full scan prices look right;
 Linen Cloth 32c with 296 listed at 23c ("The full scan NOR the search fixed the tooltip??"): the
 average of the cheapest 20% is too deep for big markets. Also: hovering the faded Post button did
@@ -444,7 +445,7 @@ it could not be picked up and aux posted from another stack. All four fixed in b
 item is cleared from Blizzard's Sell tab (ClearPostItem), a Post button tooltip, status bar text
 during a Full scan.
 
-Build 4 results (Tyler, 2026-10-08, `builds/0-5-dev4/results`): Full scan status text passes;
+Build 4 results (Tyler, 2026-10-07, `builds/0-5-dev4/results`): Full scan status text passes;
 Linen Cloth Value 33c with 712 listed at 33c and 2 at 3c (the outliers were ignored: right); the
 faded Post button's tooltip shows the reason. The right-click unlock step has only a screenshot of
 "Not posted: the item is on your mouse pointer..." on Ritual Bands, no note: either the item was
@@ -455,11 +456,11 @@ screenshot); the fix works.
 The 15-minute pre-release quick run was too long for Tyler; replaced by a 5-minute, six-step check
 (`TESTING.md`, Before every release; test page collection `builds/0-5-release/results`).
 
-Release check on build 4 (Tyler, 2026-10-08, `builds/0-5-release/results`): all six steps pass
+Release check on build 4 (Tyler, 2026-10-07, `builds/0-5-release/results`): all six steps pass
 (open, buy one linen cloth, post, Auctions tab, a Sniper round, the Materials line on Herb Baked
 Egg).
 
-Release (Tyler, 2026-10-08: "Yes"): he also asked to stress Full scans. Added: a second login line
+Release (Tyler, 2026-10-07: "Yes"): he also asked to stress Full scans. Added: a second login line
 saying when the last Full scan was (`full_scan_reminder` in `aux-addon.lua`), a "Get the most out
 of it: run a Full scan" section and a corrected "Prices" section on the CurseForge page
 (`docs/curseforge.md`, `docs/curseforge-description.md`). Changelog dated, with Darkhorse and
@@ -468,14 +469,14 @@ into `main`, merged, and the Release workflow (`v0.5`).
 - The Sniper and Auctions tab notes (`docs/roadmap.md`, 0.5): Claude recommended leaving them for
   after 0.5; Tyler has not decided.
 - Asked Tyler: whether to do the Sniper and Auctions tab notes in `docs/roadmap.md` (0.5) tonight
-  (he asked what they were; explained 2026-10-08, waiting); whether today's market price should
+  (he asked what they were; explained 2026-10-07, waiting); whether today's market price should
   count in the usual price. FB-002's suspected bug: he does not remember. Damaged gear (FB-003):
   skipped in build 1.
 - Mockup page for this build's visual items: https://claude.ai/artifact/SX8EwZHbgqS94ZBGhUtJCg
 
-## 0.5: start here (handoff written 2026-10-08 by the feedback-logging session; done, see above)
+## 0.5: start here (handoff written 2026-10-07 by the feedback-logging session; done, see above)
 
-Tyler is opening a new chat on 2026-10-08 to build 0.5 the same night. Everything it needs is in
+Tyler is opening a new chat on 2026-10-07 to build 0.5 the same night. Everything it needs is in
 the repository; this list is the order of work. Read `AGENTS.md` first, then this, then the files
 named.
 
@@ -493,7 +494,7 @@ named.
   3. **FB-006, Recent Searches header sticks out** after resizing and a scale change
      (`gui/listing.lua` fixed column widths). Screenshot and steps in the entry.
   4. **Clicks made consistent, including FB-002** (right-click a bag item loads it into the Post
-     tab). Tyler asked on 2026-10-08 for clicks to be predictable across every tab. The full click
+     tab). Tyler asked on 2026-10-07 for clicks to be predictable across every tab. The full click
      map, the findings and the proposed standard are in `docs/clicks.md`; show Tyler its standard
      table (and the hover hint mockup) for an OK before changing clicks. Check Blizzard's Forever
      bag click code first (FB-002 explains why: aux keeps Blizzard's window invisible but open, and
@@ -517,16 +518,16 @@ named.
 
 ## Earlier notes (0.4.1 and before)
 
-- Released: 0.4.1 (2026-10-06) is the latest; `main` is at its merge (#8, ea73c6a).
-- **Player feedback log (started 2026-10-08):** `docs/feedback.md`. Tyler passes on what players
+- Released: 0.4.1 (2026-10-05) is the latest; `main` is at its merge (#8, ea73c6a).
+- **Player feedback log (started 2026-10-07):** `docs/feedback.md`. Tyler passes on what players
   say; one Claude session records it there (no fixes in that session) and a separate session or
   agent fixes from it. Check its index for entries with status `new` or `confirmed` before
-  planning 0.4.x or 0.5. First batch (2026-10-08): FB-001 to FB-005 from Darkhorse (buy quantity
+  planning 0.4.x or 0.5. First batch (2026-10-07): FB-001 to FB-005 from Darkhorse (buy quantity
   box, right-click from bags to Post, a silent failed post, the UI overall, praise for the Post
   tab's bag list). FB-004's direction (closer to Blizzard's auction house) was rejected by Tyler:
   the redesign follows TSM and the original aux. Players are not asked follow-up questions; open
   questions for Tyler are under "Ask Tyler" in each entry.
-  Second batch (2026-10-08): FB-006 and FB-007 from Garsterson (Tyler's brother): the Recent
+  Second batch (2026-10-07): FB-006 and FB-007 from Garsterson (Tyler's brother): the Recent
   Searches header sticks out of the window after resizing and a scale change; crafting cost in the
   profession window anywhere in the world (Tyler: cost only, no profit).
   Decisions the same day: no 0.4.2, so FB-006 and the other small fixes go into 0.5; FB-007 is a
@@ -535,7 +536,7 @@ named.
   and lists its weak points; Tyler then decided to improve it in 0.5 (plan in that file).
 - Versioning decision (2026-10-05): fixes to an unreleased version go into that version, so the
   build 2 and 3 fixes are part of 0.4, not 0.4.1. 0.4.1 is for fixes after 0.4 is released.
-- **0.4.1 release (2026-10-06):** build 6 passed except one case, fixed before release: a Live
+- **0.4.1 release (2026-10-05):** build 6 passed except one case, fixed before release: a Live
   round during a trade good's price quote ended the purchase with "Internal auction error"; Live
   rounds now wait while the buy bar is buying (`update_live`). That fix was not tried in game
   before the release; Tyler checks it on the release zip before uploading to CurseForge. Next:
@@ -549,7 +550,7 @@ named.
   https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ, where Tyler marks each step; read the results
   with ArtifactData, collection `builds/0-4-1-dev<N>/results` (one document per step id; notes
   and screenshot asset ids, which `Artifact` read with `path` = the id downloads).
-- Build 5 results (Tyler, 2026-10-06): Sniper gear buys work ("way better"), hold and pick pass,
+- Build 5 results (Tyler, 2026-10-05): Sniper gear buys work ("way better"), hold and pick pass,
   empty search, quick run search/buy, Live, Post, Auctions (cancel and undercut too) pass; memory
   11.9 MB after a cleanup at the end. Failed: a saved or recipe search while Live was on (refused
   as a multi-query, Live kept updating the old search; fixed in build 6: any new search ends
@@ -672,7 +673,7 @@ named.
    and re-shown every frame, which drops clicks); needs checking in game.
 2. Done: the status bar is dim gray when idle (Tyler agreed). Gear is now priced in whole silver
    and undercut by 1 silver; needs checking in game (post a green item in undercut mode).
-3. Built in 0.2.1 (2026-10-05), tried in game by Tyler, who approved it for release: the result count on
+3. Built in 0.2.1 (2026-10-04), tried in game by Tyler, who approved it for release: the result count on
    the "Search Results" sub tab, the summary line next to the sub tabs ("11 price levels, 6,180 for
    sale, searched 2m ago", Results sub tab only) and a magnifier in the search bar. The sub tab
    buttons are narrower (200) to make room. New texture `textures/search.tga`: full restart.
@@ -680,7 +681,7 @@ named.
    Also in 0.2.1: trade goods on the Post tab have one Quantity box (Max = everything in the bags)
    instead of Stack size and Stacks, since Forever posts a trade good as one listing of any size;
    10 x 2 used to leave 9 of 29 Blood Shards behind. Stack size stays 1 internally.
-   After Tyler's test run (2026-10-05): the summary counted every auction as a "price level"
+   After Tyler's test run (2026-10-04): the summary counted every auction as a "price level"
    ("403 price levels, 403 for sale"); it now counts items ("37 items, 403 for sale") and only says
    price levels for a one-item search. Filter Builder: All / Any switches fade with fewer than two
    conditions under them (Tyler toggled the top switch with one group and saw no change), and the
@@ -694,12 +695,12 @@ named.
    far, off screen. On showing it, aux now scales such an anchor back
    (`fix_blizzard_frame_position` in `aux-addon.lua`), clamps it to the screen, raises it above
    aux, and lights the button while it is shown. Not confirmed in game yet.
-   Settings (Tyler, 2026-10-05): no explanation text in the menu; "Default duration" replaces
+   Settings (Tyler, 2026-10-04): no explanation text in the menu; "Default duration" replaces
    "Auction length" plus its note; a Scale row (70% to 150%, 5% steps, for 1440p screens) replaces
    the slash-only `/aux scale`, whose saved value was never applied after a reload before. The
    resize corner anchors the window by its top left before sizing: it started out anchored by its
    left edge, and sizing from the corner then could jump to full screen on one click (Tyler).
-   Code review (2026-10-05): client-side work is small; slowness is mostly one server request per
+   Code review (2026-10-04): client-side work is small; slowness is mostly one server request per
    item. Two waits in `core/scan.lua` may add to it: 1s before using results the client already
    holds when no event comes, and 20s when no answer comes at all. `/aux debug` (search timing
    log, `timing_report` in scan.lua) measures this.
@@ -718,10 +719,10 @@ named.
 
 ## Repository
 
-Public since 2026-10-04. PR #1 (everything up to 0.2) was merged into `main` on 2026-10-05, so
+Public since 2026-10-04. PR #1 (everything up to 0.2) was merged into `main` on 2026-10-04, so
 `main` is auxForever 0.2. New work starts from `main` on its own branch.
 
-Since 2026-10-05 Gemini may work on the repository too. `AGENTS.md` is the shared guide for every
+Since 2026-10-04 Gemini may work on the repository too. `AGENTS.md` is the shared guide for every
 agent (`CLAUDE.md` and `GEMINI.md` load it); `docs/gemini-setup.md` is Tyler's setup guide. GitHub
 Actions (`.github/workflows/test.yml`) runs the tests on every push and offers the addon as a
 download. Every agent: pull first, one agent per branch, update this file when done.
@@ -789,7 +790,7 @@ download. Every agent: pull first, one agent per branch, update this file when d
 
 ## Releases
 
-- 0.2.1 released 2026-10-05: GitHub Release `v0.2.1` (pre-release, with the zip, published by
+- 0.2.1 released 2026-10-04: GitHub Release `v0.2.1` (pre-release, with the zip, published by
   the Release workflow from `main` at 064ace9), CurseForge upload by Tyler. Includes everything
   from 0.2, which was not released on its own. Its release text says "listed under 0.2 below",
   which only makes sense in the changelog file; the changelog wording is fixed for later
@@ -804,7 +805,7 @@ download. Every agent: pull first, one agent per branch, update this file when d
 - From 0.2.1 on, the Release workflow publishes the GitHub Release: Actions, Release, "Run
   workflow" on `main` (or a pushed `v<version>` tag). See AGENTS.md, Releases.
 
-## 0.2 (built 2026-10-05, released as part of 0.2.1)
+## 0.2 (built 2026-10-04, released as part of 0.2.1)
 
 1. Settings popup: default auction length (2h/8h/24h, labels from the game). It is the existing
    `post_duration` setting: new items start at it, items posted before keep their last length.

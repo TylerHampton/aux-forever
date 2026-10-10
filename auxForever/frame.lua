@@ -360,7 +360,7 @@ do
     btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
     settings_button = btn
 
-    -- auxForever (0.6): two columns, as in the mockup Tyler approved (2026-10-09): Window and Posting
+    -- auxForever (0.6): two columns, as in the mockup Tyler approved (2026-10-08): Window and Posting
     -- on the left, the tooltip lines on the right, each setting a row with its control at the right.
     -- The player-facing name of a look is "theme" (Tyler, build 4).
     local WIDTH, PAD, COLUMN = 600, 14, 271

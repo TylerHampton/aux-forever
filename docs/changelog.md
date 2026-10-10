@@ -21,7 +21,7 @@ A change that comes from a player's feedback credits them by in-game name at the
 
 `/reload` is enough to update.
 
-## 0.6.0.1 (2026-10-10)
+## 0.6.0.1 (2026-10-09)
 
 ### Fixes
 
@@ -30,7 +30,7 @@ A change that comes from a player's feedback credits them by in-game name at the
   panel to the bottom right, where the button has been since 0.4; the button now sits just left
   of the checkbox wherever Blizzard puts it (reported by Tyler).
 
-## 0.6 (2026-10-10)
+## 0.6 (2026-10-09)
 
 A new look by Webster, with the 0.5 look kept as the Classic theme, a redesigned Post tab, a bigger
 Settings menu and a Sniper that only trusts prices it has seen for 3 days. Run a Full scan on each
@@ -124,7 +124,7 @@ warning triangle), and the game only loads new files on a restart; `/reload` is 
 - On the new Post panel: the PER ITEM heading touched the top of the price field, the percentage
   heading was cut off by the divider in a narrow window, and an item with no deposit showed "-0c".
 
-## 0.5 (2026-10-08)
+## 0.5 (2026-10-07)
 
 Better prices, clearer posting and clicks that work the same everywhere, with player feedback from
 Darkhorse and Garsterson. Run a Full scan on each visit to the auction house: it keeps the prices in
@@ -174,7 +174,7 @@ your tooltips and recipe costs current.
 - `/aux price <item>` prints what aux has recorded for an item: the Value shown in tooltips, the
   usual price and how many days it rests on, today's lowest and market price, and each past day.
 
-## 0.4.1 (2026-10-06)
+## 0.4.1 (2026-10-05)
 
 Performance, memory and fixes from a week of testing.
 
@@ -261,7 +261,7 @@ Performance, memory and fixes from a week of testing.
 - New credit line: "aux by shirsig, re-imagined by a fan".
 - Needs a full game restart after updating (new files).
 
-## 0.2.1 (2026-10-05)
+## 0.2.1 (2026-10-04)
 
 First release since 0.1.1, so it also brings everything from 0.2: the new Filter Builder
 (conditions in plain words, Match All or Any, "not", groups inside groups, an "In words" line,
@@ -284,7 +284,7 @@ kept in sync with the search bar), the default duration setting and the favorite
   always opens on screen and in front of aux, and the button is lit while it is shown.
 - Needs a full game restart after updating (a new icon was added).
 
-## 0.2 (2026-10-05)
+## 0.2 (2026-10-04)
 
 - New Filter Builder: conditions in plain words, Match All or Any, "not" on any condition, groups
   inside groups, and an "In words" line that reads the search back. It stays in sync with the
@@ -293,7 +293,7 @@ kept in sync with the search bar), the default duration setting and the favorite
 - Favorites: an empty search is no longer saved, and the same search is not saved twice.
 - Needs a full game restart after updating (a new file was added).
 
-## 0.1.1 (2026-10-05)
+## 0.1.1 (2026-10-04)
 
 - Fixed: posting gear failed with "Internal auction error" when the starting bid equalled the
   buyout. Such items are now posted for buyout only.

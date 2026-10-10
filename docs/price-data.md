@@ -1,6 +1,6 @@
 # Price data: where aux keeps prices and how it uses them
 
-Written 2026-10-08 for Tyler and for any agent touching prices. Facts come from the code (file and
+Written 2026-10-07 for Tyler and for any agent touching prices. Facts come from the code (file and
 function named); anything else is marked as an inference or an opinion.
 
 Note (0.5): the sections up to "Plan for 0.5" describe the 0.4 data as it was when this file was
@@ -65,7 +65,7 @@ after a logout and away from the auction house.
   (`core/disenchant.lua`).
 - Planned: recipe cost in the profession window (`docs/feedback.md`, FB-007).
 
-## Is it the best way? (Claude's assessment, 2026-10-08)
+## Is it the best way? (Claude's assessment, 2026-10-07)
 
 Where it is stored is right: saved variables are the only place an addon can keep data, and one
 packed line per item is small. Measured in 0.4: about 2,200 items with a usual price after normal
@@ -91,9 +91,9 @@ For comparison, from memory and not checked: TSM's "market value" averages the c
 the listings over about two weeks instead of taking the single lowest auction. Check TSM's own
 documentation before relying on this.
 
-## Plan for 0.5 (decided 2026-10-08, built 2026-10-08)
+## Plan for 0.5 (decided 2026-10-07, built 2026-10-07)
 
-Built on 2026-10-08 as planned, with these details settled while building (`core/history.lua`):
+Built on 2026-10-07 as planned, with these details settled while building (`core/history.lua`):
 - Record line (history version 3): `day#low#market#units#points`, points `day@price@units`. `day`
   is a calendar day number (days since 1 January 1970), so time zones and summer time never merge
   or skip a day. A point's price is that day's market price, or its lowest when no complete view
@@ -111,7 +111,7 @@ Built on 2026-10-08 as planned, with these details settled while building (`core
 - Weights are relative, so converted items' usual prices can shift where their old lows varied:
   recent days now count more. Steady prices stay the same (tested).
 
-Changed after testing (build 3, Tyler's decision 2026-10-08): players do a full scan, post and
+Changed after testing (build 3, Tyler's decision 2026-10-07): players do a full scan, post and
 leave within minutes, and need to trust the tooltip away from the auction house. On day one the
 usual price rested only on 0.4.1's daily lows (Tel'Abim Banana: usual 87c from one old low, while
 today's market was 39c), and today's price would only count after midnight. So there are now two

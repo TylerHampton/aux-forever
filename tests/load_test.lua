@@ -2778,7 +2778,7 @@ try('FB-007: recipe cost line', function()
 end)
 
 
--- 0.5 build 1 results (Tyler, 2026-10-08)
+-- 0.5 build 1 results (Tyler, 2026-10-07)
 try('0.5 build 1 fixes', function()
   local req = loadstring("select(2, ...) 'aux.test58'; return require")('auxForever', addon)
   local aux = req 'aux'
@@ -2854,7 +2854,7 @@ try('0.5 build 1 fixes', function()
 end)
 
 
--- build 3 (Tyler, 2026-10-08): players scan, post and leave; the tooltip shows the latest look at an
+-- build 3 (Tyler, 2026-10-07): players scan, post and leave; the tooltip shows the latest look at an
 -- item, and the multi-day usual price stays for finding deals
 try('0.5 build 3: latest price in tooltips', function()
   local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
@@ -2891,7 +2891,7 @@ try('0.5 build 3: latest price in tooltips', function()
 end)
 
 
--- build 3 results (Tyler, 2026-10-08)
+-- build 3 results (Tyler, 2026-10-07)
 try('0.5 build 3 results', function()
   local req = loadstring("select(2, ...) 'aux.test59'; return require")('auxForever', addon)
   local aux = req 'aux'
@@ -2948,7 +2948,7 @@ try('0.5 build 3 results', function()
 end)
 
 
--- 0.5 release (Tyler, 2026-10-08): the login line asks for Full scans, saying when the last one was
+-- 0.5 release (Tyler, 2026-10-07): the login line asks for Full scans, saying when the last one was
 try('0.5: Full scan reminder at login', function()
   local aux = loadstring("select(2, ...) 'aux.test60'; return require")('auxForever', addon) 'aux'
   local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
@@ -2996,7 +2996,7 @@ try('0.6: looks', function()
   -- an unknown look is the New look
   check('looks: unknown name is New', a.set_palette('bogus') == 'new')
   a.set_palette(THEME)
-  -- Tyler, 2026-10-09: text boxes were hard to find on the near black panels (Filter Builder). In
+  -- Tyler, 2026-10-08: text boxes were hard to find on the near black panels (Filter Builder). In
   -- New a sunken field has a gray edge and is darker than the panel around it.
   local P = a.PALETTES.new
   check('new look: an input edge stands out from the panel', P.input.border[1] - P.panel.background[1] >= 30)
@@ -3053,7 +3053,7 @@ try('0.6: coin colors everywhere', function()
   check('coins: no money without coin colors on buttons, the recipe line or the Sniper', plain == 0)
 end)
 
--- 0.6, Tyler 2026-10-09: zebra rows, every second row dark gray, under hover and selection
+-- 0.6, Tyler 2026-10-08: zebra rows, every second row dark gray, under hover and selection
 try('0.6: zebra rows', function()
   local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
   local sniper_env = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)

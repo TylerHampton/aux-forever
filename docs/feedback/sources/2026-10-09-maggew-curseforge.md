@@ -1,7 +1,7 @@
 # Source: Maggew and Tyler in CurseForge comments, 2026-10-09
 
 - Channel: comments on the auxForever CurseForge project page. Tyler posts as "tyehampton".
-- Received: 2026-10-10, as one screenshot from Tyler. The screenshot is not kept; this transcript
+- Received: 2026-10-09, as one screenshot from Tyler. The screenshot is not kept; this transcript
   replaces it.
 - Times are as CurseForge showed them when Tyler took the screenshot ("1 hour ago" and so on).
 - Transcribed word for word, typos kept. Tyler's first reply was collapsed ("Read more"); only

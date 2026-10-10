@@ -1,9 +1,9 @@
-# Source: Garsterson's feedback, told by Tyler, 2026-10-08
+# Source: Garsterson's feedback, told by Tyler, 2026-10-07
 
 - Channel: Tyler's message in his Claude session, retelling a conversation with his brother
   Garsterson. Not Garsterson's own words. The message was dictated, so speech-to-text slips are
   kept as they came ("in a sorry," is Tyler correcting himself; "f- full" is a restart).
-- Came with one screenshot of the bug, kept cropped as `../FB-006-1.png` (Tyler agreed 2026-10-08). Above the window it
+- Came with one screenshot of the bug, kept cropped as `../FB-006-1.png` (Tyler agreed 2026-10-07). Above the window it
   showed a Discord line "19:25 who?", cropped out (not part of the report).
 - Entries: FB-006 and FB-007 in `docs/feedback.md`.
 

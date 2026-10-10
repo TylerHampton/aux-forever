@@ -380,7 +380,7 @@ function M.row_hover(row)
     return hover
 end
 
--- auxForever (0.6): zebra rows, every second row a little lighter (Tyler, 2026-10-09: "I want to add
+-- auxForever (0.6): zebra rows, every second row a little lighter (Tyler, 2026-10-08: "I want to add
 -- these back, make them a dark grey"). Under the hover and the selection.
 function M.row_stripe(row, index)
     if index % 2 ~= 0 then return end

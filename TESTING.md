@@ -23,7 +23,7 @@ Install the zip, then `/reload` (no full restart needed).
 
 ## Before every release: the 5-minute check
 
-Tyler (2026-10-08): the old 15-minute quick run was too long. This is one walk through the
+Tyler (2026-10-07): the old 15-minute quick run was too long. This is one walk through the
 auction house, about 5 minutes, that touches every tab once. Everything else is covered by the
 automated tests (run on every push) and by the build steps of the version, which test whatever
 changed.

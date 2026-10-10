@@ -35,12 +35,18 @@ Tyler owns the project and tests every change in the game. He is not a programme
   know, what you infer and what you are unsure of. Never invent facts; cite sources.
 - No em dashes and no emojis in anything published: README, docs, commit messages, in-game text.
 - Avoid filler words such as delve, leverage, robust, seamless, crucial, notably.
+- Dates are Tyler's: Mountain Time (America/Denver). The session clock and the date an agent is
+  given are usually UTC, six hours ahead in summer time and seven in winter, so from 6 pm his time
+  (5 pm in winter) they already show the next day; he often works in the evening. Get his date
+  with `TZ=America/Denver date` and write that one in docs, comments, changelog headings and
+  commit messages. Dates of outside events (a Blizzard patch, a player's message) stay as their
+  source gives them. Older dates were corrected to his time on 2026-10-09 (Tyler).
 - He tests in game and reports with screenshots and BugSack error text. Each bug report becomes a
   fix plus a test that fails without the fix.
 - Feedback from players reaches us through Tyler and is logged in `docs/feedback.md` (rules at
   the top of that file) before anyone fixes it. A player's problem is treated as the addon's
   problem, never as the player's mistake: the addon should make players good at the auction house
-  through clear screens and clear information (Tyler). One rare exception (Tyler, 2026-10-10):
+  through clear screens and clear information (Tyler). One rare exception (Tyler, 2026-10-09):
   when a player asks for something Forever's auction house itself does not have (for example
   Classic stacks), the feedback is answered and recorded as `wont-fix`, not built. auxForever is for
   intermediate players who know the modern auction house; teaching it is not the addon's job.
@@ -217,14 +223,14 @@ aux runs inside the game; every frame it spends time in costs the player frame r
 ## Design language
 
 Since 0.6 there are two looks, picked in Settings (account-wide, `account_data.theme`) and applied
-at the next login or `/reload` (Tyler, 2026-10-09: keep the 0.5 look as an option, move forward with
+at the next login or `/reload` (Tyler, 2026-10-08: keep the 0.5 look as an option, move forward with
 Webster's). Both share one layout; only colors and shapes differ.
 
 - **New** (the default): Christian Webster's UI Kit, Paper file "auxForever Screens" (pages "UI
   Kit" and "New"). Near-black surfaces with black 1px edges and square corners, raised controls
   lighter at the top (`gui.add_sheen`), sunken tables and inputs with a gray edge, one gold accent
   (`229, 190, 91`), zebra rows in dark gray. Its blacks are a little lighter than the kit's so text
-  boxes stand out (Tyler, 2026-10-09).
+  boxes stand out (Tyler, 2026-10-08).
 - **Classic**: the 0.5 look. Dark slate panels, warm off-white text, amber accent
   (`227, 164, 59`), rounded corners (`textures/corner-*.tga`), flat buttons.
 
@@ -250,7 +256,7 @@ reads it: tables, buttons, labels, the recipe line (Tyler, 0.6). To tint a price
 color or use the no-color form, except for the raw text of a typing field and search text. In
 player-facing text the two looks are called themes (Tyler, 0.6). Keep new screens in this style.
 Direction (Tyler,
-2026-10-08): auxForever should resemble TSM and the original aux, not Blizzard's auction house or
+2026-10-07): auxForever should resemble TSM and the original aux, not Blizzard's auction house or
 Auctionator; a player request to move toward the traditional layout was rejected
 (`docs/feedback.md`, FB-004). Mockups so far were made
 as interactive HTML pages; an HTML file Tyler can open in a browser works the same way.
@@ -267,11 +273,11 @@ as interactive HTML pages; an HTML file Tyler can open in a browser works the sa
   recorded and used, and their known weak points.
 - `docs/changelog.md`: what changed in each version; add an entry when the version number changes.
   List every change with a little detail (what changed and why it matters to a player), grouped
-  by area, plus fixes and anything the player must do to update (Tyler, 2026-10-10: never "minor
+  by area, plus fixes and anything the player must do to update (Tyler, 2026-10-09: never "minor
   bug fixes" without saying which). It is also the CurseForge file's changelog.
 - `docs/roadmap.md`: what each version is for. A patch version (0.3.x) is bug fixes, speed and
   small things only, no new features; new features go into the next minor version (0.4).
-  Version numbers (Tyler, 2026-10-10): a bug fix raises the fourth number (0.6 -> 0.6.0.1 ->
+  Version numbers (Tyler, 2026-10-09): a bug fix raises the fourth number (0.6 -> 0.6.0.1 ->
   0.6.0.2); a bigger update within the same version raises the third (0.6.1); new features are
   the next minor version (0.7).
 - `docs/forever-auction-house.md`: how Forever's auction house works, with sources.

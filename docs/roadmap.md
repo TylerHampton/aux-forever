@@ -1,13 +1,13 @@
 # Roadmap and versions
 
-Set by Tyler on 2026-10-05. Version numbers are `0.MINOR.PATCH`, written `forever-0.2.1` in the
-TOC. Every release gets an entry in `docs/changelog.md`. Numbering (Tyler, 2026-10-10): a bug fix
+Set by Tyler on 2026-10-04. Version numbers are `0.MINOR.PATCH`, written `forever-0.2.1` in the
+TOC. Every release gets an entry in `docs/changelog.md`. Numbering (Tyler, 2026-10-09): a bug fix
 raises the fourth number (0.6 -> 0.6.0.1 -> 0.6.0.2); a bigger update within the same version
 raises the third (0.6.1); new features are the next minor version (0.7).
 
 ## After 0.6: candidates for the next version (none decided)
 
-0.6 and 0.6.0.1 were released on 2026-10-10 (`docs/changelog.md`). Carried over or raised since:
+0.6 and 0.6.0.1 were released on 2026-10-09 (`docs/changelog.md`). Carried over or raised since:
 
 - **Sniper:** the hold on a selected deal and a clear outcome for each buy in a fast market (from
   0.5, still open); a rule for items with a single listing (Tyler to decide, `docs/status.md`).
@@ -19,7 +19,7 @@ raises the third (0.6.1); new features are the next minor version (0.7).
 - Whatever players report on 0.6 (`docs/feedback.md`, from FB-010).
 
 
-## 0.4.1: performance first, then common-sense UX (released 2026-10-06)
+## 0.4.1: performance first, then common-sense UX (released 2026-10-05)
 
 0.4 was released on 2026-10-05. Tyler: 0.4.1 is mainly performance, partly UX/UI common-sense
 changes; no new features (those are written down for 0.5). A bad bug (spends money wrongly,
@@ -50,11 +50,11 @@ else is batched, about a week of real use.
 
 ## After 0.5: candidates for 0.5.1 and 0.6 (superseded by After 0.6)
 
-0.5 was released on 2026-10-08 (`docs/changelog.md`). Not built in 0.5, carried over:
+0.5 was released on 2026-10-07 (`docs/changelog.md`). Not built in 0.5, carried over:
 
 - **Sniper rework (0.6):** the hold on a selected deal (released by itself after a purchase, after
   a while, or when the mouse leaves the window?), and an obvious outcome for each buy in a fast
-  market. Tyler's notes in the 0.5 section below. Claude suggested on 2026-10-08 to leave it for
+  market. Tyler's notes in the 0.5 section below. Claude suggested on 2026-10-07 to leave it for
   after 0.5; Tyler did not decide.
 - **Auctions tab:** the starting bid of your own auctions, if `GetOwnedAuctionInfo` gives it
   (unverified).
@@ -62,15 +62,15 @@ else is batched, about a week of real use.
 - **0.5.1 material** (fixes and small things only): the loose ends in `docs/status.md`, "Open after
   0.5", and whatever players report on 0.5 (`docs/feedback.md`, from FB-008).
 
-## 0.5: notes for planning, built and released 2026-10-08 (from Tyler's 0.4.1 testing)
+## 0.5: notes for planning, built and released 2026-10-07 (from Tyler's 0.4.1 testing)
 
-- No 0.4.2 (Tyler, 2026-10-08): fixes and small things found after 0.4.1 go into 0.5, unless one
+- No 0.4.2 (Tyler, 2026-10-07): fixes and small things found after 0.4.1 go into 0.5, unless one
   is bad enough for a hotfix. Player feedback planned or proposed for 0.5: `docs/feedback.md`
   (index), so far FB-001, FB-002, FB-003, FB-006 (planned), FB-007 (planned, design decided).
-- Consistent clicks (Tyler, 2026-10-08: predictable clicks "across all of the different
+- Consistent clicks (Tyler, 2026-10-07: predictable clicks "across all of the different
   modules"): click map, findings and proposed standard in `docs/clicks.md`. Includes FB-002
   (right-click from the bags). Tyler approves the standard before it is built.
-- Better price data (decided by Tyler, 2026-10-08: "I do want you to make changes to the data and
+- Better price data (decided by Tyler, 2026-10-07: "I do want you to make changes to the data and
   make it better"): a market price per day that one cheap auction cannot set, recent days counting
   more, the age of a price shown. Plan, cost, risks and tests: `docs/price-data.md`, "Plan for
   0.5". Build it first: the recipe cost (FB-007), the Sniper and the Post tab rest on it.
@@ -78,7 +78,7 @@ else is batched, about a week of real use.
 - Redesign (Tyler, told to Darkhorse on 2026-10-07): Tyler and a UI designer friend are working on
   "a massive .5-.6 update". The friend has "a whole design concept laid out"; prototypes to be
   shown to testers. Tyler: "quite transformative, it's geared toward TSM users", "more visually
-  simple", "It's too confusing rn". Direction decided by Tyler on 2026-10-08: it follows TSM and
+  simple", "It's too confusing rn". Direction decided by Tyler on 2026-10-07: it follows TSM and
   the original aux, not Blizzard's auction house or Auctionator ("This should much more closely
   resemble TSM and the original aux like it already does"; a request for the opposite was rejected,
   `docs/feedback.md` FB-004). Player feedback that bears on it: FB-001 to FB-005. Not yet in the
@@ -182,7 +182,7 @@ Open for 0.2.x:
   item per request, so a search over hundreds of items takes minutes; the big speedup is 0.3).
 - Still not tried in game: Auctions tab cancel, Bids tab, full scan, posting gear with a bid.
 
-## 0.3: fast mode and sniper (planning, 2026-10-05)
+## 0.3: fast mode and sniper (planning, 2026-10-04)
 
 ### What the game gives us (Blizzard's API documentation)
 
@@ -217,7 +217,7 @@ Open for 0.2.x:
   first (a debug command that times an item list of everything, without opening items).
 - The full scan stays separate: it feeds price history, which is what makes deals trustworthy.
 
-### Decisions (Tyler, 2026-10-05)
+### Decisions (Tyler, 2026-10-04)
 
 - Fast mode is automatic: searches over many items use the item list; a search for one exact
   item stays full. A small Fast / Full switch can force full.
@@ -232,7 +232,7 @@ Open for 0.2.x:
   Players can change the percentage and the minimum profit. A percentage scales from level 20 to
   60 on its own; the 5s floor only hides trivial finds.
 
-### Built (2026-10-05, first build for testing)
+### Built (2026-10-04, first build for testing)
 
 - Fast mode as planned. Rows from the item list are not price history (the list's lowest price may
   be a bid); opened items are. Conditions the list cannot check (seller, time left, bid, tooltip
@@ -250,7 +250,7 @@ Open for 0.2.x:
 ### Order
 
 1. Measure the whole-auction-house item list (time, number of items, number of requests).
-   Done (Tyler, 2026-10-05, `/aux debug list`): 7718 items in 8.5s, 16 requests (the game sends
+   Done (Tyler, 2026-10-04, `/aux debug list`): 7718 items in 8.5s, 16 requests (the game sends
    the list in pages of about 500). Reading every item's auctions instead would take about 75
    minutes at 0.58s per item. One sniper round is therefore about 8.5s. Not yet known: whether
    it changes at busy times, and whether the server objects to rounds back to back for a long time.
