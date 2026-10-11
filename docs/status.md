@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-11, Mountain Time (0.6.1 build 2 tested, waiting for Tyler's go to release).
+Last updated 2026-10-11, Mountain Time (0.6.1 released).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -10,13 +10,17 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand:** 0.6, 0.6.0.1 and 0.6.0.2 are released and on `main`. **0.6.1 build 2**
-is on branch `claude/exciting-brown-a9k99n`, tested by Tyler on 2026-10-11 (passes, see below), not
-released, no PR yet. **Next:** when Tyler says 0.6.1 is ready, date the changelog and release as in
-"How a release goes" below. Tyler named the
-version 0.6.1 on 2026-10-11 ("these changes justify .6.1"); build 1 was the same work under the name
-0.6.0.3. The name 0.6.1 was used once before for what became 0.6.0.1 (test page id `0-6-1-build-1`),
-so this version's builds count on from 2.
+**Where things stand:** 0.6, 0.6.0.1, 0.6.0.2 and **0.6.1** are released and on `main`. No build is
+in progress and no branch has unmerged work. Start the next version from the latest `main`.
+
+- **Released 0.6.1** on 2026-10-11 (PR #23, `main` 7fa5223): weapon slots in Search (FB-010), In
+  words names the slot first, items seen at the auction house join aux's item list, your characters
+  dated by the date. Tag `v0.6.1`, GitHub pre-release
+  https://github.com/TylerHampton/aux-forever/releases/tag/v0.6.1, CurseForge Beta file id
+  9140444 (Release run 38184921559). `/reload` is enough for players. Tyler named the version
+  0.6.1 on 2026-10-11 ("these changes justify .6.1"); build 1 was the same work under the name
+  0.6.0.3, and the name 0.6.1 was once used for what became 0.6.0.1 (test page id
+  `0-6-1-build-1`), so its builds counted on from 2. Build history below.
 
 - **0.6.1 build 1** (2026-10-11, named 0.6.0.3 then): weapon slots in Search (FB-010, GregoryWW on
   CurseForge: "Slot selection for weapons (daggers f.e.) doesnt work, it cause full search
