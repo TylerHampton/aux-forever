@@ -12,7 +12,8 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 ## Start here (next session)
 
 **Where things stand:** 0.6 and 0.6.0.1 are released and on `main`. **0.6.0.2** (build 4) is being
-released on 2026-10-10 from branch `claude/kind-rubin-olf9zf` (Tyler said go); then the release (see Release plan). No pull request yet.
+released on 2026-10-10 from branch `claude/kind-rubin-olf9zf` (Tyler said go; pull request to
+`main`, then the Release workflow).
 
 **Release plan (Tyler, 2026-10-09, 10 pm Mountain Time):** hold this fix; do not release it
 tonight. Two files already went to CurseForge that evening and he does not want a third within
