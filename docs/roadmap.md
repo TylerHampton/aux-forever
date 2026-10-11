@@ -7,7 +7,7 @@ raises the third (0.6.1); new features are the next minor version (0.7).
 
 ## After 0.6: candidates for the next version (none decided)
 
-0.6 and 0.6.0.1 were released on 2026-10-09 (`docs/changelog.md`). Carried over or raised since:
+0.6 and 0.6.0.1 were released on 2026-10-09, 0.6.0.2 on 2026-10-10 (`docs/changelog.md`). Carried over or raised since:
 
 - **Sniper:** the hold on a selected deal and a clear outcome for each buy in a fast market (from
   0.5, still open); a rule for items with a single listing (Tyler to decide, `docs/status.md`).

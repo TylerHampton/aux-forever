@@ -1,7 +1,6 @@
 # Status
 
-Last updated 2026-10-09, 10:30 pm Mountain Time (end of session: 0.6.0.2 build 2 tested and held
-for release on 2026-10-10; see Release plan).
+Last updated 2026-10-10, 7:20 pm Mountain Time (0.6.0.2 released).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -11,24 +10,20 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand:** 0.6 and 0.6.0.1 are released and on `main`. **0.6.0.2** (build 4) is being
-released on 2026-10-10 from branch `claude/kind-rubin-olf9zf` (Tyler said go; pull request to
-`main`, then the Release workflow).
+**Where things stand:** 0.6, 0.6.0.1 and 0.6.0.2 are released and on `main`. No build is in
+progress and no branch has unmerged work. Start the next version from the latest `main`.
 
-**Release plan (Tyler, 2026-10-09, 10 pm Mountain Time):** hold this fix; do not release it
-tonight. Two files already went to CurseForge that evening and he does not want a third within
-the hour. On 2026-10-10:
-- if Tyler has a better idea to add, it goes into the same branch and the version becomes
-  **0.6.1** (TOC `forever-0.6.1`, changelog heading renamed, this fix listed under it);
-- if not, **0.6.0.2** is released once build 4 passes (Tyler, 2026-10-10: the speed change
-  goes into 0.6.0.2): changelog date, PR to `main`, Release workflow, as in "How a release goes"
-  below.
-Ask Tyler which one at the start of the next session.
-
-**Also on this branch, not yet on `main`:** two new rules in `AGENTS.md` from this session (dates
-in Tyler's Mountain Time; wrapping up a session without being asked when he says he is done) and
-the date corrections across the docs. A session started from `main` does not have them until the
-0.6.0.2 pull request is merged, so read `AGENTS.md` from this branch until then.
+- **Released 0.6.0.2** on 2026-10-10 (PR #21, `main` 1bf97bd): the Post tab reads fresh listings
+  on every pick (no more Full scan listings), one row per price for items sold by quantity, and
+  one request instead of two for items that are not gear. Tag `v0.6.0.2`, GitHub pre-release
+  https://github.com/TylerHampton/aux-forever/releases/tag/v0.6.0.2, CurseForge Beta file id
+  9124502 (Release run 38101325007). `/reload` was enough for players. Build history below.
+- **Next:** not chosen. The strongest candidate is **gear versions on the Post tab**
+  (`docs/roadmap.md`): gear is priced against whichever version of the item comes first, not the
+  player's own (Merc Sword: 11s for Eagle, 60s for Strength). Investigate first, mockup before
+  building. Also watch for the Wool Cloth post that did not seem to reload (build 1, once).
+- **Rules added in this session** (now on `main`, `AGENTS.md`): dates in Tyler's Mountain Time;
+  wrap up a session without being asked when he says he is done for the day.
 
 - **0.6.0.2 build 1** (2026-10-09): the Post tab always searches the picked item. Tyler's
   screenshots: Scroll of Stamina showed the last Full scan's listings (27 at 13s, one row per
