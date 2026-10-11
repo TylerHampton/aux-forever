@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-10, 7:20 pm Mountain Time (0.6.0.2 released).
+Last updated 2026-10-11, Mountain Time (0.6.0.3 build 1 waiting for Tyler's test).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -10,8 +10,20 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand:** 0.6, 0.6.0.1 and 0.6.0.2 are released and on `main`. No build is in
-progress and no branch has unmerged work. Start the next version from the latest `main`.
+**Where things stand:** 0.6, 0.6.0.1 and 0.6.0.2 are released and on `main`. **0.6.0.3 build 1**
+is on branch `claude/exciting-brown-a9k99n`, waiting for Tyler's test (no PR yet).
+
+- **0.6.0.3 build 1** (2026-10-11): weapon slots in Search (FB-010, GregoryWW on CurseForge:
+  "Slot selection for weapons (daggers f.e.) doesnt work, it cause full search instead.").
+  Forever's auction house has three levels under Weapons (Weapons, One-Handed, Daggers;
+  Blizzard's `Camelot/Blizzard_AuctionData.lua`, branch `forever`, build 70338), and also under
+  Containers, Consumables (Item Enhancement) and Armor (Relic, Miscellaneous). The `slot` parser
+  in `util/filter.lua` only accepted a third level under Armor (Classic), so "daggers" became a
+  tooltip text filter and the search read every one-handed weapon. Now the slot is read under any
+  category. Test `0.6.0.3: slots under any category` (fails without the fix). Zip
+  `auxForever-0.6.0.3-build1.zip`, `/reload` is enough. Test page build id `0-6-0-3-build-1`
+  (4 steps, the same as `TESTING.md`). **Next:** read the results; if they pass and Tyler says
+  ready, date the changelog and release as in "How a release goes" below.
 
 - **Released 0.6.0.2** on 2026-10-10 (PR #21, `main` 1bf97bd): the Post tab reads fresh listings
   on every pick (no more Full scan listings), one row per price for items sold by quantity, and
@@ -123,7 +135,7 @@ progress and no branch has unmerged work. Start the next version from the latest
 - **How Tyler tests:** one test page, https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ
   (`index.html` with a `BUILD` id and `AREAS` steps; he marks Pass/Fail with notes and
   screenshots; read with ArtifactData, collection `builds/<build id>/results`, and download each
-  screenshot with Artifact read, `path` = the asset id). Last used: `0-6-1-build-1` (passed). He
+  screenshot with Artifact read, `path` = the asset id). Last used: `0-6-0-3-build-1` (waiting). He
   often uploads screenshots without marking a status: read the screenshots. Zips:
   `auxForever-<version>-build<n>.zip`, sent with the file tool; say whether `/reload` is enough.
 - **Mockups:** the Post panel mockup (options A, B, C, A chosen) is

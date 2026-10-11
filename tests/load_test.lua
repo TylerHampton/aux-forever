@@ -3209,4 +3209,42 @@ try('0.6: settings', function()
   check('settings: and hides it', a.account_data.post_bid == nil and post_env.frame.bid_listing.__shown == false)
 end)
 
+-- FB-010 (reported by GregoryWW): Forever's auction house has a third level under weapons
+-- (Weapons, One-Handed, Daggers), not only under armor. aux read a slot only under Armor, so
+-- "daggers" became a tooltip text filter and the search went through every one-handed weapon.
+try('0.6.0.3: slots under any category', function()
+  local require = loadstring("select(2, ...) 'aux.test.fb010'; return require")('auxForever', addon)
+  local filter_util = require 'aux.util.filter'
+  local scan = loadstring("select(2, ...) 'aux.core.scan'; return _M")('auxForever', addon)
+  local own = AuctionCategories
+  local function leaf(name, filter) return {name = name, filters = {filter}} end
+  -- the shape of Blizzard's Camelot/Blizzard_AuctionData.lua (branch forever of Gethe/wow-ui-source)
+  AuctionCategories = {
+    {name = 'Weapons', subCategories = {
+      {name = 'One-Handed', subCategories = {leaf('One-Handed Axes', 'axe1h'), leaf('Daggers', 'dagger')}},
+      {name = 'Two-Handed', subCategories = {leaf('Staves', 'staff')}},
+    }},
+    {name = 'Armor', subCategories = {
+      {name = 'Cloth', subCategories = {leaf('Head', 'cloth head'), leaf('Chest', 'cloth chest')}},
+    }},
+    {name = 'Consumables', subCategories = {
+      {name = 'Item Enhancement', subCategories = {leaf('Item Enhancement (Temporary)', 'temp')}},
+    }},
+  }
+  local query = filter_util.query('weapons/one-handed/daggers')
+  check('fb010: daggers is the slot', query and query.blizzard_query.class == 1 and query.blizzard_query.subclass == 1 and query.blizzard_query.slot == 2)
+  check('fb010: not a tooltip text filter', query and query.full_reason == nil and #filter_util.parse_filter_string('weapons/one-handed/daggers').post == 0)
+  local class_filters = query and scan.browse_query(query.blizzard_query).itemClassFilters
+  check('fb010: the auction house is asked for daggers only', class_filters and class_filters[1] == 'dagger' and #class_filters == 1)
+  query = filter_util.query('weapons/two-handed/staves')
+  check('fb010: two-handed works too', query and query.blizzard_query.slot == 1)
+  query = filter_util.query('consumables/item enhancement/item enhancement (temporary)')
+  check('fb010: any category with a third level', query and query.blizzard_query.class == 3 and query.blizzard_query.slot == 1)
+  query = filter_util.query('armor/cloth/chest')
+  check('fb010: armor slots still work', query and query.blizzard_query.class == 2 and query.blizzard_query.slot == 2)
+  query = filter_util.query('daggers')
+  check('fb010: a slot name alone is still a name search', query and query.blizzard_query.name == 'daggers' and query.blizzard_query.slot == nil)
+  AuctionCategories = own
+end)
+
 print('done, errors: ' .. errors)

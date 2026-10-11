@@ -8,10 +8,17 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: none (0.6.0.2 released 2026-10-10)
+## Current build: 0.6.0.3 build 1 (weapon slots in Search)
 
-The last build, 0.6.0.2 build 4 (fresh Post tab listings, one row per price, one request for
-items that are not gear), was tested in game and released. The next build starts its steps here.
+`/reload` is enough (no new files). Steps, in the New theme:
+
+- [ ] 1. Search tab, "Which items": Category Weapons, Type One-Handed, Slot Daggers, then Search.
+      The search bar shows `weapons/one-handed/daggers`, the search is short, and only daggers
+      are listed.
+- [ ] 2. Same with Two-Handed and Staves: only staves.
+- [ ] 3. Armor, Cloth, Chest: only cloth chest pieces (this worked before; check it still does).
+- [ ] 4. Type `weapons/ranged/bows` in the search bar and press Enter: only bows, and the menus
+      show Weapons, Ranged, Bows.
 
 ## Before every release: the 5-minute check
 

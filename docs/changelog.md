@@ -6,6 +6,19 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.6.0.3 (not released yet)
+
+### Fixes
+
+- Search: picking a slot under Weapons, such as Weapons, One-Handed, Daggers, now searches only
+  daggers. Before, aux understood a slot only under Armor (as in Classic, where weapons had no
+  third level), so it searched every one-handed weapon and then looked for the word "daggers" in
+  each tooltip: a long search that found little or nothing. The same applies to every slot under
+  Two-Handed, Ranged and Miscellaneous weapons, and to Containers and Item Enhancement under
+  Consumables. Typing the same text in the search bar works the same way (reported by GregoryWW).
+
+`/reload` is enough to update.
+
 ## 0.6.0.2 (2026-10-10)
 
 ### Fixes
