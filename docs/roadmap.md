@@ -9,7 +9,7 @@ raises the third (0.6.1); new features are the next minor version (0.7).
 
 0.6 and 0.6.0.1 were released on 2026-10-09, 0.6.0.2 on 2026-10-10 (`docs/changelog.md`). Carried over or raised since:
 
-- **0.6.1** (in testing, 2026-10-11): weapon slots in Search (FB-010) and the fixes of the Classic
+- **0.6.1** (released 2026-10-11): weapon slots in Search (FB-010) and the fixes of the Classic
   code audit (`docs/audit-classic-code.md`). Named 0.6.1 by Tyler instead of a 0.6.0.3 bug fix.
 
 - **Sniper:** the hold on a selected deal and a clear outcome for each buy in a fast market (from
