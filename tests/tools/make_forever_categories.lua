@@ -16,8 +16,11 @@
 -- checked out (AGENTS.md).
 --
 -- Item type names ("Daggers", "Cloth", ...) come from the game's item database, which neither
--- repository has. They are written below by hand (ITEM_SUBCLASS_NAMES) and are not checked
--- against Forever; so are the subclass lists the game hands out at run time (AUCTION_SUBCLASSES).
+-- repository has, and so do the type lists the game hands out at run time. Both are written below
+-- by hand (ITEM_SUBCLASS_NAMES, AUCTION_SUBCLASSES), copied from what the game printed for Tyler on
+-- 2026-10-11 (0.6.1 build 2 test page, two /run commands in TESTING.md): every name in the Which
+-- items menus of categories and types, and the weapon slots. Not seen in game: the two types under
+-- Consumables, Item Enhancements, and the armor slots (those come from the game's text, below).
 
 local ui_source, resources = arg[1], arg[2]
 assert(ui_source and resources, 'usage: make_forever_categories.lua <wow-ui-source> <BlizzardInterfaceResources>')
@@ -40,15 +43,14 @@ for line in io.lines(resources .. '/Resources/GlobalStrings/enUS.lua') do
     end
 end
 
--- Not checked against Forever (see the top). English names as the Classic and modern clients
--- show them.
+-- As the game printed them (see the top), except the two Item Enhancement types: not seen.
 local ITEM_SUBCLASS_NAMES = {
     [Enum.ItemClass.Weapon] = {
         Axe1H = 'One-Handed Axes', Axe2H = 'Two-Handed Axes', Bows = 'Bows', Guns = 'Guns',
         Mace1H = 'One-Handed Maces', Mace2H = 'Two-Handed Maces', Polearm = 'Polearms',
         Sword1H = 'One-Handed Swords', Sword2H = 'Two-Handed Swords', Staff = 'Staves',
         Unarmed = 'Fist Weapons', Generic = 'Miscellaneous', Dagger = 'Daggers', Thrown = 'Thrown',
-        Crossbow = 'Crossbows', Wand = 'Wands', Fishingpole = 'Fishing Poles',
+        Crossbow = 'Crossbows', Wand = 'Wands', Fishingpole = 'Fishing Pole',
     },
     [Enum.ItemClass.Armor] = {
         Generic = 'Miscellaneous', Cloth = 'Cloth', Leather = 'Leather', Mail = 'Mail',
@@ -62,14 +64,14 @@ local ITEM_SUBCLASS_NAMES = {
     },
     [Enum.ItemClass.Quiver] = {Quiver = 'Quiver', Ammopouch = 'Ammo Pouch'},
     [Enum.ItemClass.Consumable] = {
-        Generic = 'Consumable', Potion = 'Potion', Elixir = 'Elixir', Flasksphials = 'Flask',
-        Scroll = 'Scroll', Fooddrink = 'Food & Drink', Itemenhancement = 'Item Enhancement',
-        Bandage = 'Bandage', Other = 'Other', ItemenhancementTemporary = 'Item Enhancement (Temporary)',
+        Generic = 'Explosives', Potion = 'Potions', Elixir = 'Elixirs', Flasksphials = 'Flasks',
+        Scroll = 'Scrolls', Fooddrink = 'Food & Drink', Itemenhancement = 'Item Enhancement',
+        Bandage = 'Bandages', Other = 'Other', ItemenhancementTemporary = 'Item Enhancement (Temporary)',
+        Draught = 'Draughts', Device = 'Devices',
     },
     [Enum.ItemClass.Tradegoods] = {
-        [0] = 'Trade Goods', [1] = 'Parts', [2] = 'Explosives', [3] = 'Devices', [5] = 'Cloth',
-        [6] = 'Leather', [7] = 'Metal & Stone', [8] = 'Meat', [9] = 'Herb', [10] = 'Elemental',
-        [11] = 'Other', [12] = 'Enchanting',
+        [1] = 'Parts', [5] = 'Cloth', [6] = 'Leather', [7] = 'Metal & Stone', [8] = 'Cooking',
+        [9] = 'Herb', [10] = 'Elemental', [11] = 'Other', [12] = 'Enchanting',
     },
     [Enum.ItemClass.Projectile] = {[2] = 'Arrow', [3] = 'Bullet'},
     [Enum.ItemClass.Recipe] = {
@@ -78,7 +80,7 @@ local ITEM_SUBCLASS_NAMES = {
         Alchemy = 'Alchemy', FirstAid = 'First Aid', Enchanting = 'Enchanting', Fishing = 'Fishing',
     },
     [Enum.ItemClass.Miscellaneous] = {
-        Junk = 'Junk', Reagent = 'Reagent', CompanionPet = 'Companion Pets', Holiday = 'Holiday',
+        Junk = 'Junk', Reagent = 'Reagent', CompanionPet = 'Pet', Holiday = 'Holiday',
         Other = 'Other', Mount = 'Mount',
     },
 }
@@ -101,12 +103,14 @@ for class_id, names in pairs(ITEM_SUBCLASS_NAMES) do
     end
 end
 
--- Not checked against Forever (see the top): the subclasses the game lists for these classes.
+-- The types the game lists for these categories, in the game's order (see the top). Which number
+-- each Consumables and Trade Goods name has is read from Blizzard's names for the numbers
+-- (Draught 13, Device 14) and from Classic (Trade Goods); the names and their order are the game's.
 local AUCTION_SUBCLASSES = {
-    [Enum.ItemClass.Consumable] = {0, 1, 2, 3, 4, 5, 6, 7, 8},
-    [Enum.ItemClass.Tradegoods] = {0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12},
+    [Enum.ItemClass.Consumable] = {0, 1, 2, 3, 4, 5, 6, 7, 13, 14, 8},
+    [Enum.ItemClass.Tradegoods] = {1, 5, 6, 7, 8, 9, 12, 10, 11},
     [Enum.ItemClass.Projectile] = {2, 3},
-    [Enum.ItemClass.Recipe] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+    [Enum.ItemClass.Recipe] = {0, 1, 2, 3, 4, 5, 6, 7, 8},
     [Enum.ItemClass.Miscellaneous] = {0, 1, 2, 3, 4, 5},
 }
 
@@ -182,8 +186,8 @@ w('-- Forever\'s auction house categories (AuctionCategories), build ' .. versio
 w('-- Made by tests/tools/make_forever_categories.lua from Blizzard\'s Camelot/Blizzard_AuctionData.lua\n')
 w('-- (Gethe/wow-ui-source, branch forever) and the English text of the same build\n')
 w('-- (Ketho/BlizzardInterfaceResources, branch forever). Do not edit by hand: run the script again.\n')
-w('-- Item type names (Daggers, Cloth, ...) and the subclass lists of Consumables, Trade Goods, Ammo,\n')
-w('-- Recipes and Miscellaneous are not checked against the game; see the script.\n')
+w('-- Item type names (Daggers, Cloth, ...) and the type lists of Consumables, Trade Goods, Ammo,\n')
+w('-- Recipes and Miscellaneous were copied by hand from what the game printed; see the script.\n')
 w('return {\n')
 for _, category in ipairs(env.AuctionCategories) do write_category(category, '  ') end
 w('}\n')

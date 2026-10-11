@@ -2,8 +2,8 @@
 -- Made by tests/tools/make_forever_categories.lua from Blizzard's Camelot/Blizzard_AuctionData.lua
 -- (Gethe/wow-ui-source, branch forever) and the English text of the same build
 -- (Ketho/BlizzardInterfaceResources, branch forever). Do not edit by hand: run the script again.
--- Item type names (Daggers, Cloth, ...) and the subclass lists of Consumables, Trade Goods, Ammo,
--- Recipes and Miscellaneous are not checked against the game; see the script.
+-- Item type names (Daggers, Cloth, ...) and the type lists of Consumables, Trade Goods, Ammo,
+-- Recipes and Miscellaneous were copied by hand from what the game printed; see the script.
 return {
   {name = "Weapons", filters = {{classID = 2, subClassID = 0}, {classID = 2, subClassID = 4}, {classID = 2, subClassID = 7}, {classID = 2, subClassID = 15}, {classID = 2, subClassID = 13}, {classID = 2, subClassID = 19}, {classID = 2, subClassID = 1}, {classID = 2, subClassID = 5}, {classID = 2, subClassID = 8}, {classID = 2, subClassID = 6}, {classID = 2, subClassID = 10}, {classID = 2, subClassID = 2}, {classID = 2, subClassID = 18}, {classID = 2, subClassID = 3}, {classID = 2, subClassID = 16}, {classID = 2, subClassID = 20}, {classID = 2, subClassID = 14}}, subCategories = {
     {name = "One-Handed", filters = {{classID = 2, subClassID = 0}, {classID = 2, subClassID = 4}, {classID = 2, subClassID = 7}, {classID = 2, subClassID = 15}, {classID = 2, subClassID = 13}, {classID = 2, subClassID = 19}}, subCategories = {
@@ -28,7 +28,7 @@ return {
       {name = "Thrown", filters = {{classID = 2, subClassID = 16}}},
     }},
     {name = "Miscellaneous", filters = {{classID = 2, subClassID = 20}, {classID = 2, subClassID = 14}}, subCategories = {
-      {name = "Fishing Poles", filters = {{classID = 2, subClassID = 20}}},
+      {name = "Fishing Pole", filters = {{classID = 2, subClassID = 20}}},
       {name = "Other", filters = {{classID = 2, subClassID = 14}}},
     }},
   }},
@@ -112,39 +112,38 @@ return {
       {name = "Reagent Bag", filters = {{classID = 1, subClassID = 11}}},
     }},
   }},
-  {name = "Consumables", filters = {{classID = 0, subClassID = 0}, {classID = 0, subClassID = 1}, {classID = 0, subClassID = 2}, {classID = 0, subClassID = 3}, {classID = 0, subClassID = 4}, {classID = 0, subClassID = 5}, {classID = 0, subClassID = 7}, {classID = 0, subClassID = 6}, {classID = 0, subClassID = 15}, {classID = 0, subClassID = 8}}, subCategories = {
-    {name = "Consumable", filters = {{classID = 0, subClassID = 0}}},
-    {name = "Potion", filters = {{classID = 0, subClassID = 1}}},
-    {name = "Elixir", filters = {{classID = 0, subClassID = 2}}},
-    {name = "Flask", filters = {{classID = 0, subClassID = 3}}},
-    {name = "Scroll", filters = {{classID = 0, subClassID = 4}}},
+  {name = "Consumables", filters = {{classID = 0, subClassID = 0}, {classID = 0, subClassID = 1}, {classID = 0, subClassID = 2}, {classID = 0, subClassID = 3}, {classID = 0, subClassID = 4}, {classID = 0, subClassID = 5}, {classID = 0, subClassID = 7}, {classID = 0, subClassID = 6}, {classID = 0, subClassID = 15}, {classID = 0, subClassID = 13}, {classID = 0, subClassID = 14}, {classID = 0, subClassID = 8}}, subCategories = {
+    {name = "Explosives", filters = {{classID = 0, subClassID = 0}}},
+    {name = "Potions", filters = {{classID = 0, subClassID = 1}}},
+    {name = "Elixirs", filters = {{classID = 0, subClassID = 2}}},
+    {name = "Flasks", filters = {{classID = 0, subClassID = 3}}},
+    {name = "Scrolls", filters = {{classID = 0, subClassID = 4}}},
     {name = "Food & Drink", filters = {{classID = 0, subClassID = 5}}},
-    {name = "Bandage", filters = {{classID = 0, subClassID = 7}}},
+    {name = "Bandages", filters = {{classID = 0, subClassID = 7}}},
     {name = "Item Enhancements", filters = {{classID = 0, subClassID = 6}, {classID = 0, subClassID = 15}}, subCategories = {
       {name = "Item Enhancement", filters = {{classID = 0, subClassID = 6}}},
       {name = "Item Enhancement (Temporary)", filters = {{classID = 0, subClassID = 15}}},
     }},
+    {name = "Draughts", filters = {{classID = 0, subClassID = 13}}},
+    {name = "Devices", filters = {{classID = 0, subClassID = 14}}},
     {name = "Other", filters = {{classID = 0, subClassID = 8}}},
   }},
-  {name = "Trade Goods", filters = {{classID = 7, subClassID = 0}, {classID = 7, subClassID = 1}, {classID = 7, subClassID = 2}, {classID = 7, subClassID = 3}, {classID = 7, subClassID = 5}, {classID = 7, subClassID = 6}, {classID = 7, subClassID = 7}, {classID = 7, subClassID = 8}, {classID = 7, subClassID = 9}, {classID = 7, subClassID = 10}, {classID = 7, subClassID = 11}, {classID = 7, subClassID = 12}}, subCategories = {
-    {name = "Trade Goods", filters = {{classID = 7, subClassID = 0}}},
+  {name = "Trade Goods", filters = {{classID = 7, subClassID = 1}, {classID = 7, subClassID = 5}, {classID = 7, subClassID = 6}, {classID = 7, subClassID = 7}, {classID = 7, subClassID = 8}, {classID = 7, subClassID = 9}, {classID = 7, subClassID = 12}, {classID = 7, subClassID = 10}, {classID = 7, subClassID = 11}}, subCategories = {
     {name = "Parts", filters = {{classID = 7, subClassID = 1}}},
-    {name = "Explosives", filters = {{classID = 7, subClassID = 2}}},
-    {name = "Devices", filters = {{classID = 7, subClassID = 3}}},
     {name = "Cloth", filters = {{classID = 7, subClassID = 5}}},
     {name = "Leather", filters = {{classID = 7, subClassID = 6}}},
     {name = "Metal & Stone", filters = {{classID = 7, subClassID = 7}}},
-    {name = "Meat", filters = {{classID = 7, subClassID = 8}}},
+    {name = "Cooking", filters = {{classID = 7, subClassID = 8}}},
     {name = "Herb", filters = {{classID = 7, subClassID = 9}}},
+    {name = "Enchanting", filters = {{classID = 7, subClassID = 12}}},
     {name = "Elemental", filters = {{classID = 7, subClassID = 10}}},
     {name = "Other", filters = {{classID = 7, subClassID = 11}}},
-    {name = "Enchanting", filters = {{classID = 7, subClassID = 12}}},
   }},
   {name = "Ammo", filters = {{classID = 6, subClassID = 2}, {classID = 6, subClassID = 3}}, subCategories = {
     {name = "Arrow", filters = {{classID = 6, subClassID = 2}}},
     {name = "Bullet", filters = {{classID = 6, subClassID = 3}}},
   }},
-  {name = "Recipes", filters = {{classID = 9, subClassID = 0}, {classID = 9, subClassID = 1}, {classID = 9, subClassID = 2}, {classID = 9, subClassID = 3}, {classID = 9, subClassID = 4}, {classID = 9, subClassID = 5}, {classID = 9, subClassID = 6}, {classID = 9, subClassID = 7}, {classID = 9, subClassID = 8}, {classID = 9, subClassID = 9}}, subCategories = {
+  {name = "Recipes", filters = {{classID = 9, subClassID = 0}, {classID = 9, subClassID = 1}, {classID = 9, subClassID = 2}, {classID = 9, subClassID = 3}, {classID = 9, subClassID = 4}, {classID = 9, subClassID = 5}, {classID = 9, subClassID = 6}, {classID = 9, subClassID = 7}, {classID = 9, subClassID = 8}}, subCategories = {
     {name = "Leatherworking", filters = {{classID = 9, subClassID = 1}}},
     {name = "Tailoring", filters = {{classID = 9, subClassID = 2}}},
     {name = "Engineering", filters = {{classID = 9, subClassID = 3}}},
@@ -153,14 +152,13 @@ return {
     {name = "Alchemy", filters = {{classID = 9, subClassID = 6}}},
     {name = "First Aid", filters = {{classID = 9, subClassID = 7}}},
     {name = "Enchanting", filters = {{classID = 9, subClassID = 8}}},
-    {name = "Fishing", filters = {{classID = 9, subClassID = 9}}},
     {name = "Book", filters = {{classID = 9, subClassID = 0}}},
   }},
   {name = "Quest Items", filters = {{classID = 12}}},
   {name = "Miscellaneous", filters = {{classID = 15}, {classID = 15, subClassID = 0}, {classID = 15, subClassID = 1}, {classID = 15, subClassID = 2}, {classID = 15, subClassID = 3}, {classID = 15, subClassID = 4}, {classID = 15, subClassID = 5}}, subCategories = {
     {name = "Junk", filters = {{classID = 15, subClassID = 0}}},
     {name = "Reagent", filters = {{classID = 15, subClassID = 1}}},
-    {name = "Companion Pets", filters = {{classID = 15, subClassID = 2}}},
+    {name = "Pet", filters = {{classID = 15, subClassID = 2}}},
     {name = "Holiday", filters = {{classID = 15, subClassID = 3}}},
     {name = "Other", filters = {{classID = 15, subClassID = 4}}},
     {name = "Mount", filters = {{classID = 15, subClassID = 5}}},

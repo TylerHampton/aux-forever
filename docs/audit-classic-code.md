@@ -24,7 +24,7 @@ Still almost entirely Simon's: `util/filter.lua` (search language, 99%), `core/d
 - **Tests use Forever's real categories** (`tests/forever_categories.lua`, made by
   `tests/tools/make_forever_categories.lua` from Blizzard's code). Before, the list was empty.
 - **Every category, type and slot reads back** (test `0.6.1: every category reads back`): all
-  139 choices of the Which items menus, written as search text, read back as the same choice and
+  137 choices of the Which items menus, written as search text, read back as the same choice and
   ask the auction house for exactly that category. Without the FB-010 fix 31 of them fail
   (all weapon slots, container types, Item Enhancement); with it none do.
 - **Weapons first, Armor second** (same test): `core/scan.lua` leaves out Blizzard's exact match
@@ -58,10 +58,13 @@ code at login); search texts written in code (only `<name>/exact`, no category n
 
 - The rewritten parts (scanning, buying, posting, Sniper) were not read again: they were written
   for Forever and Tyler tests them every build.
-- Item type names in `tests/forever_categories.lua` (Daggers, Cloth, Potion, ...) and the type lists
-  of Consumables, Trade Goods, Ammo, Recipes and Miscellaneous were written by hand. The optional
-  steps on the 0.6.1 test page print the game's real names; compare and run the script again
-  with corrections.
+- Item type names in `tests/forever_categories.lua` (Daggers, Cloth, Potions, ...) and the type
+  lists of Consumables, Trade Goods, Ammo, Recipes and Miscellaneous are written by hand in the
+  script. On 2026-10-11 the game printed its real names for Tyler (0.6.1 build 2 test page) and
+  several first guesses were wrong (Consumables are plural and include Draughts and Devices; Trade
+  Goods has Cooking, not Meat; Recipes has no Fishing; Miscellaneous has Pet; Fishing Pole is
+  singular). They were corrected and the data made again: it now matches the printout line for
+  line, 137 choices. Not printed: the two types under Item Enhancements.
 
 ## Questions for Tyler
 

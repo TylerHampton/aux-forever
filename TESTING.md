@@ -10,6 +10,12 @@ Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to
 
 ## Current build: 0.6.1 build 2 (weapon slots in Search, audit fixes)
 
+Tested by Tyler on 2026-10-11 (test page `0-6-1-build-2`, screenshots): steps 1 to 5 pass
+(daggers, staves, cloth chests and bows only, In words "Daggers (weapons, one-handed)."). Step 6:
+autocompletion works ("linen" completed to "linen bag/exact"); own auctions not checked, he had
+none up. Tyler found step 6 confusing (two checks in one, the second needing auctions). Optional
+steps 7 and 8 done: the game's names, now in `tests/forever_categories.lua`.
+
 0.6.1 build 1 was the same weapon slot fix under the name 0.6.0.3. `/reload` is enough (no new
 files). Steps, in the New theme:
 
@@ -50,5 +56,8 @@ release before, and say which.
 ## For agents
 
 Add the in-game checks for each change to "Current build" above (and to the build's test page, if
-one exists). The pre-release check stays at six steps (Tyler's limit); do not move build steps
-into it. Older detailed checklists: `docs/testing-history.md`.
+one exists). One thing per step. If a step needs something the tester may not have (auctions
+up, a second character, a rare item), say how to set it up or leave the step out (0.6.1 build 2,
+step 6: two checks in one, the second needing auctions; Tyler found it confusing). The
+pre-release check stays at six steps (Tyler's limit); do not move build steps into it. Older
+detailed checklists: `docs/testing-history.md`.

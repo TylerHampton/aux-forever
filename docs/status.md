@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-11, Mountain Time (0.6.1 build 2 waiting for Tyler's test).
+Last updated 2026-10-11, Mountain Time (0.6.1 build 2 tested, waiting for Tyler's go to release).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -11,7 +11,9 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 ## Start here (next session)
 
 **Where things stand:** 0.6, 0.6.0.1 and 0.6.0.2 are released and on `main`. **0.6.1 build 2**
-is on branch `claude/exciting-brown-a9k99n`, waiting for Tyler's test (no PR yet). Tyler named the
+is on branch `claude/exciting-brown-a9k99n`, tested by Tyler on 2026-10-11 (passes, see below), not
+released, no PR yet. **Next:** when Tyler says 0.6.1 is ready, date the changelog and release as in
+"How a release goes" below. Tyler named the
 version 0.6.1 on 2026-10-11 ("these changes justify .6.1"); build 1 was the same work under the name
 0.6.0.3. The name 0.6.1 was used once before for what became 0.6.0.1 (test page id `0-6-1-build-1`),
 so this version's builds count on from 2.
@@ -26,7 +28,7 @@ so this version's builds count on from 2.
   under any category. Test `0.6.1: slots under any category` (fails without the fix).
 - **Classic code audit** (2026-10-11, Tyler asked after FB-010): `docs/audit-classic-code.md`.
   The tests now use Forever's real category tree (`tests/forever_categories.lua`, made from
-  Blizzard's code by `tests/tools/make_forever_categories.lua`), and a test sends all 139 menu
+  Blizzard's code by `tests/tools/make_forever_categories.lua`), and a test sends all 137 menu
   choices through the search text and back. Tyler's answers: level cap 60 (A3 closed), Forever
   will have many items Classic did not (A4), "make all the common sense changes you want".
 - **0.6.1 build 2** (2026-10-11): the audit's fixes. A2: Filter Builder In words names the slot
@@ -39,9 +41,14 @@ so this version's builds count on from 2.
   list`, each checked to fail without its change. The harness's `C_Item.GetItemQualityColor` now
   returns a color code as the game does. Zip `auxForever-0.6.1-build2.zip`, `/reload` is enough.
   Test page build id `0-6-1-build-2` (6 steps plus 2 optional ones that print the game's category
-  names, the same as `TESTING.md`). **Next:** read the results; compare any printed names with
-  `tests/forever_categories.lua` and fix the hand-written names in the script; if the steps pass
-  and Tyler says ready, date the changelog and release as in "How a release goes" below.
+  names, the same as `TESTING.md`).
+- **Build 2 in game** (Tyler, 2026-10-11, `builds/0-6-1-build-2/results`, screenshots only): weapon
+  slots, staves, cloth chests, bows typed in the search bar and In words all pass. Autocompletion
+  works ("linen" to "linen bag/exact"; an item the login walk already knew, so the new-item path is
+  covered by the automated test only). Own auctions not checked (none up). Step 6 was confusing
+  (two checks in one): rule added to `TESTING.md`, For agents. The two optional `/run` commands
+  printed the game's category names; several hand-written names were wrong and are corrected
+  (`docs/audit-classic-code.md`, Not covered); the test data now matches the game, 137 choices.
 
 - **Released 0.6.0.2** on 2026-10-10 (PR #21, `main` 1bf97bd): the Post tab reads fresh listings
   on every pick (no more Full scan listings), one row per price for items sold by quantity, and
@@ -153,7 +160,7 @@ so this version's builds count on from 2.
 - **How Tyler tests:** one test page, https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ
   (`index.html` with a `BUILD` id and `AREAS` steps; he marks Pass/Fail with notes and
   screenshots; read with ArtifactData, collection `builds/<build id>/results`, and download each
-  screenshot with Artifact read, `path` = the asset id). Last used: `0-6-1-build-2` (waiting). He
+  screenshot with Artifact read, `path` = the asset id). Last used: `0-6-1-build-2` (passed). He
   often uploads screenshots without marking a status: read the screenshots. Zips:
   `auxForever-<version>-build<n>.zip`, sent with the file tool; say whether `/reload` is enough.
 - **Mockups:** the Post panel mockup (options A, B, C, A chosen) is

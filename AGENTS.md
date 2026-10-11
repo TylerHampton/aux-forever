@@ -104,7 +104,8 @@ for f in $(find . -name '*.lua'); do luac5.1 -p "$f"; done   # syntax check
   One-Handed, Daggers and so on, with the filters each one sends), made from Blizzard's code by
   `tests/tools/make_forever_categories.lua` (how to run it is at its top). After a Blizzard patch
   that changes the auction house categories, run it again. Item type names in it (Daggers, Cloth)
-  are written by hand and not checked against the game.
+  are written by hand in the script, copied from what the game printed (2026-10-11); the two
+  `/run` commands in `TESTING.md` (0.6.1 build 2) print them again if they need checking.
 - Harness limits: `GetChecked`, `HasFocus` and `IsMouseOver` always return false; `SetShown` does
   nothing; `Get*` methods return fresh stub frames; `SetText` does not fire `OnTextChanged`, so call
   an edit box's `change(self, true)` yourself. Reach a module's internals in a test with
