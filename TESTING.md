@@ -8,7 +8,12 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.6.1 build 2 (weapon slots in Search, audit fixes)
+## Current build: none (0.6.1 released 2026-10-11)
+
+The last build, 0.6.1 build 2 (weapon slots in Search, audit fixes), was tested in game and
+released. The next build starts its steps here. Build 2's steps and results, kept for reference:
+
+### 0.6.1 build 2
 
 Tested by Tyler on 2026-10-11 (test page `0-6-1-build-2`, screenshots): steps 1 to 5 pass
 (daggers, staves, cloth chests and bows only, In words "Daggers (weapons, one-handed)."). Step 6:
