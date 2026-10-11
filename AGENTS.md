@@ -100,6 +100,11 @@ for f in $(find . -name '*.lua'); do luac5.1 -p "$f"; done   # syntax check
   result there.
 - Add a test for each bug fixed and each feature. Check that it fails without the change
   (break the code on purpose, run, restore).
+- The harness uses Forever's real auction house categories (`tests/forever_categories.lua`: Weapons,
+  One-Handed, Daggers and so on, with the filters each one sends), made from Blizzard's code by
+  `tests/tools/make_forever_categories.lua` (how to run it is at its top). After a Blizzard patch
+  that changes the auction house categories, run it again. Item type names in it (Daggers, Cloth)
+  are written by hand and not checked against the game.
 - Harness limits: `GetChecked`, `HasFocus` and `IsMouseOver` always return false; `SetShown` does
   nothing; `Get*` methods return fresh stub frames; `SetText` does not fire `OnTextChanged`, so call
   an edit box's `change(self, true)` yourself. Reach a module's internals in a test with

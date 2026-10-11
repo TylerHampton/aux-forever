@@ -58,7 +58,9 @@ G.Enum = setmetatable({}, {__index=function(t,k) local e = setmetatable({}, {__i
 for _, n in ipairs{'C_Item','C_Container','C_CurrencyInfo','C_Sound','C_AddOns','C_MerchantFrame','C_PlayerInfo','TooltipDataProcessor','ItemLocation','ChatFrameUtil'} do G[n] = api() end
 G.C_Container.GetContainerNumSlots = function() return 0 end
 G.ITEM_QUALITY_COLORS = setmetatable({}, {__index=function() return {r=1,g=1,b=1} end})
-G.AuctionCategories = {}
+-- Forever's real category tree (Weapons, One-Handed, Daggers, ...), made from Blizzard's code by
+-- tests/tools/make_forever_categories.lua. An empty list here hid FB-010 (slots under weapons).
+G.AuctionCategories = dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'forever_categories.lua')
 G.GetRealmName = function() return 'R' end; G.UnitName = function() return 'P' end; G.UnitFactionGroup = function() return 'Horde' end; G.UnitGUID = function() return 'g' end; G.UnitLevel = function() return 60 end
 G.GetMoney = function() return 100000 end; G.GetItemInfo = function() end
 local clock = 0; G.GetTime = function() return clock end; G.time = os.time; G.date = os.date
@@ -3216,35 +3218,48 @@ try('0.6.0.3: slots under any category', function()
   local require = loadstring("select(2, ...) 'aux.test.fb010'; return require")('auxForever', addon)
   local filter_util = require 'aux.util.filter'
   local scan = loadstring("select(2, ...) 'aux.core.scan'; return _M")('auxForever', addon)
-  local own = AuctionCategories
-  local function leaf(name, filter) return {name = name, filters = {filter}} end
-  -- the shape of Blizzard's Camelot/Blizzard_AuctionData.lua (branch forever of Gethe/wow-ui-source)
-  AuctionCategories = {
-    {name = 'Weapons', subCategories = {
-      {name = 'One-Handed', subCategories = {leaf('One-Handed Axes', 'axe1h'), leaf('Daggers', 'dagger')}},
-      {name = 'Two-Handed', subCategories = {leaf('Staves', 'staff')}},
-    }},
-    {name = 'Armor', subCategories = {
-      {name = 'Cloth', subCategories = {leaf('Head', 'cloth head'), leaf('Chest', 'cloth chest')}},
-    }},
-    {name = 'Consumables', subCategories = {
-      {name = 'Item Enhancement', subCategories = {leaf('Item Enhancement (Temporary)', 'temp')}},
-    }},
-  }
   local query = filter_util.query('weapons/one-handed/daggers')
-  check('fb010: daggers is the slot', query and query.blizzard_query.class == 1 and query.blizzard_query.subclass == 1 and query.blizzard_query.slot == 2)
-  check('fb010: not a tooltip text filter', query and query.full_reason == nil and #filter_util.parse_filter_string('weapons/one-handed/daggers').post == 0)
+  check('fb010: daggers is the slot', query and query.blizzard_query.class == 1 and query.blizzard_query.subclass == 1 and query.blizzard_query.slot == 4)
+  check('fb010: not a tooltip text filter', query and #filter_util.parse_filter_string('weapons/one-handed/daggers').post == 0)
   local class_filters = query and scan.browse_query(query.blizzard_query).itemClassFilters
-  check('fb010: the auction house is asked for daggers only', class_filters and class_filters[1] == 'dagger' and #class_filters == 1)
-  query = filter_util.query('weapons/two-handed/staves')
-  check('fb010: two-handed works too', query and query.blizzard_query.slot == 1)
-  query = filter_util.query('consumables/item enhancement/item enhancement (temporary)')
-  check('fb010: any category with a third level', query and query.blizzard_query.class == 3 and query.blizzard_query.slot == 1)
+  check('fb010: the auction house is asked for daggers only', class_filters and #class_filters == 1 and class_filters[1].classID == 2 and class_filters[1].subClassID == 15)
   query = filter_util.query('armor/cloth/chest')
-  check('fb010: armor slots still work', query and query.blizzard_query.class == 2 and query.blizzard_query.slot == 2)
+  check('fb010: armor slots still work', query and query.blizzard_query.class == 2 and query.blizzard_query.subclass == 4 and query.blizzard_query.slot == 3)
   query = filter_util.query('daggers')
   check('fb010: a slot name alone is still a name search', query and query.blizzard_query.name == 'daggers' and query.blizzard_query.slot == nil)
-  AuctionCategories = own
+end)
+
+-- Every category, type and slot of Forever's auction house, as the Which items menus write it into
+-- the search bar, must read back as the same choice and ask the auction house for exactly that
+-- category. Uses the real tree (tests/forever_categories.lua).
+try('0.6.0.3: every category reads back', function()
+  local require = loadstring("select(2, ...) 'aux.test.categories'; return require")('auxForever', addon)
+  local filter_util = require 'aux.util.filter'
+  local scan = loadstring("select(2, ...) 'aux.core.scan'; return _M")('auxForever', addon)
+  local bad, count = {}, 0
+  local function try_path(category, text, class, subclass, slot)
+    count = count + 1
+    local query = filter_util.query(text)
+    local q = query and query.blizzard_query
+    local ok = q and q.class == class and q.subclass == subclass and q.slot == slot and q.name == nil
+      and #filter_util.parse_filter_string(text).post == 0
+      and scan.browse_query(q).itemClassFilters == (category.filters or {})
+    if not ok then tinsert(bad, text) end
+  end
+  for c, category in ipairs(AuctionCategories) do
+    local c_text = strlower(category.name)
+    try_path(category, c_text, c)
+    for s, subcategory in ipairs(category.subCategories or {}) do
+      local s_text = c_text .. '/' .. strlower(subcategory.name)
+      try_path(subcategory, s_text, c, s)
+      for t, slot in ipairs(subcategory.subCategories or {}) do
+        try_path(slot, s_text .. '/' .. strlower(slot.name), c, s, t)
+      end
+    end
+  end
+  for _, text in ipairs(bad) do print('  does not read back: ' .. text) end
+  check('categories: the tree is loaded', count > 100)
+  check('categories: every category, type and slot reads back', #bad == 0)
 end)
 
 print('done, errors: ' .. errors)
