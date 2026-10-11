@@ -11,9 +11,8 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand:** 0.6 and 0.6.0.1 are released and on `main`. **0.6.0.2 build 4** is on
-branch `claude/kind-rubin-olf9zf`, tested on 2026-10-10 (trade goods pass; gear as before, see
-Build 4 in game); waiting for Tyler's go to release; then the release (see Release plan). No pull request yet.
+**Where things stand:** 0.6 and 0.6.0.1 are released and on `main`. **0.6.0.2** (build 4) is being
+released on 2026-10-10 from branch `claude/kind-rubin-olf9zf` (Tyler said go); then the release (see Release plan). No pull request yet.
 
 **Release plan (Tyler, 2026-10-09, 10 pm Mountain Time):** hold this fix; do not release it
 tonight. Two files already went to CurseForge that evening and he does not want a third within
@@ -85,7 +84,7 @@ the date corrections across the docs. A session started from `main` does not hav
   the first key with listings (`on_page_scanned`, unless `/aux post full scan` is on), so gear is
   priced against whichever version comes first, not the player's own. Not a regression of 0.6.0.2.
   Proposed to Tyler: release 0.6.0.2 as it is, then fix gear versions on their own (see
-  `docs/roadmap.md`, "Gear versions on the Post tab"). Waiting for his answer.
+  `docs/roadmap.md`, "Gear versions on the Post tab"). Tyler agreed and said release.
   Left alone: a re-pick may wait 1 second when the client does not announce results it already
   holds (`request`, the `cached` fallback); unconfirmed in game.
 

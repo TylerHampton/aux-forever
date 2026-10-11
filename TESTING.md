@@ -8,15 +8,10 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.6.0.2 build 4 (faster Post tab, gear fixed)
+## Current build: none (0.6.0.2 released 2026-10-10)
 
-Install the zip, then `/reload` (no full restart needed). Build 3 made items load with one request
-but showed no listings for gear with random endings (Merc Sword); build 4 keeps the one request
-for everything except gear, which loads as in build 2.
-
-- [ ] 1. Post tab: click Merc Sword (or other gear with random endings): its listings show again.
-- [ ] 2. Click a few trade goods and potions: each loads quickly, as in build 3.
-- [ ] 3. Post one item: after "Posted", the table reads again, no BugSack error.
+The last build, 0.6.0.2 build 4 (fresh Post tab listings, one row per price, one request for
+items that are not gear), was tested in game and released. The next build starts its steps here.
 
 ## Before every release: the 5-minute check
 
