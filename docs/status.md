@@ -12,8 +12,8 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 ## Start here (next session)
 
 **Where things stand:** 0.6 and 0.6.0.1 are released and on `main`. **0.6.0.2 build 4** is on
-branch `claude/kind-rubin-olf9zf`, waiting for Tyler's test in game (builds 1 and 2 passed on
-2026-10-09, build 3 failed on gear on 2026-10-10); then the release (see Release plan). No pull request yet.
+branch `claude/kind-rubin-olf9zf`, tested on 2026-10-10 (trade goods pass; gear as before, see
+Build 4 in game); waiting for Tyler's go to release; then the release (see Release plan). No pull request yet.
 
 **Release plan (Tyler, 2026-10-09, 10 pm Mountain Time):** hold this fix; do not release it
 tonight. Two files already went to CurseForge that evening and he does not want a third within
@@ -74,8 +74,18 @@ the date corrections across the docs. A session started from `main` does not hav
   before this version too, left for later.
 - **Build 4** (2026-10-10): the one request only for items that are not gear
   (`GetItemKeyInfo(key).isEquipment` false); gear keeps the name search as in build 2. Test
-  extended (gear keeps the name search; fails without the check). Not yet tested in game; test
-  page build id `0-6-0-2-build-4`.
+  extended (gear keeps the name search; fails without the check). Test page build id
+  `0-6-0-2-build-4`.
+- **Build 4 in game** (Tyler, 2026-10-10, `builds/0-6-0-2-build-4/results`): trade goods pass;
+  posting (Light Feather, his new auction green) as expected. Merc Sword marked fail with "Shouldn't
+  this be showing all of the types of Merc swords in the post search?": the Post tab showed one row
+  (2 at 11s, 12h) while the Search tab showed 55 auctions across Eagle, Intellect, Agility, Nature
+  Protection, Wolf and Strength (11s to 60s). Build 4 behaves like build 2 and 0.6.0.1 here; the
+  cause is older: the name search lists one item key per version, and `refresh_entries` stops after
+  the first key with listings (`on_page_scanned`, unless `/aux post full scan` is on), so gear is
+  priced against whichever version comes first, not the player's own. Not a regression of 0.6.0.2.
+  Proposed to Tyler: release 0.6.0.2 as it is, then fix gear versions on their own (see
+  `docs/roadmap.md`, "Gear versions on the Post tab"). Waiting for his answer.
   Left alone: a re-pick may wait 1 second when the client does not announce results it already
   holds (`request`, the `cached` fallback); unconfirmed in game.
 
