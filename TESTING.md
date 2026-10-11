@@ -8,9 +8,10 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.6.0.3 build 1 (weapon slots in Search)
+## Current build: 0.6.1 build 2 (weapon slots in Search, audit fixes)
 
-`/reload` is enough (no new files). Steps, in the New theme:
+0.6.1 build 1 was the same weapon slot fix under the name 0.6.0.3. `/reload` is enough (no new
+files). Steps, in the New theme:
 
 - [ ] 1. Search tab, "Which items": Category Weapons, Type One-Handed, Slot Daggers, then Search.
       The search bar shows `weapons/one-handed/daggers`, the search is short, and only daggers
@@ -19,12 +20,15 @@ Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to
 - [ ] 3. Armor, Cloth, Chest: only cloth chest pieces (this worked before; check it still does).
 - [ ] 4. Type `weapons/ranged/bows` in the search bar and press Enter: only bows, and the menus
       show Weapons, Ranged, Bows.
+- [ ] 5. Filter Builder tab, after step 1: "In words" reads "Daggers (weapons, one-handed)".
+- [ ] 6. After a search, type the first letters of an item from the results in the search bar:
+      its name is offered. Your own auctions still show as yours (green) in the Auctions tab.
 
 Optional (checks the category names the automated tests use; `docs/audit-classic-code.md`), with
 the auction house open, paste each line into chat and take a screenshot of what it prints:
 
-- [ ] 5. `/run for i,c in ipairs(AuctionCategories) do local t={} for _,s in ipairs(c.subCategories or {}) do t[#t+1]=s.name end print(i,c.name,table.concat(t,", ")) end`
-- [ ] 6. `/run for _,s in ipairs(AuctionCategories[1].subCategories) do local t={} for _,x in ipairs(s.subCategories or {}) do t[#t+1]=x.name end print(s.name,table.concat(t,", ")) end`
+- [ ] 7. `/run for i,c in ipairs(AuctionCategories) do local t={} for _,s in ipairs(c.subCategories or {}) do t[#t+1]=s.name end print(i,c.name,table.concat(t,", ")) end`
+- [ ] 8. `/run for _,s in ipairs(AuctionCategories[1].subCategories) do local t={} for _,x in ipairs(s.subCategories or {}) do t[#t+1]=x.name end print(s.name,table.concat(t,", ")) end`
 
 ## Before every release: the 5-minute check
 

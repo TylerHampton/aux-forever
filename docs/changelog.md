@@ -6,16 +6,28 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
-## 0.6.0.3 (not released yet)
+## 0.6.1 (not released yet)
+
+### Search
+
+- Picking a slot under Weapons, such as Weapons, One-Handed, Daggers, now searches only daggers.
+  Before, aux understood a slot only under Armor (as in Classic, where weapons had no third
+  level), so it searched every one-handed weapon and then looked for the word "daggers" in each
+  tooltip: a long search that found little or nothing. The same applies to every slot under
+  Two-Handed, Ranged and Miscellaneous weapons, and to Containers and Item Enhancement under
+  Consumables. Typing the same text in the search bar works the same way (reported by GregoryWW).
+- Filter Builder, "In words": a slot is named first, so Weapons, One-Handed, Daggers reads
+  "Daggers (weapons, one-handed)" instead of "One-handed (weapons, daggers)".
+- Items Forever adds that Classic did not have now join aux's item list as soon as aux sees them
+  at the auction house, so they autocomplete in the search bar and `/aux price <name>` finds them.
+  Before, the list only learned items up to Classic's item numbers when you logged in.
 
 ### Fixes
 
-- Search: picking a slot under Weapons, such as Weapons, One-Handed, Daggers, now searches only
-  daggers. Before, aux understood a slot only under Armor (as in Classic, where weapons had no
-  third level), so it searched every one-handed weapon and then looked for the word "daggers" in
-  each tooltip: a long search that found little or nothing. The same applies to every slot under
-  Two-Handed, Ranged and Miscellaneous weapons, and to Containers and Item Enhancement under
-  Consumables. Typing the same text in the search bar works the same way (reported by GregoryWW).
+- aux now forgets a character of yours that has not logged in for 30 days, as it was meant to.
+  It dated each login by how long the computer had been running instead of by the date, so a
+  character you deleted, renamed or moved could keep counting as yours, with its name's auctions
+  shown as your own. Characters you still play are kept; nothing to do after updating.
 
 `/reload` is enough to update.
 

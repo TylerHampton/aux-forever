@@ -116,7 +116,7 @@ For whoever fixes or builds from it:
 | [FB-007](#fb-007-crafting-cost-in-the-profession-window-anywhere-in-the-world) | 2026-10-07 | Garsterson | request | Recipe search | n/a | Crafting cost in the profession window, anywhere in the world | built 0.5 5a935e1 |
 | [FB-008](#fb-008-chat-command-settings-should-also-be-in-the-settings-menu) | 2026-10-08 | CurseForge player (name not recorded yet) | request | Settings | n/a | Chat command settings should also be in the Settings menu | built 0.6 (released 2026-10-09) |
 | [FB-009](#fb-009-post-cloth-in-several-stacks-of-a-chosen-size) | 2026-10-09 | Maggew | request | Post | n/a | Post cloth in several stacks of a chosen size, as in Classic | wont-fix (Forever has no stacks; Tyler: not the addon's job) |
-| [FB-010](#fb-010-picking-a-weapon-slot-such-as-daggers-searches-every-weapon-of-that-kind) | 2026-10-11 | GregoryWW | bug | Search | S2 | Picking a weapon slot such as Daggers searches every weapon of that kind | in-progress claude/exciting-brown-a9k99n (0.6.0.3) |
+| [FB-010](#fb-010-picking-a-weapon-slot-such-as-daggers-searches-every-weapon-of-that-kind) | 2026-10-11 | GregoryWW | bug | Search | S2 | Picking a weapon slot such as Daggers searches every weapon of that kind | in-progress claude/exciting-brown-a9k99n (0.6.1) |
 
 ## Players
 
@@ -665,8 +665,8 @@ Ask Tyler: none.
 - Type: bug
 - Area: Search
 - Severity: S2 (wrong results and a slow search; a name search still works)
-- Status: in-progress claude/exciting-brown-a9k99n (0.6.0.3)
-- Proposed: next patch (0.6.0.3)
+- Status: in-progress claude/exciting-brown-a9k99n (0.6.1)
+- Proposed: next patch (0.6.0.3); Tyler named the version 0.6.1 (2026-10-11), with the audit's fixes
 
 Said:
 > Slot selection for weapons (daggers f.e.) doesnt work, it cause full search instead.
@@ -678,7 +678,7 @@ Tyler's notes: did not understand the report at first and asked what it meant; a
 logged and fixed (2026-10-11).
 
 Recorder's notes:
-- Confirmed in the code and with a test (`0.6.0.3: slots under any category`, fails without the
+- Confirmed in the code and with a test (`0.6.1: slots under any category`, fails without the
   fix). On Forever the auction house has three levels under Weapons: Weapons, One-Handed, Daggers
   (Blizzard's `Camelot/Blizzard_AuctionData.lua`, branch `forever` of `Gethe/wow-ui-source`,
   build 70338; Containers, Consumables and Armor's Relic and Miscellaneous have three levels too).

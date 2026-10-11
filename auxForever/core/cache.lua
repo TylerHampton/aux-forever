@@ -25,14 +25,23 @@ do
 	function M.is_player(name)
 		return not not characters[name]
 	end
-	function aux.event.AUX_LOADED()
+	-- your characters on this realm, each with when it last logged in; one not seen for 30 days is
+	-- forgotten. auxForever: dated with time() (the date). aux used GetTime(), the computer's uptime,
+	-- so the 30 days did not work; such an old stamp (far below any date) counts as seen today.
+	function M.update_characters()
 		characters = aux.realm_data.characters
+		local now = time()
 		for k, v in pairs(characters) do
-			if GetTime() > v + 60 * 60 * 24 * 30 then
+			if v < 1000000000 then
+				characters[k] = now
+			elseif now > v + 60 * 60 * 24 * 30 then
 				characters[k] = nil
 			end
 		end
-		characters[UnitName'player'] = GetTime()
+		characters[UnitName'player'] = now
+	end
+	function aux.event.AUX_LOADED()
+		update_characters()
 
         aux.event_listener('TRADE_SHOW', function()
             trading = true
@@ -130,8 +139,20 @@ function process_item(item_id)
     end
 
     local itemstring = 'item:' .. item_id
-    local name, link, quality, level, requirement, class, subclass, max_stack, slot, texture, sell_price = GetItemInfo(itemstring)
+    local name, quality = save_item(item_id)
+    if name then
+        local tooltip = tooltip('link', itemstring)
+        if auctionable(tooltip, quality) then
+            tinsert(aux.account_data.auctionable_items, strlower(name))
+        end
+        return true
+    end
+end
 
+-- writes an item the game knows into aux's item list; returns its name and quality, or nil when
+-- the game has not loaded the item yet
+function save_item(item_id)
+    local name, link, quality, level, requirement, class, subclass, max_stack, slot, texture, sell_price = GetItemInfo('item:' .. item_id)
     if name then
         aux.account_data.item_ids[strlower(name)] = item_id
         aux.account_data.items[item_id] = persistence.write(items_schema, {
@@ -147,11 +168,29 @@ function process_item(item_id)
             texture = texture,
             sell_price = sell_price,
         })
-        local tooltip = tooltip('link', itemstring)
-        if auctionable(tooltip, quality) then
-            tinsert(aux.account_data.auctionable_items, strlower(name))
-        end
-        return true
+        return name, quality
+    end
+end
+
+-- auxForever: an item seen at the auction house joins the item list at once (names for
+-- autocompletion, exact searches and /aux price). The walk at login only goes up to item number
+-- MAX_ITEM_ID, and Forever adds many items Classic did not have (Tyler, 2026-10-11), whose
+-- numbers are likely higher. An item listed at the auction house can be auctioned, so no tooltip
+-- is read. Costs one table lookup for an item already known.
+function M.learn_item(item_id)
+    if not item_id or aux.account_data.items[item_id] then
+        return
+    end
+    local name = GetItemInfo('item:' .. item_id)
+    if not name then
+        return
+    end
+    -- another item of the same name is already offered for autocompletion
+    local listed = aux.account_data.item_ids[strlower(name)]
+    save_item(item_id)
+    aux.account_data.unused_item_ids[item_id] = nil
+    if not listed then
+        tinsert(aux.account_data.auctionable_items, strlower(name))
     end
 end
 
