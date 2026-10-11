@@ -20,6 +20,12 @@ Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to
 - [ ] 4. Type `weapons/ranged/bows` in the search bar and press Enter: only bows, and the menus
       show Weapons, Ranged, Bows.
 
+Optional (checks the category names the automated tests use; `docs/audit-classic-code.md`), with
+the auction house open, paste each line into chat and take a screenshot of what it prints:
+
+- [ ] 5. `/run for i,c in ipairs(AuctionCategories) do local t={} for _,s in ipairs(c.subCategories or {}) do t[#t+1]=s.name end print(i,c.name,table.concat(t,", ")) end`
+- [ ] 6. `/run for _,s in ipairs(AuctionCategories[1].subCategories) do local t={} for _,x in ipairs(s.subCategories or {}) do t[#t+1]=x.name end print(s.name,table.concat(t,", ")) end`
+
 ## Before every release: the 5-minute check
 
 Tyler (2026-10-07): the old 15-minute quick run was too long. This is one walk through the

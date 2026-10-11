@@ -305,6 +305,8 @@ as interactive HTML pages; an HTML file Tyler can open in a browser works the sa
   0.6.0.2); a bigger update within the same version raises the third (0.6.1); new features are
   the next minor version (0.7).
 - `docs/forever-auction-house.md`: how Forever's auction house works, with sources.
+- `docs/audit-classic-code.md`: the 2026-10-11 pass over code carried over from Classic aux (FB-010
+  follow-up): what was checked, findings, open questions.
 - `TESTING.md`: the current build's in-game checklist and the 5-minute check before every release
   (six steps at most, Tyler's limit).
   `docs/testing-history.md`: the older detailed checklists, by section number.

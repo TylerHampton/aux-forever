@@ -3259,6 +3259,9 @@ try('0.6.0.3: every category reads back', function()
   end
   for _, text in ipairs(bad) do print('  does not read back: ' .. text) end
   check('categories: the tree is loaded', count > 100)
+  -- core/scan.lua leaves out Blizzard's exact match for categories 1 and 2 (weapons and armor have
+  -- random endings, so an exact name would miss them); that needs them first and second
+  check('categories: Weapons is 1 and Armor is 2', AuctionCategories[1].filters[1].classID == 2 and AuctionCategories[2].filters[1].classID == 4)
   check('categories: every category, type and slot reads back', #bad == 0)
 end)
 

@@ -22,8 +22,16 @@ is on branch `claude/exciting-brown-a9k99n`, waiting for Tyler's test (no PR yet
   tooltip text filter and the search read every one-handed weapon. Now the slot is read under any
   category. Test `0.6.0.3: slots under any category` (fails without the fix). Zip
   `auxForever-0.6.0.3-build1.zip`, `/reload` is enough. Test page build id `0-6-0-3-build-1`
-  (4 steps, the same as `TESTING.md`). **Next:** read the results; if they pass and Tyler says
-  ready, date the changelog and release as in "How a release goes" below.
+  (4 steps plus 2 optional ones that print the game's category names, the same as `TESTING.md`).
+  **Next:** read the results; if they pass and Tyler says ready, date the changelog and release
+  as in "How a release goes" below.
+- **Classic code audit** (2026-10-11, Tyler asked after FB-010): `docs/audit-classic-code.md`.
+  The tests now use Forever's real category tree (`tests/forever_categories.lua`, made from
+  Blizzard's code by `tests/tools/make_forever_categories.lua`), and a test sends all 139 menu
+  choices through the search text and back. Findings A2 to A9: nothing else broken was found
+  for certain; three depend on answers from Tyler (level cap, new items, In words wording). No
+  player-visible change was made beyond FB-010. If the optional test page steps come back, compare
+  the printed names with `tests/forever_categories.lua` and fix the hand-written names in the script.
 
 - **Released 0.6.0.2** on 2026-10-10 (PR #21, `main` 1bf97bd): the Post tab reads fresh listings
   on every pick (no more Full scan listings), one row per price for items sold by quantity, and
@@ -132,6 +140,11 @@ is on branch `claude/exciting-brown-a9k99n`, waiting for Tyler's test (no PR yet
      suggested.
   6. A seller name showed as "Áeçèéêëì Áæçèéìëì" on Fine Thread (0.6.0.1 test screenshot):
      either a real name in accented letters or a text problem; unknown, ask for another example.
+  7. Forever's level cap: aux treats 60 as the top level in searches (audit A3).
+  8. Did Forever add items Classic did not have? aux's item list stops at item number 30000
+     (audit A4).
+  9. Filter Builder "In words" for weapon slots: change "one-handed (weapons, daggers)" to
+     "daggers (weapons, one-handed)"? (audit A2)
 - **How Tyler tests:** one test page, https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ
   (`index.html` with a `BUILD` id and `AREAS` steps; he marks Pass/Fail with notes and
   screenshots; read with ArtifactData, collection `builds/<build id>/results`, and download each
