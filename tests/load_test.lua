@@ -57,8 +57,11 @@ G.C_AuctionHouse = api{GetTimeLeftBandInfo=function(b) return 0, ({1800,7200,432
 G.Enum = setmetatable({}, {__index=function(t,k) local e = setmetatable({}, {__index=function() return 1 end}); rawset(t,k,e); return e end})
 for _, n in ipairs{'C_Item','C_Container','C_CurrencyInfo','C_Sound','C_AddOns','C_MerchantFrame','C_PlayerInfo','TooltipDataProcessor','ItemLocation','ChatFrameUtil'} do G[n] = api() end
 G.C_Container.GetContainerNumSlots = function() return 0 end
+G.C_Item.GetItemQualityColor = function() return 1, 1, 1, 'ffffffff' end -- r, g, b and the color code, as in the game
 G.ITEM_QUALITY_COLORS = setmetatable({}, {__index=function() return {r=1,g=1,b=1} end})
-G.AuctionCategories = {}
+-- Forever's real category tree (Weapons, One-Handed, Daggers, ...), made from Blizzard's code by
+-- tests/tools/make_forever_categories.lua. An empty list here hid FB-010 (slots under weapons).
+G.AuctionCategories = dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'forever_categories.lua')
 G.GetRealmName = function() return 'R' end; G.UnitName = function() return 'P' end; G.UnitFactionGroup = function() return 'Horde' end; G.UnitGUID = function() return 'g' end; G.UnitLevel = function() return 60 end
 G.GetMoney = function() return 100000 end; G.GetItemInfo = function() end
 local clock = 0; G.GetTime = function() return clock end; G.time = os.time; G.date = os.date
@@ -3207,6 +3210,119 @@ try('0.6: settings', function()
   check('settings: the chat command shows it at once too', a.account_data.post_bid == 'stack' and post_env.frame.bid_listing.__shown == true)
   SlashCmdList.AUX('post bid off')
   check('settings: and hides it', a.account_data.post_bid == nil and post_env.frame.bid_listing.__shown == false)
+end)
+
+-- FB-010 (reported by GregoryWW): Forever's auction house has a third level under weapons
+-- (Weapons, One-Handed, Daggers), not only under armor. aux read a slot only under Armor, so
+-- "daggers" became a tooltip text filter and the search went through every one-handed weapon.
+try('0.6.1: slots under any category', function()
+  local require = loadstring("select(2, ...) 'aux.test.fb010'; return require")('auxForever', addon)
+  local filter_util = require 'aux.util.filter'
+  local scan = loadstring("select(2, ...) 'aux.core.scan'; return _M")('auxForever', addon)
+  local query = filter_util.query('weapons/one-handed/daggers')
+  check('fb010: daggers is the slot', query and query.blizzard_query.class == 1 and query.blizzard_query.subclass == 1 and query.blizzard_query.slot == 4)
+  check('fb010: not a tooltip text filter', query and #filter_util.parse_filter_string('weapons/one-handed/daggers').post == 0)
+  local class_filters = query and scan.browse_query(query.blizzard_query).itemClassFilters
+  check('fb010: the auction house is asked for daggers only', class_filters and #class_filters == 1 and class_filters[1].classID == 2 and class_filters[1].subClassID == 15)
+  query = filter_util.query('armor/cloth/chest')
+  check('fb010: armor slots still work', query and query.blizzard_query.class == 2 and query.blizzard_query.subclass == 4 and query.blizzard_query.slot == 3)
+  query = filter_util.query('daggers')
+  check('fb010: a slot name alone is still a name search', query and query.blizzard_query.name == 'daggers' and query.blizzard_query.slot == nil)
+end)
+
+-- Every category, type and slot of Forever's auction house, as the Which items menus write it into
+-- the search bar, must read back as the same choice and ask the auction house for exactly that
+-- category. Uses the real tree (tests/forever_categories.lua).
+try('0.6.1: every category reads back', function()
+  local require = loadstring("select(2, ...) 'aux.test.categories'; return require")('auxForever', addon)
+  local filter_util = require 'aux.util.filter'
+  local scan = loadstring("select(2, ...) 'aux.core.scan'; return _M")('auxForever', addon)
+  local bad, count = {}, 0
+  local function try_path(category, text, class, subclass, slot)
+    count = count + 1
+    local query = filter_util.query(text)
+    local q = query and query.blizzard_query
+    local ok = q and q.class == class and q.subclass == subclass and q.slot == slot and q.name == nil
+      and #filter_util.parse_filter_string(text).post == 0
+      and scan.browse_query(q).itemClassFilters == (category.filters or {})
+    if not ok then tinsert(bad, text) end
+  end
+  for c, category in ipairs(AuctionCategories) do
+    local c_text = strlower(category.name)
+    try_path(category, c_text, c)
+    for s, subcategory in ipairs(category.subCategories or {}) do
+      local s_text = c_text .. '/' .. strlower(subcategory.name)
+      try_path(subcategory, s_text, c, s)
+      for t, slot in ipairs(subcategory.subCategories or {}) do
+        try_path(slot, s_text .. '/' .. strlower(slot.name), c, s, t)
+      end
+    end
+  end
+  for _, text in ipairs(bad) do print('  does not read back: ' .. text) end
+  check('categories: the tree is loaded', count > 100)
+  -- core/scan.lua leaves out Blizzard's exact match for categories 1 and 2 (weapons and armor have
+  -- random endings, so an exact name would miss them); that needs them first and second
+  check('categories: Weapons is 1 and Armor is 2', AuctionCategories[1].filters[1].classID == 2 and AuctionCategories[2].filters[1].classID == 4)
+  check('categories: every category, type and slot reads back', #bad == 0)
+end)
+
+-- Audit A2: the Which items menus take a slot under any category, and In words names the most
+-- specific choice first ("one-handed (weapons, daggers)" before)
+try('0.6.1: weapon slots in the Which items menus', function()
+  local s = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local function load(text) s.search_box:SetText(text); s.load_builder(); return s.blizzard_string(), s.blizzard_words() end
+  local text, words = load('weapons/one-handed/daggers')
+  check('menus: a weapon slot from the search bar fills the menus', text == 'weapons/one-handed/daggers')
+  check('in words: the slot first', words == 'Daggers (weapons, one-handed)')
+  text, words = load('armor/cloth/chest')
+  check('in words: an armor slot the same way', text == 'armor/cloth/chest' and words == 'Chest (armor, cloth)')
+  text, words = load('armor/cloth')
+  check('in words: no slot', words == 'Cloth (armor)')
+  s.clear_builder()
+end)
+
+-- Audit A8: your characters are dated with the date, not the computer's uptime, so one not seen
+-- for 30 days is forgotten; old uptime stamps count as seen today, so no alt is lost by updating
+try('0.6.1: your characters', function()
+  local require = loadstring("select(2, ...) 'aux.test.a8'; return require")('auxForever', addon)
+  local aux = require 'aux'
+  local info = loadstring("select(2, ...) 'aux.util.info'; return _M")('auxForever', addon)
+  local own = aux.realm_data.characters
+  local day = 60 * 60 * 24
+  aux.realm_data.characters = {Uptime = 5000, Recent = time() - 2 * day, Gone = time() - 31 * day}
+  info.update_characters()
+  local c = aux.realm_data.characters
+  check('characters: an old uptime stamp is kept and dated today', info.is_player('Uptime') and c.Uptime >= time() - 5)
+  check('characters: one seen 2 days ago is kept', info.is_player('Recent'))
+  check('characters: one not seen for 31 days is forgotten', not info.is_player('Gone') and c.Gone == nil)
+  check('characters: the one logged in is dated now', info.is_player(UnitName'player') and c[UnitName'player'] >= time() - 5)
+  aux.realm_data.characters = own
+  info.update_characters()
+end)
+
+-- Audit A4 (Tyler, 2026-10-11: Forever will have many items Classic did not): aux's item list is
+-- walked at login only up to item number 30000. An item seen at the auction house joins it at once.
+try('0.6.1: items seen at the auction house join the item list', function()
+  local require = loadstring("select(2, ...) 'aux.test.a4'; return require")('auxForever', addon)
+  local aux = require 'aux'
+  local info = loadstring("select(2, ...) 'aux.util.info'; return _M")('auxForever', addon)
+  local real_info = G.GetItemInfo
+  G.GetItemInfo = function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id == 212345 or id == 212346 then return 'Forever Blade', 'link', 3, 30, 25, 'Weapon', 'Daggers', 1, 'INVTYPE_WEAPON', 1, 900 end
+  end
+  local function listed() local n = 0 for _, name in ipairs(aux.account_data.auctionable_items) do if name == 'forever blade' then n = n + 1 end end return n end
+  check('item list: a new item is not known before', info.item_id('Forever Blade') == nil and listed() == 0)
+  info.browse_record({itemKey = {itemID = 212345, itemSuffix = 0}, totalQuantity = 1, minPrice = 5000})
+  check('item list: seen in an auction house list, it is known by name', info.item_id('Forever Blade') == 212345)
+  check('item list: and offered for autocompletion once', listed() == 1)
+  info.browse_record({itemKey = {itemID = 212345, itemSuffix = 0}, totalQuantity = 1, minPrice = 5000})
+  info.browse_record({itemKey = {itemID = 212346, itemSuffix = 0}, totalQuantity = 1, minPrice = 5000})
+  check('item list: seeing it again, or an item of the same name, adds no second entry', listed() == 1)
+  G.GetItemInfo = real_info
+  check('item list: its facts stay when the game has not loaded the item', info.item(212345) and info.item(212345).sell_price == 900)
+  aux.account_data.items[212345], aux.account_data.items[212346], aux.account_data.item_ids['forever blade'] = nil, nil, nil
+  for i = #aux.account_data.auctionable_items, 1, -1 do if aux.account_data.auctionable_items[i] == 'forever blade' then tremove(aux.account_data.auctionable_items, i) end end
 end)
 
 print('done, errors: ' .. errors)

@@ -333,8 +333,11 @@ function M.blizzard_words()
     end
     local kind
     local c, s, t = category(blizzard_query.class, blizzard_query.subclass, blizzard_query.slot)
-    if s then
-        kind = strlower(s.name) .. ' (' .. strlower(c.name) .. (t and ', ' .. strlower(t.name) or '') .. ')'
+    if t then
+        -- the most specific choice first: "daggers (weapons, one-handed)", "chest (armor, cloth)"
+        kind = strlower(t.name) .. ' (' .. strlower(c.name) .. ', ' .. strlower(s.name) .. ')'
+    elseif s then
+        kind = strlower(s.name) .. ' (' .. strlower(c.name) .. ')'
     elseif c then
         kind = strlower(c.name)
     end

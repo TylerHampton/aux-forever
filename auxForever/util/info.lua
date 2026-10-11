@@ -157,6 +157,7 @@ local function new_record(item_id, link, count)
     local _, suffix_id, unique_id, enchant_id = parse_link(link or '')
     local name, texture, quality, requirement, usable, item_link = item_basics(item_id, link)
     if not name then return end
+    learn_item(item_id)
     link = link or item_link
     record.item_id = item_id
     record.suffix_id = suffix_id
@@ -256,6 +257,7 @@ function M.browse_record(result)
     local item_id = key.itemID
     local name, texture, quality, requirement, usable, item_link = item_basics(item_id)
     if not name then return end
+    learn_item(item_id)
     local key_info = C_AuctionHouse.GetItemKeyInfo(key)
     local record = setmetatable({}, record_mt)
     record.fast = true

@@ -100,6 +100,12 @@ for f in $(find . -name '*.lua'); do luac5.1 -p "$f"; done   # syntax check
   result there.
 - Add a test for each bug fixed and each feature. Check that it fails without the change
   (break the code on purpose, run, restore).
+- The harness uses Forever's real auction house categories (`tests/forever_categories.lua`: Weapons,
+  One-Handed, Daggers and so on, with the filters each one sends), made from Blizzard's code by
+  `tests/tools/make_forever_categories.lua` (how to run it is at its top). After a Blizzard patch
+  that changes the auction house categories, run it again. Item type names in it (Daggers, Cloth)
+  are written by hand in the script, copied from what the game printed (2026-10-11); the two
+  `/run` commands in `TESTING.md` (0.6.1 build 2) print them again if they need checking.
 - Harness limits: `GetChecked`, `HasFocus` and `IsMouseOver` always return false; `SetShown` does
   nothing; `Get*` methods return fresh stub frames; `SetText` does not fire `OnTextChanged`, so call
   an edit box's `change(self, true)` yourself. Reach a module's internals in a test with
@@ -300,6 +306,8 @@ as interactive HTML pages; an HTML file Tyler can open in a browser works the sa
   0.6.0.2); a bigger update within the same version raises the third (0.6.1); new features are
   the next minor version (0.7).
 - `docs/forever-auction-house.md`: how Forever's auction house works, with sources.
+- `docs/audit-classic-code.md`: the 2026-10-11 pass over code carried over from Classic aux (FB-010
+  follow-up): what was checked, findings, open questions.
 - `TESTING.md`: the current build's in-game checklist and the 5-minute check before every release
   (six steps at most, Tyler's limit).
   `docs/testing-history.md`: the older detailed checklists, by section number.

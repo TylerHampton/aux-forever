@@ -245,7 +245,9 @@ do
 			for _, parser in pairs{
 				{'class', info.category_index},
 				{'subclass', function(...) return info.subcategory_index(aux.index(self.class, 2) or 0, ...) end},
-				{'slot', function(...) return info.subsubcategory_index(aux.index(self.class, 2) == 2 and 2 or 0, aux.index(self.subclass, 2) or 0, ...) end},
+				-- auxForever: Forever has a third level under weapons and other categories too
+				-- (Weapons, One-Handed, Daggers), not only under armor as in Classic (FB-010)
+				{'slot', function(...) return info.subsubcategory_index(aux.index(self.class, 2) or 0, aux.index(self.subclass, 2) or 0, ...) end},
 				{'quality', info.item_quality_index}
             } do
 				if not self[parser[1]] then

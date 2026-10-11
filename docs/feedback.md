@@ -116,6 +116,7 @@ For whoever fixes or builds from it:
 | [FB-007](#fb-007-crafting-cost-in-the-profession-window-anywhere-in-the-world) | 2026-10-07 | Garsterson | request | Recipe search | n/a | Crafting cost in the profession window, anywhere in the world | built 0.5 5a935e1 |
 | [FB-008](#fb-008-chat-command-settings-should-also-be-in-the-settings-menu) | 2026-10-08 | CurseForge player (name not recorded yet) | request | Settings | n/a | Chat command settings should also be in the Settings menu | built 0.6 (released 2026-10-09) |
 | [FB-009](#fb-009-post-cloth-in-several-stacks-of-a-chosen-size) | 2026-10-09 | Maggew | request | Post | n/a | Post cloth in several stacks of a chosen size, as in Classic | wont-fix (Forever has no stacks; Tyler: not the addon's job) |
+| [FB-010](#fb-010-picking-a-weapon-slot-such-as-daggers-searches-every-weapon-of-that-kind) | 2026-10-11 | GregoryWW | bug | Search | S2 | Picking a weapon slot such as Daggers searches every weapon of that kind | fixed 0.6.1 (tested 2026-10-11, not released) |
 
 ## Players
 
@@ -133,6 +134,7 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
 - **Maggew**: CurseForge commenter (CurseForge name; in-game name unknown). Plays with Classic
   auction house habits (FB-009). Whether they also wrote the
   CurseForge comment behind FB-008 is not known.
+- **GregoryWW**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-010.
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
   words.
@@ -650,6 +652,50 @@ Recorder's notes:
   money for the deposit" (`disabled_reason`). Not confirmed.
 
 Unknowns: the player's in-game name; which message they saw about money. Neither changes the decision.
+
+Ask Tyler: none.
+
+### FB-010: Picking a weapon slot such as Daggers searches every weapon of that kind
+
+- Received: 2026-10-11 (posted about 6 hours before Tyler's screenshot)
+- From: GregoryWW (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-11-gregoryww-curseforge.md)
+- Version: unknown (likely 0.6.0.2, the version on CurseForge)
+- Type: bug
+- Area: Search
+- Severity: S2 (wrong results and a slow search; a name search still works)
+- Status: fixed 0.6.1 (branch claude/exciting-brown-a9k99n, commit cf45949; Tyler's test passed on
+  2026-10-11: Weapons, One-Handed, Daggers lists only daggers; not released yet)
+- Proposed: next patch (0.6.0.3); Tyler named the version 0.6.1 (2026-10-11), with the audit's fixes
+
+Said:
+> Slot selection for weapons (daggers f.e.) doesnt work, it cause full search instead.
+
+Steps / setup: only what is in the quote: a weapon slot (Daggers, for example) picked in the
+search, and a search over far more than daggers.
+
+Tyler's notes: did not understand the report at first and asked what it meant; asked for it to be
+logged and fixed (2026-10-11).
+
+Recorder's notes:
+- Confirmed in the code and with a test (`0.6.1: slots under any category`, fails without the
+  fix). On Forever the auction house has three levels under Weapons: Weapons, One-Handed, Daggers
+  (Blizzard's `Camelot/Blizzard_AuctionData.lua`, branch `forever` of `Gethe/wow-ui-source`,
+  build 70338; Containers, Consumables and Armor's Relic and Miscellaneous have three levels too).
+  The Slot menu in "Which items" reads that list, so it offers Daggers, and writes
+  `weapons/one-handed/daggers` as the search text.
+- When aux read that text back, it accepted a third level only under Armor
+  (`util/filter.lua`, the `slot` parser, written for Classic, where only armor had slots). So
+  "daggers" became a tooltip text filter: the search went through every one-handed weapon and
+  then looked for the word "daggers" in each tooltip (a dagger's tooltip says "Dagger"). That is
+  the "full search" the player saw.
+- Fix: the slot is now read under any category.
+- Inference: Forever loads the Camelot list. The player picking Daggers under a weapon type
+  agrees with it; not yet seen in game by an agent.
+
+Unknowns: which weapon slot and which screen (the "Which items" menus or typed text). The fix
+covers both, since both go through the same parser.
 
 Ask Tyler: none.
 
