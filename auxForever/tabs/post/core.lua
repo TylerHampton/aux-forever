@@ -784,11 +784,11 @@ function update_item(item)
 
     -- start from the lowest listing once the listings are in (auto_pick_price)
     auto_price_key = item.key
-    if not listings_known(item.key) then
-        refresh_entries()
-    else
-        listings_ready[item.key] = true
-    end
+    -- auxForever (0.6.0.2): every pick reads the item's listings fresh, as Refresh does. Listings
+    -- kept from a full scan or an earlier pick could be an hour old and grouped by listing, so the
+    -- price was matched to auctions that had sold or missed newer ones (Tyler, Scroll of Stamina:
+    -- 27 at 13s from the full scan, 42 after Refresh).
+    refresh_entries()
     update_post_done()
 
     refresh = true
@@ -869,10 +869,18 @@ function refresh_entries()
 		set_bid_selection()
         set_buyout_selection()
         auto_price_key = item_key
-        listings_ready[item_key] = nil
-        update_post_done()
-        bid_records[item_key], buyout_records[item_key] = nil, nil
-        local query = scan_util.item_query(selected_item.item_id)
+        -- only the item being posted keeps its listings; any other is read again when picked
+        clear_auctions()
+        -- auxForever (0.6.0.2 build 3): the item is in the bags, so the game gives its item key and
+        -- its listings are read with one request, as Blizzard's Sell tab does
+        -- (Blizzard_AuctionHouseItemSellFrame.lua, GetItemKeyFromItem). Not for gear: its key holds
+        -- the random suffix and finds nothing (Tyler, Merc Sword, build 3); Blizzard asks for gear
+        -- by item ID in another way (SendSellSearchQuery). Gear keeps the name search, which reads
+        -- every version of the item, as before.
+        local location = find_item_location(item_key)
+        local key = location and C_AuctionHouse.GetItemKeyFromItem and C_AuctionHouse.GetItemKeyFromItem(location)
+        local key_info = type(key) == 'table' and C_AuctionHouse.GetItemKeyInfo(key)
+        local query = type(key_info) == 'table' and not key_info.isEquipment and { item_keys = {key} } or scan_util.item_query(selected_item.item_id)
 
 		scan.start{
             type = 'list',
@@ -918,30 +926,11 @@ function refresh_entries()
 	end
 end
 
--- auxForever: a full scan reads every auction on the auction house (69,591 in Tyler's, 0.4.1) and
--- aux kept the listings of every item for the Post tab, all session long: about 30 MB after a
--- cleanup. The Post tab only shows items in your bags, so the full scan now keeps theirs alone;
--- any other item's listings are read when it is picked, as before.
-local scan_keys
-
+-- forget every item's listings
 function M.clear_auctions()
     bid_records, buyout_records = {}, {}
     aux.wipe(listings_ready)
-    scan_keys = {}
-    for slot in info.inventory() do
-        local item_info = info.container_item(unpack(slot))
-        if item_info then
-            scan_keys[item_info.item_key] = true
-        end
-    end
     update_post_done()
-end
-
--- an auction from a full scan: kept only for items in the bags
-function M.record_scanned_auction(auction)
-    if scan_keys and scan_keys[auction.item_key] then
-        record_auction(auction)
-    end
 end
 
 -- /aux memory detail: items whose listings the Post tab keeps
@@ -949,11 +938,6 @@ function M.memory_counts()
     local n = 0
     for _ in pairs(bid_records) do n = n + 1 end
     return n
-end
-
--- whether the listings of an item are known (from a full scan or an earlier read)
-function M.listings_known(item_key)
-    return bid_records[item_key] ~= nil
 end
 
 function M.record_auction(auction)
@@ -973,6 +957,27 @@ function M.record_auction(auction)
     end
     buyout_records[auction.item_key] = buyout_records[auction.item_key] or {}
     if auction.unit_buyout_price == 0 then return end
+    -- auxForever (0.6.0.2 build 2): a commodity is bought by quantity, cheapest first, so its
+    -- listings at one price are one row (yours apart), counted in units, with the longest time
+    -- left. The search can answer with several rows at one price (Tyler's Light Feather: 26 and
+    -- 480 at 8c); gear keeps one row per kind of auction.
+    if auction.commodity then
+	    local own, entry = info.is_player(auction.owner)
+	    for _, record in pairs(buyout_records[auction.item_key]) do
+		    if auction.unit_buyout_price == record.unit_price and own == record.own then
+			    entry = record
+		    end
+	    end
+	    if not entry then
+		    entry = { stack_size = 1, unit_price = auction.unit_buyout_price, duration = auction.duration, own = own, count = 0 }
+		    tinsert(buyout_records[auction.item_key], entry)
+	    end
+	    entry.count = entry.count + auction.count * (auction.auction_count or 1)
+	    if auction.duration and (not entry.duration or auction.duration > entry.duration) then
+		    entry.duration = auction.duration
+	    end
+	    return
+    end
     do
 	    local entry
 	    for _, record in pairs(buyout_records[auction.item_key]) do

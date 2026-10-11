@@ -634,10 +634,15 @@ try('post auto price', function()
   local aux = require 'aux'
   local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
   post.clear_auctions()
-  local function listing(price, own)
-    post.record_auction({item_key = '4422:0', commodity = true, unit_buyout_price = price, count = 5, duration = 2, owner = own and 'P' or 'Someone'})
-  end
-  listing(300); listing(240); listing(290)
+  -- picking an item searches it (0.6.0.2); the search answers with these listings
+  local scan_exports = require 'aux.core.scan'
+  local real_start = scan_exports.start
+  rawset(scan_exports, 'start', function(params)
+    for _, price in ipairs{300, 240, 290} do
+      params.on_auction({item_key = '4422:0', commodity = true, unit_buyout_price = price, count = 5, duration = 2, owner = 'Someone'})
+    end
+    params.on_complete()
+  end)
   local item = {key = '4422:0', item_id = 4422, commodity = true, name = 'Scroll of Stamina', quality = 1, count = 2, max_stack = 5}
   post.set_undercut_mode(false)
   post.update_item(item)
@@ -671,6 +676,7 @@ try('post auto price', function()
   aux.set_tab(4)
   check('post: leaving the tab ends gold', aux.status_bar.done == false)
   post.selected_item = nil
+  rawset(scan_exports, 'start', real_start)
 end)
 
 -- Post: per-item amount and the vendor warning under "You get"; deposit explained on mouse over
@@ -769,6 +775,44 @@ try('table columns', function()
 end)
 
 -- Post price lists: units for sale, time left, price, % of usual
+-- Tyler, 0.6.0.2 build 1: Light Feather showed three rows at 8c (26 and 480 at 24h, his own 2 at
+-- 2h). A commodity is one row per price, yours apart, with the longest time left; gear is not merged.
+try('post: one row per price for commodities', function()
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local data
+  rawset(post.buyout_listing, 'SetData', function(_, rows) data = rows end)
+  post.clear_auctions()
+  local function listing(units, price, duration, own)
+    post.record_auction({item_key = '17056:0', commodity = true, unit_buyout_price = price, count = units, duration = duration, owner = own and 'P' or 'Someone'})
+  end
+  listing(10, 8, 3); listing(26, 8, 4); listing(480, 8, 4); listing(2, 8, 2, true); listing(196, 9, 4)
+  post.selected_item = {commodity = true, key = '17056:0', item_id = 17056, name = 'Light Feather', quality = 1, count = 12, max_stack = 200}
+  post.update_auction_listings()
+  local at8, own8, n = nil, nil, 0
+  for _, row in ipairs(data or {}) do
+    if not row.record.historical_value then
+      n = n + 1
+      if row.record.unit_price == 8 and not row.record.own then at8 = row end
+      if row.record.unit_price == 8 and row.record.own then own8 = row end
+    end
+  end
+  check('commodity rows: one row per price, yours apart', n == 3)
+  check('commodity rows: units added up', at8 and at8.cols[1].value == 516)
+  check('commodity rows: the longest time left', at8 and at8.record.duration == 4)
+  check('commodity rows: your own stay a row of their own', own8 ~= nil)
+  post.clear_auctions()
+  post.record_auction({item_key = '5210:0', unit_buyout_price = 700, unit_blizzard_bid = 700, count = 1, duration = 4, owner = 'Someone'})
+  post.record_auction({item_key = '5210:0', unit_buyout_price = 700, unit_blizzard_bid = 700, count = 1, duration = 2, owner = 'Someone'})
+  post.selected_item = {key = '5210:0', item_id = 5210, name = 'Blazing Wand', quality = 2, count = 1, max_stack = 1}
+  post.update_auction_listings()
+  n = 0
+  for _, row in ipairs(data or {}) do if not row.record.historical_value then n = n + 1 end end
+  check('gear rows: auctions with another time left stay apart', n == 2)
+  rawset(post.buyout_listing, 'SetData', nil)
+  post.selected_item = nil
+  post.clear_auctions()
+end)
+
 try('post listing columns', function()
   local require = loadstring("select(2, ...) 'aux.test14'; return require")('auxForever', addon)
   local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
@@ -2078,24 +2122,73 @@ try('sniper: a selected gear deal is checked again and the rounds hold', functio
   restore()
 end)
 
--- Tyler, 0.4.1: after a full scan (69,591 auctions) aux held 42 MB after a cleanup: the Post tab kept
--- the listings of every item. It keeps only the items in the bags now.
-try('full scan keeps Post listings for bag items only', function()
+-- Tyler, 0.6.0.1: the Post tab showed Scroll of Stamina from the last full scan (27 at 13s, split
+-- by listing) and the real listings only after Refresh (42 at 13s). Picking an item now always
+-- searches it, and the full scan no longer hands listings to the Post tab.
+try('post: picking an item reads its listings fresh', function()
   local req = loadstring("select(2, ...) 'aux.test46'; return require")('auxForever', addon)
+  local scan_exports = req 'aux.core.scan'
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local real_start, searches, answer = scan_exports.start, 0, nil
+  rawset(scan_exports, 'start', function(params) searches = searches + 1; answer = params end)
+  post.clear_auctions()
+  -- listings known from earlier (a full scan, an earlier pick): old prices
+  post.record_auction({item_key = '4422:0', commodity = true, unit_buyout_price = 1300, count = 6, duration = 4, owner = 'Someone'})
+  post.record_auction({item_key = '765:0', commodity = true, unit_buyout_price = 50, count = 5, duration = 2, owner = 'Someone'})
+  local item = {key = '4422:0', item_id = 4422, commodity = true, name = 'Scroll of Stamina', quality = 1, count = 2, max_stack = 5}
+  post.update_item(item)
+  check('fresh listings: picking an item searches it', searches == 1)
+  check('fresh listings: old listings are not shown', post.memory_counts() == 0)
+  answer.on_auction({item_key = '4422:0', commodity = true, unit_buyout_price = 1200, count = 42, duration = 4, owner = 'Someone'})
+  answer.on_complete()
+  post.on_update()
+  check('fresh listings: the price comes from the search', post.get_unit_buyout_price() == 1200)
+  post.update_item(item)
+  check('fresh listings: picking it again searches again', searches == 2)
+  check('fresh listings: a full scan no longer feeds the Post tab', post.record_scanned_auction == nil)
+  rawset(scan_exports, 'start', real_start)
+  post.selected_item = nil
+  post.clear_auctions()
+end)
+
+-- Tyler, 0.6.0.2: each pick searched the item's name first, then read its listings: two requests
+-- where Blizzard's Sell tab makes one. An item in the bags is now read by its item key.
+try('post: an item in the bags is read with one request', function()
+  local req = loadstring("select(2, ...) 'aux.test47'; return require")('auxForever', addon)
+  local scan_exports = req 'aux.core.scan'
   local info = req 'aux.util.info'
   local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
-  local real_inventory, real_container = info.inventory, info.container_item
+  local real_start, real_inventory, real_container = scan_exports.start, info.inventory, info.container_item
+  local real_key, real_key_info = rawget(C_AuctionHouse, 'GetItemKeyFromItem'), rawget(C_AuctionHouse, 'GetItemKeyInfo')
+  local equipment = false
+  rawset(C_AuctionHouse, 'GetItemKeyInfo', function() return {isEquipment = equipment} end)
+  local params
+  rawset(scan_exports, 'start', function(p) params = p end)
+  local in_bags = true
   rawset(info, 'inventory', function()
-    local done = false
+    local done = not in_bags
     return function() if not done then done = true return {0, 1} end end
   end)
-  rawset(info, 'container_item', function() return {item_key = '111:0'} end)
-  post.clear_auctions()
-  post.record_scanned_auction({item_key = '111:0', commodity = true, unit_buyout_price = 50, count = 5, duration = 2, owner = 'Someone'})
-  post.record_scanned_auction({item_key = '222:0', commodity = true, unit_buyout_price = 70, count = 9, duration = 2, owner = 'Someone'})
-  check('full scan: an item in the bags keeps its listings', post.listings_known('111:0'))
-  check('full scan: an item not in the bags is not kept', not post.listings_known('222:0'))
+  rawset(info, 'container_item', function() return {item_key = '4422:0', auctionable = true, item_location = 'bag 0 slot 1'} end)
+  rawset(C_AuctionHouse, 'GetItemKeyFromItem', function(location) return location == 'bag 0 slot 1' and {itemID = 4422, itemLevel = 0, itemSuffix = 0} or nil end)
+  local item = {key = '4422:0', item_id = 4422, commodity = true, name = 'Scroll of Stamina', quality = 1, count = 2, max_stack = 5}
+  post.update_item(item)
+  local query = params and params.queries[1]
+  check('one request: the item key from the bags is searched', query and query.item_keys and query.item_keys[1].itemID == 4422)
+  check('one request: no name search first', query and query.blizzard_query == nil)
+  in_bags, params = false, nil
+  post.update_item(item)
+  query = params and params.queries[1]
+  check('one request: not in the bags, the name search is the fallback', params ~= nil and not (query and query.item_keys))
+  -- Tyler, build 3: Merc Sword (gear with random suffixes) found nothing by its item key
+  in_bags, equipment, params = true, true, nil
+  post.update_item(item)
+  query = params and params.queries[1]
+  check('one request: gear keeps the name search', params ~= nil and not (query and query.item_keys))
+  rawset(scan_exports, 'start', real_start)
   rawset(info, 'inventory', real_inventory); rawset(info, 'container_item', real_container)
+  rawset(C_AuctionHouse, 'GetItemKeyFromItem', real_key); rawset(C_AuctionHouse, 'GetItemKeyInfo', real_key_info)
+  post.selected_item = nil
   post.clear_auctions()
 end)
 
@@ -2764,7 +2857,7 @@ try('FB-007: recipe cost line', function()
 end)
 
 
--- 0.5 build 1 results (Tyler, 2026-10-08)
+-- 0.5 build 1 results (Tyler, 2026-10-07)
 try('0.5 build 1 fixes', function()
   local req = loadstring("select(2, ...) 'aux.test58'; return require")('auxForever', addon)
   local aux = req 'aux'
@@ -2840,7 +2933,7 @@ try('0.5 build 1 fixes', function()
 end)
 
 
--- build 3 (Tyler, 2026-10-08): players scan, post and leave; the tooltip shows the latest look at an
+-- build 3 (Tyler, 2026-10-07): players scan, post and leave; the tooltip shows the latest look at an
 -- item, and the multi-day usual price stays for finding deals
 try('0.5 build 3: latest price in tooltips', function()
   local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
@@ -2877,7 +2970,7 @@ try('0.5 build 3: latest price in tooltips', function()
 end)
 
 
--- build 3 results (Tyler, 2026-10-08)
+-- build 3 results (Tyler, 2026-10-07)
 try('0.5 build 3 results', function()
   local req = loadstring("select(2, ...) 'aux.test59'; return require")('auxForever', addon)
   local aux = req 'aux'
@@ -2934,7 +3027,7 @@ try('0.5 build 3 results', function()
 end)
 
 
--- 0.5 release (Tyler, 2026-10-08): the login line asks for Full scans, saying when the last one was
+-- 0.5 release (Tyler, 2026-10-07): the login line asks for Full scans, saying when the last one was
 try('0.5: Full scan reminder at login', function()
   local aux = loadstring("select(2, ...) 'aux.test60'; return require")('auxForever', addon) 'aux'
   local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
@@ -2982,7 +3075,7 @@ try('0.6: looks', function()
   -- an unknown look is the New look
   check('looks: unknown name is New', a.set_palette('bogus') == 'new')
   a.set_palette(THEME)
-  -- Tyler, 2026-10-09: text boxes were hard to find on the near black panels (Filter Builder). In
+  -- Tyler, 2026-10-08: text boxes were hard to find on the near black panels (Filter Builder). In
   -- New a sunken field has a gray edge and is darker than the panel around it.
   local P = a.PALETTES.new
   check('new look: an input edge stands out from the panel', P.input.border[1] - P.panel.background[1] >= 30)
@@ -3039,7 +3132,7 @@ try('0.6: coin colors everywhere', function()
   check('coins: no money without coin colors on buttons, the recipe line or the Sniper', plain == 0)
 end)
 
--- 0.6, Tyler 2026-10-09: zebra rows, every second row dark gray, under hover and selection
+-- 0.6, Tyler 2026-10-08: zebra rows, every second row dark gray, under hover and selection
 try('0.6: zebra rows', function()
   local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
   local sniper_env = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)

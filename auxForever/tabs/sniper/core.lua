@@ -10,7 +10,7 @@ local buy_bar = require 'aux.gui.buy_bar'
 local tab = aux.tab 'Sniper'
 
 -- auxForever: the Sniper. It reads the item list of the whole auction house again and again (one
--- round took 8.5 seconds for 7718 items on Forever, Tyler's /aux debug list, 2026-10-05) and lists
+-- round took 8.5 seconds for 7718 items on Forever, Tyler's /aux debug list, 2026-10-04) and lists
 -- the items whose lowest price is a deal. The list only knows each item's lowest price, which may
 -- be a bid, so an item that looks like a deal is opened (one request) to check its real auctions.
 -- Only checked auctions are listed, and they are what the buy bar buys.

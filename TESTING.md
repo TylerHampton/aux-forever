@@ -8,14 +8,14 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: none (0.6.0.1 released 2026-10-10)
+## Current build: none (0.6.0.2 released 2026-10-10)
 
-The last build, 0.6.0.1 build 1 (Search in aux next to Track Recipe), passed in game and was
-released. The next build starts its steps here.
+The last build, 0.6.0.2 build 4 (fresh Post tab listings, one row per price, one request for
+items that are not gear), was tested in game and released. The next build starts its steps here.
 
 ## Before every release: the 5-minute check
 
-Tyler (2026-10-08): the old 15-minute quick run was too long. This is one walk through the
+Tyler (2026-10-07): the old 15-minute quick run was too long. This is one walk through the
 auction house, about 5 minutes, that touches every tab once. Everything else is covered by the
 automated tests (run on every push) and by the build steps of the version, which test whatever
 changed.

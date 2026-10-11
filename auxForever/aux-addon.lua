@@ -46,7 +46,7 @@ end
 
 -- auxForever (0.5): the second line at login and after /reload. Tooltip prices and recipe costs come
 -- from scans, and a Full scan records every price at once, so it says when the last one was and
--- asks for one (Tyler, 2026-10-08: players should get the value out of auxForever).
+-- asks for one (Tyler, 2026-10-07: players should get the value out of auxForever).
 function M.full_scan_reminder(last, now)
     local scan = color.accent.background('Full scan')
     if not last or last <= 0 then

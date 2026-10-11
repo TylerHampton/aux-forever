@@ -171,7 +171,7 @@ end
 -- The middle unit price of the cheapest MARKET_SHARE of the units (at least one unit): close to the
 -- cheapest price that has a real amount behind it, and one odd cheap auction does not set it.
 -- Build 3 averaged the cheapest 20%, which in a deep market reached far above the lowest listing
--- (Linen Cloth: 32c with 2,600 units listed at 23c to 36c; Tyler, 2026-10-08).
+-- (Linen Cloth: 32c with 2,600 units listed at 23c to 36c; Tyler, 2026-10-07).
 function M.market_price(flat)
 	local n = #flat / 2
 	if n == 0 then
@@ -318,7 +318,7 @@ end
 -- auxForever (0.5, build 3): the price of the latest complete look at the item (its market price, or
 -- its lowest when no complete look was had that day) and how many days ago that was. Tooltips and
 -- the recipe cost show this: players scan, post and leave, and need the tooltip to match the
--- auction house they just saw (Tyler, 2026-10-08). The multi-day usual price (value) stays for
+-- auction house they just saw (Tyler, 2026-10-07). The multi-day usual price (value) stays for
 -- finding deals: the Sniper, the search % column and the percentage filters.
 function M.latest(item_key)
 	if not data[item_key] then

@@ -89,7 +89,7 @@ visible confirmation, but gives no evidence. **Unverified**; needs an in-game te
   `AUCTION_MULTISELL_START/UPDATE/FAILURE`). Bid is optional and off by default.
 - The buyout must be above the starting bid. Blizzard's sell frame refuses `buyout <= bid`
   (`AUCTION_HOUSE_SELL_FRAME_ERROR_BUYOUT`), and on Forever posting a green wand with bid equal to
-  buyout gave "Internal auction error" (Tyler's brother, 2026-10-05). auxForever leaves the bid out
+  buyout gave "Internal auction error" (Tyler's brother, 2026-10-04). auxForever leaves the bid out
   in that case, so the item goes up for buyout only.
 - Commodities: `PostCommodity(location, duration, quantity, unitPrice)`.
 - Either can return "needs confirmation". The server then sends `AUCTION_HOUSE_POST_WARNING`
@@ -104,7 +104,7 @@ visible confirmation, but gives no evidence. **Unverified**; needs an in-game te
   when `SupportsCopperValues()` allows it. Not confirmed from Blizzard's code.
 
 **Confirmed from Blizzard's Forever UI source** (branch `forever` of Gethe/wow-ui-source, read
-2026-10-08):
+2026-10-07):
 
 - A plain right-click on a bag item with `AuctionHouseFrame` shown calls
   `AuctionHouseFrame:SetPostItem(itemLocation)` when the item can be sold

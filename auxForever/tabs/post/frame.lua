@@ -150,7 +150,7 @@ end)
 buyout_listing:SetHandler('OnEnter', price_hint(buyout_selected))
 buyout_listing:SetHandler('OnLeave', hide_hint)
 
--- auxForever (0.6, option A of the Post panel mockup, Tyler 2026-10-10): three columns. Left, what
+-- auxForever (0.6, option A of the Post panel mockup, Tyler 2026-10-09): three columns. Left, what
 -- is posted: the item, Count or Quantity, Duration, the post message and Hide from this list.
 -- Middle, the price: Match lowest / Undercut with ?, narrow price fields with "% of usual" as plain
 -- text, and a note on how the price was chosen. Right, a receipt: total, the auction house cut,
@@ -566,7 +566,7 @@ do
     net_detail:SetPoint('TOPRIGHT', frame.parameters, 'TOPRIGHT', -12, -84)
     net_detail:SetJustifyH('LEFT')
     gui.text_color(net_detail, aux.color.label.disabled)
-    -- Tyler (2026-10-10): when a vendor pays more, players must not miss it; a red box with the
+    -- Tyler (2026-10-09): when a vendor pays more, players must not miss it; a red box with the
     -- warning triangle in place of the gray line
     local warning = CreateFrame('Frame', nil, frame.parameters, 'BackdropTemplate')
     gui.set_frame_style(warning, function() local r, g, b = aux.color.red(); return r, g, b, .16 end, aux.color.red)

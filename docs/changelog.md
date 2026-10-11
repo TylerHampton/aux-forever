@@ -6,7 +6,31 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
-## 0.6.0.1 (2026-10-10)
+## 0.6.0.2 (2026-10-10)
+
+### Fixes
+
+- Post tab: picking an item now always reads its current listings from the auction house, the
+  same as pressing Refresh. Before, if you had run a Full scan, the Post tab showed that scan's
+  listings instead, which could be an hour old: the price it picked could match an auction that
+  had already sold or miss a newer, cheaper one. Those old listings were also split into one row
+  per listing (the same price shown several times, some rows without a time left). A Full scan
+  still records prices for tooltips, the Sniper and the % column (reported by Tyler).
+- Post tab: picking the same item again, or the next item after posting, reads its listings
+  again too, so other players' new auctions and sales since your last look show up.
+- Post tab: trade goods and other items sold by quantity show one row per price, with the total
+  for sale and the longest time left; your own auctions at that price stay a row of their own, in
+  green. Before, the same price could appear on several rows (Light Feather: 26, 480 and 10 at 8c),
+  which made it hard to see how much was for sale at the lowest price. Gear keeps one row per kind
+  of auction (reported by Tyler).
+- Post tab: trade goods, potions and other items that are not gear load faster. Picking one used
+  to search the auction house for its name first and then read its listings, two requests in a
+  row; the item is in your bags, so it is now read straight away with one request, as Blizzard's
+  own Sell tab does. Gear loads as before.
+
+`/reload` is enough to update.
+
+## 0.6.0.1 (2026-10-09)
 
 ### Fixes
 
@@ -15,7 +39,7 @@ A change that comes from a player's feedback credits them by in-game name at the
   panel to the bottom right, where the button has been since 0.4; the button now sits just left
   of the checkbox wherever Blizzard puts it (reported by Tyler).
 
-## 0.6 (2026-10-10)
+## 0.6 (2026-10-09)
 
 A new look by Webster, with the 0.5 look kept as the Classic theme, a redesigned Post tab, a bigger
 Settings menu and a Sniper that only trusts prices it has seen for 3 days. Run a Full scan on each
@@ -109,7 +133,7 @@ warning triangle), and the game only loads new files on a restart; `/reload` is 
 - On the new Post panel: the PER ITEM heading touched the top of the price field, the percentage
   heading was cut off by the divider in a narrow window, and an item with no deposit showed "-0c".
 
-## 0.5 (2026-10-08)
+## 0.5 (2026-10-07)
 
 Better prices, clearer posting and clicks that work the same everywhere, with player feedback from
 Darkhorse and Garsterson. Run a Full scan on each visit to the auction house: it keeps the prices in
@@ -159,7 +183,7 @@ your tooltips and recipe costs current.
 - `/aux price <item>` prints what aux has recorded for an item: the Value shown in tooltips, the
   usual price and how many days it rests on, today's lowest and market price, and each past day.
 
-## 0.4.1 (2026-10-06)
+## 0.4.1 (2026-10-05)
 
 Performance, memory and fixes from a week of testing.
 
@@ -246,7 +270,7 @@ Performance, memory and fixes from a week of testing.
 - New credit line: "aux by shirsig, re-imagined by a fan".
 - Needs a full game restart after updating (new files).
 
-## 0.2.1 (2026-10-05)
+## 0.2.1 (2026-10-04)
 
 First release since 0.1.1, so it also brings everything from 0.2: the new Filter Builder
 (conditions in plain words, Match All or Any, "not", groups inside groups, an "In words" line,
@@ -269,7 +293,7 @@ kept in sync with the search bar), the default duration setting and the favorite
   always opens on screen and in front of aux, and the button is lit while it is shown.
 - Needs a full game restart after updating (a new icon was added).
 
-## 0.2 (2026-10-05)
+## 0.2 (2026-10-04)
 
 - New Filter Builder: conditions in plain words, Match All or Any, "not" on any condition, groups
   inside groups, and an "In words" line that reads the search back. It stays in sync with the
@@ -278,7 +302,7 @@ kept in sync with the search bar), the default duration setting and the favorite
 - Favorites: an empty search is no longer saved, and the same search is not saved twice.
 - Needs a full game restart after updating (a new file was added).
 
-## 0.1.1 (2026-10-05)
+## 0.1.1 (2026-10-04)
 
 - Fixed: posting gear failed with "Internal auction error" when the starting bid equalled the
   buyout. Such items are now posted for buyout only.

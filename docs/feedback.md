@@ -2,9 +2,9 @@
 
 Every piece of feedback players give about auxForever is recorded here, one entry per point, so
 whoever fixes or builds next (any AI agent or person) can work from it without the original chat.
-Started 2026-10-08, on 0.4.1 (the version players have).
+Started 2026-10-07, on 0.4.1 (the version players have).
 
-## How we read feedback (Tyler, 2026-10-08)
+## How we read feedback (Tyler, 2026-10-07)
 
 If a player has a problem with auxForever, assume the problem is in the addon, not the player.
 Tyler: "If a user downloads our add-on, and they have a problem, it's very likely a problem with
@@ -22,7 +22,7 @@ So:
 - Never write an entry as "user error". At most, write what the player expected and why the addon
   did not meet it.
 
-One rare exception (Tyler, 2026-10-10, after FB-009): when the player asks for something Forever's
+One rare exception (Tyler, 2026-10-09, after FB-009): when the player asks for something Forever's
 auction house itself does not have, such as Classic stacks, the problem is not the addon's.
 auxForever is for intermediate players who know the modern auction house; teaching the auction
 house is not its job. Record the entry as usual, set it `wont-fix` with this reason, and give Tyler
@@ -34,7 +34,7 @@ on Forever's auction house. A screen that is merely confusing still falls under 
 When a change comes from a player's feedback, its line in `docs/changelog.md` (which is also the
 CurseForge changelog) names the player by in-game name: "(suggested by Darkhorse)" for an idea,
 "(reported by Darkhorse)" for a bug. Several players: "(reported by Darkhorse and Hotpocket)". The
-entry's "From" field says who to credit. Tyler asked for this on 2026-10-08.
+entry's "From" field says who to credit. Tyler asked for this on 2026-10-07.
 
 ## Rules
 
@@ -47,11 +47,11 @@ For whoever records feedback:
   summary:" before it.
 - Keep three things apart and labeled: what the player said, what Tyler added, and what the
   recorder infers (likely cause, code area). An inference is never written as a fact.
-- Names: the player's in-game character name (Tyler, 2026-10-08: "In game names are fine they
+- Names: the player's in-game character name (Tyler, 2026-10-07: "In game names are fine they
   are very public"). No real names, Discord account IDs, email addresses or other contact details:
   this repository is public. If a player asks not to be named, replace their name in every entry
   with a label ("Player A") and note the change in the commit message.
-- Screenshots (Tyler's choice, 2026-10-08): save one in `docs/feedback/` as `FB-<id>-<n>.png` only
+- Screenshots (Tyler's choice, 2026-10-07): save one in `docs/feedback/` as `FB-<id>-<n>.png` only
   when the picture itself matters to the fix (a layout problem, an error window). Before saving,
   tell Tyler what is visible in it (chat lines, other players' names, his character, guild, gold)
   and crop out what the fix does not need. Every other screenshot is described in words in the
@@ -60,7 +60,7 @@ For whoever records feedback:
   (`<date>-<player>-<channel>.md`), and link it from each entry. Entries quote only the part that
   matters; the source keeps the context.
 - Fill in the player under "Players" below the first time they appear.
-- No follow-up questions to players (Tyler, 2026-10-08: "We wont get this info we need to work
+- No follow-up questions to players (Tyler, 2026-10-07: "We wont get this info we need to work
   without it. I dont want to follow up on feedback."). Record what is not known under "Unknowns"
   and how a fix can work without it. Questions for Tyler are fine ("Ask Tyler").
 - IDs are never reused or renumbered. Entries are never deleted; a wrong or duplicate entry gets
@@ -100,22 +100,22 @@ For whoever fixes or builds from it:
 | Recorder's notes | Inferences, marked as such: likely code area, likely cause, related entries, existing docs that touch it. |
 | Unknowns | What the report leaves open, and how a fix can work without it. Players are not asked. |
 | Ask Tyler | Open questions for Tyler (what he meant, what he has seen himself). |
-| Proposed | Recorder's suggestion: `hotfix`, next patch, next minor (`0.5`), `later`, or `none`. Tyler decides. There will be no 0.4.2 (Tyler, 2026-10-08): fixes and small things wait for 0.5 unless they are bad enough for a hotfix. |
+| Proposed | Recorder's suggestion: `hotfix`, next patch, next minor (`0.5`), `later`, or `none`. Tyler decides. There will be no 0.4.2 (Tyler, 2026-10-07): fixes and small things wait for 0.5 unless they are bad enough for a hotfix. |
 | Status | `new`, `needs-info` (waiting on Tyler), `confirmed` (reproduced), `planned <version>`, `in-progress <branch>`, `fixed <version> <commit>`, `built <version> <commit>`, `wont-fix` (with Tyler's reason), `duplicate of FB-n`. |
 
 ## Index
 
 | ID | Received | From | Type | Area | Sev | Summary | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| [FB-001](#fb-001-the-other-quantity-box-on-the-buy-bar-does-not-look-like-a-place-to-type) | 2026-10-08 | Darkhorse | ux | Buy bar | n/a | The "Other" quantity box does not look like a place to type | fixed 0.5 6f77958 |
-| [FB-002](#fb-002-right-click-an-item-in-the-bags-should-load-it-into-the-post-tab) | 2026-10-08 | Darkhorse | request | Post | n/a | Right-click an item in the bags should load it into the Post tab | built 0.5 140996a |
-| [FB-003](#fb-003-clicking-post-sometimes-does-nothing-and-shows-no-error) | 2026-10-08 | Darkhorse | bug | Post | S2 | Clicking Post sometimes does nothing and shows no error | fixed 0.5 7a187c7 |
-| [FB-004](#fb-004-the-ui-is-the-biggest-issue-closer-to-the-traditional-auction-house-layout) | 2026-10-08 | Darkhorse | ux | Overall | n/a | The UI is his biggest issue; wants it closer to the traditional auction house | wont-fix (direction; Tyler: follow TSM and aux) |
-| [FB-005](#fb-005-praise-the-list-of-sellable-items-on-the-left-of-the-post-tab) | 2026-10-08 | Darkhorse | praise | Post | n/a | Praise: the list of sellable items on the Post tab | new |
-| [FB-006](#fb-006-after-resizing-and-changing-the-scale-the-recent-searches-header-sticks-out-of-the-window) | 2026-10-08 | Garsterson | bug | Window | S3 | After resizing and changing the scale, the Recent Searches header sticks out of the window | fixed 0.5 31ac02c |
-| [FB-007](#fb-007-crafting-cost-in-the-profession-window-anywhere-in-the-world) | 2026-10-08 | Garsterson | request | Recipe search | n/a | Crafting cost in the profession window, anywhere in the world | built 0.5 5a935e1 |
-| [FB-008](#fb-008-chat-command-settings-should-also-be-in-the-settings-menu) | 2026-10-09 | CurseForge player (name not recorded yet) | request | Settings | n/a | Chat command settings should also be in the Settings menu | built 0.6 (released 2026-10-10) |
-| [FB-009](#fb-009-post-cloth-in-several-stacks-of-a-chosen-size) | 2026-10-10 | Maggew | request | Post | n/a | Post cloth in several stacks of a chosen size, as in Classic | wont-fix (Forever has no stacks; Tyler: not the addon's job) |
+| [FB-001](#fb-001-the-other-quantity-box-on-the-buy-bar-does-not-look-like-a-place-to-type) | 2026-10-07 | Darkhorse | ux | Buy bar | n/a | The "Other" quantity box does not look like a place to type | fixed 0.5 6f77958 |
+| [FB-002](#fb-002-right-click-an-item-in-the-bags-should-load-it-into-the-post-tab) | 2026-10-07 | Darkhorse | request | Post | n/a | Right-click an item in the bags should load it into the Post tab | built 0.5 140996a |
+| [FB-003](#fb-003-clicking-post-sometimes-does-nothing-and-shows-no-error) | 2026-10-07 | Darkhorse | bug | Post | S2 | Clicking Post sometimes does nothing and shows no error | fixed 0.5 7a187c7 |
+| [FB-004](#fb-004-the-ui-is-the-biggest-issue-closer-to-the-traditional-auction-house-layout) | 2026-10-07 | Darkhorse | ux | Overall | n/a | The UI is his biggest issue; wants it closer to the traditional auction house | wont-fix (direction; Tyler: follow TSM and aux) |
+| [FB-005](#fb-005-praise-the-list-of-sellable-items-on-the-left-of-the-post-tab) | 2026-10-07 | Darkhorse | praise | Post | n/a | Praise: the list of sellable items on the Post tab | new |
+| [FB-006](#fb-006-after-resizing-and-changing-the-scale-the-recent-searches-header-sticks-out-of-the-window) | 2026-10-07 | Garsterson | bug | Window | S3 | After resizing and changing the scale, the Recent Searches header sticks out of the window | fixed 0.5 31ac02c |
+| [FB-007](#fb-007-crafting-cost-in-the-profession-window-anywhere-in-the-world) | 2026-10-07 | Garsterson | request | Recipe search | n/a | Crafting cost in the profession window, anywhere in the world | built 0.5 5a935e1 |
+| [FB-008](#fb-008-chat-command-settings-should-also-be-in-the-settings-menu) | 2026-10-08 | CurseForge player (name not recorded yet) | request | Settings | n/a | Chat command settings should also be in the Settings menu | built 0.6 (released 2026-10-09) |
+| [FB-009](#fb-009-post-cloth-in-several-stacks-of-a-chosen-size) | 2026-10-09 | Maggew | request | Post | n/a | Post cloth in several stacks of a chosen size, as in Classic | wont-fix (Forever has no stacks; Tyler: not the addon's job) |
 
 ## Players
 
@@ -123,11 +123,11 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
 
 - **Darkhorse**: was in Tyler's guild. Thousands of hours in all versions of WoW; he and Hotpocket
   "are always the richest people in the game because they know how to use the auction house"
-  (Tyler, 2026-10-08). Used to the traditional auction house, Auctionator and the retail auction
+  (Tyler, 2026-10-07). Used to the traditional auction house, Auctionator and the retail auction
   house (his own words). Tyler: "a high value feedback provider". Asked for recipe search before
   0.4. Inference: his expectations are likely shared by many experienced players.
 - **Hotpocket**: was in Tyler's guild; one of the two richest players Tyler knows, for the same
-  reason (Tyler, 2026-10-08). Knows the retail "search every ingredient" feature
+  reason (Tyler, 2026-10-07). Knows the retail "search every ingredient" feature
   (`docs/roadmap.md`, 0.4). Asked for recipe search before 0.4. Spelling of the in-game name not
   yet confirmed (Tyler wrote "Hot Pocket").
 - **Maggew**: CurseForge commenter (CurseForge name; in-game name unknown). Plays with Classic
@@ -144,7 +144,7 @@ Template (copy for each new entry, newest at the bottom):
 ```
 ### FB-001: <one-line summary in plain words>
 
-- Received: 2026-10-08
+- Received: 2026-10-07
 - From: <handle> (1 report)
 - Where: <channel>
 - Source: <link to docs/feedback/sources/...>
@@ -171,16 +171,16 @@ Ask Tyler:
 
 ### FB-001: The "Other" quantity box on the buy bar does not look like a place to type
 
-- Received: 2026-10-08 (said 2026-10-07)
+- Received: 2026-10-07
 - From: Darkhorse (1 report)
 - Where: Discord, direct message to Tyler
 - Source: [source](feedback/sources/2026-10-07-darkhorse-discord.md)
-- Version: unknown (0.4.1 was released 2026-10-06)
+- Version: unknown (0.4.1 was released 2026-10-05)
 - Type: ux
 - Area: Buy bar
 - Severity: n/a
-- Status: fixed 0.5 6f77958 (mockup option B, approved by Tyler 2026-10-08: the box is labeled QUANTITY and always shows the number being bought). In-game check: TESTING.md, 0.5 build 1, steps 17 to 19
-- Proposed: 0.5 (no 0.4.2, Tyler 2026-10-08; a visual change, so mockup first)
+- Status: fixed 0.5 6f77958 (mockup option B, approved by Tyler 2026-10-07: the box is labeled QUANTITY and always shows the number being bought). In-game check: TESTING.md, 0.5 build 1, steps 17 to 19
+- Proposed: 0.5 (no 0.4.2, Tyler 2026-10-07; a visual change, so mockup first)
 
 Said:
 > is there a way to select the number of something you want to buy? or am i locked in to like 1 or
@@ -216,7 +216,7 @@ Ask Tyler: nothing.
 
 ### FB-002: Right-click an item in the bags should load it into the Post tab
 
-- Received: 2026-10-08 (said 2026-10-07)
+- Received: 2026-10-07
 - From: Darkhorse (1 report)
 - Where: Discord, direct message to Tyler
 - Source: [source](feedback/sources/2026-10-07-darkhorse-discord.md)
@@ -225,7 +225,7 @@ Ask Tyler: nothing.
 - Area: Post
 - Severity: n/a
 - Status: built 0.5 140996a (right-click a bag item follows Blizzard's AuctionHouseFrame:SetPostItem into aux; see docs/clicks.md, Built in 0.5). In-game check: TESTING.md, 0.5 build 1, steps 11 to 13
-- Proposed: 0.5 (no 0.4.2, Tyler 2026-10-08)
+- Proposed: 0.5 (no 0.4.2, Tyler 2026-10-07)
 
 Said:
 > also, being able to right click something in your bags when you're on the sell tab would be
@@ -263,7 +263,7 @@ Recorder's notes:
 - "train my eyes to look there instead of my bags" and Tyler's "I want people to easily be able to
   do both": the bag list on the Post tab is liked (FB-005), and the bags are where his habit
   starts. Both should work.
-- Tyler widened this into a review of every click in the addon (2026-10-08): `docs/clicks.md`. Build
+- Tyler widened this into a review of every click in the addon (2026-10-07): `docs/clicks.md`. Build
   this entry as part of that standard.
 - Vocabulary: he calls it the "sell tab" (Blizzard's and Auctionator's name); aux calls it "Post".
   Recorder's reading of Tyler's decision in FB-004 (follow TSM and the original aux): keep "Post".
@@ -273,13 +273,13 @@ Unknowns: none that block a fix.
 Ask Tyler: what bug do you suspect in this section, and have you seen the addon lock up after a
 right-click on a bag item yourself? Steps if so.
 
-Answer (Tyler, 2026-10-08): he does not remember what the bug was. Found while building 0.5: the
+Answer (Tyler, 2026-10-07): he does not remember what the bug was. Found while building 0.5: the
 right-click went into Blizzard's hidden Sell tab (docs/clicks.md, Built in 0.5); that is the most
 likely candidate, not confirmed.
 
 ### FB-003: Clicking Post sometimes does nothing and shows no error
 
-- Received: 2026-10-08 (said 2026-10-07)
+- Received: 2026-10-07
 - From: Darkhorse (1 report, happened once)
 - Where: Discord, direct message to Tyler
 - Source: [source](feedback/sources/2026-10-07-darkhorse-discord.md)
@@ -288,7 +288,7 @@ likely candidate, not confirmed.
 - Area: Post
 - Severity: S2 (nothing lost; the player is left not knowing why)
 - Status: fixed 0.5 7a187c7 (every way a post ends says what happened; a faded Post button says why). In-game check: TESTING.md, 0.5 build 1, steps 5 to 8
-- Proposed: 0.5 (no 0.4.2, Tyler 2026-10-08; the silent part: always say why a post did not happen)
+- Proposed: 0.5 (no 0.4.2, Tyler 2026-10-07; the silent part: always say why a post did not happen)
 
 Said:
 > also one time i tried posting an item and just nothing happened when i clicked post. I forget if
@@ -328,7 +328,7 @@ the Post tab or not; what Post does; any red text)?
 
 ### FB-004: The UI is the biggest issue; closer to the traditional auction house layout
 
-- Received: 2026-10-08 (said 2026-10-07)
+- Received: 2026-10-07
 - From: Darkhorse (1 report)
 - Where: Discord, direct message to Tyler
 - Source: [source](feedback/sources/2026-10-07-darkhorse-discord.md)
@@ -336,7 +336,7 @@ the Post tab or not; what Post does; any red text)?
 - Type: ux
 - Area: Overall (every tab)
 - Severity: n/a
-- Status: wont-fix for the direction he asked for (Tyler, 2026-10-08, see below). That the UI is
+- Status: wont-fix for the direction he asked for (Tyler, 2026-10-07, see below). That the UI is
   too confusing stands, and is the redesign's job.
 - Proposed: 0.5 (Tyler's planned redesign; see Tyler's notes)
 
@@ -364,7 +364,7 @@ Recorder's notes:
   above) this is a finding about the addon: an expert auction house player finds it confusing.
 - Darkhorse said he will keep using it; Tyler promised to tell him at each big update.
 
-Decision (Tyler, 2026-10-08), on Darkhorse's request for less change from the traditional UI:
+Decision (Tyler, 2026-10-07), on Darkhorse's request for less change from the traditional UI:
 "This one I outright reject. This should much more closely resemble TSM and the original aux like
 it already does." So the redesign follows TSM and Simon's aux, not Blizzard's auction house or
 Auctionator. What is kept from this entry: the UI is too confusing today (Tyler agreed: "It's too
@@ -380,7 +380,7 @@ the repository (images, a mockup page, Figma), and whether the redesign is 0.5, 
 
 ### FB-005: Praise: the list of sellable items on the left of the Post tab
 
-- Received: 2026-10-08 (said 2026-10-07)
+- Received: 2026-10-07
 - From: Darkhorse (1 report)
 - Where: Discord, direct message to Tyler
 - Source: [source](feedback/sources/2026-10-07-darkhorse-discord.md)
@@ -406,10 +406,10 @@ Ask Tyler: nothing.
 
 ### FB-006: After resizing and changing the scale, the Recent Searches header sticks out of the window
 
-- Received: 2026-10-08
+- Received: 2026-10-07
 - From: Garsterson (1 report)
 - Where: told to Tyler; Tyler retold it
-- Source: [source](feedback/sources/2026-10-08-garsterson-via-tyler.md)
+- Source: [source](feedback/sources/2026-10-07-garsterson-via-tyler.md)
 - Version: unknown (the Scale setting exists since 0.2.1)
 - Type: bug
 - Area: Window (seen on Search, Saved Searches)
@@ -465,15 +465,15 @@ Ask Tyler: nothing; the steps are enough to try.
 
 ### FB-007: Crafting cost in the profession window, anywhere in the world
 
-- Received: 2026-10-08
+- Received: 2026-10-07
 - From: Garsterson (1 report)
 - Where: told to Tyler; Tyler retold it
-- Source: [source](feedback/sources/2026-10-08-garsterson-via-tyler.md)
+- Source: [source](feedback/sources/2026-10-07-garsterson-via-tyler.md)
 - Version: unknown
 - Type: request
 - Area: Recipe search (profession window)
 - Severity: n/a
-- Status: built 0.5 5a935e1 (mockup approved by Tyler 2026-10-08). In-game check: TESTING.md, 0.5 build 1, steps 20 to 23
+- Status: built 0.5 5a935e1 (mockup approved by Tyler 2026-10-07). In-game check: TESTING.md, 0.5 build 1, steps 20 to 23
 - Proposed: 0.5 (a new feature; the roadmap keeps those out of patch versions)
 
 Said (Tyler's summary):
@@ -520,7 +520,7 @@ Recorder's notes:
 
 Unknowns: none that block it; Tyler's decisions below settle the open points.
 
-Decisions (Tyler, 2026-10-08, answering the questions this entry asked him):
+Decisions (Tyler, 2026-10-07, answering the questions this entry asked him):
 1. Where: "A line in the detail panel of the recipe" (as Simon's aux did; not a tooltip).
 2. Which price: "usual price. We need to make sure we are communicating this in a low-profile and
    clean way."
@@ -554,7 +554,7 @@ Design (Claude's decision on point 3, with the rest filled in; build from this, 
 
 ### FB-008: Chat command settings should also be in the Settings menu
 
-- Received: 2026-10-09
+- Received: 2026-10-08
 - From: a player commenting on CurseForge (1 report). In-game name not recorded yet.
 - Where: CurseForge comment
 - Source: not saved; only Tyler's retelling below. The comment's exact words are not in the
@@ -563,9 +563,9 @@ Design (Claude's decision on point 3, with the rest filled in; build from this, 
 - Type: request
 - Area: Settings
 - Severity: n/a
-- Status: built 0.6 (released 2026-10-10). Built in 0.6 build 3: a two-column Settings
+- Status: built 0.6 (released 2026-10-09). Built in 0.6 build 3: a two-column Settings
   menu with switches for the seven `/aux tooltip ...` lines, from a mockup Tyler approved
-  (2026-10-09). Tooltip switches tested in game (build 4, pass). A Bid prices choice was added in
+  (2026-10-08). Tooltip switches tested in game (build 4, pass). A Bid prices choice was added in
   build 3 and removed in build 4 (Tyler, see below). Left as chat only: ignore owner, action
   shortcuts, debug, post bid.
 - Proposed: 0.6
@@ -577,7 +577,7 @@ Tyler's notes: "I pushed back a little bit on that saying like aux debug and lik
 commands I would want in the settings menu, but I'm sure there's some in there that are like
 effectively toggles and they could be added in addition to being a CLI command or a chat command,
 they could also be in the settings menu. If any of the choices are obvious, then just go ahead and
-build those in. And then if any aren't obvious, just ask me." (2026-10-09)
+build those in. And then if any aren't obvious, just ask me." (2026-10-08)
 
 Recorder's notes (the building session):
 - Built as obvious: the tooltip lines (Value, Today, Vendor sell price, Vendor buy price,
@@ -593,14 +593,14 @@ Recorder's notes (the building session):
 Unknowns: which commands the player had in mind. Built so it holds either way: every plain on/off
 the player would meet in tooltips is now in the menu.
 
-Tyler's notes, 2026-10-09 (on build 2): "this picture is not what I envisioned at all for the
+Tyler's notes, 2026-10-08 (on build 2): "this picture is not what I envisioned at all for the
 settings menu" ... "I envision toggles, not checkboxes" ... "What it seems that you've built is
 something only pertaining to tooltips?" On the Alt-click shortcuts: "Isnt this dangerous cause they
 could buy a stack of 1000 on accident?" (they buy gear in one click and a stack in two, so they stay
 chat only). On the mockup (https://claude.ai/artifact/21FjqFGt2vzbVo9BDG5d6j): "I actually really
 like what you made here in the mock-up" ... "I love this layout."
 
-Tyler's notes, build 4 test (2026-10-09): "Tooltip stuff is good. Bid row setting is probably
+Tyler's notes, build 4 test (2026-10-08): "Tooltip stuff is good. Bid row setting is probably
 broken, but im not sure how its supposed to work. With this bid price option, does the stack option
 even make any sense?" Recorder: on Forever only items (gear) can have bids, trade goods cannot, and
 an item auction holds one item, so "per stack" means the same as "per item" or nothing; Tyler's
@@ -611,7 +611,7 @@ Ask Tyler: the player's in-game name (for the changelog credit) and, if he has i
 exact words.
 ### FB-009: Post cloth in several stacks of a chosen size
 
-- Received: 2026-10-10 (said on 2026-10-09, about an hour before Tyler's screenshot)
+- Received: 2026-10-09 (said about an hour before Tyler's screenshot)
 - From: Maggew (1 report)
 - Where: CurseForge comment on the auxForever project page
 - Source: [source](feedback/sources/2026-10-09-maggew-curseforge.md)
@@ -619,7 +619,7 @@ exact words.
 - Type: request
 - Area: Post
 - Severity: n/a
-- Status: wont-fix (Tyler, 2026-10-10: Forever's auction house has no stacks, and teaching the
+- Status: wont-fix (Tyler, 2026-10-09: Forever's auction house has no stacks, and teaching the
   modern auction house is not the addon's job; see "How we read feedback", the exception)
 - Proposed: none
 
@@ -636,7 +636,7 @@ Steps / setup: wants to post 100 Linen Cloth as 20 stacks of 5 in one go, as Cla
 
 Tyler's notes: replied on CurseForge that Forever has no stacks: the auction house groups all units
 of an item into one pile per price, so 122 Linen Cloth at 23c are posted at once by typing 122 in
-the Quantity field. Decision (2026-10-10): not built; the addon is for intermediate players who know
+the Quantity field. Decision (2026-10-09): not built; the addon is for intermediate players who know
 the modern auction house. This entry is why the exception to "How we read feedback" exists.
 
 Recorder's notes:
@@ -655,7 +655,7 @@ Ask Tyler: none.
 
 ## Before this log
 
-Feedback before 2026-10-08 was recorded in other files, not here:
+Feedback before 2026-10-07 was recorded in other files, not here:
 
 - Two guild testers (Darkhorse, Hotpocket) asked for recipe search, built in 0.4
   (`docs/roadmap.md`, 0.4, "Recipe search"); their concern about memory use led to `/aux memory`

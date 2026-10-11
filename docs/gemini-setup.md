@@ -1,12 +1,12 @@
 # Adding Gemini to the project
 
-Written for Tyler, 2026-10-05. Gemini (and any other AI) learns the project from `AGENTS.md` at the
+Written for Tyler, 2026-10-04. Gemini (and any other AI) learns the project from `AGENTS.md` at the
 top of the repository; `GEMINI.md` loads it automatically. There are two ways to use Gemini on
 this repository. Both can be used alongside Claude.
 
 ## Starting point
 
-Everything up to version 0.2 is merged into `main` (pull request #1, 2026-10-05). Every agent
+Everything up to version 0.2 is merged into `main` (pull request #1, 2026-10-04). Every agent
 starts from `main` and works on its own branch.
 
 ## Option 1: Jules (in the browser, works like Claude here)

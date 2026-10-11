@@ -24,7 +24,7 @@ end
 --   new      the UI Kit in the Paper file "auxForever Screens" (Christian Webster): near black
 --            surfaces, black edges, one gold accent. Its blacks are a little lighter than the kit's
 --            and sunken fields have a gray edge, so text boxes stand out from the panels (Tyler,
---            2026-10-09: "it's hard to tell where the text boxes are").
+--            2026-10-08: "it's hard to tell where the text boxes are").
 --   classic  the 0.5 look: warm text on dark slate, amber accent
 M.PALETTES = {
 	new = {
@@ -45,7 +45,7 @@ M.PALETTES = {
 		accent = {background = {229, 190, 91, 1}, text = {229, 190, 91, 1}, selected = {42, 35, 18, 1}, hover = {242, 212, 138, 1}, raised = {39, 32, 18, 1}},
 		selected = {229, 190, 91, .13},
 		hover = {255, 255, 255, .06},
-		-- every second table row (Tyler, 2026-10-09: zebra rows in dark gray)
+		-- every second table row (Tyler, 2026-10-08: zebra rows in dark gray)
 		stripe = {255, 255, 255, .04},
 		scrollbar = {229, 190, 91, .35},
 		-- the knob of a switch that is off (gui.switch)

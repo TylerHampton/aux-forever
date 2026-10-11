@@ -1,7 +1,7 @@
 # Source: Darkhorse and Tyler on Discord, 2026-10-07
 
 - Channel: Discord direct messages between Darkhorse and Tyler (shown as "Tye").
-- Received: 2026-10-08, as three screenshots from Tyler. The screenshots are not kept (they are
+- Received: 2026-10-07, as three screenshots from Tyler. The screenshots are not kept (they are
   Discord, not the game, and show a Discord username); this transcript replaces them.
 - Times are as Discord showed them on Tyler's screen (his time zone, not recorded).
 - Transcribed word for word, typos kept. Only curly apostrophes were made straight. "(edited)"
