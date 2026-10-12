@@ -203,9 +203,12 @@ Other mails **[Code]**: "Auction expired: X" (item back), "Auction canceled: X",
 - `CancelAuction(auctionID)` from a click; Blizzard asks first and shows the cost. **[Code]** aux's
   cancel works **[Seen]** (0.4.1 build 5).
 
-## Experiments (to be done in game; page: the test page, build id `ah-facts-1`)
+## Experiments (not scheduled)
 
-Gold costs are fine (Tyler, 2026-10-11). Each experiment checks one thing.
+Tyler, 2026-10-11: no dedicated test sessions; "we will learn it over time". These are what would
+settle each Unknown. When one comes up in normal play (a sale, a cancel, a trip to Booty Bay) or a
+screenshot happens to show it, record it here as Seen with the date. Gold costs are fine. The test
+page once carried them as build id `ah-facts-1`.
 
 - **E1 Sale timeline.** Post something cheap that sells fast on your faction house. Note the time
   of the "A buyer has been found" line; screenshot Blizzard's Auctions tab (Blizzard UI button) for

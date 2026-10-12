@@ -10,8 +10,6 @@ Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to
 
 ## Current build: none (0.6.1 released 2026-10-11)
 
-Open now on the test page instead: the auction house experiments E1 to E6 (build id `ah-facts-1`),
-listed in `docs/forever-auction-house.md`, Experiments. No new zip is needed for them.
 
 The last build, 0.6.1 build 2 (weapon slots in Search, audit fixes), was tested in game and
 released. The next build starts its steps here. Build 2's steps and results, kept for reference:

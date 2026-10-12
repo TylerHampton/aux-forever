@@ -23,9 +23,9 @@ in progress. Branch `claude/exciting-brown-a9k99n` has docs only, not merged (no
   own tests; the rule is in `AGENTS.md`. Notable: the 5% cut, the mail delay, the neutral houses'
   15% cut and shared listings, and "the newest listing at a price sells first" (behind the Post
   tab's default) are not confirmed; the last one has no recorded source at all. Experiments E1 to
-  E6 are on the test page, build id `ah-facts-1` (gold costs are fine, Tyler). **Next:** read the
-  results (`builds/ah-facts-1/results`), move each settled fact to Seen with the date, and tell
-  Tyler what changed, above all if E6 shows the Post tab's default is wrong.
+  E6 are written down but not scheduled (Tyler: "I dont want to do this we will learn it over
+  time"): record a fact as Seen when it comes up in normal play or a screenshot. The rule in
+  `AGENTS.md` stays.
 
 - **Released 0.6.1** on 2026-10-11 (PR #23, `main` 7fa5223): weapon slots in Search (FB-010), In
   words names the slot first, items seen at the auction house join aux's item list, your characters
@@ -178,7 +178,7 @@ in progress. Branch `claude/exciting-brown-a9k99n` has docs only, not merged (no
 - **How Tyler tests:** one test page, https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ
   (`index.html` with a `BUILD` id and `AREAS` steps; he marks Pass/Fail with notes and
   screenshots; read with ArtifactData, collection `builds/<build id>/results`, and download each
-  screenshot with Artifact read, `path` = the asset id). Last used: `ah-facts-1` (auction house experiments, waiting). He
+  screenshot with Artifact read, `path` = the asset id). Last used: `0-6-1-build-2` (passed); the auction house experiments (`ah-facts-1`) were dropped. He
   often uploads screenshots without marking a status: read the screenshots. Zips:
   `auxForever-<version>-build<n>.zip`, sent with the file tool; say whether `/reload` is enough.
 - **Mockups:** the Post panel mockup (options A, B, C, A chosen) is
