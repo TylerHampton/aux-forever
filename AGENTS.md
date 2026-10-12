@@ -15,6 +15,13 @@ permission by email (quoted in `README.md`); he is not involved in this version.
   house API (`C_AuctionHouse`). aux was written for Classic Era's old auction house, so search,
   buying and posting were rewritten. Facts about Forever's auction house, with sources:
   `docs/forever-auction-house.md`. Read it before touching scanning, buying or posting.
+- **Only confirmed facts about Forever's auction house** (Tyler, 2026-10-11, "we need to confirm
+  things like this"). Every fact in `docs/forever-auction-house.md` is labeled Seen (seen in game),
+  Code (Blizzard's Forever code), Outside (another addon or a guide) or Unknown. Only a Seen fact
+  goes to a player, into a reply Tyler sends, or into a design decision as plain fact; anything
+  else is said with its label ("Blizzard's code shows X; not yet seen in game"). Retail WoW
+  knowledge counts as Outside. A new fact goes into that file with its label; an Unknown that
+  matters becomes an experiment there for Tyler.
 - The addon is the `auxForever/` folder. Players copy it into
   `World of Warcraft\_classic_beta_\Interface\AddOns`.
 - Released as a beta on CurseForge (unlisted). Page text and settings: `docs/curseforge.md`,

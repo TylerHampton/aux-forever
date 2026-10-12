@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-11, Mountain Time (0.6.1 released).
+Last updated 2026-10-11, Mountain Time (0.6.1 released; auction house facts being confirmed).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -11,7 +11,21 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 ## Start here (next session)
 
 **Where things stand:** 0.6, 0.6.0.1, 0.6.0.2 and **0.6.1** are released and on `main`. No build is
-in progress and no branch has unmerged work. Start the next version from the latest `main`.
+in progress. Branch `claude/exciting-brown-a9k99n` has docs only, not merged (no PR yet).
+
+- **Auction house facts** (2026-10-11, Tyler: "we need to confirm things like this. Lets not do
+  anything we just need to know everything there is to know about the auction house"). Came from a
+  player's question (swade35b on CurseForge: is there a sales history; he sold an item and got no
+  payment) and a draft reply that stated a mail delay nobody had checked. Not built, not logged as
+  feedback (Tyler: "Lets not do anything"). Done: `docs/forever-auction-house.md` rewritten with a
+  label on every fact (Seen, Code, Outside, Unknown) from Blizzard's Forever code (build 70338),
+  the game's text, two Forever addons, web search summaries (the pages could not be opened) and our
+  own tests; the rule is in `AGENTS.md`. Notable: the 5% cut, the mail delay, the neutral houses'
+  15% cut and shared listings, and "the newest listing at a price sells first" (behind the Post
+  tab's default) are not confirmed; the last one has no recorded source at all. Experiments E1 to
+  E6 are on the test page, build id `ah-facts-1` (gold costs are fine, Tyler). **Next:** read the
+  results (`builds/ah-facts-1/results`), move each settled fact to Seen with the date, and tell
+  Tyler what changed, above all if E6 shows the Post tab's default is wrong.
 
 - **Released 0.6.1** on 2026-10-11 (PR #23, `main` 7fa5223): weapon slots in Search (FB-010), In
   words names the slot first, items seen at the auction house join aux's item list, your characters
@@ -164,7 +178,7 @@ in progress and no branch has unmerged work. Start the next version from the lat
 - **How Tyler tests:** one test page, https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ
   (`index.html` with a `BUILD` id and `AREAS` steps; he marks Pass/Fail with notes and
   screenshots; read with ArtifactData, collection `builds/<build id>/results`, and download each
-  screenshot with Artifact read, `path` = the asset id). Last used: `0-6-1-build-2` (passed). He
+  screenshot with Artifact read, `path` = the asset id). Last used: `ah-facts-1` (auction house experiments, waiting). He
   often uploads screenshots without marking a status: read the screenshots. Zips:
   `auxForever-<version>-build<n>.zip`, sent with the file tool; say whether `/reload` is enough.
 - **Mockups:** the Post panel mockup (options A, B, C, A chosen) is
