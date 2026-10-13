@@ -6,6 +6,17 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.6.1.1 (not released yet)
+
+### Fixes
+
+- Post tab: clicking an item's icon in the list of bag items on the left now selects it for
+  posting, the same as clicking its name. Before, only the name worked and a click on the icon did
+  nothing. Right-click on the icon also searches the item now, as it does on the name (reported
+  by Gaddor).
+
+`/reload` is enough to update.
+
 ## 0.6.1 (2026-10-11)
 
 ### Search

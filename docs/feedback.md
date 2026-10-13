@@ -117,6 +117,7 @@ For whoever fixes or builds from it:
 | [FB-008](#fb-008-chat-command-settings-should-also-be-in-the-settings-menu) | 2026-10-08 | CurseForge player (name not recorded yet) | request | Settings | n/a | Chat command settings should also be in the Settings menu | built 0.6 (released 2026-10-09) |
 | [FB-009](#fb-009-post-cloth-in-several-stacks-of-a-chosen-size) | 2026-10-09 | Maggew | request | Post | n/a | Post cloth in several stacks of a chosen size, as in Classic | wont-fix (Forever has no stacks; Tyler: not the addon's job) |
 | [FB-010](#fb-010-picking-a-weapon-slot-such-as-daggers-searches-every-weapon-of-that-kind) | 2026-10-11 | GregoryWW | bug | Search | S2 | Picking a weapon slot such as Daggers searches every weapon of that kind | fixed 0.6.1 (released 2026-10-11) |
+| [FB-011](#fb-011-clicking-an-items-icon-in-the-post-tabs-list-does-not-select-it) | 2026-10-12 | Gaddor | bug | Post | S3 | Clicking an item's icon in the Post tab's list does not select it | in-progress claude/happy-heisenberg-rhg2vi (0.6.1.1) |
 
 ## Players
 
@@ -135,6 +136,7 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
   auction house habits (FB-009). Whether they also wrote the
   CurseForge comment behind FB-008 is not known.
 - **GregoryWW**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-010.
+- **Gaddor**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-011.
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
   words.
@@ -696,6 +698,43 @@ Recorder's notes:
 
 Unknowns: which weapon slot and which screen (the "Which items" menus or typed text). The fix
 covers both, since both go through the same parser.
+
+Ask Tyler: none.
+
+### FB-011: Clicking an item's icon in the Post tab's list does not select it
+
+- Received: 2026-10-12 (posted about 35 minutes before Tyler's screenshot)
+- From: Gaddor (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-12-gaddor-curseforge.md)
+- Version: unknown (likely 0.6.1, the version on CurseForge)
+- Type: bug
+- Area: Post
+- Severity: S3 (clicking the name works; but the player thought the tab was broken and reloaded
+  several times)
+- Status: in-progress claude/happy-heisenberg-rhg2vi (0.6.1.1)
+- Proposed: hotfix; Tyler: "We will ship 6.1.1 tonight with an easy fix" (2026-10-12), named
+  0.6.1.1 by the numbering rule (a bug fix raises the fourth number)
+
+Said:
+> Minor thing, on the Post screen you have to click on the item's text to select it for selling.. I kept clicking the icon to select it and nothing was happening, like an idiot i kept doing it over and over and even reloaded the UI a few times until i realized what was happening..  Is it possible to have clicking either the Icon or the Text on the post screen select the item for posting?    -Thanks
+
+Steps / setup: Post tab, the list of bag items on the left. A click on an item's icon did nothing;
+a click on its name selected it.
+
+Tyler's notes: wants it fixed in a bug fix release the same night.
+
+Recorder's notes:
+- Confirmed in the code. Each row of the list (`gui/item_listing.lua`) takes clicks on the row
+  frame (`OnMouseUp`). The icon is a separate button (`gui.item`, a Blizzard action button) that
+  takes the mouse for its item tooltip and is registered for no clicks, so a click on it went
+  nowhere. The code dates from Simon's aux. Inference: Classic aux behaved the same.
+- Fix: the icon's mouse-up calls the row's click handler, so left-click selects and right-click
+  searches, from the icon or the name. Test `lists follow the window size` (item list: a click on
+  the icon selects the item), fails without the fix.
+- Not a player mistake: the icon is the biggest thing in the row and looks like a button.
+
+Unknowns: none that change the fix.
 
 Ask Tyler: none.
 

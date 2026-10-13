@@ -80,6 +80,9 @@ local function create_row(item_listing, row_index)
 		GameTooltip:Show()
 	end)
 	row.item.button:SetScript('OnLeave', function() GameTooltip:Hide() end)
+	-- auxForever (0.6.1.1, FB-011): the icon catches the mouse for its tooltip, so a click on it
+	-- never reached the row. It now does the same as a click on the name.
+	row.item.button:SetScript('OnMouseUp', function(_, button) item_listing.on_click(row, button) end)
 
 	row.highlight = gui.row_selection(row)
 	row.hover = gui.row_hover(row)
