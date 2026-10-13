@@ -26,6 +26,8 @@ raises the third (0.6.1); new features are the next minor version (0.7).
   (its link), how to read one version's listings (build 3's search by the bag item's key found
   nothing; Blizzard uses `SendSellSearchQuery` for gear), and how the bag list and table should
   name versions (a visual change: mockup first).
+- **Player requests (2026-10-13):** a public price API for other addons (FB-012) and an item
+  level column in Search (FB-013, mockup first). Not decided.
 - Whatever players report on 0.6 (`docs/feedback.md`, from FB-010).
 
 

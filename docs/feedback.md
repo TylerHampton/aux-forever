@@ -118,6 +118,8 @@ For whoever fixes or builds from it:
 | [FB-009](#fb-009-post-cloth-in-several-stacks-of-a-chosen-size) | 2026-10-09 | Maggew | request | Post | n/a | Post cloth in several stacks of a chosen size, as in Classic | wont-fix (Forever has no stacks; Tyler: not the addon's job) |
 | [FB-010](#fb-010-picking-a-weapon-slot-such-as-daggers-searches-every-weapon-of-that-kind) | 2026-10-11 | GregoryWW | bug | Search | S2 | Picking a weapon slot such as Daggers searches every weapon of that kind | fixed 0.6.1 (released 2026-10-11) |
 | [FB-011](#fb-011-clicking-an-items-icon-in-the-post-tabs-list-does-not-select-it) | 2026-10-12 | Gaddor | bug | Post | S3 | Clicking an item's icon in the Post tab's list does not select it | fixed 0.6.1.1 (tested 2026-10-12) |
+| [FB-012](#fb-012-a-public-api-so-other-addons-can-read-auxs-prices) | 2026-10-13 | MDHippie | request | Other | n/a | A public API so other addons can read aux's prices | new |
+| [FB-013](#fb-013-an-item-level-column-in-the-search-results) | 2026-10-13 | HoaxBox | request | Search | n/a | An item level column in the search results | new |
 
 ## Players
 
@@ -137,6 +139,10 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
   CurseForge comment behind FB-008 is not known.
 - **GregoryWW**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-010.
 - **Gaddor**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-011.
+- **MDHippie**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-012.
+  Names `history.latest`, so has read aux's code. Inference: writes addons or scripts of their own.
+- **HoaxBox**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-013;
+  opened with "awesome addon".
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
   words.
@@ -738,6 +744,99 @@ Recorder's notes:
 Unknowns: none that change the fix.
 
 Ask Tyler: none.
+
+### FB-012: A public API so other addons can read aux's prices
+
+- Received: 2026-10-13 (posted about 9 hours before Tyler's screenshot)
+- From: MDHippie (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-13-mdhippie-curseforge.md)
+- Version: unknown (likely 0.6.1.1, the version on CurseForge)
+- Type: request
+- Area: Other (price data)
+- Severity: n/a
+- Status: new
+- Proposed: 0.7 (a new feature by the roadmap rule), if Tyler wants it at all
+
+Said:
+> Hey, is there a chance you could add a public API for other addons to get AH prices from this addon? history.latest is private atm. Thanks!
+
+Steps / setup: none; a request.
+
+Tyler's notes: none yet.
+
+Recorder's notes:
+- Confirmed in the code: no other addon can call aux's functions. `history.latest` (the market
+  price of the latest complete look, shown as Value in tooltips; `core/history.lua`) lives in
+  aux's module system (`libs/package.lua`), which writes nothing to `_G`. The only global is
+  `aux`, the saved variables table (`aux-addon.lua`).
+- Inference: another addon could read the raw prices from that saved table today, but the format
+  is internal and has changed before (`history_version` 3 wiped older data,
+  `aux-addon.lua`). A real API would be a promise not to break callers.
+- What an API would involve (recorder's sketch, not decided): one global table with a version
+  number and a few read-only functions, for example the price of an item by link or ID (latest,
+  usual price, age in days), for the player's realm and faction (`aux.faction_data.history`,
+  keyed by realm and faction). It only answers when called, so it costs nothing per frame. It
+  needs a test that guards each function and a page in `docs/` for addon authors.
+- Inference: other auction addons offer something like this (TSM's `TSM_API`, Auctionator's
+  `Auctionator.API.v1`, from memory, not checked in this session). Copying the shape of one of
+  them would make aux easy to adopt for authors who already support those.
+- Which price matters: `history.latest` (what the auction house showed last) and `history.value`
+  (the multi-day usual price) answer different questions (`docs/price-data.md`). The player named
+  `latest`; an API should say which one it returns.
+
+Unknowns: what MDHippie wants to build with it (a tooltip, a crafting addon, a WeakAura). An API
+that returns both prices and their age covers all of these.
+
+Ask Tyler:
+- Do you want aux to offer an API to other addons? Once it is out, its names and meanings must
+  stay the same, so it is a small ongoing cost.
+- If yes: 0.7, or sooner as a small addition?
+
+### FB-013: An item level column in the search results
+
+- Received: 2026-10-13 (posted about 3 hours before Tyler's screenshot)
+- From: HoaxBox (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-13-hoaxbox-curseforge.md)
+- Version: unknown (likely 0.6.1.1, the version on CurseForge)
+- Type: request
+- Area: Search
+- Severity: n/a
+- Status: new
+- Proposed: 0.7 (a new column is a visual change: mockup first)
+
+Said:
+> awesome addon
+> just one lil Thing, could you add an Itemlvl column to the search window?
+
+Steps / setup: none; a request.
+
+Tyler's notes: none yet.
+
+Recorder's notes:
+- Confirmed in the code: the search table's first column, "Lvl", is the level required to use the
+  item, not the item level (`level_column` in `gui/auction_listing.lua`; red when above your
+  level). The same column is in the Auctions and Bids tables.
+- Inference: the label "Lvl" is ambiguous. A player who wants item level may read it as item
+  level and be misled, or, like HoaxBox (who wrote "Itemlvl"), see it is not and ask for it. By
+  the main rule this is the addon's problem either way.
+- Item level is available: `GetItemInfo` returns it (`util/info.lua` already reads it into item
+  info as `level`), and the browse list's item key carries `itemLevel` (used for the row
+  tooltip). Search records do not store it yet.
+- Space: the table is already full at the smallest window (Lvl is 3% wide, Item 35%). A new
+  column takes width from the others; a mockup should show both looks at the smallest window.
+- A possible design (recorder's, not decided): rename the current column "Req" and add "iLvl"
+  next to it, both sortable.
+
+Unknowns: why HoaxBox wants it (comparing gear, sorting, spotting upgrades), and whether Forever
+shows item level in its own tooltips (Classic Era does not by default). A sortable column covers comparing
+and sorting; a filter by item level was not asked for.
+
+Ask Tyler:
+- Do you see item level in Forever's tooltips? If the game hides it, a column adds information
+  players cannot get elsewhere; if it shows it, the column saves a hover.
+- Rename "Lvl" to "Req" at the same time?
 
 ## Before this log
 

@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-12, Mountain Time (0.6.1.1 released).
+Last updated 2026-10-13, Mountain Time (two new player requests logged).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -11,7 +11,14 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 ## Start here (next session)
 
 **Where things stand:** 0.6, 0.6.0.1, 0.6.0.2, 0.6.1 and **0.6.1.1** are released and on `main`.
-No build is in progress. Start the next version from the latest `main`. Branch
+No build is in progress. Start the next version from the latest `main`.
+
+- **New feedback** (2026-10-13, CurseForge, logged only, nothing built): FB-012 (MDHippie) asks
+  for a public API so other addons can read aux's prices; FB-013 (HoaxBox) asks for an item level
+  column in the search results (today's "Lvl" column is the required level). Both are new
+  features, so 0.7 by the roadmap rule. Open questions for Tyler are in each entry's "Ask Tyler"
+  (whether to offer an API at all; whether Forever's tooltips show item level; rename "Lvl" to
+  "Req"). Branch
 `claude/exciting-brown-a9k99n` (docs only: auction house facts, experiments not scheduled) is
 not merged; ask Tyler whether to merge it.
 
