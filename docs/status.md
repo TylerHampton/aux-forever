@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-11, Mountain Time (0.6.1 released).
+Last updated 2026-10-12, Mountain Time (0.6.1.1 tested, being released).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -10,8 +10,22 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand:** 0.6, 0.6.0.1, 0.6.0.2 and **0.6.1** are released and on `main`. No build is
-in progress and no branch has unmerged work. Start the next version from the latest `main`.
+**Where things stand:** 0.6, 0.6.0.1, 0.6.0.2 and **0.6.1** are released and on `main`. **0.6.1.1** (a
+bug fix, "The Gaddor Update" in the changelog only, Tyler's name for it) passed Tyler's test on
+2026-10-12 and is being released from branch `claude/happy-heisenberg-rhg2vi`.
+
+- **0.6.1.1 build 1** (2026-10-12): FB-011 (Gaddor on CurseForge): in the Post tab's list of bag
+  items, a click on an item's icon did nothing; only the name worked. The icon is its own button
+  (for its tooltip) and swallowed the click. Its mouse-up now calls the row's click handler
+  (`gui/item_listing.lua`), so left-click selects and right-click searches from the icon too.
+  Test in `lists follow the window size` (item list: a click on the icon selects the item), fails
+  without the fix. Tyler wrote "6.1.1"; named 0.6.1.1 by the numbering rule (a bug fix raises the
+  fourth number). Zip `auxForever-0.6.1.1-build1.zip`, `/reload` is enough. Test page build id
+  `0-6-1-1-build-1` (3 steps, the same as `TESTING.md`). The page held the auction house
+  experiments (`ah-facts-1`, no answers saved); branch `claude/exciting-brown-a9k99n` (docs only,
+  not merged) says Tyler does not want them scheduled, so the page now shows this build.
+- **Build 1 in game** (Tyler, 2026-10-12, `builds/0-6-1-1-build-1/results`, screenshots): icon
+  click selects, name click selects, right-click on the icon searches. All pass.
 
 - **Released 0.6.1** on 2026-10-11 (PR #23, `main` 7fa5223): weapon slots in Search (FB-010), In
   words names the slot first, items seen at the auction house join aux's item list, your characters
@@ -164,7 +178,7 @@ in progress and no branch has unmerged work. Start the next version from the lat
 - **How Tyler tests:** one test page, https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ
   (`index.html` with a `BUILD` id and `AREAS` steps; he marks Pass/Fail with notes and
   screenshots; read with ArtifactData, collection `builds/<build id>/results`, and download each
-  screenshot with Artifact read, `path` = the asset id). Last used: `0-6-1-build-2` (passed). He
+  screenshot with Artifact read, `path` = the asset id). Last used: `0-6-1-1-build-1` (passed). He
   often uploads screenshots without marking a status: read the screenshots. Zips:
   `auxForever-<version>-build<n>.zip`, sent with the file tool; say whether `/reload` is enough.
 - **Mockups:** the Post panel mockup (options A, B, C, A chosen) is

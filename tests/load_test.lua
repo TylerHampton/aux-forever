@@ -255,6 +255,19 @@ try('lists follow the window size', function()
   check('item list: 10 rows fit', #il.rows == 10)
   G.__geometry = nil
 
+  -- FB-011 (Gaddor): a click on a row's icon selects the item, as a click on its name does
+  local clicked = {}
+  local il2 = item_listing.new(new_frame(), function(self, button) tinsert(clicked, {self.item_record, button}) end, function() return false end)
+  G.__geometry = {size = 400, edge = 100}
+  il2.content_frame.__scripts.OnSizeChanged(il2.content_frame)
+  G.__geometry = nil
+  local row = il2.rows[1]
+  row.item_record = {name = 'Linen Cloth'}
+  row.item.button.__scripts.OnMouseUp(row.item.button, 'LeftButton')
+  check('item list: a click on the icon selects the item', clicked[1] and clicked[1][1] == row.item_record and clicked[1][2] == 'LeftButton')
+  row.__scripts.OnMouseUp(row, 'RightButton')
+  check('item list: a click on the name still does', clicked[2] and clicked[2][1] == row.item_record and clicked[2][2] == 'RightButton')
+
   -- the window size is saved and restored within the screen
   local aux = require 'aux'
   local f, w, h = aux.frame

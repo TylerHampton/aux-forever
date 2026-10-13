@@ -37,8 +37,8 @@ mockup).
 
 | Click | What happens |
 | --- | --- |
-| Left-click an item in the bag list | Select it for posting |
-| Right-click an item in the bag list | Search for it on the Search tab |
+| Left-click an item in the bag list (its icon or its name, since 0.6.1.1, FB-011) | Select it for posting |
+| Right-click an item in the bag list (icon or name) | Search for it on the Search tab |
 | Left-click a price in the bid or buyout list | Use that price |
 | Right-click a price in those lists | Clear the chosen price (only if it is the chosen one) |
 | Double-click a price in those lists | Set the stack size to that listing's |
