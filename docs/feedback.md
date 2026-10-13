@@ -117,7 +117,7 @@ For whoever fixes or builds from it:
 | [FB-008](#fb-008-chat-command-settings-should-also-be-in-the-settings-menu) | 2026-10-08 | CurseForge player (name not recorded yet) | request | Settings | n/a | Chat command settings should also be in the Settings menu | built 0.6 (released 2026-10-09) |
 | [FB-009](#fb-009-post-cloth-in-several-stacks-of-a-chosen-size) | 2026-10-09 | Maggew | request | Post | n/a | Post cloth in several stacks of a chosen size, as in Classic | wont-fix (Forever has no stacks; Tyler: not the addon's job) |
 | [FB-010](#fb-010-picking-a-weapon-slot-such-as-daggers-searches-every-weapon-of-that-kind) | 2026-10-11 | GregoryWW | bug | Search | S2 | Picking a weapon slot such as Daggers searches every weapon of that kind | fixed 0.6.1 (released 2026-10-11) |
-| [FB-011](#fb-011-clicking-an-items-icon-in-the-post-tabs-list-does-not-select-it) | 2026-10-12 | Gaddor | bug | Post | S3 | Clicking an item's icon in the Post tab's list does not select it | in-progress claude/happy-heisenberg-rhg2vi (0.6.1.1) |
+| [FB-011](#fb-011-clicking-an-items-icon-in-the-post-tabs-list-does-not-select-it) | 2026-10-12 | Gaddor | bug | Post | S3 | Clicking an item's icon in the Post tab's list does not select it | fixed 0.6.1.1 (tested 2026-10-12) |
 
 ## Players
 
@@ -712,7 +712,8 @@ Ask Tyler: none.
 - Area: Post
 - Severity: S3 (clicking the name works; but the player thought the tab was broken and reloaded
   several times)
-- Status: in-progress claude/happy-heisenberg-rhg2vi (0.6.1.1)
+- Status: fixed 0.6.1.1 (commit 2a1d144; Tyler's test
+  passed 2026-10-12: icon click selects, right-click on the icon searches)
 - Proposed: hotfix; Tyler: "We will ship 6.1.1 tonight with an easy fix" (2026-10-12), named
   0.6.1.1 by the numbering rule (a bug fix raises the fourth number)
 

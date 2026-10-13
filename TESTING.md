@@ -12,13 +12,14 @@ Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to
 
 Fix for FB-011 (Gaddor): clicking an item's icon in the Post tab's bag list now selects it.
 Zip `auxForever-0.6.1.1-build1.zip`. `/reload` is enough (no new files). Test page build id
-`0-6-1-1-build-1`. Steps, in the New theme:
+`0-6-1-1-build-1`. 
+Tested by Tyler on 2026-10-12 (screenshots): all 3 steps pass. Steps, in the New theme:
 
-- [ ] 1. Post tab: in the list of bag items on the left, click an item's **icon** (the picture, not
+- [x] 1. Post tab: in the list of bag items on the left, click an item's **icon** (the picture, not
       the name). The item is selected: its row lights up and the price panel fills in.
-- [ ] 2. Click a different item's **name**. That item is selected (this worked before; check it
+- [x] 2. Click a different item's **name**. That item is selected (this worked before; check it
       still does).
-- [ ] 3. Right-click an item's **icon**. aux switches to the Search tab and searches that item.
+- [x] 3. Right-click an item's **icon**. aux switches to the Search tab and searches that item.
 
 The last build before this one, 0.6.1 build 2 (weapon slots in Search, audit fixes), was tested in
 game and released. Its steps and results, kept for reference:
