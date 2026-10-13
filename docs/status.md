@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-12, Mountain Time (0.6.1.1 tested, being released).
+Last updated 2026-10-12, Mountain Time (0.6.1.1 released).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -10,10 +10,18 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand:** 0.6, 0.6.0.1, 0.6.0.2 and **0.6.1** are released and on `main`. **0.6.1.1** (a
-bug fix, "The Gaddor Update" in the changelog only, Tyler's name for it) passed Tyler's test on
-2026-10-12 and is being released from branch `claude/happy-heisenberg-rhg2vi`.
+**Where things stand:** 0.6, 0.6.0.1, 0.6.0.2, 0.6.1 and **0.6.1.1** are released and on `main`.
+No build is in progress. Start the next version from the latest `main`. Branch
+`claude/exciting-brown-a9k99n` (docs only: auction house facts, experiments not scheduled) is
+not merged; ask Tyler whether to merge it.
 
+- **Released 0.6.1.1** on 2026-10-12 (PR #25, `main` 154a584), "The Gaddor Update" (Tyler's
+  name, used in the changelog only): a click on an item's icon in the Post tab's bag list selects
+  it (FB-011). Tag `v0.6.1.1`, GitHub pre-release
+  https://github.com/TylerHampton/aux-forever/releases/tag/v0.6.1.1, CurseForge Beta file id
+  9153068 (Release run 38336234368). `/reload` is enough for players. The name is in the
+  changelog heading and as the first line of the section's text, since the Release workflow
+  leaves the heading out of the GitHub and CurseForge notes.
 - **0.6.1.1 build 1** (2026-10-12): FB-011 (Gaddor on CurseForge): in the Post tab's list of bag
   items, a click on an item's icon did nothing; only the name worked. The icon is its own button
   (for its tooltip) and swallowed the click. Its mouse-up now calls the row's click handler
