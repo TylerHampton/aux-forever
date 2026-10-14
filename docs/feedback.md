@@ -118,8 +118,8 @@ For whoever fixes or builds from it:
 | [FB-009](#fb-009-post-cloth-in-several-stacks-of-a-chosen-size) | 2026-10-09 | Maggew | request | Post | n/a | Post cloth in several stacks of a chosen size, as in Classic | wont-fix (Forever has no stacks; Tyler: not the addon's job) |
 | [FB-010](#fb-010-picking-a-weapon-slot-such-as-daggers-searches-every-weapon-of-that-kind) | 2026-10-11 | GregoryWW | bug | Search | S2 | Picking a weapon slot such as Daggers searches every weapon of that kind | fixed 0.6.1 (released 2026-10-11) |
 | [FB-011](#fb-011-clicking-an-items-icon-in-the-post-tabs-list-does-not-select-it) | 2026-10-12 | Gaddor | bug | Post | S3 | Clicking an item's icon in the Post tab's list does not select it | fixed 0.6.1.1 (tested 2026-10-12) |
-| [FB-012](#fb-012-a-public-api-so-other-addons-can-read-auxs-prices) | 2026-10-13 | MDHippie | request | Other | n/a | A public API so other addons can read aux's prices | in-progress 0.7 build 1 |
-| [FB-013](#fb-013-an-item-level-column-in-the-search-results) | 2026-10-13 | HoaxBox | request | Search | n/a | An item level column in the search results | in-progress 0.7 build 1 |
+| [FB-012](#fb-012-a-public-api-so-other-addons-can-read-auxs-prices) | 2026-10-13 | MDHippie | request | Other | n/a | A public API so other addons can read aux's prices | built 0.7 (released 2026-10-13) |
+| [FB-013](#fb-013-an-item-level-column-in-the-search-results) | 2026-10-13 | HoaxBox | request | Search | n/a | An item level column in the search results | built 0.7 (released 2026-10-13) |
 
 ## Players
 
@@ -755,8 +755,8 @@ Ask Tyler: none.
 - Type: request
 - Area: Other (price data)
 - Severity: n/a
-- Status: in-progress `claude/pensive-dirac-0p6npg` (0.7 build 1: `AuxForeverAPI`, `core/api.lua`,
-  `docs/api.md`)
+- Status: built 0.7 (commit a244d2d, released 2026-10-13; Tyler's test passed: the API printed
+  Linen Cloth's price in game)
 - Proposed: 0.7 (a new feature by the roadmap rule), if Tyler wants it at all
 
 Said:
@@ -804,7 +804,8 @@ Ask Tyler:
 - Type: request
 - Area: Search
 - Severity: n/a
-- Status: in-progress `claude/pensive-dirac-0p6npg` (0.7 build 4)
+- Status: built 0.7 (commits a244d2d, 38e04e5, 963a6c3; released 2026-10-13; Tyler's test of
+  build 4 passed)
 - Proposed: 0.7 (a new column is a visual change: mockup first)
 
 Said:
