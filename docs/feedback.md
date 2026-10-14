@@ -120,6 +120,7 @@ For whoever fixes or builds from it:
 | [FB-011](#fb-011-clicking-an-items-icon-in-the-post-tabs-list-does-not-select-it) | 2026-10-12 | Gaddor | bug | Post | S3 | Clicking an item's icon in the Post tab's list does not select it | fixed 0.6.1.1 (tested 2026-10-12) |
 | [FB-012](#fb-012-a-public-api-so-other-addons-can-read-auxs-prices) | 2026-10-13 | MDHippie | request | Other | n/a | A public API so other addons can read aux's prices | built 0.7 (released 2026-10-13) |
 | [FB-013](#fb-013-an-item-level-column-in-the-search-results) | 2026-10-13 | HoaxBox | request | Search | n/a | An item level column in the search results | built 0.7 (released 2026-10-13) |
+| [FB-014](#fb-014-the-post-tabs-deposit-is-too-low-for-cheap-items-the-game-charges-1-silver) | 2026-10-14 | sarrathsilentstrider | bug | Post | medium | The Post tab's deposit is too low for cheap items (the game charges 1 silver) | new (0.7.0.1, top priority) |
 
 ## Players
 
@@ -143,6 +144,8 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
   Names `history.latest`, so has read aux's code. Inference: writes addons or scripts of their own.
 - **HoaxBox**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-013;
   opened with "awesome addon".
+- **sarrathsilentstrider**: CurseForge commenter (CurseForge name; in-game name unknown). Reported
+  FB-014; checked the gold the game takes, item by item.
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
   words.
@@ -852,6 +855,60 @@ Ask Tyler:
 - Answered 2026-10-13: Tyler thinks tooltips do not show item level (screenshot to resend).
 - Answered 2026-10-13: two columns. Gray for "well above" (blue is the color of rare items'
   names in the same row; gray is Blizzard's color for trivial), not objected to.
+
+### FB-014: The Post tab's deposit is too low for cheap items (the game charges 1 silver)
+
+- Received: 2026-10-14 (around midnight Mountain Time)
+- From: sarrathsilentstrider (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-14-sarrathsilentstrider-curseforge.md)
+- Version: unknown (likely 0.7, the version on CurseForge)
+- Type: bug
+- Area: Post
+- Severity: medium (a wrong number on the receipt; the player pays more than shown)
+- Status: new
+- Proposed: 0.7.0.1 (Tyler, 2026-10-14: "this is prio for .7.0.1")
+
+Said:
+> the deposit amount AUX shows is not correct, at least for low level crafting mats and
+> consumables.  EVERYHTING is 1 silver to deposit...stack of 20 copper ore or a single Protection
+> Scroll (Tier1)...its a silver to put up on the AH.  Aux shows, what I believe to be, the
+> accurate CLASSIC/Anniversary deposit amounts.
+
+Steps / setup: post a stack of 20 Copper Ore, or one Protection Scroll (Tier 1), from the Post tab.
+The Post tab shows a deposit of a few copper; the game takes 1 silver.
+
+Tyler's notes (2026-10-14): asked "Is this accurate????? No way right?", then made it the top
+priority for 0.7.0.1.
+
+Recorder's notes:
+- Confirmed in the code: the Post tab shows the game's own answer, unchanged
+  (`deposit_amount` in `tabs/post/core.lua`: `C_AuctionHouse.CalculateCommodityDeposit` /
+  `CalculateItemDeposit`, the same calls with the same arguments as Blizzard's Sell window).
+- Confirmed in Blizzard's code (`Gethe/wow-ui-source`, branch `forever`, 1.60.1 build 70374,
+  `Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseSellFrame.lua`, `UpdateDeposit`): Blizzard's
+  Sell window then rounds the deposit **up to the next whole silver** when
+  `C_AuctionHouse.SupportsCopperValues()` is false. auxForever does not round. A deposit of a few
+  copper therefore shows as 1 silver in Blizzard's window and as a few copper in auxForever.
+- Inference: the server charges what Blizzard's window shows, so the player is right.
+- Unsure: what `SupportsCopperValues()` returns on Forever. Trade goods have been seen listed at
+  copper prices (88c), which suggests true; then the rounding above would not apply and the 1
+  silver would come from a server-side minimum the client function does not know about. Either way
+  the player's numbers look right and ours wrong; the in-game check decides which fix.
+- Earlier sign of the same thing: Tyler's early notes claimed a flat 1 silver minimum deposit, set
+  aside because the Post tab showed 1c for Minor Mana Potion (`docs/status.md`, "Recent
+  decisions"). That only showed what auxForever displays, not what the game charges.
+- Also affected: the "Not enough money for the deposit" check (`disabled_reason`) uses the same
+  number.
+
+Unknowns: whether the deposit is always at least 1 silver or rounded up to whole silver (a 1s 20c
+deposit becoming 2s); the in-game check below answers it.
+
+Ask Tyler (in game, next session):
+1. `/run print(C_AuctionHouse.SupportsCopperValues())`: true or false?
+2. Blizzard UI button, Copper Ore stack in Blizzard's Sell tab: what deposit does it show, next to
+   auxForever's Post tab for the same stack?
+3. If willing: post it and note how much gold was taken.
 
 ## Before this log
 

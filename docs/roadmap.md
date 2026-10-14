@@ -28,6 +28,8 @@ raises the third (0.6.1); new features are the next minor version (0.7).
   name versions (a visual change: mockup first).
 - **0.7 build 1 (in progress, 2026-10-13):** a public price API for other addons (FB-012,
   `AuxForeverAPI`) and the Req and iLvl columns (FB-013). Tyler asked for both at once.
+- **0.7.0.1 (next, top priority, Tyler 2026-10-14):** the Post tab's deposit matches what the
+  game charges (FB-014: cheap items cost 1 silver to post, the Post tab shows a few copper).
 - Whatever players report on 0.6 (`docs/feedback.md`, from FB-010).
 
 

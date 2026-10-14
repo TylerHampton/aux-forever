@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-13, Mountain Time (0.7 build 1 ready for testing).
+Last updated 2026-10-14, Mountain Time (0.7 released; 0.7.0.1 next: the deposit bug, FB-014).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -10,11 +10,23 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand:** 0.6, 0.6.0.1, 0.6.0.2, 0.6.1 and **0.6.1.1** are released and on `main`.
-**0.7 build 4** is on branch `claude/pensive-dirac-0p6npg`, **tested in game, all 6 steps pass**
-(2026-10-13). Next: Tyler says whether 0.7 is ready to release (pull request, merge, Release
-workflow; then he answers MDHippie and HoaxBox on CurseForge and pastes the new description with
-the API line).
+**Where things stand:** 0.7 is released and on `main` (PR #28, 2026-10-13). Nothing is built
+since. **Next and top priority (Tyler, 2026-10-14): 0.7.0.1, the deposit fix (FB-014).**
+
+- **FB-014, deposit too low for cheap items** (sarrathsilentstrider, CurseForge): the game takes 1
+  silver to post a stack of 20 Copper Ore or one Protection Scroll; the Post tab shows a few
+  copper. Likely cause, found in Blizzard's Forever code: Blizzard's Sell window rounds the
+  game's deposit up to the next whole silver when `C_AuctionHouse.SupportsCopperValues()` is
+  false, and auxForever shows the raw number (`deposit_amount`, `tabs/post/core.lua`). Unsure
+  whether that function is false on Forever (copper prices on trade goods suggest true, which
+  would mean a server-side minimum instead). Details and sources in `docs/feedback.md`, FB-014.
+- **Start the next session with Tyler's in-game check** (three steps in FB-014, "Ask Tyler"):
+  the `/run` output, Blizzard's Sell tab deposit for a Copper Ore stack, and the gold taken. Then
+  fix to match the game (round up to whole silver, or a 1 silver minimum, whichever the check
+  shows), add a test that fails without it, raise the TOC to `forever-0.7.0.1`, changelog entry
+  crediting sarrathsilentstrider, zip and test page.
+- Open question for Tyler: a reply to sarrathsilentstrider on CurseForge (offered once the fix is
+  confirmed).
 
 - **Build 4 in game** (Tyler, 2026-10-13, `builds/0-7-build-4/results`, screenshots; only step 4
   marked, the rest judged from the screenshots): columns and item levels right, Req colors right
@@ -1014,6 +1026,8 @@ Auction house cut: 5% (Tyler's research; retail value). Keep it one constant. De
 game's own CalculateItemDeposit / CalculateCommodityDeposit, not a formula, so a server-side
 deposit change shows up by itself. Tyler's notes also claimed a flat 1 silver deposit minimum, but
 his own Post tab showed a 1c deposit for Minor Mana Potion, so that claim is not trusted.
+(2026-10-14: that reasoning was wrong, the Post tab only shows the raw number; a player confirms
+the game takes 1 silver. See FB-014.)
 
 ## Background opacity (built)
 

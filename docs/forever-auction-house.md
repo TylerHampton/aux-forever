@@ -96,7 +96,10 @@ visible confirmation, but gives no evidence. **Unverified**; needs an in-game te
   or `AUCTION_HOUSE_POST_ERROR`, and `ConfirmPostItem`/`ConfirmPostCommodity` completes it from a click.
 - `GetAvailablePostCount(location)` gives the most you can post. `IsSellItemValid` says whether
   an item can be sold at all.
-- Deposits come from `CalculateItemDeposit` / `CalculateCommodityDeposit`.
+- Deposits come from `CalculateItemDeposit` / `CalculateCommodityDeposit`. Blizzard's Sell window
+  (`AuctionHouseSellFrameMixin:UpdateDeposit`, branch `forever`, 1.60.1) rounds that number up to
+  the next whole silver when `SupportsCopperValues()` is false. A player reports the game takes 1
+  silver for cheap items where the raw number is a few copper (FB-014, being checked).
 - Unless `SupportsCopperValues()` is true, prices must be whole silver.
 - **Observed in game (Tyler):** on Forever, gear and other non-commodity items are only ever
   listed at whole silver amounts, while trade goods show copper prices (88c, 89c). auxForever
