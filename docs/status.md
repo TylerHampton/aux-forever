@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-13, Mountain Time (two new player requests logged).
+Last updated 2026-10-13, Mountain Time (0.7 build 1 ready for testing).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -11,15 +11,26 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 ## Start here (next session)
 
 **Where things stand:** 0.6, 0.6.0.1, 0.6.0.2, 0.6.1 and **0.6.1.1** are released and on `main`.
-No build is in progress. Start the next version from the latest `main`.
+**0.7 build 1** is on branch `claude/pensive-dirac-0p6npg`, waiting for Tyler's test in game.
 
-- **New feedback** (2026-10-13, CurseForge, logged only, nothing built): FB-012 (MDHippie) asks
-  for a public API so other addons can read aux's prices; FB-013 (HoaxBox) asks for an item level
-  column in the search results (today's "Lvl" column is the required level). Both are new
-  features, so 0.7 by the roadmap rule. Open questions for Tyler are in each entry's "Ask Tyler"
-  (whether to offer an API at all; whether Forever's tooltips show item level; rename "Lvl" to
-  "Req"). Branch
-`claude/exciting-brown-a9k99n` (docs only: auction house facts, experiments not scheduled) is
+- **0.7 build 1** (2026-10-13), from two CurseForge comments, both asked for at once by Tyler:
+  - FB-013 (HoaxBox): an **iLvl** column after the item's name (gear only; Forever's tooltips do
+    not show item level, Tyler's screenshot) and the level column renamed **Req**, colored by
+    distance from the player's level: red 5+ above, orange 3 to 4, yellow 1 to 2, green usable,
+    gray far below (Classic's gray level, `gray_level`). Tyler's idea, with gray instead of his
+    blue (blue is rare items' color) and two columns instead of one combined (his choice after
+    the reply). In Search, Sniper, Auctions and Bids. No mockup: Tyler "I trust that you can
+    make it work". Item width .35 to .32 so the other columns keep their size.
+  - FB-012 (MDHippie): `AuxForeverAPI` (`core/api.lua`, new file): `GetLatestPrice`,
+    `GetUsualPrice`, `IsReady`, `version = 1`. For addon authors: `docs/api.md`, linked from the
+    README and the CurseForge description (Tyler pastes the description by hand).
+  - Tests `0.7: Req and iLvl columns` and `0.7: AuxForeverAPI` (checked to fail with the code
+    broken). Version `forever-0.7`. Zip `auxForever-0.7-build1.zip`, **full game restart**. Test
+    page build id `0-7-build-1`, 6 steps as in `TESTING.md`.
+  - Not checked by any test: whether the columns fit at the smallest window (step 4), and whether
+    Forever's item keys carry `itemLevel` (the item's own level is used when not).
+
+- Branch `claude/exciting-brown-a9k99n` (docs only: auction house facts, experiments not scheduled) is
 not merged; ask Tyler whether to merge it.
 
 - **Released 0.6.1.1** on 2026-10-12 (PR #25, `main` 154a584), "The Gaddor Update" (Tyler's

@@ -64,6 +64,9 @@ recipe costs in the profession window.
 To get good prices in tooltips and recipe costs, run a Full scan (top right of the aux window) on
 each visit to the auction house.
 
+Other addons can read aux's prices through the global `AuxForeverAPI` (since 0.7); see
+`docs/api.md`.
+
 Report problems on the [issue tracker](https://github.com/TylerHampton/aux-forever/issues), with
 the error text if BugSack shows one.
 

@@ -134,16 +134,32 @@ function M.signatures(record)
     record.sniping_signature = aux.join({record.item_id, record.suffix_id, record.enchant_id, record.start_price, record.buyout_price, record.count, own, record.auction_id or 0}, ':')
 end
 
--- Returns name, texture, quality, requirement, usable for an item, or nil if the client has not cached it yet.
+-- auxForever (0.7): equip slots whose item level means nothing to a player (bags, quivers)
+local NO_ITEM_LEVEL = {[''] = true, INVTYPE_NON_EQUIP = true, INVTYPE_NON_EQUIP_IGNORE = true, INVTYPE_BAG = true, INVTYPE_QUIVER = true}
+
+-- Returns name, texture, quality, requirement, usable, link and item level for an item, or nil if
+-- the client has not cached it yet. The item level is nil for anything that is not gear (0.7,
+-- FB-013: Forever's tooltips do not show it, so the iLvl column is the only place to see it).
 function M.item_basics(item_id, link)
-    local name, item_link, quality, _, requirement, _, _, _, _, texture = GetItemInfo(link or item_id)
+    local name, item_link, quality, item_level, requirement, _, _, _, slot, texture = GetItemInfo(link or item_id)
     if name then
         local usable = true
         if C_PlayerInfo and C_PlayerInfo.CanUseItem then
             usable = C_PlayerInfo.CanUseItem(item_id)
         end
-        return name, texture, quality, requirement or 0, usable, item_link
+        if NO_ITEM_LEVEL[slot or ''] or (item_level or 0) <= 0 then
+            item_level = nil
+        end
+        return name, texture, quality, requirement or 0, usable, item_link, item_level
     end
+end
+
+-- the item level of a gear record: the auction house's own item key when it gives one, else the item's
+local function key_item_level(key, item_level)
+    if item_level and type(key) == 'table' and (key.itemLevel or 0) > 0 then
+        return key.itemLevel
+    end
+    return item_level
 end
 
 function M.request_item(item_id)
@@ -155,7 +171,7 @@ end
 local function new_record(item_id, link, count)
     local record = setmetatable({}, record_mt)
     local _, suffix_id, unique_id, enchant_id = parse_link(link or '')
-    local name, texture, quality, requirement, usable, item_link = item_basics(item_id, link)
+    local name, texture, quality, requirement, usable, item_link, item_level = item_basics(item_id, link)
     if not name then return end
     learn_item(item_id)
     link = link or item_link
@@ -169,6 +185,7 @@ local function new_record(item_id, link, count)
     record.texture = texture
     record.quality = quality
     record.requirement = requirement
+    record.item_level = item_level
     record.usable = usable
     record.count = count
     return record
@@ -212,6 +229,7 @@ function M.item_search_record(result)
     record.auction_id = result.auctionID
     record.auction_count = max(1, result.quantity or 1)
     record.item_search_key = result.itemKey
+    record.item_level = key_item_level(result.itemKey, record.item_level)
     record.raw_min_bid, record.raw_bid, record.raw_buyout = result.minBid or 0, result.bidAmount or 0, result.buyoutAmount or 0
     set_prices(record, result.minBid, result.bidAmount, result.buyoutAmount)
     record.high_bidder = result.bidder and result.bidder == player_guid() or nil
@@ -255,7 +273,7 @@ end
 function M.browse_record(result)
     local key = result.itemKey
     local item_id = key.itemID
-    local name, texture, quality, requirement, usable, item_link = item_basics(item_id)
+    local name, texture, quality, requirement, usable, item_link, item_level = item_basics(item_id)
     if not name then return end
     learn_item(item_id)
     local key_info = C_AuctionHouse.GetItemKeyInfo(key)
@@ -274,6 +292,7 @@ function M.browse_record(result)
     record.is_commodity = type(key_info) == 'table' and key_info.isCommodity or nil
     local key_requirement = C_AuctionHouse.GetItemKeyRequiredLevel and C_AuctionHouse.GetItemKeyRequiredLevel(key)
     record.requirement = type(key_requirement) == 'number' and key_requirement > 0 and key_requirement or requirement
+    record.item_level = key_item_level(key, item_level)
     record.usable = usable
     record.count = 1
     record.auction_count = max(1, result.totalQuantity or 1)

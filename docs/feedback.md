@@ -118,8 +118,8 @@ For whoever fixes or builds from it:
 | [FB-009](#fb-009-post-cloth-in-several-stacks-of-a-chosen-size) | 2026-10-09 | Maggew | request | Post | n/a | Post cloth in several stacks of a chosen size, as in Classic | wont-fix (Forever has no stacks; Tyler: not the addon's job) |
 | [FB-010](#fb-010-picking-a-weapon-slot-such-as-daggers-searches-every-weapon-of-that-kind) | 2026-10-11 | GregoryWW | bug | Search | S2 | Picking a weapon slot such as Daggers searches every weapon of that kind | fixed 0.6.1 (released 2026-10-11) |
 | [FB-011](#fb-011-clicking-an-items-icon-in-the-post-tabs-list-does-not-select-it) | 2026-10-12 | Gaddor | bug | Post | S3 | Clicking an item's icon in the Post tab's list does not select it | fixed 0.6.1.1 (tested 2026-10-12) |
-| [FB-012](#fb-012-a-public-api-so-other-addons-can-read-auxs-prices) | 2026-10-13 | MDHippie | request | Other | n/a | A public API so other addons can read aux's prices | planned (Tyler: yes) |
-| [FB-013](#fb-013-an-item-level-column-in-the-search-results) | 2026-10-13 | HoaxBox | request | Search | n/a | An item level column in the search results | new |
+| [FB-012](#fb-012-a-public-api-so-other-addons-can-read-auxs-prices) | 2026-10-13 | MDHippie | request | Other | n/a | A public API so other addons can read aux's prices | in-progress 0.7 build 1 |
+| [FB-013](#fb-013-an-item-level-column-in-the-search-results) | 2026-10-13 | HoaxBox | request | Search | n/a | An item level column in the search results | in-progress 0.7 build 1 |
 
 ## Players
 
@@ -755,7 +755,8 @@ Ask Tyler: none.
 - Type: request
 - Area: Other (price data)
 - Severity: n/a
-- Status: planned (Tyler said yes, 2026-10-13; version not set)
+- Status: in-progress `claude/pensive-dirac-0p6npg` (0.7 build 1: `AuxForeverAPI`, `core/api.lua`,
+  `docs/api.md`)
 - Proposed: 0.7 (a new feature by the roadmap rule), if Tyler wants it at all
 
 Said:
@@ -763,7 +764,8 @@ Said:
 
 Steps / setup: none; a request.
 
-Tyler's notes: wants it (2026-10-13): "Yes!!! MIT License remember man?"
+Tyler's notes: wants it (2026-10-13): "Yes!!! MIT License remember man?" Then: "Yeah the API
+should be implemented immediately as well" (2026-10-13, built into 0.7 build 1 with FB-013).
 
 Recorder's notes:
 - Confirmed in the code: no other addon can call aux's functions. `history.latest` (the market
@@ -790,7 +792,7 @@ that returns both prices and their age covers all of these.
 
 Ask Tyler:
 - Answered 2026-10-13: yes, offer it.
-- Open: 0.7, or sooner as a small addition?
+- Answered 2026-10-13: now, in 0.7 build 1.
 
 ### FB-013: An item level column in the search results
 
@@ -802,7 +804,7 @@ Ask Tyler:
 - Type: request
 - Area: Search
 - Severity: n/a
-- Status: new
+- Status: in-progress `claude/pensive-dirac-0p6npg` (0.7 build 1)
 - Proposed: 0.7 (a new column is a visual change: mockup first)
 
 Said:
@@ -812,11 +814,15 @@ Said:
 Steps / setup: none; a request.
 
 Tyler's notes (2026-10-13):
-- Item level in Forever's tooltips: "I dont think so check out the screenshot" (the screenshot did
-  not reach the session).
+- Item level in Forever's tooltips: "I dont think so check out the screenshot". The screenshot
+  (sent again later, not kept) shows aux's window and two item tooltips, Tuskwrap Belt and Ritual
+  Belt of Arcane Protection: each lists armor, stats, durability, "Requires Level" and sell price,
+  and neither shows an item level.
 - Idea: put required level and item level in the same column, and color the required level by
   how far it is from the player's level: red when far above, then orange, yellow, green, and blue
   when the player is well above it. Asked whether that is hard.
+- After the reply (gray instead of blue, two columns instead of one): "Lets use two columns, I
+  trust that you can make it work." Built without a mockup on that basis.
 
 Recorder's notes:
 - Confirmed in the code: the search table's first column, "Lvl", is the level required to use the
@@ -830,8 +836,9 @@ Recorder's notes:
   tooltip). Search records do not store it yet.
 - Space: the table is already full at the smallest window (Lvl is 3% wide, Item 35%). A new
   column takes width from the others; a mockup should show both looks at the smallest window.
-- A possible design (recorder's, not decided): rename the current column "Req" and add "iLvl"
-  next to it, both sortable.
+- Built (0.7 build 1): "Lvl" renamed "Req" and colored, "iLvl" added after the item's name (as in
+  TSM, and so the two numbers are not side by side), in Search, Sniper, Auctions and Bids. Item
+  level only for gear (an equip slot, not bags or quivers).
 
 Unknowns: why HoaxBox wants it (comparing gear, sorting, spotting upgrades), and whether Forever
 shows item level in its own tooltips (Classic Era does not by default). A sortable column covers comparing
@@ -839,9 +846,8 @@ and sorting; a filter by item level was not asked for.
 
 Ask Tyler:
 - Answered 2026-10-13: Tyler thinks tooltips do not show item level (screenshot to resend).
-- Open: one combined column or two narrow ones; blue or gray for "well above" (see the reply in
-  the session of 2026-10-13: blue is also the color of rare items' names in the same row, gray is
-  Blizzard's color for trivial). Mockup first.
+- Answered 2026-10-13: two columns. Gray for "well above" (blue is the color of rare items'
+  names in the same row; gray is Blizzard's color for trivial), not objected to.
 
 ## Before this log
 

@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Author: shirsig
 ## Title: auxForever
-## Version: forever-0.6.1.1
+## Version: forever-0.7
 ## Notes: aux by shirsig, re-imagined by a fan
 ## SavedVariables: aux
 
@@ -20,6 +20,7 @@ util\money.lua
 core\cache.lua
 util\info.lua
 core\history.lua
+core\api.lua
 core\disenchant.lua
 util\filter.lua
 util\completion.lua
