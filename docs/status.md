@@ -11,7 +11,16 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 ## Start here (next session)
 
 **Where things stand:** 0.6, 0.6.0.1, 0.6.0.2, 0.6.1 and **0.6.1.1** are released and on `main`.
-**0.7 build 4** is on branch `claude/pensive-dirac-0p6npg`, waiting for Tyler's test in game.
+**0.7 build 4** is on branch `claude/pensive-dirac-0p6npg`, **tested in game, all 6 steps pass**
+(2026-10-13). Next: Tyler says whether 0.7 is ready to release (pull request, merge, Release
+workflow; then he answers MDHippie and HoaxBox on CurseForge and pastes the new description with
+the API line).
+
+- **Build 4 in game** (Tyler, 2026-10-13, `builds/0-7-build-4/results`, screenshots; only step 4
+  marked, the rest judged from the screenshots): columns and item levels right, Req colors right
+  in New and Classic, Req sort works both ways, fast resize to the smallest window passes, and
+  `/run print(AuxForeverAPI.GetLatestPrice(2589))` printed `20 0` (Linen Cloth 20c, seen today).
+  Tyler asked in the notes whether the API is active: yes, that output is the API answering.
 
 - **0.7 build 4** (2026-10-13): Tyler: "actually swap req/ilvl. Req first always". Columns are now
   Req, iLvl, Item, For sale (Sniper: Found, Req, iLvl, Item). Zip `auxForever-0.7-build4.zip`,
