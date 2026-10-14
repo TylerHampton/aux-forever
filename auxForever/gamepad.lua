@@ -16,7 +16,8 @@ local gui = require 'aux.gui'
 -- as a hardware event, so A can buy and post.
 --   D-pad  moves a gold frame to the nearest control in that direction; in a list, past the last
 --          row shown, it scrolls the list
---   A      presses the control (focuses a text box; opens a dropdown, then picks an option)
+--   A      presses the control (focuses a text box; opens a dropdown, then picks an option). On a
+--          Sniper deal it then moves the focus to the buy bar's Buy button once it shows
 --   B      closes what is open: a dropdown, a text box, a popup (Settings, quick searches), then aux
 --   X      right-clicks the control (search from a bag item, remove a favorite, clear a text box)
 --   Y      the tab's main action: Buy (then Confirm) on Search, Start or Stop on Sniper, Post on Post,
@@ -356,8 +357,44 @@ local function menu_pick()
     end
 end
 
+-- A on a Sniper deal: the buy bar shows "Checking the auction..." first and its Buy button only once
+-- the deal is confirmed, so the focus moves there when it shows (checked with the hints, four times a
+-- second; given up after 5 seconds or at the next press). Y stays Start/Stop on the Sniper, so Y never
+-- spends money there; B on the buy bar goes back to the deal.
+local buy_jump, buy_return
+
+local function buy_button()
+    return require('aux.gui.buy_bar').primary_button
+end
+
+local function wait_for_buy(row)
+    buy_jump = {row = row, until_time = GetTime() + 5}
+end
+
+function M.gamepad_poll()
+    if not buy_jump then return end
+    if GetTime() > buy_jump.until_time or tabs._selected ~= 2 then
+        buy_jump = nil
+        return
+    end
+    local buy = buy_button()
+    if buy and buy:IsVisible() then
+        buy_return = buy_jump.row
+        buy_jump = nil
+        set_focus(buy)
+    end
+end
+
+local function sniper_deal(f)
+    local list = require('aux.tabs.sniper').deals_list
+    return tabs._selected == 2 and list and inside(f, list)
+end
+
 local function back()
-    if menu_open() then
+    if buy_return and focused == buy_button() and usable(buy_return) then
+        set_focus(buy_return)
+        buy_return = nil
+    elseif menu_open() then
         menu_close()
     elseif focused and focused:IsObjectType('EditBox') and focused:HasFocus() then
         local escape = focused:GetScript('OnEscapePressed')
@@ -503,7 +540,12 @@ local actions = {
             if in_top_bar(focused) and focused.group == tabs then
                 set_focus(first_stop())
             else
+                local deal = sniper_deal(focused) and focused
                 press(focused)
+                if deal then
+                    wait_for_buy(deal)
+                    gamepad_poll()
+                end
             end
         else
             set_focus(first_stop())
@@ -602,6 +644,7 @@ local function create_hints()
     strip:SetScript('OnUpdate', function()
         if GetTime() < next_check then return end
         next_check = GetTime() + .25
+        gamepad_poll()
         update_hints()
     end)
 end
@@ -611,7 +654,7 @@ local function hint_labels()
     if menu_open() then return 'Pick', 'Close', nil end
     local f = usable(focused) and focused or nil
     local typing = f and f:IsObjectType('EditBox') and f:HasFocus()
-    local b = typing and 'Done' or 'Close'
+    local b = typing and 'Done' or (buy_return and f == buy_button()) and 'Back' or 'Close'
     if not f then return nil, b, nil end
     if typing then return nil, b, 'Clear' end
     if in_top_bar(f) then return f.group == tabs and 'Enter' or 'Press', b, nil end
@@ -684,6 +727,7 @@ for _, entry in ipairs(KEYS) do
     local button = CreateFrame('Button', 'auxForeverPad' .. name, owner)
     button:RegisterForClicks('AnyDown')
     button:SetScript('OnClick', function()
+        buy_jump = nil
         actions[name]()
         update_hints()
     end)

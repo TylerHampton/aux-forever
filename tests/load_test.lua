@@ -3739,4 +3739,57 @@ try('gamepad: button hints', function()
   G.InputUtil, G.GamepadMode, G.InputIconTextureSetUtility = nil, nil, real_util
 end)
 
+-- Sniper by pad: A on a deal moves the focus to the buy bar's Buy once it shows (it shows only after
+-- the deal is checked); B goes back to the deal. Y stays Start/Stop, so Y never buys on the Sniper.
+try('gamepad: A on a Sniper deal jumps to Buy', function()
+  local aux_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local require = loadstring("select(2, ...) 'aux.test.gamepad_sniper'; return require")('auxForever', addon)
+  local real = {G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown}
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = function() end, function() end, function() return false end
+  G.InputUtil = {IsGamepadUIEnabled = function() return true end}
+  G.GamepadMode = setmetatable({}, {__index = function() error('aux must not touch GamepadMode') end})
+  local function pad(name) local b = G['auxForeverPad' .. name]; b.__scripts.OnClick(b) end
+  local aux_frame = aux_env.frame
+  aux_frame:Hide(); aux_frame:Show()
+  aux_env.set_tab(2)
+  local deal = CreateFrame('Button', nil, require('aux.tabs.sniper').deals_list)
+  local picked
+  deal:SetScript('OnClick', function() picked = true end)
+  rawset(deal, 'Click', function(self) self.__scripts.OnClick(self) end)
+  local buy = require('aux.gui.buy_bar').primary_button
+  local shown = false
+  rawset(buy, 'IsVisible', function() return shown end)
+
+  aux_env.gamepad_set_focus(deal)
+  pad('A')
+  check('sniper pad: A picks the deal; Buy is not shown yet, the focus waits', picked and aux_env.gamepad_focused() == deal)
+  shown = true
+  aux_env.gamepad_poll()
+  check('sniper pad: once Buy shows, the focus moves to it', aux_env.gamepad_focused() == buy)
+  aux_env.update_hints()
+  check('sniper pad: B says Back there', aux_env.gamepad_hints().items.B.label:GetText() == 'Back')
+  pad('B')
+  check('sniper pad: B goes back to the deal, aux stays open', aux_env.gamepad_focused() == deal and aux_frame.__shown)
+
+  shown = false
+  pad('A')
+  clock = clock + 6
+  shown = true
+  aux_env.gamepad_poll()
+  check('sniper pad: a deal that never shows Buy (gone) is given up after 5 seconds', aux_env.gamepad_focused() == deal)
+  shown = false
+  pad('A')
+  pad('down')
+  shown = true
+  aux_env.gamepad_poll()
+  check('sniper pad: another press cancels the jump', aux_env.gamepad_focused() ~= buy)
+
+  rawset(buy, 'IsVisible', nil)
+  deal:Hide()
+  aux_env.set_tab(1)
+  aux_frame:Hide(); aux_frame:Show()
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = real[1], real[2], real[3]
+  G.InputUtil, G.GamepadMode = nil, nil
+end)
+
 print('done, errors: ' .. errors)
