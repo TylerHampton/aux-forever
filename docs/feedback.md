@@ -118,7 +118,7 @@ For whoever fixes or builds from it:
 | [FB-009](#fb-009-post-cloth-in-several-stacks-of-a-chosen-size) | 2026-10-09 | Maggew | request | Post | n/a | Post cloth in several stacks of a chosen size, as in Classic | wont-fix (Forever has no stacks; Tyler: not the addon's job) |
 | [FB-010](#fb-010-picking-a-weapon-slot-such-as-daggers-searches-every-weapon-of-that-kind) | 2026-10-11 | GregoryWW | bug | Search | S2 | Picking a weapon slot such as Daggers searches every weapon of that kind | fixed 0.6.1 (released 2026-10-11) |
 | [FB-011](#fb-011-clicking-an-items-icon-in-the-post-tabs-list-does-not-select-it) | 2026-10-12 | Gaddor | bug | Post | S3 | Clicking an item's icon in the Post tab's list does not select it | fixed 0.6.1.1 (tested 2026-10-12) |
-| [FB-012](#fb-012-a-public-api-so-other-addons-can-read-auxs-prices) | 2026-10-13 | MDHippie | request | Other | n/a | A public API so other addons can read aux's prices | new |
+| [FB-012](#fb-012-a-public-api-so-other-addons-can-read-auxs-prices) | 2026-10-13 | MDHippie | request | Other | n/a | A public API so other addons can read aux's prices | planned (Tyler: yes) |
 | [FB-013](#fb-013-an-item-level-column-in-the-search-results) | 2026-10-13 | HoaxBox | request | Search | n/a | An item level column in the search results | new |
 
 ## Players
@@ -755,7 +755,7 @@ Ask Tyler: none.
 - Type: request
 - Area: Other (price data)
 - Severity: n/a
-- Status: new
+- Status: planned (Tyler said yes, 2026-10-13; version not set)
 - Proposed: 0.7 (a new feature by the roadmap rule), if Tyler wants it at all
 
 Said:
@@ -763,7 +763,7 @@ Said:
 
 Steps / setup: none; a request.
 
-Tyler's notes: none yet.
+Tyler's notes: wants it (2026-10-13): "Yes!!! MIT License remember man?"
 
 Recorder's notes:
 - Confirmed in the code: no other addon can call aux's functions. `history.latest` (the market
@@ -789,9 +789,8 @@ Unknowns: what MDHippie wants to build with it (a tooltip, a crafting addon, a W
 that returns both prices and their age covers all of these.
 
 Ask Tyler:
-- Do you want aux to offer an API to other addons? Once it is out, its names and meanings must
-  stay the same, so it is a small ongoing cost.
-- If yes: 0.7, or sooner as a small addition?
+- Answered 2026-10-13: yes, offer it.
+- Open: 0.7, or sooner as a small addition?
 
 ### FB-013: An item level column in the search results
 
@@ -812,7 +811,12 @@ Said:
 
 Steps / setup: none; a request.
 
-Tyler's notes: none yet.
+Tyler's notes (2026-10-13):
+- Item level in Forever's tooltips: "I dont think so check out the screenshot" (the screenshot did
+  not reach the session).
+- Idea: put required level and item level in the same column, and color the required level by
+  how far it is from the player's level: red when far above, then orange, yellow, green, and blue
+  when the player is well above it. Asked whether that is hard.
 
 Recorder's notes:
 - Confirmed in the code: the search table's first column, "Lvl", is the level required to use the
@@ -834,9 +838,10 @@ shows item level in its own tooltips (Classic Era does not by default). A sortab
 and sorting; a filter by item level was not asked for.
 
 Ask Tyler:
-- Do you see item level in Forever's tooltips? If the game hides it, a column adds information
-  players cannot get elsewhere; if it shows it, the column saves a hover.
-- Rename "Lvl" to "Req" at the same time?
+- Answered 2026-10-13: Tyler thinks tooltips do not show item level (screenshot to resend).
+- Open: one combined column or two narrow ones; blue or gray for "well above" (see the reply in
+  the session of 2026-10-13: blue is also the color of rare items' names in the same row, gray is
+  Blizzard's color for trivial). Mockup first.
 
 ## Before this log
 
