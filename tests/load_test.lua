@@ -4,7 +4,7 @@
 -- walk through a commodity purchase.
 local G = _G
 local frames = {}
-local NUMERIC = { GetRight=1, GetLeft=1, GetTop=1, GetBottom=1, GetWidth=1, GetHeight=1, GetNumber=1, GetScale=1, GetEffectiveScale=1, GetAlpha=1, GetID=1, GetNumPoints=1, GetVerticalScroll=1, GetHorizontalScroll=1, GetCursorPosition=1, GetStringWidth=1, GetTextWidth=1, GetFrameLevel=1, GetValue=1, GetEffectiveAlpha=1 }
+local NUMERIC = { GetRight=1, GetLeft=1, GetTop=1, GetBottom=1, GetWidth=1, GetHeight=1, GetNumber=1, GetScale=1, GetEffectiveScale=1, GetAlpha=1, GetID=1, GetNumPoints=1, GetVerticalScroll=1, GetHorizontalScroll=1, GetCursorPosition=1, GetStringWidth=1, GetTextWidth=1, GetFrameLevel=1, GetValue=1, GetEffectiveAlpha=1, GetStringHeight=1 }
 local function new_frame(name)
   local f = { __scripts = {}, __events = {}, __name = name, __shown = true, __text = '' }
   return setmetatable(f, { __index = function(t, k)
@@ -3441,6 +3441,8 @@ try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
   end
   local box = place(gui.editbox(layout), 1000, 550)
   typing(box)
+  -- like the Post tab's -, + and Max: a button that is a child of the text box
+  local plus = place(CreateFrame('Button', nil, box), 1060, 550)
   local list = CreateFrame('Frame', nil, layout)
   local content = CreateFrame('Frame', nil, list)
   local r1 = place(CreateFrame('Button', nil, content), 1000, 500)
@@ -3465,6 +3467,10 @@ try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
   check('gamepad nav: A on a text box starts typing', box:HasFocus())
   pad('B')
   check('gamepad nav: B stops typing and stays', not box:HasFocus() and aux_env.gamepad_focused() == box and aux_frame.__shown)
+  pad('right')
+  check('gamepad nav: a button inside a text box can be reached (Post tab quantity -, +, Max)', aux_env.gamepad_focused() == plus)
+  pad('left')
+  check('gamepad nav: and left goes back to the box', aux_env.gamepad_focused() == box)
   pad('down'); pad('down')
   check('gamepad nav: down walks a list row by row', aux_env.gamepad_focused() == r2)
   pad('down')
@@ -3516,6 +3522,62 @@ try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
   layout:Hide()
   aux_frame:Show()
   G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = real[1], real[2], real[3]
+  G.InputUtil, G.GamepadMode = nil, nil
+end)
+
+-- aux's popups in gamepad mode: shown in a dialog of aux's own the pad can reach (a Blizzard popup
+-- shown from aux's code registers with Blizzard's gamepad navigation, which taints it)
+try('gamepad: aux popups open in a dialog of aux own', function()
+  local aux_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local real = {G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown, G.StaticPopup_Show}
+  local gamepad_ui, blizzard_popup = false, nil
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = function() end, function() end, function() return false end
+  G.StaticPopup_Show = function(name) blizzard_popup = name end
+  G.InputUtil = {IsGamepadUIEnabled = function() return gamepad_ui end}
+  G.GamepadMode = setmetatable({}, {__index = function() error('aux must not touch GamepadMode') end})
+  local function pad(name) local b = G['auxForeverPad' .. name]; b.__scripts.OnClick(b) end
+  local accepted, cancelled, hidden = 0, 0, 0
+  G.StaticPopupDialogs.AUX_TEST = {
+    text = 'Post at %s?', button1 = 'Accept', button2 = 'Cancel',
+    OnAccept = function(_, data) accepted = accepted + data end,
+    OnCancel = function() cancelled = cancelled + 1 end,
+    OnHide = function() hidden = hidden + 1 end,
+  }
+  local aux_frame = aux_env.frame
+  aux_frame:Hide(); aux_frame:Show()
+
+  aux_env.show_popup('AUX_TEST', '5g', nil, 1)
+  check('gamepad popup: mouse and keyboard keep the game popup', blizzard_popup == 'AUX_TEST')
+
+  gamepad_ui = true
+  aux_frame:Hide(); aux_frame:Show()
+  blizzard_popup = nil
+  local dialog = aux_env.show_popup('AUX_TEST', '5g', nil, 1)
+  for _, b in ipairs{dialog.button1, dialog.button2} do
+    rawset(b, 'Click', function(self) self.__scripts.OnClick(self) end)
+  end
+  check('gamepad popup: shown by aux, not the game', blizzard_popup == nil and dialog and dialog.__shown and dialog.text.__text == 'Post at 5g?')
+  check('gamepad popup: the focus starts on Cancel', aux_env.gamepad_focused() == dialog.button2)
+  pad('A')
+  check('gamepad popup: Cancel cancels and closes it, aux stays', cancelled == 1 and accepted == 0 and hidden == 1 and not dialog.__shown and aux_frame.__shown)
+
+  aux_env.show_popup('AUX_TEST', '5g', nil, 2)
+  rawset(dialog.button1, 'GetCenter', function() return 500, 100 end)
+  rawset(dialog.button2, 'GetCenter', function() return 600, 100 end)
+  pad('left'); pad('A')
+  check('gamepad popup: Accept runs the action with its data', accepted == 2 and cancelled == 1 and not dialog.__shown)
+
+  aux_env.show_popup('AUX_TEST', '5g', nil, 1)
+  pad('B')
+  check('gamepad popup: B cancels it and aux stays open', cancelled == 2 and not dialog.__shown and aux_frame.__shown)
+
+  aux_env.show_popup('AUX_TEST', '5g', nil, 1)
+  aux_env.hide_popup('AUX_TEST')
+  check('gamepad popup: hidden by aux (the post went through), nothing is cancelled', cancelled == 2 and not dialog.__shown)
+
+  G.StaticPopupDialogs.AUX_TEST = nil
+  aux_frame:Hide(); aux_frame:Show()
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown, G.StaticPopup_Show = real[1], real[2], real[3], real[4]
   G.InputUtil, G.GamepadMode = nil, nil
 end)
 

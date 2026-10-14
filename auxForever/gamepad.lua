@@ -101,7 +101,9 @@ local function collect(f, found)
     if not usable(f) then return end
     if f ~= frame and is_stop(f) then
         tinsert(found, f)
-        return -- a row's own icon button is part of the row
+        -- a row's own icon button is part of the row; a text box's buttons are controls of their own
+        -- (the Post tab's -, + and Max are children of its quantity boxes)
+        if not f:IsObjectType('EditBox') then return end
     end
     -- a list's scroll bar is driven by the D-pad, not visited
     if f:IsObjectType('ScrollFrame') then return end
@@ -352,6 +354,103 @@ function top_bar_step(step)
     end
 end
 
+-- aux's popups (StaticPopupDialogs.AUX_*): in gamepad mode aux shows them in a dialog of its own
+-- inside its window. A Blizzard popup is out of the pad's reach while aux holds the pad buttons, and
+-- shown from aux's code it registers with Blizzard's gamepad navigation, which taints it (a blocked
+-- popup was shown 259 times when the game froze). The dialog reads the same definition: text,
+-- buttons, OnShow, OnAccept, OnCancel, OnHide, an edit box. The focus starts on the second button
+-- (Cancel, No) when there is one: posting at a price the server warns about takes a deliberate move.
+local dialog
+local function create_dialog()
+    dialog = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
+    gui.set_panel_style(dialog)
+    dialog:SetFrameStrata('DIALOG')
+    dialog:EnableMouse(true)
+    gui.set_size(dialog, 380, 140)
+    dialog:SetPoint('CENTER', frame, 'CENTER', 0, 40)
+    dialog:Hide()
+    local text = gui.label(dialog, gui.font_size.medium)
+    text:SetPoint('TOPLEFT', 18, -18)
+    text:SetPoint('TOPRIGHT', -18, -18)
+    text:SetWordWrap(true)
+    text:SetJustifyH('CENTER')
+    text:SetTextColor(color.text.enabled())
+    dialog.text = text
+    local edit = gui.editbox(dialog)
+    edit:SetPoint('TOPLEFT', text, 'BOTTOMLEFT', 0, -10)
+    edit:SetPoint('TOPRIGHT', text, 'BOTTOMRIGHT', 0, -10)
+    edit.enter = function() dialog.button1:Click() end
+    dialog.editBox = edit
+    for i = 1, 2 do
+        local b = gui.button(dialog)
+        gui.set_size(b, 130, 26)
+        dialog['button' .. i] = b
+    end
+    dialog.button1:SetScript('OnClick', function()
+        local def, data = dialog.def, dialog.data
+        dialog.answered = true
+        if def.OnAccept then def.OnAccept(dialog, data) end
+        dialog:Hide()
+    end)
+    dialog.button2:SetScript('OnClick', function() dialog:Hide() end)
+    -- closed any other way than Accept (Cancel, B): cancelled, as Blizzard's popup does on Escape
+    dialog:SetScript('OnHide', function(self)
+        local def, data = self.def, self.data
+        if not def then return end
+        if not self.answered and self.cancel_on_hide and def.OnCancel then def.OnCancel(self, data) end
+        if def.OnHide then def.OnHide(self, data) end
+        self.def, self.data, self.name = nil, nil, nil
+    end)
+end
+
+function M.show_popup(name, text_arg1, text_arg2, data)
+    local def = StaticPopupDialogs[name]
+    if not gamepad_enabled() or not frame:IsShown() or not def then
+        return StaticPopup_Show(name, text_arg1, text_arg2, data)
+    end
+    if not dialog then create_dialog() end
+    if dialog:IsShown() then
+        dialog.cancel_on_hide = false
+        dialog:Hide()
+    end
+    dialog.def, dialog.data, dialog.name, dialog.answered, dialog.cancel_on_hide = def, data, name, false, true
+    dialog.text:SetText(format(def.text, text_arg1 or '', text_arg2 or ''))
+    local two = def.button2 ~= nil
+    dialog.button1:SetText(def.button1 or OKAY)
+    dialog.button2:SetText(def.button2 or '')
+    if def.button1 == ACCEPT or def.button1 == 'Accept' or def.button1 == 'Yes' then
+        gui.set_primary(dialog.button1)
+    else
+        gui.set_default(dialog.button1)
+    end
+    dialog.button1:ClearAllPoints()
+    dialog.button2:ClearAllPoints()
+    if two then
+        dialog.button1:SetPoint('BOTTOMRIGHT', dialog, 'BOTTOM', -6, 16)
+        dialog.button2:SetPoint('BOTTOMLEFT', dialog, 'BOTTOM', 6, 16)
+        dialog.button2:Show()
+    else
+        dialog.button1:SetPoint('BOTTOM', 0, 16)
+        dialog.button2:Hide()
+    end
+    if def.hasEditBox then dialog.editBox:Show() else dialog.editBox:Hide() end
+    dialog.editBox:SetText('')
+    local text_height = dialog.text:GetStringHeight() or 14
+    gui.set_size(dialog, 380, 18 + text_height + (def.hasEditBox and 40 or 0) + 16 + 26 + 18)
+    dialog:Show()
+    if def.OnShow then def.OnShow(dialog, data) end
+    set_focus(two and dialog.button2 or dialog.button1)
+    return dialog
+end
+
+function M.hide_popup(name)
+    if dialog and dialog:IsShown() and dialog.name == name then
+        dialog.cancel_on_hide = false
+        dialog:Hide()
+    end
+    StaticPopup_Hide(name)
+end
+
 local actions = {
     up = function() if menu_open() then menu_move(-1) else move('up') end end,
     down = function() if menu_open() then menu_move(1) else move('down') end end,
@@ -360,6 +459,9 @@ local actions = {
     A = function()
         if menu_open() then
             menu_pick()
+        elseif usable(focused) and not inside(focused, root()) then
+            -- a popup opened over the focused control: A never presses what is behind it
+            set_focus(first_stop())
         elseif usable(focused) then
             -- a tab selected with LB/RB is already open: A goes into it
             if in_top_bar(focused) and focused.group == tabs then
