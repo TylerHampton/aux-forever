@@ -521,14 +521,174 @@ local actions = {
     RB = function() if menu_open() then menu_close() end; top_bar_step(1) end,
 }
 
+-- Button hints: one strip under the window (chosen 2026-10-13, after icons at the tab bar and beside
+-- the Y button were hard to see):
+--   A <what A does>   B <what B does>   X <what X does>   Y <the tab's action>   LB RB Tabs
+-- A, B and X are named for the control in focus; Y shows only while its button can be pressed.
+-- Each button shows the controller's own icon (Xbox letters, PlayStation shapes, Switch), as PADChat
+-- does: the icon's name comes from Blizzard's table for the controller in use
+-- (InputIconTextureSetUtility, Blizzard_SharedXML/Shared/InputIcons/InputIconTexture.lua, build
+-- 70374; a lookup that only reads). Without it, a badge: a dark box with a gold edge and the letter.
+local PAD_KEYS = {A = 'PAD1', B = 'PAD2', X = 'PAD3', Y = 'PAD4', LB = 'PADLSHOULDER', RB = 'PADRSHOULDER'}
+local BADGE = 22
+
+local function atlas_for(key)
+    local util = _G.InputIconTextureSetUtility
+    if not util or not util.GetNormalActiveInputIconButtonTexture then return end
+    local ok, atlas = pcall(util.GetNormalActiveInputIconButtonTexture, PAD_KEYS[key])
+    if ok and type(atlas) == 'string' and atlas ~= '' then return atlas end
+end
+
+local function create_badge(parent, wide)
+    local badge = CreateFrame('Frame', nil, parent, 'BackdropTemplate')
+    gui.set_size(badge, wide and BADGE + 12 or BADGE, BADGE)
+    gui.set_frame_style(badge, color.input.background, color.accent.background, nil, nil, nil, nil, wide and 6 or BADGE / 2)
+    badge.texture = badge:CreateTexture(nil, 'OVERLAY')
+    badge.texture:SetPoint('CENTER')
+    gui.set_size(badge.texture, wide and BADGE + 8 or BADGE + 4, BADGE + 4)
+    badge.texture:Hide()
+    badge.letters = badge:CreateFontString(nil, 'OVERLAY')
+    badge.letters:SetFont(gui.font_bold, wide and gui.font_size.small or gui.font_size.medium)
+    badge.letters:SetPoint('CENTER', 0, 0)
+    badge.letters:SetTextColor(1, 1, 1)
+    return badge
+end
+
+local function set_badge(badge, key)
+    local atlas = atlas_for(key)
+    if badge.key == key and badge.atlas == atlas then return end
+    badge.key, badge.atlas = key, atlas
+    local ok = atlas and pcall(badge.texture.SetAtlas, badge.texture, atlas)
+    if ok then
+        badge.texture:Show()
+        badge.letters:SetText('')
+        badge:SetBackdropColor(0, 0, 0, 0)
+        badge:SetBackdropBorderColor(0, 0, 0, 0)
+    else
+        badge.texture:Hide()
+        badge.letters:SetText(key)
+        badge:SetBackdropColor(color.input.background())
+        badge:SetBackdropBorderColor(color.accent.background())
+    end
+end
+
+-- whether aux holds the pad buttons now (gamepad_bind, below)
+local bound, unbind_after_combat
+
+local HINT_KEYS = {'A', 'B', 'X', 'Y', 'LB'}
+local hints
+local function create_hints()
+    hints = {items = {}}
+    local strip = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
+    gui.set_panel_style(strip)
+    strip:SetPoint('TOPLEFT', frame, 'BOTTOMLEFT', 0, -2)
+    strip:SetPoint('TOPRIGHT', frame, 'BOTTOMRIGHT', 0, -2)
+    strip:SetHeight(BADGE + 12)
+    hints.strip = strip
+    for _, key in ipairs(HINT_KEYS) do
+        local item = {badge = create_badge(strip, key == 'LB')}
+        if key == 'LB' then
+            item.badge2 = create_badge(strip, true)
+            item.badge2:SetPoint('LEFT', item.badge, 'RIGHT', 4, 0)
+        end
+        item.label = gui.label(strip, gui.font_size.medium)
+        item.label:SetPoint('LEFT', item.badge2 or item.badge, 'RIGHT', 6, 0)
+        item.label:SetTextColor(color.text.enabled())
+        hints.items[key] = item
+    end
+    -- buttons appear, light up and grey out without a pad press (a search ends, an item is picked):
+    -- checked four times a second while the strip is shown, redrawn only on a change
+    local next_check = 0
+    strip:SetScript('OnUpdate', function()
+        if GetTime() < next_check then return end
+        next_check = GetTime() + .25
+        update_hints()
+    end)
+end
+
+-- what A, B and X do on the control in focus; nil leaves that hint out
+local function hint_labels()
+    if menu_open() then return 'Pick', 'Close', nil end
+    local f = usable(focused) and focused or nil
+    local typing = f and f:IsObjectType('EditBox') and f:HasFocus()
+    local b = typing and 'Done' or 'Close'
+    if not f then return nil, b, nil end
+    if typing then return nil, b, 'Clear' end
+    if in_top_bar(f) then return f.group == tabs and 'Enter' or 'Press', b, nil end
+    if f:IsObjectType('EditBox') then
+        -- a dropdown is a text box with SetOptions of its own (gui.dropdown)
+        return rawget(f, 'SetOptions') and 'Open' or 'Type', b, 'Clear'
+    end
+    return 'Select', b, 'Right-click'
+end
+
+local function quick_button()
+    local find = QUICK_ACTIONS[tabs._selected or 0]
+    local button = find and find()
+    if button and button:IsVisible() and button:IsEnabled() and root() == frame and not menu_open() then
+        return button
+    end
+end
+
+-- Y's name: the tab's action. On Search the buy bar's button says Buy, then Confirm once the price
+-- is known; on Sniper, Start or Stop.
+local Y_NAMES = {'Buy', 'Start', 'Post', 'Cancel', 'Buyout'}
+local function y_label()
+    local button = quick_button()
+    if not button then return end
+    local text = button:GetText() or ''
+    if tabs._selected == 1 and text:find('^Confirm') then return 'Confirm' end
+    if tabs._selected == 2 and text:find('^Stop') then return 'Stop' end
+    return Y_NAMES[tabs._selected]
+end
+
+function M.update_hints()
+    if not hints then return end
+    if not bound or not frame:IsShown() then
+        hints.strip:Hide()
+        return
+    end
+    hints.strip:Show()
+    local a, b, x = hint_labels()
+    local texts = {A = a, B = b, X = x, Y = y_label(), LB = 'Tabs'}
+    -- left to right, the hints that apply now, each after the one before
+    local previous
+    for _, key in ipairs(HINT_KEYS) do
+        local item, text = hints.items[key], texts[key]
+        if text then
+            set_badge(item.badge, key)
+            if item.badge2 then set_badge(item.badge2, 'RB') end
+            if item.label:GetText() ~= text then item.label:SetText(text) end
+            if item.after ~= (previous or false) then
+                item.after = previous or false
+                item.badge:ClearAllPoints()
+                if previous then
+                    item.badge:SetPoint('LEFT', previous, 'RIGHT', 22, 0)
+                else
+                    item.badge:SetPoint('LEFT', hints.strip, 'LEFT', 12, 0)
+                end
+            end
+            item.badge:Show(); item.label:Show()
+            if item.badge2 then item.badge2:Show() end
+            previous = item.label
+        else
+            item.badge:Hide(); item.label:Hide()
+            if item.badge2 then item.badge2:Hide() end
+        end
+    end
+end
+M.gamepad_hints = function() return hints end
+
 for _, entry in ipairs(KEYS) do
     local name = entry[1]
     local button = CreateFrame('Button', 'auxForeverPad' .. name, owner)
     button:RegisterForClicks('AnyDown')
-    button:SetScript('OnClick', function() actions[name]() end)
+    button:SetScript('OnClick', function()
+        actions[name]()
+        update_hints()
+    end)
 end
 
-local bound, unbind_after_combat
 
 local function key_of(entry)
     return _G[entry[2]] or entry[3]
@@ -573,6 +733,8 @@ frame:HookScript('OnShow', function()
         if not frame:IsShown() then return end
         gamepad_bind()
         set_focus(first_stop())
+        if not hints then create_hints() end
+        update_hints()
     end
     if C_Timer and C_Timer.After then C_Timer.After(0, start) else start() end
 end)
@@ -580,6 +742,7 @@ frame:HookScript('OnHide', function()
     unbind_after_combat = false
     set_focus(nil)
     gamepad_unbind()
+    update_hints()
 end)
 
 -- the Blizzard UI button shows Blizzard's window on top of aux: its own gamepad navigation drives it
@@ -595,5 +758,6 @@ do
         else
             gamepad_bind()
         end
+        update_hints()
     end
 end

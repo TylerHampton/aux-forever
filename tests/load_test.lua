@@ -3627,4 +3627,116 @@ try('gamepad: aux popups open in a dialog of aux own', function()
   G.InputUtil, G.GamepadMode = nil, nil
 end)
 
+-- Button hints: one strip under the window with A, B, X, Y and LB/RB, each a badge with the letter or
+-- the controller's own icon
+try('gamepad: button hints', function()
+  local aux_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local require = loadstring("select(2, ...) 'aux.test.gamepad_hints'; return require")('auxForever', addon)
+  local gui = require 'aux.gui'
+  local real = {G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown, G.C_Texture, G.C_GamePad}
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = function() end, function() end, function() return false end
+  local gamepad_ui = true
+  G.InputUtil = {IsGamepadUIEnabled = function() return gamepad_ui end}
+  G.GamepadMode = setmetatable({}, {__index = function() error('aux must not touch GamepadMode') end})
+  -- on Forever GetAtlasInfo fails (it needs Vector2DMixin, not loaded): aux must not depend on it
+  G.C_Texture = {GetAtlasInfo = function() error('unable to find mixin or metatable (Vector2DMixin)') end}
+  -- Blizzard's table of icons for the controller in use (InputIconTextureSetUtility), as PADChat reads it
+  local icon_sets = {
+    xbox = {PAD1 = 'gamepad-xbox1-buttona-normal', PAD2 = 'gamepad-xbox1-buttonb-normal', PADRSHOULDER = 'gamepad-xbox1-trigger-rb-normal'},
+    ps = {PAD1 = 'gamepad-ps-buttoncrox-normal', PAD2 = 'gamepad-ps-buttoncircle-normal', PADRSHOULDER = 'gamepad-ps-triggerr1-normal'},
+  }
+  local controller
+  local real_util = G.InputIconTextureSetUtility
+  G.InputIconTextureSetUtility = {GetNormalActiveInputIconButtonTexture = function(key)
+    if not controller then error('no icon set') end
+    return icon_sets[controller][key]
+  end}
+  local function place(f, x, y)
+    rawset(f, 'GetCenter', function() return x, y end)
+    rawset(f, 'GetLeft', function() return x - 5 end)
+    rawset(f, 'GetTop', function() return y + 5 end)
+    return f
+  end
+  local aux_frame = aux_env.frame
+  aux_env.set_tab(4)
+  aux_frame:Hide(); aux_frame:Show()
+  local hints = aux_env.gamepad_hints()
+  local function label(key) local item = hints.items[key] return item.label.__shown and item.label:GetText() or nil end
+  local function badges() local t = {} for _, key in ipairs{'A', 'B', 'X', 'Y', 'LB'} do tinsert(t, hints.items[key].badge) end tinsert(t, hints.items.LB.badge2) return t end
+  for _, badge in ipairs(badges()) do
+    rawset(badge.texture, 'SetAtlas', function(self, name) self.__atlas = name end)
+    badge.key = nil
+  end
+  aux_env.update_hints()
+  check('hints: the strip is shown in gamepad mode, with LB RB Tabs', hints.strip.__shown and label('LB') == 'Tabs' and hints.items.LB.badge2.__shown)
+  check('hints: without the controller icons, each badge shows its letter', hints.items.A.badge.letters:GetText() == 'A' and hints.items.LB.badge2.letters:GetText() == 'RB' and not hints.items.A.badge.texture.__shown)
+
+  local layout = CreateFrame('Frame', nil, aux_frame)
+  local b1 = place(CreateFrame('Button', nil, layout), 1000, 600)
+  local box = place(gui.editbox(layout), 1000, 550)
+  local dropdown = place(gui.dropdown(layout), 1000, 500)
+  aux_env.gamepad_set_focus(b1); aux_env.update_hints()
+  check('hints: on a button, A selects, B closes, X right-clicks', label('A') == 'Select' and label('B') == 'Close' and label('X') == 'Right-click')
+  aux_env.gamepad_set_focus(box); aux_env.update_hints()
+  check('hints: on a text box, A types and X clears', label('A') == 'Type' and label('X') == 'Clear')
+  rawset(box, 'HasFocus', function() return true end); aux_env.update_hints()
+  check('hints: while typing, B is Done and there is no A', label('B') == 'Done' and label('A') == nil)
+  check('hints: a hint left out leaves no gap (B moves to the start)', hints.items.B.after == false)
+  rawset(box, 'HasFocus', nil)
+  aux_env.gamepad_set_focus(dropdown); aux_env.update_hints()
+  check('hints: on a dropdown, A opens it', label('A') == 'Open')
+  rawset(dropdown, 'HasFocus', function() return true end)
+  dropdown:SetOptions{'All', 'Poor'}
+  dropdown.focus_gain(); aux_env.update_hints()
+  check('hints: with its menu open, A picks and B closes, no X', label('A') == 'Pick' and label('B') == 'Close' and label('X') == nil)
+  gui.dropdown_menu:Hide(); rawset(dropdown, 'HasFocus', nil)
+
+  -- Y: named for the tab's action (Auctions: Cancel), only while its button can be pressed
+  local cancel = require('aux.tabs.auctions').cancel_button
+  rawset(cancel, 'IsVisible', function() return true end)
+  rawset(cancel, 'IsEnabled', function() return false end)
+  aux_env.update_hints()
+  check('hints: no Y while its button is greyed out', label('Y') == nil)
+  rawset(cancel, 'IsEnabled', function() return true end)
+  aux_env.update_hints()
+  check('hints: Y Cancel on Auctions', label('Y') == 'Cancel')
+  local cover = CreateFrame('Frame', nil, layout)
+  cover:SetFrameStrata('DIALOG')
+  aux_env.update_hints()
+  check('hints: no Y while a popup is open', label('Y') == nil)
+  cover:Hide()
+  rawset(cancel, 'IsVisible', nil); rawset(cancel, 'IsEnabled', nil)
+  local buy = require('aux.gui.buy_bar').primary_button
+  rawset(buy, 'IsVisible', function() return true end)
+  rawset(buy, 'IsEnabled', function() return true end)
+  aux_env.set_tab(1)
+  buy:SetText('Buy 5 for 1g'); aux_env.update_hints()
+  check('hints: Y Buy on Search', label('Y') == 'Buy')
+  buy:SetText('Confirm 1g'); aux_env.update_hints()
+  check('hints: Y Confirm once the price is known', label('Y') == 'Confirm')
+  rawset(buy, 'IsVisible', nil); rawset(buy, 'IsEnabled', nil)
+
+  controller = 'xbox'; aux_env.update_hints()
+  check('hints: the Xbox icons from Blizzard\'s table', hints.items.A.badge.texture.__atlas == 'gamepad-xbox1-buttona-normal' and hints.items.A.badge.texture.__shown and hints.items.A.badge.letters:GetText() == '')
+  controller = 'ps'; aux_env.update_hints()
+  check('hints: switching to a PlayStation controller switches the icons', hints.items.B.badge.texture.__atlas == 'gamepad-ps-buttoncircle-normal' and hints.items.LB.badge2.texture.__atlas == 'gamepad-ps-triggerr1-normal')
+  check('hints: a key the table has no icon for keeps its letter', hints.items.X.badge.letters:GetText() == 'X' and not hints.items.X.badge.texture.__shown)
+
+  aux_env.blizzard_button.__scripts.OnClick(aux_env.blizzard_button)
+  check('hints: hidden while Blizzard UI has the pad', not hints.strip.__shown)
+  aux_env.blizzard_button.__scripts.OnClick(aux_env.blizzard_button)
+  check('hints: back when aux has it again', hints.strip.__shown)
+  aux_frame:Hide()
+  check('hints: hidden when aux closes', not hints.strip.__shown)
+
+  layout:Hide()
+  gamepad_ui = false
+  aux_frame:Show()
+  check('hints: none with mouse and keyboard', not hints.strip.__shown)
+  aux_frame:Hide(); aux_frame:Show()
+  aux_env.set_tab(1)
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown, G.C_Texture, G.C_GamePad = real[1], real[2], real[3], real[4], real[5]
+  G.InputUtil, G.GamepadMode, G.InputIconTextureSetUtility = nil, nil, real_util
+end)
+
 print('done, errors: ' .. errors)
