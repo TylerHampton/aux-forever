@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-13, Mountain Time (0.7 build 1 ready for testing).
+Last updated 2026-10-13, Mountain Time (0.7 released).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -10,17 +10,20 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand:** 0.6, 0.6.0.1, 0.6.0.2, 0.6.1 and **0.6.1.1** are released and on `main`.
-**0.7 build 4** is on branch `claude/pensive-dirac-0p6npg`, **tested in game, all 6 steps pass**
-(2026-10-13). Next: Tyler says whether 0.7 is ready to release (pull request, merge, Release
-workflow; then he answers MDHippie and HoaxBox on CurseForge and pastes the new description with
-the API line).
+**Where things stand:** 0.6 through 0.6.1.1 and **0.7** are released and on `main`. No build is in
+progress. Start the next version from the latest `main`.
 
-- **Build 4 in game** (Tyler, 2026-10-13, `builds/0-7-build-4/results`, screenshots; only step 4
-  marked, the rest judged from the screenshots): columns and item levels right, Req colors right
-  in New and Classic, Req sort works both ways, fast resize to the smallest window passes, and
-  `/run print(AuxForeverAPI.GetLatestPrice(2589))` printed `20 0` (Linen Cloth 20c, seen today).
-  Tyler asked in the notes whether the API is active: yes, that output is the API answering.
+- **Released 0.7** on 2026-10-13 (PR #28, `main` 1c5cd5b): Req and iLvl columns with level
+  colors (FB-013, HoaxBox), `AuxForeverAPI` for other addons (FB-012, MDHippie), and result
+  tables that follow a fast resize. Tag `v0.7`, GitHub pre-release
+  https://github.com/TylerHampton/aux-forever/releases/tag/v0.7, CurseForge Beta file uploaded
+  by Release run 38511814738 (all steps passed; file id not read). Players need a **full game
+  restart** (new file `core/api.lua`). Both players are credited in the changelog.
+- **For Tyler to do by hand:** paste `docs/curseforge-description.md` into the CurseForge page
+  (it has a new line for addon authors pointing to `docs/api.md`), and reply to MDHippie and
+  HoaxBox on CurseForge if he wants.
+- **Open question:** Tyler said "Req first always"; the Sniper still starts with Found, then Req
+  (Found has been first since 0.3). Ask whether Req should come before Found there too.
 
 - **0.7 build 4** (2026-10-13): Tyler: "actually swap req/ilvl. Req first always". Columns are now
   Req, iLvl, Item, For sale (Sniper: Found, Req, iLvl, Item). Zip `auxForever-0.7-build4.zip`,
