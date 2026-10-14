@@ -3438,4 +3438,55 @@ try('0.7: AuxForeverAPI', function()
   check('api: no frame or timer of its own (performance)', not src:find('CreateFrame', 1, true) and not src:find('coro_thread', 1, true) and not src:find('OnUpdate', 1, true))
 end)
 
+-- 0.7 build 3 (Tyler): after a fast resize down to the smallest window, the result table kept the
+-- width of a step before and its right columns ran past the window's edge. It now lays out with the
+-- width its content area reports, later refreshes keep that width, and the last column is anchored
+-- to the right edge.
+try('0.7: result tables follow a fast resize', function()
+  local al = loadstring("select(2, ...) 'aux.gui.auction_listing'; return _M")('auxForever', addon)
+  local real_create = G.CreateFrame
+  G.CreateFrame = function(...)
+    local f = real_create(...)
+    rawset(f, 'SetPoint', function(self, p) self.__points = self.__points or {}; table.insert(self.__points, p) end)
+    rawset(f, 'SetWidth', function(self, w) self.__w = w end)
+    return f
+  end
+  local ok, rt = pcall(al.new, new_frame(), 19, al.search_columns)
+  G.CreateFrame = real_create
+  check('resize: table built', ok)
+  if not ok then return end
+  local function has(f, point) for _, p in ipairs(f.__points or {}) do if p == point then return true end end return false end
+  local last = rt.headCells[#rt.headCells]
+  check('resize: the last header column is anchored to the right edge', has(last, 'TOPRIGHT'))
+  check('resize: the content area lays the table out when it changes size', rt.contentFrame.__scripts.OnSizeChanged ~= nil)
+  local total = 0
+  for _, c in ipairs(al.search_columns) do total = total + c.width end
+  local function first_width() return rt.headCells[1].__w end
+  local function near(a, b) return a and math.abs(a - b) < .01 end
+  -- the old way of measuring still sees the wide window
+  rawset(rt.contentFrame, 'GetLeft', function() return 0 end)
+  rawset(rt.contentFrame, 'GetRight', function() return 1400 end)
+  rt.contentFrame.__scripts.OnSizeChanged(rt.contentFrame, 1400, 300)
+  check('resize: wide window', near(first_width(), 1400 * al.search_columns[1].width / total))
+  -- one big step down to the smallest window, as in a fast drag
+  rt.contentFrame.__scripts.OnSizeChanged(rt.contentFrame, 980, 300)
+  check('resize: the reported width is used', near(first_width(), 980 * al.search_columns[1].width / total))
+  rt:UpdateRows()
+  rt:ResizeColumns()
+  check('resize: a later refresh keeps the new width, not a stale measure', near(first_width(), 980 * al.search_columns[1].width / total))
+  -- shown again after the window changed while hidden: measured again
+  rawset(rt.contentFrame, 'GetRight', function() return 1200 end)
+  rawset(rt, 'GetHeight', function() return 300 end)
+  G.CreateFrame = function(...)
+    local f = real_create(...)
+    rawset(f, 'SetPoint', function(self, p) self.__points = self.__points or {}; table.insert(self.__points, p) end)
+    return f
+  end
+  pcall(rt.__scripts.OnShow, rt)
+  G.CreateFrame = real_create
+  check('resize: shown again, the table measures its width', near(first_width(), 1200 * al.search_columns[1].width / total))
+  local row = rt.all_rows and rt.all_rows[1]
+  check('resize: the last cell of a row is anchored to the right edge', row and has(row.cells[#row.cells], 'TOPRIGHT'))
+end)
+
 print('done, errors: ' .. errors)

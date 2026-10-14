@@ -19,6 +19,13 @@ A change that comes from a player's feedback credits them by in-game name at the
   3 to 4, yellow 1 to 2, green once you can use it, and gray when it is far below you (the levels
   at which quests and monsters turn gray). Before, it was only red when too high.
 
+### Fixes
+
+- Result tables (Search, Sniper, Auctions, Bids) follow the window when you resize it quickly. After
+  a fast drag down to the smallest size, a table could keep the width it had a moment before, so
+  its right columns (Bid, Buyout, %) ran past the window's edge until the next resize. The lists on
+  the Saved Searches tab had the same problem fixed in 0.5.
+
 ### For addon authors
 
 - Other addons can now read aux's prices through the global `AuxForeverAPI`: `GetLatestPrice`

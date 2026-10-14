@@ -597,17 +597,33 @@ end
 
 local methods = {
 
-    ResizeColumns = function(self)
+    -- auxForever (0.7 build 3, Tyler): after a fast resize the table kept the width of a step
+    -- before, so at the smallest window its right columns ran past the edge. Same fix as the lists
+    -- in FB-006: the content area's own size event lays the table out with the width it reports
+    -- (content_width), and the last column is anchored to the right edge (create_row, M.new). Later
+    -- layouts (new rows, a new search) reuse that width instead of measuring, which can lag behind.
+    ResizeColumns = function(self, content_width)
         local function column_width(cell)
             return (cell.info.bid and self.hide_bid) and 0 or cell.info.width
         end
+        if content_width and content_width > 0 then
+            self.content_width = content_width
+        end
+        local width = self.content_width
+        if not width then
+            local right, left = self.contentFrame:GetRight(), self.contentFrame:GetLeft()
+            if not right or not left then return end
+            width = right - left
+        end
+        -- nothing changed since the last layout: no widget work (a drag resizes every frame)
+        local layout = width .. ':' .. tostring(self.hide_bid) .. ':' .. #self.rows
+        if layout == self.layout then return end
+        self.layout = layout
         local weight = 0
         for _, cell in pairs(self.headCells) do
             weight = weight + column_width(cell)
         end
-        local right, left = self.contentFrame:GetRight(), self.contentFrame:GetLeft()
-        if not right or not left then return end
-        weight = (right - left) / weight
+        weight = width / weight
         for i, cell in pairs(self.headCells) do
             local width = column_width(cell) * weight
             local shown = width > 0
@@ -1069,6 +1085,9 @@ local function create_row(rt, i)
         else
             cell:SetPoint('TOPLEFT', row.cells[j - 1], 'TOPRIGHT')
         end
+        if j == #rt.columns then
+            cell:SetPoint('TOPRIGHT', 0, 0)
+        end
 
         if column.init then
             column.init(rt, cell)
@@ -1117,6 +1136,8 @@ function M.new(parent, row_height, columns)
     end
 
     rt:SetScript('OnShow', function(self)
+        -- the window may have changed size while the table was hidden: measure again
+        self.content_width = nil
         fit_rows(self)
         for _, cell in pairs(self.headCells) do
             if cell.info.toggle then
@@ -1128,6 +1149,9 @@ function M.new(parent, row_height, columns)
     local contentFrame = CreateFrame('Frame', nil, rt)
     contentFrame:SetPoint('TOPLEFT', 0, 0)
     contentFrame:SetPoint('BOTTOMRIGHT', 0, 0)
+    contentFrame:SetScript('OnSizeChanged', function(_, width)
+        rt:ResizeColumns(width)
+    end)
     rt.contentFrame = contentFrame
 
     local scrollFrame = CreateFrame('ScrollFrame', gui.unique_name(), rt, 'FauxScrollFrameTemplate')
@@ -1159,6 +1183,9 @@ function M.new(parent, row_height, columns)
             cell:SetPoint('TOPLEFT', 0, 0)
         else
             cell:SetPoint('TOPLEFT', rt.headCells[i - 1], 'TOPRIGHT')
+        end
+        if i == #rt.columns then
+            cell:SetPoint('TOPRIGHT', 0, 0)
         end
         cell.info = column
         cell.rt = rt

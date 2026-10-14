@@ -11,7 +11,18 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 ## Start here (next session)
 
 **Where things stand:** 0.6, 0.6.0.1, 0.6.0.2, 0.6.1 and **0.6.1.1** are released and on `main`.
-**0.7 build 2** is on branch `claude/pensive-dirac-0p6npg`, waiting for Tyler's test in game.
+**0.7 build 3** is on branch `claude/pensive-dirac-0p6npg`, waiting for Tyler's test in game.
+
+- **0.7 build 3** (2026-10-13): Tyler, testing build 2 (screenshot): after a fast drag to the
+  smallest window, the search table kept a wider layout and Bid, Buyout and % ran past the
+  window's right edge. Not caused by the new columns: `ResizeColumns` in `gui/auction_listing.lua`
+  measured the content area during the table's own size event, which could still report the size
+  of a step before; a fast drag ends in one big step, so the last layout was far off. The lists
+  had the same bug, fixed in 0.5 (FB-006, `gui/listing.lua`). Now the content area's own size
+  event lays the table out with the width it reports, later refreshes reuse that width (measured
+  again on show), the last column is anchored to the right edge, and a layout that did not change
+  does no widget work. Test `0.7: result tables follow a fast resize` (fails without the fix). Zip
+  `auxForever-0.7-build3.zip`; test page build id `0-7-build-3` (step 4 now asks for fast drags).
 
 - **0.7 build 2** (2026-10-13): Tyler, looking at build 1 before testing: "I want it to be ilvl /
   req / Item name / for sale... Need clarity, quick visual clarity on how many are for sale." The

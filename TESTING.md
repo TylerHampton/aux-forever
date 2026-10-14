@@ -8,14 +8,15 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.7 build 2
+## Current build: 0.7 build 3
 
 FB-013 (HoaxBox): an iLvl column and the level column renamed Req, colored by how far it is from
 your level. FB-012 (MDHippie): `AuxForeverAPI`, prices for other addons. Build 2 (Tyler, before
 testing build 1): columns in the order iLvl, Req, Item, For sale, so the units for sale are not
-next to the item levels. Zip `auxForever-0.7-build2.zip`. **Full game restart** if build 1 was
-never loaded after a restart (new file `core/api.lua`), else `/reload`. Test page build id
-`0-7-build-2`. Steps, in the New theme:
+next to the item levels. Build 3 (Tyler, testing build 2): after a fast resize to the smallest
+window, the table's right columns ran past the edge; the tables now follow every resize. Zip
+`auxForever-0.7-build3.zip`. **Full game restart** if no 0.7 build was loaded after a restart (new
+file `core/api.lua`), else `/reload`. Test page build id `0-7-build-3`. Steps, in the New theme:
 
 - [ ] 1. Search tab: search a gear category (for example Armor, Cloth). The table starts with
       **iLvl**, then **Req**, then **Item**, then **For sale**, and every gear row has a number
@@ -24,8 +25,10 @@ never loaded after a restart (new file `core/api.lua`), else `/reload`. Test pag
 - [ ] 2. Same results: the Req numbers are colored by your level. At level 24: 29 and up red, 27
       to 28 orange, 25 to 26 yellow, 18 to 24 green, 17 and below gray.
 - [ ] 3. Click the iLvl header: the rows sort by item level; click again for the other way.
-- [ ] 4. Make the window as small as it goes (drag the bottom right corner). In Search, Sniper,
-      Auctions and Bids, the headers Req and iLvl and their numbers fit, and nothing overlaps.
+- [ ] 4. With search results showing, drag the bottom right corner **fast**, all the way to the
+      smallest size, a few times, also fast back and forth. Every time, the table ends inside the
+      window: the % column is the last one and nothing runs past the right edge. Then look at
+      Sniper, Auctions and Bids at the smallest size: iLvl, Req and their numbers fit.
 - [ ] 5. After a Full scan (or a search for Linen Cloth), paste in chat:
       `/run print(AuxForeverAPI.GetLatestPrice(2589))`. It prints two numbers: the price in copper
       (the Value in Linen Cloth's tooltip; 1s 25c prints 125) and how many days ago it was seen.
