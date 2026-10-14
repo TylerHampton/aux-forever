@@ -11,10 +11,17 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 ## Start here (next session)
 
 **Where things stand:** 0.6, 0.6.0.1, 0.6.0.2, 0.6.1 and **0.6.1.1** are released and on `main`.
-**0.7 build 1** is on branch `claude/pensive-dirac-0p6npg`, waiting for Tyler's test in game.
+**0.7 build 2** is on branch `claude/pensive-dirac-0p6npg`, waiting for Tyler's test in game.
+
+- **0.7 build 2** (2026-10-13): Tyler, looking at build 1 before testing: "I want it to be ilvl /
+  req / Item name / for sale... Need clarity, quick visual clarity on how many are for sale." The
+  iLvl column sat between the item and For sale, two columns of plain numbers side by side. Now
+  iLvl, Req, Item, For sale in Search, Bids (Quantity), Auctions (Qty) and the Sniper (after
+  Found). Auctions tab sort moved to `SetSort(3, 8)`. Test: the column after Item is the units
+  column in every table. Zip `auxForever-0.7-build2.zip`; test page build id `0-7-build-2`.
 
 - **0.7 build 1** (2026-10-13), from two CurseForge comments, both asked for at once by Tyler:
-  - FB-013 (HoaxBox): an **iLvl** column after the item's name (gear only; Forever's tooltips do
+  - FB-013 (HoaxBox): an **iLvl** column (after the item's name in build 1; first since build 2) (gear only; Forever's tooltips do
     not show item level, Tyler's screenshot) and the level column renamed **Req**, colored by
     distance from the player's level: red 5+ above, orange 3 to 4, yellow 1 to 2, green usable,
     gray far below (Classic's gray level, `gray_level`). Tyler's idea, with gray instead of his

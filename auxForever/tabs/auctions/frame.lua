@@ -43,6 +43,7 @@ local function status_text(record)
 end
 
 M.columns = {
+    auction_listing.item_level_column(),
     auction_listing.requirement_column(),
     {
         title = 'Item',
@@ -53,7 +54,6 @@ M.columns = {
             return sort_util.compare(a.name, b.name, desc)
         end,
     },
-    auction_listing.item_level_column(),
     {
         title = 'Qty',
         width = .06,
@@ -120,7 +120,7 @@ M.columns = {
 }
 
 listing = auction_listing.new(frame.listing, 22, columns)
-listing:SetSort(2, 8)
+listing:SetSort(3, 8)
 listing:Reset()
 listing.alt_hint = 'Alt-click: cancel'
 listing:SetHandler('OnClick', function(row, button)

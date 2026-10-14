@@ -8,15 +8,18 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.7 build 1
+## Current build: 0.7 build 2
 
 FB-013 (HoaxBox): an iLvl column and the level column renamed Req, colored by how far it is from
-your level. FB-012 (MDHippie): `AuxForeverAPI`, prices for other addons. Zip
-`auxForever-0.7-build1.zip`. **Full game restart** needed (new file `core/api.lua`). Test page
-build id `0-7-build-1`. Steps, in the New theme:
+your level. FB-012 (MDHippie): `AuxForeverAPI`, prices for other addons. Build 2 (Tyler, before
+testing build 1): columns in the order iLvl, Req, Item, For sale, so the units for sale are not
+next to the item levels. Zip `auxForever-0.7-build2.zip`. **Full game restart** if build 1 was
+never loaded after a restart (new file `core/api.lua`), else `/reload`. Test page build id
+`0-7-build-2`. Steps, in the New theme:
 
 - [ ] 1. Search tab: search a gear category (for example Armor, Cloth). The table starts with
-      **Req**, then **Item**, then **iLvl**, and every gear row has a number under iLvl. Search
+      **iLvl**, then **Req**, then **Item**, then **For sale**, and every gear row has a number
+      under iLvl. Search
       Linen Cloth: iLvl is empty.
 - [ ] 2. Same results: the Req numbers are colored by your level. At level 24: 29 and up red, 27
       to 28 orange, 25 to 26 yellow, 18 to 24 green, 17 and below gray.

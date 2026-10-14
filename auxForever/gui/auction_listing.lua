@@ -123,9 +123,9 @@ function M.requirement_color(requirement, player_level)
     return aux.color.trivial
 end
 
--- auxForever: columns shared by the tables. The required level is a narrow first column
--- everywhere; the item level (gear only) follows the item's name, as in TSM, so the two numbers are
--- not side by side (0.7, FB-013: "Lvl" read as either).
+-- auxForever: columns shared by the tables. Item level (gear only), then the required level, then
+-- the item (0.7, FB-013: "Lvl" read as either). Tyler, build 2: the levels go before the name, so
+-- the units for sale after it never sit next to another column of plain numbers.
 function M.requirement_column()
     return {
         title = 'Req',
@@ -186,6 +186,7 @@ function M.biddable(record)
 end
 
 M.search_columns = {
+    item_level_column(),
     requirement_column(),
     {
         title = 'Item',
@@ -196,7 +197,6 @@ M.search_columns = {
             return sort_util.compare(record_a.name, record_b.name, desc)
         end,
     },
-    item_level_column(),
     quantity_column('For sale'),
     {
         title = 'Time\nLeft',
@@ -322,6 +322,7 @@ M.search_columns = {
 }
 
 M.auctions_columns = {
+    item_level_column(),
     requirement_column(),
     {
         title = 'Item',
@@ -332,7 +333,6 @@ M.auctions_columns = {
             return sort_util.compare(record_a.name, record_b.name, desc)
         end,
     },
-    item_level_column(),
     quantity_column('Quantity'),
     {
         title = 'Time\nLeft',
@@ -468,6 +468,7 @@ M.auctions_columns = {
 }
 
 M.bids_columns = {
+    item_level_column(),
     requirement_column(),
     {
         title = 'Item',
@@ -478,7 +479,6 @@ M.bids_columns = {
             return sort_util.compare(record_a.name, record_b.name, desc)
         end,
     },
-    item_level_column(),
     quantity_column('Quantity'),
     {
         title = 'Time\nLeft',

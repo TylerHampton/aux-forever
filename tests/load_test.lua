@@ -748,9 +748,10 @@ try('table columns', function()
   local require = loadstring("select(2, ...) 'aux.test13'; return require")('auxForever', addon)
   local al = require 'aux.gui.auction_listing'
   for name, columns in pairs{search = al.search_columns, auctions = al.auctions_columns, bids = al.bids_columns} do
-    check(name .. ': required level is the first column', columns[1].title == 'Req')
-    check(name .. ': item is second', columns[2].title == 'Item')
-    check(name .. ': item level follows the item', columns[3].title == 'iLvl')
+    -- Tyler, 0.7 build 2: iLvl, Req, Item, For sale; the units for sale never next to a level
+    check(name .. ': item level is the first column', columns[1].title == 'iLvl')
+    check(name .. ': required level is second', columns[2].title == 'Req')
+    check(name .. ': item is third', columns[3].title == 'Item')
     local titles = {}
     for _, c in ipairs(columns) do titles[#titles + 1] = type(c.title) == 'table' and c.title[1] or c.title end
     local joined = table.concat(titles, '|')
@@ -3361,20 +3362,23 @@ try('0.7: Req and iLvl columns', function()
 
   -- the cells
   local cell = {text = new_frame()}
-  al.search_columns[1].fill(cell, {requirement = 65})
+  al.search_columns[2].fill(cell, {requirement = 65})
   check('req cell: colored text', tostring(cell.text.__text):find('^|c') ~= nil and tostring(cell.text.__text):find('65', 1, true) ~= nil)
-  al.search_columns[3].fill(cell, {item_level = 52})
+  al.search_columns[1].fill(cell, {item_level = 52})
   check('ilvl cell: the item level', cell.text.__text == 52)
-  al.search_columns[3].fill(cell, {})
+  al.search_columns[1].fill(cell, {})
   check('ilvl cell: empty when not gear', cell.text.__text == '')
-  check('ilvl: sorts by item level', al.search_columns[3].cmp({item_level = 30}, {item_level = 52}, false) ~= al.search_columns[3].cmp({item_level = 52}, {item_level = 30}, false))
+  check('ilvl: sorts by item level', al.search_columns[1].cmp({item_level = 30}, {item_level = 52}, false) ~= al.search_columns[1].cmp({item_level = 52}, {item_level = 30}, false))
 
   -- the other tables with a level column
   local auctions = loadstring("select(2, ...) 'aux.tabs.auctions'; return _M")('auxForever', addon)
   local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
-  check('auctions tab: Req, Item, iLvl', auctions.columns[1].title == 'Req' and auctions.columns[2].title == 'Item' and auctions.columns[3].title == 'iLvl')
-  check('sniper: Req, Item, iLvl after Found', sniper.columns[2].title == 'Req' and sniper.columns[3].title == 'Item' and sniper.columns[4].title == 'iLvl')
-  al.search_columns[1].fill(cell, {requirement = 65, deal_gone = true})
+  check('auctions tab: iLvl, Req, Item', auctions.columns[1].title == 'iLvl' and auctions.columns[2].title == 'Req' and auctions.columns[3].title == 'Item')
+  check('sniper: iLvl, Req, Item after Found', sniper.columns[2].title == 'iLvl' and sniper.columns[3].title == 'Req' and sniper.columns[4].title == 'Item')
+  local function after_item(columns) for i, col in ipairs(columns) do if col.title == 'Item' then return columns[i + 1].title end end end
+  check('for sale follows the item everywhere', after_item(al.search_columns) == 'For sale' and after_item(sniper.columns) == 'For sale' and after_item(al.bids_columns) == 'Quantity' and after_item(auctions.columns) == 'Qty')
+  check('auctions tab: sorted by item within status', auctions.listing.sorts[2] and auctions.listing.columns[auctions.listing.sorts[2].index].title == 'Item')
+  al.search_columns[2].fill(cell, {requirement = 65, deal_gone = true})
   check('req cell: a gone deal is dimmed, not colored by level', cell.text.__text == c.label.disabled(65))
   -- the default sorts still end on the same columns after the new one
   local function primary(listing) local col = listing.columns[listing.sorts[1].index] return type(col.title) == 'table' and col.title[1] or col.title end
