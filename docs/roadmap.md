@@ -5,6 +5,12 @@ TOC. Every release gets an entry in `docs/changelog.md`. Numbering (Tyler, 2026-
 raises the fourth number (0.6 -> 0.6.0.1 -> 0.6.0.2); a bigger update within the same version
 raises the third (0.6.1); new features are the next minor version (0.7).
 
+## 0.7: gamepad support (built 2026-10-13, waiting for Tyler)
+
+Contributed (GitHub nokkty, fork branch `gamepad-navigation`), not planned by Tyler: auxForever
+with a controller in Forever's gamepad mode. Built and tested in game; whether it goes in is
+Tyler's call. Details: `docs/gamepad.md`, `docs/status.md`.
+
 ## After 0.6: candidates for the next version (none decided)
 
 0.6 and 0.6.0.1 were released on 2026-10-09, 0.6.0.2 on 2026-10-10 (`docs/changelog.md`). Carried over or raised since:

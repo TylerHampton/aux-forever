@@ -11,9 +11,37 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 ## Start here (next session)
 
 **Where things stand:** 0.6, 0.6.0.1, 0.6.0.2, 0.6.1 and **0.6.1.1** are released and on `main`.
-No build is in progress. Start the next version from the latest `main`. Branch
-`claude/exciting-brown-a9k99n` (docs only: auction house facts, experiments not scheduled) is
-not merged; ask Tyler whether to merge it.
+**0.7 build 1 (gamepad support)** is built and tested in game, from a contributor; it waits for
+Tyler to decide whether to take it (below). Branch `claude/exciting-brown-a9k99n` (docs only:
+auction house facts, experiments not scheduled) is not merged; ask Tyler whether to merge it.
+
+- **0.7 build 1: gamepad support** (2026-10-13), contributed by GitHub user nokkty on branch
+  `gamepad-navigation` of their fork, built with Claude, started from `main` 306aff9. Not asked
+  for by Tyler or by a player. auxForever can be used with a controller in Forever's gamepad mode:
+  D-pad, A, B, X, Y, LB/RB, a hint strip with the controller's icons, aux's popups inside aux. Mouse
+  and keyboard are unchanged. How it works, why, and the sources: `docs/gamepad.md`. New file
+  `auxForever/gamepad.lua` (full game restart); five buttons exported for Y
+  (`buy_bar.primary_button`, the Sniper's `run_button` and `deals_list`, `post_button`, the
+  Auctions tab's `cancel_button`, the Bids tab's `buyout_button`); aux's popups go through
+  `aux.show_popup`/`aux.hide_popup`. Version raised to 0.7 (a new feature, by the numbering rule).
+  Zip `auxForever-0.7-build1.zip`.
+- **Found while building it** (rule added to `AGENTS.md`, Code gotchas): aux must never write into
+  Blizzard's gamepad code (`GamepadMode`, `SmartNavigation`, its window manager or binding
+  groups). The first try registered aux with Blizzard's window manager; closing aux by pad then
+  got `SetPreferredGamepadInteractTarget()` blocked, each "blocked" popup was blocked again (259
+  times) and the game froze (`Logs/taint.log`). aux now has a navigator of its own with override
+  bindings on a frame it owns. Also: `C_Texture.GetAtlasInfo` fails on Forever (Vector2DMixin).
+- **Tested in game** (2026-10-13, the contributor, New theme): every step of
+  `TESTING.md` "Current build" passes; taint log with nothing blocked; no BugSack error. Not tested:
+  the Classic theme, a PlayStation controller, the post confirmation popup by pad (covered by the
+  automated tests), Y on Bids.
+- **Test harness:** stub frames made with `CreateFrame` now know their parent, children, type and
+  frame strata, `HookScript` adds to a script instead of replacing it, and `GetCenter`,
+  `GetEffectiveAlpha` and `GetStringHeight` return numbers, all as in the game.
+- **Open questions for Tyler about 0.7:** does he want gamepad support in auxForever at all? If
+  so, a look at the hint strip (no mockup was made; the layout was the contributor's choice after
+  trying icons beside the tabs and buttons) and a short pass in Classic. Release name and date are
+  his.
 
 - **Released 0.6.1.1** on 2026-10-12 (PR #25, `main` 154a584), "The Gaddor Update" (Tyler's
   name, used in the changelog only): a click on an item's icon in the Post tab's bag list selects

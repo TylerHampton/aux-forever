@@ -8,7 +8,41 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.6.1.1 build 1
+## Current build: 0.7 build 1
+
+Gamepad support (`docs/gamepad.md`). Zip `auxForever-0.7-build1.zip`. **Full game restart**
+needed (new file `gamepad.lua`). Test page build id `0-7-build-1`. Tested in game on 2026-10-13 by
+the contributor (New theme): all steps below pass, taint log clean (nothing
+blocked), no BugSack error. Not tested yet: the Classic theme, a PlayStation controller.
+
+Set up: Forever's gamepad mode on (Options, Controls, gamepad), BugSack enabled. Steps, in the New
+theme, using only the controller:
+
+- [x] 1. Talk to an auctioneer: aux opens with a gold frame on a control of the Search tab and a
+      strip under the window showing A, B, X and LB RB with your controller's icons.
+- [x] 2. Move around the Search tab with the D-pad: the gold frame goes to the nearest control in
+      each direction, and the strip's words change (a button: Select; a text box: Type).
+- [x] 3. Gold frame on Rarity, A, down twice, A: Rarity changes to the option picked.
+- [x] 4. Run a search, move onto a cheap result, A, then Y (Buy), then Y (Confirm): it is bought.
+- [x] 5. Down past the last result shown: the list scrolls.
+- [x] 6. RB through the tabs: each opens at once; after Bids the frame goes to Settings, Full scan
+      and Blizzard UI. LB goes back.
+- [x] 7. A on Settings: the frame stays inside the Settings popup; B closes it and aux stays open.
+- [x] 8. Post tab: pick an item with A; reach -, + and Max with the D-pad and press them; Y posts.
+- [x] 9. Post tab: X on an item in the bag list searches it on the Search tab.
+- [x] 10. Sniper: Y starts it. A on a deal: once checked, the frame moves to Buy; A, then A
+      (Confirm): it is bought. B on the buy bar goes back to the deal. Y stops it. (To get a deal
+      soon, set "% of usual" to 100 and "profit at least" to 1c, then set them back.)
+- [x] 11. Auctions tab: select an auction of yours, Y: it is cancelled (costs its deposit).
+- [x] 12. B until aux closes: no popup, no freeze. Log out: no BugSack error.
+
+Not checked by a test step: the post confirmation popup in gamepad mode (the server's warning did
+not come up during testing; covered by the automated tests), Bids with Y (no bid was up).
+
+The last build before this one, 0.6.1.1 build 1, was tested in game and released. Its steps and
+results, kept for reference:
+
+### 0.6.1.1 build 1
 
 Fix for FB-011 (Gaddor): clicking an item's icon in the Post tab's bag list now selects it.
 Zip `auxForever-0.6.1.1-build1.zip`. `/reload` is enough (no new files). Test page build id
@@ -20,9 +54,6 @@ Tested by Tyler on 2026-10-12 (screenshots): all 3 steps pass. Steps, in the New
 - [x] 2. Click a different item's **name**. That item is selected (this worked before; check it
       still does).
 - [x] 3. Right-click an item's **icon**. aux switches to the Search tab and searches that item.
-
-The last build before this one, 0.6.1 build 2 (weapon slots in Search, audit fixes), was tested in
-game and released. Its steps and results, kept for reference:
 
 ### 0.6.1 build 2
 
