@@ -3383,14 +3383,14 @@ try('gamepad: aux takes the pad buttons only while open, in gamepad mode', funct
 
   gamepad_ui = true
   aux_frame:Hide(); aux_frame:Show()
-  check('gamepad: open, aux has the D-pad, A, B, LB and RB', count() == 8 and bindings.PADDUP == 'CLICK auxForeverPadup:LeftButton' and bindings.PAD1 == 'CLICK auxForeverPadA:LeftButton')
+  check('gamepad: open, aux has the D-pad, A, B, X, Y, LB and RB', count() == 10 and bindings.PAD3 == 'CLICK auxForeverPadX:LeftButton' and bindings.PAD4 == 'CLICK auxForeverPadY:LeftButton' and bindings.PADDUP == 'CLICK auxForeverPadup:LeftButton' and bindings.PAD1 == 'CLICK auxForeverPadA:LeftButton')
   aux_frame:Hide()
   check('gamepad: closed, the pad buttons are given back', count() == 0)
 
   aux_frame:Show()
   combat = true
   aux_frame:Hide()
-  check('gamepad: closed in combat, the bindings wait for the end of combat', count() == 8)
+  check('gamepad: closed in combat, the bindings wait for the end of combat', count() == 10)
   combat = false
   for _, f in ipairs(frames) do
     if f.__events.PLAYER_REGEN_ENABLED then f.__scripts.OnEvent(f, 'PLAYER_REGEN_ENABLED') end
@@ -3401,7 +3401,7 @@ try('gamepad: aux takes the pad buttons only while open, in gamepad mode', funct
   aux_env.blizzard_button.__scripts.OnClick(aux_env.blizzard_button)
   check('gamepad: Blizzard UI shown, its own navigation gets the pad back', count() == 0)
   aux_env.blizzard_button.__scripts.OnClick(aux_env.blizzard_button)
-  check('gamepad: Blizzard UI hidden, aux takes it again', count() == 8)
+  check('gamepad: Blizzard UI hidden, aux takes it again', count() == 10)
 
   aux_frame:Hide(); aux_frame:Show()
   G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = real[1], real[2], real[3]
@@ -3514,6 +3514,52 @@ try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
   pad('down')
   pad('B')
   check('gamepad nav: B closes the menu and keeps the choice', dropdown:GetIndex() == 3 and not gui.dropdown_menu.__shown)
+
+  -- X: a right-click on the control
+  local right_clicked
+  local row = place(CreateFrame('Button', nil, layout), 4000, -6000)
+  row:SetScript('OnClick', function(_, button) right_clicked = button end)
+  rawset(row, 'Click', function(self, button) self.__scripts.OnClick(self, button) end)
+  aux_env.gamepad_set_focus(row)
+  pad('X')
+  check('gamepad nav: X right-clicks a row', right_clicked == 'RightButton')
+  box:SetText('linen')
+  aux_env.gamepad_set_focus(box)
+  pad('X')
+  check('gamepad nav: X on a text box clears it, as a right-click does', box:GetText() == '')
+
+  -- Y: the tab's main action (Search 1: Buy, Sniper 2: Start, Post 3: Post)
+  local pressed = {}
+  local quick = {
+    require('aux.gui.buy_bar').primary_button,
+    require('aux.tabs.sniper').run_button,
+    require('aux.tabs.post').post_button,
+    require('aux.tabs.auctions').cancel_button,
+    require('aux.tabs.bids').buyout_button,
+  }
+  for i, b in ipairs(quick) do
+    rawset(b, 'Click', function() pressed[i] = (pressed[i] or 0) + 1 end)
+    rawset(b, 'IsVisible', function() return true end)
+  end
+  for i = 1, 5 do
+    aux_env.set_tab(i)
+    pad('Y')
+  end
+  check('gamepad nav: Y buys on Search, starts the Sniper, posts on Post', pressed[1] == 1 and pressed[2] == 1 and pressed[3] == 1)
+  check('gamepad nav: Y cancels on Auctions and buys out on Bids', pressed[4] == 1 and pressed[5] == 1)
+  aux_env.set_tab(3)
+  rawset(quick[3], 'IsVisible', function() return false end)
+  pad('Y')
+  check('gamepad nav: Y does nothing when the action is not shown (no item picked)', pressed[3] == 1)
+  rawset(quick[3], 'IsVisible', function() return true end)
+  local cover = CreateFrame('Frame', nil, layout)
+  cover:SetFrameStrata('DIALOG')
+  place(CreateFrame('Button', nil, cover), 2000, 300)
+  pad('Y')
+  check('gamepad nav: Y does nothing while a popup is open', pressed[3] == 1)
+  cover:Hide()
+  for _, b in ipairs(quick) do rawset(b, 'Click', nil); rawset(b, 'IsVisible', nil) end
+  aux_env.set_tab(1)
 
   aux_env.gamepad_set_focus(b1)
   pad('B')

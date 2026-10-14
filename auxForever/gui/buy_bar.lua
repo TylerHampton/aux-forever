@@ -634,6 +634,8 @@ function M.create(parent)
     primary_button:SetPoint('RIGHT', -10, 0)
     gui.set_size(primary_button, 160, 42)
     primary_button:SetScript('OnClick', function() primary_click() end)
+    -- the gamepad's Y presses it on the Search tab (gamepad.lua)
+    M.primary_button = primary_button
 
     cancel_button = gui.button(bar, gui.font_size.medium)
     cancel_button:SetPoint('RIGHT', primary_button, 'LEFT', -6, 0)

@@ -50,5 +50,6 @@ do
     btn:SetText('Buyout')
     btn:Disable()
     btn:SetScript('OnClick', function() place_bid(true) end)
-    buyout_button = btn
+    -- exported for the gamepad's Y (gamepad.lua)
+    M.buyout_button = btn
 end

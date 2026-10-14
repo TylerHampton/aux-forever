@@ -528,7 +528,8 @@ do
         end
     end)
     btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
-    post_button = btn
+    -- exported for the gamepad's Y (gamepad.lua)
+    M.post_button = btn
 end
 -- the receipt: a label on the left of the right column and its amount on the right
 do

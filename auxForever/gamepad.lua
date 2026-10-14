@@ -18,6 +18,9 @@ local gui = require 'aux.gui'
 --          row shown, it scrolls the list
 --   A      presses the control (focuses a text box; opens a dropdown, then picks an option)
 --   B      closes what is open: a dropdown, a text box, a popup (Settings, quick searches), then aux
+--   X      right-clicks the control (search from a bag item, remove a favorite, clear a text box)
+--   Y      the tab's main action: Buy (then Confirm) on Search, Start or Stop on Sniper, Post on Post,
+--          Cancel the selected auction on Auctions, Buyout the selected bid on Bids
 --   LB/RB  step through the top bar: the five tabs (switched at once), then Settings, Full scan
 --          and Blizzard UI (A presses them)
 -- Nothing runs every frame: the controls are found when a button is pressed.
@@ -29,6 +32,8 @@ local KEYS = {
     {'right', 'GAMEPAD_DPAD_RIGHT', 'PADDRIGHT'},
     {'A', 'GAMEPAD_FACE_BOTTOM', 'PAD1'},
     {'B', 'GAMEPAD_FACE_RIGHT', 'PAD2'},
+    {'X', 'GAMEPAD_FACE_LEFT', 'PAD3'},
+    {'Y', 'GAMEPAD_FACE_TOP', 'PAD4'},
     {'LB', 'GAMEPAD_SHOULDER_LEFT', 'PADLSHOULDER'},
     {'RB', 'GAMEPAD_SHOULDER_RIGHT', 'PADRSHOULDER'},
 }
@@ -270,6 +275,37 @@ local function press(f)
     if up then up(f, 'LeftButton') end
 end
 
+-- X: a right-click on the control, as the mouse would
+local function press_right(f)
+    if f:IsObjectType('Button') and f:GetScript('OnClick') then
+        if f:IsEnabled() then f:Click('RightButton') end
+        return
+    end
+    -- a text box clears on a right-click (gui.editbox)
+    local down, up = f:GetScript('OnMouseDown'), f:GetScript('OnMouseUp')
+    if down then down(f, 'RightButton') end
+    if up then up(f, 'RightButton') end
+end
+
+-- Y: the main action of the tab that is open, by tab number (Search 1, Sniper 2, Post 3, Auctions 4,
+-- Bids 5). The buy
+-- bar's button is Buy, then Confirm once the price is known, so Y twice buys.
+local QUICK_ACTIONS = {
+    function() return require('aux.gui.buy_bar').primary_button end,
+    function() return require('aux.tabs.sniper').run_button end,
+    function() return require('aux.tabs.post').post_button end,
+    function() return require('aux.tabs.auctions').cancel_button end,
+    function() return require('aux.tabs.bids').buyout_button end,
+}
+
+local function quick_action()
+    local find = QUICK_ACTIONS[tabs._selected or 0]
+    local button = find and find()
+    if button and button:IsVisible() and button:IsEnabled() then
+        button:Click('LeftButton')
+    end
+end
+
 -- an open dropdown menu (Category, Rarity, ...): it opens outside aux's window, so its options are
 -- walked here
 local menu, menu_items = gui.dropdown_menu, gui.dropdown_items
@@ -474,6 +510,13 @@ local actions = {
         end
     end,
     B = back,
+    X = function()
+        if not menu_open() and usable(focused) and inside(focused, root()) then press_right(focused) end
+    end,
+    -- not while a popup or a dropdown is open: it would act behind it
+    Y = function()
+        if not menu_open() and root() == frame then quick_action() end
+    end,
     LB = function() if menu_open() then menu_close() end; top_bar_step(-1) end,
     RB = function() if menu_open() then menu_close() end; top_bar_step(1) end,
 }

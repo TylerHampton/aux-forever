@@ -197,7 +197,8 @@ do
     btn:SetScript('OnClick', function()
         if running then stop() else start() end
     end)
-    run_button = btn
+    -- exported for the gamepad's Y (gamepad.lua)
+    M.run_button = btn
 end
 do
     local label = gui.label(frame, gui.font_size.medium)

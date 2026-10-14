@@ -188,7 +188,8 @@ do
     btn:SetText('Cancel')
     btn:Disable()
     btn:SetScript('OnClick', function() cancel_auction() end)
-    cancel_button = btn
+    -- exported for the gamepad's Y (gamepad.lua)
+    M.cancel_button = btn
 end
 do
     -- what the selected auction's status means
