@@ -8,21 +8,46 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.6.1.1 build 1
+## Current build: 0.7 build 4
 
-Fix for FB-011 (Gaddor): clicking an item's icon in the Post tab's bag list now selects it.
-Zip `auxForever-0.6.1.1-build1.zip`. `/reload` is enough (no new files). Test page build id
-`0-6-1-1-build-1`. 
-Tested by Tyler on 2026-10-12 (screenshots): all 3 steps pass. Steps, in the New theme:
+FB-013 (HoaxBox): an iLvl column and the level column renamed Req, colored by how far it is from
+your level. FB-012 (MDHippie): `AuxForeverAPI`, prices for other addons. Build 2 (Tyler, before
+testing build 1): columns in the order iLvl, Req, Item, For sale, so the units for sale are not
+next to the item levels. Build 3 (Tyler, testing build 2): after a fast resize to the smallest
+window, the table's right columns ran past the edge; the tables now follow every resize. Build 4 (Tyler): "Req first always", so Req, iLvl, Item,
+For sale. Zip `auxForever-0.7-build4.zip`. **Full game restart** if no 0.7 build was loaded after a restart (new
+file `core/api.lua`), else `/reload`. Test page build id `0-7-build-4`.
+Tested by Tyler on 2026-10-13 (test page, screenshots; only step 4 marked Pass, the others judged
+from their screenshots): all 6 pass. Armor, Cloth listed Req, iLvl, Item, For sale with an item
+level on every row (iLvl = Req + 5 throughout) and none for Linen Cloth; the Req colors at level 24
+were right in both themes (29+ red, 27 to 28 orange, 25 yellow, 18 to 24 green, 17 and below
+gray); sorting by Req works both ways (the screenshots sort Req, not iLvl); the API printed
+`20 0` for Linen Cloth (20c, seen today; 851 were listed at 20c). Steps, in the New theme:
 
-- [x] 1. Post tab: in the list of bag items on the left, click an item's **icon** (the picture, not
-      the name). The item is selected: its row lights up and the price panel fills in.
-- [x] 2. Click a different item's **name**. That item is selected (this worked before; check it
-      still does).
-- [x] 3. Right-click an item's **icon**. aux switches to the Search tab and searches that item.
+- [x] 1. Search tab: search a gear category (for example Armor, Cloth). The table starts with
+      **Req**, then **iLvl**, then **Item**, then **For sale**, and every gear row has a number
+      under iLvl. Search
+      Linen Cloth: iLvl is empty.
+- [x] 2. Same results: the Req numbers are colored by your level. At level 24: 29 and up red, 27
+      to 28 orange, 25 to 26 yellow, 18 to 24 green, 17 and below gray.
+- [x] 3. Click the iLvl header: the rows sort by item level; click again for the other way.
+- [x] 4. With search results showing, drag the bottom right corner **fast**, all the way to the
+      smallest size, a few times, also fast back and forth. Every time, the table ends inside the
+      window: the % column is the last one and nothing runs past the right edge. Then look at
+      Sniper, Auctions and Bids at the smallest size: iLvl, Req and their numbers fit.
+- [x] 5. After a Full scan (or a search for Linen Cloth), paste in chat:
+      `/run print(AuxForeverAPI.GetLatestPrice(2589))`. It prints two numbers: the price in copper
+      (the Value in Linen Cloth's tooltip; 1s 25c prints 125) and how many days ago it was seen.
+- [x] 6. Settings, theme Classic, `/reload`, and repeat step 2: the colors read well, the gray too.
 
-The last build before this one, 0.6.1 build 2 (weapon slots in Search, audit fixes), was tested in
-game and released. Its steps and results, kept for reference:
+### 0.6.1.1 build 1
+
+Fix for FB-011 (Gaddor): clicking an item's icon in the Post tab's bag list selects it. Tested by
+Tyler on 2026-10-12 (screenshots): all 3 steps pass (icon click selects, name click selects,
+right-click on the icon searches). Released as 0.6.1.1.
+
+Earlier: 0.6.1 build 2 (weapon slots in Search, audit fixes), tested in game and released. Its
+steps and results, kept for reference:
 
 ### 0.6.1 build 2
 

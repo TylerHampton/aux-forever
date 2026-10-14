@@ -43,20 +43,11 @@ local function status_text(record)
 end
 
 M.columns = {
-    {
-        title = 'Lvl',
-        width = .04,
-        align = 'CENTER',
-        fill = function(cell, record)
-            cell.text:SetText(max(record.requirement or 0, 1))
-        end,
-        cmp = function(a, b, desc)
-            return sort_util.compare(a.requirement or 0, b.requirement or 0, desc)
-        end,
-    },
+    auction_listing.requirement_column(),
+    auction_listing.item_level_column(),
     {
         title = 'Item',
-        width = .3,
+        width = .28,
         init = auction_listing.item_column_init,
         fill = auction_listing.item_column_fill,
         cmp = function(a, b, desc)
@@ -129,7 +120,7 @@ M.columns = {
 }
 
 listing = auction_listing.new(frame.listing, 22, columns)
-listing:SetSort(2, 7)
+listing:SetSort(3, 8)
 listing:Reset()
 listing.alt_hint = 'Alt-click: cancel'
 listing:SetHandler('OnClick', function(row, button)

@@ -209,6 +209,9 @@ Simon's [aux page](https://www.curseforge.com/wow/addons/aux) describes every fi
 - **The usual price** is a median of up to 14 days, recent days counting more. The Sniper and the
   % columns compare against it, and tooltips show it as "usually ..." when it is far from the
   latest price.
+- **For addon authors:** other addons can read these prices through `AuxForeverAPI`
+  (`GetLatestPrice`, `GetUsualPrice`); how to use it is in
+  [docs/api.md](https://github.com/TylerHampton/aux-forever/blob/main/docs/api.md).
 
 ## Install
 

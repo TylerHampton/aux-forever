@@ -748,18 +748,21 @@ try('table columns', function()
   local require = loadstring("select(2, ...) 'aux.test13'; return require")('auxForever', addon)
   local al = require 'aux.gui.auction_listing'
   for name, columns in pairs{search = al.search_columns, auctions = al.auctions_columns, bids = al.bids_columns} do
-    check(name .. ': level is the first column', columns[1].title == 'Lvl')
-    check(name .. ': item is second', columns[2].title == 'Item')
+    -- Tyler, 0.7: Req, iLvl, Item, For sale (build 4: "Req first always"); the units for sale never
+    -- next to a level
+    check(name .. ': required level is the first column', columns[1].title == 'Req')
+    check(name .. ': item level is second', columns[2].title == 'iLvl')
+    check(name .. ': item is third', columns[3].title == 'Item')
     local titles = {}
     for _, c in ipairs(columns) do titles[#titles + 1] = type(c.title) == 'table' and c.title[1] or c.title end
     local joined = table.concat(titles, '|')
     check(name .. ': no Auctions or Stack Size column', not joined:find('Auctions|', 1, true) and not joined:find('Stack', 1, true))
   end
-  check('search: For sale column', al.search_columns[3].title == 'For sale')
+  check('search: For sale column', al.search_columns[4].title == 'For sale')
   local cell = {text = new_frame()}
-  al.search_columns[3].fill(cell, {count = 1032}, 1032, 0, false)
+  al.search_columns[4].fill(cell, {count = 1032}, 1032, 0, false)
   check('for sale shows units', cell.text.__text == 1032)
-  al.search_columns[3].fill(cell, {count = 1}, 6, 2, false)
+  al.search_columns[4].fill(cell, {count = 1}, 6, 2, false)
   check('for sale shows your own units', tostring(cell.text.__text):find('(2)', 1, true) ~= nil)
 
   local rt = al.new(new_frame(), 19, al.search_columns)
@@ -3336,6 +3339,155 @@ try('0.6.1: items seen at the auction house join the item list', function()
   check('item list: its facts stay when the game has not loaded the item', info.item(212345) and info.item(212345).sell_price == 900)
   aux.account_data.items[212345], aux.account_data.items[212346], aux.account_data.item_ids['forever blade'] = nil, nil, nil
   for i = #aux.account_data.auctionable_items, 1, -1 do if aux.account_data.auctionable_items[i] == 'forever blade' then tremove(aux.account_data.auctionable_items, i) end end
+end)
+
+-- 0.7 (FB-013, HoaxBox): an item level column, and the required level colored by how far it is from
+-- the player's level (Tyler, 2026-10-13: red far above, then orange, yellow, green; gray far below)
+try('0.7: Req and iLvl columns', function()
+  local require = loadstring("select(2, ...) 'aux.test.ilvl'; return require")('auxForever', addon)
+  local aux = require 'aux'
+  local al = loadstring("select(2, ...) 'aux.gui.auction_listing'; return _M")('auxForever', addon)
+  local info = loadstring("select(2, ...) 'aux.util.info'; return _M")('auxForever', addon)
+  local c = aux.color
+  -- the colors, at level 24 (gray at 17 and below) and at 60 (gray at 47 and below)
+  check('req: 5 or more levels above is red', al.requirement_color(29, 24) == c.red and al.requirement_color(40, 24) == c.red)
+  check('req: 3 to 4 above is orange', al.requirement_color(27, 24) == c.orange and al.requirement_color(28, 24) == c.orange)
+  check('req: 1 to 2 above is yellow', al.requirement_color(25, 24) == c.yellow and al.requirement_color(26, 24) == c.yellow)
+  check('req: usable is green', al.requirement_color(24, 24) == c.green and al.requirement_color(18, 24) == c.green)
+  check('req: far below is gray', al.requirement_color(17, 24) == c.trivial and al.requirement_color(1, 24) == c.trivial)
+  check('req: at 60, 48 is green and 47 gray', al.requirement_color(48, 60) == c.green and al.requirement_color(47, 60) == c.trivial)
+  check('req: nothing is gray up to level 5', al.requirement_color(1, 5) == c.green)
+  check('req: gray levels follow Classic', al.gray_level(24) == 17 and al.gray_level(39) == 31 and al.gray_level(40) == 31 and al.gray_level(60) == 47)
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  check('req: the gray is in both themes', a.PALETTES.new.trivial ~= nil and a.PALETTES.classic.trivial ~= nil)
+
+  -- the cells
+  local cell = {text = new_frame()}
+  al.search_columns[1].fill(cell, {requirement = 65})
+  check('req cell: colored text', tostring(cell.text.__text):find('^|c') ~= nil and tostring(cell.text.__text):find('65', 1, true) ~= nil)
+  al.search_columns[2].fill(cell, {item_level = 52})
+  check('ilvl cell: the item level', cell.text.__text == 52)
+  al.search_columns[2].fill(cell, {})
+  check('ilvl cell: empty when not gear', cell.text.__text == '')
+  check('ilvl: sorts by item level', al.search_columns[2].cmp({item_level = 30}, {item_level = 52}, false) ~= al.search_columns[2].cmp({item_level = 52}, {item_level = 30}, false))
+
+  -- the other tables with a level column
+  local auctions = loadstring("select(2, ...) 'aux.tabs.auctions'; return _M")('auxForever', addon)
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  check('auctions tab: Req, iLvl, Item', auctions.columns[1].title == 'Req' and auctions.columns[2].title == 'iLvl' and auctions.columns[3].title == 'Item')
+  check('sniper: Req, iLvl, Item after Found', sniper.columns[2].title == 'Req' and sniper.columns[3].title == 'iLvl' and sniper.columns[4].title == 'Item')
+  local function after_item(columns) for i, col in ipairs(columns) do if col.title == 'Item' then return columns[i + 1].title end end end
+  check('for sale follows the item everywhere', after_item(al.search_columns) == 'For sale' and after_item(sniper.columns) == 'For sale' and after_item(al.bids_columns) == 'Quantity' and after_item(auctions.columns) == 'Qty')
+  check('auctions tab: sorted by item within status', auctions.listing.sorts[2] and auctions.listing.columns[auctions.listing.sorts[2].index].title == 'Item')
+  al.search_columns[1].fill(cell, {requirement = 65, deal_gone = true})
+  check('req cell: a gone deal is dimmed, not colored by level', cell.text.__text == c.label.disabled(65))
+  -- the default sorts still end on the same columns after the new one
+  local function primary(listing) local col = listing.columns[listing.sorts[1].index] return type(col.title) == 'table' and col.title[1] or col.title end
+  check('auctions tab: sorted by status first', primary(auctions.listing) == 'Status')
+  local bids = loadstring("select(2, ...) 'aux.tabs.bids'; return _M")('auxForever', addon)
+  check('bids tab: sorted by status first', primary(bids.listing) == 'Status')
+  local src = io.open('tabs/search/results.lua'):read('*a')
+  check('search: the default sort covers all 9 columns', src:find('SetSort(1, 2, 3, 4, 5, 6, 7, 8, 9)', 1, true) ~= nil)
+
+  -- item levels in records: gear only, the auction house's item key first
+  local real_info = G.GetItemInfo
+  G.GetItemInfo = function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id == 213001 then return 'Test Blade', 'link', 3, 30, 25, 'Weapon', 'Daggers', 1, 'INVTYPE_WEAPON', 1, 900 end
+    if id == 213002 then return 'Test Cloth', 'link', 1, 15, 0, 'Trade Goods', 'Cloth', 20, '', 1, 10 end
+    if id == 213003 then return 'Test Bag', 'link', 1, 25, 0, 'Container', 'Bag', 1, 'INVTYPE_BAG', 1, 10 end
+  end
+  local blade = info.browse_record({itemKey = {itemID = 213001, itemSuffix = 0}, totalQuantity = 1, minPrice = 5000})
+  check('ilvl: gear has its item level', blade and blade.item_level == 30)
+  blade = info.browse_record({itemKey = {itemID = 213001, itemSuffix = 0, itemLevel = 33}, totalQuantity = 1, minPrice = 5000})
+  check('ilvl: the item key\'s level wins', blade and blade.item_level == 33)
+  local cloth = info.browse_record({itemKey = {itemID = 213002, itemSuffix = 0, itemLevel = 15}, totalQuantity = 1, minPrice = 5000})
+  check('ilvl: trade goods have none', cloth and cloth.item_level == nil)
+  local bag = info.browse_record({itemKey = {itemID = 213003, itemSuffix = 0}, totalQuantity = 1, minPrice = 5000})
+  check('ilvl: bags have none', bag and bag.item_level == nil)
+  local row = info.item_search_record({itemKey = {itemID = 213001, itemSuffix = 0, itemLevel = 31}, itemLink = '|cff0070dd|Hitem:213001::::::::|h[Test Blade]|h|r', auctionID = 1, quantity = 1, buyoutAmount = 5000, minBid = 0, bidAmount = 0, owners = {'Seller'}, totalNumberOfOwners = 1, containsOwnerItem = false, timeLeft = 3})
+  check('ilvl: an item search row has it too', row and row.item_level == 31)
+  G.GetItemInfo = real_info
+  for _, id in ipairs{213001, 213002, 213003} do aux.account_data.items[id] = nil end
+  for _, name in ipairs{'test blade', 'test cloth', 'test bag'} do
+    aux.account_data.item_ids[name] = nil
+    for i = #aux.account_data.auctionable_items, 1, -1 do if aux.account_data.auctionable_items[i] == name then tremove(aux.account_data.auctionable_items, i) end end
+  end
+end)
+
+-- 0.7 (FB-012, MDHippie): prices for other addons in the global AuxForeverAPI (docs/api.md)
+try('0.7: AuxForeverAPI', function()
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local api = G.AuxForeverAPI
+  check('api: a global table', type(api) == 'table')
+  check('api: version 1', api.version == 1)
+  check('api: ready after login', api.IsReady() == true)
+  local d = h.today()
+  h.write_record('214001:0', {day = d, market = 1200, units = 8, low = 1100, points = {{value = 1000, day = d - 1, units = 5}, {value = 1000, day = d - 2, units = 5}}})
+  h.write_record('214001:1234', {day = d, market = 9000, units = 1, low = 9000, points = {}})
+  local latest, age = api.GetLatestPrice(214001)
+  check('api: the latest price by item ID', latest == 1200 and age == 0)
+  check('api: by ID as text and by item string', api.GetLatestPrice('214001') == 1200 and api.GetLatestPrice('item:214001::::::') == 1200)
+  check('api: by link, with its random ending', api.GetLatestPrice('|cff1eff00|Hitem:214001::::::1234:::|h[Thing of the Eagle]|h|r') == 9000)
+  check('api: same as the tooltip Value', api.GetLatestPrice(214001) == h.latest('214001:0'))
+  local usual, seen = api.GetUsualPrice(214001)
+  check('api: the usual price', usual == h.value('214001:0') and seen == 0)
+  check('api: unknown items give nil', api.GetLatestPrice(214999) == nil and api.GetUsualPrice(214999) == nil)
+  check('api: bad input gives nil, not an error', api.GetLatestPrice(nil) == nil and api.GetLatestPrice({}) == nil and api.GetLatestPrice('Linen Cloth') == nil and api.GetUsualPrice(-3) == nil)
+  h.data['214001:0'], h.data['214001:1234'] = nil, nil
+  local src = io.open('core/api.lua'):read('*a')
+  check('api: no frame or timer of its own (performance)', not src:find('CreateFrame', 1, true) and not src:find('coro_thread', 1, true) and not src:find('OnUpdate', 1, true))
+end)
+
+-- 0.7 build 3 (Tyler): after a fast resize down to the smallest window, the result table kept the
+-- width of a step before and its right columns ran past the window's edge. It now lays out with the
+-- width its content area reports, later refreshes keep that width, and the last column is anchored
+-- to the right edge.
+try('0.7: result tables follow a fast resize', function()
+  local al = loadstring("select(2, ...) 'aux.gui.auction_listing'; return _M")('auxForever', addon)
+  local real_create = G.CreateFrame
+  G.CreateFrame = function(...)
+    local f = real_create(...)
+    rawset(f, 'SetPoint', function(self, p) self.__points = self.__points or {}; table.insert(self.__points, p) end)
+    rawset(f, 'SetWidth', function(self, w) self.__w = w end)
+    return f
+  end
+  local ok, rt = pcall(al.new, new_frame(), 19, al.search_columns)
+  G.CreateFrame = real_create
+  check('resize: table built', ok)
+  if not ok then return end
+  local function has(f, point) for _, p in ipairs(f.__points or {}) do if p == point then return true end end return false end
+  local last = rt.headCells[#rt.headCells]
+  check('resize: the last header column is anchored to the right edge', has(last, 'TOPRIGHT'))
+  check('resize: the content area lays the table out when it changes size', rt.contentFrame.__scripts.OnSizeChanged ~= nil)
+  local total = 0
+  for _, c in ipairs(al.search_columns) do total = total + c.width end
+  local function first_width() return rt.headCells[1].__w end
+  local function near(a, b) return a and math.abs(a - b) < .01 end
+  -- the old way of measuring still sees the wide window
+  rawset(rt.contentFrame, 'GetLeft', function() return 0 end)
+  rawset(rt.contentFrame, 'GetRight', function() return 1400 end)
+  rt.contentFrame.__scripts.OnSizeChanged(rt.contentFrame, 1400, 300)
+  check('resize: wide window', near(first_width(), 1400 * al.search_columns[1].width / total))
+  -- one big step down to the smallest window, as in a fast drag
+  rt.contentFrame.__scripts.OnSizeChanged(rt.contentFrame, 980, 300)
+  check('resize: the reported width is used', near(first_width(), 980 * al.search_columns[1].width / total))
+  rt:UpdateRows()
+  rt:ResizeColumns()
+  check('resize: a later refresh keeps the new width, not a stale measure', near(first_width(), 980 * al.search_columns[1].width / total))
+  -- shown again after the window changed while hidden: measured again
+  rawset(rt.contentFrame, 'GetRight', function() return 1200 end)
+  rawset(rt, 'GetHeight', function() return 300 end)
+  G.CreateFrame = function(...)
+    local f = real_create(...)
+    rawset(f, 'SetPoint', function(self, p) self.__points = self.__points or {}; table.insert(self.__points, p) end)
+    return f
+  end
+  pcall(rt.__scripts.OnShow, rt)
+  G.CreateFrame = real_create
+  check('resize: shown again, the table measures its width', near(first_width(), 1200 * al.search_columns[1].width / total))
+  local row = rt.all_rows and rt.all_rows[1]
+  check('resize: the last cell of a row is anchored to the right edge', row and has(row.cells[#row.cells], 'TOPRIGHT'))
 end)
 
 print('done, errors: ' .. errors)

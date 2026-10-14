@@ -6,6 +6,37 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.7 (2026-10-13)
+
+### Search, Sniper, Auctions and Bids tables
+
+- New **iLvl** column, after the level and before the item's name: the item level of weapons and
+  armor (empty for everything else). Forever's tooltips do not show item level, so this is the
+  only place to see it. Click its header to sort by it. The units for sale follow the item's
+  name, with no other column of numbers next to them, so they are easy to read at a glance
+  (suggested by HoaxBox).
+- The level column, still the first column, is now called **Req** (the level needed to use the
+  item; "Lvl" could be read as either) and is colored by how far it is from your level: red 5 or
+  more levels above you, orange 3 to 4, yellow 1 to 2, green once you can use it, and gray when it
+  is far below you (the levels at which quests and monsters turn gray). Before, it was only red
+  when too high.
+
+### Fixes
+
+- Result tables (Search, Sniper, Auctions, Bids) follow the window when you resize it quickly.
+  After a fast drag down to the smallest size, a table could keep the width it had a moment
+  before, so its right columns (Bid, Buyout, %) ran past the window's edge until the next resize.
+  The lists on the Saved Searches tab had the same problem, fixed in 0.5.
+
+### For addon authors
+
+- Other addons can now read aux's prices through the global `AuxForeverAPI`: `GetLatestPrice`
+  (the Value shown in tooltips) and `GetUsualPrice` (the multi-day usual price), by item link or
+  ID. How to use it: https://github.com/TylerHampton/aux-forever/blob/main/docs/api.md
+  (suggested by MDHippie).
+
+A **full game restart** is needed to update (a new file was added); `/reload` is not enough.
+
 ## 0.6.1.1 (2026-10-12): The Gaddor Update
 
 **The Gaddor Update**
