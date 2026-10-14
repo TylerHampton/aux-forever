@@ -4,15 +4,31 @@
 -- walk through a commodity purchase.
 local G = _G
 local frames = {}
-local NUMERIC = { GetRight=1, GetLeft=1, GetTop=1, GetBottom=1, GetWidth=1, GetHeight=1, GetNumber=1, GetScale=1, GetEffectiveScale=1, GetAlpha=1, GetID=1, GetNumPoints=1, GetVerticalScroll=1, GetHorizontalScroll=1, GetCursorPosition=1, GetStringWidth=1, GetTextWidth=1, GetFrameLevel=1, GetValue=1 }
+local NUMERIC = { GetRight=1, GetLeft=1, GetTop=1, GetBottom=1, GetWidth=1, GetHeight=1, GetNumber=1, GetScale=1, GetEffectiveScale=1, GetAlpha=1, GetID=1, GetNumPoints=1, GetVerticalScroll=1, GetHorizontalScroll=1, GetCursorPosition=1, GetStringWidth=1, GetTextWidth=1, GetFrameLevel=1, GetValue=1, GetEffectiveAlpha=1 }
 local function new_frame(name)
   local f = { __scripts = {}, __events = {}, __name = name, __shown = true, __text = '' }
   return setmetatable(f, { __index = function(t, k)
     if type(k) ~= 'string' or not k:match('^%u') then return nil end
     if k == 'GetName' then return function() return t.__name or 'Stub' end end
+    -- frames made with CreateFrame know their parent, children and type, as in the game (the
+    -- gamepad navigator walks them); other stubs keep answering with a fresh stub
+    if k == 'GetParent' and t.__tracked then return function(self) return self.__parent end end
+    if k == 'GetChildren' then return function(self) return unpack(self.__children or {}) end end
+    if k == 'IsObjectType' then return function(self, kind)
+      local own = self.__type
+      return own == kind or (kind == 'Button' and own == 'CheckButton') or (kind == 'Frame' and own ~= nil)
+    end end
+    if k == 'GetObjectType' then return function(self) return self.__type end end
+    if k == 'GetCenter' then return function() return 10, 10 end end
+    if k == 'SetFrameStrata' then return function(self, strata) self.__strata = strata end end
+    if k == 'GetFrameStrata' then return function(self) return self.__strata or 'MEDIUM' end end
     if k == 'SetScript' then return function(self, s, fn) self.__scripts[s] = fn end end
     if k == 'GetScript' then return function(self, s) return self.__scripts[s] end end
-    if k == 'HookScript' then return function(self, s, fn) self.__scripts[s] = fn end end
+    -- like the game: a hook runs after the script already there
+    if k == 'HookScript' then return function(self, s, fn)
+      local before = self.__scripts[s]
+      self.__scripts[s] = before and function(...) before(...); return fn(...) end or fn
+    end end
     if k == 'RegisterEvent' then return function(self, e) self.__events[e] = true end end
     if k == 'UnregisterEvent' then return function(self, e) self.__events[e] = nil end end
     if k == 'Show' then return function(self) self.__shown = true; if self.__scripts.OnShow then self.__scripts.OnShow(self) end end end
@@ -49,8 +65,17 @@ local function new_frame(name)
     return function() end
   end })
 end
-G.CreateFrame = function(_, name) local f = new_frame(name); tinsert(frames, f); if name then G[name] = f end return f end
+G.CreateFrame = function(kind, name, parent)
+  local f = new_frame(name)
+  f.__type, f.__tracked, f.__parent = kind, true, parent
+  if type(parent) == 'table' then
+    rawset(parent, '__children', rawget(parent, '__children') or {})
+    tinsert(parent.__children, f)
+  end
+  tinsert(frames, f); if name then G[name] = f end return f
+end
 for _, n in ipairs{'UIParent','GameTooltip','ItemRefTooltip','DEFAULT_CHAT_FRAME','UIErrorsFrame','AuctionHouseFrame'} do G[n] = new_frame(n) end
+G.UIParent.__tracked = true -- the top of the frame tree: no parent
 G.UISpecialFrames = {}; G.StaticPopupDialogs = {}; G.SlashCmdList = {}; G.SOUNDKIT = {}
 local api = function(t) return setmetatable(t or {}, {__index=function() return function() return 0 end end}) end
 G.C_AuctionHouse = api{GetTimeLeftBandInfo=function(b) return 0, ({1800,7200,43200,86400})[b+1] end, IsThrottledMessageSystemReady=function() return true end, SupportsCopperValues=function() return true end, GetBrowseResults=function() return {} end}
@@ -3336,6 +3361,162 @@ try('0.6.1: items seen at the auction house join the item list', function()
   check('item list: its facts stay when the game has not loaded the item', info.item(212345) and info.item(212345).sell_price == 900)
   aux.account_data.items[212345], aux.account_data.items[212346], aux.account_data.item_ids['forever blade'] = nil, nil, nil
   for i = #aux.account_data.auctionable_items, 1, -1 do if aux.account_data.auctionable_items[i] == 'forever blade' then tremove(aux.account_data.auctionable_items, i) end end
+end)
+
+-- Gamepad mode (gamepad.lua): aux binds the pad buttons to buttons of its own while it is open and
+-- never writes into Blizzard's gamepad system (2026-10-13: registering with Blizzard's window
+-- manager tainted it and froze the game when aux closed).
+try('gamepad: aux takes the pad buttons only while open, in gamepad mode', function()
+  local aux_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local bindings, combat, gamepad_ui = {}, false, false
+  local real = {G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown}
+  G.SetOverrideBindingClick = function(_, _, key, button) bindings[key] = 'CLICK ' .. button .. ':LeftButton' end
+  G.ClearOverrideBindings = function() bindings = {} end
+  G.InCombatLockdown = function() return combat end
+  G.InputUtil = {IsGamepadUIEnabled = function() return gamepad_ui end}
+  G.GamepadMode = setmetatable({}, {__index = function() error('aux must not touch GamepadMode') end})
+  local aux_frame = aux_env.frame
+  local function count() local n = 0 for _ in pairs(bindings) do n = n + 1 end return n end
+
+  aux_frame:Hide(); aux_frame:Show()
+  check('gamepad: mouse and keyboard, no pad buttons taken', count() == 0)
+
+  gamepad_ui = true
+  aux_frame:Hide(); aux_frame:Show()
+  check('gamepad: open, aux has the D-pad, A, B, LB and RB', count() == 8 and bindings.PADDUP == 'CLICK auxForeverPadup:LeftButton' and bindings.PAD1 == 'CLICK auxForeverPadA:LeftButton')
+  aux_frame:Hide()
+  check('gamepad: closed, the pad buttons are given back', count() == 0)
+
+  aux_frame:Show()
+  combat = true
+  aux_frame:Hide()
+  check('gamepad: closed in combat, the bindings wait for the end of combat', count() == 8)
+  combat = false
+  for _, f in ipairs(frames) do
+    if f.__events.PLAYER_REGEN_ENABLED then f.__scripts.OnEvent(f, 'PLAYER_REGEN_ENABLED') end
+  end
+  check('gamepad: after combat they are given back', count() == 0)
+
+  aux_frame:Show()
+  aux_env.blizzard_button.__scripts.OnClick(aux_env.blizzard_button)
+  check('gamepad: Blizzard UI shown, its own navigation gets the pad back', count() == 0)
+  aux_env.blizzard_button.__scripts.OnClick(aux_env.blizzard_button)
+  check('gamepad: Blizzard UI hidden, aux takes it again', count() == 8)
+
+  aux_frame:Hide(); aux_frame:Show()
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = real[1], real[2], real[3]
+  G.InputUtil, G.GamepadMode = nil, nil
+end)
+
+-- The navigator: a test layout far from aux's own controls (the stubs put those at 10, 10)
+try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
+  local aux_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local require = loadstring("select(2, ...) 'aux.test.gamepad_nav'; return require")('auxForever', addon)
+  local gui = require 'aux.gui'
+  local real = {G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown}
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = function() end, function() end, function() return false end
+  G.InputUtil = {IsGamepadUIEnabled = function() return true end}
+  G.GamepadMode = setmetatable({}, {__index = function() error('aux must not touch GamepadMode') end})
+  local aux_frame = aux_env.frame
+  local function pad(name) local b = G['auxForeverPad' .. name]; b.__scripts.OnClick(b) end
+  local function place(f, x, y)
+    rawset(f, 'GetCenter', function() return x, y end)
+    rawset(f, 'GetLeft', function() return x - 5 end)
+    rawset(f, 'GetTop', function() return y + 5 end)
+    return f
+  end
+  local function typing(box)
+    rawset(box, 'SetFocus', function(self) self.__focus = true end)
+    rawset(box, 'ClearFocus', function(self) self.__focus = false end)
+    rawset(box, 'HasFocus', function(self) return self.__focus == true end)
+  end
+
+  local layout = CreateFrame('Frame', nil, aux_frame)
+  local clicked
+  local b1 = place(CreateFrame('Button', nil, layout), 1000, 600)
+  local b2 = place(CreateFrame('Button', nil, layout), 1100, 600)
+  for _, b in ipairs{b1, b2} do
+    b:SetScript('OnClick', function(self) clicked = self end)
+    rawset(b, 'Click', function(self) self.__scripts.OnClick(self) end)
+  end
+  local box = place(gui.editbox(layout), 1000, 550)
+  typing(box)
+  local list = CreateFrame('Frame', nil, layout)
+  local content = CreateFrame('Frame', nil, list)
+  local r1 = place(CreateFrame('Button', nil, content), 1000, 500)
+  local r2 = place(CreateFrame('Button', nil, content), 1000, 480)
+  local scroll_frame = CreateFrame('ScrollFrame', nil, list)
+  local value = 0
+  scroll_frame.ScrollBar = {
+    GetValue = function() return value end,
+    SetValue = function(_, v) value = v end,
+    GetMinMaxValues = function() return 0, 50 end,
+  }
+
+  aux_frame:Hide(); aux_frame:Show()
+  check('gamepad nav: aux opens with the focus on the first control', aux_env.gamepad_focused() == b1)
+  pad('right')
+  check('gamepad nav: right goes to the control on the right', aux_env.gamepad_focused() == b2)
+  pad('A')
+  check('gamepad nav: A clicks it', clicked == b2)
+  pad('left'); pad('down')
+  check('gamepad nav: down goes to the control below', aux_env.gamepad_focused() == box)
+  pad('A')
+  check('gamepad nav: A on a text box starts typing', box:HasFocus())
+  pad('B')
+  check('gamepad nav: B stops typing and stays', not box:HasFocus() and aux_env.gamepad_focused() == box and aux_frame.__shown)
+  pad('down'); pad('down')
+  check('gamepad nav: down walks a list row by row', aux_env.gamepad_focused() == r2)
+  pad('down')
+  check('gamepad nav: past the last row shown, down scrolls the list', aux_env.gamepad_focused() == r2 and value == 10)
+  pad('up')
+  check('gamepad nav: up goes back a row', aux_env.gamepad_focused() == r1)
+
+  -- LB and RB: tabs switch at once; past them come Settings, Full scan and Blizzard UI
+  aux_env.set_tab(1)
+  pad('RB')
+  check('gamepad nav: RB opens the next tab', aux_env.tabs._selected == 2 and aux_env.gamepad_focused() == aux_env.tabs._tabs[2])
+  pad('LB'); pad('LB')
+  check('gamepad nav: LB from the first tab goes round to Blizzard UI, the tab stays', aux_env.tabs._selected == 1 and aux_env.gamepad_focused() == aux_env.blizzard_button)
+  pad('RB')
+  check('gamepad nav: RB from Blizzard UI goes round to the first tab', aux_env.tabs._selected == 1 and aux_env.gamepad_focused() == aux_env.tabs._tabs[1])
+  pad('A')
+  check('gamepad nav: A on a tab goes into it', aux_env.gamepad_focused() == b1)
+
+  -- a popup (Settings, quick searches) keeps the focus inside it; B closes it
+  local popup = CreateFrame('Frame', nil, layout)
+  popup:SetFrameStrata('DIALOG')
+  local inside = place(CreateFrame('Button', nil, popup), 2000, 300)
+  pad('down')
+  check('gamepad nav: an open popup takes the focus', aux_env.gamepad_focused() == inside)
+  pad('B')
+  check('gamepad nav: B closes the popup, aux stays open', not popup.__shown and aux_frame.__shown and aux_env.gamepad_focused() == b1)
+
+  -- a dropdown: its menu opens outside aux; up and down walk the options, A picks one
+  local dropdown = place(gui.dropdown(layout), 3000, -5000)
+  typing(dropdown)
+  dropdown:SetOptions{'All', 'Poor', 'Common', 'Uncommon'}
+  dropdown:SetIndex(1)
+  aux_env.gamepad_set_focus(dropdown)
+  pad('A')
+  dropdown.focus_gain()
+  check('gamepad nav: A opens the dropdown', dropdown:HasFocus() and gui.dropdown_menu.__shown)
+  pad('down'); pad('down')
+  pad('A')
+  check('gamepad nav: down twice and A picks the third option', dropdown:GetIndex() == 3 and not gui.dropdown_menu.__shown and aux_env.gamepad_focused() == dropdown)
+  dropdown:SetFocus(); dropdown.focus_gain()
+  pad('down')
+  pad('B')
+  check('gamepad nav: B closes the menu and keeps the choice', dropdown:GetIndex() == 3 and not gui.dropdown_menu.__shown)
+
+  aux_env.gamepad_set_focus(b1)
+  pad('B')
+  check('gamepad nav: B with nothing open closes aux', not aux_frame.__shown)
+
+  layout:Hide()
+  aux_frame:Show()
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = real[1], real[2], real[3]
+  G.InputUtil, G.GamepadMode = nil, nil
 end)
 
 print('done, errors: ' .. errors)
