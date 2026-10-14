@@ -8,18 +8,18 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.7 build 3
+## Current build: 0.7 build 4
 
 FB-013 (HoaxBox): an iLvl column and the level column renamed Req, colored by how far it is from
 your level. FB-012 (MDHippie): `AuxForeverAPI`, prices for other addons. Build 2 (Tyler, before
 testing build 1): columns in the order iLvl, Req, Item, For sale, so the units for sale are not
 next to the item levels. Build 3 (Tyler, testing build 2): after a fast resize to the smallest
-window, the table's right columns ran past the edge; the tables now follow every resize. Zip
-`auxForever-0.7-build3.zip`. **Full game restart** if no 0.7 build was loaded after a restart (new
-file `core/api.lua`), else `/reload`. Test page build id `0-7-build-3`. Steps, in the New theme:
+window, the table's right columns ran past the edge; the tables now follow every resize. Build 4 (Tyler): "Req first always", so Req, iLvl, Item,
+For sale. Zip `auxForever-0.7-build4.zip`. **Full game restart** if no 0.7 build was loaded after a restart (new
+file `core/api.lua`), else `/reload`. Test page build id `0-7-build-4`. Steps, in the New theme:
 
 - [ ] 1. Search tab: search a gear category (for example Armor, Cloth). The table starts with
-      **iLvl**, then **Req**, then **Item**, then **For sale**, and every gear row has a number
+      **Req**, then **iLvl**, then **Item**, then **For sale**, and every gear row has a number
       under iLvl. Search
       Linen Cloth: iLvl is empty.
 - [ ] 2. Same results: the Req numbers are colored by your level. At level 24: 29 and up red, 27

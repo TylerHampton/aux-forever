@@ -11,7 +11,11 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 ## Start here (next session)
 
 **Where things stand:** 0.6, 0.6.0.1, 0.6.0.2, 0.6.1 and **0.6.1.1** are released and on `main`.
-**0.7 build 3** is on branch `claude/pensive-dirac-0p6npg`, waiting for Tyler's test in game.
+**0.7 build 4** is on branch `claude/pensive-dirac-0p6npg`, waiting for Tyler's test in game.
+
+- **0.7 build 4** (2026-10-13): Tyler: "actually swap req/ilvl. Req first always". Columns are now
+  Req, iLvl, Item, For sale (Sniper: Found, Req, iLvl, Item). Zip `auxForever-0.7-build4.zip`,
+  test page build id `0-7-build-4`. No answers were saved for builds 1 to 3.
 
 - **0.7 build 3** (2026-10-13): Tyler, testing build 2 (screenshot): after a fast drag to the
   smallest window, the search table kept a wider layout and Bid, Buyout and % ran past the

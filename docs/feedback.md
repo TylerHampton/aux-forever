@@ -804,7 +804,7 @@ Ask Tyler:
 - Type: request
 - Area: Search
 - Severity: n/a
-- Status: in-progress `claude/pensive-dirac-0p6npg` (0.7 build 2)
+- Status: in-progress `claude/pensive-dirac-0p6npg` (0.7 build 4)
 - Proposed: 0.7 (a new column is a visual change: mockup first)
 
 Said:
@@ -839,7 +839,8 @@ Recorder's notes:
 - Built (0.7 build 1): "Lvl" renamed "Req" and colored, "iLvl" added after the item's name (as in
   TSM, and so the two numbers are not side by side), in Search, Sniper, Auctions and Bids. Build 2
   (Tyler, before testing: "I want it to be ilvl / req / Item name / for sale... Need clarity, quick
-  visual clarity on how many are for sale"): iLvl first, so For sale is not next to it. Item
+  visual clarity on how many are for sale"): iLvl first, so For sale is not next to it. Build 4
+  (Tyler: "Req first always"): Req, iLvl, Item, For sale. Item
   level only for gear (an equip slot, not bags or quivers).
 
 Unknowns: why HoaxBox wants it (comparing gear, sorting, spotting upgrades), and whether Forever

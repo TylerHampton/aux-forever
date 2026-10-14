@@ -161,8 +161,8 @@ Load order is the TOC (`auxForever/auxForever.toc`).
   global other addons may call (prices by item link or ID; `docs/api.md`). Its names and meanings
   are a promise: add functions, never change or remove one.
 - `util/filter.lua`: aux's search language: parsing, the post filters and their validators.
-- `gui/auction_listing.lua`: the result tables (columns iLvl, Req, Item, For sale, ...; Tyler,
-  0.7: the units for sale never sit next to another column of plain numbers). Since 0.7
+- `gui/auction_listing.lua`: the result tables (columns Req, iLvl, Item, For sale, ...; Tyler,
+  0.7: Req always first, and the units for sale never sit next to another column of plain numbers). Since 0.7
   Req is colored by distance from the player's level (`requirement_color`) and iLvl shows gear's
   item level (`record.item_level`); the Sniper and Auctions tabs reuse both columns.
   `gui/buy_bar.lua`: buying under the search results.

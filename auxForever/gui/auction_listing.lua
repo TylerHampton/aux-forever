@@ -123,9 +123,10 @@ function M.requirement_color(requirement, player_level)
     return aux.color.trivial
 end
 
--- auxForever: columns shared by the tables. Item level (gear only), then the required level, then
--- the item (0.7, FB-013: "Lvl" read as either). Tyler, build 2: the levels go before the name, so
--- the units for sale after it never sit next to another column of plain numbers.
+-- auxForever: columns shared by the tables. The required level, then the item level (gear only),
+-- then the item (0.7, FB-013: "Lvl" read as either). Tyler, build 2: the levels go before the name,
+-- so the units for sale after it never sit next to another column of plain numbers; build 4: "Req
+-- first always".
 function M.requirement_column()
     return {
         title = 'Req',
@@ -186,8 +187,8 @@ function M.biddable(record)
 end
 
 M.search_columns = {
-    item_level_column(),
     requirement_column(),
+    item_level_column(),
     {
         title = 'Item',
         width = .32,
@@ -322,8 +323,8 @@ M.search_columns = {
 }
 
 M.auctions_columns = {
-    item_level_column(),
     requirement_column(),
+    item_level_column(),
     {
         title = 'Item',
         width = .32,
@@ -468,8 +469,8 @@ M.auctions_columns = {
 }
 
 M.bids_columns = {
-    item_level_column(),
     requirement_column(),
+    item_level_column(),
     {
         title = 'Item',
         width = .32,

@@ -43,8 +43,8 @@ local function status_text(record)
 end
 
 M.columns = {
-    auction_listing.item_level_column(),
     auction_listing.requirement_column(),
+    auction_listing.item_level_column(),
     {
         title = 'Item',
         width = .28,

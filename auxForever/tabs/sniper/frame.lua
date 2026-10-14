@@ -72,8 +72,8 @@ M.columns = {
             return sort_util.compare(a.deal_found, b.deal_found, desc)
         end,
     },
-    auction_listing.item_level_column(),
     auction_listing.requirement_column(),
+    auction_listing.item_level_column(),
     {
         title = 'Item',
         width = .28,

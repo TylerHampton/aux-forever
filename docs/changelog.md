@@ -10,11 +10,11 @@ A change that comes from a player's feedback credits them by in-game name at the
 
 ### Search, Sniper, Auctions and Bids tables
 
-- New **iLvl** column, first in the table, before the level and the item's name: the item level of
+- New **iLvl** column, after the level and before the item's name: the item level of
   weapons and armor (empty for everything else). The units for sale follow the item's name, with
   no other column of numbers next to them. Forever's tooltips do not show item level, so this is the only place to see
   it. Click its header to sort by it (suggested by HoaxBox).
-- The level column is now called **Req** (the level needed to use the item; "Lvl" could be read as
+- The level column, still the first column, is now called **Req** (the level needed to use the item; "Lvl" could be read as
   either) and is colored by how far it is from your level: red 5 or more levels above you, orange
   3 to 4, yellow 1 to 2, green once you can use it, and gray when it is far below you (the levels
   at which quests and monsters turn gray). Before, it was only red when too high.
