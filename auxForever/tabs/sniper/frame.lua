@@ -74,20 +74,11 @@ M.columns = {
             return sort_util.compare(a.deal_found, b.deal_found, desc)
         end,
     },
-    {
-        title = 'Lvl',
-        width = .04,
-        align = 'CENTER',
-        fill = function(cell, record)
-            cell.text:SetText(dim(record, max(record.requirement or 0, 1)))
-        end,
-        cmp = function(a, b, desc)
-            return sort_util.compare(a.requirement or 0, b.requirement or 0, desc)
-        end,
-    },
+    auction_listing.requirement_column(),
+    auction_listing.item_level_column(),
     {
         title = 'Item',
-        width = .3,
+        width = .28,
         init = auction_listing.item_column_init,
         fill = function(cell, record, ...)
             auction_listing.item_column_fill(cell, record, ...)

@@ -118,6 +118,8 @@ For whoever fixes or builds from it:
 | [FB-009](#fb-009-post-cloth-in-several-stacks-of-a-chosen-size) | 2026-10-09 | Maggew | request | Post | n/a | Post cloth in several stacks of a chosen size, as in Classic | wont-fix (Forever has no stacks; Tyler: not the addon's job) |
 | [FB-010](#fb-010-picking-a-weapon-slot-such-as-daggers-searches-every-weapon-of-that-kind) | 2026-10-11 | GregoryWW | bug | Search | S2 | Picking a weapon slot such as Daggers searches every weapon of that kind | fixed 0.6.1 (released 2026-10-11) |
 | [FB-011](#fb-011-clicking-an-items-icon-in-the-post-tabs-list-does-not-select-it) | 2026-10-12 | Gaddor | bug | Post | S3 | Clicking an item's icon in the Post tab's list does not select it | fixed 0.6.1.1 (tested 2026-10-12) |
+| [FB-012](#fb-012-a-public-api-so-other-addons-can-read-auxs-prices) | 2026-10-13 | MDHippie | request | Other | n/a | A public API so other addons can read aux's prices | built 0.7 (released 2026-10-13) |
+| [FB-013](#fb-013-an-item-level-column-in-the-search-results) | 2026-10-13 | HoaxBox | request | Search | n/a | An item level column in the search results | built 0.7 (released 2026-10-13) |
 
 ## Players
 
@@ -137,6 +139,10 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
   CurseForge comment behind FB-008 is not known.
 - **GregoryWW**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-010.
 - **Gaddor**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-011.
+- **MDHippie**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-012.
+  Names `history.latest`, so has read aux's code. Inference: writes addons or scripts of their own.
+- **HoaxBox**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-013;
+  opened with "awesome addon".
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
   words.
@@ -738,6 +744,114 @@ Recorder's notes:
 Unknowns: none that change the fix.
 
 Ask Tyler: none.
+
+### FB-012: A public API so other addons can read aux's prices
+
+- Received: 2026-10-13 (posted about 9 hours before Tyler's screenshot)
+- From: MDHippie (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-13-mdhippie-curseforge.md)
+- Version: unknown (likely 0.6.1.1, the version on CurseForge)
+- Type: request
+- Area: Other (price data)
+- Severity: n/a
+- Status: built 0.7 (commit a244d2d, released 2026-10-13; Tyler's test passed: the API printed
+  Linen Cloth's price in game)
+- Proposed: 0.7 (a new feature by the roadmap rule), if Tyler wants it at all
+
+Said:
+> Hey, is there a chance you could add a public API for other addons to get AH prices from this addon? history.latest is private atm. Thanks!
+
+Steps / setup: none; a request.
+
+Tyler's notes: wants it (2026-10-13): "Yes!!! MIT License remember man?" Then: "Yeah the API
+should be implemented immediately as well" (2026-10-13, built into 0.7 build 1 with FB-013).
+
+Recorder's notes:
+- Confirmed in the code: no other addon can call aux's functions. `history.latest` (the market
+  price of the latest complete look, shown as Value in tooltips; `core/history.lua`) lives in
+  aux's module system (`libs/package.lua`), which writes nothing to `_G`. The only global is
+  `aux`, the saved variables table (`aux-addon.lua`).
+- Inference: another addon could read the raw prices from that saved table today, but the format
+  is internal and has changed before (`history_version` 3 wiped older data,
+  `aux-addon.lua`). A real API would be a promise not to break callers.
+- What an API would involve (recorder's sketch, not decided): one global table with a version
+  number and a few read-only functions, for example the price of an item by link or ID (latest,
+  usual price, age in days), for the player's realm and faction (`aux.faction_data.history`,
+  keyed by realm and faction). It only answers when called, so it costs nothing per frame. It
+  needs a test that guards each function and a page in `docs/` for addon authors.
+- Inference: other auction addons offer something like this (TSM's `TSM_API`, Auctionator's
+  `Auctionator.API.v1`, from memory, not checked in this session). Copying the shape of one of
+  them would make aux easy to adopt for authors who already support those.
+- Which price matters: `history.latest` (what the auction house showed last) and `history.value`
+  (the multi-day usual price) answer different questions (`docs/price-data.md`). The player named
+  `latest`; an API should say which one it returns.
+
+Unknowns: what MDHippie wants to build with it (a tooltip, a crafting addon, a WeakAura). An API
+that returns both prices and their age covers all of these.
+
+Ask Tyler:
+- Answered 2026-10-13: yes, offer it.
+- Answered 2026-10-13: now, in 0.7 build 1.
+
+### FB-013: An item level column in the search results
+
+- Received: 2026-10-13 (posted about 3 hours before Tyler's screenshot)
+- From: HoaxBox (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-13-hoaxbox-curseforge.md)
+- Version: unknown (likely 0.6.1.1, the version on CurseForge)
+- Type: request
+- Area: Search
+- Severity: n/a
+- Status: built 0.7 (commits a244d2d, 38e04e5, 963a6c3; released 2026-10-13; Tyler's test of
+  build 4 passed)
+- Proposed: 0.7 (a new column is a visual change: mockup first)
+
+Said:
+> awesome addon
+> just one lil Thing, could you add an Itemlvl column to the search window?
+
+Steps / setup: none; a request.
+
+Tyler's notes (2026-10-13):
+- Item level in Forever's tooltips: "I dont think so check out the screenshot". The screenshot
+  (sent again later, not kept) shows aux's window and two item tooltips, Tuskwrap Belt and Ritual
+  Belt of Arcane Protection: each lists armor, stats, durability, "Requires Level" and sell price,
+  and neither shows an item level.
+- Idea: put required level and item level in the same column, and color the required level by
+  how far it is from the player's level: red when far above, then orange, yellow, green, and blue
+  when the player is well above it. Asked whether that is hard.
+- After the reply (gray instead of blue, two columns instead of one): "Lets use two columns, I
+  trust that you can make it work." Built without a mockup on that basis.
+
+Recorder's notes:
+- Confirmed in the code: the search table's first column, "Lvl", is the level required to use the
+  item, not the item level (`level_column` in `gui/auction_listing.lua`; red when above your
+  level). The same column is in the Auctions and Bids tables.
+- Inference: the label "Lvl" is ambiguous. A player who wants item level may read it as item
+  level and be misled, or, like HoaxBox (who wrote "Itemlvl"), see it is not and ask for it. By
+  the main rule this is the addon's problem either way.
+- Item level is available: `GetItemInfo` returns it (`util/info.lua` already reads it into item
+  info as `level`), and the browse list's item key carries `itemLevel` (used for the row
+  tooltip). Search records do not store it yet.
+- Space: the table is already full at the smallest window (Lvl is 3% wide, Item 35%). A new
+  column takes width from the others; a mockup should show both looks at the smallest window.
+- Built (0.7 build 1): "Lvl" renamed "Req" and colored, "iLvl" added after the item's name (as in
+  TSM, and so the two numbers are not side by side), in Search, Sniper, Auctions and Bids. Build 2
+  (Tyler, before testing: "I want it to be ilvl / req / Item name / for sale... Need clarity, quick
+  visual clarity on how many are for sale"): iLvl first, so For sale is not next to it. Build 4
+  (Tyler: "Req first always"): Req, iLvl, Item, For sale. Item
+  level only for gear (an equip slot, not bags or quivers).
+
+Unknowns: why HoaxBox wants it (comparing gear, sorting, spotting upgrades), and whether Forever
+shows item level in its own tooltips (Classic Era does not by default). A sortable column covers comparing
+and sorting; a filter by item level was not asked for.
+
+Ask Tyler:
+- Answered 2026-10-13: Tyler thinks tooltips do not show item level (screenshot to resend).
+- Answered 2026-10-13: two columns. Gray for "well above" (blue is the color of rare items'
+  names in the same row; gray is Blizzard's color for trivial), not objected to.
 
 ## Before this log
 

@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-12, Mountain Time (0.6.1.1 released).
+Last updated 2026-10-13, Mountain Time (0.7 build 1 ready for testing).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -42,6 +42,58 @@ auction house facts, experiments not scheduled) is not merged; ask Tyler whether
   so, a look at the hint strip (no mockup was made; the layout was the contributor's choice after
   trying icons beside the tabs and buttons) and a short pass in Classic. Release name and date are
   his.
+**0.7 build 4** is on branch `claude/pensive-dirac-0p6npg`, **tested in game, all 6 steps pass**
+(2026-10-13). Next: Tyler says whether 0.7 is ready to release (pull request, merge, Release
+workflow; then he answers MDHippie and HoaxBox on CurseForge and pastes the new description with
+the API line).
+
+- **Build 4 in game** (Tyler, 2026-10-13, `builds/0-7-build-4/results`, screenshots; only step 4
+  marked, the rest judged from the screenshots): columns and item levels right, Req colors right
+  in New and Classic, Req sort works both ways, fast resize to the smallest window passes, and
+  `/run print(AuxForeverAPI.GetLatestPrice(2589))` printed `20 0` (Linen Cloth 20c, seen today).
+  Tyler asked in the notes whether the API is active: yes, that output is the API answering.
+
+- **0.7 build 4** (2026-10-13): Tyler: "actually swap req/ilvl. Req first always". Columns are now
+  Req, iLvl, Item, For sale (Sniper: Found, Req, iLvl, Item). Zip `auxForever-0.7-build4.zip`,
+  test page build id `0-7-build-4`. No answers were saved for builds 1 to 3.
+
+- **0.7 build 3** (2026-10-13): Tyler, testing build 2 (screenshot): after a fast drag to the
+  smallest window, the search table kept a wider layout and Bid, Buyout and % ran past the
+  window's right edge. Not caused by the new columns: `ResizeColumns` in `gui/auction_listing.lua`
+  measured the content area during the table's own size event, which could still report the size
+  of a step before; a fast drag ends in one big step, so the last layout was far off. The lists
+  had the same bug, fixed in 0.5 (FB-006, `gui/listing.lua`). Now the content area's own size
+  event lays the table out with the width it reports, later refreshes reuse that width (measured
+  again on show), the last column is anchored to the right edge, and a layout that did not change
+  does no widget work. Test `0.7: result tables follow a fast resize` (fails without the fix). Zip
+  `auxForever-0.7-build3.zip`; test page build id `0-7-build-3` (step 4 now asks for fast drags).
+
+- **0.7 build 2** (2026-10-13): Tyler, looking at build 1 before testing: "I want it to be ilvl /
+  req / Item name / for sale... Need clarity, quick visual clarity on how many are for sale." The
+  iLvl column sat between the item and For sale, two columns of plain numbers side by side. Now
+  iLvl, Req, Item, For sale in Search, Bids (Quantity), Auctions (Qty) and the Sniper (after
+  Found). Auctions tab sort moved to `SetSort(3, 8)`. Test: the column after Item is the units
+  column in every table. Zip `auxForever-0.7-build2.zip`; test page build id `0-7-build-2`.
+
+- **0.7 build 1** (2026-10-13), from two CurseForge comments, both asked for at once by Tyler:
+  - FB-013 (HoaxBox): an **iLvl** column (after the item's name in build 1; first since build 2) (gear only; Forever's tooltips do
+    not show item level, Tyler's screenshot) and the level column renamed **Req**, colored by
+    distance from the player's level: red 5+ above, orange 3 to 4, yellow 1 to 2, green usable,
+    gray far below (Classic's gray level, `gray_level`). Tyler's idea, with gray instead of his
+    blue (blue is rare items' color) and two columns instead of one combined (his choice after
+    the reply). In Search, Sniper, Auctions and Bids. No mockup: Tyler "I trust that you can
+    make it work". Item width .35 to .32 so the other columns keep their size.
+  - FB-012 (MDHippie): `AuxForeverAPI` (`core/api.lua`, new file): `GetLatestPrice`,
+    `GetUsualPrice`, `IsReady`, `version = 1`. For addon authors: `docs/api.md`, linked from the
+    README and the CurseForge description (Tyler pastes the description by hand).
+  - Tests `0.7: Req and iLvl columns` and `0.7: AuxForeverAPI` (checked to fail with the code
+    broken). Version `forever-0.7`. Zip `auxForever-0.7-build1.zip`, **full game restart**. Test
+    page build id `0-7-build-1`, 6 steps as in `TESTING.md`.
+  - Not checked by any test: whether the columns fit at the smallest window (step 4), and whether
+    Forever's item keys carry `itemLevel` (the item's own level is used when not).
+
+- Branch `claude/exciting-brown-a9k99n` (docs only: auction house facts, experiments not scheduled) is
+not merged; ask Tyler whether to merge it.
 
 - **Released 0.6.1.1** on 2026-10-12 (PR #25, `main` 154a584), "The Gaddor Update" (Tyler's
   name, used in the changelog only): a click on an item's icon in the Post tab's bag list selects

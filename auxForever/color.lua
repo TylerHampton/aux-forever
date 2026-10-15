@@ -60,6 +60,8 @@ M.PALETTES = {
 		yellow = {232, 212, 77, 1},
 		orange = {240, 148, 60, 1},
 		red = {232, 87, 74, 1},
+		-- far below the player's level (the Req column, 0.7): Blizzard's gray for trivial
+		trivial = {128, 128, 128, 1},
 	},
 	classic = {
 		text = {enabled = {243, 239, 230, 1}, disabled = {125, 122, 115, 1}},
@@ -88,6 +90,7 @@ M.PALETTES = {
 		yellow = {255, 255, 0, 1},
 		orange = {255, 146, 24, 1},
 		red = {255, 0, 0, 1},
+		trivial = {128, 128, 128, 1},
 	},
 }
 

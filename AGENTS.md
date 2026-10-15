@@ -158,9 +158,14 @@ Load order is the TOC (`auxForever/auxForever.toc`).
   used by the recipe cost) and `history.value` (the multi-day usual price, used to find deals: the
   Sniper, % columns, filters). A complete look (Full scan, full-mode search, `scan.read_item`) feeds
   `history.record_view`; single auctions feed `process_auction` (today's lowest only).
-  `/aux price <item>` prints what was recorded.
+  `/aux price <item>` prints what was recorded. `core/api.lua` (0.7): `AuxForeverAPI`, the only
+  global other addons may call (prices by item link or ID; `docs/api.md`). Its names and meanings
+  are a promise: add functions, never change or remove one.
 - `util/filter.lua`: aux's search language: parsing, the post filters and their validators.
-- `gui/auction_listing.lua`: the result tables (columns Lvl, Item, For sale, ...).
+- `gui/auction_listing.lua`: the result tables (columns Req, iLvl, Item, For sale, ...; Tyler,
+  0.7: Req always first, and the units for sale never sit next to another column of plain numbers). Since 0.7
+  Req is colored by distance from the player's level (`requirement_color`) and iLvl shows gear's
+  item level (`record.item_level`); the Sniper and Auctions tabs reuse both columns.
   `gui/buy_bar.lua`: buying under the search results.
 - `tabs/search/`: `core.lua` (sub tabs), `results.lua` (searches, history arrows), `saved.lua`
   (favorites and recent), `quick.lua` (quick search menu), `filter.lua` (Filter Builder logic:
@@ -231,6 +236,9 @@ aux runs inside the game; every frame it spends time in costs the player frame r
   constant `AUCTION_CUT = .05`. Deposits come from the game (`CalculateItemDeposit`).
 - On Forever the newest listing at a price sells first, so the Post tab matches the lowest price by
   default; undercut mode (goblin switch) goes one step below. Undercut mode always starts off.
+- Tables sort by column number (`listing:SetSort(2, 8)`; the last number is the main sort). Adding
+  a column shifts the numbers after it: update every `SetSort` of that table (0.7, a test checks
+  the main sort of each tab).
 - Tabs by number: Search 1, Sniper 2, Post 3, Auctions 4, Bids 5. A test that switches to the wrong
   number passes for the wrong reason (this hid a Post tab error in 0.5).
 - Leaving the Post tab clears `selected_item` (its `CLOSE`): read what you need from it before

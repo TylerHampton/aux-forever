@@ -95,22 +95,66 @@ function status_code(record)
     end
 end
 
--- auxForever: columns shared by the tables. Level is a narrow first column everywhere. Quantity
--- replaces aux's Auctions and Stack Size: on Forever a trade good row is one price tier and gear
--- rows are identical single items, so the units for sale at that price is the useful number.
-local function level_column()
+-- auxForever (0.7, FB-013): the level an item needs is colored by how far it is from the player's,
+-- like quests (Tyler, 2026-10-13): red 5 or more levels above, orange 3 to 4, yellow 1 to 2; green
+-- once the player can use it, and gray when far below (outgrown). "Far below" is the level under
+-- which Classic's monsters and quests turn gray, as players documented it (Wowpedia, "Mob
+-- experience"); nothing is gray up to level 5.
+function M.gray_level(player_level)
+    if player_level <= 5 then
+        return 0
+    elseif player_level <= 39 then
+        return player_level - floor(player_level / 10) - 5
+    end
+    return player_level - floor(player_level / 5) - 1
+end
+
+function M.requirement_color(requirement, player_level)
+    local above = requirement - player_level
+    if above >= 5 then
+        return aux.color.red
+    elseif above >= 3 then
+        return aux.color.orange
+    elseif above >= 1 then
+        return aux.color.yellow
+    elseif requirement > gray_level(player_level) then
+        return aux.color.green
+    end
+    return aux.color.trivial
+end
+
+-- auxForever: columns shared by the tables. The required level, then the item level (gear only),
+-- then the item (0.7, FB-013: "Lvl" read as either). Tyler, build 2: the levels go before the name,
+-- so the units for sale after it never sit next to another column of plain numbers; build 4: "Req
+-- first always".
+function M.requirement_column()
     return {
-        title = 'Lvl',
+        title = 'Req',
         width = .03,
         align = 'CENTER',
         fill = function(cell, record)
-            local requirement = record.requirement or 0
-            local display_level = max(requirement, 1)
-            display_level = UnitLevel'player' < requirement and aux.color.red(display_level) or display_level
-            cell.text:SetText(display_level)
+            local requirement = max(record.requirement or 0, 1)
+            -- a Sniper deal that is gone is dimmed
+            local color = record.deal_gone and aux.color.label.disabled or requirement_color(requirement, UnitLevel'player')
+            cell.text:SetText(color(requirement))
         end,
         cmp = function(record_a, record_b, desc)
             return sort_util.compare(record_a.requirement or 0, record_b.requirement or 0, desc)
+        end,
+    }
+end
+
+function M.item_level_column()
+    return {
+        title = 'iLvl',
+        width = .03,
+        align = 'CENTER',
+        fill = function(cell, record)
+            local item_level = record.item_level or ''
+            cell.text:SetText(record.deal_gone and aux.color.label.disabled(item_level) or item_level)
+        end,
+        cmp = function(record_a, record_b, desc)
+            return sort_util.compare(record_a.item_level or 0, record_b.item_level or 0, desc)
         end,
     }
 end
@@ -143,10 +187,11 @@ function M.biddable(record)
 end
 
 M.search_columns = {
-    level_column(),
+    requirement_column(),
+    item_level_column(),
     {
         title = 'Item',
-        width = .35,
+        width = .32,
         init = item_column_init,
         fill = item_column_fill,
         cmp = function(record_a, record_b, desc)
@@ -278,10 +323,11 @@ M.search_columns = {
 }
 
 M.auctions_columns = {
-    level_column(),
+    requirement_column(),
+    item_level_column(),
     {
         title = 'Item',
-        width = .35,
+        width = .32,
         init = item_column_init,
         fill = item_column_fill,
         cmp = function(record_a, record_b, desc)
@@ -423,10 +469,11 @@ M.auctions_columns = {
 }
 
 M.bids_columns = {
-    level_column(),
+    requirement_column(),
+    item_level_column(),
     {
         title = 'Item',
-        width = .35,
+        width = .32,
         init = item_column_init,
         fill = item_column_fill,
         cmp = function(record_a, record_b, desc)
@@ -551,17 +598,33 @@ end
 
 local methods = {
 
-    ResizeColumns = function(self)
+    -- auxForever (0.7 build 3, Tyler): after a fast resize the table kept the width of a step
+    -- before, so at the smallest window its right columns ran past the edge. Same fix as the lists
+    -- in FB-006: the content area's own size event lays the table out with the width it reports
+    -- (content_width), and the last column is anchored to the right edge (create_row, M.new). Later
+    -- layouts (new rows, a new search) reuse that width instead of measuring, which can lag behind.
+    ResizeColumns = function(self, content_width)
         local function column_width(cell)
             return (cell.info.bid and self.hide_bid) and 0 or cell.info.width
         end
+        if content_width and content_width > 0 then
+            self.content_width = content_width
+        end
+        local width = self.content_width
+        if not width then
+            local right, left = self.contentFrame:GetRight(), self.contentFrame:GetLeft()
+            if not right or not left then return end
+            width = right - left
+        end
+        -- nothing changed since the last layout: no widget work (a drag resizes every frame)
+        local layout = width .. ':' .. tostring(self.hide_bid) .. ':' .. #self.rows
+        if layout == self.layout then return end
+        self.layout = layout
         local weight = 0
         for _, cell in pairs(self.headCells) do
             weight = weight + column_width(cell)
         end
-        local right, left = self.contentFrame:GetRight(), self.contentFrame:GetLeft()
-        if not right or not left then return end
-        weight = (right - left) / weight
+        weight = width / weight
         for i, cell in pairs(self.headCells) do
             local width = column_width(cell) * weight
             local shown = width > 0
@@ -1023,6 +1086,9 @@ local function create_row(rt, i)
         else
             cell:SetPoint('TOPLEFT', row.cells[j - 1], 'TOPRIGHT')
         end
+        if j == #rt.columns then
+            cell:SetPoint('TOPRIGHT', 0, 0)
+        end
 
         if column.init then
             column.init(rt, cell)
@@ -1071,6 +1137,8 @@ function M.new(parent, row_height, columns)
     end
 
     rt:SetScript('OnShow', function(self)
+        -- the window may have changed size while the table was hidden: measure again
+        self.content_width = nil
         fit_rows(self)
         for _, cell in pairs(self.headCells) do
             if cell.info.toggle then
@@ -1082,6 +1150,9 @@ function M.new(parent, row_height, columns)
     local contentFrame = CreateFrame('Frame', nil, rt)
     contentFrame:SetPoint('TOPLEFT', 0, 0)
     contentFrame:SetPoint('BOTTOMRIGHT', 0, 0)
+    contentFrame:SetScript('OnSizeChanged', function(_, width)
+        rt:ResizeColumns(width)
+    end)
     rt.contentFrame = contentFrame
 
     local scrollFrame = CreateFrame('ScrollFrame', gui.unique_name(), rt, 'FauxScrollFrameTemplate')
@@ -1113,6 +1184,9 @@ function M.new(parent, row_height, columns)
             cell:SetPoint('TOPLEFT', 0, 0)
         else
             cell:SetPoint('TOPLEFT', rt.headCells[i - 1], 'TOPRIGHT')
+        end
+        if i == #rt.columns then
+            cell:SetPoint('TOPRIGHT', 0, 0)
         end
         cell.info = column
         cell.rt = rt

@@ -35,6 +35,11 @@ function aux.event.PLAYER_LOGIN()
 	data = aux.faction_data.history
 end
 
+-- the price history is read once the saved variables load (PLAYER_LOGIN); before that every price is unknown
+function M.loaded()
+	return data ~= nil
+end
+
 -- days since 1 January 1970 of a calendar date (Howard Hinnant's days_from_civil). Calendar days,
 -- so summer time and time zones never make two days share a number or skip one.
 function M.day_number_of(year, month, day)

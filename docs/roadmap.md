@@ -32,6 +32,8 @@ Tyler's call. Details: `docs/gamepad.md`, `docs/status.md`.
   (its link), how to read one version's listings (build 3's search by the bag item's key found
   nothing; Blizzard uses `SendSellSearchQuery` for gear), and how the bag list and table should
   name versions (a visual change: mockup first).
+- **0.7 build 1 (in progress, 2026-10-13):** a public price API for other addons (FB-012,
+  `AuxForeverAPI`) and the Req and iLvl columns (FB-013). Tyler asked for both at once.
 - Whatever players report on 0.6 (`docs/feedback.md`, from FB-010).
 
 
