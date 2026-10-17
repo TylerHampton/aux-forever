@@ -120,6 +120,9 @@ For whoever fixes or builds from it:
 | [FB-011](#fb-011-clicking-an-items-icon-in-the-post-tabs-list-does-not-select-it) | 2026-10-12 | Gaddor | bug | Post | S3 | Clicking an item's icon in the Post tab's list does not select it | fixed 0.6.1.1 (tested 2026-10-12) |
 | [FB-012](#fb-012-a-public-api-so-other-addons-can-read-auxs-prices) | 2026-10-13 | MDHippie | request | Other | n/a | A public API so other addons can read aux's prices | built 0.7 (released 2026-10-13) |
 | [FB-013](#fb-013-an-item-level-column-in-the-search-results) | 2026-10-13 | HoaxBox | request | Search | n/a | An item level column in the search results | built 0.7 (released 2026-10-13) |
+| [FB-014](#fb-014-a-search-for-tigerstrike-mantle-finds-nothing-auctionator-finds-7) | 2026-10-16 | daland | bug | Search | S2 | A search for Tigerstrike Mantle finds nothing; Auctionator finds 7 | in-progress claude/new-session-120s4m |
+| [FB-015](#fb-015-the-auctions-tab-does-not-show-all-your-own-auctions) | 2026-10-16 | daland | bug | Auctions | S2 | The Auctions tab does not show all your own auctions | in-progress claude/new-session-120s4m |
+| [FB-016](#fb-016-cancel-says-cancelled-comes-by-mail-but-the-auction-is-still-listed) | 2026-10-16 | daland | bug | Auctions | S2 | Cancel says "Cancelled, comes by mail" but the auction is still listed | in-progress claude/new-session-120s4m |
 
 ## Players
 
@@ -143,6 +146,8 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
   Names `history.latest`, so has read aux's code. Inference: writes addons or scripts of their own.
 - **HoaxBox**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-013;
   opened with "awesome addon".
+- **daland**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-014, FB-015
+  and FB-016 in three comments the same day. Also uses Auctionator and compares aux with it.
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
   words.
@@ -852,6 +857,131 @@ Ask Tyler:
 - Answered 2026-10-13: Tyler thinks tooltips do not show item level (screenshot to resend).
 - Answered 2026-10-13: two columns. Gray for "well above" (blue is the color of rare items'
   names in the same row; gray is Blizzard's color for trivial), not objected to.
+
+### FB-014: A search for Tigerstrike Mantle finds nothing; Auctionator finds 7
+
+- Received: 2026-10-16 (posted about 2026-10-15, "1 day ago" in Tyler's screenshot)
+- From: daland (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-16-daland-curseforge.md)
+- Version: unknown (likely 0.7, released on CurseForge 2026-10-13)
+- Type: bug
+- Area: Search
+- Severity: S2 (items for sale are missed; Blizzard's window or another addon finds them)
+- Status: in-progress claude/new-session-120s4m
+- Proposed: bug fix release (0.7.0.1)
+
+Said:
+> Something wrong wit addon, i'm searching for Tigerstrike Mantle, but addon don't find any, but Auctionator finds 7 of them.
+
+Steps / setup: searched for Tigerstrike Mantle in aux, found none; Auctionator found 7 at the
+same time (inference: the same visit to the auction house). Not said: whether the name was typed
+in full, picked from aux's suggestions (which add `/exact`), or reached by a right-click on one of
+their own auctions (which also searches `name/exact`).
+
+Tyler's notes: none (screenshots only).
+
+Recorder's notes:
+- Not reproduced from the code. A plain name search sends the name to the game's own search, as
+  Blizzard's window does (`browse_query` in `core/scan.lua`), so it should find the same items.
+- Confirmed in the code: a search can miss an item **without saying so**. When the game has not
+  loaded an item's details within 3 seconds (`item_key_info` and `wait_item` in `core/scan.lua`),
+  or the auction house does not answer, the item is skipped; rows whose item details are missing
+  are dropped (`new_record` in `util/info.lua` returns nothing). Fast mode drops items still
+  missing after 5 seconds. None of this tells the player.
+- Inference: Tigerstrike Mantle is not in aux's Classic item data (no match in the addon), so it
+  is likely an item new to Forever or one the player's game had not seen before. An item the game
+  has never loaded is exactly the case that can take longer than 3 seconds.
+- Not ruled out: an `/exact` search pins the level range to the level the game gives for the item
+  (`blizzard_query` in `util/filter.lua`). Blizzard's build of 2026-10-15 (1.60.1, 70425) started
+  showing each auction's required level per item key (`GetItemKeyRequiredLevel`) on Forever.
+  If the same item can carry different required levels, an exact search would miss the others.
+  Unverified; nothing seen in game suggests it yet.
+
+Unknowns: how the player searched, and which realm (the item may not be listed on Tyler's). A fix
+that holds either way: an item is never skipped silently. aux waits longer for item details and,
+if an item still cannot be read, says so at the end of the search and asks for a second search.
+
+Ask Tyler: if he can, search for an uncommon piece of gear by its full name in aux, and compare
+with Blizzard's window (Blizzard UI button), once typed plainly and once with `/exact`.
+
+### FB-015: The Auctions tab does not show all your own auctions
+
+- Received: 2026-10-16 (posted about 2026-10-15)
+- From: daland (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-16-daland-curseforge.md)
+- Version: unknown (likely 0.7)
+- Type: bug
+- Area: Auctions
+- Severity: S2 (auctions you have up are hidden; Blizzard's window shows them)
+- Status: in-progress claude/new-session-120s4m
+- Proposed: bug fix release (0.7.0.1)
+
+Said:
+> There is also problems with showing all your own auctions.
+
+Steps / setup: none given.
+
+Tyler's notes: none.
+
+Recorder's notes:
+- Confirmed in the code and reproduced in the test harness. The Auctions tab uses the search
+  results table (`gui/auction_listing.lua`), which folds rows together: identical auctions (same
+  item, price, quantity, time left band) become one row, and other prices of the same item hide
+  under that row until it is expanded. In the Search tab the For sale column shows the total; the
+  Auctions tab's Qty column shows only one auction's quantity. Harness: 5 auctions (3 identical
+  Spellbinder Robes, 1 more at another price, 1 Greenweave Robe) showed as 2 rows, the first with
+  Qty 1.
+- Inference: on Forever, posting several of an item makes one auction each (multisell), so
+  identical auctions are the normal case. Classic aux had the same folding, but Classic posted
+  stacks, so it showed less.
+- Fix: the Auctions tab shows one row per auction, as Blizzard's own list does
+  (`GetNumOwnedAuctions`, one line each). No new column, same layout.
+
+Unknowns: none that change the fix.
+
+Ask Tyler: none.
+
+### FB-016: Cancel says "Cancelled, comes by mail" but the auction is still listed
+
+- Received: 2026-10-16 (posted about 2026-10-15)
+- From: daland (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-16-daland-curseforge.md)
+- Version: unknown (likely 0.7)
+- Type: bug
+- Area: Auctions
+- Severity: S2 (the addon says something happened that did not; Blizzard's window shows the truth)
+- Status: in-progress claude/new-session-120s4m
+- Proposed: bug fix release (0.7.0.1)
+
+Said:
+> And now problem with auction cancellation, it shows action cancelled, comes by mail, but it's not actually cancelled. It's still showing in Auctionator.
+
+Steps / setup: cancelled an auction on the Auctions tab; the row said "Cancelled, comes by mail"
+(the player quotes aux's status text), but Auctionator still listed it.
+
+Tyler's notes: none.
+
+Recorder's notes:
+- Confirmed in the code: aux marks an auction "Cancelled, comes by mail" the moment the cancel is
+  sent (`cancel_auction` in `tabs/auctions/core.lua`), before the auction house answers. If the
+  server refuses or never answers, the row keeps saying cancelled.
+- Likely link to FB-015 (inference): a row that folds several identical auctions stands for all
+  of them, but Cancel cancels only one. The row says "Cancelled" while the others are still up,
+  and after the list refreshes the row is back. To the player that looks exactly like "not
+  actually cancelled". Fixing FB-015 removes this case.
+- Fix: the row says "Cancelling..." until the auction house confirms (`AUCTION_CANCELED` for that
+  auction, or the auction leaves your list). With no answer in 10 seconds, the row goes back to
+  its status and a chat line says the cancel was not confirmed.
+- Blizzard's code (branch `forever`, build 70450): `CancelAuction` needs a click
+  (`HasRestrictions`); aux calls it from a button click, as Blizzard's dialog does.
+
+Unknowns: whether the player had several identical auctions (FB-015's case) or a cancel the
+server refused. The fix covers both.
+
+Ask Tyler: none.
 
 ## Before this log
 
