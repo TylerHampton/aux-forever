@@ -123,6 +123,10 @@ For whoever fixes or builds from it:
 | [FB-014](#fb-014-a-search-for-tigerstrike-mantle-finds-nothing-auctionator-finds-7) | 2026-10-16 | daland | bug | Search | S2 | A search for Tigerstrike Mantle finds nothing; Auctionator finds 7 | fixed 0.7.0.1 build 1 (not yet tested in game) |
 | [FB-015](#fb-015-the-auctions-tab-does-not-show-all-your-own-auctions) | 2026-10-16 | daland | bug | Auctions | S2 | The Auctions tab does not show all your own auctions | fixed 0.7.0.1 build 1 (not yet tested in game) |
 | [FB-016](#fb-016-cancel-says-cancelled-comes-by-mail-but-the-auction-is-still-listed) | 2026-10-16 | daland | bug | Auctions | S2 | Cancel says "Cancelled, comes by mail" but the auction is still listed | fixed 0.7.0.1 build 1 (not yet tested in game) |
+| [FB-017](#fb-017-the-deposit-aux-shows-is-lower-than-the-1-silver-the-game-charges) | 2026-10-17 | sarrathsilentstrider | bug | Post | S3 | The deposit aux shows is lower than the 1 silver the game charges | needs-info |
+| [FB-018](#fb-018-a-setting-for-whether-the-post-tab-starts-on-match-lowest-or-undercut) | 2026-10-17 | sarrathsilentstrider | request | Settings | n/a | A setting for whether the Post tab starts on Match lowest or Undercut | new |
+| [FB-019](#fb-019-praise-everything-is-shte-in-comparison) | 2026-10-17 | sarrathsilentstrider | praise | Overall | n/a | Praise: "everything is SH!TE in comparison" | new |
+| [FB-020](#fb-020-find-the-cheapest-way-to-fill-waylaid-crates-and-writs) | 2026-10-17 | Harro22 | request | Search | n/a | Find the cheapest way to fill Waylaid crates and writs | new |
 
 ## Players
 
@@ -148,6 +152,9 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
   opened with "awesome addon".
 - **daland**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-014, FB-015
   and FB-016 in three comments the same day. Also uses Auctionator and compares aux with it.
+- **sarrathsilentstrider**: CurseForge commenter (CurseForge name; in-game name unknown).
+  Reported FB-017, asked for FB-018, praised in FB-019. Plays in the Classic theme.
+- **Harro22**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-020.
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
   words.
@@ -985,6 +992,138 @@ Unknowns: whether the player had several identical auctions (FB-015's case) or a
 server refused. The fix covers both.
 
 Ask Tyler: none.
+
+### FB-017: The deposit aux shows is lower than the 1 silver the game charges
+
+- Received: 2026-10-17 (posted about 2026-10-14, "3 days ago")
+- From: sarrathsilentstrider (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-17-curseforge-comments.md)
+- Version: unknown (likely 0.6.1.1 or 0.7)
+- Type: bug
+- Area: Post
+- Severity: S3 (a wrong cost on the receipt; posting itself works)
+- Status: needs-info (one check in game, below)
+- Proposed: bug fix release, once the check confirms the cause
+
+Said (the comment is cut off by CurseForge's "Read more"):
+> I don't know if you can adjust this, but the deposit amount AUX shows is not correct, at least for low level crafting mats and consumables.  EVERYHTING is 1 silver to deposit...stack of 20 copper ore or a single Protection Scroll (Tier1)...its a silver to put up on the AH.  Aux shows, what I believe to be, the accurate ...
+
+Steps / setup: posting cheap trade goods and consumables (20 Copper Ore, one Protection Scroll
+(Tier1)). The game takes 1 silver each time; aux's receipt shows a different, smaller amount
+(inference from "not correct"; the number aux showed is in the hidden part).
+
+Tyler's notes: none yet.
+
+Recorder's notes:
+- Confirmed in Blizzard's code (branch `forever`, build 70450,
+  `Shared/Blizzard_AuctionHouseSellFrame.lua`, `UpdateDeposit`): Blizzard's sell window asks the
+  game for the deposit (`CalculateCommodityDeposit` / `CalculateItemDeposit`, the same calls aux
+  makes) and, when `C_AuctionHouse.SupportsCopperValues()` is false, rounds it **up** to the next
+  whole silver. aux shows the game's number without that rounding (`deposit_amount` in
+  `tabs/post/core.lua`). A deposit of a few copper would then show as a few copper in aux and
+  1 silver in Blizzard's window, which fits "EVERYTHING is 1 silver".
+- Not known: what `SupportsCopperValues()` returns on Forever. Tyler saw trade goods listed at
+  copper prices (88c), which suggests true; if so, the rounding above does not explain it and
+  the server may charge a minimum of 1 silver that the API does not report.
+
+Unknowns: the hidden end of the comment; the number aux showed. A fix that holds either way:
+show the deposit the way Blizzard's window does, and if the game charges more than both, show at
+least what it charges.
+
+Ask Tyler: with the auction house open, paste
+`/run print(C_AuctionHouse.SupportsCopperValues())` and say what it prints. Then put 20 Copper
+Ore (or any cheap trade good) into Blizzard's Sell window and note the deposit it shows, next to
+aux's. If he can, open the full comment ("Read more") and send the rest.
+
+### FB-018: A setting for whether the Post tab starts on Match lowest or Undercut
+
+- Received: 2026-10-17 (posted about 39 minutes before Tyler's screenshot)
+- From: sarrathsilentstrider (1 request)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-17-curseforge-comments.md)
+- Version: unknown (plays in the Classic theme, so 0.6 or later)
+- Type: request
+- Area: Settings, Post
+- Severity: n/a
+- Status: new
+- Proposed: Tyler decides (it reverses his rule that undercut mode is never remembered)
+
+Said:
+> Could we have "Match lowest" or Undercut" be options in settings, that is defaulting to one or the other like we can set our default Duration.  if it is there I am just not seeing it in the Classic Theme.
+
+Steps / setup: none; a request. The player looked for it in Settings and did not find it (it
+does not exist).
+
+Tyler's notes: none yet.
+
+Recorder's notes:
+- Confirmed: undercut mode starts off every time the auction house opens (`aux-addon.lua`,
+  `post.set_undercut_mode(false)` on open). That was Tyler's rule ("never remembered",
+  `docs/status.md`). The default duration is already a setting (Settings, Posting).
+- Inference: a chosen default in Settings is different from silently remembering the last
+  state, which is likely what the rule guarded against: the player picks it on purpose, once.
+  It would sit next to the default duration and also need a chat command if one is added
+  (AGENTS.md: a setting with a chat command behaves the same from both).
+
+Unknowns: none that change the answer; the decision is Tyler's.
+
+Ask Tyler: keep "always starts on Match lowest", or add a setting "Post tab starts on: Match
+lowest / Undercut" (default Match lowest)? And which version (a new setting is closer to a
+feature than a fix).
+
+### FB-019: Praise: "everything is SH!TE in comparison"
+
+- Received: 2026-10-17
+- From: sarrathsilentstrider
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-17-curseforge-comments.md)
+- Version: unknown
+- Type: praise
+- Area: Overall
+- Severity: n/a
+- Status: new
+- Proposed: none
+
+Said:
+> Thanks again for bring this back...everything is is SH!TE in comparison ;)
+
+Recorder's notes: the player uses the Classic theme (FB-018), so the 0.5 look kept as an option
+has users.
+
+### FB-020: Find the cheapest way to fill Waylaid crates and writs
+
+- Received: 2026-10-17 (posted about 12 hours before Tyler's screenshot)
+- From: Harro22 (1 request)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-17-curseforge-comments.md)
+- Version: unknown
+- Type: request
+- Area: Search (new)
+- Severity: n/a
+- Status: new
+- Proposed: later, if Tyler wants it (a new feature)
+
+Said:
+> Any chance of waylaid crate and writs integration to scan for the most cost effective option?
+
+Steps / setup: none; a request.
+
+Tyler's notes: none yet.
+
+Recorder's notes:
+- Inference, not checked: "Waylaid" crates are likely the Waylaid Supplies of Season of
+  Discovery (crates filled with crafted items or materials and turned in for reputation). What
+  "writs" means on Forever is not known to the recorder. Whether Forever has either was not
+  checked.
+- If it is what it looks like, the shape is close to recipe search (FB-007): a list of what each
+  crate or writ needs, priced from aux's price history, cheapest first. The hard part is the
+  list of crates and what each needs, which would be written by hand and kept up to date.
+
+Unknowns: which crates and writs exist on Forever and what each needs.
+
+Ask Tyler: does Forever have Waylaid crates and writs, and does he play with them? Worth
+building, and when?
 
 ## Before this log
 
