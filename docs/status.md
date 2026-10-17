@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-17, Mountain Time (0.7.1 build 3 tested, all pass).
+Last updated 2026-10-17, Mountain Time (0.7.1 released).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -10,10 +10,14 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand:** 0.7 is released (PR #28, `main` 1c5cd5b, 2026-10-13). **0.7.1 build 3**
-is on branch `claude/new-session-120s4m`, **tested in game, all 6 steps pass** (2026-10-17). Every
-0.7.1 change has passed: FB-014 to FB-016, plus build 3's removals. Next: Tyler says whether 0.7.1
-is ready to release (pull request, merge, Release workflow; date the changelog heading first).
+**Where things stand:** **0.7.1 is released** (2026-10-17, PR #30, `main` e63ec0a): every own
+auction on its own row, cancels confirmed by the auction house, no silent search misses (FB-014 to
+FB-016, daland). Tag `v0.7.1`, GitHub pre-release
+https://github.com/TylerHampton/aux-forever/releases/tag/v0.7.1, CurseForge Beta file id 9233568
+(Release run 39075770178). `/reload` is enough for players. Next: 0.8 is planned
+(`docs/roadmap.md`: Waylaid crates, gear versions); nothing is being built. Replies for
+sarrathsilentstrider (FB-017, FB-018) are in `docs/feedback.md` if Tyler wants to post them.
+Branch `claude/exciting-brown-a9k99n`: Tyler deletes it on GitHub (Branches page).
 
 - **Build 3 in game** (Tyler, 2026-10-17, `builds/0-7-1-build-3/results`, screenshots): Settings
   without the start mode row; Undercut stays on across posts until the auction house closes; the
