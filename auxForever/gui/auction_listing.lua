@@ -779,7 +779,7 @@ local methods = {
                 -- it's an identical auction to the previous row so increment the number of auctions
                 -- Forever: one record can stand for a bucket of identical auctions (auction_count)
                 self.rowInfo[#self.rowInfo].children[#self.rowInfo[#self.rowInfo].children].count = self.rowInfo[#self.rowInfo].children[#self.rowInfo[#self.rowInfo].children].count + (record.auction_count or 1)
-            elseif not self.rowInfo.single_item and prevRecord and record.item_key == prevRecord.item_key then
+            elseif not self.rowInfo.single_item and not self.one_row_each and prevRecord and record.item_key == prevRecord.item_key then
                 -- it's the same base item as the previous row so insert a new auction
                 tinsert(self.rowInfo[#self.rowInfo].children, { count = record.auction_count or 1, record = record })
                 if self.expanded[self.rowInfo[#self.rowInfo].expandKey] then

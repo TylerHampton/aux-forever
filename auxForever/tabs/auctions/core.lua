@@ -11,7 +11,17 @@ function aux.event.AUX_LOADED()
     aux.event_listener('OWNED_AUCTIONS_UPDATED', function()
         refresh = true
     end)
-    for _, event in ipairs{'AUCTION_CANCELED', 'AUCTION_HOUSE_AUCTION_CREATED', 'AUCTION_HOUSE_AUCTIONS_EXPIRED'} do
+    -- 0.7.0.1 (FB-016): a cancel counts once the auction house confirms it
+    aux.event_listener('AUCTION_CANCELED', function(auction_id)
+        if auction_id and cancelling[auction_id] then
+            cancelling[auction_id] = nil
+            cancelled[auction_id] = true
+        end
+        if aux.frame:IsShown() then
+            aux.query_owned_auctions()
+        end
+    end)
+    for _, event in ipairs{'AUCTION_HOUSE_AUCTION_CREATED', 'AUCTION_HOUSE_AUCTIONS_EXPIRED'} do
         aux.event_listener(event, function()
             if aux.frame:IsShown() then
                 aux.query_owned_auctions()
@@ -44,6 +54,12 @@ function M.scan_auctions()
             cancelled[id] = nil
         end
     end
+    -- an auction that left your list while its cancel was waiting is gone: nothing more to say
+    for id in pairs(cancelling) do
+        if not present[id] then
+            cancelling[id] = nil
+        end
+    end
     listing:SetDatabase(auctions)
 end
 
@@ -57,7 +73,11 @@ CHECK_AGAIN = 120 -- seconds before opening the tab checks again by itself
 checks = {} -- item key text -> {lowest = cheapest other seller per item, at_price = {[price] = other sellers}}
 checking = nil -- {done, total} while a check runs
 checked_at = nil
-cancelled = {} -- auction IDs cancelled here, until the list no longer has them
+cancelled = {} -- auction IDs the auction house confirmed cancelled, until the list no longer has them
+-- auxForever (0.7.0.1, FB-016): a cancel sent but not yet confirmed. aux used to say "Cancelled"
+-- as soon as it was sent; a cancel the server refused or never answered still read cancelled.
+cancelling = {} -- auction ID -> GetTime() when the cancel was sent
+CANCEL_TIMEOUT = 10 -- seconds without an answer before the row goes back to its status
 
 local function key_text(item_key)
     return scan.item_key_string(item_key)
@@ -113,13 +133,15 @@ function M.check_prices()
     }
 end
 
--- 'sold', 'cancelled', 'bid', 'no buyout', 'unchecked', 'undercut' (and by how much), 'tied' (and
--- how many other sellers) or 'lowest'; the cheapest other price as the third value
+-- 'sold', 'cancelled', 'cancelling', 'bid', 'no buyout', 'unchecked', 'undercut' (and by how much),
+-- 'tied' (and how many other sellers) or 'lowest'; the cheapest other price as the third value
 function M.auction_status(record)
     if record.sale_status == 1 then
         return 'sold'
     elseif cancelled[record.auction_id or 0] then
         return 'cancelled'
+    elseif cancelling[record.auction_id or 0] then
+        return 'cancelling'
     elseif record.high_bidder then
         return 'bid'
     elseif (record.buyout_price or 0) <= 0 then
@@ -173,7 +195,7 @@ do
     -- returns true when the cancel was sent
     function M.cancel_auction(record)
         record = record or (listing:GetSelection() or empty).record
-        if not record or not record.auction_id or GetTime() - (locked[record.auction_id] or 0) <= .5 or not C_AuctionHouse.CanCancelAuction(record.auction_id) then
+        if not record or not record.auction_id or cancelling[record.auction_id] or GetTime() - (locked[record.auction_id] or 0) <= .5 or not C_AuctionHouse.CanCancelAuction(record.auction_id) then
             return
         end
         local cost = C_AuctionHouse.GetCancelCost(record.auction_id) or 0
@@ -183,9 +205,28 @@ do
         end
         C_AuctionHouse.CancelAuction(record.auction_id)
         locked[record.auction_id] = GetTime()
-        cancelled[record.auction_id] = true
+        cancelling[record.auction_id] = GetTime()
         listing:UpdateRows()
         return true
+    end
+end
+
+-- a cancel with no answer in time: the row shows its real status again, and the player is told
+function M.check_cancels()
+    for id, sent in pairs(cancelling) do
+        if GetTime() - sent >= CANCEL_TIMEOUT then
+            cancelling[id] = nil
+            local name = 'an auction'
+            for _, record in ipairs(listing.records or empty) do
+                if record.auction_id == id then
+                    name = record.link or record.name
+                    break
+                end
+            end
+            aux.print('The auction house did not confirm cancelling ' .. name .. '. If it is still in your list, it is still for sale; select it and press Cancel again.')
+            listing:UpdateRows()
+            aux.query_owned_auctions()
+        end
     end
 end
 
@@ -219,6 +260,9 @@ function on_update()
     -- the buttons and status lines, a few times a second
     if GetTime() >= (next_controls or 0) then
         next_controls = GetTime() + .2
+        if next(cancelling) then
+            check_cancels()
+        end
         update_controls()
     end
 end

@@ -1339,6 +1339,9 @@ local function fake_ah(items)
     return it.name, link(it), it.quality or 2, 10, it.req or 1, 'Armor', 'Cloth', it.stack or 1, 'INVTYPE_CHEST', 1, it.sell or 0
   end)
   set(C_Item, 'IsItemDataCachedByID', function() return true end)
+  -- the login walk over item numbers may reach these items at any moment and read their tooltip
+  -- (when it gets there depends on how long the tests before ran)
+  set(AuxTooltip, 'NumLines', function() return 0 end)
   local function deliver()
     local list = pending; pending = {}
     for _, p in ipairs(list) do fire(p[1], p[2]) end
@@ -1498,6 +1501,70 @@ try('live mode', function()
   rawset(AuxTooltip, 'NumLines', nil)
   -- the item data this search loaded is not left for later tests
   for _, it in ipairs(ROBES()) do
+    addon_aux.account_data.items[it.id] = nil
+    addon_aux.account_data.item_ids[strlower(it.name)] = nil
+  end
+  search.frame:Hide()
+  restore()
+end)
+
+-- daland, 0.7 (FB-014): a search found no Tigerstrike Mantle where Auctionator found 7. An item
+-- the game had not loaded within 3 seconds was skipped without a word.
+try('search: items the game loads late are waited for, unread items are reported', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local addon_aux = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local items = ROBES()
+  tinsert(items, {id = 104, name = 'Tigerstrike Robe', min = 5000, qty = 1, auctions = {{buyout = 5000}}})
+  local run, restore = fake_ah(items)
+  -- Pagan Robe loads 4 seconds after it is first asked for; Tigerstrike Robe never loads
+  local asked = {}
+  local function loaded(id)
+    asked[id] = asked[id] or clock
+    if id == 104 then return false end
+    return id ~= 103 or clock - asked[id] >= 4
+  end
+  local real_info = GetItemInfo
+  rawset(G, 'GetItemInfo', function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id and not loaded(id) then return end
+    return real_info(x)
+  end)
+  local real_cached = C_Item.IsItemDataCachedByID
+  rawset(C_Item, 'IsItemDataCachedByID', function(id) return loaded(id) end)
+  local printed = {}
+  local real_add = DEFAULT_CHAT_FRAME.AddMessage
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', function(_, text) tinsert(printed, text) end)
+  addon_aux.account_data.full_search = true
+  rawset(AuxTooltip, 'NumLines', function() return 0 end)
+
+  search.frame:Show()
+  search.update_mode(search.NORMAL_MODE)
+  search.set_filter('robe')
+  search.execute(nil, false)
+  run(250)
+  local s = search.current_search()
+  local found = {}
+  for _, r in ipairs(s.records) do found[r.item_id] = true end
+  check('search: an item the game loads late is still found', s.complete and found[103] == true)
+  local told = false
+  for _, text in ipairs(printed) do if text:find('1 item could not be read in time', 1, true) then told = true end end
+  check('search: an item that could not be read is reported', told)
+  -- fast mode, the usual way a name search runs
+  addon_aux.account_data.full_search = false
+  printed = {}
+  search.set_filter('robe')
+  search.execute(nil, false)
+  run(100)
+  told = false
+  for _, text in ipairs(printed) do if text:find('1 item could not be read in time', 1, true) then told = true end end
+  check('search: fast mode reports it too', search.current_search().fast and told)
+
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', real_add)
+  rawset(G, 'GetItemInfo', real_info)
+  rawset(C_Item, 'IsItemDataCachedByID', real_cached)
+  addon_aux.account_data.full_search = false
+  rawset(AuxTooltip, 'NumLines', nil)
+  for _, it in ipairs(items) do
     addon_aux.account_data.items[it.id] = nil
     addon_aux.account_data.item_ids[strlower(it.name)] = nil
   end
@@ -1950,7 +2017,10 @@ try('auctions tab: undercut check', function()
   check('auctions: it says which one is next', auctions.next_label:GetText():find('Next: Spellbinder Robe', 1, true) ~= nil)
   auctions.cancel_next_undercut()
   check('auctions: Cancel undercut cancels the undercut one', #cancels == 1 and cancels[1] == 9001)
-  check('auctions: and marks it cancelled', auctions.auction_status(by_id[9001]) == 'cancelled')
+  -- 0.7.0.1 (FB-016): not "Cancelled" before the auction house says so
+  check('auctions: it says cancelling until the auction house confirms', auctions.auction_status(by_id[9001]) == 'cancelling')
+  fire('AUCTION_CANCELED', 9001)
+  check('auctions: and cancelled once it does', auctions.auction_status(by_id[9001]) == 'cancelled')
   auctions.cancel_next_undercut()
   check('auctions: tied and lowest auctions are left alone', #cancels == 1)
 
@@ -1967,6 +2037,68 @@ try('auctions tab: undercut check', function()
   rawset(C_AuctionHouse, 'SendSearchQuery', real_search)
   for k, v in pairs(saved) do rawset(C_AuctionHouse, k, v) end
   rawset(Enum, 'AuctionStatus', real_sold)
+  restore()
+end)
+
+
+-- daland, 0.7 (FB-015 and FB-016): the Auctions tab folded identical auctions into one row with
+-- Qty 1 and hid other prices of an item; Cancel said "Cancelled, comes by mail" before the
+-- auction house answered
+try('auctions tab: every auction on its own row, cancels the auction house confirms', function()
+  local aux = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local auctions = loadstring("select(2, ...) 'aux.tabs.auctions'; return _M")('auxForever', addon)
+  local run, restore = fake_ah(ROBES())
+  local function link(id, name) return '|cff1eff00|Hitem:' .. id .. '::::::0:0|h[' .. name .. ']|h|r' end
+  local function robe(id, buyout) return {auctionID = id, itemKey = {itemID = 101, itemSuffix = 0, itemLevel = 0}, itemLink = link(101, 'Spellbinder Robe'), status = 0, quantity = 1, timeLeft = 3, buyoutAmount = buyout} end
+  -- three robes posted at once are three identical auctions on Forever
+  local owned = {robe(9101, 20000), robe(9102, 20000), robe(9103, 20000), robe(9104, 25000),
+    {auctionID = 9105, itemKey = {itemID = 102, itemSuffix = 0, itemLevel = 0}, itemLink = link(102, 'Greenweave Robe'), status = 0, quantity = 1, timeLeft = 3, buyoutAmount = 6400}}
+  local saved = {}
+  local function set(k, v) saved[k] = rawget(C_AuctionHouse, k); rawset(C_AuctionHouse, k, v) end
+  set('GetNumOwnedAuctions', function() return #owned end)
+  set('GetOwnedAuctionInfo', function(i) return owned[i] end)
+  local cancels = {}
+  set('CancelAuction', function(id) tinsert(cancels, id) end)
+  set('CanCancelAuction', function() return true end)
+  set('GetCancelCost', function() return 0 end)
+  local real_status = Enum.AuctionStatus
+  rawset(Enum, 'AuctionStatus', {Active = 0, Sold = 1})
+
+  aux.set_tab(4)
+  run(60)
+  local listing = auctions.listing
+  check('auctions: five auctions, five rows', #listing.records == 5 and listing.rowInfo.numDisplayRows == 5)
+  local by_id = {}
+  for _, record in ipairs(listing.records) do by_id[record.auction_id] = record end
+  listing:SetSelectedRecord(by_id[9102])
+  check('auctions: selecting one of the identical auctions selects that one', listing:GetSelection().record == by_id[9102])
+
+  -- a cancel with no answer from the auction house
+  local printed = {}
+  local real_add = DEFAULT_CHAT_FRAME.AddMessage
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', function(_, text) tinsert(printed, text) end)
+  check('auctions: the cancel is sent', auctions.cancel_auction(by_id[9102]) and cancels[1] == 9102)
+  check('auctions: the row says cancelling', auctions.auction_status(by_id[9102]) == 'cancelling')
+  check('auctions: the identical ones are untouched', auctions.auction_status(by_id[9101]) ~= 'cancelling' and auctions.auction_status(by_id[9103]) ~= 'cancelling')
+  check('auctions: no second cancel while waiting', not auctions.cancel_auction(by_id[9102]) and #cancels == 1)
+  run(120) -- 12 seconds, no answer
+  check('auctions: with no answer the row shows its status again', auctions.auction_status(by_id[9102]) ~= 'cancelling' and auctions.auction_status(by_id[9102]) ~= 'cancelled')
+  local told = false
+  for _, text in ipairs(printed) do if text:find('did not confirm cancelling', 1, true) then told = true end end
+  check('auctions: and the player is told', told)
+  rawset(DEFAULT_CHAT_FRAME, 'AddMessage', real_add)
+
+  -- a cancel whose auction leaves the list: the row goes, nothing is left waiting
+  run(10)
+  auctions.cancel_auction(by_id[9103])
+  tremove(owned, 3)
+  fire('OWNED_AUCTIONS_UPDATED')
+  run(5)
+  check('auctions: a cancelled auction leaves the table', #listing.records == 4 and next(auctions.cancelling) == nil)
+
+  aux.set_tab(1)
+  for k, v in pairs(saved) do rawset(C_AuctionHouse, k, v) end
+  rawset(Enum, 'AuctionStatus', real_status)
   restore()
 end)
 

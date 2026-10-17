@@ -352,6 +352,8 @@ function M.owned_record(owned)
     record.sale_status = owned.status == Enum.AuctionStatus.Sold and 1 or 0
     record.duration = owned.timeLeftSeconds and duration_from_seconds(owned.timeLeftSeconds) or duration_from_band(owned.timeLeft)
     signatures(record)
+    -- 0.7.0.1 (FB-015): identical auctions of your own stay apart, each with its own row and cancel
+    record.search_signature = record.search_signature .. ':' .. (owned.auctionID or 0)
     return record
 end
 

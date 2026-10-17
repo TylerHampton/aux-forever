@@ -20,7 +20,7 @@ frame.listing = gui.panel(frame)
 frame.listing:SetPoint('TOPLEFT', aux.frame.content, 'TOPLEFT', 0, 0)
 frame.listing:SetPoint('BOTTOMRIGHT', aux.frame.content, 'BOTTOMRIGHT', 0, 0)
 
-local STATUS_RANK = {undercut = 1, tied = 2, unchecked = 3, lowest = 4, bid = 5, ['no buyout'] = 6, cancelled = 7, sold = 8}
+local STATUS_RANK = {undercut = 1, tied = 2, unchecked = 3, lowest = 4, bid = 5, ['no buyout'] = 6, cancelling = 7, cancelled = 7, sold = 8}
 
 local function status_text(record)
     local status, amount, lowest = auction_status(record)
@@ -34,6 +34,8 @@ local function status_text(record)
         return aux.color.blue('Sold, money in the mail')
     elseif status == 'cancelled' then
         return aux.color.label.enabled('Cancelled, comes by mail')
+    elseif status == 'cancelling' then
+        return aux.color.label.enabled('Cancelling...')
     elseif status == 'bid' then
         return aux.color.yellow('Has a bid')
     elseif status == 'no buyout' then
@@ -120,6 +122,10 @@ M.columns = {
 }
 
 listing = auction_listing.new(frame.listing, 22, columns)
+-- auxForever (0.7.0.1, FB-015): every auction on its own row, as in Blizzard's list. Folding other
+-- prices of an item under one row hid them, and on Forever several posted items are several
+-- identical auctions, which the Qty column showed as one.
+listing.one_row_each = true
 listing:SetSort(3, 8)
 listing:Reset()
 listing.alt_hint = 'Alt-click: cancel'
@@ -197,7 +203,7 @@ end
 
 function M.summary_text(counts)
     local parts = {}
-    for _, entry in ipairs{{'undercut', 'undercut'}, {'tied', 'tied'}, {'lowest', 'lowest'}, {'bid', 'with a bid'}, {'sold', 'sold'}, {'cancelled', 'cancelled'}} do
+    for _, entry in ipairs{{'undercut', 'undercut'}, {'tied', 'tied'}, {'lowest', 'lowest'}, {'bid', 'with a bid'}, {'sold', 'sold'}, {'cancelling', 'cancelling'}, {'cancelled', 'cancelled'}} do
         local n = counts[entry[1]]
         if n and n > 0 then
             tinsert(parts, n .. ' ' .. entry[2])
@@ -222,6 +228,8 @@ local function selection_text(record)
         return 'The money is in your mailbox.'
     elseif status == 'cancelled' then
         return 'Cancelled. It comes back by mail.'
+    elseif status == 'cancelling' then
+        return 'Waiting for the auction house to confirm the cancel.'
     elseif status == 'bid' then
         return 'Someone has bid on it.'
     elseif status == 'unchecked' then
@@ -277,7 +285,7 @@ do
         local selection = listing:GetSelection()
         local record = selection and selection.record
         set(selection_label, 'selection', record and selection_text(record) or '')
-        local can_cancel = record and record.sale_status == 0 and record.auction_id and not cancelled[record.auction_id] and C_AuctionHouse.CanCancelAuction(record.auction_id) and true or false
+        local can_cancel = record and record.sale_status == 0 and record.auction_id and not cancelled[record.auction_id] and not cancelling[record.auction_id] and C_AuctionHouse.CanCancelAuction(record.auction_id) and true or false
         if last.can_cancel ~= can_cancel then
             last.can_cancel = can_cancel
             if can_cancel then cancel_button:Enable() else cancel_button:Disable() end

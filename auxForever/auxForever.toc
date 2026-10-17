@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Author: shirsig
 ## Title: auxForever
-## Version: forever-0.7
+## Version: forever-0.7.0.1
 ## Notes: aux by shirsig, re-imagined by a fan
 ## SavedVariables: aux
 

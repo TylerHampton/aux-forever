@@ -169,9 +169,27 @@ end
 
 function complete()
     local on_complete = state.params.on_complete
+    local unread, quiet = state.unread, state.params.quiet
     state = nil
     timing_finish()
+    if unread and not quiet then
+        aux.print(unread_text(unread))
+    end
     do (on_complete or pass)() end
+end
+
+-- auxForever (0.7.0.1, FB-014): an item the search could not read (the auction house did not
+-- answer, or the game had not loaded the item in time) used to be skipped without a word, so a
+-- search could miss items Blizzard's window shows. Now the search says so when it ends.
+function note_unread()
+    if state then
+        state.unread = (state.unread or 0) + 1
+    end
+end
+
+function M.unread_text(count)
+    return format('%d %s could not be read in time (the auction house or the game was slow to answer). Search again to include %s.',
+        count, count == 1 and 'item' or 'items', count == 1 and 'it' or 'them')
 end
 
 function get_query()
@@ -367,17 +385,34 @@ function M.item_key_string(item_key)
     return item_key.itemID .. ':' .. (item_key.itemSuffix or 0)
 end
 
+-- the records of one item's rows, and how many rows could not be made because the game has not
+-- loaded the item yet
+local function read_rows(count, get, make)
+    local records, missing = {}, 0
+    for i = 1, count do
+        local result = get(i)
+        local record = result and make(result)
+        if record then
+            tinsert(records, record)
+        elseif result then
+            missing = missing + 1
+        end
+    end
+    return records, missing
+end
+
 -- Returns the auction records for one item key, or nil if the auction house did not answer, and
 -- whether every auction of the item was read (a failed request for more leaves the view incomplete:
 -- auxForever 0.5, only complete views give a market price).
 function search(item_key)
     local key_info = item_key_info(item_key)
     if not key_info then
+        note_unread()
         return
     end
     wait_item(item_key.itemID)
 
-    local records, complete = {}, true
+    local records, complete, rows = {}, true
     if key_info.isCommodity then
         local item_id = item_key.itemID
         local function match(id) return id == item_id end
@@ -386,6 +421,7 @@ function search(item_key)
             return C_AuctionHouse.HasFullCommoditySearchResults(item_id) or C_AuctionHouse.GetCommoditySearchResultsQuantity(item_id) > 0
         end
         if not request(function() C_AuctionHouse.SendSearchQuery(item_key, SEARCH_SORTS, true) end, events, match, cached) then
+            note_unread()
             return
         end
         while not C_AuctionHouse.HasFullCommoditySearchResults(item_id) do
@@ -394,12 +430,10 @@ function search(item_key)
                 break
             end
         end
-        for i = 1, C_AuctionHouse.GetNumCommoditySearchResults(item_id) do
-            local result = C_AuctionHouse.GetCommoditySearchResultInfo(item_id, i)
-            local record = result and info.commodity_record(result)
-            if record then
-                tinsert(records, record)
-            end
+        rows = function()
+            return read_rows(C_AuctionHouse.GetNumCommoditySearchResults(item_id), function(i)
+                return C_AuctionHouse.GetCommoditySearchResultInfo(item_id, i)
+            end, info.commodity_record)
         end
     else
         local function match(key) return same_item_key(key, item_key) end
@@ -409,6 +443,7 @@ function search(item_key)
                 and (C_AuctionHouse.HasFullItemSearchResults(item_key) or C_AuctionHouse.GetItemSearchResultsQuantity(item_key) > 0)
         end
         if not request(function() C_AuctionHouse.SendSearchQuery(item_key, SEARCH_SORTS, true) end, events, match, cached) then
+            note_unread()
             return
         end
         while not C_AuctionHouse.HasFullItemSearchResults(item_key) do
@@ -417,13 +452,31 @@ function search(item_key)
                 break
             end
         end
-        for i = 1, C_AuctionHouse.GetNumItemSearchResults(item_key) do
-            local result = C_AuctionHouse.GetItemSearchResultInfo(item_key, i)
-            local record = result and info.item_search_record(result)
-            if record then
-                tinsert(records, record)
+        rows = function()
+            return read_rows(C_AuctionHouse.GetNumItemSearchResults(item_key), function(i)
+                return C_AuctionHouse.GetItemSearchResultInfo(item_key, i)
+            end, info.item_search_record)
+        end
+    end
+    local missing
+    records, missing = rows()
+    if missing > 0 then
+        -- the game had not loaded the item yet (one it has never seen, on a busy server): wait up
+        -- to 5 more seconds, reading the rows again twice a second
+        info.request_item(item_key.itemID)
+        local t0, next_try = GetTime(), GetTime() + .5
+        while missing > 0 and GetTime() - t0 < 5 do
+            aux.coro_wait()
+            if GetTime() >= next_try then
+                next_try = GetTime() + .5
+                records, missing = rows()
             end
         end
+        timing_add('item_data', GetTime() - t0)
+    end
+    if missing > 0 then
+        note_unread()
+        complete = false
     end
     return records, complete
 end
@@ -533,6 +586,9 @@ function scan_item_list(results)
                 check_aborted(scan_state)
             end
         end
+    end
+    for _ = 1, #pending do
+        note_unread()
     end
     timing_add('items', #results)
     do (state.params.on_page_scanned or pass)() end
