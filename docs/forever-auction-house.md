@@ -97,6 +97,13 @@ visible confirmation, but gives no evidence. **Unverified**; needs an in-game te
 - `GetAvailablePostCount(location)` gives the most you can post. `IsSellItemValid` says whether
   an item can be sold at all.
 - Deposits come from `CalculateItemDeposit` / `CalculateCommodityDeposit`.
+- **Seen in game (Tyler, 2026-10-17, FB-017):** `SupportsCopperValues()` returns **true** on
+  Forever, so Blizzard's sell window never rounds the deposit to whole silver. The deposit has a
+  floor of 1 silver: 20 Linen Cloth (8 hours) and one Ritual Bands of Spirit (2 and 8 hours) each
+  showed 1s in aux and in Blizzard's window, and posting took exactly 1s from the money each time.
+  The same Ritual Bands at 24 hours showed 1s 20c in Blizzard's window. aux shows the game's own
+  number, so it matched in every case. Inference: below some amount the game charges 1s; the
+  Classic formula alone would give a few copper for these.
 - Unless `SupportsCopperValues()` is true, prices must be whole silver.
 - **Observed in game (Tyler):** on Forever, gear and other non-commodity items are only ever
   listed at whole silver amounts, while trade goods show copper prices (88c, 89c). auxForever

@@ -697,7 +697,7 @@ function update_item_configuration()
 	end
 end
 
-local function game_deposit()
+function deposit_amount()
     local duration = duration_dropdown:GetIndex()
     local stack_size, stack_count = stack_size_input:GetNumber(), stack_count_input:GetNumber()
     if selected_item.commodity then
@@ -708,17 +708,6 @@ local function game_deposit()
         return C_AuctionHouse.CalculateItemDeposit(location, duration, stack_count) or 0
     end
     return 0
-end
-
--- 0.7.1 (FB-017): like Blizzard's sell window (UpdateDeposit in Blizzard_AuctionHouseSellFrame.lua),
--- the deposit is rounded up to whole silver when the auction house has no copper prices. A player
--- saw 1 silver taken for cheap trade goods where aux showed less.
-function deposit_amount()
-    local amount = game_deposit()
-    if not C_AuctionHouse.SupportsCopperValues() then
-        amount = ceil(amount / 100) * 100
-    end
-    return amount
 end
 
 -- Forever: gear and other items that are not trade goods are priced in whole silver (no gear

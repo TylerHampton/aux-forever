@@ -120,13 +120,13 @@ For whoever fixes or builds from it:
 | [FB-011](#fb-011-clicking-an-items-icon-in-the-post-tabs-list-does-not-select-it) | 2026-10-12 | Gaddor | bug | Post | S3 | Clicking an item's icon in the Post tab's list does not select it | fixed 0.6.1.1 (tested 2026-10-12) |
 | [FB-012](#fb-012-a-public-api-so-other-addons-can-read-auxs-prices) | 2026-10-13 | MDHippie | request | Other | n/a | A public API so other addons can read aux's prices | built 0.7 (released 2026-10-13) |
 | [FB-013](#fb-013-an-item-level-column-in-the-search-results) | 2026-10-13 | HoaxBox | request | Search | n/a | An item level column in the search results | built 0.7 (released 2026-10-13) |
-| [FB-014](#fb-014-a-search-for-tigerstrike-mantle-finds-nothing-auctionator-finds-7) | 2026-10-16 | daland | bug | Search | S2 | A search for Tigerstrike Mantle finds nothing; Auctionator finds 7 | fixed 0.7.1 build 2 (not yet tested in game) |
-| [FB-015](#fb-015-the-auctions-tab-does-not-show-all-your-own-auctions) | 2026-10-16 | daland | bug | Auctions | S2 | The Auctions tab does not show all your own auctions | fixed 0.7.1 build 2 (not yet tested in game) |
-| [FB-016](#fb-016-cancel-says-cancelled-comes-by-mail-but-the-auction-is-still-listed) | 2026-10-16 | daland | bug | Auctions | S2 | Cancel says "Cancelled, comes by mail" but the auction is still listed | fixed 0.7.1 build 2 (not yet tested in game) |
-| [FB-017](#fb-017-the-deposit-aux-shows-is-lower-than-the-1-silver-the-game-charges) | 2026-10-17 | sarrathsilentstrider | bug | Post | S3 | The deposit aux shows is lower than the 1 silver the game charges | fixed 0.7.1 build 2 (cause to confirm in game) |
-| [FB-018](#fb-018-a-setting-for-whether-the-post-tab-starts-on-match-lowest-or-undercut) | 2026-10-17 | sarrathsilentstrider | request | Settings | n/a | A setting for whether the Post tab starts on Match lowest or Undercut | built 0.7.1 build 2 |
+| [FB-014](#fb-014-a-search-for-tigerstrike-mantle-finds-nothing-auctionator-finds-7) | 2026-10-16 | daland | bug | Search | S2 | A search for Tigerstrike Mantle finds nothing; Auctionator finds 7 | fixed 0.7.1 (tested 2026-10-17: aux and Blizzard both find 2) |
+| [FB-015](#fb-015-the-auctions-tab-does-not-show-all-your-own-auctions) | 2026-10-16 | daland | bug | Auctions | S2 | The Auctions tab does not show all your own auctions | fixed 0.7.1 (tested 2026-10-17) |
+| [FB-016](#fb-016-cancel-says-cancelled-comes-by-mail-but-the-auction-is-still-listed) | 2026-10-16 | daland | bug | Auctions | S2 | Cancel says "Cancelled, comes by mail" but the auction is still listed | fixed 0.7.1 (tested 2026-10-17) |
+| [FB-017](#fb-017-the-deposit-aux-shows-is-lower-than-the-1-silver-the-game-charges) | 2026-10-17 | sarrathsilentstrider | bug | Post | S3 | The deposit aux shows is lower than the 1 silver the game charges | not reproduced (aux matched the game in Tyler's test) |
+| [FB-018](#fb-018-a-setting-for-whether-the-post-tab-starts-on-match-lowest-or-undercut) | 2026-10-17 | sarrathsilentstrider | request | Settings | n/a | A setting for whether the Post tab starts on Match lowest or Undercut | wont-fix (Tyler: keep as is) |
 | [FB-019](#fb-019-praise-everything-is-shte-in-comparison) | 2026-10-17 | sarrathsilentstrider | praise | Overall | n/a | Praise: "everything is SH!TE in comparison" | new |
-| [FB-020](#fb-020-find-the-cheapest-way-to-fill-waylaid-crates-and-writs) | 2026-10-17 | Harro22 | request | Search | n/a | Find the cheapest way to fill Waylaid crates and writs | new |
+| [FB-020](#fb-020-find-the-cheapest-way-to-fill-waylaid-crates-and-writs) | 2026-10-17 | Harro22 | request | Search | n/a | Find the cheapest way to fill Waylaid crates and writs | planned 0.8 |
 
 ## Players
 
@@ -875,8 +875,10 @@ Ask Tyler:
 - Type: bug
 - Area: Search
 - Severity: S2 (items for sale are missed; Blizzard's window or another addon finds them)
-- Status: fixed 0.7.1 build 2 (first built as 0.7.0.1 build 1, commit 3cacc86; branch
-  claude/new-session-120s4m; not yet tested in game)
+- Status: fixed 0.7.1 (commit 3cacc86, first built as 0.7.0.1). Tested by Tyler 2026-10-17:
+  "tigerstrike mantle" found 2 in aux (fast mode, 500g and 666g) and 2 in Blizzard's window. The
+  miss daland saw did not happen again; the cause stays unknown, and aux now says when it could
+  not read an item.
 - Proposed: 0.7.1 (Tyler, 2026-10-17: "all these changes are going to just be .7.1")
 
 Said:
@@ -923,8 +925,8 @@ with Blizzard's window (Blizzard UI button), once typed plainly and once with `/
 - Type: bug
 - Area: Auctions
 - Severity: S2 (auctions you have up are hidden; Blizzard's window shows them)
-- Status: fixed 0.7.1 build 2 (first built as 0.7.0.1 build 1, commit 3cacc86; branch
-  claude/new-session-120s4m; not yet tested in game)
+- Status: fixed 0.7.1 (commit 3cacc86, first built as 0.7.0.1). Tested by Tyler 2026-10-17: two
+  identical Ritual Bands of Spirit (9s, 12h) showed as two rows.
 - Proposed: 0.7.1 (Tyler, 2026-10-17: "all these changes are going to just be .7.1")
 
 Said:
@@ -962,8 +964,8 @@ Ask Tyler: none.
 - Type: bug
 - Area: Auctions
 - Severity: S2 (the addon says something happened that did not; Blizzard's window shows the truth)
-- Status: fixed 0.7.1 build 2 (first built as 0.7.0.1 build 1, commit 3cacc86; branch
-  claude/new-session-120s4m; not yet tested in game)
+- Status: fixed 0.7.1 (commit 3cacc86, first built as 0.7.0.1). Tested by Tyler 2026-10-17: both
+  auctions cancelled ("Auction canceled." twice in chat) and left the list ("No auctions").
 - Proposed: 0.7.1 (Tyler, 2026-10-17: "all these changes are going to just be .7.1")
 
 Said:
@@ -1003,12 +1005,12 @@ Ask Tyler: none.
 - Type: bug
 - Area: Post
 - Severity: S3 (a wrong cost on the receipt; posting itself works)
-- Status: fixed 0.7.1 build 2 (branch claude/new-session-120s4m; the cause still to be confirmed
-  by step 6 of the test)
-- Proposed: 0.7.1 (Tyler, 2026-10-17)
+- Status: not reproduced (Tyler's test, 2026-10-17). aux showed the same deposit as Blizzard's
+  window and as the money taken, for a trade good and for gear. Nothing changed in 0.7.1.
+- Proposed: none; a reply to the player
 
-Said (the comment is cut off by CurseForge's "Read more"):
-> I don't know if you can adjust this, but the deposit amount AUX shows is not correct, at least for low level crafting mats and consumables.  EVERYHTING is 1 silver to deposit...stack of 20 copper ore or a single Protection Scroll (Tier1)...its a silver to put up on the AH.  Aux shows, what I believe to be, the accurate ...
+Said (the full text, from Tyler's second screenshot, 2026-10-17):
+> I don't know if you can adjust this, but the deposit amount AUX shows is not correct, at least for low level crafting mats and consumables.  EVERYHTING is 1 silver to deposit...stack of 20 copper ore or a single Protection Scroll (Tier1)...its a silver to put up on the AH.  Aux shows, what I believe to be, the accurate CLASSIC/Anniversary deposit amounts.  I'm mor curious if anyone know if this is a bug or something from retail.
 
 Steps / setup: posting cheap trade goods and consumables (20 Copper Ore, one Protection Scroll
 (Tier1)). The game takes 1 silver each time; aux's receipt shows a different, smaller amount
@@ -1037,15 +1039,23 @@ Recorder's notes:
   copper prices (88c), which suggests true; if so, the rounding above does not explain it and
   the server may charge a minimum of 1 silver that the API does not report.
 
-Unknowns: the hidden end of the comment; the number aux showed. Built in 0.7.1 build 2: the
-deposit is rounded up to whole silver when `SupportsCopperValues()` is false, as in Blizzard's
-window (`deposit_amount` in `tabs/post/core.lua`). If the check shows true, this changes nothing
-and the cause is elsewhere (likely a server minimum the API does not report).
+Unknowns: the number aux showed the player, and their version. The rounding built in 0.7.1 build
+2 for the case `SupportsCopperValues()` is false was taken out in build 3: Forever says true.
 
-Ask Tyler: with the auction house open, paste
-`/run print(C_AuctionHouse.SupportsCopperValues())` and say what it prints. Then put 20 Copper
-Ore (or any cheap trade good) into Blizzard's Sell window and note the deposit it shows, next to
-aux's. If he can, open the full comment ("Read more") and send the rest.
+Ask Tyler: answered 2026-10-17 (test page `0-7-1-build-2`, screenshots):
+- `SupportsCopperValues()` prints **true**, so Blizzard's window does not round the deposit and
+  the rounding added in 0.7.1 build 2 never applied on Forever. It was taken out in build 3.
+- 20 Linen Cloth, 8 hours: aux 1s, Blizzard 1s (21, 2 hours), money 12g 23s 44c to 12g 22s 44c:
+  1s taken. One Ritual Bands of Spirit, 8 hours: aux 1s, money 12g 12s 44c to 12g 11s 44c: 1s.
+  Blizzard's window: 1s at 2 and 8 hours, 1s 20c at 24 hours.
+- Conclusion: aux shows the game's own deposit (it has asked the game since 2026-10-04) and it
+  matched what was taken. The 1 silver is the game's floor (`docs/forever-auction-house.md`).
+  Why the player saw Classic amounts is not known: possibly an old version or another addon.
+
+Reply for the player (Tyler posts it if he wants): "Thanks! We checked this in game: Forever's
+auction house charges at least 1 silver deposit, and auxForever shows the deposit the game itself
+reports, so on the current version it should read 1s for those items too. If you still see a
+smaller number after updating, a screenshot of the Post tab would help."
 
 ### FB-018: A setting for whether the Post tab starts on Match lowest or Undercut
 
@@ -1057,8 +1067,9 @@ aux's. If he can, open the full comment ("Read more") and send the rest.
 - Type: request
 - Area: Settings, Post
 - Severity: n/a
-- Status: built 0.7.1 build 2 (branch claude/new-session-120s4m; not yet tested in game)
-- Proposed: 0.7.1
+- Status: wont-fix (Tyler, 2026-10-17: "I don't want to build it in yet. Let's just keep it how
+  it is"). Built in 0.7.1 build 2 and taken out in build 3.
+- Proposed: none
 
 Said:
 > Could we have "Match lowest" or Undercut" be options in settings, that is defaulting to one or the other like we can set our default Duration.  if it is there I am just not seeing it in the Classic Theme.
@@ -1079,11 +1090,15 @@ Recorder's notes:
 
 Unknowns: none that change the answer; the decision is Tyler's.
 
-Ask Tyler: answered 2026-10-17, indirectly. Asked whether to add the setting, Tyler replied
-"all these changes are going to just be .7.1"; the recorder took that as a yes and built it with
-Match lowest as the default, so nothing changes for a player who does not pick Undercut. Built:
-Settings, Posting, "Post tab starts on" (`account_data.post_start_undercut`); a click on the Post
-tab's switch is still only for that visit. Easy to take out if that reading was wrong.
+Ask Tyler: answered 2026-10-17. The recorder first read "all these changes are going to just be
+.7.1" as a yes and built it; Tyler then said no: keep Match lowest at every visit. His rule, in
+his words: "If they set it to undercut, I want it to stay at undercut until they close the
+auction house." That is how it works (only a click changes it; it resets when the auction house
+opens), now guarded by a test (`undercut mode stays on through other tabs`).
+
+Reply for the player: "Undercut stays on for every item you post until you close the auction
+house, so you only need to click it once per visit. We are keeping Match lowest as the start of
+every visit for now."
 
 ### FB-019: Praise: "everything is SH!TE in comparison"
 
@@ -1114,8 +1129,8 @@ has users.
 - Type: request
 - Area: Search (new)
 - Severity: n/a
-- Status: new
-- Proposed: later, if Tyler wants it (a new feature)
+- Status: planned 0.8 (Tyler, 2026-10-17)
+- Proposed: 0.8
 
 Said:
 > Any chance of waylaid crate and writs integration to scan for the most cost effective option?
@@ -1135,8 +1150,9 @@ Recorder's notes:
 
 Unknowns: which crates and writs exist on Forever and what each needs.
 
-Ask Tyler: does Forever have Waylaid crates and writs, and does he play with them? Worth
-building, and when?
+Ask Tyler: answered 2026-10-17: "Forever does have waylaid crates... We could plan that for
+0.8." Still open: what writs are, and what each crate asks for (a crate's tooltip; Tyler asked
+whether he needs to buy one: not yet, only when 0.8 is planned in detail).
 
 ## Before this log
 

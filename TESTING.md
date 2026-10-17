@@ -8,50 +8,36 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.7.1 build 2
+## Current build: 0.7.1 build 3
 
-Tyler (2026-10-17): "all these changes are going to just be .7.1". Build 1 was the same Auctions
-tab and search fixes under the name 0.7.0.1 (never tested). Build 2 adds the deposit rounding
-(FB-017) and the "Post tab starts on" setting (FB-018). Zip `auxForever-0.7.1-build2.zip`;
-`/reload` is enough (no new files). Test page build id `0-7-1-build-2`. Have on hand: 20 Copper
-Ore (or another cheap trade good) and 5 cheap identical items that are not trade goods (Linen
-Bags). Steps, in the New theme:
+Build 3 takes out two things from build 2, after Tyler's test (2026-10-17): the deposit rounding
+(Forever returns `SupportsCopperValues()` true, so it never applied) and the "Post tab starts on"
+setting (Tyler: keep it as it is). The rest is build 2 (FB-014 to FB-016), tested. Zip
+`auxForever-0.7.1-build3.zip`; `/reload` is enough. Test page build id `0-7-1-build-3`. Steps:
 
-Deposit (FB-017: what the game really takes):
-- [ ] 1. Paste `/run print(C_AuctionHouse.SupportsCopperValues())` at the auction house; note
-      true or false.
-- [ ] 2. 20 Copper Ore, 8 hours: note the Deposit on aux's Post tab and in Blizzard's Sell tab.
-      The same.
-- [ ] 3. Note your exact money, post the 20 with aux, note it again: the difference is aux's
-      Deposit.
-- [ ] 4. As step 2 with one item that is not a trade good (gear or a Linen Bag).
-- [ ] 5. As step 3 with that item.
+- [ ] 1. Settings (gear): Posting has only Default duration (no "Post tab starts on").
+- [ ] 2. Post tab: click Undercut, post one cheap item, pick another item, post it. Both in
+      Undercut mode. Close the auction house and open it again: Match lowest.
+- [ ] 3. Post one cheap piece of gear that others also sell (Ritual Bands, or any green gear with
+      several listings), then paste in chat:
+      `/run for i=1,C_AuctionHouse.GetNumOwnedAuctions() do local a=C_AuctionHouse.GetOwnedAuctionInfo(i) local k=a.itemKey print("mine",a.itemLink,k.itemID,k.itemLevel,k.itemSuffix) end`
+      Screenshot the chat.
+- [ ] 4. In aux, search that item's name (Full mode), then paste:
+      `/run for _,r in ipairs(C_AuctionHouse.GetBrowseResults()) do local k=r.itemKey print("listed",k.itemID,k.itemLevel,k.itemSuffix,r.totalQuantity,r.minPrice) end`
+      Screenshot the chat and aux's results.
+- [ ] 5. Auctions tab, Check prices: screenshot the row (Lowest other, Status) next to Blizzard's
+      Sell tab for the same item.
+- [ ] 6. Theme Classic, `/reload`, Auctions tab with that auction up: one row per auction.
 
-Auctions tab (FB-015, FB-016):
-- [ ] 6. Post 3 identical Linen Bags at one price, 1 more at another. Auctions tab: 4 rows, each
-      Qty 1, none hidden under another.
-- [ ] 7. Select one of the 3 and press Cancel: "Cancelling...", then "Cancelled, comes by mail",
-      then it leaves the list. The other 2 stay.
-- [ ] 8. "Blizzard UI", Blizzard's Auctions tab: the same auctions as aux.
+### 0.7.1 build 2
 
-Search (FB-014):
-- [ ] 9. Type the full name of a piece of gear Blizzard's window lists: aux lists as many. If a
-      chat line says an item "could not be read in time", note it and search again.
-- [ ] 10. The same item from the suggestion (`/exact`): the same number.
-
-Settings (FB-018):
-- [ ] 11. Settings, Posting, "Post tab starts on": Undercut. Close and reopen the auction house:
-      the Post tab is in Undercut mode. Set it back.
-
-Classic theme:
-- [ ] 12. Theme Classic, `/reload`, Auctions tab: your auctions, one row each.
-
-The test page also has 9 questions for Tyler with answer boxes (no Pass or Fail): keep the
-"Post tab starts on" setting; the rest of the cut-off deposit comment; Waylaid crates and writs;
-CurseForge follow-ups for 0.7; and the older open questions in `docs/status.md` (Sniper single
-listings, Sniper profit minimum, the FB-008 player's name, New theme tweaks, branch
-`claude/exciting-brown-a9k99n`). Questions are steps with `ask: true` on the page; an answer
-counts as done.
+Tested by Tyler 2026-10-17 (test page `0-7-1-build-2`, screenshots): two identical Ritual Bands
+of Spirit showed as two rows; both cancelled and left the list; "tigerstrike mantle" found 2 in
+aux and in Blizzard's window; `SupportsCopperValues()` is true; deposits matched the game for
+Linen Cloth and Ritual Bands (1s each, 1s taken); "Post tab starts on" worked but Tyler did not
+want it. The Classic step could not be done (no auctions left). Seen on the side: the Auctions tab
+said "Only one listed" for the Ritual Bands while aux's Post tab had listed others of the same
+version a minute before (9s, 1g 55s); steps 3 to 5 of build 3 check it.
 
 ### 0.7 build 4
 

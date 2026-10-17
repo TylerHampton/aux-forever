@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-17, Mountain Time (0.7.1 build 2 ready for testing).
+Last updated 2026-10-17, Mountain Time (0.7.1 build 3 ready for testing).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -10,12 +10,33 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand:** 0.7 is released (PR #28, `main` 1c5cd5b, 2026-10-13). **0.7.1 build 2**
-is on branch `claude/new-session-120s4m`, **not yet tested in game**. Tyler (2026-10-17): "all
-these changes are going to just be .7.1", so the 0.7.0.1 work below is now 0.7.1 (build 1 was
-that work under the old name; builds count on from 2, as with 0.6.1). Next: Tyler tests it on
-the test page (build id `0-7-1-build-2`, 8 steps, the same as `TESTING.md`), then says whether
-it is ready to release.
+**Where things stand:** 0.7 is released (PR #28, `main` 1c5cd5b, 2026-10-13). **0.7.1 build 3**
+is on branch `claude/new-session-120s4m`: build 2 minus two things Tyler's test showed were not
+wanted or not needed. The daland fixes (FB-014 to FB-016) passed in game on 2026-10-17. Next:
+Tyler runs build 3's 6 steps (test page build id `0-7-1-build-3`); steps 3 to 5 print item keys
+to find out why the Auctions tab said "Only one listed" for gear others also sell. Then he says
+whether 0.7.1 is ready to release.
+
+- **0.7.1 build 3** (2026-10-17): from Tyler's test of build 2 (results and 17 screenshots on the
+  test page, `builds/0-7-1-build-2/results`):
+  - Deposit rounding taken out: `SupportsCopperValues()` prints true on Forever, so it never
+    applied. aux's deposit matched Blizzard's and the money taken (FB-017 not reproduced; facts in
+    `docs/forever-auction-house.md`, section 4).
+  - "Post tab starts on" taken out (FB-018 wont-fix): Tyler wants Match lowest at every visit, and
+    Undercut, once clicked, to stay until the auction house closes. That is how it works; a test
+    now guards it.
+  - Open: the Auctions tab's price check said "Only one listed" / Lowest other "none" for Ritual
+    Bands of Spirit while aux's Post tab had listed others of the same version (9s, 1g 55s) a
+    minute earlier. Suspected: the item key of your own auction (`GetOwnedAuctionInfo`) differs
+    from the listed one (item level or suffix), so the check reads only your own. Not confirmed;
+    build 3 steps 3 to 5 print both keys. Likely tied to the gear versions item (`docs/roadmap.md`,
+    0.8).
+  - Tyler's answers to the older questions: Sniper single listings: C (leave as is); no New theme
+    tweaks; drop the FB-008 name and the CurseForge replies; the Sniper profit question was unclear
+    to him and is dropped; branch `claude/exciting-brown-a9k99n`: delete (Claude's session was not
+    allowed to delete a branch; Tyler deletes it on GitHub, Branches page; its last commit is
+    1469ffa if ever wanted).
+  - FB-020 Waylaid crates: planned for 0.8 (`docs/roadmap.md`).
 
 - **0.7.1 build 2** (2026-10-17): adds to build 1 (below)
   - FB-017: the Post tab's deposit is rounded up to whole silver when
@@ -268,21 +289,12 @@ not merged; ask Tyler whether to merge it.
   fixes"); rule in AGENTS.md.
 - **Next version:** not chosen. Candidates are in `docs/roadmap.md`, "After 0.6". Tyler planned
   about one release a week; two went out on 2026-10-09.
-- **Open questions for Tyler** (none blocks anything):
-  1. Sniper: a rule for items with a single listing (A everything, B stackable goods only, C wait
-     and see; Claude recommends C).
-  2. `/aux price` with a Shift-clicked Trapper's Shirt link: the name lookup found no history
-     while the Sniper had a usual price of 90s (open since build 5).
-  3. The CurseForge player's in-game name for FB-008 (changelog credit).
-  4. His tweaks to the New theme (he said he would send screenshots).
-  5. Sniper "profit at least": his 5c lets through below-vendor deals worth 6c to 14c; 1g
-     suggested.
-  6. A seller name showed as "Áeçèéêëì Áæçèéìëì" on Fine Thread (0.6.0.1 test screenshot):
-     either a real name in accented letters or a text problem; unknown, ask for another example.
+- **Open questions for Tyler:** none from before 2026-10-17 (all answered that day, see Start
+  here). Current ones are in Start here.
 - **How Tyler tests:** one test page, https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ
   (`index.html` with a `BUILD` id and `AREAS` steps; he marks Pass/Fail with notes and
   screenshots; read with ArtifactData, collection `builds/<build id>/results`, and download each
-  screenshot with Artifact read, `path` = the asset id). Last used: `0-7-1-build-2` (not tested yet). He
+  screenshot with Artifact read, `path` = the asset id). Last used: `0-7-1-build-3` (build 2 tested 2026-10-17). He
   often uploads screenshots without marking a status: read the screenshots. Zips:
   `auxForever-<version>-build<n>.zip`, sent with the file tool; say whether `/reload` is enough.
 - **Mockups:** the Post panel mockup (options A, B, C, A chosen) is
