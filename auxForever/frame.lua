@@ -510,6 +510,11 @@ do
         for i = 1, 3 do length_buttons[i] = by_code[i] end
     end
     M.auction_length_buttons = length_buttons
+    -- 0.7.1 (FB-018): a player asked to set it like the default duration
+    local start_row = row(posting, 0, -46, 30, 'Post tab starts on',
+        nil, {'The pricing mode the Post tab is in each time the auction house opens. You can still switch it on the Post tab.'})
+    local start_buttons = choices(start_row, {{'match', 'Match lowest'}, {'undercut', 'Undercut'}}, 84)
+    M.start_mode_buttons = start_buttons
     -- Bid prices (/aux post bid) was here in build 3 and taken out in build 4: on Forever only gear
     -- can have bids, few sellers set one, and gear is one item per auction, so "per stack" means
     -- nothing (Tyler: "does the stack option even make any sense?"). The chat command stays.
@@ -560,6 +565,8 @@ do
             b:SetText(info.duration_hours(i) .. 'h')
             gui.style_choice(b, account_data.post_duration == i)
         end
+        gui.style_choice(start_buttons.match, not account_data.post_start_undercut)
+        gui.style_choice(start_buttons.undercut, account_data.post_start_undercut and true or false)
         local chosen = account_data.theme == 'classic' and 'classic' or 'new'
         for name, b in pairs(look_buttons) do
             gui.style_choice(b, chosen == name)
@@ -596,6 +603,13 @@ do
     for i, b in ipairs(length_buttons) do
         b:SetScript('OnClick', function()
             account_data.post_duration = i
+            refresh()
+        end)
+    end
+
+    for name, b in pairs(start_buttons) do
+        b:SetScript('OnClick', function()
+            account_data.post_start_undercut = name == 'undercut'
             refresh()
         end)
     end

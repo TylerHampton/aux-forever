@@ -6,7 +6,7 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
-## 0.7.0.1 (unreleased)
+## 0.7.1 (unreleased)
 
 ### Auctions tab
 
@@ -19,6 +19,17 @@ A change that comes from a player's feedback credits them by in-game name at the
   confirmed it, and on a folded row only one of the identical auctions was cancelled while the
   row said cancelled. If no confirmation comes within 10 seconds, the row shows its real status
   again and a chat line tells you (reported by daland).
+
+### Post tab and Settings
+
+- New setting **Post tab starts on**: Match lowest or Undercut (Settings, Posting, under Default
+  duration). Each time the auction house opens, the Post tab starts in the mode you pick there.
+  It starts on Match lowest unless you change it, as before; a click on the Post tab's switch is
+  still only for that visit (suggested by sarrathsilentstrider).
+- The deposit on the Post tab now matches what the game takes. Blizzard's own sell window rounds
+  the deposit up to whole silver when the auction house does not use copper prices; aux showed
+  the unrounded amount, so cheap trade goods showed a few copper where the game took 1 silver
+  (reported by sarrathsilentstrider).
 
 ### Search
 

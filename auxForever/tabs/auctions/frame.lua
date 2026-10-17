@@ -122,7 +122,7 @@ M.columns = {
 }
 
 listing = auction_listing.new(frame.listing, 22, columns)
--- auxForever (0.7.0.1, FB-015): every auction on its own row, as in Blizzard's list. Folding other
+-- auxForever (0.7.1, FB-015): every auction on its own row, as in Blizzard's list. Folding other
 -- prices of an item under one row hid them, and on Forever several posted items are several
 -- identical auctions, which the Qty column showed as one.
 listing.one_row_each = true

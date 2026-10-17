@@ -120,11 +120,11 @@ For whoever fixes or builds from it:
 | [FB-011](#fb-011-clicking-an-items-icon-in-the-post-tabs-list-does-not-select-it) | 2026-10-12 | Gaddor | bug | Post | S3 | Clicking an item's icon in the Post tab's list does not select it | fixed 0.6.1.1 (tested 2026-10-12) |
 | [FB-012](#fb-012-a-public-api-so-other-addons-can-read-auxs-prices) | 2026-10-13 | MDHippie | request | Other | n/a | A public API so other addons can read aux's prices | built 0.7 (released 2026-10-13) |
 | [FB-013](#fb-013-an-item-level-column-in-the-search-results) | 2026-10-13 | HoaxBox | request | Search | n/a | An item level column in the search results | built 0.7 (released 2026-10-13) |
-| [FB-014](#fb-014-a-search-for-tigerstrike-mantle-finds-nothing-auctionator-finds-7) | 2026-10-16 | daland | bug | Search | S2 | A search for Tigerstrike Mantle finds nothing; Auctionator finds 7 | fixed 0.7.0.1 build 1 (not yet tested in game) |
-| [FB-015](#fb-015-the-auctions-tab-does-not-show-all-your-own-auctions) | 2026-10-16 | daland | bug | Auctions | S2 | The Auctions tab does not show all your own auctions | fixed 0.7.0.1 build 1 (not yet tested in game) |
-| [FB-016](#fb-016-cancel-says-cancelled-comes-by-mail-but-the-auction-is-still-listed) | 2026-10-16 | daland | bug | Auctions | S2 | Cancel says "Cancelled, comes by mail" but the auction is still listed | fixed 0.7.0.1 build 1 (not yet tested in game) |
-| [FB-017](#fb-017-the-deposit-aux-shows-is-lower-than-the-1-silver-the-game-charges) | 2026-10-17 | sarrathsilentstrider | bug | Post | S3 | The deposit aux shows is lower than the 1 silver the game charges | needs-info |
-| [FB-018](#fb-018-a-setting-for-whether-the-post-tab-starts-on-match-lowest-or-undercut) | 2026-10-17 | sarrathsilentstrider | request | Settings | n/a | A setting for whether the Post tab starts on Match lowest or Undercut | new |
+| [FB-014](#fb-014-a-search-for-tigerstrike-mantle-finds-nothing-auctionator-finds-7) | 2026-10-16 | daland | bug | Search | S2 | A search for Tigerstrike Mantle finds nothing; Auctionator finds 7 | fixed 0.7.1 build 2 (not yet tested in game) |
+| [FB-015](#fb-015-the-auctions-tab-does-not-show-all-your-own-auctions) | 2026-10-16 | daland | bug | Auctions | S2 | The Auctions tab does not show all your own auctions | fixed 0.7.1 build 2 (not yet tested in game) |
+| [FB-016](#fb-016-cancel-says-cancelled-comes-by-mail-but-the-auction-is-still-listed) | 2026-10-16 | daland | bug | Auctions | S2 | Cancel says "Cancelled, comes by mail" but the auction is still listed | fixed 0.7.1 build 2 (not yet tested in game) |
+| [FB-017](#fb-017-the-deposit-aux-shows-is-lower-than-the-1-silver-the-game-charges) | 2026-10-17 | sarrathsilentstrider | bug | Post | S3 | The deposit aux shows is lower than the 1 silver the game charges | fixed 0.7.1 build 2 (cause to confirm in game) |
+| [FB-018](#fb-018-a-setting-for-whether-the-post-tab-starts-on-match-lowest-or-undercut) | 2026-10-17 | sarrathsilentstrider | request | Settings | n/a | A setting for whether the Post tab starts on Match lowest or Undercut | built 0.7.1 build 2 |
 | [FB-019](#fb-019-praise-everything-is-shte-in-comparison) | 2026-10-17 | sarrathsilentstrider | praise | Overall | n/a | Praise: "everything is SH!TE in comparison" | new |
 | [FB-020](#fb-020-find-the-cheapest-way-to-fill-waylaid-crates-and-writs) | 2026-10-17 | Harro22 | request | Search | n/a | Find the cheapest way to fill Waylaid crates and writs | new |
 
@@ -875,9 +875,9 @@ Ask Tyler:
 - Type: bug
 - Area: Search
 - Severity: S2 (items for sale are missed; Blizzard's window or another addon finds them)
-- Status: fixed 0.7.0.1 build 1 (commit 3cacc86, branch claude/new-session-120s4m; not yet
-  tested in game)
-- Proposed: bug fix release (0.7.0.1)
+- Status: fixed 0.7.1 build 2 (first built as 0.7.0.1 build 1, commit 3cacc86; branch
+  claude/new-session-120s4m; not yet tested in game)
+- Proposed: 0.7.1 (Tyler, 2026-10-17: "all these changes are going to just be .7.1")
 
 Said:
 > Something wrong wit addon, i'm searching for Tigerstrike Mantle, but addon don't find any, but Auctionator finds 7 of them.
@@ -923,9 +923,9 @@ with Blizzard's window (Blizzard UI button), once typed plainly and once with `/
 - Type: bug
 - Area: Auctions
 - Severity: S2 (auctions you have up are hidden; Blizzard's window shows them)
-- Status: fixed 0.7.0.1 build 1 (commit 3cacc86, branch claude/new-session-120s4m; not yet
-  tested in game)
-- Proposed: bug fix release (0.7.0.1)
+- Status: fixed 0.7.1 build 2 (first built as 0.7.0.1 build 1, commit 3cacc86; branch
+  claude/new-session-120s4m; not yet tested in game)
+- Proposed: 0.7.1 (Tyler, 2026-10-17: "all these changes are going to just be .7.1")
 
 Said:
 > There is also problems with showing all your own auctions.
@@ -962,9 +962,9 @@ Ask Tyler: none.
 - Type: bug
 - Area: Auctions
 - Severity: S2 (the addon says something happened that did not; Blizzard's window shows the truth)
-- Status: fixed 0.7.0.1 build 1 (commit 3cacc86, branch claude/new-session-120s4m; not yet
-  tested in game)
-- Proposed: bug fix release (0.7.0.1)
+- Status: fixed 0.7.1 build 2 (first built as 0.7.0.1 build 1, commit 3cacc86; branch
+  claude/new-session-120s4m; not yet tested in game)
+- Proposed: 0.7.1 (Tyler, 2026-10-17: "all these changes are going to just be .7.1")
 
 Said:
 > And now problem with auction cancellation, it shows action cancelled, comes by mail, but it's not actually cancelled. It's still showing in Auctionator.
@@ -1003,8 +1003,9 @@ Ask Tyler: none.
 - Type: bug
 - Area: Post
 - Severity: S3 (a wrong cost on the receipt; posting itself works)
-- Status: needs-info (one check in game, below)
-- Proposed: bug fix release, once the check confirms the cause
+- Status: fixed 0.7.1 build 2 (branch claude/new-session-120s4m; the cause still to be confirmed
+  by step 6 of the test)
+- Proposed: 0.7.1 (Tyler, 2026-10-17)
 
 Said (the comment is cut off by CurseForge's "Read more"):
 > I don't know if you can adjust this, but the deposit amount AUX shows is not correct, at least for low level crafting mats and consumables.  EVERYHTING is 1 silver to deposit...stack of 20 copper ore or a single Protection Scroll (Tier1)...its a silver to put up on the AH.  Aux shows, what I believe to be, the accurate ...
@@ -1027,9 +1028,10 @@ Recorder's notes:
   copper prices (88c), which suggests true; if so, the rounding above does not explain it and
   the server may charge a minimum of 1 silver that the API does not report.
 
-Unknowns: the hidden end of the comment; the number aux showed. A fix that holds either way:
-show the deposit the way Blizzard's window does, and if the game charges more than both, show at
-least what it charges.
+Unknowns: the hidden end of the comment; the number aux showed. Built in 0.7.1 build 2: the
+deposit is rounded up to whole silver when `SupportsCopperValues()` is false, as in Blizzard's
+window (`deposit_amount` in `tabs/post/core.lua`). If the check shows true, this changes nothing
+and the cause is elsewhere (likely a server minimum the API does not report).
 
 Ask Tyler: with the auction house open, paste
 `/run print(C_AuctionHouse.SupportsCopperValues())` and say what it prints. Then put 20 Copper
@@ -1046,8 +1048,8 @@ aux's. If he can, open the full comment ("Read more") and send the rest.
 - Type: request
 - Area: Settings, Post
 - Severity: n/a
-- Status: new
-- Proposed: Tyler decides (it reverses his rule that undercut mode is never remembered)
+- Status: built 0.7.1 build 2 (branch claude/new-session-120s4m; not yet tested in game)
+- Proposed: 0.7.1
 
 Said:
 > Could we have "Match lowest" or Undercut" be options in settings, that is defaulting to one or the other like we can set our default Duration.  if it is there I am just not seeing it in the Classic Theme.
@@ -1068,9 +1070,11 @@ Recorder's notes:
 
 Unknowns: none that change the answer; the decision is Tyler's.
 
-Ask Tyler: keep "always starts on Match lowest", or add a setting "Post tab starts on: Match
-lowest / Undercut" (default Match lowest)? And which version (a new setting is closer to a
-feature than a fix).
+Ask Tyler: answered 2026-10-17, indirectly. Asked whether to add the setting, Tyler replied
+"all these changes are going to just be .7.1"; the recorder took that as a yes and built it with
+Match lowest as the default, so nothing changes for a player who does not pick Undercut. Built:
+Settings, Posting, "Post tab starts on" (`account_data.post_start_undercut`); a click on the Post
+tab's switch is still only for that visit. Easy to take out if that reading was wrong.
 
 ### FB-019: Praise: "everything is SH!TE in comparison"
 

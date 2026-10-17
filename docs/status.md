@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-17, Mountain Time (0.7.0.1 build 1 ready for testing; new feedback logged).
+Last updated 2026-10-17, Mountain Time (0.7.1 build 2 ready for testing).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -10,19 +10,30 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand:** 0.7 is released (PR #28, `main` 1c5cd5b, 2026-10-13). **0.7.0.1 build 1**
-is on branch `claude/new-session-120s4m`, **not yet tested in game**: fixes for three CurseForge
-comments from daland (FB-014, FB-015, FB-016). Next: Tyler tests it on the test page (build id
-`0-7-0-1-build-1`, 6 steps, the same as `TESTING.md`), then says whether it is ready to release.
+**Where things stand:** 0.7 is released (PR #28, `main` 1c5cd5b, 2026-10-13). **0.7.1 build 2**
+is on branch `claude/new-session-120s4m`, **not yet tested in game**. Tyler (2026-10-17): "all
+these changes are going to just be .7.1", so the 0.7.0.1 work below is now 0.7.1 (build 1 was
+that work under the old name; builds count on from 2, as with 0.6.1). Next: Tyler tests it on
+the test page (build id `0-7-1-build-2`, 8 steps, the same as `TESTING.md`), then says whether
+it is ready to release.
 
-- **New feedback, 2026-10-17** (`docs/feedback.md`, nothing built yet): FB-017 deposit shown
-  lower than the 1 silver the game charges (likely cause: Blizzard's sell window rounds the
-  deposit up to whole silver when `SupportsCopperValues()` is false, aux does not; waiting on
-  Tyler's `/run print(C_AuctionHouse.SupportsCopperValues())` and a deposit comparison).
-  FB-018 a setting for the Post tab's starting mode (reverses Tyler's "never remembered" rule:
-  his call). FB-019 praise. FB-020 Waylaid crates and writs (does Forever have them? Tyler).
+- **0.7.1 build 2** (2026-10-17): adds to build 1 (below)
+  - FB-017: the Post tab's deposit is rounded up to whole silver when
+    `C_AuctionHouse.SupportsCopperValues()` is false, as Blizzard's sell window does
+    (`deposit_amount` in `tabs/post/core.lua`). Step 6 prints what Forever returns; if it is
+    true, this changes nothing and the cause is elsewhere.
+  - FB-018: Settings, Posting, "Post tab starts on" (Match lowest / Undercut,
+    `account_data.post_start_undercut`, default Match lowest). Built on Tyler's "all these
+    changes are going to just be .7.1" as a yes; he had not answered the question directly.
+  - Tests for both, each checked to fail without its change. Version `forever-0.7.1`. Zip
+    `auxForever-0.7.1-build2.zip`, `/reload` is enough.
+  - Still open for Tyler: FB-020 (Waylaid crates and writs: does Forever have them, worth
+    building?); the rest of sarrathsilentstrider's cut-off comment.
 
-- **0.7.0.1 build 1** (2026-10-16), from daland's comments (Tyler sent the three screenshots
+- **Feedback logged 2026-10-17** (`docs/feedback.md`): FB-017 deposit and FB-018 setting are in
+  build 2 above; FB-019 praise; FB-020 Waylaid crates and writs waits on Tyler.
+
+- **0.7.1 build 1** (built as 0.7.0.1 build 1, 2026-10-16), from daland's comments (Tyler sent the three screenshots
   without a message; recorded in `docs/feedback.md`, source
   `docs/feedback/sources/2026-10-16-daland-curseforge.md`):
   - FB-015: the Auctions tab folded identical auctions (Forever makes one auction per posted
@@ -271,7 +282,7 @@ not merged; ask Tyler whether to merge it.
 - **How Tyler tests:** one test page, https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ
   (`index.html` with a `BUILD` id and `AREAS` steps; he marks Pass/Fail with notes and
   screenshots; read with ArtifactData, collection `builds/<build id>/results`, and download each
-  screenshot with Artifact read, `path` = the asset id). Last used: `0-7-0-1-build-1` (not tested yet). He
+  screenshot with Artifact read, `path` = the asset id). Last used: `0-7-1-build-2` (not tested yet). He
   often uploads screenshots without marking a status: read the screenshots. Zips:
   `auxForever-<version>-build<n>.zip`, sent with the file tool; say whether `/reload` is enough.
 - **Mockups:** the Post panel mockup (options A, B, C, A chosen) is

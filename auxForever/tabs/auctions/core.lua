@@ -11,7 +11,7 @@ function aux.event.AUX_LOADED()
     aux.event_listener('OWNED_AUCTIONS_UPDATED', function()
         refresh = true
     end)
-    -- 0.7.0.1 (FB-016): a cancel counts once the auction house confirms it
+    -- 0.7.1 (FB-016): a cancel counts once the auction house confirms it
     aux.event_listener('AUCTION_CANCELED', function(auction_id)
         if auction_id and cancelling[auction_id] then
             cancelling[auction_id] = nil
@@ -74,7 +74,7 @@ checks = {} -- item key text -> {lowest = cheapest other seller per item, at_pri
 checking = nil -- {done, total} while a check runs
 checked_at = nil
 cancelled = {} -- auction IDs the auction house confirmed cancelled, until the list no longer has them
--- auxForever (0.7.0.1, FB-016): a cancel sent but not yet confirmed. aux used to say "Cancelled"
+-- auxForever (0.7.1, FB-016): a cancel sent but not yet confirmed. aux used to say "Cancelled"
 -- as soon as it was sent; a cancel the server refused or never answered still read cancelled.
 cancelling = {} -- auction ID -> GetTime() when the cancel was sent
 CANCEL_TIMEOUT = 10 -- seconds without an answer before the row goes back to its status

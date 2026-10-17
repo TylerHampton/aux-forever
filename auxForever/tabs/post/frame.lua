@@ -388,7 +388,7 @@ do
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
         GameTooltip:AddLine('Match lowest or undercut?')
         GameTooltip:AddLine('On Forever the newest listing at a price sells first, so matching the lowest price sells just as fast as going below it, and keeps prices from sliding.', 1, 1, 1, true)
-        GameTooltip:AddLine('Undercut goes one step below: 1 copper for trade goods, 1 silver for gear. It starts off each time the auction house opens.', 1, 1, 1, true)
+        GameTooltip:AddLine('Undercut goes one step below: 1 copper for trade goods, 1 silver for gear. Each time the auction house opens it starts as set in Settings (Post tab starts on).', 1, 1, 1, true)
         GameTooltip:AddLine('/aux undercut for more', .6, .6, .6)
         GameTooltip:Show()
     end)

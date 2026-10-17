@@ -392,6 +392,15 @@ try('undercut mode', function()
   post.set_undercut_mode(true)
   fire('AUCTION_HOUSE_SHOW')
   check('undercut mode starts off every time the auction house opens', aux.account_data.post_undercut == false)
+  -- 0.7.1 (FB-018): unless Settings says to start in undercut mode
+  aux.account_data.post_start_undercut = true
+  fire('AUCTION_HOUSE_SHOW')
+  check('undercut mode starts on when Settings says so', aux.account_data.post_undercut == true)
+  post.set_undercut_mode(false)
+  fire('AUCTION_HOUSE_SHOW')
+  check('a click on the Post tab is still not remembered', aux.account_data.post_undercut == true)
+  aux.account_data.post_start_undercut = false
+  fire('AUCTION_HOUSE_SHOW')
 
   post_env.selected_item = {commodity = true, key = '2447:0'}
   check('trade goods: default matches the cheapest price', post.undercut({unit_price = 88}, 1) == 88)
@@ -730,6 +739,14 @@ try('post money details', function()
   C_AuctionHouse.CalculateCommodityDeposit = function() return 0 end
   post.update_item_configuration()
   check('no deposit shows 0c, not -0c', plain(post.deposit.__text) == '0c')
+  -- 0.7.1 (FB-017): without copper prices the deposit is rounded up to whole silver, as Blizzard does
+  C_AuctionHouse.CalculateCommodityDeposit = function() return 12 end
+  local copper = C_AuctionHouse.SupportsCopperValues
+  rawset(C_AuctionHouse, 'SupportsCopperValues', function() return false end)
+  check('deposit: rounded up to 1 silver without copper prices', post.deposit_amount() == 100)
+  rawset(C_AuctionHouse, 'SupportsCopperValues', function() return true end)
+  check('deposit: as the game says with copper prices', post.deposit_amount() == 12)
+  rawset(C_AuctionHouse, 'SupportsCopperValues', copper)
   C_AuctionHouse.CalculateCommodityDeposit = deposit
   check('no per item amount for a single item', plain(post.net_detail.__text) == 'vendor pays 5c' and post.vendor_warning.__shown ~= true)
   post.selected_item = {key = '2:0', item_id = 2, name = 'Staff', quality = 2, count = 1, unit_vendor_price = 0}
@@ -941,6 +958,13 @@ try('auction length setting', function()
   check('choosing one sets the default length', a.account_data.post_duration == 3)
   buttons[2].__scripts.OnClick(buttons[2])
   check('and back', a.account_data.post_duration == 2)
+  -- 0.7.1 (FB-018): the mode the Post tab starts on
+  local modes = a.start_mode_buttons
+  check('two start mode buttons', modes and modes.match and modes.undercut)
+  modes.undercut.__scripts.OnClick(modes.undercut)
+  check('choosing Undercut sets it', a.account_data.post_start_undercut == true)
+  modes.match.__scripts.OnClick(modes.match)
+  check('and Match lowest', a.account_data.post_start_undercut == false)
 end)
 
 -- Filter Builder: rows follow the search bar, and every edit rewrites the search bar
@@ -2017,7 +2041,7 @@ try('auctions tab: undercut check', function()
   check('auctions: it says which one is next', auctions.next_label:GetText():find('Next: Spellbinder Robe', 1, true) ~= nil)
   auctions.cancel_next_undercut()
   check('auctions: Cancel undercut cancels the undercut one', #cancels == 1 and cancels[1] == 9001)
-  -- 0.7.0.1 (FB-016): not "Cancelled" before the auction house says so
+  -- 0.7.1 (FB-016): not "Cancelled" before the auction house says so
   check('auctions: it says cancelling until the auction house confirms', auctions.auction_status(by_id[9001]) == 'cancelling')
   fire('AUCTION_CANCELED', 9001)
   check('auctions: and cancelled once it does', auctions.auction_status(by_id[9001]) == 'cancelled')

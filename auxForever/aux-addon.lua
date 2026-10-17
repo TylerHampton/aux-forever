@@ -81,6 +81,7 @@ function event.AUX_LOADED()
         post_bid = nil,
         post_duration = post.DURATION_8,
         post_undercut = false,
+        post_start_undercut = false, -- 0.7.1 (FB-018): the mode the Post tab starts in, from Settings
         full_search = false,
         sniper_percent = 60,
         sniper_profit = 500,
@@ -329,8 +330,9 @@ function AUCTION_HOUSE_SHOW()
     end
     frame:Show()
     set_tab(1)
-    -- auxForever: undercut mode is a choice for the moment, so it starts off every visit
-    post.set_undercut_mode(false)
+    -- auxForever: undercut mode is a choice for the moment, so a click on it is not remembered;
+    -- every visit starts in the mode picked in Settings (0.7.1, FB-018), Match lowest unless changed
+    post.set_undercut_mode(account_data.post_start_undercut)
     query_owned_auctions()
     query_bids()
 end

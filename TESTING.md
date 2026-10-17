@@ -8,12 +8,12 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.7.0.1 build 1
+## Current build: 0.7.1 build 2
 
-Fixes for daland's three CurseForge comments: FB-015 (the Auctions tab did not show all your
-auctions), FB-016 (Cancel said cancelled before the auction house answered) and FB-014 (a search
-found no Tigerstrike Mantle where Auctionator found 7). Zip `auxForever-0.7.0.1-build1.zip`;
-`/reload` is enough (no new files). Test page build id `0-7-0-1-build-1`. Steps, in the New theme:
+Tyler (2026-10-17): "all these changes are going to just be .7.1". Build 1 was the same Auctions
+tab and search fixes under the name 0.7.0.1 (never tested). Build 2 adds the deposit rounding
+(FB-017) and the "Post tab starts on" setting (FB-018). Zip `auxForever-0.7.1-build2.zip`;
+`/reload` is enough (no new files). Test page build id `0-7-1-build-2`. Steps, in the New theme:
 
 - [ ] 1. Post 3 of the same item that is not a trade good (gear or bags, for example 3 Linen
       Bags) at the same price, then 1 more at another price. Auctions tab: 4 rows, each with
@@ -27,7 +27,12 @@ found no Tigerstrike Mantle where Auctionator found 7). Zip `auxForever-0.7.0.1-
       a trade good) and search. aux lists as many as Blizzard does. If a chat line says an item
       "could not be read in time", write that in the note and search again.
 - [ ] 5. Same item, from the suggestion while typing (it adds `/exact`): the same number again.
-- [ ] 6. Settings, theme Classic, `/reload`, open the Auctions tab: your auctions show, one row
+- [ ] 6. Paste `/run print(C_AuctionHouse.SupportsCopperValues())` in chat and write down what
+      it prints. Then pick 20 Copper Ore (or another cheap trade good) on the Post tab: aux's
+      Deposit is the same as Blizzard's Sell window shows for the same amount.
+- [ ] 7. Settings (gear), Posting: "Post tab starts on", pick Undercut. Close and reopen the
+      auction house: the Post tab is in Undercut mode (goblin). Set it back to Match lowest.
+- [ ] 8. Settings, theme Classic, `/reload`, open the Auctions tab: your auctions show, one row
       each.
 
 ### 0.7 build 4

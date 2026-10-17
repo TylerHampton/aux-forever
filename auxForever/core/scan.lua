@@ -178,7 +178,7 @@ function complete()
     do (on_complete or pass)() end
 end
 
--- auxForever (0.7.0.1, FB-014): an item the search could not read (the auction house did not
+-- auxForever (0.7.1, FB-014): an item the search could not read (the auction house did not
 -- answer, or the game had not loaded the item in time) used to be skipped without a word, so a
 -- search could miss items Blizzard's window shows. Now the search says so when it ends.
 function note_unread()
