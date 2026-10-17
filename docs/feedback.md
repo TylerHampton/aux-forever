@@ -120,9 +120,9 @@ For whoever fixes or builds from it:
 | [FB-011](#fb-011-clicking-an-items-icon-in-the-post-tabs-list-does-not-select-it) | 2026-10-12 | Gaddor | bug | Post | S3 | Clicking an item's icon in the Post tab's list does not select it | fixed 0.6.1.1 (tested 2026-10-12) |
 | [FB-012](#fb-012-a-public-api-so-other-addons-can-read-auxs-prices) | 2026-10-13 | MDHippie | request | Other | n/a | A public API so other addons can read aux's prices | built 0.7 (released 2026-10-13) |
 | [FB-013](#fb-013-an-item-level-column-in-the-search-results) | 2026-10-13 | HoaxBox | request | Search | n/a | An item level column in the search results | built 0.7 (released 2026-10-13) |
-| [FB-014](#fb-014-a-search-for-tigerstrike-mantle-finds-nothing-auctionator-finds-7) | 2026-10-16 | daland | bug | Search | S2 | A search for Tigerstrike Mantle finds nothing; Auctionator finds 7 | fixed 0.7.1 (tested 2026-10-17: aux and Blizzard both find 2) |
-| [FB-015](#fb-015-the-auctions-tab-does-not-show-all-your-own-auctions) | 2026-10-16 | daland | bug | Auctions | S2 | The Auctions tab does not show all your own auctions | fixed 0.7.1 (tested 2026-10-17) |
-| [FB-016](#fb-016-cancel-says-cancelled-comes-by-mail-but-the-auction-is-still-listed) | 2026-10-16 | daland | bug | Auctions | S2 | Cancel says "Cancelled, comes by mail" but the auction is still listed | fixed 0.7.1 (tested 2026-10-17) |
+| [FB-014](#fb-014-a-search-for-tigerstrike-mantle-finds-nothing-auctionator-finds-7) | 2026-10-16 | daland | bug | Search | S2 | A search for Tigerstrike Mantle finds nothing; Auctionator finds 7 | fixed 0.7.1 (released 2026-10-17) |
+| [FB-015](#fb-015-the-auctions-tab-does-not-show-all-your-own-auctions) | 2026-10-16 | daland | bug | Auctions | S2 | The Auctions tab does not show all your own auctions | fixed 0.7.1 (released 2026-10-17) |
+| [FB-016](#fb-016-cancel-says-cancelled-comes-by-mail-but-the-auction-is-still-listed) | 2026-10-16 | daland | bug | Auctions | S2 | Cancel says "Cancelled, comes by mail" but the auction is still listed | fixed 0.7.1 (released 2026-10-17) |
 | [FB-017](#fb-017-the-deposit-aux-shows-is-lower-than-the-1-silver-the-game-charges) | 2026-10-17 | sarrathsilentstrider | bug | Post | S3 | The deposit aux shows is lower than the 1 silver the game charges | not reproduced (aux matched the game in Tyler's test) |
 | [FB-018](#fb-018-a-setting-for-whether-the-post-tab-starts-on-match-lowest-or-undercut) | 2026-10-17 | sarrathsilentstrider | request | Settings | n/a | A setting for whether the Post tab starts on Match lowest or Undercut | wont-fix (Tyler: keep as is) |
 | [FB-019](#fb-019-praise-everything-is-shte-in-comparison) | 2026-10-17 | sarrathsilentstrider | praise | Overall | n/a | Praise: "everything is SH!TE in comparison" | new |
@@ -875,7 +875,7 @@ Ask Tyler:
 - Type: bug
 - Area: Search
 - Severity: S2 (items for sale are missed; Blizzard's window or another addon finds them)
-- Status: fixed 0.7.1 (commit 3cacc86, first built as 0.7.0.1). Tested by Tyler 2026-10-17:
+- Status: fixed 0.7.1, released 2026-10-17 (commit 3cacc86, first built as 0.7.0.1). Tested by Tyler 2026-10-17:
   "tigerstrike mantle" found 2 in aux (fast mode, 500g and 666g) and 2 in Blizzard's window. The
   miss daland saw did not happen again; the cause stays unknown, and aux now says when it could
   not read an item.
@@ -925,7 +925,7 @@ with Blizzard's window (Blizzard UI button), once typed plainly and once with `/
 - Type: bug
 - Area: Auctions
 - Severity: S2 (auctions you have up are hidden; Blizzard's window shows them)
-- Status: fixed 0.7.1 (commit 3cacc86, first built as 0.7.0.1). Tested by Tyler 2026-10-17: two
+- Status: fixed 0.7.1, released 2026-10-17 (commit 3cacc86, first built as 0.7.0.1). Tested by Tyler 2026-10-17: two
   identical Ritual Bands of Spirit (9s, 12h) showed as two rows.
 - Proposed: 0.7.1 (Tyler, 2026-10-17: "all these changes are going to just be .7.1")
 
@@ -964,7 +964,7 @@ Ask Tyler: none.
 - Type: bug
 - Area: Auctions
 - Severity: S2 (the addon says something happened that did not; Blizzard's window shows the truth)
-- Status: fixed 0.7.1 (commit 3cacc86, first built as 0.7.0.1). Tested by Tyler 2026-10-17: both
+- Status: fixed 0.7.1, released 2026-10-17 (commit 3cacc86, first built as 0.7.0.1). Tested by Tyler 2026-10-17: both
   auctions cancelled ("Auction canceled." twice in chat) and left the list ("No auctions").
 - Proposed: 0.7.1 (Tyler, 2026-10-17: "all these changes are going to just be .7.1")
 
