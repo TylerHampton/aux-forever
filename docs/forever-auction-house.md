@@ -132,6 +132,18 @@ and wow-artisan say 2, 8 and 24 hours; one guide site says 12, 24 and 48. The ti
 our test topped out at 24 hours, which fits 2/8/24. aux reads the labels from the game, so
 either works. (Likely 2/8/24)
 
+- **Seen in game (Tyler, 2026-10-17, 0.7.1 build 3):** gear item keys carry an item level and a
+  large suffix number, and one item name can have several of them. Ritual Belt of Arcane
+  Protection (item 14131, item level 19) was listed under suffixes 14320 (5 listed), 14321,
+  14322 and 14323 (all "of Arcane Protection" in aux's results, all 6s), and Ritual Belt of the
+  Sorcerer and of Magic under 14325 and 14314. Inference: the suffix number stands for the ending
+  together with its stat values, so two belts with the same name can be different versions. A
+  search by item key (`SendSearchQuery`) returns only that exact version; Blizzard's Sell window
+  clears item level and suffix for gear and asks with `SendSellSearchQuery`, so it lists every
+  version together (`AuctionHouseUtil.ConvertItemSellItemKey`).
+- **Seen in game (same test):** `GetOwnedAuctionInfo` gives no `itemLink` for trade goods
+  (Peacebloom, Scroll of Stamina printed nil); gear has one. aux reads them by item ID.
+
 ## 5. Searching and throttling
 
 - Browse first (`SendBrowseQuery`): one row per item key, with `minPrice` and `totalQuantity`.

@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-17, Mountain Time (0.7.1 build 3 ready for testing).
+Last updated 2026-10-17, Mountain Time (0.7.1 build 3 tested, all pass).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -11,11 +11,17 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 ## Start here (next session)
 
 **Where things stand:** 0.7 is released (PR #28, `main` 1c5cd5b, 2026-10-13). **0.7.1 build 3**
-is on branch `claude/new-session-120s4m`: build 2 minus two things Tyler's test showed were not
-wanted or not needed. The daland fixes (FB-014 to FB-016) passed in game on 2026-10-17. Next:
-Tyler runs build 3's 6 steps (test page build id `0-7-1-build-3`); steps 3 to 5 print item keys
-to find out why the Auctions tab said "Only one listed" for gear others also sell. Then he says
-whether 0.7.1 is ready to release.
+is on branch `claude/new-session-120s4m`, **tested in game, all 6 steps pass** (2026-10-17). Every
+0.7.1 change has passed: FB-014 to FB-016, plus build 3's removals. Next: Tyler says whether 0.7.1
+is ready to release (pull request, merge, Release workflow; date the changelog heading first).
+
+- **Build 3 in game** (Tyler, 2026-10-17, `builds/0-7-1-build-3/results`, screenshots): Settings
+  without the start mode row; Undercut stays on across posts until the auction house closes; the
+  Auctions tab said "Tied with 4 others" for Ritual Belt of Arcane Protection at 6s, which matches
+  the exact version's 5 listings. The `/run` lines showed why build 2 said "Only one listed": one
+  gear name has several versions (suffix numbers 14320 to 14323 for the same "of Arcane
+  Protection"), and aux compares with the exact version while Blizzard's Sell window lumps them.
+  Not a bug in the check; a design question for 0.8 (`docs/roadmap.md`, Gear versions).
 
 - **0.7.1 build 3** (2026-10-17): from Tyler's test of build 2 (results and 17 screenshots on the
   test page, `builds/0-7-1-build-2/results`):
@@ -294,7 +300,7 @@ not merged; ask Tyler whether to merge it.
 - **How Tyler tests:** one test page, https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ
   (`index.html` with a `BUILD` id and `AREAS` steps; he marks Pass/Fail with notes and
   screenshots; read with ArtifactData, collection `builds/<build id>/results`, and download each
-  screenshot with Artifact read, `path` = the asset id). Last used: `0-7-1-build-3` (build 2 tested 2026-10-17). He
+  screenshot with Artifact read, `path` = the asset id). Last used: `0-7-1-build-3` (passed 2026-10-17). He
   often uploads screenshots without marking a status: read the screenshots. Zips:
   `auxForever-<version>-build<n>.zip`, sent with the file tool; say whether `/reload` is enough.
 - **Mockups:** the Post panel mockup (options A, B, C, A chosen) is

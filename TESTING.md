@@ -13,7 +13,11 @@ Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to
 Build 3 takes out two things from build 2, after Tyler's test (2026-10-17): the deposit rounding
 (Forever returns `SupportsCopperValues()` true, so it never applied) and the "Post tab starts on"
 setting (Tyler: keep it as it is). The rest is build 2 (FB-014 to FB-016), tested. Zip
-`auxForever-0.7.1-build3.zip`; `/reload` is enough. Test page build id `0-7-1-build-3`. Steps:
+`auxForever-0.7.1-build3.zip`; `/reload` is enough. Test page build id `0-7-1-build-3`.
+Tested by Tyler 2026-10-17 (screenshots): all 6 pass. Settings shows only Default duration;
+Undercut stayed on across posts and reset on reopening; the item keys printed (below); the
+Auctions tab said "Tied with 4 others" at 6s for Ritual Belt of Arcane Protection, which matches
+the 5 listed under its exact key (his own plus 4); Classic shows one row per auction. Steps:
 
 - [ ] 1. Settings (gear): Posting has only Default duration (no "Post tab starts on").
 - [ ] 2. Post tab: click Undercut, post one cheap item, pick another item, post it. Both in
