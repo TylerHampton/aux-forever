@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-16, Mountain Time (0.7.0.1 build 1 ready for testing).
+Last updated 2026-10-17, Mountain Time (0.7.0.1 build 1 ready for testing; new feedback logged).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -14,6 +14,13 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 is on branch `claude/new-session-120s4m`, **not yet tested in game**: fixes for three CurseForge
 comments from daland (FB-014, FB-015, FB-016). Next: Tyler tests it on the test page (build id
 `0-7-0-1-build-1`, 6 steps, the same as `TESTING.md`), then says whether it is ready to release.
+
+- **New feedback, 2026-10-17** (`docs/feedback.md`, nothing built yet): FB-017 deposit shown
+  lower than the 1 silver the game charges (likely cause: Blizzard's sell window rounds the
+  deposit up to whole silver when `SupportsCopperValues()` is false, aux does not; waiting on
+  Tyler's `/run print(C_AuctionHouse.SupportsCopperValues())` and a deposit comparison).
+  FB-018 a setting for the Post tab's starting mode (reverses Tyler's "never remembered" rule:
+  his call). FB-019 praise. FB-020 Waylaid crates and writs (does Forever have them? Tyler).
 
 - **0.7.0.1 build 1** (2026-10-16), from daland's comments (Tyler sent the three screenshots
   without a message; recorded in `docs/feedback.md`, source
