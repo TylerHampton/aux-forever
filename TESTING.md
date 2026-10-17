@@ -13,27 +13,45 @@ Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to
 Tyler (2026-10-17): "all these changes are going to just be .7.1". Build 1 was the same Auctions
 tab and search fixes under the name 0.7.0.1 (never tested). Build 2 adds the deposit rounding
 (FB-017) and the "Post tab starts on" setting (FB-018). Zip `auxForever-0.7.1-build2.zip`;
-`/reload` is enough (no new files). Test page build id `0-7-1-build-2`. Steps, in the New theme:
+`/reload` is enough (no new files). Test page build id `0-7-1-build-2`. Have on hand: 20 Copper
+Ore (or another cheap trade good) and 5 cheap identical items that are not trade goods (Linen
+Bags). Steps, in the New theme:
 
-- [ ] 1. Post 3 of the same item that is not a trade good (gear or bags, for example 3 Linen
-      Bags) at the same price, then 1 more at another price. Auctions tab: 4 rows, each with
-      Qty 1. None is hidden under another row.
-- [ ] 2. Select one of the 3 at the same price and press Cancel. That row says "Cancelling...",
-      then "Cancelled, comes by mail", then leaves the list within a few seconds. The other 2
-      stay, with their status.
-- [ ] 3. Press "Blizzard UI" at the top: Blizzard's Auctions tab shows the same auctions as aux
-      (the 3 left from step 2).
-- [ ] 4. Search tab: type the full name of a piece of gear you can see in Blizzard's window (not
-      a trade good) and search. aux lists as many as Blizzard does. If a chat line says an item
-      "could not be read in time", write that in the note and search again.
-- [ ] 5. Same item, from the suggestion while typing (it adds `/exact`): the same number again.
-- [ ] 6. Paste `/run print(C_AuctionHouse.SupportsCopperValues())` in chat and write down what
-      it prints. Then pick 20 Copper Ore (or another cheap trade good) on the Post tab: aux's
-      Deposit is the same as Blizzard's Sell window shows for the same amount.
-- [ ] 7. Settings (gear), Posting: "Post tab starts on", pick Undercut. Close and reopen the
-      auction house: the Post tab is in Undercut mode (goblin). Set it back to Match lowest.
-- [ ] 8. Settings, theme Classic, `/reload`, open the Auctions tab: your auctions show, one row
-      each.
+Deposit (FB-017: what the game really takes):
+- [ ] 1. Paste `/run print(C_AuctionHouse.SupportsCopperValues())` at the auction house; note
+      true or false.
+- [ ] 2. 20 Copper Ore, 8 hours: note the Deposit on aux's Post tab and in Blizzard's Sell tab.
+      The same.
+- [ ] 3. Note your exact money, post the 20 with aux, note it again: the difference is aux's
+      Deposit.
+- [ ] 4. As step 2 with one item that is not a trade good (gear or a Linen Bag).
+- [ ] 5. As step 3 with that item.
+
+Auctions tab (FB-015, FB-016):
+- [ ] 6. Post 3 identical Linen Bags at one price, 1 more at another. Auctions tab: 4 rows, each
+      Qty 1, none hidden under another.
+- [ ] 7. Select one of the 3 and press Cancel: "Cancelling...", then "Cancelled, comes by mail",
+      then it leaves the list. The other 2 stay.
+- [ ] 8. "Blizzard UI", Blizzard's Auctions tab: the same auctions as aux.
+
+Search (FB-014):
+- [ ] 9. Type the full name of a piece of gear Blizzard's window lists: aux lists as many. If a
+      chat line says an item "could not be read in time", note it and search again.
+- [ ] 10. The same item from the suggestion (`/exact`): the same number.
+
+Settings (FB-018):
+- [ ] 11. Settings, Posting, "Post tab starts on": Undercut. Close and reopen the auction house:
+      the Post tab is in Undercut mode. Set it back.
+
+Classic theme:
+- [ ] 12. Theme Classic, `/reload`, Auctions tab: your auctions, one row each.
+
+The test page also has 9 questions for Tyler with answer boxes (no Pass or Fail): keep the
+"Post tab starts on" setting; the rest of the cut-off deposit comment; Waylaid crates and writs;
+CurseForge follow-ups for 0.7; and the older open questions in `docs/status.md` (Sniper single
+listings, Sniper profit minimum, the FB-008 player's name, New theme tweaks, branch
+`claude/exciting-brown-a9k99n`). Questions are steps with `ask: true` on the page; an answer
+counts as done.
 
 ### 0.7 build 4
 
