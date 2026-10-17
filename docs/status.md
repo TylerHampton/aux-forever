@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-13, Mountain Time (0.7 build 1 ready for testing).
+Last updated 2026-10-16, Mountain Time (0.7.0.1 build 1 ready for testing).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -10,11 +10,40 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand:** 0.6, 0.6.0.1, 0.6.0.2, 0.6.1 and **0.6.1.1** are released and on `main`.
-**0.7 build 4** is on branch `claude/pensive-dirac-0p6npg`, **tested in game, all 6 steps pass**
-(2026-10-13). Next: Tyler says whether 0.7 is ready to release (pull request, merge, Release
-workflow; then he answers MDHippie and HoaxBox on CurseForge and pastes the new description with
-the API line).
+**Where things stand:** 0.7 is released (PR #28, `main` 1c5cd5b, 2026-10-13). **0.7.0.1 build 1**
+is on branch `claude/new-session-120s4m`, **not yet tested in game**: fixes for three CurseForge
+comments from daland (FB-014, FB-015, FB-016). Next: Tyler tests it on the test page (build id
+`0-7-0-1-build-1`, 6 steps, the same as `TESTING.md`), then says whether it is ready to release.
+
+- **0.7.0.1 build 1** (2026-10-16), from daland's comments (Tyler sent the three screenshots
+  without a message; recorded in `docs/feedback.md`, source
+  `docs/feedback/sources/2026-10-16-daland-curseforge.md`):
+  - FB-015: the Auctions tab folded identical auctions (Forever makes one auction per posted
+    item) into one row that said Qty 1, and hid other prices of an item under its row.
+    Reproduced in the harness: 5 auctions showed as 2 rows. Now one row per auction
+    (`listing.one_row_each` in `gui/auction_listing.lua`; own auctions get their auction ID in
+    the signature, `owned_record` in `util/info.lua`).
+  - FB-016: Cancel said "Cancelled, comes by mail" the moment it was clicked. Now "Cancelling..."
+    until `AUCTION_CANCELED` for that auction (or the auction leaving the list); after 10 seconds
+    with no answer the row shows its status again and a chat line says so
+    (`tabs/auctions/core.lua`). Inference: daland's report was likely FB-015's folded row (one
+    of several identical auctions cancelled while the row said cancelled).
+  - FB-014: cause not found in the code. Confirmed: a search skipped an item silently when the
+    game had not loaded it within 3 seconds. Now it waits up to 5 seconds more, reading the rows
+    again, and the search ends with "N items could not be read in time... Search again" when
+    any were left (`search` and `scan_item_list` in `core/scan.lua`). Not ruled out: an
+    `/exact` search pins the level range to the item's own level (`blizzard_query` in
+    `util/filter.lua`); unverified, left alone. Steps 4 and 5 of the test check search.
+  - Tests: `auctions tab: every auction on its own row, cancels the auction house confirms`,
+    `search: items the game loads late are waited for, unread items are reported`, and the
+    cancel check in `auctions tab: undercut check`; each fails without its fix. The fake
+    auction house now stubs `AuxTooltip.NumLines` (the login item walk could reach its items).
+    Version `forever-0.7.0.1`. Zip `auxForever-0.7.0.1-build1.zip`, `/reload` is enough.
+  - Blizzard: builds 70374, 70425 (2026-10-15) and 70450 (2026-10-16) are out on Gethe's
+    `forever` branch. 70425 changed the auction house UI: Forever now shows each item key's
+    required level (`AuctionHouse_ShouldUseRequiredLevel`, `GetItemKeyRequiredLevel`) instead of
+    item level, and added `GetItemKeySampleLink` for tooltips. Nothing in aux depends on the
+    changed Blizzard code.
 
 - **Build 4 in game** (Tyler, 2026-10-13, `builds/0-7-build-4/results`, screenshots; only step 4
   marked, the rest judged from the screenshots): columns and item levels right, Req colors right
@@ -235,7 +264,7 @@ not merged; ask Tyler whether to merge it.
 - **How Tyler tests:** one test page, https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ
   (`index.html` with a `BUILD` id and `AREAS` steps; he marks Pass/Fail with notes and
   screenshots; read with ArtifactData, collection `builds/<build id>/results`, and download each
-  screenshot with Artifact read, `path` = the asset id). Last used: `0-6-1-1-build-1` (passed). He
+  screenshot with Artifact read, `path` = the asset id). Last used: `0-7-0-1-build-1` (not tested yet). He
   often uploads screenshots without marking a status: read the screenshots. Zips:
   `auxForever-<version>-build<n>.zip`, sent with the file tool; say whether `/reload` is enough.
 - **Mockups:** the Post panel mockup (options A, B, C, A chosen) is
