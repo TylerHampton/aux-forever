@@ -120,6 +120,13 @@ For whoever fixes or builds from it:
 | [FB-011](#fb-011-clicking-an-items-icon-in-the-post-tabs-list-does-not-select-it) | 2026-10-12 | Gaddor | bug | Post | S3 | Clicking an item's icon in the Post tab's list does not select it | fixed 0.6.1.1 (tested 2026-10-12) |
 | [FB-012](#fb-012-a-public-api-so-other-addons-can-read-auxs-prices) | 2026-10-13 | MDHippie | request | Other | n/a | A public API so other addons can read aux's prices | built 0.7 (released 2026-10-13) |
 | [FB-013](#fb-013-an-item-level-column-in-the-search-results) | 2026-10-13 | HoaxBox | request | Search | n/a | An item level column in the search results | built 0.7 (released 2026-10-13) |
+| [FB-014](#fb-014-a-search-for-tigerstrike-mantle-finds-nothing-auctionator-finds-7) | 2026-10-16 | daland | bug | Search | S2 | A search for Tigerstrike Mantle finds nothing; Auctionator finds 7 | fixed 0.7.1 (tested 2026-10-17: aux and Blizzard both find 2) |
+| [FB-015](#fb-015-the-auctions-tab-does-not-show-all-your-own-auctions) | 2026-10-16 | daland | bug | Auctions | S2 | The Auctions tab does not show all your own auctions | fixed 0.7.1 (tested 2026-10-17) |
+| [FB-016](#fb-016-cancel-says-cancelled-comes-by-mail-but-the-auction-is-still-listed) | 2026-10-16 | daland | bug | Auctions | S2 | Cancel says "Cancelled, comes by mail" but the auction is still listed | fixed 0.7.1 (tested 2026-10-17) |
+| [FB-017](#fb-017-the-deposit-aux-shows-is-lower-than-the-1-silver-the-game-charges) | 2026-10-17 | sarrathsilentstrider | bug | Post | S3 | The deposit aux shows is lower than the 1 silver the game charges | not reproduced (aux matched the game in Tyler's test) |
+| [FB-018](#fb-018-a-setting-for-whether-the-post-tab-starts-on-match-lowest-or-undercut) | 2026-10-17 | sarrathsilentstrider | request | Settings | n/a | A setting for whether the Post tab starts on Match lowest or Undercut | wont-fix (Tyler: keep as is) |
+| [FB-019](#fb-019-praise-everything-is-shte-in-comparison) | 2026-10-17 | sarrathsilentstrider | praise | Overall | n/a | Praise: "everything is SH!TE in comparison" | new |
+| [FB-020](#fb-020-find-the-cheapest-way-to-fill-waylaid-crates-and-writs) | 2026-10-17 | Harro22 | request | Search | n/a | Find the cheapest way to fill Waylaid crates and writs | planned 0.8 |
 
 ## Players
 
@@ -143,6 +150,11 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
   Names `history.latest`, so has read aux's code. Inference: writes addons or scripts of their own.
 - **HoaxBox**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-013;
   opened with "awesome addon".
+- **daland**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-014, FB-015
+  and FB-016 in three comments the same day. Also uses Auctionator and compares aux with it.
+- **sarrathsilentstrider**: CurseForge commenter (CurseForge name; in-game name unknown).
+  Reported FB-017, asked for FB-018, praised in FB-019. Plays in the Classic theme.
+- **Harro22**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-020.
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
   words.
@@ -852,6 +864,295 @@ Ask Tyler:
 - Answered 2026-10-13: Tyler thinks tooltips do not show item level (screenshot to resend).
 - Answered 2026-10-13: two columns. Gray for "well above" (blue is the color of rare items'
   names in the same row; gray is Blizzard's color for trivial), not objected to.
+
+### FB-014: A search for Tigerstrike Mantle finds nothing; Auctionator finds 7
+
+- Received: 2026-10-16 (posted about 2026-10-15, "1 day ago" in Tyler's screenshot)
+- From: daland (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-16-daland-curseforge.md)
+- Version: unknown (likely 0.7, released on CurseForge 2026-10-13)
+- Type: bug
+- Area: Search
+- Severity: S2 (items for sale are missed; Blizzard's window or another addon finds them)
+- Status: fixed 0.7.1 (commit 3cacc86, first built as 0.7.0.1). Tested by Tyler 2026-10-17:
+  "tigerstrike mantle" found 2 in aux (fast mode, 500g and 666g) and 2 in Blizzard's window. The
+  miss daland saw did not happen again; the cause stays unknown, and aux now says when it could
+  not read an item.
+- Proposed: 0.7.1 (Tyler, 2026-10-17: "all these changes are going to just be .7.1")
+
+Said:
+> Something wrong wit addon, i'm searching for Tigerstrike Mantle, but addon don't find any, but Auctionator finds 7 of them.
+
+Steps / setup: searched for Tigerstrike Mantle in aux, found none; Auctionator found 7 at the
+same time (inference: the same visit to the auction house). Not said: whether the name was typed
+in full, picked from aux's suggestions (which add `/exact`), or reached by a right-click on one of
+their own auctions (which also searches `name/exact`).
+
+Tyler's notes: none (screenshots only).
+
+Recorder's notes:
+- Not reproduced from the code. A plain name search sends the name to the game's own search, as
+  Blizzard's window does (`browse_query` in `core/scan.lua`), so it should find the same items.
+- Confirmed in the code: a search can miss an item **without saying so**. When the game has not
+  loaded an item's details within 3 seconds (`item_key_info` and `wait_item` in `core/scan.lua`),
+  or the auction house does not answer, the item is skipped; rows whose item details are missing
+  are dropped (`new_record` in `util/info.lua` returns nothing). Fast mode drops items still
+  missing after 5 seconds. None of this tells the player.
+- Inference: Tigerstrike Mantle is not in aux's Classic item data (no match in the addon), so it
+  is likely an item new to Forever or one the player's game had not seen before. An item the game
+  has never loaded is exactly the case that can take longer than 3 seconds.
+- Not ruled out: an `/exact` search pins the level range to the level the game gives for the item
+  (`blizzard_query` in `util/filter.lua`). Blizzard's build of 2026-10-15 (1.60.1, 70425) started
+  showing each auction's required level per item key (`GetItemKeyRequiredLevel`) on Forever.
+  If the same item can carry different required levels, an exact search would miss the others.
+  Unverified; nothing seen in game suggests it yet.
+
+Unknowns: how the player searched, and which realm (the item may not be listed on Tyler's). A fix
+that holds either way: an item is never skipped silently. aux waits longer for item details and,
+if an item still cannot be read, says so at the end of the search and asks for a second search.
+
+Ask Tyler: if he can, search for an uncommon piece of gear by its full name in aux, and compare
+with Blizzard's window (Blizzard UI button), once typed plainly and once with `/exact`.
+
+### FB-015: The Auctions tab does not show all your own auctions
+
+- Received: 2026-10-16 (posted about 2026-10-15)
+- From: daland (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-16-daland-curseforge.md)
+- Version: unknown (likely 0.7)
+- Type: bug
+- Area: Auctions
+- Severity: S2 (auctions you have up are hidden; Blizzard's window shows them)
+- Status: fixed 0.7.1 (commit 3cacc86, first built as 0.7.0.1). Tested by Tyler 2026-10-17: two
+  identical Ritual Bands of Spirit (9s, 12h) showed as two rows.
+- Proposed: 0.7.1 (Tyler, 2026-10-17: "all these changes are going to just be .7.1")
+
+Said:
+> There is also problems with showing all your own auctions.
+
+Steps / setup: none given.
+
+Tyler's notes: none.
+
+Recorder's notes:
+- Confirmed in the code and reproduced in the test harness. The Auctions tab uses the search
+  results table (`gui/auction_listing.lua`), which folds rows together: identical auctions (same
+  item, price, quantity, time left band) become one row, and other prices of the same item hide
+  under that row until it is expanded. In the Search tab the For sale column shows the total; the
+  Auctions tab's Qty column shows only one auction's quantity. Harness: 5 auctions (3 identical
+  Spellbinder Robes, 1 more at another price, 1 Greenweave Robe) showed as 2 rows, the first with
+  Qty 1.
+- Inference: on Forever, posting several of an item makes one auction each (multisell), so
+  identical auctions are the normal case. Classic aux had the same folding, but Classic posted
+  stacks, so it showed less.
+- Fix: the Auctions tab shows one row per auction, as Blizzard's own list does
+  (`GetNumOwnedAuctions`, one line each). No new column, same layout.
+
+Unknowns: none that change the fix.
+
+Ask Tyler: none.
+
+### FB-016: Cancel says "Cancelled, comes by mail" but the auction is still listed
+
+- Received: 2026-10-16 (posted about 2026-10-15)
+- From: daland (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-16-daland-curseforge.md)
+- Version: unknown (likely 0.7)
+- Type: bug
+- Area: Auctions
+- Severity: S2 (the addon says something happened that did not; Blizzard's window shows the truth)
+- Status: fixed 0.7.1 (commit 3cacc86, first built as 0.7.0.1). Tested by Tyler 2026-10-17: both
+  auctions cancelled ("Auction canceled." twice in chat) and left the list ("No auctions").
+- Proposed: 0.7.1 (Tyler, 2026-10-17: "all these changes are going to just be .7.1")
+
+Said:
+> And now problem with auction cancellation, it shows action cancelled, comes by mail, but it's not actually cancelled. It's still showing in Auctionator.
+
+Steps / setup: cancelled an auction on the Auctions tab; the row said "Cancelled, comes by mail"
+(the player quotes aux's status text), but Auctionator still listed it.
+
+Tyler's notes: none.
+
+Recorder's notes:
+- Confirmed in the code: aux marks an auction "Cancelled, comes by mail" the moment the cancel is
+  sent (`cancel_auction` in `tabs/auctions/core.lua`), before the auction house answers. If the
+  server refuses or never answers, the row keeps saying cancelled.
+- Likely link to FB-015 (inference): a row that folds several identical auctions stands for all
+  of them, but Cancel cancels only one. The row says "Cancelled" while the others are still up,
+  and after the list refreshes the row is back. To the player that looks exactly like "not
+  actually cancelled". Fixing FB-015 removes this case.
+- Fix: the row says "Cancelling..." until the auction house confirms (`AUCTION_CANCELED` for that
+  auction, or the auction leaves your list). With no answer in 10 seconds, the row goes back to
+  its status and a chat line says the cancel was not confirmed.
+- Blizzard's code (branch `forever`, build 70450): `CancelAuction` needs a click
+  (`HasRestrictions`); aux calls it from a button click, as Blizzard's dialog does.
+
+Unknowns: whether the player had several identical auctions (FB-015's case) or a cancel the
+server refused. The fix covers both.
+
+Ask Tyler: none.
+
+### FB-017: The deposit aux shows is lower than the 1 silver the game charges
+
+- Received: 2026-10-17 (posted about 2026-10-14, "3 days ago")
+- From: sarrathsilentstrider (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-17-curseforge-comments.md)
+- Version: unknown (likely 0.6.1.1 or 0.7)
+- Type: bug
+- Area: Post
+- Severity: S3 (a wrong cost on the receipt; posting itself works)
+- Status: not reproduced (Tyler's test, 2026-10-17). aux showed the same deposit as Blizzard's
+  window and as the money taken, for a trade good and for gear. Nothing changed in 0.7.1.
+- Proposed: none; a reply to the player
+
+Said (the full text, from Tyler's second screenshot, 2026-10-17):
+> I don't know if you can adjust this, but the deposit amount AUX shows is not correct, at least for low level crafting mats and consumables.  EVERYHTING is 1 silver to deposit...stack of 20 copper ore or a single Protection Scroll (Tier1)...its a silver to put up on the AH.  Aux shows, what I believe to be, the accurate CLASSIC/Anniversary deposit amounts.  I'm mor curious if anyone know if this is a bug or something from retail.
+
+Steps / setup: posting cheap trade goods and consumables (20 Copper Ore, one Protection Scroll
+(Tier1)). The game takes 1 silver each time; aux's receipt shows a different, smaller amount
+(inference from "not correct"; the number aux showed is in the hidden part).
+
+Tyler's notes: none yet.
+
+Recorder's notes:
+- Confirmed in Blizzard's code (branch `forever`, build 70450,
+  `Shared/Blizzard_AuctionHouseSellFrame.lua`, `UpdateDeposit`): Blizzard's sell window asks the
+  game for the deposit (`CalculateCommodityDeposit` / `CalculateItemDeposit`, the same calls aux
+  makes) and, when `C_AuctionHouse.SupportsCopperValues()` is false, rounds it **up** to the next
+  whole silver. aux shows the game's number without that rounding (`deposit_amount` in
+  `tabs/post/core.lua`). A deposit of a few copper would then show as a few copper in aux and
+  1 silver in Blizzard's window, which fits "EVERYTHING is 1 silver".
+- Checked (2026-10-17, Tyler asked whether the rounding is only for gear): no difference between
+  gear and trade goods in Blizzard's code. The item and the trade goods sell windows
+  (`AuctionHouseItemSellFrameMixin`, `AuctionHouseCommoditiesSellFrameMixin`) both inherit
+  `UpdateDeposit` from `AuctionHouseSellFrameMixin`; each only supplies its own question to the
+  game (`CalculateItemDeposit` or `CalculateCommodityDeposit`). `SupportsCopperValues()` takes no
+  argument: one answer for the whole auction house. A difference could still exist on the server
+  (how each deposit is worked out, or a minimum), which no interface code shows. Inference: both
+  of the player's examples (Copper Ore, a scroll) are likely trade goods, so the 1 silver they
+  saw was on trade goods, not gear.
+- Not known: what `SupportsCopperValues()` returns on Forever. Tyler saw trade goods listed at
+  copper prices (88c), which suggests true; if so, the rounding above does not explain it and
+  the server may charge a minimum of 1 silver that the API does not report.
+
+Unknowns: the number aux showed the player, and their version. The rounding built in 0.7.1 build
+2 for the case `SupportsCopperValues()` is false was taken out in build 3: Forever says true.
+
+Ask Tyler: answered 2026-10-17 (test page `0-7-1-build-2`, screenshots):
+- `SupportsCopperValues()` prints **true**, so Blizzard's window does not round the deposit and
+  the rounding added in 0.7.1 build 2 never applied on Forever. It was taken out in build 3.
+- 20 Linen Cloth, 8 hours: aux 1s, Blizzard 1s (21, 2 hours), money 12g 23s 44c to 12g 22s 44c:
+  1s taken. One Ritual Bands of Spirit, 8 hours: aux 1s, money 12g 12s 44c to 12g 11s 44c: 1s.
+  Blizzard's window: 1s at 2 and 8 hours, 1s 20c at 24 hours.
+- Conclusion: aux shows the game's own deposit (it has asked the game since 2026-10-04) and it
+  matched what was taken. The 1 silver is the game's floor (`docs/forever-auction-house.md`).
+  Why the player saw Classic amounts is not known: possibly an old version or another addon.
+
+Reply for the player (Tyler posts it if he wants): "Thanks! We checked this in game: Forever's
+auction house charges at least 1 silver deposit, and auxForever shows the deposit the game itself
+reports, so on the current version it should read 1s for those items too. If you still see a
+smaller number after updating, a screenshot of the Post tab would help."
+
+### FB-018: A setting for whether the Post tab starts on Match lowest or Undercut
+
+- Received: 2026-10-17 (posted about 39 minutes before Tyler's screenshot)
+- From: sarrathsilentstrider (1 request)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-17-curseforge-comments.md)
+- Version: unknown (plays in the Classic theme, so 0.6 or later)
+- Type: request
+- Area: Settings, Post
+- Severity: n/a
+- Status: wont-fix (Tyler, 2026-10-17: "I don't want to build it in yet. Let's just keep it how
+  it is"). Built in 0.7.1 build 2 and taken out in build 3.
+- Proposed: none
+
+Said:
+> Could we have "Match lowest" or Undercut" be options in settings, that is defaulting to one or the other like we can set our default Duration.  if it is there I am just not seeing it in the Classic Theme.
+
+Steps / setup: none; a request. The player looked for it in Settings and did not find it (it
+does not exist).
+
+Tyler's notes: none yet.
+
+Recorder's notes:
+- Confirmed: undercut mode starts off every time the auction house opens (`aux-addon.lua`,
+  `post.set_undercut_mode(false)` on open). That was Tyler's rule ("never remembered",
+  `docs/status.md`). The default duration is already a setting (Settings, Posting).
+- Inference: a chosen default in Settings is different from silently remembering the last
+  state, which is likely what the rule guarded against: the player picks it on purpose, once.
+  It would sit next to the default duration and also need a chat command if one is added
+  (AGENTS.md: a setting with a chat command behaves the same from both).
+
+Unknowns: none that change the answer; the decision is Tyler's.
+
+Ask Tyler: answered 2026-10-17. The recorder first read "all these changes are going to just be
+.7.1" as a yes and built it; Tyler then said no: keep Match lowest at every visit. His rule, in
+his words: "If they set it to undercut, I want it to stay at undercut until they close the
+auction house." That is how it works (only a click changes it; it resets when the auction house
+opens), now guarded by a test (`undercut mode stays on through other tabs`).
+
+Reply for the player: "Undercut stays on for every item you post until you close the auction
+house, so you only need to click it once per visit. We are keeping Match lowest as the start of
+every visit for now."
+
+### FB-019: Praise: "everything is SH!TE in comparison"
+
+- Received: 2026-10-17
+- From: sarrathsilentstrider
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-17-curseforge-comments.md)
+- Version: unknown
+- Type: praise
+- Area: Overall
+- Severity: n/a
+- Status: new
+- Proposed: none
+
+Said:
+> Thanks again for bring this back...everything is is SH!TE in comparison ;)
+
+Recorder's notes: the player uses the Classic theme (FB-018), so the 0.5 look kept as an option
+has users.
+
+### FB-020: Find the cheapest way to fill Waylaid crates and writs
+
+- Received: 2026-10-17 (posted about 12 hours before Tyler's screenshot)
+- From: Harro22 (1 request)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-10-17-curseforge-comments.md)
+- Version: unknown
+- Type: request
+- Area: Search (new)
+- Severity: n/a
+- Status: planned 0.8 (Tyler, 2026-10-17)
+- Proposed: 0.8
+
+Said:
+> Any chance of waylaid crate and writs integration to scan for the most cost effective option?
+
+Steps / setup: none; a request.
+
+Tyler's notes: none yet.
+
+Recorder's notes:
+- Inference, not checked: "Waylaid" crates are likely the Waylaid Supplies of Season of
+  Discovery (crates filled with crafted items or materials and turned in for reputation). What
+  "writs" means on Forever is not known to the recorder. Whether Forever has either was not
+  checked.
+- If it is what it looks like, the shape is close to recipe search (FB-007): a list of what each
+  crate or writ needs, priced from aux's price history, cheapest first. The hard part is the
+  list of crates and what each needs, which would be written by hand and kept up to date.
+
+Unknowns: which crates and writs exist on Forever and what each needs.
+
+Ask Tyler: answered 2026-10-17: "Forever does have waylaid crates... We could plan that for
+0.8." Still open: what writs are, and what each crate asks for (a crate's tooltip; Tyler asked
+whether he needs to buy one: not yet, only when 0.8 is planned in detail).
 
 ## Before this log
 

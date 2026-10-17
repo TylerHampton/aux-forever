@@ -97,6 +97,13 @@ visible confirmation, but gives no evidence. **Unverified**; needs an in-game te
 - `GetAvailablePostCount(location)` gives the most you can post. `IsSellItemValid` says whether
   an item can be sold at all.
 - Deposits come from `CalculateItemDeposit` / `CalculateCommodityDeposit`.
+- **Seen in game (Tyler, 2026-10-17, FB-017):** `SupportsCopperValues()` returns **true** on
+  Forever, so Blizzard's sell window never rounds the deposit to whole silver. The deposit has a
+  floor of 1 silver: 20 Linen Cloth (8 hours) and one Ritual Bands of Spirit (2 and 8 hours) each
+  showed 1s in aux and in Blizzard's window, and posting took exactly 1s from the money each time.
+  The same Ritual Bands at 24 hours showed 1s 20c in Blizzard's window. aux shows the game's own
+  number, so it matched in every case. Inference: below some amount the game charges 1s; the
+  Classic formula alone would give a few copper for these.
 - Unless `SupportsCopperValues()` is true, prices must be whole silver.
 - **Observed in game (Tyler):** on Forever, gear and other non-commodity items are only ever
   listed at whole silver amounts, while trade goods show copper prices (88c, 89c). auxForever
@@ -124,6 +131,18 @@ Durations: three options, durations 1-3 in the API. Auctionator's Forever build,
 and wow-artisan say 2, 8 and 24 hours; one guide site says 12, 24 and 48. The time-left bands in
 our test topped out at 24 hours, which fits 2/8/24. aux reads the labels from the game, so
 either works. (Likely 2/8/24)
+
+- **Seen in game (Tyler, 2026-10-17, 0.7.1 build 3):** gear item keys carry an item level and a
+  large suffix number, and one item name can have several of them. Ritual Belt of Arcane
+  Protection (item 14131, item level 19) was listed under suffixes 14320 (5 listed), 14321,
+  14322 and 14323 (all "of Arcane Protection" in aux's results, all 6s), and Ritual Belt of the
+  Sorcerer and of Magic under 14325 and 14314. Inference: the suffix number stands for the ending
+  together with its stat values, so two belts with the same name can be different versions. A
+  search by item key (`SendSearchQuery`) returns only that exact version; Blizzard's Sell window
+  clears item level and suffix for gear and asks with `SendSellSearchQuery`, so it lists every
+  version together (`AuctionHouseUtil.ConvertItemSellItemKey`).
+- **Seen in game (same test):** `GetOwnedAuctionInfo` gives no `itemLink` for trade goods
+  (Peacebloom, Scroll of Stamina printed nil); gear has one. aux reads them by item ID.
 
 ## 5. Searching and throttling
 

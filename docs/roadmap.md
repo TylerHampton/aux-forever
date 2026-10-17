@@ -5,6 +5,21 @@ TOC. Every release gets an entry in `docs/changelog.md`. Numbering (Tyler, 2026-
 raises the fourth number (0.6 -> 0.6.0.1 -> 0.6.0.2); a bigger update within the same version
 raises the third (0.6.1); new features are the next minor version (0.7).
 
+## 0.8: planned (Tyler, 2026-10-17)
+
+- **Waylaid crates** (FB-020, Harro22): the cheapest way to fill a crate from the auction house.
+  Tyler: Forever has them, "We could plan that for 0.8." Needs first: what each crate asks for
+  (a crate's tooltip, from Tyler) and whether the game says it in a form the addon can read.
+  "Writs" still unknown.
+- **Gear versions** (below, "After 0.6"), with what 0.7.1 build 3 showed (2026-10-17,
+  `docs/forever-auction-house.md`, section 4): one name can have several versions (Ritual Belt of
+  Arcane Protection under four suffix numbers, all 6s). aux's Auctions tab and Post tab compare
+  with the exact version only; Blizzard's Sell window compares with every version together. The
+  "Only one listed" seen in build 2 is most likely this (the other Ritual Bands of Spirit were
+  other versions, and Tyler had just bought the 9s one), not a broken check: in build 3 the check
+  counted the exact version right ("Tied with 4 others"). To decide for 0.8: compare with the
+  exact version, every version of the same name, or show both (mockup first).
+
 ## After 0.6: candidates for the next version (none decided)
 
 0.6 and 0.6.0.1 were released on 2026-10-09, 0.6.0.2 on 2026-10-10 (`docs/changelog.md`). Carried over or raised since:

@@ -6,6 +6,30 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.7.1 (2026-10-17)
+
+### Auctions tab
+
+- Every one of your auctions now has its own row. Before, identical auctions (on Forever, posting
+  several of an item makes one auction each) were folded into one row that still said Qty 1, and
+  other prices of the same item were hidden under that row until you expanded it, so the tab
+  could show far fewer auctions than you had up (reported by daland).
+- Cancel now says **Cancelling...** until the auction house confirms, then "Cancelled, comes by
+  mail". Before, the row said cancelled the moment you clicked, even if the auction house never
+  confirmed it, and on a folded row only one of the identical auctions was cancelled while the
+  row said cancelled. If no confirmation comes within 10 seconds, the row shows its real status
+  again and a chat line tells you (reported by daland).
+
+### Search
+
+- A search no longer skips an item without a word. An item the game had not loaded yet (one you
+  had never seen, or a slow server) was dropped after 3 seconds, so a search could find nothing
+  where Blizzard's window found several. aux now waits up to 5 seconds more for it, and if an item
+  still cannot be read, a chat line at the end of the search says how many, so you know to search
+  again (reported by daland).
+
+`/reload` is enough to update.
+
 ## 0.7 (2026-10-13)
 
 ### Search, Sniper, Auctions and Bids tables

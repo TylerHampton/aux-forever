@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-13, Mountain Time (0.7 build 1 ready for testing).
+Last updated 2026-10-17, Mountain Time (0.7.1 build 3 tested, all pass).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -10,11 +10,85 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand:** 0.6, 0.6.0.1, 0.6.0.2, 0.6.1 and **0.6.1.1** are released and on `main`.
-**0.7 build 4** is on branch `claude/pensive-dirac-0p6npg`, **tested in game, all 6 steps pass**
-(2026-10-13). Next: Tyler says whether 0.7 is ready to release (pull request, merge, Release
-workflow; then he answers MDHippie and HoaxBox on CurseForge and pastes the new description with
-the API line).
+**Where things stand:** 0.7 is released (PR #28, `main` 1c5cd5b, 2026-10-13). **0.7.1 build 3**
+is on branch `claude/new-session-120s4m`, **tested in game, all 6 steps pass** (2026-10-17). Every
+0.7.1 change has passed: FB-014 to FB-016, plus build 3's removals. Next: Tyler says whether 0.7.1
+is ready to release (pull request, merge, Release workflow; date the changelog heading first).
+
+- **Build 3 in game** (Tyler, 2026-10-17, `builds/0-7-1-build-3/results`, screenshots): Settings
+  without the start mode row; Undercut stays on across posts until the auction house closes; the
+  Auctions tab said "Tied with 4 others" for Ritual Belt of Arcane Protection at 6s, which matches
+  the exact version's 5 listings. The `/run` lines showed why build 2 said "Only one listed": one
+  gear name has several versions (suffix numbers 14320 to 14323 for the same "of Arcane
+  Protection"), and aux compares with the exact version while Blizzard's Sell window lumps them.
+  Not a bug in the check; a design question for 0.8 (`docs/roadmap.md`, Gear versions).
+
+- **0.7.1 build 3** (2026-10-17): from Tyler's test of build 2 (results and 17 screenshots on the
+  test page, `builds/0-7-1-build-2/results`):
+  - Deposit rounding taken out: `SupportsCopperValues()` prints true on Forever, so it never
+    applied. aux's deposit matched Blizzard's and the money taken (FB-017 not reproduced; facts in
+    `docs/forever-auction-house.md`, section 4).
+  - "Post tab starts on" taken out (FB-018 wont-fix): Tyler wants Match lowest at every visit, and
+    Undercut, once clicked, to stay until the auction house closes. That is how it works; a test
+    now guards it.
+  - Open: the Auctions tab's price check said "Only one listed" / Lowest other "none" for Ritual
+    Bands of Spirit while aux's Post tab had listed others of the same version (9s, 1g 55s) a
+    minute earlier. Suspected: the item key of your own auction (`GetOwnedAuctionInfo`) differs
+    from the listed one (item level or suffix), so the check reads only your own. Not confirmed;
+    build 3 steps 3 to 5 print both keys. Likely tied to the gear versions item (`docs/roadmap.md`,
+    0.8).
+  - Tyler's answers to the older questions: Sniper single listings: C (leave as is); no New theme
+    tweaks; drop the FB-008 name and the CurseForge replies; the Sniper profit question was unclear
+    to him and is dropped; branch `claude/exciting-brown-a9k99n`: delete (Claude's session was not
+    allowed to delete a branch; Tyler deletes it on GitHub, Branches page; its last commit is
+    1469ffa if ever wanted).
+  - FB-020 Waylaid crates: planned for 0.8 (`docs/roadmap.md`).
+
+- **0.7.1 build 2** (2026-10-17): adds to build 1 (below)
+  - FB-017: the Post tab's deposit is rounded up to whole silver when
+    `C_AuctionHouse.SupportsCopperValues()` is false, as Blizzard's sell window does
+    (`deposit_amount` in `tabs/post/core.lua`). Step 6 prints what Forever returns; if it is
+    true, this changes nothing and the cause is elsewhere.
+  - FB-018: Settings, Posting, "Post tab starts on" (Match lowest / Undercut,
+    `account_data.post_start_undercut`, default Match lowest). Built on Tyler's "all these
+    changes are going to just be .7.1" as a yes; he had not answered the question directly.
+  - Tests for both, each checked to fail without its change. Version `forever-0.7.1`. Zip
+    `auxForever-0.7.1-build2.zip`, `/reload` is enough.
+  - Still open for Tyler: FB-020 (Waylaid crates and writs: does Forever have them, worth
+    building?); the rest of sarrathsilentstrider's cut-off comment.
+
+- **Feedback logged 2026-10-17** (`docs/feedback.md`): FB-017 deposit and FB-018 setting are in
+  build 2 above; FB-019 praise; FB-020 Waylaid crates and writs waits on Tyler.
+
+- **0.7.1 build 1** (built as 0.7.0.1 build 1, 2026-10-16), from daland's comments (Tyler sent the three screenshots
+  without a message; recorded in `docs/feedback.md`, source
+  `docs/feedback/sources/2026-10-16-daland-curseforge.md`):
+  - FB-015: the Auctions tab folded identical auctions (Forever makes one auction per posted
+    item) into one row that said Qty 1, and hid other prices of an item under its row.
+    Reproduced in the harness: 5 auctions showed as 2 rows. Now one row per auction
+    (`listing.one_row_each` in `gui/auction_listing.lua`; own auctions get their auction ID in
+    the signature, `owned_record` in `util/info.lua`).
+  - FB-016: Cancel said "Cancelled, comes by mail" the moment it was clicked. Now "Cancelling..."
+    until `AUCTION_CANCELED` for that auction (or the auction leaving the list); after 10 seconds
+    with no answer the row shows its status again and a chat line says so
+    (`tabs/auctions/core.lua`). Inference: daland's report was likely FB-015's folded row (one
+    of several identical auctions cancelled while the row said cancelled).
+  - FB-014: cause not found in the code. Confirmed: a search skipped an item silently when the
+    game had not loaded it within 3 seconds. Now it waits up to 5 seconds more, reading the rows
+    again, and the search ends with "N items could not be read in time... Search again" when
+    any were left (`search` and `scan_item_list` in `core/scan.lua`). Not ruled out: an
+    `/exact` search pins the level range to the item's own level (`blizzard_query` in
+    `util/filter.lua`); unverified, left alone. Steps 4 and 5 of the test check search.
+  - Tests: `auctions tab: every auction on its own row, cancels the auction house confirms`,
+    `search: items the game loads late are waited for, unread items are reported`, and the
+    cancel check in `auctions tab: undercut check`; each fails without its fix. The fake
+    auction house now stubs `AuxTooltip.NumLines` (the login item walk could reach its items).
+    Version `forever-0.7.0.1`. Zip `auxForever-0.7.0.1-build1.zip`, `/reload` is enough.
+  - Blizzard: builds 70374, 70425 (2026-10-15) and 70450 (2026-10-16) are out on Gethe's
+    `forever` branch. 70425 changed the auction house UI: Forever now shows each item key's
+    required level (`AuctionHouse_ShouldUseRequiredLevel`, `GetItemKeyRequiredLevel`) instead of
+    item level, and added `GetItemKeySampleLink` for tooltips. Nothing in aux depends on the
+    changed Blizzard code.
 
 - **Build 4 in game** (Tyler, 2026-10-13, `builds/0-7-build-4/results`, screenshots; only step 4
   marked, the rest judged from the screenshots): columns and item levels right, Req colors right
@@ -221,21 +295,12 @@ not merged; ask Tyler whether to merge it.
   fixes"); rule in AGENTS.md.
 - **Next version:** not chosen. Candidates are in `docs/roadmap.md`, "After 0.6". Tyler planned
   about one release a week; two went out on 2026-10-09.
-- **Open questions for Tyler** (none blocks anything):
-  1. Sniper: a rule for items with a single listing (A everything, B stackable goods only, C wait
-     and see; Claude recommends C).
-  2. `/aux price` with a Shift-clicked Trapper's Shirt link: the name lookup found no history
-     while the Sniper had a usual price of 90s (open since build 5).
-  3. The CurseForge player's in-game name for FB-008 (changelog credit).
-  4. His tweaks to the New theme (he said he would send screenshots).
-  5. Sniper "profit at least": his 5c lets through below-vendor deals worth 6c to 14c; 1g
-     suggested.
-  6. A seller name showed as "Áeçèéêëì Áæçèéìëì" on Fine Thread (0.6.0.1 test screenshot):
-     either a real name in accented letters or a text problem; unknown, ask for another example.
+- **Open questions for Tyler:** none from before 2026-10-17 (all answered that day, see Start
+  here). Current ones are in Start here.
 - **How Tyler tests:** one test page, https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ
   (`index.html` with a `BUILD` id and `AREAS` steps; he marks Pass/Fail with notes and
   screenshots; read with ArtifactData, collection `builds/<build id>/results`, and download each
-  screenshot with Artifact read, `path` = the asset id). Last used: `0-6-1-1-build-1` (passed). He
+  screenshot with Artifact read, `path` = the asset id). Last used: `0-7-1-build-3` (passed 2026-10-17). He
   often uploads screenshots without marking a status: read the screenshots. Zips:
   `auxForever-<version>-build<n>.zip`, sent with the file tool; say whether `/reload` is enough.
 - **Mockups:** the Post panel mockup (options A, B, C, A chosen) is

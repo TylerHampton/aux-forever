@@ -8,37 +8,46 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.7 build 4
+## Current build: 0.7.1 build 3
 
-FB-013 (HoaxBox): an iLvl column and the level column renamed Req, colored by how far it is from
-your level. FB-012 (MDHippie): `AuxForeverAPI`, prices for other addons. Build 2 (Tyler, before
-testing build 1): columns in the order iLvl, Req, Item, For sale, so the units for sale are not
-next to the item levels. Build 3 (Tyler, testing build 2): after a fast resize to the smallest
-window, the table's right columns ran past the edge; the tables now follow every resize. Build 4 (Tyler): "Req first always", so Req, iLvl, Item,
-For sale. Zip `auxForever-0.7-build4.zip`. **Full game restart** if no 0.7 build was loaded after a restart (new
-file `core/api.lua`), else `/reload`. Test page build id `0-7-build-4`.
-Tested by Tyler on 2026-10-13 (test page, screenshots; only step 4 marked Pass, the others judged
-from their screenshots): all 6 pass. Armor, Cloth listed Req, iLvl, Item, For sale with an item
-level on every row (iLvl = Req + 5 throughout) and none for Linen Cloth; the Req colors at level 24
-were right in both themes (29+ red, 27 to 28 orange, 25 yellow, 18 to 24 green, 17 and below
-gray); sorting by Req works both ways (the screenshots sort Req, not iLvl); the API printed
-`20 0` for Linen Cloth (20c, seen today; 851 were listed at 20c). Steps, in the New theme:
+Build 3 takes out two things from build 2, after Tyler's test (2026-10-17): the deposit rounding
+(Forever returns `SupportsCopperValues()` true, so it never applied) and the "Post tab starts on"
+setting (Tyler: keep it as it is). The rest is build 2 (FB-014 to FB-016), tested. Zip
+`auxForever-0.7.1-build3.zip`; `/reload` is enough. Test page build id `0-7-1-build-3`.
+Tested by Tyler 2026-10-17 (screenshots): all 6 pass. Settings shows only Default duration;
+Undercut stayed on across posts and reset on reopening; the item keys printed (below); the
+Auctions tab said "Tied with 4 others" at 6s for Ritual Belt of Arcane Protection, which matches
+the 5 listed under its exact key (his own plus 4); Classic shows one row per auction. Steps:
 
-- [x] 1. Search tab: search a gear category (for example Armor, Cloth). The table starts with
-      **Req**, then **iLvl**, then **Item**, then **For sale**, and every gear row has a number
-      under iLvl. Search
-      Linen Cloth: iLvl is empty.
-- [x] 2. Same results: the Req numbers are colored by your level. At level 24: 29 and up red, 27
-      to 28 orange, 25 to 26 yellow, 18 to 24 green, 17 and below gray.
-- [x] 3. Click the iLvl header: the rows sort by item level; click again for the other way.
-- [x] 4. With search results showing, drag the bottom right corner **fast**, all the way to the
-      smallest size, a few times, also fast back and forth. Every time, the table ends inside the
-      window: the % column is the last one and nothing runs past the right edge. Then look at
-      Sniper, Auctions and Bids at the smallest size: iLvl, Req and their numbers fit.
-- [x] 5. After a Full scan (or a search for Linen Cloth), paste in chat:
-      `/run print(AuxForeverAPI.GetLatestPrice(2589))`. It prints two numbers: the price in copper
-      (the Value in Linen Cloth's tooltip; 1s 25c prints 125) and how many days ago it was seen.
-- [x] 6. Settings, theme Classic, `/reload`, and repeat step 2: the colors read well, the gray too.
+- [ ] 1. Settings (gear): Posting has only Default duration (no "Post tab starts on").
+- [ ] 2. Post tab: click Undercut, post one cheap item, pick another item, post it. Both in
+      Undercut mode. Close the auction house and open it again: Match lowest.
+- [ ] 3. Post one cheap piece of gear that others also sell (Ritual Bands, or any green gear with
+      several listings), then paste in chat:
+      `/run for i=1,C_AuctionHouse.GetNumOwnedAuctions() do local a=C_AuctionHouse.GetOwnedAuctionInfo(i) local k=a.itemKey print("mine",a.itemLink,k.itemID,k.itemLevel,k.itemSuffix) end`
+      Screenshot the chat.
+- [ ] 4. In aux, search that item's name (Full mode), then paste:
+      `/run for _,r in ipairs(C_AuctionHouse.GetBrowseResults()) do local k=r.itemKey print("listed",k.itemID,k.itemLevel,k.itemSuffix,r.totalQuantity,r.minPrice) end`
+      Screenshot the chat and aux's results.
+- [ ] 5. Auctions tab, Check prices: screenshot the row (Lowest other, Status) next to Blizzard's
+      Sell tab for the same item.
+- [ ] 6. Theme Classic, `/reload`, Auctions tab with that auction up: one row per auction.
+
+### 0.7.1 build 2
+
+Tested by Tyler 2026-10-17 (test page `0-7-1-build-2`, screenshots): two identical Ritual Bands
+of Spirit showed as two rows; both cancelled and left the list; "tigerstrike mantle" found 2 in
+aux and in Blizzard's window; `SupportsCopperValues()` is true; deposits matched the game for
+Linen Cloth and Ritual Bands (1s each, 1s taken); "Post tab starts on" worked but Tyler did not
+want it. The Classic step could not be done (no auctions left). Seen on the side: the Auctions tab
+said "Only one listed" for the Ritual Bands while aux's Post tab had listed others of the same
+version a minute before (9s, 1g 55s); steps 3 to 5 of build 3 check it.
+
+### 0.7 build 4
+
+FB-013 (HoaxBox, iLvl and colored Req columns) and FB-012 (MDHippie, `AuxForeverAPI`), plus the
+fast resize fix. Tested by Tyler on 2026-10-13: all 6 steps pass. Released as 0.7. The steps are
+in git history (`TESTING.md` at commit 37336f7).
 
 ### 0.6.1.1 build 1
 
