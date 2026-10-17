@@ -1024,6 +1024,15 @@ Recorder's notes:
   whole silver. aux shows the game's number without that rounding (`deposit_amount` in
   `tabs/post/core.lua`). A deposit of a few copper would then show as a few copper in aux and
   1 silver in Blizzard's window, which fits "EVERYTHING is 1 silver".
+- Checked (2026-10-17, Tyler asked whether the rounding is only for gear): no difference between
+  gear and trade goods in Blizzard's code. The item and the trade goods sell windows
+  (`AuctionHouseItemSellFrameMixin`, `AuctionHouseCommoditiesSellFrameMixin`) both inherit
+  `UpdateDeposit` from `AuctionHouseSellFrameMixin`; each only supplies its own question to the
+  game (`CalculateItemDeposit` or `CalculateCommodityDeposit`). `SupportsCopperValues()` takes no
+  argument: one answer for the whole auction house. A difference could still exist on the server
+  (how each deposit is worked out, or a minimum), which no interface code shows. Inference: both
+  of the player's examples (Copper Ore, a scroll) are likely trade goods, so the 1 silver they
+  saw was on trade goods, not gear.
 - Not known: what `SupportsCopperValues()` returns on Forever. Tyler saw trade goods listed at
   copper prices (88c), which suggests true; if so, the rounding above does not explain it and
   the server may charge a minimum of 1 silver that the API does not report.
