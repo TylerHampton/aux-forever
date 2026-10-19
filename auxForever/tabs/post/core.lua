@@ -481,10 +481,10 @@ function post_auction()
                 last_post_update = nil
                 break
             end
+            -- auxForever: this goes on after the player leaves the tab or closes the auction
+            -- house; it used to stop there, and a post never answered left Post on "Posting..."
+            -- (found with the slow test auction house). The result is still said in chat.
             aux.coro_wait()
-            if not frame:IsShown() then
-                return
-            end
         end
 
         do

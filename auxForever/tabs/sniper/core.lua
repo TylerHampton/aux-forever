@@ -168,13 +168,15 @@ local function set_gone(deal)
     end
 end
 
--- Open one item (inside the round) and keep its cheapest auction when it is a deal
-function check_item(item_key, key)
+-- Open one item (inside the round) and keep its cheapest auction when it is a deal. price: its
+-- lowest price on the list, which counts as judged once the item is open.
+function check_item(item_key, key, price)
     local records = scan.read_item(item_key)
     if not records then
         known[key] = nil -- no answer: try again next round
         return
     end
+    known[key] = price
     local cheapest
     local tiers = {}
     for _, record in ipairs(records) do
@@ -245,9 +247,14 @@ function check_list(results, seen)
             if not aux.account_data.sniper_ignored[key] and known[key] ~= price then
                 local usual, vendor, days = item_facts(key, result.itemKey.itemID)
                 if usual ~= nil or vendor ~= nil then
-                    known[key] = price
+                    -- a possible deal counts as judged only once it is opened (check_item): a round
+                    -- stopped by a click on a deal left the rest marked judged, never opened, so
+                    -- those deals were missed until their price changed (found with the slow test
+                    -- auction house)
                     if judge(price, usual, vendor, days, percent, min_profit) then
                         tinsert(candidates, result)
+                    else
+                        known[key] = price
                     end
                 end
             end
@@ -259,7 +266,7 @@ function check_list(results, seen)
     -- each one is a request: shown as "checking 12 possible deals (3 done)" while it runs
     checking = {done = 0, total = #candidates}
     for _, result in ipairs(candidates) do
-        check_item(result.itemKey, scan.item_key_string(result.itemKey))
+        check_item(result.itemKey, scan.item_key_string(result.itemKey), result.minPrice)
         checking.done = checking.done + 1
     end
     checking = nil

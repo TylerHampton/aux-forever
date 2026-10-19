@@ -316,4 +316,53 @@ return function(env)
     server:restore()
     bar.clear()
   end)
+
+  -- leaving the Post tab while a post waits for its answer, and the answer never comes: the Post
+  -- tab must not stay on "Posting..." when the player comes back
+  try('timing: leaving the Post tab during a post that is never answered', function()
+    local server = new_server(env)
+    local post = post_setup(server)
+    post.select_item('2835:0')
+    server:wait(listings_in(post), 50)
+    server:ticks(3)
+    server.delay = 1000 -- the auction house never answers
+    check('left mid-post: posted', click_post(post))
+    aux.set_tab(1)
+    server:ticks(700) -- 70 seconds on another tab
+    server.delay = 1
+    aux.set_tab(3)
+    post.select_item('2835:0')
+    server:wait(listings_in(post), 50)
+    server:ticks(3)
+    post.validate_parameters()
+    check('left mid-post: Post works again', post.disabled_reason() == nil)
+    post_teardown(server, post)
+  end)
+
+  -- the Sniper: a round reads the item list, then opens each item that looks like a deal (one
+  -- request each). Clicking a deal stops the round; the items it had not opened yet must be opened
+  -- in a later round, or those deals are never found until their price changes.
+  try('timing: Sniper items not yet opened when a round stops are opened later', function()
+    local server = new_server(env)
+    local sniper = module 'aux.tabs.sniper'
+    for i = 1, 4 do
+      server.items[9000 + i] = {name = 'Thing ' .. i, commodity = false, vendor = 5000}
+      server.listings[9000 + i] = {{price = 1000, quantity = 1}}
+    end
+    server:install()
+    sniper.clear_deals()
+    aux.set_tab(2) -- Search 1, Sniper 2
+    sniper.start()
+    check('sniper: a first deal is found', server:wait(function() return #sniper.deals >= 1 end, 100))
+    server:ticks(6)
+    check('sniper: not all found yet', #sniper.deals < 4)
+    sniper.listing:SetSelectedRecord(sniper.deals[1]) -- the player clicks it; the round stops
+    server:ticks(30)
+    sniper.listing:SetSelectedRecord() -- and lets go of it; the rounds go on
+    check('sniper: the other deals are found in a later round', server:wait(function() return #sniper.deals >= 4 end, 300))
+    sniper.stop()
+    sniper.clear_deals()
+    aux.set_tab(1)
+    server:restore()
+  end)
 end
