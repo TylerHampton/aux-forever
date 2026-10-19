@@ -43,7 +43,7 @@ Tyler owns the project and tests every change in the game. He is not a programme
   source gives them. Older dates were corrected to his time on 2026-10-09 (Tyler).
 - He tests in game and reports with screenshots and BugSack error text. Each bug report becomes a
   fix plus a test that fails without the fix.
-- The addon informs, it does not decide for the player (Tyler, 2026-10-18, after FB-021): "We
+- The addon informs, it does not decide for the player (Tyler, 2026-10-19, after FB-021): "We
   aren't controlling people and telling them exactly what they need to do. People should be free
   to do whatever they want with our add-on. We just give them the tools that they need to make
   the correct decision." aux never blocks something Blizzard's own window allows (a price, a

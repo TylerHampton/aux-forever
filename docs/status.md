@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-18, Mountain Time (0.7.1.1 build 1 waiting for Tyler's test).
+Last updated 2026-10-19, Mountain Time (0.7.1.1 build 2 waiting for Tyler's test).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -10,7 +10,7 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand (2026-10-18):** **0.7.1.1 build 2** is on branch
+**Where things stand (2026-10-19):** **0.7.1.1 build 2** is on branch
 `claude/zealous-bardeen-i9v5mp`, waiting for Tyler's test (`TESTING.md`, Current build; test page
 build id `0-7-1-1-build-2`; zip `auxForever-0.7.1.1-build2.zip`, `/reload` is enough). Build 1
 was not tested; build 2 adds gear posted with only a buyout (Blizzard allows it, aux asked for a
