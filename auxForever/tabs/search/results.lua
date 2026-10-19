@@ -744,7 +744,9 @@ do
 
     local function failure(search, record)
         return function(error)
-            if error == Enum.AuctionHouseError.ItemNotFound or error == Enum.AuctionHouseError.ItemNotAvailable then
+            if error == 'timeout' then
+                buy_bar.show_message('No answer from the auction house yet', 'It may still go through: check your mail before buying again', aux.color.red)
+            elseif error == Enum.AuctionHouseError.ItemNotFound or error == Enum.AuctionHouseError.ItemNotAvailable then
                 search.table:RemoveAuctionRecord(record)
             end
         end
@@ -796,8 +798,14 @@ do
                 aux.coro_wait()
             end
             if not updated then
-                -- the client no longer holds this item's results; ask for them again
-                scan.abort()
+                -- the client no longer holds this item's results; ask for them again, once any
+                -- search running now has ended (it used to be stopped, so a search started right
+                -- after buying was cut off; found with the slow test auction house). The row stays
+                -- busy meanwhile, so it cannot be bought at the old auction ID.
+                t0 = GetTime()
+                while scan.is_scanning() and GetTime() - t0 < 30 do
+                    aux.coro_wait()
+                end
                 while not C_AuctionHouse.IsThrottledMessageSystemReady() do
                     aux.coro_wait()
                 end

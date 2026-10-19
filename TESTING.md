@@ -8,7 +8,45 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.7.1 build 3
+## Current build: 0.7.1.1 build 2
+
+Fixes from FB-021 (sarrathsilentstrider could not post Rough Stone at 5c with the lowest at 7c)
+and from the new slow auction house in the tests, which plays each tab against answers that come
+a second later (`tests/slow_server.lua`, `tests/timing_test.lua`). Zip
+`auxForever-0.7.1.1-build2.zip`; `/reload` is enough. Test page build id `0-7-1-1-build-2`. Use
+the New theme. Have a cheap trade good several players sell (Linen Cloth, Rough Stone, Copper Ore)
+and one cheap piece of gear. Build 2 adds gear with only a buyout (step 7) and a look at whether
+Blizzard's window takes copper for gear (step 8); build 1 was not tested.
+
+Tested by Tyler 2026-10-19 (test page `0-7-1-1-build-2`, screenshots): steps 1, 2, 5, 6 pass
+(Light Feather listed at 7c: 4c typed and posted with Match lowest, 5c typed and posted with
+Undercut on, "Your own price" both times; 1 Linen Cloth bought; Sniper watching with 97 deals).
+Steps 3 and 4 could not be seen by hand: the listings arrive too fast ("I cant even move that
+fast"); the timing tests cover them. Step 7: the sword was posted with bid equal to buyout (11s),
+which Blizzard's list shows as buyout only; the empty starting bid case was not tried by hand
+(covered by a test). Step 8: Blizzard's window has a copper box for gear, but the 10s 50c post
+there does not seem to have gone through (`docs/forever-auction-house.md`, section 4).
+
+- [ ] 1. Post tab: pick the trade good, wait until the bar at the bottom turns gold. Click the
+      Buyout box, type a price 2c below the lowest listing, press Enter. Post is bright and the
+      line under the price says "Your own price". Set the amount to 1 and Post: "Posted 1".
+- [ ] 2. Click Undercut, then type a price 2c below the lowest again and press Enter. Post is
+      bright. Post 1: "Posted 1".
+- [ ] 3. Pick another item and, before the bar turns gold, type a price in the Buyout box. When
+      the bar turns gold, your price is still there ("Your own price"). No need to post.
+- [ ] 4. Pick another item and look at the Post button right away: faded, "Reading the
+      listings..." next to it, until the bar turns gold. Skip if it is too quick to see.
+- [ ] 5. Search `linen cloth` and buy 1 (Buy, then Confirm): "Bought 1 × Linen Cloth".
+- [ ] 6. Sniper: Start. When a deal shows up, click it, then click it again to let go: the status
+      goes back to "Watching" and the rounds go on. Skip if no deal shows up in a few minutes.
+- [ ] 7. Post tab, a piece of gear: clear the Starting bid box (right-click it), type a buyout,
+      press Enter. Post is bright and the note says "No starting bid, so it posts as buyout
+      only". Post it at a price you are happy with: "Posted 1".
+- [ ] 8. Blizzard UI button, Sell tab, put a piece of gear in: does its price box have a copper
+      field (g, s and c), or only gold and silver? Screenshot. This decides whether aux may keep
+      rounding gear prices to whole silver.
+
+### 0.7.1 build 3
 
 Build 3 takes out two things from build 2, after Tyler's test (2026-10-17): the deposit rounding
 (Forever returns `SupportsCopperValues()` true, so it never applied) and the "Post tab starts on"

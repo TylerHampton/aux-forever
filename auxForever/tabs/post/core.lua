@@ -29,6 +29,7 @@ M.DURATION_2, M.DURATION_8, M.DURATION_24 = 1, 2, 3
 refresh = true
 
 posting = nil
+posting_item = nil -- the item being posted and how many were in the bags before
 
 last_post_update = nil
 
@@ -91,8 +92,11 @@ function aux.event.AUX_LOADED()
             last_post_update = nil
         end
     end)
+    -- only a bag change that took the posted item ends the wait: any other (loot, a quest item)
+    -- ended it before the answer, said "Not posted" and let Post be clicked again (found with the
+    -- slow test auction house)
     aux.event_listener('BAG_UPDATE', function()
-        if posting == 'single' then
+        if posting == 'single' and (not posting_item or bag_count(posting_item.key) < posting_item.before) then
             posting = nil
             last_post_update = nil
         end
@@ -410,10 +414,12 @@ end
 -- Bid and buyout for an item auction. The server refuses a buyout that is not above the starting bid
 -- ("Internal auction error"; Blizzard's own sell frame blocks it too), so a starting bid at or above
 -- the buyout is left out and the item is posted for buyout only, at the price the player sees.
+-- An empty starting bid is buyout only too, as in Blizzard's sell frame (it was posted with a 1s
+-- bid, and Post asked for a price when only the buyout was typed).
 function M.item_post_prices(start_price, buyout_price)
     local buyout = buyout_price > 0 and round_price(buyout_price) or nil
-    local bid = round_price(max(1, start_price))
-    if buyout and bid >= buyout then
+    local bid = start_price > 0 and round_price(start_price) or nil
+    if buyout and bid and bid >= buyout then
         bid = nil
     end
     return bid, buyout
@@ -437,6 +443,7 @@ function post_auction()
     StaticPopup_Hide('AUX_POST_CONFIRM')
     post_outcome, post_error_text, message = nil, nil, nil
     local bags_before = bag_count(item_key)
+    posting_item = {key = item_key, before = bags_before}
     local wanted = post_quantity()
     local name = selected_item.name or '?'
     local post
@@ -481,10 +488,10 @@ function post_auction()
                 last_post_update = nil
                 break
             end
+            -- auxForever: this goes on after the player leaves the tab or closes the auction
+            -- house; it used to stop there, and a post never answered left Post on "Posting..."
+            -- (found with the slow test auction house). The result is still said in chat.
             aux.coro_wait()
-            if not frame:IsShown() then
-                return
-            end
         end
 
         do
@@ -537,7 +544,9 @@ function M.price_note_text()
     -- gear: a starting bid equal to the buyout is left out when posting (item_post_prices)
     if selected_item and not selected_item.commodity and get_unit_buyout_price() > 0 then
         local bid = item_post_prices(get_unit_start_price(), get_unit_buyout_price())
-        if not bid and get_unit_start_price() <= get_unit_buyout_price() then
+        if get_unit_start_price() == 0 then
+            note = note .. '\n' .. aux.color.label.disabled('No starting bid, so it posts as buyout only')
+        elseif not bid and get_unit_start_price() <= get_unit_buyout_price() then
             note = note .. '\n' .. aux.color.label.disabled('Bid equals buyout, so it posts as buyout only')
         end
     end
@@ -564,11 +573,19 @@ function M.disabled_reason()
         return
     elseif posting then
         return 'Posting...'
-    elseif get_unit_buyout_price() > 0 and get_unit_start_price() > get_unit_buyout_price() then
+    -- auxForever (FB-021 follow-up): until the listings are in, the price shown is the one from the
+    -- last visit, which may be days old; a quick click on Post (after the next item is picked by
+    -- itself) posted at it. A price the player typed can be posted at once.
+    elseif auto_price_key == selected_item.key and not listings_ready[selected_item.key] then
+        return 'Reading the listings...'
+    -- gear only: trade goods have no starting bid (its box is hidden), but one was kept from the
+    -- automatic price, so typing a buyout below it faded Post with this message (FB-021: Rough
+    -- Stone listed at 7c, 5c typed; 6c worked only through Undercut, which set both)
+    elseif not selected_item.commodity and get_unit_buyout_price() > 0 and get_unit_start_price() > get_unit_buyout_price() then
         return 'The starting bid is above the buyout.'
     elseif selected_item.commodity and get_unit_buyout_price() == 0 then
         return 'Type a price to post.'
-    elseif not selected_item.commodity and get_unit_start_price() == 0 then
+    elseif not selected_item.commodity and get_unit_start_price() == 0 and get_unit_buyout_price() == 0 then
         return 'Type a price to post.'
     elseif stack_count_input:GetNumber() == 0 then
         return 'Choose how many to post.'
@@ -834,6 +851,13 @@ function update_inventory_records(reset)
             end
         end
     end
+end
+
+-- auxForever (FB-021, sarrathsilentstrider): a price the player typed or picked while the listings
+-- were still on their way is theirs; the automatic price only fills in for a player who has not
+-- chosen one. Typing 5c a moment after picking Rough Stone got 7c back when the listings arrived.
+function M.keep_player_price()
+    auto_price_key = nil
 end
 
 -- auxForever: once an item's listings are in, start from the price most posts use: the lowest

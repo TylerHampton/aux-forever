@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-17, Mountain Time (0.7.1 released).
+Last updated 2026-10-19, Mountain Time (0.7.1.1 build 2 waiting for Tyler's test).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -10,7 +10,45 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand:** **0.7.1 is released** (2026-10-17, PR #30, `main` e63ec0a): every own
+**Where things stand (2026-10-19):** **0.7.1.1 build 2** is on branch
+`claude/zealous-bardeen-i9v5mp`, **tested by Tyler** (results in `TESTING.md`, Current build):
+FB-021 fixed in game (typed prices below the lowest post, with and without Undercut), buying and
+the Sniper fine; the two timing steps are too fast to see by hand. Build 2 also adds gear posted
+with only a buyout and Tyler's rule in AGENTS.md: aux never blocks what Blizzard's window allows.
+Next: Tyler decides whether to release 0.7.1.1 (pull request, merge, Release workflow). Not
+merged, no pull request yet. Not merged,
+no pull request yet. Next: read the test page results, then ask Tyler whether to release.
+
+- **What it is:** FB-021 (sarrathsilentstrider: Rough Stone listed at 7c, 5c typed, Post would
+  not post it; 6c worked). Cause: trade goods have no starting bid (its box is hidden), but aux
+  kept one at the automatic price, and a typed buyout below it faded Post with "The starting bid
+  is above the buyout." Fixed: that check is for gear only.
+- **The slow auction house (new in the tests):** Tyler worried about problems he cannot see in
+  code he cannot read. The tests answered every request at once, so bugs that depend on timing
+  (a player clicking while the auction house is still answering) passed. `tests/slow_server.lua`
+  is a fake auction house with a bag and listings that answers a second later and records what
+  aux actually posted and bought; `tests/timing_test.lua` plays each tab against it (Post,
+  buy bar, Search and buy, Sniper, closing the auction house mid-action). It found, all fixed with
+  a test each, checked to fail without the fix:
+  - a price typed while the listings loaded was replaced by the automatic one;
+  - Post could be clicked before the listings arrived and posted at last visit's price;
+  - an unrelated bag change ended a post early ("Not posted", Post clickable again: double post);
+  - a post never answered while on another tab left Post on "Posting..." until a reload;
+  - a slow trade good purchase said "Nothing was bought" though it could still go through, and a
+    slow gear purchase said nothing (both now say it may still go through, check the mail);
+  - buying from a row of identical gear auctions stopped any search started right after;
+  - the Sniper lost possible deals it had not opened when the player clicked a deal.
+- Checked and left as is: a search stopped by another tab (Post, Auctions, Sniper) shows Resume,
+  as in the original aux; cancels already handle a slow answer (0.7.1); quick item switching on
+  the Post tab is fine. Tyler's CurseForge reply for FB-021 (posted before the cause was known)
+  says typing before the listings load was the bug; it was a real bug but not Sarrath's.
+- Gear and copper: Blizzard's Sell tab has a copper box for gear, but Tyler's 10s 50c post there
+  does not seem to have gone through (screenshots, no error text). aux keeps gear in whole silver
+  until a refused post is seen with its error text (`docs/forever-auction-house.md`, section 4).
+- Open for Tyler: FB-022 (should the Post tab say why it matches the lowest price, or is that
+  teaching the auction house?); a corrected reply to Sarrath (in the session's chat).
+
+**Before that:** **0.7.1 is released** (2026-10-17, PR #30, `main` e63ec0a): every own
 auction on its own row, cancels confirmed by the auction house, no silent search misses (FB-014 to
 FB-016, daland). Tag `v0.7.1`, GitHub pre-release
 https://github.com/TylerHampton/aux-forever/releases/tag/v0.7.1, CurseForge Beta file id 9233568

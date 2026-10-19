@@ -109,6 +109,13 @@ visible confirmation, but gives no evidence. **Unverified**; needs an in-game te
   listed at whole silver amounts, while trade goods show copper prices (88c, 89c). auxForever
   therefore prices items in whole silver and undercuts them by 1 silver; trade goods use copper
   when `SupportsCopperValues()` allows it. Not confirmed from Blizzard's code.
+- **Seen in game (Tyler, 2026-10-19, 0.7.1.1 build 2, step 8):** Blizzard's Sell tab shows gold,
+  silver and copper boxes for gear (Merc Sword of Healing). Tyler typed 10s 50c there and clicked
+  Create Auction; his auction list afterwards showed only the Merc Sword aux had posted at 11s, and
+  two Merc Swords were still in his bags in both screenshots, so the 10s 50c post most likely did
+  not go through (inferred from the screenshots; no error text was captured). Every gear listing
+  Blizzard's window showed was whole silver. Until a refused post is seen with its error text,
+  aux keeps gear in whole silver; a typed copper amount shows rounded down in the box after Enter.
 
 **Confirmed from Blizzard's Forever UI source** (branch `forever` of Gethe/wow-ui-source, read
 2026-10-07):

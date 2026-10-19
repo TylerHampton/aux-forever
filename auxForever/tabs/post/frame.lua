@@ -429,6 +429,7 @@ local function price_input(get_price, set_price, on_user_input)
     editbox.change = function(self, is_user_input)
         refresh = true
         if is_user_input then
+            keep_player_price()
             on_user_input()
             set_price(money.from_string(self:GetText()) or 0)
         end

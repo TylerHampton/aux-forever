@@ -868,6 +868,8 @@ try('post item prices', function()
   check('bid below buyout is kept', bid == 500 and buyout == 700)
   bid, buyout = post.item_post_prices(500, 0)
   check('no buyout: bid only', bid == 500 and buyout == nil)
+  bid, buyout = post.item_post_prices(0, 700)
+  check('no starting bid: buyout only, as in Blizzard\'s sell frame', bid == nil and buyout == 700)
 
   -- the post itself sends no bid when it would equal the buyout
   local args
@@ -3627,5 +3629,12 @@ try('0.7: result tables follow a fast resize', function()
   local row = rt.all_rows and rt.all_rows[1]
   check('resize: the last cell of a row is anchored to the right edge', row and has(row.cells[#row.cells], 'TOPRIGHT'))
 end)
+
+-- what players do while the auction house is still answering: a slow auction house that answers
+-- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
+dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({
+  G = G, fire = fire, tick = tick, check = check, try = try, addon = addon,
+  dir = (arg and arg[0] or ''):gsub('[^/\\]*$', ''),
+})
 
 print('done, errors: ' .. errors)

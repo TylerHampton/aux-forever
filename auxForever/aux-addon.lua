@@ -225,6 +225,12 @@ do
 				kill_listener(listener_id)
 			end
 			locked = false
+			-- no answer in 5 seconds: on a slow server the purchase may still go through later, so
+			-- the player is told so instead of nothing (found with the slow test auction house)
+			if result == nil then
+				result = 'timeout'
+				print('No answer from the auction house yet. The purchase may still go through: check your mail before buying again.')
+			end
 			if result == true then
 				tinsert(character_data.bid_auction_ids, auction_id)
 				while #character_data.bid_auction_ids > 200 do
