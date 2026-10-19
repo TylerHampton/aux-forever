@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-19, Mountain Time (0.7.1.1 build 2 waiting for Tyler's test).
+Last updated 2026-10-19, Mountain Time (0.7.1.1 released).
 
 **Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
@@ -10,14 +10,14 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand (2026-10-19):** **0.7.1.1 build 2** is on branch
-`claude/zealous-bardeen-i9v5mp`, **tested by Tyler** (results in `TESTING.md`, Current build):
-FB-021 fixed in game (typed prices below the lowest post, with and without Undercut), buying and
-the Sniper fine; the two timing steps are too fast to see by hand. Build 2 also adds gear posted
-with only a buyout and Tyler's rule in AGENTS.md: aux never blocks what Blizzard's window allows.
-Next: Tyler decides whether to release 0.7.1.1 (pull request, merge, Release workflow). Not
-merged, no pull request yet. Not merged,
-no pull request yet. Next: read the test page results, then ask Tyler whether to release.
+**Where things stand (2026-10-19):** **0.7.1.1 is released** (2026-10-19, PR #32, `main`
+cdc2208): FB-021 (typed prices below the lowest listing can be posted), gear with only a buyout,
+and the fixes found with the slow test auction house (below). Tag `v0.7.1.1`, GitHub pre-release
+https://github.com/TylerHampton/aux-forever/releases/tag/v0.7.1.1, CurseForge Beta file id 9253171
+(Release run 39214275264). `/reload` is enough for players. Tested in game by Tyler on build 2
+(`TESTING.md`). Next: 0.8 as planned (`docs/roadmap.md`); nothing is being built. For Tyler: the
+corrected CurseForge reply to sarrathsilentstrider (FB-021 entry), and FB-022 (should the Post
+tab say why it matches the lowest price?).
 
 - **What it is:** FB-021 (sarrathsilentstrider: Rough Stone listed at 7c, 5c typed, Post would
   not post it; 6c worked). Cause: trade goods have no starting bid (its box is hidden), but aux
