@@ -479,6 +479,11 @@ function M.primary_label()
     return primary_button:GetText()
 end
 
+-- the two lines of text next to the buttons (for tests, like primary_label)
+function M.lines()
+    return line1:GetText(), line2:GetText()
+end
+
 function aux.event.CLOSE()
     clear()
 end
@@ -525,8 +530,12 @@ function M.create(parent)
         -- a quote only lasts a short time; a lost server answer must not leave the bar stuck
         if mode == COMMODITY and state == QUOTED and C_AuctionHouse.GetQuoteDurationRemaining() == 0 then
             reset({'The price quote expired', 'Nothing was bought'}, aux.color.red)
-        elseif mode == COMMODITY and (state == QUOTING or state == BUYING) and GetTime() - t0 > 10 then
+        elseif mode == COMMODITY and state == QUOTING and GetTime() - t0 > 10 then
             reset({'No answer from the auction house', 'Nothing was bought'}, aux.color.red)
+        elseif mode == COMMODITY and state == BUYING and GetTime() - t0 > 10 then
+            -- the purchase was confirmed and may still go through on a slow server: saying nothing
+            -- was bought could make the player buy again (found with the slow test auction house)
+            reset({'No answer from the auction house yet', 'It may still go through: check your mail before buying again'}, aux.color.red)
         end
         update()
     end)

@@ -164,4 +164,156 @@ return function(env)
     check('typed early: posts the typed 6c', server.posts[1] and server.posts[1].unit_price == 6)
     post_teardown(server, post)
   end)
+
+  -- buying a trade good from the buy bar: the price is asked first, then confirmed, each answered
+  -- a second later. What the server charged is checked, not only what the bar says.
+  local function buy_setup(server)
+    local bar = module 'aux.gui.buy_bar'
+    server.items[2589] = {name = 'Linen Cloth', commodity = true, max_stack = 200}
+    server.listings[2589] = {{price = 6, quantity = 6}, {price = 7, quantity = 100}}
+    server:install()
+    local bought
+    local function tiers()
+      local list = {}
+      for _, l in ipairs(server.listings[2589]) do
+        if l.quantity > 0 then table.insert(list, {count = l.quantity, commodity_unit_price = l.price}) end
+      end
+      return list
+    end
+    bar.show_commodity{item_id = 2589, name = 'Linen Cloth', max_stack = 20, tiers = tiers,
+      on_success = function(n) bought = n end, on_refresh = function() end}
+    server:ticks(1)
+    return bar, function() return bought end
+  end
+
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+
+  try('timing: buying a trade good, answered a second later', function()
+    local server = new_server(env)
+    local bar, bought = buy_setup(server)
+    check('buy: starts at one stack', bar.primary_label():find('^Buy 20 for') ~= nil)
+    bar.primary_click()
+    bar.primary_click() -- a second click while the price is asked does nothing
+    check('buy: one price request', #server.requests == 1)
+    check('buy: the price arrives', server:wait(function() return bar.primary_label():find('^Confirm') end, 30))
+    bar.primary_click()
+    bar.primary_click() -- a double click on Confirm buys once
+    check('buy: the purchase arrives', server:wait(function() return bought() end, 30))
+    check('buy: bought once, 20 for 1s 34c', #server.purchases == 1 and server.purchases[1].quantity == 20 and server.purchases[1].total == 134)
+    server:restore()
+    bar.clear()
+  end)
+
+  try('timing: someone buys the cheap ones while the price is asked', function()
+    local server = new_server(env)
+    local bar, bought = buy_setup(server)
+    bar.primary_click()
+    server.listings[2589][1].quantity = 0 -- the 6 at 6c sell to someone else meanwhile
+    server:ticks(30)
+    check('buy: a higher price is never confirmed', #server.purchases == 0 and not bought())
+    local l1 = plain(bar.lines())
+    check('buy: says the price went up', l1:find('price went up', 1, true) ~= nil)
+    server:restore()
+    bar.clear()
+  end)
+
+  -- a purchase the server confirms after the bar stopped waiting (10 seconds) still went through:
+  -- the bar must not say "Nothing was bought", or the player may buy again
+  try('timing: a purchase that is answered late', function()
+    local server = new_server(env)
+    local bar, bought = buy_setup(server)
+    bar.primary_click()
+    server:wait(function() return bar.primary_label():find('^Confirm') end, 30)
+    server.delay = 12
+    bar.primary_click()
+    server:ticks(110) -- 11 seconds: the bar has stopped waiting, the server has not answered yet
+    local l1, l2 = bar.lines()
+    check('late buy: does not say nothing was bought', not plain(l2):find('Nothing was bought', 1, true))
+    check('late buy: says it may still go through', (plain(l1) .. ' ' .. plain(l2)):find('may still', 1, true) ~= nil)
+    server:ticks(20)
+    check('late buy: it did go through', #server.purchases == 1)
+    server:restore()
+    bar.clear()
+  end)
+
+  -- gear from the Search tab: a search, a click on a row, Buy; the auction house answers later
+  local function gear_setup(server)
+    local search = module 'aux.tabs.search'
+    local bar = module 'aux.gui.buy_bar'
+    server.items[7001] = {name = 'Sword', commodity = false}
+    server.listings[7001] = {{price = 20000, quantity = 2}, {price = 25000, quantity = 1}}
+    server:install()
+    aux.set_tab(1)
+    search.frame:Show()
+    search.update_mode(search.NORMAL_MODE)
+    local before = search.current_search()
+    search.search_box:SetText('sword/exact')
+    search.execute(nil, false)
+    server:wait(function() local s = search.current_search(); return s and s.complete and #s.records > 0 end, 100)
+    local s = search.current_search()
+    local cheapest
+    for _, r in ipairs(s.records) do
+      if not cheapest or r.buyout_price < cheapest.buyout_price then cheapest = r end
+    end
+    s.table:SetSelectedRecord(cheapest) -- the player clicks its row
+    server:ticks(1)
+    return search, bar, cheapest
+  end
+
+  try('timing: buying gear from a search, answered a second later', function()
+    local server = new_server(env)
+    local search, bar, record = gear_setup(server)
+    check('gear: the search found the sword', record and record.buyout_price == 20000)
+    check('gear: the bar shows its price', bar.primary_label():find('^Buy for') ~= nil)
+    bar.primary_click()
+    bar.primary_click() -- a second click before the answer buys nothing more
+    server:ticks(20)
+    check('gear: bought one, at the price shown', #server.purchases == 1 and server.purchases[1].total == 20000)
+    server:ticks(80) -- the row of identical auctions is read again after a purchase
+    check('gear: the next one at that price is ready', record.auction_count == 1 and not record.syncing)
+    search.frame:Hide()
+    server:restore()
+    bar.clear()
+  end)
+
+  -- aux stops waiting for a purchase after 5 seconds; one answered later still went through
+  try('timing: buying gear, answered late', function()
+    local server = new_server(env)
+    local search, bar = gear_setup(server)
+    server.delay = 7
+    bar.primary_click()
+    server:ticks(55)
+    local l1, l2 = bar.lines()
+    check('late gear buy: says it may still go through', (plain(l1) .. ' ' .. plain(l2)):find('may still', 1, true) ~= nil)
+    server:ticks(30)
+    check('late gear buy: it did go through', #server.purchases == 1)
+    search.frame:Hide()
+    server:restore()
+    bar.clear()
+  end)
+
+  -- after buying one of several identical auctions, aux reads that item again. It used to stop
+  -- any search running at that moment, so a search the player started right after buying was cut
+  -- off without a word.
+  try('timing: a search started right after buying gear finishes', function()
+    local server = new_server(env)
+    local search, bar = gear_setup(server)
+    server.items[2589] = {name = 'Linen Cloth', commodity = true, max_stack = 200}
+    server.listings[2589] = {{price = 6, quantity = 50}}
+    bar.primary_click()
+    server:ticks(12) -- bought; aux is reading the sword's listings again
+    search.search_box:SetText('linen cloth/exact')
+    search.execute(nil, false)
+    local done = server:wait(function()
+      local s = search.current_search()
+      return s and s.complete and s.filter_string == 'linen cloth/exact'
+    end, 150)
+    local s = search.current_search()
+    check('search after buying: it finishes', done)
+    check('search after buying: it found the linen', s and #s.records > 0 and s.records[1].item_id == 2589)
+    server:ticks(80)
+    search.frame:Hide()
+    server:restore()
+    bar.clear()
+  end)
 end

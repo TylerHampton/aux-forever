@@ -29,6 +29,7 @@ return function(env)
   }
 
   local saved, due, results, browse = {}, {}, {}, nil
+  local auctions = {} -- [auction ID] = {id, listing}, as last shown in search results
   local quote
   local ready_at = 0
   local next_auction_id = 1000
@@ -88,6 +89,7 @@ return function(env)
 
   -- one commodity search result row, as GetCommoditySearchResultInfo returns it
   local function commodity_row(id, l, i)
+    auctions[id * 100 + i] = {id = id, listing = l}
     return {
       itemID = id, quantity = l.quantity, unitPrice = l.price, auctionID = id * 100 + i,
       owners = {l.own and 'player' or 'Someone'}, totalNumberOfOwners = 1,
@@ -97,6 +99,7 @@ return function(env)
   end
 
   local function item_row(id, l, i)
+    auctions[id * 100 + i] = {id = id, listing = l}
     return {
       itemKey = server:key(id), itemLink = server:link(id), auctionID = id * 100 + i,
       quantity = l.quantity, buyoutAmount = l.price, minBid = l.bid, bidAmount = nil,
@@ -304,6 +307,22 @@ return function(env)
     end)
     set(C, 'CancelCommoditiesPurchase', function() quote = nil end)
 
+    -- buying (or bidding on) one auction of an item by its auction ID
+    set(C, 'PlaceBid', function(auction_id, amount)
+      sent('bid ' .. auction_id .. ' ' .. amount)
+      later(function()
+        local a = auctions[auction_id]
+        if not a or a.listing.quantity <= 0 or a.listing.own then
+          env.fire('AUCTION_HOUSE_SHOW_ERROR', G.Enum.AuctionHouseError.ItemNotFound)
+          return
+        end
+        a.listing.quantity = a.listing.quantity - 1
+        server.money = server.money - amount
+        table.insert(server.purchases, {id = a.id, auction_id = auction_id, total = amount})
+        env.fire('AUCTION_HOUSE_PURCHASE_COMPLETED', auction_id)
+      end)
+    end)
+
     -- the answers arrive on a later tick, after every other frame has had its update
     local frame = G.CreateFrame('Frame')
     frame:SetScript('OnUpdate', deliver)
@@ -313,7 +332,7 @@ return function(env)
   function server:restore()
     if self.frame then self.frame:Hide(); self.frame:SetScript('OnUpdate', nil) end
     for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
-    saved, due, results, browse, quote = {}, {}, {}, nil, nil
+    saved, due, results, browse, quote, auctions = {}, {}, {}, nil, nil, {}
   end
 
   -- an answer the server still owes

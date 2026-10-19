@@ -608,9 +608,12 @@ function show_item_bar(record)
                     if checked == record then
                         listing:SetSelectedRecord()
                     end
-                end, function()
+                end, function(error)
                     set_gone(record)
                     update_deals()
+                    if error == 'timeout' then
+                        buy_bar.show_message('No answer from the auction house yet', 'It may still go through: check your mail before buying again', aux.color.red)
+                    end
                 end)
             end,
             on_bid = function()
