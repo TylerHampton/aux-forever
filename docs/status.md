@@ -15,9 +15,9 @@ cdc2208): FB-021 (typed prices below the lowest listing can be posted), gear wit
 and the fixes found with the slow test auction house (below). Tag `v0.7.1.1`, GitHub pre-release
 https://github.com/TylerHampton/aux-forever/releases/tag/v0.7.1.1, CurseForge Beta file id 9253171
 (Release run 39214275264). `/reload` is enough for players. Tested in game by Tyler on build 2
-(`TESTING.md`). Next: 0.8 as planned (`docs/roadmap.md`); nothing is being built. For Tyler: the
-corrected CurseForge reply to sarrathsilentstrider (FB-021 entry), and FB-022 (should the Post
-tab say why it matches the lowest price?).
+(`TESTING.md`). Next: 0.8 as planned (`docs/roadmap.md`); nothing is being built. Tyler posted the
+corrected reply to sarrathsilentstrider (2026-10-19). Open for Tyler: FB-022 (should the Post tab
+say why it matches the lowest price?).
 
 - **What it is:** FB-021 (sarrathsilentstrider: Rough Stone listed at 7c, 5c typed, Post would
   not post it; 6c worked). Cause: trade goods have no starting bid (its box is hidden), but aux
