@@ -6,6 +6,39 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.7.1.1 (unreleased)
+
+### Post tab
+
+- You can post a trade good at any price you type, below the lowest listing too. Typing a price
+  under the automatic one (for example 5c with the lowest at 7c) faded the Post button with "The
+  starting bid is above the buyout", about a starting bid that trade goods do not have, so only
+  Undercut's one copper below could be posted (reported by sarrathsilentstrider).
+- A price you type while the listings are still loading is kept. Before, the automatic price
+  replaced it the moment the listings arrived.
+- Post waits until the item's listings are in ("Reading the listings..."), unless you typed a
+  price. Before, a quick click (for example right after aux picked the next item for you) posted
+  at the price from your last visit, which could be days old.
+- A bag change that has nothing to do with your post (loot, a quest item) no longer ends the post
+  early. Before, the tab said "Not posted" and let you click Post again while the first post was
+  still on its way.
+- A post that gets no answer while you are on another tab no longer leaves the Post button stuck
+  on "Posting...".
+
+### Buying
+
+- When the auction house does not answer a purchase in time, aux now says it may still go through
+  and to check your mail before buying again. Before, trade goods said "Nothing was bought" and
+  gear said nothing, which could lead to buying twice.
+- A search you start right after buying gear is no longer stopped by aux reading that item again.
+
+### Sniper
+
+- Possible deals the Sniper had not opened yet when you clicked a deal are opened in a later
+  round. Before, they were skipped until their price changed.
+
+`/reload` is enough to update.
+
 ## 0.7.1 (2026-10-17)
 
 ### Auctions tab

@@ -8,7 +8,28 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.7.1 build 3
+## Current build: 0.7.1.1 build 1
+
+Fixes from FB-021 (sarrathsilentstrider could not post Rough Stone at 5c with the lowest at 7c)
+and from the new slow auction house in the tests, which plays each tab against answers that come
+a second later (`tests/slow_server.lua`, `tests/timing_test.lua`). Zip
+`auxForever-0.7.1.1-build1.zip`; `/reload` is enough. Test page build id `0-7-1-1-build-1`. Use
+the New theme. Have a cheap trade good several players sell (Linen Cloth, Rough Stone, Copper Ore).
+
+- [ ] 1. Post tab: pick the trade good, wait until the bar at the bottom turns gold. Click the
+      Buyout box, type a price 2c below the lowest listing, press Enter. Post is bright and the
+      line under the price says "Your own price". Set the amount to 1 and Post: "Posted 1".
+- [ ] 2. Click Undercut, then type a price 2c below the lowest again and press Enter. Post is
+      bright. Post 1: "Posted 1".
+- [ ] 3. Pick another item and, before the bar turns gold, type a price in the Buyout box. When
+      the bar turns gold, your price is still there ("Your own price"). No need to post.
+- [ ] 4. Pick another item and look at the Post button right away: faded, "Reading the
+      listings..." next to it, until the bar turns gold. Skip if it is too quick to see.
+- [ ] 5. Search `linen cloth` and buy 1 (Buy, then Confirm): "Bought 1 × Linen Cloth".
+- [ ] 6. Sniper: Start. When a deal shows up, click it, then click it again to let go: the status
+      goes back to "Watching" and the rounds go on. Skip if no deal shows up in a few minutes.
+
+### 0.7.1 build 3
 
 Build 3 takes out two things from build 2, after Tyler's test (2026-10-17): the deposit rounding
 (Forever returns `SupportsCopperValues()` true, so it never applied) and the "Post tab starts on"

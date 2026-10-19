@@ -106,6 +106,14 @@ for f in $(find . -name '*.lua'); do luac5.1 -p "$f"; done   # syntax check
   that changes the auction house categories, run it again. Item type names in it (Daggers, Cloth)
   are written by hand in the script, copied from what the game printed (2026-10-11); the two
   `/run` commands in `TESTING.md` (0.6.1 build 2) print them again if they need checking.
+- Timing (2026-10-18, FB-021): the stubs answer a request at once, the game a second or more later
+  while players keep clicking. `tests/slow_server.lua` is a fake auction house (a bag, listings,
+  answers after `delay` seconds, a busy throttle, a record of what aux posted and bought), and
+  `tests/timing_test.lua` plays the tabs against it. For anything that talks to the auction house
+  (posting, buying, cancelling, scans), add a test there: do what a player does while the answer
+  is on its way, and check what reached the server (`server.posts`, `server.purchases`), not only
+  what the screen says. Click buttons only when the addon would have them enabled
+  (`click_post` there): calling `OnClick` straight past a faded button hid FB-021.
 - Harness limits: `GetChecked`, `HasFocus` and `IsMouseOver` always return false; `SetShown` does
   nothing; `Get*` methods return fresh stub frames; `SetText` does not fire `OnTextChanged`, so call
   an edit box's `change(self, true)` yourself. Reach a module's internals in a test with
@@ -224,6 +232,9 @@ aux runs inside the game; every frame it spends time in costs the player frame r
 - Rounded styling: `gui.set_frame_style` replaces `SetBackdropColor`/`SetBackdropBorderColor` on
   the frame, so later calls recolor the rounded shape.
 - Forever rejects fonts shipped in addons; the game font is used. `.tga` textures load.
+- A hidden box still holds a value. Trade goods hide the starting bid, but aux kept one, and a
+  check on it faded Post with a message about a box the player cannot see (FB-021). A check or
+  message about a field applies only while that field is shown.
 - Buying must never spend more than the player saw: the buy bar confirms only server quotes at or
   below the shown price. Keep that guarantee.
 - Posting: an item auction's buyout must be above its starting bid, or the server answers
