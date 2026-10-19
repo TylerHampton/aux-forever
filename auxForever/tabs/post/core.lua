@@ -29,6 +29,7 @@ M.DURATION_2, M.DURATION_8, M.DURATION_24 = 1, 2, 3
 refresh = true
 
 posting = nil
+posting_item = nil -- the item being posted and how many were in the bags before
 
 last_post_update = nil
 
@@ -91,8 +92,11 @@ function aux.event.AUX_LOADED()
             last_post_update = nil
         end
     end)
+    -- only a bag change that took the posted item ends the wait: any other (loot, a quest item)
+    -- ended it before the answer, said "Not posted" and let Post be clicked again (found with the
+    -- slow test auction house)
     aux.event_listener('BAG_UPDATE', function()
-        if posting == 'single' then
+        if posting == 'single' and (not posting_item or bag_count(posting_item.key) < posting_item.before) then
             posting = nil
             last_post_update = nil
         end
@@ -437,6 +441,7 @@ function post_auction()
     StaticPopup_Hide('AUX_POST_CONFIRM')
     post_outcome, post_error_text, message = nil, nil, nil
     local bags_before = bag_count(item_key)
+    posting_item = {key = item_key, before = bags_before}
     local wanted = post_quantity()
     local name = selected_item.name or '?'
     local post
