@@ -564,7 +564,15 @@ function M.disabled_reason()
         return
     elseif posting then
         return 'Posting...'
-    elseif get_unit_buyout_price() > 0 and get_unit_start_price() > get_unit_buyout_price() then
+    -- auxForever (FB-021 follow-up): until the listings are in, the price shown is the one from the
+    -- last visit, which may be days old; a quick click on Post (after the next item is picked by
+    -- itself) posted at it. A price the player typed can be posted at once.
+    elseif auto_price_key == selected_item.key and not listings_ready[selected_item.key] then
+        return 'Reading the listings...'
+    -- gear only: trade goods have no starting bid (its box is hidden), but one was kept from the
+    -- automatic price, so typing a buyout below it faded Post with this message (FB-021: Rough
+    -- Stone listed at 7c, 5c typed; 6c worked only through Undercut, which set both)
+    elseif not selected_item.commodity and get_unit_buyout_price() > 0 and get_unit_start_price() > get_unit_buyout_price() then
         return 'The starting bid is above the buyout.'
     elseif selected_item.commodity and get_unit_buyout_price() == 0 then
         return 'Type a price to post.'
@@ -834,6 +842,13 @@ function update_inventory_records(reset)
             end
         end
     end
+end
+
+-- auxForever (FB-021, sarrathsilentstrider): a price the player typed or picked while the listings
+-- were still on their way is theirs; the automatic price only fills in for a player who has not
+-- chosen one. Typing 5c a moment after picking Rough Stone got 7c back when the listings arrived.
+function M.keep_player_price()
+    auto_price_key = nil
 end
 
 -- auxForever: once an item's listings are in, start from the price most posts use: the lowest

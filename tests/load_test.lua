@@ -3628,4 +3628,11 @@ try('0.7: result tables follow a fast resize', function()
   check('resize: the last cell of a row is anchored to the right edge', row and has(row.cells[#row.cells], 'TOPRIGHT'))
 end)
 
+-- what players do while the auction house is still answering: a slow auction house that answers
+-- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
+dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({
+  G = G, fire = fire, tick = tick, check = check, try = try, addon = addon,
+  dir = (arg and arg[0] or ''):gsub('[^/\\]*$', ''),
+})
+
 print('done, errors: ' .. errors)

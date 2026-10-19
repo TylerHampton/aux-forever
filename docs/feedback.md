@@ -127,6 +127,8 @@ For whoever fixes or builds from it:
 | [FB-018](#fb-018-a-setting-for-whether-the-post-tab-starts-on-match-lowest-or-undercut) | 2026-10-17 | sarrathsilentstrider | request | Settings | n/a | A setting for whether the Post tab starts on Match lowest or Undercut | wont-fix (Tyler: keep as is) |
 | [FB-019](#fb-019-praise-everything-is-shte-in-comparison) | 2026-10-17 | sarrathsilentstrider | praise | Overall | n/a | Praise: "everything is SH!TE in comparison" | new |
 | [FB-020](#fb-020-find-the-cheapest-way-to-fill-waylaid-crates-and-writs) | 2026-10-17 | Harro22 | request | Search | n/a | Find the cheapest way to fill Waylaid crates and writs | planned 0.8 |
+| [FB-021](#fb-021-a-typed-price-below-the-lowest-listing-cannot-be-posted-rough-stone-5c) | 2026-10-18 | sarrathsilentstrider | bug | Post | S2 | A typed price below the lowest listing cannot be posted (Rough Stone, 5c) | fixed 0.7.1.1 build 1, waiting for Tyler's test |
+| [FB-022](#fb-022-the-player-did-not-know-the-newest-listing-at-a-price-sells-first) | 2026-10-18 | sarrathsilentstrider | ux | Post | n/a | The player did not know the newest listing at a price sells first | new |
 
 ## Players
 
@@ -153,7 +155,8 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
 - **daland**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-014, FB-015
   and FB-016 in three comments the same day. Also uses Auctionator and compares aux with it.
 - **sarrathsilentstrider**: CurseForge commenter (CurseForge name; in-game name unknown).
-  Reported FB-017, asked for FB-018, praised in FB-019. Plays in the Classic theme.
+  Reported FB-017, asked for FB-018, praised in FB-019, reported FB-021 and FB-022. Plays in the
+  Classic theme.
 - **Harro22**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-020.
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
@@ -1153,6 +1156,81 @@ Unknowns: which crates and writs exist on Forever and what each needs.
 Ask Tyler: answered 2026-10-17: "Forever does have waylaid crates... We could plan that for
 0.8." Still open: what writs are, and what each crate asks for (a crate's tooltip; Tyler asked
 whether he needs to buy one: not yet, only when 0.8 is planned in detail).
+
+### FB-021: A typed price below the lowest listing cannot be posted (Rough Stone, 5c)
+
+- Received: 2026-10-18 (two comments, the second a reply to Tyler's question)
+- From: sarrathsilentstrider (1 report)
+- Where: CurseForge comments on the auxForever project page
+- Source: [source](feedback/sources/2026-10-18-sarrathsilentstrider-curseforge.md)
+- Version: unknown (0.6 or later: Classic theme, Match lowest / Undercut switch)
+- Type: bug
+- Area: Post
+- Severity: S2 (Blizzard's window was the way around it)
+- Status: fixed 0.7.1.1 build 1 (branch `claude/zealous-bardeen-i9v5mp`), waiting for Tyler's
+  test in game
+- Proposed: hotfix (0.7.1.1)
+
+Said:
+> And why can't we undercut by more than a copper on commodities?  I mean, if i want to sell my stuff for less, why can't I?
+
+> I had to go into the Blizz UI to actually push it past one copper.  it would be really nice if you would remove this limitation since A LOT of Classic minded people are going to be playing this game.
+
+> Rough Stone is on the AH for 7c and I am trying to post it for 5c and AUX will not let me.  6c is fine, but I cannot do 5c.  if I open BlizzUI I can post it for 5c no problem.
+
+Steps / setup: Rough Stone (a trade good) listed at 7c; the player typed 5c in the Post tab and
+could not post it; 6c worked; Blizzard's window posted 5c.
+
+Tyler's notes: Tyler did not know of any such limit and asked whether the price box could be
+edited (his reply in the source). Before the cause was found, he posted a reply saying a typed
+price could be replaced when typed before the listings load, from Claude's first reading of the
+code; that was a real bug but not the cause of this report (below).
+
+Recorder's notes (2026-10-18, confirmed with tests, not yet in game):
+- Cause: trade goods have no starting bid, and its box is hidden for them, but aux still kept one,
+  set to the automatic price along with the buyout (7c, or 6c in Undercut mode). Typing a buyout
+  below it (5c) made the Post button fade with "The starting bid is above the buyout.", a box the
+  player cannot see. Undercut set both to 6c, so 6c worked; any typed price below the automatic
+  one did not. Fix: that check is for gear only (`disabled_reason`, `tabs/post/core.lua`).
+- Found on the way, with the new slow auction house in the tests (`tests/slow_server.lua`): a
+  price typed while the listings were still loading was replaced by the automatic price when they
+  arrived (fixed: `keep_player_price`), and Post could be clicked before the listings arrived,
+  posting at the price remembered from the last visit, possibly days old (fixed: Post waits with
+  "Reading the listings..." unless the player typed a price).
+- Tests: `tests/timing_test.lua`, each checked to fail without its fix.
+
+Unknowns: none that change the fix.
+
+### FB-022: The player did not know the newest listing at a price sells first
+
+- Received: 2026-10-18
+- From: sarrathsilentstrider
+- Where: CurseForge comments on the auxForever project page
+- Source: [source](feedback/sources/2026-10-18-sarrathsilentstrider-curseforge.md)
+- Version: unknown
+- Type: ux
+- Area: Post
+- Severity: n/a
+- Status: new
+- Proposed: later
+
+Said:
+> Ya, I did not know about the LIFO thing.  In Classic undercutting was the nature of the beast.  But I still see people doing it.
+
+Steps / setup: none. The player learned it from Tyler's reply, not from the addon.
+
+Tyler's notes: "I am learning quickly that a lot of players dont actually understand how the new
+auction house works, and are trying to use logic from Classic AH in Forever AH." (his reply in
+the source)
+
+Recorder's notes:
+- Inference: the Post tab starts on Match lowest because the newest listing at a price sells
+  first (AGENTS.md, Code gotchas), but the tab does not say why, so a player from Classic reads
+  Match lowest as a missing undercut. Under the main rule this is the addon's to explain; the
+  narrow exception (teaching the auction house) may apply, which is Tyler's call.
+
+Ask Tyler: should the Post tab say why it matches (a line or a hint on the switch), or is this the
+"teaching the auction house" exception?
 
 ## Before this log
 
