@@ -8,13 +8,15 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.7.1.1 build 1
+## Current build: 0.7.1.1 build 2
 
 Fixes from FB-021 (sarrathsilentstrider could not post Rough Stone at 5c with the lowest at 7c)
 and from the new slow auction house in the tests, which plays each tab against answers that come
 a second later (`tests/slow_server.lua`, `tests/timing_test.lua`). Zip
-`auxForever-0.7.1.1-build1.zip`; `/reload` is enough. Test page build id `0-7-1-1-build-1`. Use
-the New theme. Have a cheap trade good several players sell (Linen Cloth, Rough Stone, Copper Ore).
+`auxForever-0.7.1.1-build2.zip`; `/reload` is enough. Test page build id `0-7-1-1-build-2`. Use
+the New theme. Have a cheap trade good several players sell (Linen Cloth, Rough Stone, Copper Ore)
+and one cheap piece of gear. Build 2 adds gear with only a buyout (step 7) and a look at whether
+Blizzard's window takes copper for gear (step 8); build 1 was not tested.
 
 - [ ] 1. Post tab: pick the trade good, wait until the bar at the bottom turns gold. Click the
       Buyout box, type a price 2c below the lowest listing, press Enter. Post is bright and the
@@ -28,6 +30,12 @@ the New theme. Have a cheap trade good several players sell (Linen Cloth, Rough 
 - [ ] 5. Search `linen cloth` and buy 1 (Buy, then Confirm): "Bought 1 × Linen Cloth".
 - [ ] 6. Sniper: Start. When a deal shows up, click it, then click it again to let go: the status
       goes back to "Watching" and the rounds go on. Skip if no deal shows up in a few minutes.
+- [ ] 7. Post tab, a piece of gear: clear the Starting bid box (right-click it), type a buyout,
+      press Enter. Post is bright and the note says "No starting bid, so it posts as buyout
+      only". Post it at a price you are happy with: "Posted 1".
+- [ ] 8. Blizzard UI button, Sell tab, put a piece of gear in: does its price box have a copper
+      field (g, s and c), or only gold and silver? Screenshot. This decides whether aux may keep
+      rounding gear prices to whole silver.
 
 ### 0.7.1 build 3
 

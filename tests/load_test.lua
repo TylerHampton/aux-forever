@@ -868,6 +868,8 @@ try('post item prices', function()
   check('bid below buyout is kept', bid == 500 and buyout == 700)
   bid, buyout = post.item_post_prices(500, 0)
   check('no buyout: bid only', bid == 500 and buyout == nil)
+  bid, buyout = post.item_post_prices(0, 700)
+  check('no starting bid: buyout only, as in Blizzard\'s sell frame', bid == nil and buyout == 700)
 
   -- the post itself sends no bid when it would equal the buyout
   local args

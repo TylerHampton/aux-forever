@@ -18,6 +18,10 @@ return function(env)
   -- a player typing into an edit box: focus, one key at a time, then Enter (which ends the focus)
   local function type_into(box, text)
     box.__scripts.OnEditFocusGained(box)
+    if text == '' then -- the old text selected and deleted
+      box:SetText('')
+      box.__scripts.OnTextChanged(box, true)
+    end
     for i = 1, #text do
       box:SetText(text:sub(1, i))
       box.__scripts.OnTextChanged(box, true)
@@ -429,5 +433,26 @@ return function(env)
     server:restore()
     bar.clear()
     aux.set_tab(1)
+  end)
+
+  -- gear with an empty starting bid and a typed buyout: Blizzard's sell frame posts it as buyout
+  -- only. aux asked for a price instead (and would have sent a 1s bid). Same kind as FB-021: a rule
+  -- the game does not have.
+  try('timing: gear with only a buyout can be posted', function()
+    local server = new_server(env)
+    local post = post_setup(server)
+    post.select_item('7001:0')
+    check('buyout only: the listings arrive', server:wait(function() return aux.status_bar.done and post.selected_item and post.selected_item.key == '7001:0' end, 80))
+    server:ticks(3)
+    type_into(post.unit_start_price_input, '')
+    type_into(post.unit_buyout_price_input, '1g 90s')
+    post.validate_parameters()
+    check('buyout only: Post is ready', post.disabled_reason() == nil)
+    check('buyout only: the note says so', plain(post.price_note_text()):find('No starting bid', 1, true) ~= nil)
+    click_post(post)
+    server:ticks(20)
+    local sent = server.posts[1]
+    check('buyout only: posted with no bid at 1g 90s', sent and sent.bid == nil and sent.buyout == 19000)
+    post_teardown(server, post)
   end)
 end

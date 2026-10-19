@@ -43,6 +43,13 @@ Tyler owns the project and tests every change in the game. He is not a programme
   source gives them. Older dates were corrected to his time on 2026-10-09 (Tyler).
 - He tests in game and reports with screenshots and BugSack error text. Each bug report becomes a
   fix plus a test that fails without the fix.
+- The addon informs, it does not decide for the player (Tyler, 2026-10-18, after FB-021): "We
+  aren't controlling people and telling them exactly what they need to do. People should be free
+  to do whatever they want with our add-on. We just give them the tools that they need to make
+  the correct decision." aux never blocks something Blizzard's own window allows (a price, a
+  quantity, buyout only). It may warn (the red vendor warning) and suggest (the automatic price),
+  never refuse. Before adding a check that fades a button, find the same rule in Blizzard's code
+  (`Gethe/wow-ui-source`, branch `forever`) or in the game's answer.
 - Feedback from players reaches us through Tyler and is logged in `docs/feedback.md` (rules at
   the top of that file) before anyone fixes it. A player's problem is treated as the addon's
   problem, never as the player's mistake: the addon should make players good at the auction house

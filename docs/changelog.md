@@ -14,6 +14,8 @@ A change that comes from a player's feedback credits them by in-game name at the
   under the automatic one (for example 5c with the lowest at 7c) faded the Post button with "The
   starting bid is above the buyout", about a starting bid that trade goods do not have, so only
   Undercut's one copper below could be posted (reported by sarrathsilentstrider).
+- Gear can be posted with only a buyout, as in Blizzard's window: leave the starting bid empty.
+  Before, Post asked for a price even with a buyout typed.
 - A price you type while the listings are still loading is kept. Before, the automatic price
   replaced it the moment the listings arrived.
 - Post waits until the item's listings are in ("Reading the listings..."), unless you typed a

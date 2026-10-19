@@ -414,10 +414,12 @@ end
 -- Bid and buyout for an item auction. The server refuses a buyout that is not above the starting bid
 -- ("Internal auction error"; Blizzard's own sell frame blocks it too), so a starting bid at or above
 -- the buyout is left out and the item is posted for buyout only, at the price the player sees.
+-- An empty starting bid is buyout only too, as in Blizzard's sell frame (it was posted with a 1s
+-- bid, and Post asked for a price when only the buyout was typed).
 function M.item_post_prices(start_price, buyout_price)
     local buyout = buyout_price > 0 and round_price(buyout_price) or nil
-    local bid = round_price(max(1, start_price))
-    if buyout and bid >= buyout then
+    local bid = start_price > 0 and round_price(start_price) or nil
+    if buyout and bid and bid >= buyout then
         bid = nil
     end
     return bid, buyout
@@ -542,7 +544,9 @@ function M.price_note_text()
     -- gear: a starting bid equal to the buyout is left out when posting (item_post_prices)
     if selected_item and not selected_item.commodity and get_unit_buyout_price() > 0 then
         local bid = item_post_prices(get_unit_start_price(), get_unit_buyout_price())
-        if not bid and get_unit_start_price() <= get_unit_buyout_price() then
+        if get_unit_start_price() == 0 then
+            note = note .. '\n' .. aux.color.label.disabled('No starting bid, so it posts as buyout only')
+        elseif not bid and get_unit_start_price() <= get_unit_buyout_price() then
             note = note .. '\n' .. aux.color.label.disabled('Bid equals buyout, so it posts as buyout only')
         end
     end
@@ -581,7 +585,7 @@ function M.disabled_reason()
         return 'The starting bid is above the buyout.'
     elseif selected_item.commodity and get_unit_buyout_price() == 0 then
         return 'Type a price to post.'
-    elseif not selected_item.commodity and get_unit_start_price() == 0 then
+    elseif not selected_item.commodity and get_unit_start_price() == 0 and get_unit_buyout_price() == 0 then
         return 'Type a price to post.'
     elseif stack_count_input:GetNumber() == 0 then
         return 'Choose how many to post.'
