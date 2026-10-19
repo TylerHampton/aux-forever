@@ -11,10 +11,12 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 ## Start here (next session)
 
 **Where things stand (2026-10-19):** **0.7.1.1 build 2** is on branch
-`claude/zealous-bardeen-i9v5mp`, waiting for Tyler's test (`TESTING.md`, Current build; test page
-build id `0-7-1-1-build-2`; zip `auxForever-0.7.1.1-build2.zip`, `/reload` is enough). Build 1
-was not tested; build 2 adds gear posted with only a buyout (Blizzard allows it, aux asked for a
-price) and Tyler's rule in AGENTS.md: aux never blocks what Blizzard's window allows. Not merged,
+`claude/zealous-bardeen-i9v5mp`, **tested by Tyler** (results in `TESTING.md`, Current build):
+FB-021 fixed in game (typed prices below the lowest post, with and without Undercut), buying and
+the Sniper fine; the two timing steps are too fast to see by hand. Build 2 also adds gear posted
+with only a buyout and Tyler's rule in AGENTS.md: aux never blocks what Blizzard's window allows.
+Next: Tyler decides whether to release 0.7.1.1 (pull request, merge, Release workflow). Not
+merged, no pull request yet. Not merged,
 no pull request yet. Next: read the test page results, then ask Tyler whether to release.
 
 - **What it is:** FB-021 (sarrathsilentstrider: Rough Stone listed at 7c, 5c typed, Post would
@@ -40,9 +42,9 @@ no pull request yet. Next: read the test page results, then ask Tyler whether to
   as in the original aux; cancels already handle a slow answer (0.7.1); quick item switching on
   the Post tab is fine. Tyler's CurseForge reply for FB-021 (posted before the cause was known)
   says typing before the listings load was the bug; it was a real bug but not Sarrath's.
-- Open: does Forever take copper for gear? aux rounds gear to whole silver from what Tyler saw
-  listed (`docs/forever-auction-house.md`, section 4), not from Blizzard's code; build 2 step 8
-  checks Blizzard's Sell tab. If it has a copper box, aux's rounding is a limit to remove.
+- Gear and copper: Blizzard's Sell tab has a copper box for gear, but Tyler's 10s 50c post there
+  does not seem to have gone through (screenshots, no error text). aux keeps gear in whole silver
+  until a refused post is seen with its error text (`docs/forever-auction-house.md`, section 4).
 - Open for Tyler: FB-022 (should the Post tab say why it matches the lowest price, or is that
   teaching the auction house?); a corrected reply to Sarrath (in the session's chat).
 

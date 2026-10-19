@@ -127,7 +127,7 @@ For whoever fixes or builds from it:
 | [FB-018](#fb-018-a-setting-for-whether-the-post-tab-starts-on-match-lowest-or-undercut) | 2026-10-17 | sarrathsilentstrider | request | Settings | n/a | A setting for whether the Post tab starts on Match lowest or Undercut | wont-fix (Tyler: keep as is) |
 | [FB-019](#fb-019-praise-everything-is-shte-in-comparison) | 2026-10-17 | sarrathsilentstrider | praise | Overall | n/a | Praise: "everything is SH!TE in comparison" | new |
 | [FB-020](#fb-020-find-the-cheapest-way-to-fill-waylaid-crates-and-writs) | 2026-10-17 | Harro22 | request | Search | n/a | Find the cheapest way to fill Waylaid crates and writs | planned 0.8 |
-| [FB-021](#fb-021-a-typed-price-below-the-lowest-listing-cannot-be-posted-rough-stone-5c) | 2026-10-18 | sarrathsilentstrider | bug | Post | S2 | A typed price below the lowest listing cannot be posted (Rough Stone, 5c) | fixed 0.7.1.1 build 1, waiting for Tyler's test |
+| [FB-021](#fb-021-a-typed-price-below-the-lowest-listing-cannot-be-posted-rough-stone-5c) | 2026-10-18 | sarrathsilentstrider | bug | Post | S2 | A typed price below the lowest listing cannot be posted (Rough Stone, 5c) | fixed 0.7.1.1 (tested 2026-10-19) |
 | [FB-022](#fb-022-the-player-did-not-know-the-newest-listing-at-a-price-sells-first) | 2026-10-18 | sarrathsilentstrider | ux | Post | n/a | The player did not know the newest listing at a price sells first | new |
 
 ## Players
@@ -1167,8 +1167,8 @@ whether he needs to buy one: not yet, only when 0.8 is planned in detail).
 - Type: bug
 - Area: Post
 - Severity: S2 (Blizzard's window was the way around it)
-- Status: fixed 0.7.1.1 build 1 (branch `claude/zealous-bardeen-i9v5mp`), waiting for Tyler's
-  test in game
+- Status: fixed 0.7.1.1 (branch `claude/zealous-bardeen-i9v5mp`); tested in game by Tyler on
+  2026-10-19, build 2: Light Feather listed at 7c, 4c typed and posted, and 5c with Undercut on
 - Proposed: hotfix (0.7.1.1)
 
 Said:

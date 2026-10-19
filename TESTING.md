@@ -18,6 +18,15 @@ the New theme. Have a cheap trade good several players sell (Linen Cloth, Rough 
 and one cheap piece of gear. Build 2 adds gear with only a buyout (step 7) and a look at whether
 Blizzard's window takes copper for gear (step 8); build 1 was not tested.
 
+Tested by Tyler 2026-10-19 (test page `0-7-1-1-build-2`, screenshots): steps 1, 2, 5, 6 pass
+(Light Feather listed at 7c: 4c typed and posted with Match lowest, 5c typed and posted with
+Undercut on, "Your own price" both times; 1 Linen Cloth bought; Sniper watching with 97 deals).
+Steps 3 and 4 could not be seen by hand: the listings arrive too fast ("I cant even move that
+fast"); the timing tests cover them. Step 7: the sword was posted with bid equal to buyout (11s),
+which Blizzard's list shows as buyout only; the empty starting bid case was not tried by hand
+(covered by a test). Step 8: Blizzard's window has a copper box for gear, but the 10s 50c post
+there does not seem to have gone through (`docs/forever-auction-house.md`, section 4).
+
 - [ ] 1. Post tab: pick the trade good, wait until the bar at the bottom turns gold. Click the
       Buyout box, type a price 2c below the lowest listing, press Enter. Post is bright and the
       line under the price says "Your own price". Set the amount to 1 and Post: "Posted 1".
