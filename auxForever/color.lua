@@ -21,7 +21,7 @@ end
 
 -- auxForever (0.6): two looks, chosen in Settings and applied at login (aux-addon.lua). Both palettes
 -- have the same names; a name missing from one is an error the tests catch.
---   new      the UI Kit in the Paper file "auxForever Screens" (Christian Webster): near black
+--   new      the UI Kit in the Paper file "auxForever Screens" (webster): near black
 --            surfaces, black edges, one gold accent. Its blacks are a little lighter than the kit's
 --            and sunken fields have a gray edge, so text boxes stand out from the panels (Tyler,
 --            2026-10-08: "it's hard to tell where the text boxes are").

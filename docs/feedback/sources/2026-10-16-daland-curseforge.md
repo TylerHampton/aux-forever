@@ -1,7 +1,7 @@
 # Source: daland in CurseForge comments, 2026-10-16
 
 - Channel: comments on the auxForever CurseForge project page.
-- Received: 2026-10-16 (Tyler's evening, Mountain Time), as three screenshots from Tyler, one
+- Received: 2026-10-16 (Tyler's date), as three screenshots from Tyler, one
   per comment, with no message of his own. The screenshots are not kept; this transcript
   replaces them.
 - Time is as CurseForge showed it when Tyler took the screenshots ("1 day ago" on each, so

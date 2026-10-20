@@ -89,7 +89,7 @@ function event.AUX_LOADED()
         replicate_time = 0,
         window = {},
         background_opacity = 1,
-        -- auxForever (0.6): the look, 'new' (Christian Webster's UI Kit) or 'classic' (the 0.5 look),
+        -- auxForever (0.6): the look, 'new' (webster's UI Kit) or 'classic' (the 0.5 look),
         -- chosen in Settings and applied at the next login or /reload
         theme = 'new',
         items = {},

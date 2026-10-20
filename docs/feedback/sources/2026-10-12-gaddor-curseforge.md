@@ -1,7 +1,7 @@
 # Source: Gaddor in CurseForge comments, 2026-10-12
 
 - Channel: comments on the auxForever CurseForge project page.
-- Received: 2026-10-12 (Tyler's evening, Mountain Time), as one screenshot from Tyler. The
+- Received: 2026-10-12 (Tyler's date), as one screenshot from Tyler. The
   screenshot is not kept; this transcript replaces it.
 - Time is as CurseForge showed it when Tyler took the screenshot. No replies were visible.
 - Transcribed word for word, typos kept.

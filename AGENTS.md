@@ -35,12 +35,18 @@ Tyler owns the project and tests every change in the game. He is not a programme
   know, what you infer and what you are unsure of. Never invent facts; cite sources.
 - No em dashes and no emojis in anything published: README, docs, commit messages, in-game text.
 - Avoid filler words such as delve, leverage, robust, seamless, crucial, notably.
-- Dates are Tyler's: Mountain Time (America/Denver). The session clock and the date an agent is
-  given are usually UTC, six hours ahead in summer time and seven in winter, so from 6 pm his time
-  (5 pm in winter) they already show the next day; he often works in the evening. Get his date
-  with `TZ=America/Denver date` and write that one in docs, comments, changelog headings and
+- Dates are Tyler's: UTC-6 in summer time, UTC-7 in winter (US daylight saving dates). The
+  session clock and the date an agent is given are usually UTC, so from 6 pm his time (5 pm in
+  winter) they already show the next day. Get his date with
+  `TZ='<-07>7<-06>,M3.2.0,M11.1.0' date` and write that one in docs, comments, changelog headings and
   commit messages. Dates of outside events (a Blizzard patch, a player's message) stay as their
   source gives them. Older dates were corrected to his time on 2026-10-09 (Tyler).
+- Privacy (Tyler, 2026-10-20): this repository is public, so write nothing about Tyler beyond
+  what the work needs. No city, region or time zone name (only the UTC offsets above), no
+  schedule or habits ("his evening"), no real-life details (job, family, contact details, his
+  game characters, realm or guild members' details). The same goes for collaborators: the
+  designer is called only "webster", never his real name, handles or job. Player rules are in
+  `docs/feedback.md`. Earlier mentions were removed on 2026-10-20; git history still has them.
 - He tests in game and reports with screenshots and BugSack error text. Each bug report becomes a
   fix plus a test that fails without the fix.
 - The addon informs, it does not decide for the player (Tyler, 2026-10-19, after FB-021): "We
@@ -80,7 +86,7 @@ machine reclaimed at any time after that, so anything not pushed is lost.
 1. If code changed since the last push: run the tests (both looks) and the syntax check.
 2. Commit and push everything to the session's branch.
 3. `docs/status.md`, "Start here": where things stand (what is built, tested, released, waiting),
-   the next step, and open questions for Tyler. Use his date (Mountain Time).
+   the next step, and open questions for Tyler. Use his date.
 4. Record what was decided during the session where it belongs: rules about how to work in this
    file, player feedback in `docs/feedback.md`, plans in `docs/roadmap.md`, unreleased changes in
    `docs/changelog.md`, the current build's steps in `TESTING.md`.
@@ -275,9 +281,9 @@ aux runs inside the game; every frame it spends time in costs the player frame r
 
 Since 0.6 there are two looks, picked in Settings (account-wide, `account_data.theme`) and applied
 at the next login or `/reload` (Tyler, 2026-10-08: keep the 0.5 look as an option, move forward with
-Webster's). Both share one layout; only colors and shapes differ.
+webster's). Both share one layout; only colors and shapes differ.
 
-- **New** (the default): Christian Webster's UI Kit, Paper file "auxForever Screens" (pages "UI
+- **New** (the default): webster's UI Kit, Paper file "auxForever Screens" (pages "UI
   Kit" and "New"). Near-black surfaces with black 1px edges and square corners, raised controls
   lighter at the top (`gui.add_sheen`), sunken tables and inputs with a gray edge, one gold accent
   (`229, 190, 91`), zebra rows in dark gray. Its blacks are a little lighter than the kit's so text

@@ -1,7 +1,7 @@
 # Source: MDHippie in CurseForge comments, 2026-10-13
 
 - Channel: comments on the auxForever CurseForge project page.
-- Received: 2026-10-13 (Mountain Time), as one screenshot from Tyler that also shows HoaxBox's
+- Received: 2026-10-13 (Tyler's date), as one screenshot from Tyler that also shows HoaxBox's
   comment (`2026-10-13-hoaxbox-curseforge.md`). The screenshot is not kept; this transcript
   replaces it.
 - Time is as CurseForge showed it when Tyler took the screenshot. A thread line runs down from
