@@ -169,7 +169,7 @@ A **full game restart** is needed to update (a new file was added); `/reload` is
 
 ## 0.6 (2026-10-09)
 
-A new look by Webster, with the 0.5 look kept as the Classic theme, a redesigned Post tab, a bigger
+A new look by webster, with the 0.5 look kept as the Classic theme, a redesigned Post tab, a bigger
 Settings menu and a Sniper that only trusts prices it has seen for 3 days. Run a Full scan on each
 visit to the auction house: tooltips, recipe costs and the Sniper all work from it.
 
@@ -178,7 +178,7 @@ warning triangle), and the game only loads new files on a restart; `/reload` is 
 
 ### The new look and themes
 
-- New look, designed by Webster from his UI Kit and screen mockups: near-black panels with black
+- New look, designed by webster from his UI Kit and screen mockups: near-black panels with black
   edges and square corners, raised buttons that are lighter at the top, and one gold color for
   what is selected or the main action of a screen.
 - The selected tab, sub tab and buy quantity have a gold outline. The main button of each screen

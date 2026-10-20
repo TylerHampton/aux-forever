@@ -33,7 +33,7 @@ raises the third (0.6.1); new features are the next minor version (0.7).
   (unverified).
 - **New theme tweaks** from Tyler (screenshots promised).
 - **Three ways to see the auction house by 1.0** (Tyler, 2026-10-09): Blizzard's (the Blizzard UI
-  button), Classic (the 0.5 look) and New (Webster's). Two of the three are in 0.6.
+  button), Classic (the 0.5 look) and New (webster's). Two of the three are in 0.6.
 - **Gear versions on the Post tab** (found by Tyler, 2026-10-10, 0.6.0.2 build 4): gear with
   random endings ("Merc Sword of the Eagle", "of Strength") is one item on the Post tab, and its
   listings stop after the first version found, so a sword is priced against another version

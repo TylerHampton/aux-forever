@@ -1,7 +1,7 @@
 # Source: sarrathsilentstrider and Harro22 in CurseForge comments, 2026-10-17
 
 - Channel: comments on the auxForever CurseForge project page.
-- Received: 2026-10-17 (Tyler's morning, Mountain Time), as two screenshots from Tyler. The
+- Received: 2026-10-17 (Tyler's date), as two screenshots from Tyler. The
   screenshots are not kept; this transcript replaces them.
 - Times are as CurseForge showed them when Tyler took the screenshots. No replies were visible.
 - The first comment is cut off by CurseForge's "Read more"; only the visible part is known.

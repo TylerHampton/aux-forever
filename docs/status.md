@@ -1,10 +1,16 @@
 # Status
 
-Last updated 2026-10-19, Mountain Time (0.7.1.1 released).
+Last updated 2026-10-20, Tyler's time (privacy pass; 0.7.1.1 released).
 
-**Dates:** Tyler's, in Mountain Time (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
+**2026-10-20, privacy pass (docs only, no addon change):** Tyler asked that the public repository
+say no more about him than the work needs. Removed: his city and time zone name (dates now use
+UTC offsets, rule in `AGENTS.md`), mentions of when in his day he worked, and the designer's real
+name, handle and job (he is now only "webster"). New privacy rule in `AGENTS.md`, "The owner".
+Git history still has the old text; rewriting it was judged not worth it.
+
+**Dates:** Tyler's (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
-that wrote each line (the 0.6 and 0.6.0.1 releases were on the evening of 2026-10-09 his time, not
+that wrote each line (the 0.6 and 0.6.0.1 releases were on 2026-10-09 his time, not
 10-10). A few lines edited later could not be checked that way and may still be a day ahead. Dates
 of outside events (Blizzard patches, players' messages) were left as their source gave them.
 
@@ -46,7 +52,7 @@ tab say why it matches the lowest price?).
   does not seem to have gone through (screenshots, no error text). aux keeps gear in whole silver
   until a refused post is seen with its error text (`docs/forever-auction-house.md`, section 4).
 - Open for Tyler: FB-022 (should the Post tab say why it matches the lowest price, or is that
-  teaching the auction house?); a corrected reply to Sarrath (in the session's chat).
+  teaching the auction house?); a corrected reply to Sarrath (`docs/feedback.md`, FB-021, "Reply for the player").
 
 **Before that:** **0.7.1 is released** (2026-10-17, PR #30, `main` e63ec0a): every own
 auction on its own row, cancels confirmed by the auction house, no silent search misses (FB-014 to
@@ -250,7 +256,7 @@ not merged; ask Tyler whether to merge it.
   (`docs/roadmap.md`): gear is priced against whichever version of the item comes first, not the
   player's own (Merc Sword: 11s for Eagle, 60s for Strength). Investigate first, mockup before
   building. Also watch for the Wool Cloth post that did not seem to reload (build 1, once).
-- **Rules added in this session** (now on `main`, `AGENTS.md`): dates in Tyler's Mountain Time;
+- **Rules added in this session** (now on `main`, `AGENTS.md`): dates in Tyler's time;
   wrap up a session without being asked when he says he is done for the day.
 
 - **0.6.0.2 build 1** (2026-10-09): the Post tab always searches the picked item. Tyler's
@@ -267,7 +273,7 @@ not merged; ask Tyler whether to merge it.
   (Scroll of Stamina, one row per price: 40 at 13s) pass; picking again pass; price step not
   marked, but both screenshots show the price at the lowest listing ("Same as the lowest
   listing"). After posting: Light Feather reloaded and showed his new auction in green, but the
-  first post of the evening (1 Wool Cloth) did not seem to reload; Tyler is unsure whether he
+  first post of that test (1 Wool Cloth) did not seem to reload; Tyler is unsure whether he
   waited long enough, and every post after it reloaded. Not reproduced, cause unknown; watch for it.
   Still open: Light Feather showed three rows at 8c (26 and 480 at 24h, his own 2 at 2h). The
   commodity search itself returned two rows at that price, and `record_auction` merges only rows
@@ -316,7 +322,7 @@ not merged; ask Tyler whether to merge it.
   Blizzard's Track Recipe checkbox (details below). Tag `v0.6.0.1`, GitHub pre-release
   https://github.com/TylerHampton/aux-forever/releases/tag/v0.6.0.1, CurseForge Beta file id
   9114589 (Release run 38020724242). `/reload` was enough for players.
-- **Released 0.6** on 2026-10-09 (PR #15, 49cc8cf): Webster's new look plus the Classic theme,
+- **Released 0.6** on 2026-10-09 (PR #15, 49cc8cf): webster's new look plus the Classic theme,
   the two-column Settings menu, the Post panel redesign (option A), the Sniper's 3-day rule and
   price history line. Tag `v0.6`, CurseForge Beta file id 9114535. Needed a full game restart
   (new texture `warning.tga`). Full list: `docs/changelog.md`, 0.6.
@@ -441,16 +447,15 @@ in `.github/scripts/curseforge.sh` (PR after #15), then the Release workflow was
 
 ## 0.6 build log, builds 2 to 6 (2026-10-09, branch `claude/eager-dijkstra-drmz2k`)
 
-Tyler, 2026-10-08: Webster (Christian Webster, GitHub `webguh`, a collaborator who does UI design for
-work) made build 1 on the branch `design`; he is done with it. Tyler wants three ways to see the
-auction house by 1.0: Blizzard's (the Blizzard UI button), the 0.5 look (Classic) and Webster's
-(New). New is the default, also for players updating from 0.5. Tyler plans about one release a
-week; 0.6 is not to be released yet.
+Tyler, 2026-10-08: webster (a collaborator who designs UIs) made build 1 on the branch
+`design`; he is done with it. Tyler wants three ways to see the auction house by 1.0:
+Blizzard's (the Blizzard UI button), the 0.5 look (Classic) and webster's (New). New is the
+default, also for players updating from 0.5. Tyler plans about one release a week; 0.6 is not to be released yet.
 
 Built (tests pass in both looks; checks for Tyler in `TESTING.md`, Current build):
 - Look switch: Settings, Look: New or Classic, saved in `account_data.theme` (account-wide). It
   takes effect at the next login or reload; a Reload now button appears when the choice differs
-  from what is on screen. Classic is the 0.5 palette and rounded corners on Webster's layout (same
+  from what is on screen. Classic is the 0.5 palette and rounded corners on webster's layout (same
   sizes and positions), flat buttons (no sheen), no top and bottom bands.
 - How it works (`gui/core.lua`, "the look"): widgets are built while the files load, before the
   saved settings exist. Shapes wait until `gui.settle_theme` (called at the end of `AUX_LOADED` in
@@ -550,9 +555,9 @@ collection `builds/0-6-build-6/results`.
 Open questions for Tyler:
 - The CurseForge player's in-game name (changelog credit, FB-008) and which of the not-obvious
   commands above belong in Settings.
-- His tweaks to Webster's look (he will send screenshots).
+- His tweaks to webster's look (he will send screenshots).
 
-## 0.6 build 1: the new look (2026-10-08, branch `design`, by Webster)
+## 0.6 build 1: the new look (2026-10-08, branch `design`, by webster)
 
 Tyler asked to "take the ui kit and screens and make the addon look like that". The design is the
 Paper file "auxForever Screens", pages "UI Kit" (every color, size and control) and "New" (the seven
