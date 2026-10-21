@@ -37,6 +37,20 @@ check it out and merge tonight". Nothing is released; 0.7.1.1 is still the lates
 Next: Tyler tests build 1, then says whether 0.8 ships with gamepad alone or waits for the other
 0.8 items (`docs/roadmap.md`). Open for Tyler: FB-022 (below).
 
+- **0.8 planning (2026-10-20):** Tyler added a crafting shopping list to 0.8 (FB-023, Kortan:
+  recipe, how many, what is still needed and where it is cheaper; one recipe at a time). Still
+  open for Tyler: compare crafted materials with crafting them, and which price the list shows;
+  then a mockup. Gear versions: Tyler asked what it meant; the way to settle it is a screenshot of
+  two same-name gear tooltips (do the stats differ?). Waylaid crates: waiting on a crate's tooltip
+  and what "most cost effective" should mean.
+- **Other characters' items (0.9 candidate, Claude's thoughts 2026-10-20):** two ways. (a) aux
+  records each character's bags (always), bank (when opened) and mail (when opened) in its
+  account-wide saved data, as Syndicator does; counts only, saved on a timer and on logout, never
+  per bag event. Works only for characters logged in at least once with aux, on the same account
+  folder, and is as fresh as each one's last login. (b) Read Syndicator's data when it is
+  installed: no new tracking code, but depends on another addon being installed and working on
+  Forever (not checked). Claude's suggestion: build the 0.8 list so "what you have" is one place,
+  then add (a) in 0.9, and (b) only if players already use Syndicator on Forever.
 - **What it does:** auxForever can be used with a controller in Forever's gamepad mode: D-pad, A,
   B, X, Y, LB/RB, a hint strip with the controller's icons, aux's popups inside aux. Mouse and
   keyboard are unchanged. How and why: `docs/gamepad.md`. New file `auxForever/gamepad.lua`; five

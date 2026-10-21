@@ -129,6 +129,7 @@ For whoever fixes or builds from it:
 | [FB-020](#fb-020-find-the-cheapest-way-to-fill-waylaid-crates-and-writs) | 2026-10-17 | Harro22 | request | Search | n/a | Find the cheapest way to fill Waylaid crates and writs | planned 0.8 |
 | [FB-021](#fb-021-a-typed-price-below-the-lowest-listing-cannot-be-posted-rough-stone-5c) | 2026-10-18 | sarrathsilentstrider | bug | Post | S2 | A typed price below the lowest listing cannot be posted (Rough Stone, 5c) | fixed 0.7.1.1 (released 2026-10-19) |
 | [FB-022](#fb-022-the-player-did-not-know-the-newest-listing-at-a-price-sells-first) | 2026-10-18 | sarrathsilentstrider | ux | Post | n/a | The player did not know the newest listing at a price sells first | new |
+| [FB-023](#fb-023-a-shopping-list-for-crafting-n-of-a-recipe) | 2026-10-20 | Kortan | request | Search | n/a | A shopping list for crafting N of a recipe | planned 0.8 |
 
 ## Players
 
@@ -157,6 +158,8 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
 - **sarrathsilentstrider**: CurseForge commenter (CurseForge name; in-game name unknown).
   Reported FB-017, asked for FB-018, praised in FB-019, reported FB-021 and FB-022. Plays in the
   Classic theme.
+- **Kortan**: told Tyler directly (Tyler's retelling, not his own words). Asked for FB-023. Knows
+  TSM well, including its alt inventory data. Spelling of the in-game name not yet confirmed.
 - **Harro22**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-020.
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
@@ -1236,6 +1239,51 @@ Recorder's notes:
 
 Ask Tyler: should the Post tab say why it matches (a line or a hint on the switch), or is this the
 "teaching the auction house" exception?
+
+### FB-023: A shopping list for crafting N of a recipe
+
+- Received: 2026-10-20
+- From: Kortan (1 request)
+- Where: told to Tyler; Tyler retold it
+- Source: [source](feedback/sources/2026-10-20-kortan-via-tyler.md)
+- Version: unknown
+- Type: request
+- Area: Search (recipe search)
+- Severity: n/a
+- Status: planned 0.8 (Tyler, 2026-10-20: "add a feature to this update")
+- Proposed: 0.8
+
+Said (Tyler's retelling):
+> I want a feature that used to be in TSM (Trade Skill Master), where the user could put in a
+> number for how many of something they wanted to craft. There was a way to automatically buy the
+> materials for the amount you want to craft for a recipe. [...] it would tell you the best place
+> to get everything (or it would tell you to get it from a vendor if that's the best place to get
+> it).
+
+What is asked: pick a recipe, type how many to craft, and get a list of the materials still
+needed, each with where it is cheaper (auction house or vendor) and its price, then buy the
+auction house ones from the list.
+
+Tyler's notes: it feels like it goes in the Search tab. One recipe at a time for now. Counting
+what alts hold (Kortan: TSM could, with an addon called Syndicator) may be saved for 0.9.
+
+Recorder's notes:
+- Fact (code): aux already reads any recipe's materials (`recipe_parts` in
+  `auxForever/tabs/search/recipe.lua`, `C_TradeSkillUI.GetRecipeSchematic`), picks vendor or
+  auction house per material (`info.merchant_buy_info`, only for vendors the player has opened),
+  and buys through the buy bar, which never spends more than the price shown.
+- Inference: every purchase needs its own click (aux's purchase code runs from click handlers);
+  "automatic" therefore means one click per material line, with aux moving to the next line, as
+  in TSM. Not checked on Forever beyond aux's own buying.
+- Related: FB-007 (recipe cost line, built 0.5) and FB-020 (Waylaid crates, planned 0.8). A crate
+  is also "N of these items, cheapest source", so one shopping list could serve both.
+
+Unknowns: whether materials the player crafts (a Bolt of Silk Cloth) should be compared with
+crafting them (Claude's suggestion: not in the first version); which price the list shows.
+
+Ask Tyler: open as of 2026-10-20: materials crafted from other materials, and the price shown
+(Claude suggests today's auction house prices from a quick search when the list opens). Then a
+mockup before anything is built.
 
 ## Before this log
 

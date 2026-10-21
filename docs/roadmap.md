@@ -11,6 +11,11 @@ raises the third (0.6.1); new features are the next minor version (0.7).
   `gamepad-navigation`, built and tested in game by them on 0.7, 2026-10-13), not planned by
   Tyler, who chose to take it (2026-10-20). Brought onto 0.7.1.1 as 0.8 build 1. Details:
   `docs/gamepad.md`.
+- **Shopping list for crafting** (FB-023, Kortan; Tyler, 2026-10-20): pick a recipe, type how
+  many to craft, see what is still needed (bags counted, the bank once opened) and where each
+  material is cheaper, auction house or vendor, then buy down the list. One recipe at a time.
+  Likely home: a Shopping sub tab in Search, reached from the profession window (mockup first).
+  Could also serve Waylaid crates.
 - **Waylaid crates** (FB-020, Harro22): the cheapest way to fill a crate from the auction house.
   Tyler: Forever has them, "We could plan that for 0.8." Needs first: what each crate asks for
   (a crate's tooltip, from Tyler) and whether the game says it in a form the addon can read.
@@ -23,6 +28,13 @@ raises the third (0.6.1); new features are the next minor version (0.7).
   other versions, and Tyler had just bought the 9s one), not a broken check: in build 3 the check
   counted the exact version right ("Tied with 4 others"). To decide for 0.8: compare with the
   exact version, every version of the same name, or show both (mockup first).
+
+## 0.9: candidates (none decided)
+
+- **What your other characters hold** (from FB-023, Kortan; Tyler, 2026-10-20: "could be a thing
+  that is so valuable to build in that we just save it for 0.9"): each character, when logged in
+  with aux, records its bags, bank and mail; the shopping list and tooltips then count them.
+  Options and trade-offs: `docs/status.md`, 2026-10-20.
 
 ## After 0.6: candidates for the next version (none decided)
 
