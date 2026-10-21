@@ -68,12 +68,12 @@ function aux.event.AUX_LOADED()
     -- Forever: the server can ask to confirm a post (e.g. a price far from the market); aux shows its own dialog
     aux.event_listener('AUCTION_HOUSE_POST_WARNING', function()
         if pending_post then
-            StaticPopup_Show('AUX_POST_CONFIRM', CONFIRM_AUCTION_POSTING_TEXT)
+            aux.show_popup('AUX_POST_CONFIRM', CONFIRM_AUCTION_POSTING_TEXT)
         end
     end)
     aux.event_listener('AUCTION_HOUSE_POST_ERROR', function()
         if pending_post then
-            StaticPopup_Show('AUX_POST_CONFIRM', AUCTION_POSTING_ERROR_TEXT)
+            aux.show_popup('AUX_POST_CONFIRM', AUCTION_POSTING_ERROR_TEXT)
         end
     end)
     -- auxForever (0.5, FB-003): the game's own error text while a post is under way (it shows it in
@@ -86,7 +86,7 @@ function aux.event.AUX_LOADED()
     aux.event_listener('AUCTION_HOUSE_SHOW_ERROR', function()
         if posting then
             post_outcome = 'refused'
-            StaticPopup_Hide('AUX_POST_CONFIRM')
+            aux.hide_popup('AUX_POST_CONFIRM')
             pending_post = nil
             posting = nil
             last_post_update = nil
@@ -440,7 +440,7 @@ function post_auction()
         return
     end
 
-    StaticPopup_Hide('AUX_POST_CONFIRM')
+    aux.hide_popup('AUX_POST_CONFIRM')
     post_outcome, post_error_text, message = nil, nil, nil
     local bags_before = bag_count(item_key)
     posting_item = {key = item_key, before = bags_before}
@@ -482,7 +482,7 @@ function post_auction()
             -- waits longer while a confirmation dialog is open
             if GetTime() - last_post_update > (pending_post and 60 or 5) then
                 post_outcome = post_outcome or 'timeout'
-                StaticPopup_Hide('AUX_POST_CONFIRM')
+                aux.hide_popup('AUX_POST_CONFIRM')
                 pending_post = nil
                 posting = nil
                 last_post_update = nil

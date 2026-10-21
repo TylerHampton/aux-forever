@@ -455,4 +455,41 @@ return function(env)
     check('buyout only: posted with no bid at 1g 90s', sent and sent.bid == nil and sent.buyout == 19000)
     post_teardown(server, post)
   end)
+
+  -- gamepad (gamepad.lua, contributed by nokkty): Y presses Post. It must obey a faded Post as a
+  -- click does: nothing while the listings load, and one post for two quick presses.
+  try('timing: gamepad Y on the Post tab', function()
+    local server = new_server(env)
+    local post = post_setup(server)
+    local aux_frame = module('aux').frame
+    local real = {G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown}
+    G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = function() end, function() end, function() return false end
+    G.InputUtil = {IsGamepadUIEnabled = function() return true end}
+    aux_frame:Hide(); aux_frame:Show()
+    aux.set_tab(3)
+    -- as in the game: Post is faded while the addon has a reason (the harness's IsEnabled is always true)
+    rawset(post.post_button, 'IsVisible', function() return true end)
+    rawset(post.post_button, 'IsEnabled', function() return post.selected_item ~= nil and not post.disabled_reason() end)
+    rawset(post.post_button, 'Click', function(self) self.__scripts.OnClick(self) end)
+    local function y() post.validate_parameters(); local b = G.auxForeverPadY; b.__scripts.OnClick(b) end
+
+    post.select_item('2835:0')
+    post.set_unit_buyout_price(3000) -- remembered from an earlier visit
+    server:ticks(1)
+    y()
+    server:ticks(2)
+    check('pad Y: nothing posted while the listings load', #server.posts == 0)
+    check('pad Y: the listings arrive', server:wait(listings_in(post), 50))
+    server:ticks(3)
+    y(); y()
+    server:ticks(15)
+    check('pad Y: two quick presses post once, at the lowest listing', #server.posts == 1 and server.posts[1].unit_price == 7)
+
+    rawset(post.post_button, 'IsVisible', nil); rawset(post.post_button, 'IsEnabled', nil); rawset(post.post_button, 'Click', nil)
+    aux_frame:Hide()
+    G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = real[1], real[2], real[3]
+    G.InputUtil = nil
+    aux_frame:Show()
+    post_teardown(server, post)
+  end)
 end

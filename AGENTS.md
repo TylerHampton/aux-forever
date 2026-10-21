@@ -135,8 +135,9 @@ for f in $(find . -name '*.lua'); do luac5.1 -p "$f"; done   # syntax check
   what the screen says. Click buttons only when the addon would have them enabled
   (`click_post` there): calling `OnClick` straight past a faded button hid FB-021.
 - Harness limits: `GetChecked`, `HasFocus` and `IsMouseOver` always return false; `SetShown` does
-  nothing; `Get*` methods return fresh stub frames; `SetText` does not fire `OnTextChanged`, so call
-  an edit box's `change(self, true)` yourself. Reach a module's internals in a test with
+  nothing; `Get*` methods return fresh stub frames (but frames made with `CreateFrame` know their
+  parent, children, type and frame strata, since 0.8); `SetText` does not fire `OnTextChanged`, so
+  call an edit box's `change(self, true)` yourself. Reach a module's internals in a test with
   `loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)`.
 - Tests cannot show layout or how the game reacts. Add the in-game checks for each change to
   `TESTING.md` ("Current build") so Tyler can verify; Claude also makes a test page per build
@@ -210,6 +211,9 @@ Load order is the TOC (`auxForever/auxForever.toc`).
   by a test at the smallest window), and a receipt with the red vendor warning (`vendor_warning`,
   texture `textures/warning.tga`). `tabs/auctions/`,
   `tabs/bids/`: the other tabs. `core/slash.lua`: `/aux` commands.
+- `gamepad.lua` (0.8, loaded last): gamepad support in Forever's gamepad mode, its own navigator
+  with override bindings, aux's popups in a dialog of aux's own (`aux.show_popup`), the hint
+  strip. Does nothing with mouse and keyboard. How and why: `docs/gamepad.md`.
 - `textures/*.tga`: icons and rounded corners (addon textures load; addon fonts do not).
 
 ## Performance (Tyler: "add-on performance and compute cost is very important")
@@ -286,6 +290,11 @@ aux runs inside the game; every frame it spends time in costs the player frame r
 - Filter Builder: write `and`/`or` with a count (`and2`); a bare `and` takes everything after it.
   The builder and the search bar stay in sync both ways; `loading` and `syncing` flags in
   `tabs/search/filter.lua` stop them from feeding back into each other.
+- Gamepad: never write into Blizzard's gamepad code (`GamepadMode`, `SmartNavigation`, its window
+  manager or binding groups). It taints them, and the game froze when aux registered with them
+  (2026-10-13, `docs/gamepad.md`). Reading is fine. Show aux's popups with `aux.show_popup` and
+  `aux.hide_popup`, never `StaticPopup_Show`, so gamepad players get them inside aux.
+  `C_Texture.GetAtlasInfo` fails on Forever.
 
 ## Design language
 
@@ -350,6 +359,8 @@ as interactive HTML pages; an HTML file Tyler can open in a browser works the sa
 - `docs/forever-auction-house.md`: how Forever's auction house works, with sources.
 - `docs/audit-classic-code.md`: the 2026-10-11 pass over code carried over from Classic aux (FB-010
   follow-up): what was checked, findings, open questions.
+- `docs/gamepad.md`: gamepad support (0.8): what each button does, how it works, why aux must not
+  touch Blizzard's gamepad code, and how to find blocked actions with the taint log.
 - `TESTING.md`: the current build's in-game checklist and the 5-minute check before every release
   (six steps at most, Tyler's limit).
   `docs/testing-history.md`: the older detailed checklists, by section number.

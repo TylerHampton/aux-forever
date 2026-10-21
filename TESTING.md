@@ -8,7 +8,65 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.7.1.1 build 2
+## Current build: 0.8 build 1
+
+Gamepad support, contributed by nokkty (GitHub issue #27, `docs/gamepad.md`), brought onto
+0.7.1.1. Zip `auxForever-0.8-build1.zip`. **Full game restart** needed (new file `gamepad.lua`).
+Test page build id `0-8-build-1`. Use the New theme. nokkty tested all of it with a controller on
+0.7 (section "0.7 build 1" below); these steps check that it still works on top of 0.7.1.1 and,
+most of all, that nothing changed for mouse and keyboard players.
+
+With mouse and keyboard (gamepad mode off):
+
+- [ ] 1. Open aux: no strip under the window, everything as before. Post 1 of a cheap trade good:
+      "Posted 1".
+- [ ] 2. Search tab, a favorite search (star one first if you have none): right-click it. The
+      game's usual popup asks "Are you sure you want to remove this search from your favorites?";
+      Yes removes it.
+
+With a controller (skip 3 to 6 if you have none): Options, Controls, turn on gamepad mode.
+
+- [ ] 3. Talk to an auctioneer: aux opens with a gold frame on a control and a strip under the
+      window showing the controller's buttons. Move with the D-pad; RB and LB switch tabs.
+- [ ] 4. Search `linen cloth` (typing it on the keyboard is fine), then with the pad: move onto a
+      result, A, then Y (Buy), then Y (Confirm): "Bought 1 × Linen Cloth".
+- [ ] 5. Post tab: pick a trade good with A, wait until the bar at the bottom turns gold, press Y:
+      "Posted". Pressing Y before the bar turns gold does nothing.
+- [ ] 6. Press B until aux closes: no freeze, no popup. Log out: no BugSack error.
+
+### 0.7 build 1 (gamepad, on nokkty's fork)
+
+Gamepad support (`docs/gamepad.md`). Zip `auxForever-0.7-build1.zip`. **Full game restart**
+needed (new file `gamepad.lua`). Test page build id `0-7-build-1`. Tested in game on 2026-10-13 by
+the contributor (New theme): all steps below pass, taint log clean (nothing
+blocked), no BugSack error. Not tested yet: the Classic theme, a PlayStation controller.
+
+Set up: Forever's gamepad mode on (Options, Controls, gamepad), BugSack enabled. Steps, in the New
+theme, using only the controller:
+
+- [x] 1. Talk to an auctioneer: aux opens with a gold frame on a control of the Search tab and a
+      strip under the window showing A, B, X and LB RB with your controller's icons.
+- [x] 2. Move around the Search tab with the D-pad: the gold frame goes to the nearest control in
+      each direction, and the strip's words change (a button: Select; a text box: Type).
+- [x] 3. Gold frame on Rarity, A, down twice, A: Rarity changes to the option picked.
+- [x] 4. Run a search, move onto a cheap result, A, then Y (Buy), then Y (Confirm): it is bought.
+- [x] 5. Down past the last result shown: the list scrolls.
+- [x] 6. RB through the tabs: each opens at once; after Bids the frame goes to Settings, Full scan
+      and Blizzard UI. LB goes back.
+- [x] 7. A on Settings: the frame stays inside the Settings popup; B closes it and aux stays open.
+- [x] 8. Post tab: pick an item with A; reach -, + and Max with the D-pad and press them; Y posts.
+- [x] 9. Post tab: X on an item in the bag list searches it on the Search tab.
+- [x] 10. Sniper: Y starts it. A on a deal: once checked, the frame moves to Buy; A, then A
+      (Confirm): it is bought. B on the buy bar goes back to the deal. Y stops it. (To get a deal
+      soon, set "% of usual" to 100 and "profit at least" to 1c, then set them back.)
+- [x] 11. Auctions tab: select an auction of yours, Y: it is cancelled (costs its deposit).
+- [x] 12. B until aux closes: no popup, no freeze. Log out: no BugSack error.
+
+Not checked by a test step: the post confirmation popup in gamepad mode (the server's warning did
+not come up during testing; covered by the automated tests), Bids with Y (no bid was up).
+
+### 0.7.1.1 build 2
+
 
 Fixes from FB-021 (sarrathsilentstrider could not post Rough Stone at 5c with the lowest at 7c)
 and from the new slow auction house in the tests, which plays each tab against answers that come

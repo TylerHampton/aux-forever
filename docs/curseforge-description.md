@@ -53,6 +53,9 @@ from aux on Classic:
 - Settings behind the gear: two themes (New, and Classic for the 0.5 look), background opacity,
   window scale, the default auction length, and an on/off switch for each tooltip line.
 - Many convenient shortcuts.
+- Works with a controller in Forever's gamepad mode: the D-pad moves between controls, A presses,
+  B goes back, X right-clicks, Y does the tab's main action (buy, post, start the Sniper), LB and
+  RB switch tabs, and a strip under the window shows the buttons with your controller's icons.
 
 **Search**
 

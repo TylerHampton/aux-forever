@@ -21,6 +21,8 @@ frame.listing = gui.panel(frame)
 frame.listing:SetAllPoints(aux.frame.content)
 
 frame.listing.list = CreateFrame('Frame', nil, frame.listing)
+-- exported for the gamepad: A on a deal moves the focus to the buy bar (gamepad.lua)
+M.deals_list = frame.listing.list
 frame.listing.list:SetPoint('TOPLEFT', 0, 0)
 frame.listing.list:SetPoint('BOTTOMRIGHT', 0, buy_bar.HEIGHT + 4)
 
@@ -188,7 +190,8 @@ do
     btn:SetScript('OnClick', function()
         if running then stop() else start() end
     end)
-    run_button = btn
+    -- exported for the gamepad's Y (gamepad.lua)
+    M.run_button = btn
 end
 do
     local label = gui.label(frame, gui.font_size.medium)

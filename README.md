@@ -79,3 +79,4 @@ the error text if BugSack shows one.
   so `git diff` against it shows every change made for Forever.
 - `auxForever/compat.lua` maps old Classic function names to their Forever replacements.
 - `auxForever/core/scan.lua` is the rewritten scan engine.
+- `auxForever/gamepad.lua` is gamepad support for Forever's gamepad mode (`docs/gamepad.md`).

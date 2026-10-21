@@ -6,6 +6,27 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.8 (unreleased)
+
+### Gamepad
+
+- auxForever can be used with a controller in Forever's gamepad mode. While aux is open, the
+  D-pad moves a gold frame from control to control (and scrolls a list past its last row), A
+  presses what has the frame, B closes what is open and then aux, X right-clicks, and LB and RB
+  switch tabs. With mouse and keyboard nothing changes (contributed by nokkty on GitHub).
+- Y does the open tab's main action: Buy and then Confirm on Search, Start or Stop on Sniper, Post
+  on Post, Cancel on Auctions, Buyout on Bids.
+- Sniper: A on a deal moves the frame to the Buy button once the deal is checked; A buys, A again
+  confirms, B goes back to the deal. Y only starts and stops the Sniper, so it never spends money.
+- Dropdowns (Category, Rarity, ...) open with A; up and down walk the options and A picks one.
+- A strip under the window shows the buttons with your controller's own icons and what each one
+  does right now; Y shows only while its button can be pressed.
+- aux's popups (the post confirmation, the search notices, removing or renaming a favorite) open
+  inside aux in gamepad mode, where the pad can reach them, with the focus on Cancel.
+- The Blizzard UI button hands the pad to Blizzard's window while it is shown.
+
+A **full game restart** is needed to update (a new file).
+
 ## 0.7.1.1 (2026-10-19)
 
 ### Post tab

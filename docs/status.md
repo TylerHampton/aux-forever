@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-20, Tyler's time (privacy pass; 0.7.1.1 released).
+Last updated 2026-10-20, Tyler's time (0.8 build 1: gamepad support from nokkty; 0.7.1.1 released).
 
 **2026-10-20, privacy pass (docs only, no addon change):** Tyler asked that the public repository
 say no more about him than the work needs. Removed: his city and time zone name (dates now use
@@ -28,7 +28,49 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand (2026-10-19):** **0.7.1.1 is released** (2026-10-19, PR #32, `main`
+**Where things stand (2026-10-20):** **0.8 build 1 (gamepad support)** is on branch
+`claude/fervent-planck-ry58jx`, waiting for Tyler's test (`TESTING.md`, "Current build"; zip
+`auxForever-0.8-build1.zip`, **full game restart**). It is nokkty's work (GitHub issue #27, fork
+branch `gamepad-navigation`, built with Claude and tested in game by them on 0.7, 2026-10-13),
+merged with their commits and authorship kept, onto `main` at 0.7.1.1. Tyler, on the issue: "ill
+check it out and merge tonight". Nothing is released; 0.7.1.1 is still the latest release.
+Next: Tyler tests build 1, then says whether 0.8 ships with gamepad alone or waits for the other
+0.8 items (`docs/roadmap.md`). Open for Tyler: FB-022 (below).
+
+- **What it does:** auxForever can be used with a controller in Forever's gamepad mode: D-pad, A,
+  B, X, Y, LB/RB, a hint strip with the controller's icons, aux's popups inside aux. Mouse and
+  keyboard are unchanged. How and why: `docs/gamepad.md`. New file `auxForever/gamepad.lua`; five
+  buttons exported for Y (`buy_bar.primary_button`, the Sniper's `run_button` and `deals_list`,
+  `post_button`, the Auctions tab's `cancel_button`, the Bids tab's `buyout_button`); aux's popups
+  go through `aux.show_popup`/`aux.hide_popup` (every popup on `main` already did after the merge).
+  Version raised to 0.8 (a new feature, by the numbering rule).
+- **Fixed while bringing it in** (2026-10-20): nokkty's merge of `main` into their branch
+  (2026-10-15) had cut the closing `end)` off their Sniper gamepad test, so `tests/load_test.lua`
+  no longer ran at all on their branch. Restored. Every gamepad test also left aux holding the pad
+  buttons when it finished; once 0.7.1.1's timing tests closed the auction house after them, that
+  gave 2 errors. The tests now close aux while still in gamepad mode. New timing test (rule from
+  FB-021): Y on the Post tab posts nothing while the listings load, and two quick presses post
+  once; checked to fail when Y ignores a faded Post.
+- **Found while building it** (rule added to `AGENTS.md`, Code gotchas): aux must never write into
+  Blizzard's gamepad code (`GamepadMode`, `SmartNavigation`, its window manager or binding
+  groups). The first try registered aux with Blizzard's window manager; closing aux by pad then
+  got `SetPreferredGamepadInteractTarget()` blocked, each "blocked" popup was blocked again (259
+  times) and the game froze (`Logs/taint.log`). aux now has a navigator of its own with override
+  bindings on a frame it owns. Also: `C_Texture.GetAtlasInfo` fails on Forever (Vector2DMixin).
+- **Tested in game** (2026-10-13, the contributor, New theme): every step of
+  `TESTING.md` "0.7 build 1" passes; taint log with nothing blocked; no BugSack error. Not tested:
+  the Classic theme, a PlayStation controller, the post confirmation popup by pad (covered by the
+  automated tests), Y on Bids.
+- **Test harness:** stub frames made with `CreateFrame` now know their parent, children, type and
+  frame strata, `HookScript` adds to a script instead of replacing it, and `GetCenter`,
+  `GetEffectiveAlpha` and `GetStringHeight` return numbers, all as in the game.
+- `docs/curseforge-description.md` already has a line about controllers: paste it on CurseForge
+  only once 0.8 is released.
+- **Open questions for Tyler:** a look at the hint strip (no mockup was made; the layout was
+  nokkty's choice after trying icons beside the tabs and buttons), a short pass in Classic, and
+  whether to thank nokkty on the issue once it is merged.
+
+**Before that:** **0.7.1.1 is released** (2026-10-19, PR #32, `main`
 cdc2208): FB-021 (typed prices below the lowest listing can be posted), gear with only a buyout,
 and the fixes found with the slow test auction house (below). Tag `v0.7.1.1`, GitHub pre-release
 https://github.com/TylerHampton/aux-forever/releases/tag/v0.7.1.1, CurseForge Beta file id 9253171

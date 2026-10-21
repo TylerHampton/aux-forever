@@ -7,6 +7,10 @@ raises the third (0.6.1); new features are the next minor version (0.7).
 
 ## 0.8: planned (Tyler, 2026-10-17)
 
+- **Gamepad support** (built, testing): contributed by nokkty (GitHub issue #27, fork branch
+  `gamepad-navigation`, built and tested in game by them on 0.7, 2026-10-13), not planned by
+  Tyler, who chose to take it (2026-10-20). Brought onto 0.7.1.1 as 0.8 build 1. Details:
+  `docs/gamepad.md`.
 - **Waylaid crates** (FB-020, Harro22): the cheapest way to fill a crate from the auction house.
   Tyler: Forever has them, "We could plan that for 0.8." Needs first: what each crate asks for
   (a crate's tooltip, from Tyler) and whether the game says it in a form the addon can read.

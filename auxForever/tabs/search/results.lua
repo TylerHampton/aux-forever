@@ -209,7 +209,7 @@ function start_live_scan(query, search)
         on_auction = function(auction_record)
             if not seen[auction_record.sniping_signature] and (search.alert_validator or pass)(auction_record) and not alerted then
                 alerted = true
-                StaticPopup_Show('AUX_SCAN_ALERT')
+                aux.show_popup('AUX_SCAN_ALERT')
                 if type(FlashClientIcon) == 'function' then
                     FlashClientIcon()
                 end
@@ -219,7 +219,7 @@ function start_live_scan(query, search)
         on_complete = function()
             aux.status_bar:update_status(1, 1)
             if #new_records > 2000 then
-                StaticPopup_Show('AUX_SEARCH_TABLE_FULL')
+                aux.show_popup('AUX_SEARCH_TABLE_FULL')
             else
                 local selected = search.table.selected and search.table.selected.search_signature
                 search.records = new_records
@@ -562,12 +562,12 @@ function start_search(queries, continuation)
         end,
         on_auction = function(auction_record)
             if (search.alert_validator or pass)(auction_record) then
-                StaticPopup_Show('AUX_SCAN_ALERT') -- TODO retail improve this
+                aux.show_popup('AUX_SCAN_ALERT') -- TODO retail improve this
             end
             if #search.records < 2000 then
                 tinsert(search.records, auction_record)
                 if #search.records == 2000 then
-                    StaticPopup_Show('AUX_SEARCH_TABLE_FULL')
+                    aux.show_popup('AUX_SEARCH_TABLE_FULL')
                 end
             end
         end,
