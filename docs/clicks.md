@@ -18,6 +18,7 @@ mockup).
 | Right-click a bag item | Not handled by aux. Darkhorse: "nothing happened" (FB-002). | none |
 | Drag an item onto the search bar, or onto the Post tab's item button | Searches it / selects it. Clicking those with an item on the cursor does the same. | `tabs/search/frame.lua`, `tabs/post/frame.lua` |
 | Alt-click a recipe in the profession window | Recipe search (item and materials). | `core/shortcut.lua`, `tabs/search/recipe.lua` |
+| Alt-click a Waylaid Crate (0.8) | Crate search: every bundle's item, the cheapest fill in the bottom bar. Shift-click and right-click still bring the crate itself into aux. | `core/shortcut.lua`, `tabs/search/crate.lua` |
 | "Search in aux" button on the profession window | Recipe search. | `tabs/search/recipe.lua` |
 
 ### Result tables (Search results, Sniper, Auctions, Bids; `gui/auction_listing.lua`)

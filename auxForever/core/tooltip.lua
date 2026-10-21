@@ -6,6 +6,7 @@ local money =  require 'aux.util.money'
 local disenchant = require 'aux.core.disenchant'
 local history = require 'aux.core.history'
 local gui = require 'aux.gui'
+local search_tab = require 'aux.tabs.search'
 
 local UNKNOWN = GRAY_FONT_COLOR_CODE .. '?' .. FONT_COLOR_CODE_CLOSE
 
@@ -58,7 +59,7 @@ function aux.event.AUX_LOADED()
         if type(link) ~= 'string' or (issecretvalue and issecretvalue(link)) or not strfind(link, 'item:') then
             return
         end
-        extend_tooltip(tooltip, link, tooltip_quantity(tooltip))
+        extend_tooltip(tooltip, link, tooltip_quantity(tooltip), data)
     end)
 end
 
@@ -87,7 +88,7 @@ function M.age_suffix(age)
     return '  ' .. color('seen ' .. text)
 end
 
-function extend_tooltip(tooltip, link, quantity)
+function extend_tooltip(tooltip, link, quantity, data)
     local item_id, suffix_id = info.parse_link(link)
     quantity = IsShiftKeyDown() and quantity or 1
     -- auxForever (0.5): with Shift held the prices are for the whole stack; say so ("for 3"). In build
@@ -159,6 +160,13 @@ function extend_tooltip(tooltip, link, quantity)
                 tooltip:AddLine('Today: ' .. (market_value and money.to_string2(market_value * quantity) .. per .. ' (' .. gui.percentage_historical(aux.round(market_value / value * 100)) .. ')' or UNKNOWN), aux.color.tooltip.value())
             end
         end
+    end
+
+    -- auxForever (0.8, FB-020): a Waylaid Crate lists its bundles and what each costs. Its tooltip
+    -- is read once per item (kept by the crate code), so other items cost one table lookup.
+    local bundles = search_tab.crate_bundles(item_id, function() return search_tab.tooltip_texts(tooltip, data) end)
+    if bundles then
+        search_tab.add_crate_lines(tooltip, bundles, settings.money_icons)
     end
 
 --    if tooltip == GameTooltip and game_tooltip_money > 0 then

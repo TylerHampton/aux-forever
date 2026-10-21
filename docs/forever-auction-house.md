@@ -220,6 +220,14 @@ Other mails **[Code]**: "Auction expired: X" (item back), "Auction canceled: X",
   search by item key (`SendSearchQuery`) returns only that exact version; Blizzard's Sell window
   clears item level and suffix for gear and asks with `SendSellSearchQuery`, so it lists every
   version together (`AuctionHouseUtil.ConvertItemSellItemKey`). **[Code]**
+- **A gear link's ending is not in the suffix field.** Medicine Staff of the Wolf, hovered in aux's
+  results, printed `item:4575::::::::24:1487::1:1:12726:1:28:5254::::` (Tyler, 2026-10-20) **[Seen]**:
+  the suffix field (the 8th number, after the four gem fields) is empty and 24 sits where the link
+  level goes. Inference: the ending is carried further on, most likely the 12726. aux reads the
+  ending from the suffix field (`info.parse_link`), so every ending of an item looks the same to it:
+  the Bandit, Arcane Protection and Wolf staffs showed one price (2026-10-20). Searches record
+  under `itemKey.itemSuffix` instead, so the same item can have its prices under two keys. To fix
+  with gear versions (0.8).
 
 ## 10. Your auctions
 
@@ -252,3 +260,10 @@ page once carried them as build id `ah-facts-1`.
 - **E6 Same price, who sells first.** Needs a second account or a friend: post one unit of a trade
   good at exactly the lowest price, where someone else already has units at that price; the other
   account buys one unit. Whose unit sold? Optional.
+- **E7 A replaced search.** Does Forever still answer a search after a newer one replaced it? aux
+  takes the next item list that arrives as the answer to its latest question, so a late answer to
+  an older search would be read as the new one's (found 2026-10-20 with the slow test auction house,
+  which assumes it does; the real game may drop it) **[Unknown]**. To try: search something with
+  many items (for example `cloth`), and the moment it starts, search `copper ore/exact`. If the
+  results show cloth items or nothing where Copper Ore is listed, the game answers replaced searches
+  and aux needs a fix.

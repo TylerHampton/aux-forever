@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-20, Tyler's time (0.8 build 1: gamepad support from nokkty; 0.7.1.1 released).
+Last updated 2026-10-20, Tyler's time (0.8 build 2: Waylaid Crates; build 1: gamepad support from nokkty; 0.7.1.1 released).
 
 **2026-10-20, privacy pass (docs only, no addon change):** Tyler asked that the public repository
 say no more about him than the work needs. Removed: his city and time zone name (dates now use
@@ -28,9 +28,10 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand (2026-10-20):** **0.8 build 1 (gamepad support)** is on branch
-`claude/fervent-planck-ry58jx`, waiting for Tyler's test (`TESTING.md`, "Current build"; zip
-`auxForever-0.8-build1.zip`, **full game restart**). It is nokkty's work (GitHub issue #27, fork
+**Where things stand (2026-10-20):** **0.8 build 2 (Waylaid Crates, plus build 1's gamepad
+support)** is on branch `claude/fervent-planck-ry58jx`, waiting for Tyler's test (`TESTING.md`,
+"Current build"; zip `auxForever-0.8-build2.zip`, **full game restart**). Build 1 was gamepad
+support alone; its mouse and keyboard steps are folded into build 2. It is nokkty's work (GitHub issue #27, fork
 branch `gamepad-navigation`, built with Claude and tested in game by them on 0.7, 2026-10-13),
 merged with their commits and authorship kept, onto `main` at 0.7.1.1. Tyler, on the issue: "ill
 check it out and merge tonight". Nothing is released; 0.7.1.1 is still the latest release.
@@ -44,8 +45,18 @@ Next: Tyler tests build 1, then says whether 0.8 ships with gamepad alone or wai
   two same-name gear tooltips (do the stats differ?). Waylaid crates: "cheapest way to fill one"
   (Tyler); a crate lists several bundles, any one fills it (guides, FB-020). Waiting on a crate's
   tooltip in game. Writs go to 0.9 with the shopping list (Tyler, 2026-10-20).
-- **Waylaid Crates, in progress (2026-10-20, Tyler: "ok start building the crate feature"):** the
-  logic is built and tested, nothing shows yet. `auxForever/tabs/search/crate.lua` (new file, so a
+- **0.8 build 2: Waylaid Crates built (2026-10-20)**, waiting for Tyler's test (`TESTING.md`, zip
+  `auxForever-0.8-build2.zip`, full game restart). Tyler chose options A and C of the mockup. A: a
+  crate's tooltip lists every bundle with its cost, cheapest in gold, bags counted
+  (`add_crate_lines`, called from `core/tooltip.lua`). C: Alt-click a crate in the bags searches
+  every bundle's item through the recipe search path (`search_parts`); the bottom bar prices each
+  bundle from live listings, cheapest first as many as needed, own auctions skipped
+  (`crate_live_costs`, `crate_summary`); Recent searches keep it as a crate. Tests: load_test
+  (tooltip, live costs, Alt-click end to end with the fake auction house) and timing_test (a
+  second crate clicked mid-search), each checked to fail with the code broken. Found on the way:
+  E7 in `docs/forever-auction-house.md` (whether Forever answers a replaced search; if it does, a
+  search started while another loads its item list can read the old list).
+- **Earlier the same day:** the crate logic was built first, without display: `auxForever/tabs/search/crate.lua` (new file, so a
   full game restart once it ships): reads a crate's bundles from its tooltip text (each row
   "- <count> <name>", one or several per line), keeps them per crate, prices each bundle like a
   recipe's materials (vendor when cheaper, else the latest price; `recipe_usual_cost`), less what
@@ -56,14 +67,13 @@ Next: Tyler tests build 1, then says whether 0.8 ships with gamepad alone or wai
 - **Seen 2026-10-20 (Tyler's screenshots):** a Waylaid Crate's tooltip lists its bundles (FB-020).
   Three Medicine Staffs with different endings (of the Bandit, of Arcane Protection, of the Wolf;
   different stats) showed the same aux prices in their tooltips (Value 1g 50s, usually 25s, Today
-  1g 10s, 440%). Inference: aux's tooltip prices lump every ending of an item together. Likely
-  cause, not checked: on Forever the link's suffix field (`info.parse_link`, field 7) is 0 and the
-  ending lives elsewhere in the link, so every ending reads as `item_id:0`, while searches record
-  `itemKey.itemSuffix`. To confirm: the raw link of a hovered staff, printed with `/run`. Part of
-  0.8's gear versions work.
+  1g 10s, 440%): aux's tooltip prices lump every ending of an item together. Cause confirmed by the
+  raw link Tyler printed (`item:4575::::::::24:1487::1:1:12726:1:28:5254::::`): the suffix field is
+  empty, so every ending reads as `item_id:0`, while searches record `itemKey.itemSuffix`
+  (`docs/forever-auction-house.md`, section 4). The fix is the next 0.8 item, gear versions.
 - **Gamepad testing:** Tyler will not test the controller steps (2026-10-20: "That can be for the
-  small amount of users that want to test it"). Steps 1 and 2 of 0.8 build 1 (mouse and keyboard)
-  still stand.
+  small amount of users that want to test it"). The mouse and keyboard check moved into build 2
+  (step 6).
 - **Other characters' items (0.9, Claude's thoughts 2026-10-20):** two ways. (a) aux
   records each character's bags (always), bank (when opened) and mail (when opened) in its
   account-wide saved data, as Syndicator does; counts only, saved on a timer and on logout, never

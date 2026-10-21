@@ -164,7 +164,11 @@ handlers = {
             update_search_listings()
         end
 		GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
-		if data.search.recipe then
+		if data.search.recipe and data.search.recipe.crate then
+			GameTooltip:AddLine('Crate: ' .. (data.search.recipe.name or '?'), aux.color.accent.background())
+			GameTooltip:AddLine('Searches every bundle and finds the cheapest way to fill it.', 1, 1, 1, true)
+			GameTooltip:AddLine(' ')
+		elseif data.search.recipe then
 			GameTooltip:AddLine('Recipe: ' .. (data.search.recipe.name or '?'), aux.color.accent.background())
 			GameTooltip:AddLine('Searches the item and its materials, and adds up the cost.', 1, 1, 1, true)
 			GameTooltip:AddLine(' ')

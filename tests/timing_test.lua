@@ -456,6 +456,63 @@ return function(env)
     post_teardown(server, post)
   end)
 
+  -- crates (0.8, FB-020): Alt-click a crate, then another before the first search has its answers.
+  -- The search and the bottom bar must be the second crate's, with nothing of the first mixed in.
+  try('timing: a second crate clicked while the first is still searching', function()
+    local server = new_server(env)
+    local search = module 'aux.tabs.search'
+    local shortcut = module 'aux.core.shortcut'
+    server.items[2592] = {name = 'Wool Cloth', commodity = true, max_stack = 200}
+    server.items[4306] = {name = 'Silk Cloth', commodity = true, max_stack = 200}
+    server.items[2997] = {name = 'Bolt of Woolen Cloth', commodity = true, max_stack = 200}
+    server.items[4305] = {name = 'Bolt of Silk Cloth', commodity = true, max_stack = 200}
+    server.items[990698] = {name = 'Waylaid Crate: Journeyman Textiles', commodity = false}
+    server.items[990711] = {name = 'Waylaid Crate: Journeyman Fabrics', commodity = false}
+    server.listings[2592] = {{price = 30, quantity = 60}}
+    server.listings[4306] = {{price = 14, quantity = 100}}
+    server.listings[2997] = {{price = 90, quantity = 20}}
+    server.listings[4305] = {{price = 70, quantity = 30}}
+    -- item numbers of their own: crate lists are kept per item, and other tests read real crates
+    server:install()
+    local lists = {
+      [990698] = '- 20 Wool Cloth\n- 40 Silk Cloth',
+      [990711] = '- 6 Bolt of Woolen Cloth\n- 10 Bolt of Silk Cloth',
+    }
+    local real_info, real_alt, was_shown = G.C_TooltipInfo, G.IsAltKeyDown, aux.frame.__shown
+    G.C_TooltipInfo = {GetHyperlink = function(link)
+      local id = tonumber(link:match('item:(%d+)'))
+      return {lines = {{leftText = 'Use: Fill the crate with any bundle from the following list:\n' .. lists[id]}}}
+    end}
+    G.IsAltKeyDown = function() return true end
+    aux.frame.__shown = true
+    aux.set_tab(1)
+    search.frame:Show()
+    search.update_mode(search.NORMAL_MODE)
+    shortcut.on_modified_click(server:link(990698))
+    -- the first crate's item list is in and its listings are on their way. (Clicked before its item
+    -- list arrives, the late list is taken for the second search's: a search engine question, not a
+    -- crate one, and whether Forever answers a replaced question is not known; status.md, 2026-10-20.)
+    server:ticks(12)
+    check('crates: the first search is still running', not search.current_search().complete)
+    shortcut.on_modified_click(server:link(990711))
+    local fabrics = 'bolt of woolen cloth/exact;bolt of silk cloth/exact'
+    local done = server:wait(function()
+      local s = search.current_search()
+      return s and s.complete and s.filter_string == fabrics
+    end, 200)
+    local s = search.current_search()
+    check('crates: the second search finishes', done)
+    check('crates: it is the second crate', s and s.recipe and s.recipe.name == 'Journeyman Fabrics')
+    search.update_results_summary(true)
+    local summary = plain(search.recipe_label.__text)
+    check('crates: the bottom bar prices the second crate', summary:find('Journeyman Fabrics', 1, true) and summary:find('6 Bolt of Woolen Cloth  5s 40c', 1, true) ~= nil)
+    check('crates: nothing of the first crate in it', not summary:find('Wool Cloth ', 1, true) and not summary:find('Textiles', 1, true))
+    G.C_TooltipInfo, G.IsAltKeyDown, aux.frame.__shown = real_info, real_alt, was_shown
+    server:ticks(40)
+    search.frame:Hide()
+    server:restore()
+  end)
+
   -- gamepad (gamepad.lua, contributed by nokkty): Y presses Post. It must obey a faded Post as a
   -- click does: nothing while the listings load, and one post for two quick presses.
   try('timing: gamepad Y on the Post tab', function()

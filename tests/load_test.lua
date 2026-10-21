@@ -4147,6 +4147,109 @@ try('0.8: Waylaid Crates', function()
   ids['wool cloth'], ids['silk cloth'] = nil, nil
 end)
 
+-- 0.8: what aux shows for a crate (option A of the mockup, Tyler 2026-10-20) and the crate search
+-- (option C: Alt-click a crate in the bags searches every bundle)
+try('0.8: Waylaid Crates in the tooltip and the search', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local tooltip = loadstring("select(2, ...) 'aux.core.tooltip'; return _M")('auxForever', addon)
+  local shortcut = loadstring("select(2, ...) 'aux.core.shortcut'; return _M")('auxForever', addon)
+  local aux = loadstring("select(2, ...) 'aux.test.crate2'; return require 'aux'")('auxForever', addon)
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local today = h.today()
+  local ids = aux.account_data.item_ids
+  ids['wool cloth'], ids['silk cloth'] = 2592, 4306
+  h.write_record('2592:0', {day = today, points = {{day = today - 1, value = 32}}})
+  h.write_record('4306:0', {day = today, points = {{day = today - 1, value = 14}}})
+  local bags = {[2592] = 12}
+  local real_item, real_info = G.C_Item, G.C_TooltipInfo
+  G.C_Item = setmetatable({GetItemCount = function(id) return bags[id] or 0 end}, {__index = real_item})
+  local crate_lines = {{leftText = 'Waylaid Crate: Journeyman Textiles'},
+    {leftText = 'Use: Fill the crate with any bundle from the following list:\n- 20 Wool Cloth\n- 40 Silk Cloth\n- 20 Medium Leather'},
+    {leftText = 'Requires Level 10'}}
+
+  -- the tooltip: every bundle, the cheapest in gold, the bags counted
+  local lines, colors = {}, {}
+  local tip = new_frame()
+  rawset(tip, 'AddLine', function(_, t) tinsert(lines, plain(t)) end)
+  rawset(tip, 'AddDoubleLine', function(_, a, b, r, g, bl) tinsert(lines, plain(a) .. ' | ' .. plain(b)); colors[plain(a)] = {r, g, bl} end)
+  local reads = 0
+  local function data() reads = reads + 1; return {lines = crate_lines} end
+  tooltip.extend_tooltip(tip, '|cffffffff|Hitem:248698::::::0:0|h[Waylaid Crate: Journeyman Textiles]|h|r', 1, data())
+  local all = table.concat(lines, '\n')
+  check('crate tooltip: says what it shows', all:find('Cheapest way to fill it', 1, true) and all:find('Latest prices, less what is in your bags', 1, true))
+  check('crate tooltip: a bundle partly in the bags, priced for the rest', all:find('20 Wool Cloth (12 in bags) | 2s 56c', 1, true) ~= nil)
+  check('crate tooltip: the others', all:find('40 Silk Cloth | 5s 60c', 1, true) and all:find('20 Medium Leather | no price yet', 1, true))
+  local gold = {aux.color.accent.background()}
+  local wool = colors['20 Wool Cloth (12 in bags)']
+  check('crate tooltip: the cheapest is in the accent gold, the others white', wool and wool[1] == gold[1] and wool[2] == gold[2] and colors['40 Silk Cloth'][1] == 1)
+  bags[2592] = 20
+  lines = {}
+  tooltip.extend_tooltip(tip, '|cffffffff|Hitem:248698::::::0:0|h[Waylaid Crate: Journeyman Textiles]|h|r', 1, data())
+  check('crate tooltip: a bundle already in the bags says so', table.concat(lines, '\n'):find('20 Wool Cloth | in your bags', 1, true) ~= nil)
+  lines = {}
+  tooltip.extend_tooltip(tip, '|cffffffff|Hitem:4575::::::0:0|h[Medicine Staff]|h|r', 1, {lines = {{leftText = 'Medicine Staff'}, {leftText = '+4 Agility'}}})
+  check('crate tooltip: other items get no crate lines', not table.concat(lines, '\n'):find('Cheapest way', 1, true))
+  -- the font strings, when the game hands no tooltip data
+  local named = new_frame()
+  rawset(named, 'GetName', function() return 'AuxCrateTip' end)
+  rawset(named, 'NumLines', function() return 2 end)
+  G.AuxCrateTipTextLeft1, G.AuxCrateTipTextLeft2 = new_frame(), new_frame()
+  G.AuxCrateTipTextLeft1:SetText('Use: Fill the crate with any bundle from the following list:')
+  G.AuxCrateTipTextLeft2:SetText('- 6 Bolt of Woolen Cloth')
+  local texts = search.tooltip_texts(named, nil)
+  check('crate tooltip: lines read from the tooltip itself', #texts == 2 and texts[2] == '- 6 Bolt of Woolen Cloth')
+  G.AuxCrateTipTextLeft1, G.AuxCrateTipTextLeft2 = nil, nil
+
+  -- live prices: the cheapest listings first, as many as the bundle needs
+  local records = {
+    {name = 'Wool Cloth', buyout_price = 300, count = 10, unit_buyout_price = 30},
+    {name = 'Wool Cloth', buyout_price = 2000, count = 50, unit_buyout_price = 40},
+    {name = 'Silk Cloth', buyout_price = 1400, count = 100, unit_buyout_price = 14},
+    {name = 'Silk Cloth', buyout_price = 10, count = 1, unit_buyout_price = 10, own = true},
+  }
+  local parts = {crate = true, name = 'Journeyman Textiles', bundles = {{name = 'Wool Cloth', count = 20}, {name = 'Silk Cloth', count = 40}, {name = 'Medium Leather', count = 20}}, reagents = {}}
+  bags[2592] = 0
+  local rows, cheapest = search.crate_live_costs(parts, records)
+  check('crate search: 10 at 30c then 10 at 40c', rows[1].cost == 700)
+  check('crate search: your own auctions are not bought', rows[2].cost == 560 and cheapest == 2)
+  check('crate search: nothing listed, the bundle cannot be filled', rows[3].short == 20)
+  bags[2592] = 12
+  rows, cheapest = search.crate_live_costs(parts, records)
+  check('crate search: the bags change the cheapest', rows[1].cost == 240 and cheapest == 1)
+
+  -- Alt-click a crate in the bags with aux open: one search for every bundle, the crate kept with it
+  local run, restore = fake_ah({
+    {id = 2592, name = 'Wool Cloth', commodity = true, min = 30, qty = 60, auctions = {{qty = 10, buyout = 30}, {qty = 50, buyout = 40}}},
+    {id = 4306, name = 'Silk Cloth', commodity = true, min = 14, qty = 100, auctions = {{qty = 100, buyout = 14}}},
+    {id = 4234, name = 'Medium Leather', commodity = true, min = 0, qty = 0, auctions = {}},
+  })
+  G.C_TooltipInfo = {GetHyperlink = function() return {lines = crate_lines} end}
+  search.update_mode(search.NORMAL_MODE)
+  local was_shown = aux.frame.__shown
+  aux.frame.__shown = true
+  local real_alt = IsAltKeyDown
+  G.IsAltKeyDown = function() return true end
+  shortcut.on_modified_click('|cff1eff00|Hitem:248711::::::0:0|h[Waylaid Crate: Journeyman Textiles]|h|r')
+  G.IsAltKeyDown = real_alt
+  run(120)
+  local s = search.current_search()
+  check('crate search: Alt-click searches every bundle', search.search_box:GetText() == 'wool cloth/exact;silk cloth/exact;medium leather/exact')
+  check('crate search: the search knows its crate', s.recipe and s.recipe.crate and s.recipe.name == 'Journeyman Textiles')
+  search.update_results_summary(true)
+  local summary = plain(search.recipe_label.__text)
+  check('crate search: the bottom bar names the cheapest fill', summary:find('Crate  Journeyman Textiles', 1, true) and summary:find('cheapest fill  20 Wool Cloth (12 in bags)  2s 40c', 1, true) ~= nil)
+  check('crate search: and the next one', summary:find('next  40 Silk Cloth  5s 60c', 1, true) ~= nil)
+  check('crate search: named as a crate in Recent searches', plain(search.recipe_entry_name(s)):find('Crate  Journeyman Textiles  (3 bundles)', 1, true) ~= nil)
+  -- a plain Alt-click on something that is not a crate still brings the item into aux
+  G.C_TooltipInfo = {GetHyperlink = function() return {lines = {{leftText = 'Spellbinder Robe'}}} end}
+  aux.frame.__shown = was_shown
+  restore()
+
+  G.C_Item, G.C_TooltipInfo = real_item, real_info
+  ids['wool cloth'], ids['silk cloth'] = nil, nil
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
 dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({

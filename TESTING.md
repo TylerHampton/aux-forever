@@ -8,7 +8,27 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8 build 1
+## Current build: 0.8 build 2
+
+Waylaid Crates (FB-020, Harro22; mockup options A and C, chosen by Tyler on 2026-10-20), on top of
+build 1's gamepad support. Zip `auxForever-0.8-build2.zip`. **Full game restart** needed (new
+files `gamepad.lua` and `tabs/search/crate.lua`). Test page build id `0-8-build-2`. Use the New
+theme. Have a Waylaid Crate in your bags, and ideally a few of one of its bundle items.
+
+- [ ] 1. Hover the crate in your bags. Under aux's Value line: "Cheapest way to fill it", then each
+      bundle with a price (or "no price yet" for items aux has not seen), the cheapest in gold.
+      Screenshot.
+- [ ] 2. If you carry some of a bundle's item: that row says "(N in bags)" and is priced only for
+      the rest. Skip if you carry none.
+- [ ] 3. Open aux at the auction house, Alt-click the crate in your bags. The Search tab searches
+      every bundle's item, and the bottom bar says "Crate  <name>  cheapest fill  ..." and "next
+      ...". Screenshot.
+- [ ] 4. Recent searches (the clock button, or Saved Searches): the search is listed as "Crate
+      <name>  (N bundles)". Click it: it runs again with the same bottom line.
+- [ ] 5. Shift-click the crate: aux searches the crate itself, as before.
+- [ ] 6. With mouse and keyboard, post 1 of a cheap trade good: "Posted 1" (nothing else changed).
+
+### 0.8 build 1
 
 Gamepad support, contributed by nokkty (GitHub issue #27, `docs/gamepad.md`), brought onto
 0.7.1.1. Zip `auxForever-0.8-build1.zip`. **Full game restart** needed (new file `gamepad.lua`).

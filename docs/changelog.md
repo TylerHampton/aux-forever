@@ -25,7 +25,20 @@ A change that comes from a player's feedback credits them by in-game name at the
   inside aux in gamepad mode, where the pad can reach them, with the focus on Cancel.
 - The Blizzard UI button hands the pad to Blizzard's window while it is shown.
 
-A **full game restart** is needed to update (a new file).
+### Waylaid Crates
+
+- Hover a Waylaid Crate, in your bags or in aux's results: its tooltip lists every bundle that fills
+  it with what that bundle costs, the cheapest in gold. Items already in your bags are counted
+  ("(12 in bags)"), and a bundle you already hold says "in your bags". Prices are the latest aux
+  has seen, or a vendor's when a vendor sells the item for less. aux reads the bundles from the
+  crate itself, so new crates work without an update (requested by Harro22).
+- Alt-click a crate in your bags while aux is open: one search for every bundle's item, at today's
+  prices, and the bottom bar names the cheapest way to fill it and the next cheapest. It takes the
+  cheapest listings first, as many as the bundle needs, and skips your own auctions. The search
+  stays in Recent searches as "Crate  Journeyman Textiles  (3 bundles)". Shift-click and
+  right-click on a crate still search the crate itself.
+
+A **full game restart** is needed to update (new files).
 
 ## 0.7.1.1 (2026-10-19)
 
