@@ -43,6 +43,7 @@ tabs\search\frame.lua
 tabs\search\quick.lua
 tabs\search\builder.lua
 tabs\search\recipe.lua
+tabs\search\crate.lua
 
 tabs\sniper\core.lua
 tabs\sniper\frame.lua

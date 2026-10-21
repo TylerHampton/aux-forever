@@ -44,6 +44,15 @@ Next: Tyler tests build 1, then says whether 0.8 ships with gamepad alone or wai
   two same-name gear tooltips (do the stats differ?). Waylaid crates: "cheapest way to fill one"
   (Tyler); a crate lists several bundles, any one fills it (guides, FB-020). Waiting on a crate's
   tooltip in game. Writs go to 0.9 with the shopping list (Tyler, 2026-10-20).
+- **Waylaid Crates, in progress (2026-10-20, Tyler: "ok start building the crate feature"):** the
+  logic is built and tested, nothing shows yet. `auxForever/tabs/search/crate.lua` (new file, so a
+  full game restart once it ships): reads a crate's bundles from its tooltip text (each row
+  "- <count> <name>", one or several per line), keeps them per crate, prices each bundle like a
+  recipe's materials (vendor when cheaper, else the latest price; `recipe_usual_cost`), less what
+  is in the bags, and finds the cheapest. Tests: "0.8: Waylaid Crates" in `tests/load_test.lua`,
+  checked to fail when the bags or the tie rule are broken. Waiting on Tyler: the mockup
+  https://claude.ai/artifact/946XmJEswoKZAoNjme1mAq, option A (every bundle in the tooltip), B (one
+  line) and the extra C (Alt-click a crate searches its bundles, live prices, like recipe search).
 - **Seen 2026-10-20 (Tyler's screenshots):** a Waylaid Crate's tooltip lists its bundles (FB-020).
   Three Medicine Staffs with different endings (of the Bandit, of Arcane Protection, of the Wolf;
   different stats) showed the same aux prices in their tooltips (Value 1g 50s, usually 25s, Today

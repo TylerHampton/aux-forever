@@ -4099,6 +4099,54 @@ try('0.7: result tables follow a fast resize', function()
   check('resize: the last cell of a row is anchored to the right edge', row and has(row.cells[#row.cells], 'TOPRIGHT'))
 end)
 
+-- 0.8 (FB-020, Harro22): Waylaid Crates. The bundles come from the crate's tooltip text, as seen in
+-- game (Tyler, 2026-10-20); each is priced like a recipe's materials, less what is in the bags.
+try('0.8: Waylaid Crates', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local aux = loadstring("select(2, ...) 'aux.test.crate'; return require 'aux'")('auxForever', addon)
+  local today = h.today()
+  -- the tooltip as the game shows it: the Use line holds the list, one row per line
+  local textiles = {'Waylaid Crate: Journeyman Textiles',
+    '|cff00ff00Use: Fill the crate with any bundle from the following list:\n- 20 Wool Cloth\n- 40 Silk Cloth\n- 20 Medium Leather|r',
+    'Requires Level 10', 'Value: 60s seen today'}
+  local b = search.crate_bundles_from_text(textiles)
+  check('crate: three bundles read from the tooltip', b and #b == 3 and b[1].name == 'Wool Cloth' and b[1].count == 20 and b[2].name == 'Silk Cloth' and b[2].count == 40 and b[3].name == 'Medium Leather')
+  -- the same list when the game gives each row its own line
+  local fabrics = search.crate_bundles_from_text({'Waylaid Crate: Journeyman Fabrics', 'Use: Fill the crate with any bundle from the following list:', '- 6 Bolt of Woolen Cloth', '- 10 Bolt of Silk Cloth', '- 2 Cured Medium Hide', 'Requires Level 10'})
+  check('crate: rows on lines of their own', fabrics and #fabrics == 3 and fabrics[1].name == 'Bolt of Woolen Cloth' and fabrics[1].count == 6 and fabrics[3].count == 2)
+  check('crate: an item that is not a crate has no bundles', search.crate_bundles_from_text({'Medicine Staff of the Wolf', '+4 Agility', '+5 Spirit', 'Requires Level 14'}) == nil)
+  check('crate: read once per crate', search.crate_bundles(990001, textiles) == search.crate_bundles(990001) and search.crate_bundles(990002, {'Linen Cloth'}) == nil)
+
+  -- prices: Wool 30c each (latest), Silk 15c each, Medium Leather unknown to aux
+  local ids = aux.account_data.item_ids
+  ids['wool cloth'], ids['silk cloth'] = 2592, 4306
+  h.write_record('2592:0', {day = today, points = {{day = today - 1, value = 30}}})
+  h.write_record('4306:0', {day = today, points = {{day = today - 1, value = 15}}})
+  local bags = {}
+  local real_item = G.C_Item
+  G.C_Item = {GetItemCount = function(id) return bags[id] or 0 end}
+  local rows, cheapest = search.crate_costs(b)
+  check('crate: each bundle priced', rows[1].cost == 600 and rows[2].cost == 600 and rows[3].cost == nil)
+  check('crate: a tie keeps the first listed', cheapest == 1)
+  h.write_record('4306:0', {day = today, points = {{day = today - 1, value = 14}}})
+  rows, cheapest = search.crate_costs(b)
+  check('crate: the cheapest bundle is found', cheapest == 2 and rows[2].cost == 560)
+  -- what is already in the bags is not bought again
+  bags[2592] = 15
+  rows, cheapest = search.crate_costs(b)
+  check('crate: bags count, only the rest is priced', rows[1].have == 15 and rows[1].need == 5 and rows[1].cost == 150 and cheapest == 1)
+  bags[2592] = 25
+  rows, cheapest = search.crate_costs(b)
+  check('crate: a bundle already in the bags costs nothing', rows[1].need == 0 and rows[1].cost == 0 and rows[1].source == 'bags' and cheapest == 1)
+  -- no bundle with a price: no cheapest
+  local none = search.crate_costs({{name = 'Medium Leather', count = 20}})
+  check('crate: nothing priced, no cheapest', select(2, search.crate_costs({{name = 'Medium Leather', count = 20}})) == nil and none[1].cost == nil)
+
+  G.C_Item = real_item
+  ids['wool cloth'], ids['silk cloth'] = nil, nil
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
 dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({
