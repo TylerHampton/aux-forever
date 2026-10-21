@@ -28,6 +28,8 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
 
 ## 0.9: planned (Tyler, 2026-10-20: "Any of the shopping lists, list stuff I talked about, we'll save that for 0.9")
 
+- **Craftsman's Writs** (from FB-020, Harro22; Tyler, 2026-10-20): a writ asks for one crafted
+  item; show whether buying it or crafting it is cheaper. Built on the shopping list.
 - **Shopping list for crafting** (FB-023, Kortan): pick a recipe, type how many to craft, see
   what is still needed (bags counted, the bank once opened) and where each material is cheaper,
   auction house or vendor, then buy down the list. One recipe at a time. Likely home: a Shopping

@@ -1179,6 +1179,7 @@ Found 2026-10-20 (web guides written during Forever's beta; **Outside**, not see
   Monocle) for reputation with the two factions (75 or 125 each, per Wowhead's Forever quest
   pages, quests 94256, 94282, 94221). "Cheapest" for a writ is buying the item versus crafting
   it, which is the shopping list's question (FB-023, 0.9).
+- Tyler, 2026-10-20: "writs in 0.9 with the shopping list". 0.8 builds crates only.
 - Still to see in game: how a crate shows its bundles (tooltip or quest text), and whether aux
   can read them or needs a hand-written list.
 

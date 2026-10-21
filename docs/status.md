@@ -43,7 +43,7 @@ Next: Tyler tests build 1, then says whether 0.8 ships with gamepad alone or wai
   price the list shows; then a mockup. Gear versions: Tyler asked what it meant; the way to settle it is a screenshot of
   two same-name gear tooltips (do the stats differ?). Waylaid crates: "cheapest way to fill one"
   (Tyler); a crate lists several bundles, any one fills it (guides, FB-020). Waiting on a crate's
-  tooltip in game, and on Tyler: writs in 0.8 or 0.9 (Claude suggests 0.9, with the shopping list).
+  tooltip in game. Writs go to 0.9 with the shopping list (Tyler, 2026-10-20).
 - **Other characters' items (0.9, Claude's thoughts 2026-10-20):** two ways. (a) aux
   records each character's bags (always), bank (when opened) and mail (when opened) in its
   account-wide saved data, as Syndicator does; counts only, saved on a timer and on logout, never
