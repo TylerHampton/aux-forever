@@ -2353,7 +2353,7 @@ try('post: an item in the bags is read with one request', function()
     local done = not in_bags
     return function() if not done then done = true return {0, 1} end end
   end)
-  rawset(info, 'container_item', function() return {item_key = '4422:0', auctionable = true, item_location = 'bag 0 slot 1'} end)
+  rawset(info, 'container_item', function() return {item_key = '4422:0', price_key = '4422:0', auctionable = true, item_location = 'bag 0 slot 1'} end)
   rawset(C_AuctionHouse, 'GetItemKeyFromItem', function(location) return location == 'bag 0 slot 1' and {itemID = 4422, itemLevel = 0, itemSuffix = 0} or nil end)
   local item = {key = '4422:0', item_id = 4422, commodity = true, name = 'Scroll of Stamina', quality = 1, count = 2, max_stack = 5}
   post.update_item(item)
@@ -4033,11 +4033,15 @@ try('0.7: AuxForeverAPI', function()
   check('api: ready after login', api.IsReady() == true)
   local d = h.today()
   h.write_record('214001:0', {day = d, market = 1200, units = 8, low = 1100, points = {{value = 1000, day = d - 1, units = 5}, {value = 1000, day = d - 2, units = 5}}})
-  h.write_record('214001:1234', {day = d, market = 9000, units = 1, low = 9000, points = {}})
+  -- 0.8: gear with a random ending is priced under its ending (info.price_key)
+  h.write_record('214001:of the eagle', {day = d, market = 9000, units = 1, low = 9000, points = {}})
+  local real_get_info = G.GetItemInfo
+  G.GetItemInfo = function(x) if x == 214001 then return 'Thing' end return real_get_info(x) end
   local latest, age = api.GetLatestPrice(214001)
   check('api: the latest price by item ID', latest == 1200 and age == 0)
   check('api: by ID as text and by item string', api.GetLatestPrice('214001') == 1200 and api.GetLatestPrice('item:214001::::::') == 1200)
   check('api: by link, with its random ending', api.GetLatestPrice('|cff1eff00|Hitem:214001::::::1234:::|h[Thing of the Eagle]|h|r') == 9000)
+  G.GetItemInfo = real_get_info
   check('api: same as the tooltip Value', api.GetLatestPrice(214001) == h.latest('214001:0'))
   local usual, seen = api.GetUsualPrice(214001)
   check('api: the usual price', usual == h.value('214001:0') and seen == 0)
@@ -4248,6 +4252,92 @@ try('0.8: Waylaid Crates in the tooltip and the search', function()
 
   G.C_Item, G.C_TooltipInfo = real_item, real_info
   ids['wool cloth'], ids['silk cloth'] = nil, nil
+end)
+
+-- 0.8, gear versions: gear with a random ending is priced per ending. On Forever a link's suffix
+-- field is empty (Medicine Staff of the Wolf, seen 2026-10-20), so every ending used to share one
+-- price; the auction house's versions of one name have the same stats (seen 2026-10-20), so the
+-- name is the key, as Blizzard's Sell window groups gear.
+try('0.8: gear versions', function()
+  local info = loadstring("select(2, ...) 'aux.util.info'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local tooltip = loadstring("select(2, ...) 'aux.core.tooltip'; return _M")('auxForever', addon)
+  local auctions = loadstring("select(2, ...) 'aux.tabs.auctions'; return _M")('auxForever', addon)
+  local scan_exports = loadstring("select(2, ...) 'aux.test.gear'; return require 'aux.core.scan'")('auxForever', addon)
+  local real_get_info = G.GetItemInfo
+  G.GetItemInfo = function(x)
+    if x == 4575 then return 'Medicine Staff' end
+    if type(x) == 'string' and x:find('item:4575', 1, true) then return x:match('|h%[(.-)%]|h'), x end
+    return real_get_info(x)
+  end
+  local function link(name) return '|cff1eff00|Hitem:4575::::::::24:1487::1:1:12726:1:28:5254::::|h[' .. name .. ']|h|r' end
+
+  check('gear: an ending is part of the price key', info.price_key(4575, 'Medicine Staff of the Wolf') == '4575:of the wolf')
+  check('gear: the link Tyler printed, ending from its name', info.link_price_key(link('Medicine Staff of the Wolf')) == '4575:of the wolf')
+  check('gear: no ending, the key as before', info.price_key(4575, 'Medicine Staff') == '4575:0' and info.price_key(2589, 'Linen Cloth') == '2589:0')
+  check('gear: no name, the key as before', info.price_key(4575, nil) == '4575:0')
+  local real_key_info = rawget(C_AuctionHouse, 'GetItemKeyInfo')
+  rawset(C_AuctionHouse, 'GetItemKeyInfo', function(key) return key.itemSuffix == 103 and {itemName = 'Medicine Staff of Arcane Protection'} or nil end)
+  check('gear: an auction house version is keyed by its name', info.item_key_price_key({itemID = 4575, itemSuffix = 103}) == '4575:of arcane protection')
+  check('gear: a version whose name has not loaded has no key yet', info.item_key_price_key({itemID = 4575, itemSuffix = 999}) == nil)
+  check('gear: version 0 needs no name', info.item_key_price_key({itemID = 2589, itemSuffix = 0}) == '2589:0')
+  rawset(C_AuctionHouse, 'GetItemKeyInfo', real_key_info)
+
+  -- the tooltip of each ending shows that ending's price (all three showed 1g 50s before)
+  local d = h.today()
+  h.write_record('4575:of the wolf', {day = d, market = 15000, units = 1, low = 15000, points = {}})
+  h.write_record('4575:of the bandit', {day = d, market = 11500, units = 1, low = 11500, points = {}})
+  local function value_line(name)
+    local lines = {}
+    local tip = new_frame()
+    rawset(tip, 'AddLine', function(_, text) tinsert(lines, text) end)
+    rawset(tip, 'AddDoubleLine', function() end)
+    tooltip.extend_tooltip(tip, link(name), 1, {lines = {}})
+    for _, l in ipairs(lines) do if l:find('^Value') then return l end end
+    return ''
+  end
+  rawset(AuxTooltip, 'NumLines', function() return 0 end)
+  local wolf, bandit = value_line('Medicine Staff of the Wolf'), value_line('Medicine Staff of the Bandit')
+  rawset(AuxTooltip, 'NumLines', nil)
+  local function plain(t) return (t:gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  check('gear: the Wolf staff shows the Wolf price', plain(wolf):find('Value: 1.50', 1, true) ~= nil)
+  check('gear: the Bandit staff shows the Bandit price', plain(bandit):find('Value: 1.15', 1, true) ~= nil)
+
+  -- prices seen in a search go to the ending's key
+  h.process_auction({item_key = '4575:0', price_key = '4575:of the tiger', buyout_price = 9000, count = 1})
+  check('gear: a search records the price under the ending', h.market_value('4575:of the tiger') == 9000 and h.market_value('4575:0') ~= 9000)
+
+  -- the Auctions tab checks gear against every listing of its name: one name search for the item
+  -- (the search is made from the item's own name, which the game gives for a plain item string)
+  local gear_get_info = G.GetItemInfo
+  G.GetItemInfo = function(x)
+    if type(x) == 'string' and x:find('^item:4575') then return 'Medicine Staff', x end
+    return gear_get_info(x)
+  end
+  local params
+  local real_start = scan_exports.start
+  rawset(scan_exports, 'start', function(p) params = p end)
+  local mine = {item_id = 4575, price_key = '4575:of arcane protection', item_search_key = {itemID = 4575, itemSuffix = 103},
+    unit_buyout_price = 12000, buyout_price = 12000, sale_status = 0}
+  local cloth = {item_id = 2589, price_key = '2589:0', item_search_key = {itemID = 2589, itemSuffix = 0},
+    unit_buyout_price = 20, buyout_price = 20, sale_status = 0}
+  local real_records = auctions.listing.records
+  auctions.listing.records = {mine, cloth}
+  auctions.check_prices()
+  local by_key, by_name = 0, 0
+  for _, q in ipairs(params and params.queries or {}) do
+    if q.item_keys then by_key = by_key + #q.item_keys elseif q.blizzard_query then by_name = by_name + 1 end
+  end
+  check('gear: cloth is read by its item key, the staff by a name search', by_key == 1 and by_name == 1)
+  params.on_auction({item_id = 4575, price_key = '4575:of arcane protection', unit_buyout_price = 11000, seller_count = 1})
+  params.on_auction({item_id = 4575, price_key = '4575:of arcane protection', unit_buyout_price = 11500, seller_count = 1})
+  params.on_auction({item_id = 4575, price_key = '4575:of the wolf', unit_buyout_price = 9000, seller_count = 1})
+  params.on_complete()
+  local status, by, lowest = auctions.auction_status(mine)
+  check('gear: undercut by the cheapest of its name, other versions counted, other endings not', status == 'undercut' and lowest == 11000 and by == 1000)
+  auctions.listing.records = real_records
+  rawset(scan_exports, 'start', real_start)
+  G.GetItemInfo = real_get_info
 end)
 
 -- what players do while the auction house is still answering: a slow auction house that answers

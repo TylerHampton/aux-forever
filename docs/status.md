@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-20, Tyler's time (0.8 build 2: Waylaid Crates; build 1: gamepad support from nokkty; 0.7.1.1 released).
+Last updated 2026-10-20, Tyler's time (0.8 build 3: gear versions; build 2: Waylaid Crates; build 1: gamepad support from nokkty; 0.7.1.1 released).
 
 **2026-10-20, privacy pass (docs only, no addon change):** Tyler asked that the public repository
 say no more about him than the work needs. Removed: his city and time zone name (dates now use
@@ -28,10 +28,11 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand (2026-10-20):** **0.8 build 2 (Waylaid Crates, plus build 1's gamepad
-support)** is on branch `claude/fervent-planck-ry58jx`, tested in game by Tyler (crates pass;
-`TESTING.md`). Next: gear versions, the last 0.8 item; its plan waits on one answer from Tyler
-(below, "Gear versions plan"). Build 1 was gamepad
+**Where things stand (2026-10-20):** **0.8 build 3 (gear versions)** is on branch
+`claude/fervent-planck-ry58jx`, waiting for Tyler's test (`TESTING.md`, zip
+`auxForever-0.8-build3.zip`). With it every 0.8 item is built: gamepad support (build 1, nokkty),
+Waylaid Crates (build 2, tested, pass), gear versions (build 3). Next: Tyler tests build 3, then
+says whether 0.8 is ready to release (pull request, merge, Release workflow). Build 1 was gamepad
 support alone; its mouse and keyboard steps are folded into build 2. It is nokkty's work (GitHub issue #27, fork
 branch `gamepad-navigation`, built with Claude and tested in game by them on 0.7, 2026-10-13),
 merged with their commits and authorship kept, onto `main` at 0.7.1.1. Tyler, on the issue: "ill
@@ -84,7 +85,16 @@ Next: Tyler tests build 1, then says whether 0.8 ships with gamepad alone or wai
   installed: no new tracking code, but depends on another addon being installed and working on
   Forever (not checked). Claude's suggestion: build the list so "what you have" is one place,
   and add (a) with it, and (b) only if players already use Syndicator on Forever.
-- **Gear versions plan (2026-10-20, waiting on Tyler):** how aux keys gear prices today: a search
+- **0.8 build 3: gear versions (2026-10-20).** Tyler's screenshots: two Medicine Staffs of Arcane
+  Protection have the same stats, so gear is grouped by full name. New `info.price_key` (ending
+  from the name: "4575:of the wolf"; else "id:0"), set on every record and bag item; price history,
+  filters, the % column, tooltips, the API, `/aux price` and the Sniper use it. Post tab: bag items
+  are grouped by price key and compared with listings of the same name. Auctions tab: gear with an
+  ending is checked with a name search of the item, against every listing of its name. Old gear
+  prices under "id:0" are no longer read for gear. Tests: "0.8: gear versions" (load_test) and
+  "gear is posted against its own ending" (timing_test, the slow server now models versions), each
+  checked to fail with the change undone.
+- **Gear versions plan (2026-10-20, answered, built in build 3):** how aux keys gear prices today: a search
   that reads each auction keys it by the link's suffix field, empty on Forever, so every ending
   lands on `item_id:0` (`info.item_search_record`); fast searches key by the auction house's
   version (`itemKey.itemSuffix`, `info.browse_record`); tooltips read the link, so they show the

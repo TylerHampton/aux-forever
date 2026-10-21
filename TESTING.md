@@ -8,7 +8,28 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8 build 2
+## Current build: 0.8 build 3
+
+Gear versions, the last 0.8 item: gear with a random ending is priced per ending (Tyler, 2026-10-20:
+two Medicine Staffs of Arcane Protection have the same stats, so gear is grouped by name). Zip
+`auxForever-0.8-build3.zip`. `/reload` is enough (no new files since build 2). Test page build id
+`0-8-build-3`. Use the New theme.
+Have two pieces of gear of one kind with different endings in your bags if you can (any "of the
+..." items).
+
+- [ ] 1. Search `medicine staff` (or any gear with endings), Full. Hover two rows with different
+      endings. Value differs between endings (or says "?" for an ending aux has not priced yet; it
+      learns it from this search, so hover again after the search). Screenshot.
+- [ ] 2. Post tab: gear with two different endings shows as two items in the bag list. Skip if you
+      have none.
+- [ ] 3. Post tab, a piece of gear with an ending: the price matches the lowest listing of the same
+      name (check it in a Search tab search of that name), not a cheaper ending. Screenshot. No need
+      to post.
+- [ ] 4. Auctions tab, if you have gear with an ending up: its status compares with the same name
+      ("Tied with ...", "Undercut by ...", or "Lowest"). Skip if you have none up.
+- [ ] 5. A trade good: post 1 as usual ("Posted 1"); Value in its tooltip as before.
+
+### 0.8 build 2
 
 Waylaid Crates (FB-020, Harro22; mockup options A and C, chosen by Tyler on 2026-10-20), on top of
 build 1's gamepad support. Zip `auxForever-0.8-build2.zip`. **Full game restart** needed (new

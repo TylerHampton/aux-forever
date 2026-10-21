@@ -104,7 +104,7 @@ M.filters = {
         input_type = 'number',
         validator = function(pct)
             return function(auction_record)
-                return history.value(auction_record.item_key) and auction_record.unit_bid_price / history.value(auction_record.item_key) * 100 <= pct
+                return history.value(auction_record.price_key or auction_record.item_key) and auction_record.unit_bid_price / history.value(auction_record.price_key or auction_record.item_key) * 100 <= pct
             end
         end
     },
@@ -114,8 +114,8 @@ M.filters = {
         validator = function(pct)
             return function(auction_record)
                 return auction_record.unit_buyout_price > 0
-                        and history.value(auction_record.item_key)
-                        and auction_record.unit_buyout_price / history.value(auction_record.item_key) * 100 <= pct
+                        and history.value(auction_record.price_key or auction_record.item_key)
+                        and auction_record.unit_buyout_price / history.value(auction_record.price_key or auction_record.item_key) * 100 <= pct
             end
         end
     },
@@ -124,7 +124,7 @@ M.filters = {
         input_type = 'money',
         validator = function(amount)
             return function(auction_record)
-                return history.value(auction_record.item_key) and history.value(auction_record.item_key) * auction_record.count - auction_record.bid_price >= amount
+                return history.value(auction_record.price_key or auction_record.item_key) and history.value(auction_record.price_key or auction_record.item_key) * auction_record.count - auction_record.bid_price >= amount
             end
         end
     },
@@ -133,7 +133,7 @@ M.filters = {
         input_type = 'money',
         validator = function(amount)
             return function(auction_record)
-                return auction_record.buyout_price > 0 and history.value(auction_record.item_key) and history.value(auction_record.item_key) * auction_record.count - auction_record.buyout_price >= amount
+                return auction_record.buyout_price > 0 and history.value(auction_record.price_key or auction_record.item_key) and history.value(auction_record.price_key or auction_record.item_key) * auction_record.count - auction_record.buyout_price >= amount
             end
         end
     },

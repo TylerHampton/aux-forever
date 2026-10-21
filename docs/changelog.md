@@ -38,6 +38,22 @@ A change that comes from a player's feedback credits them by in-game name at the
   stays in Recent searches as "Crate  Journeyman Textiles  (3 bundles)". Shift-click and
   right-click on a crate still search the crate itself.
 
+### Gear with random endings
+
+- Gear with a random ending ("Medicine Staff of the Wolf") now has its own price per ending. Before,
+  every ending of an item shared one price: the Bandit, Wolf and Arcane Protection staffs all showed
+  the same Value, even though their stats differ. Tooltips, the % column, the Sniper and price
+  filters now use the price of that ending.
+- Post tab: each ending is its own item in the bag list, and it is priced against listings of the
+  same name only, as in Blizzard's Sell window. Before, a Merc Sword of the Eagle could be priced at
+  what a Merc Sword of Strength was listed for.
+- Auctions tab: your gear is checked against every listing of its name. The auction house files
+  one name under several versions with the same stats, and checking only your exact version said
+  "Only one listed" while others of the same name were for sale.
+- Prices aux saw for gear before this update were kept under one price per item and are no longer
+  used for gear; each ending learns its own price again from your next searches or Full scan.
+  Post settings saved for such gear (a hidden item, a duration) start fresh once.
+
 A **full game restart** is needed to update (new files).
 
 ## 0.7.1.1 (2026-10-19)

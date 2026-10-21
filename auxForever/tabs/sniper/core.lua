@@ -123,7 +123,7 @@ local function settings()
 end
 
 function M.judge_record(record)
-    local usual, vendor, days = item_facts(record.item_key, record.item_id)
+    local usual, vendor, days = item_facts(record.price_key or record.item_key, record.item_id)
     if usual == nil and vendor == nil then
         if not record.deal_key then
             return
@@ -207,7 +207,7 @@ function check_item(item_key, key, price)
         end
     end
     -- the usual price is only shown when it rests on enough history to be trusted
-    local usual, vendor, days = item_facts(cheapest.item_key, cheapest.item_id)
+    local usual, vendor, days = item_facts(cheapest.price_key or cheapest.item_key, cheapest.item_id)
     cheapest.deal_history, cheapest.deal_vendor, cheapest.deal_days = usual, vendor, days
     if (days or 0) < MIN_DAYS then
         usual = nil
@@ -245,7 +245,10 @@ function check_list(results, seen)
             local key = scan.item_key_string(result.itemKey)
             seen[key] = price
             if not aux.account_data.sniper_ignored[key] and known[key] ~= price then
-                local usual, vendor, days = item_facts(key, result.itemKey.itemID)
+                -- 0.8: prices are kept per ending (info.price_key), the list's key is a version
+                local price_key = info.item_key_price_key(result.itemKey)
+                local usual, vendor, days
+                if price_key then usual, vendor, days = item_facts(price_key, result.itemKey.itemID) end
                 if usual ~= nil or vendor ~= nil then
                     -- a possible deal counts as judged only once it is opened (check_item): a round
                     -- stopped by a click on a deal left the rest marked judged, never opened, so

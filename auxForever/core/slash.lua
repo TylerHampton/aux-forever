@@ -77,7 +77,8 @@ function SlashCmdList.AUX(command)
         else
             local item_info = info.item(item_id)
             aux.print('Price data for ' .. (item_info and item_info.link or ('item ' .. item_id)) .. ':')
-            for _, line in ipairs(require('aux.core.history').report(item_id .. ':' .. (suffix_id or 0), function(amount) return money.to_string(amount, true) end)) do
+            local key = strfind(target, 'item:', 1, true) and info.link_price_key(target) or item_id .. ':0'
+            for _, line in ipairs(require('aux.core.history').report(key, function(amount) return money.to_string(amount, true) end)) do
                 aux.print('  ' .. line)
             end
         end

@@ -73,6 +73,7 @@ function M.container_item(bag, slot)
 
                 link = link,
                 item_key = item_id .. ':' .. suffix_id,
+                price_key = link_price_key(link),
 
                 name = item_info.name,
                 texture = containerInfo.iconFileID,
@@ -182,6 +183,7 @@ local function new_record(item_id, link, count)
     record.link = link
     record.item_key = item_id .. ':' .. suffix_id
     record.name = name
+    record.price_key = price_key(item_id, strmatch(link or '', '|h%[(.-)%]|h') or name)
     record.texture = texture
     record.quality = quality
     record.requirement = requirement
@@ -287,6 +289,7 @@ function M.browse_record(result)
     record.link = item_link
     record.item_key = item_id .. ':' .. record.suffix_id
     record.name = type(key_info) == 'table' and key_info.itemName or name
+    record.price_key = price_key(item_id, record.name)
     record.texture = type(key_info) == 'table' and key_info.iconFileID or texture
     record.quality = type(key_info) == 'table' and key_info.quality or quality
     record.is_commodity = type(key_info) == 'table' and key_info.isCommodity or nil
@@ -500,6 +503,49 @@ end
 function M.item_key(link)
     local item_id, suffix_id = parse_link(link)
     return item_id .. ':' .. suffix_id
+end
+
+-- each item's own name, looked up once per session (a Full scan makes thousands of records)
+local base_names = {}
+
+-- auxForever (0.8, gear versions): the key aux keeps prices under. Gear with a random ending ("of
+-- the Wolf") is priced per ending, as Blizzard's Sell window groups it: on Forever a link's suffix
+-- field is empty (Medicine Staff of the Wolf, seen 2026-10-20), so every ending looked alike, and
+-- the auction house's own versions of one name have the same stats (two Medicine Staffs of Arcane
+-- Protection, seen 2026-10-20), so the name is what tells gear apart. The ending is what the full
+-- name adds to the item's own name, in lower case: "4575:of the wolf". Anything else: "4575:0".
+function M.price_key(item_id, name)
+    if not item_id or item_id <= 0 or type(name) ~= 'string' then
+        return (item_id or 0) .. ':0'
+    end
+    local base = base_names[item_id]
+    if not base then
+        base = GetItemInfo(item_id) or (item_info(item_id) or empty).name
+        base_names[item_id] = base
+    end
+    if base and #name > #base and strsub(name, 1, #base) == base then
+        local ending = strlower(aux.trim(strsub(name, #base + 1)))
+        if ending ~= '' then
+            return item_id .. ':' .. ending
+        end
+    end
+    return (item_id or 0) .. ':0'
+end
+
+-- the price key of an auction house item key: its version number does not say the ending, its name
+-- does (nil while the game has not loaded the name)
+function M.item_key_price_key(key)
+    if (key.itemSuffix or 0) == 0 then
+        return key.itemID .. ':0'
+    end
+    local key_info = C_AuctionHouse.GetItemKeyInfo(key)
+    return type(key_info) == 'table' and key_info.itemName and price_key(key.itemID, key_info.itemName) or nil
+end
+
+-- the price key of a link (its name is the full name, ending included)
+function M.link_price_key(link)
+    local item_id, _, _, _, name = parse_link(link)
+    return price_key(item_id, name)
 end
 
 -- item:itemID:enchantID:gem1:gem2:gem3:gem4:suffixID:uniqueID:...

@@ -23,7 +23,7 @@ local function item_key(item)
     elseif strmatch(item, '^%d+$') then
         return item .. ':0'
     elseif strfind(item, 'item:%d') then
-        return info.item_key(item)
+        return info.link_price_key(item)
     end
 end
 

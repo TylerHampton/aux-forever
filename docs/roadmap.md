@@ -18,7 +18,8 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
   Tyler: Forever has them, "We could plan that for 0.8." Needs first: what each crate asks for
   (a crate's tooltip, from Tyler) and whether the game says it in a form the addon can read.
   "Writs" still unknown.
-- **Gear versions** (below, "After 0.6"), with what 0.7.1 build 3 showed (2026-10-17,
+- **Gear versions** (built, 0.8 build 3: prices, Post and Auctions per name; Tyler 2026-10-20: same
+  name, same stats) (below, "After 0.6"), with what 0.7.1 build 3 showed (2026-10-17,
   `docs/forever-auction-house.md`, section 4): one name can have several versions (Ritual Belt of
   Arcane Protection under four suffix numbers, all 6s). aux's Auctions tab and Post tab compare
   with the exact version only; Blizzard's Sell window compares with every version together. The

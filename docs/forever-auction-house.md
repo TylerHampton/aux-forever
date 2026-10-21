@@ -226,8 +226,12 @@ Other mails **[Code]**: "Auction expired: X" (item back), "Auction canceled: X",
   level goes. Inference: the ending is carried further on, most likely the 12726. aux reads the
   ending from the suffix field (`info.parse_link`), so every ending of an item looks the same to it:
   the Bandit, Arcane Protection and Wolf staffs showed one price (2026-10-20). Searches record
-  under `itemKey.itemSuffix` instead, so the same item can have its prices under two keys. To fix
-  with gear versions (0.8).
+  under `itemKey.itemSuffix` instead, so the same item can have its prices under two keys. Fixed in
+  0.8 build 3: prices are kept per name (`info.price_key`).
+- **Versions of one name have the same stats.** Two Medicine Staffs of Arcane Protection listed at
+  the same time (1g 15s and 1g 50s) both showed +4 Stamina and +4 Arcane Resistance (Tyler,
+  2026-10-20) **[Seen]**, one case. So aux groups gear by its full name, as Blizzard's Sell window
+  does, not by the auction house's version number.
 
 ## 10. Your auctions
 

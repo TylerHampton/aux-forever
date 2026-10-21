@@ -582,7 +582,7 @@ M.bids_columns = {
 function record_percentage(record)
     if not record then return end
 
-    local historical_value = history.value(record.item_key) or 0
+    local historical_value = history.value(record.price_key or record.item_key) or 0
     if historical_value > 0 then
         if record.unit_buyout_price > 0 or percentage_for_bid then
             local unit_price = percentage_for_bid and record.unit_bid_price or record.unit_buyout_price

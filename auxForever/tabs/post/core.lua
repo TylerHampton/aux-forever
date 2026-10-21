@@ -173,8 +173,9 @@ function M.update_post_done()
     end
 end
 
-function tab.USE_ITEM(item_id, suffix_id)
-	select_item(item_id .. ':' .. suffix_id)
+-- 0.8: bag items are told apart by their price key, which keeps gear endings apart (info.price_key)
+function tab.USE_ITEM(item_id, suffix_id, name)
+	select_item(info.price_key(item_id, name))
 end
 
 function get_unit_start_price()
@@ -347,7 +348,7 @@ function M.missing_item_reason(item_key)
     local reason = 'gone'
     for slot in info.inventory() do
         local item_info = info.container_item(unpack(slot))
-        if item_info and item_info.item_key == item_key then
+        if item_info and item_info.price_key == item_key then
             local durability, max_durability = C_Container.GetContainerItemDurability(unpack(slot))
             if item_info.locked then
                 return 'locked'
@@ -366,7 +367,7 @@ function M.bag_count(item_key)
     local count = 0
     for slot in info.inventory() do
         local item_info = info.container_item(unpack(slot))
-        if item_info and item_info.item_key == item_key then
+        if item_info and item_info.price_key == item_key then
             count = count + (item_info.count or 1)
         end
     end
@@ -392,7 +393,7 @@ end
 function find_item_location(item_key)
     for slot in info.inventory() do
         local item_info = info.container_item(unpack(slot))
-        if item_info and item_info.auctionable and not item_info.locked and item_info.item_key == item_key then
+        if item_info and item_info.auctionable and not item_info.locked and item_info.price_key == item_key then
             return item_info.item_location
         end
     end
@@ -816,11 +817,12 @@ function update_inventory_records(reset)
     for slot in info.inventory() do
 	    local item_info = info.container_item(unpack(slot))
         if item_info and item_info.auctionable then
-            if not auctionable_map[item_info.item_key] then
-                auctionable_map[item_info.item_key] = {
+            -- 0.8: one row per price key, so a staff of the Wolf and one of the Bandit are two items
+            if not auctionable_map[item_info.price_key] then
+                auctionable_map[item_info.price_key] = {
                     item_id = item_info.item_id,
                     suffix_id = item_info.suffix_id,
-                    key = item_info.item_key,
+                    key = item_info.price_key,
                     link = item_info.link,
                     name = item_info.name,
                     texture = item_info.texture,
@@ -831,7 +833,7 @@ function update_inventory_records(reset)
                     commodity = C_AuctionHouse.GetItemCommodityStatus(item_info.item_location) == Enum.ItemCommodityStatus.Commodity,
                 }
             else
-                local auctionable = auctionable_map[item_info.item_key]
+                local auctionable = auctionable_map[item_info.price_key]
                 auctionable.count = auctionable.count + item_info.count
             end
         end
@@ -928,7 +930,9 @@ function refresh_entries()
                 end
             end,
 			on_auction = function(auction_record)
-				if auction_record.item_key == item_key then
+				-- 0.8: gear is compared with listings of its own name only (the search reads every
+				-- version of the item)
+				if (auction_record.price_key or auction_record.item_key) == item_key then
                     record_auction(auction_record)
 				end
 			end,

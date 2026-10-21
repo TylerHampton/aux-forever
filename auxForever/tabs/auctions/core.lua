@@ -2,6 +2,7 @@ select(2, ...) 'aux.tabs.auctions'
 
 local aux = require 'aux'
 local scan = require 'aux.core.scan'
+local scan_util = require 'aux.util.scan'
 
 local tab = aux.tab 'Auctions'
 
@@ -83,32 +84,58 @@ local function key_text(item_key)
     return scan.item_key_string(item_key)
 end
 
+-- the price key an auction is checked under (info.price_key): gear with an ending by its name
+local function check_key(record)
+    return record.price_key or (record.item_search_key and key_text(record.item_search_key)) or record.item_id .. ':0'
+end
+
+-- auxForever (0.8, gear versions): gear with a random ending is checked against every listing of
+-- its name, as Blizzard's Sell window does: the auction house keeps one name under several versions
+-- with the same stats (Ritual Belt of Arcane Protection under four, seen 2026-10-17), and a check of
+-- the exact version alone said "Only one listed" with others of the name for sale. Such gear is read
+-- with a name search of the item (every version), anything else by its item key as before.
 function M.check_prices()
-    local keys, seen = {}, {}
+    local keys, item_ids, queries, wanted, seen = {}, {}, {}, {}, {}
     for _, record in ipairs(listing.records or empty) do
         if record.sale_status ~= 1 and record.item_search_key then
-            local k = key_text(record.item_search_key)
-            if not seen[k] then
-                seen[k] = true
-                tinsert(keys, record.item_search_key)
+            local key = check_key(record)
+            if not wanted[key] then
+                wanted[key] = true
+                if key ~= record.item_id .. ':0' then
+                    if not item_ids[record.item_id] then
+                        item_ids[record.item_id] = true
+                        local query = scan_util.item_query(record.item_id)
+                        if query then tinsert(queries, query) end
+                    end
+                else
+                    local k = key_text(record.item_search_key)
+                    if not seen[k] then
+                        seen[k] = true
+                        tinsert(keys, record.item_search_key)
+                    end
+                end
             end
         end
     end
-    if #keys == 0 then
+    if #keys > 0 then
+        tinsert(queries, 1, {item_keys = keys})
+    end
+    if #queries == 0 then
         return
     end
     local found = {}
-    checking = {done = 0, total = #keys}
+    checking = {done = 0, total = #keys + #queries - (#keys > 0 and 1 or 0)}
     scan.start{
         type = 'list',
         quiet = true,
-        queries = {{item_keys = keys}},
+        queries = queries,
         on_page_loaded = function(done)
             if checking then checking.done = done end
         end,
         on_auction = function(record)
             if record.own then return end
-            local k = record.item_search_key and key_text(record.item_search_key) or record.item_id .. ':0'
+            local k = check_key(record)
+            if not wanted[k] then return end
             local price = ceil(record.unit_buyout_price)
             if price <= 0 then return end
             local entry = found[k] or {at_price = {}}
@@ -120,8 +147,8 @@ function M.check_prices()
             entry.at_price[price] = (entry.at_price[price] or 0) + max(1, (record.seller_count or 1) - (mine and 1 or 0))
         end,
         on_complete = function()
-            for _, item_key in ipairs(keys) do
-                checks[key_text(item_key)] = found[key_text(item_key)] or {at_price = {}}
+            for key in pairs(wanted) do
+                checks[key] = found[key] or {at_price = {}}
             end
             checking = nil
             checked_at = time()
@@ -147,7 +174,7 @@ function M.auction_status(record)
     elseif (record.buyout_price or 0) <= 0 then
         return 'no buyout'
     end
-    local check = record.item_search_key and checks[key_text(record.item_search_key)]
+    local check = record.item_search_key and checks[check_key(record)]
     if not check then
         return 'unchecked'
     end

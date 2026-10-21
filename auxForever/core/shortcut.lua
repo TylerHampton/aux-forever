@@ -15,14 +15,15 @@ local search_tab = require 'aux.tabs.search'
 -- still bring the crate itself into aux)
 
 -- the current tab uses the item, or the Search tab searches it
-function M.use_item(item_id, suffix_id)
+function M.use_item(item_id, suffix_id, _, _, name)
     local tab = aux.get_tab()
     if not (tab and tab.USE_ITEM) then
         aux.set_tab(1)
         tab = aux.get_tab()
     end
     if tab and tab.USE_ITEM then
-        tab.USE_ITEM(item_id, suffix_id or 0)
+        -- the name tells gear endings apart (info.price_key)
+        tab.USE_ITEM(item_id, suffix_id or 0, name)
     end
 end
 

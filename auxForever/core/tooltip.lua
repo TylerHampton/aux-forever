@@ -137,7 +137,8 @@ function extend_tooltip(tooltip, link, quantity, data)
         end
     end
     local auctionable = not item_info or is_auctionable(item_id, item_info)
-    local item_key = (item_id or 0) .. ':' .. (suffix_id or 0)
+    -- 0.8: gear is priced per ending, which on Forever only the name tells (info.price_key)
+    local item_key = info.link_price_key(link)
     -- auxForever (0.5, build 3): Value is the latest look at the item (what players just saw at the
     -- auction house); the multi-day usual price shows under it only when the two differ a lot
     local latest, age = history.latest(item_key)

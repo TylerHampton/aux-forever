@@ -153,7 +153,7 @@ function M.process_auction(auction_record)
 		return
 	end
 	local mins = today_min_table()
-	local key = auction_record.item_key
+	local key = auction_record.price_key or auction_record.item_key
 	local known = mins[key]
 	if known and unit_buyout_price >= known then
 		return
@@ -226,9 +226,10 @@ function M.record_view_of(records)
 	local flat, key = {}, nil
 	for _, record in ipairs(records or empty) do
 		local units = record_units(record)
-		if (record.buyout_price or 0) > 0 and record.item_key and units > 0 then
-			key = key or record.item_key
-			if record.item_key == key then
+		local record_key = record.price_key or record.item_key
+		if (record.buyout_price or 0) > 0 and record_key and units > 0 then
+			key = key or record_key
+			if record_key == key then
 				tinsert(flat, ceil(record.buyout_price / max(1, record.count or 1)))
 				tinsert(flat, units)
 			end
@@ -388,13 +389,14 @@ end
 
 function M.collect(collector, record)
 	local units = record_units(record)
-	if (record.buyout_price or 0) <= 0 or not record.item_key then
+	local key = record.price_key or record.item_key
+	if (record.buyout_price or 0) <= 0 or not key then
 		return
 	end
-	local flat = collector.items[record.item_key]
+	local flat = collector.items[key]
 	if not flat then
 		flat = {}
-		collector.items[record.item_key] = flat
+		collector.items[key] = flat
 		collector.count = collector.count + 1
 	end
 	tinsert(flat, ceil(record.buyout_price / max(1, record.count or 1)))

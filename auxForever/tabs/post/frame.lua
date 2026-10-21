@@ -212,8 +212,7 @@ do
     local function select_cursor_item()
         local type, item_id, item_link = GetCursorInfo()
         if type == 'item' then
-            local _, suffix_id = info.parse_link(item_link)
-            select_item(item_id .. ':' .. suffix_id)
+            select_item(info.link_price_key(item_link))
             ClearCursor()
         end
     end

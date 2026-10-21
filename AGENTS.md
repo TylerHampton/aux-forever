@@ -290,6 +290,11 @@ aux runs inside the game; every frame it spends time in costs the player frame r
 - Filter Builder: write `and`/`or` with a count (`and2`); a bare `and` takes everything after it.
   The builder and the search bar stay in sync both ways; `loading` and `syncing` flags in
   `tabs/search/filter.lua` stop them from feeding back into each other.
+- Prices are kept by **price key**, not item key (0.8): `info.price_key(item_id, name)`,
+  `record.price_key`, `info.link_price_key(link)`. Gear with a random ending is keyed by its ending
+  ("4575:of the wolf") because on Forever a link's suffix field is empty and versions of one name
+  have the same stats; everything else is "id:0", as before. Any new code that reads or writes
+  `history` uses the price key. The item key still finds bag slots and auction house rows.
 - Gamepad: never write into Blizzard's gamepad code (`GamepadMode`, `SmartNavigation`, its window
   manager or binding groups). It taints them, and the game froze when aux registered with them
   (2026-10-13, `docs/gamepad.md`). Reading is fine. Show aux's popups with `aux.show_popup` and

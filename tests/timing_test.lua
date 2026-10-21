@@ -456,6 +456,50 @@ return function(env)
     post_teardown(server, post)
   end)
 
+  -- gear versions (0.8): a Medicine Staff of the Wolf in the bags, and on the auction house
+  -- cheaper staffs with other endings. The Post tab prices and posts the Wolf against Wolf listings
+  -- only, as Blizzard's Sell window does; before, every ending looked alike to aux (the link's
+  -- suffix field is empty on Forever, seen 2026-10-20) and the Wolf was priced at an Arcane
+  -- Protection staff's price.
+  try('timing: gear is posted against its own ending', function()
+    local server = new_server(env)
+    local post = module 'aux.tabs.post'
+    server.items[4575] = {name = 'Medicine Staff', commodity = false, vendor = 1487,
+      versions = {[101] = 'of the Wolf', [102] = 'of the Bandit', [103] = 'of Arcane Protection', [104] = 'of Arcane Protection'}}
+    server.listings[4575] = {
+      {price = 15000, quantity = 1, version = 101},
+      {price = 11500, quantity = 1, version = 102},
+      {price = 11000, quantity = 1, version = 103},
+      {price = 11500, quantity = 1, version = 104},
+    }
+    server.bag = {{id = 4575, count = 1, version = 101}, {id = 4575, count = 1, version = 102}}
+    server:install()
+    -- the quantity boxes and the duration keep what is set, as in post_setup
+    for _, box in ipairs{post.stack_size_input, post.stack_count_input} do
+      local n = 1
+      rawset(box, 'SetNumber', function(self, v) n = math.max(0, math.min(v, self.max_value or v)) end)
+      rawset(box, 'GetNumber', function() return n end)
+    end
+    rawset(post.duration_dropdown, 'GetIndex', function() return 2 end)
+    post.set_undercut_mode(false)
+    aux.set_tab(3)
+    server:ticks(2)
+    post.select_item('4575:of the bandit')
+    check('gear: the Bandit staff is its own item in the bag list', post.selected_item and post.selected_item.key == '4575:of the bandit')
+    post.select_item('4575:of the wolf')
+    check('gear: and so is the Wolf staff', post.selected_item and post.selected_item.key == '4575:of the wolf')
+    check('gear: the listings arrive', server:wait(function() return aux.status_bar.done and post.selected_item and post.selected_item.key == '4575:of the wolf' end, 150))
+    server:ticks(3)
+    check('gear: priced against the Wolf listing, not the cheaper endings', post.get_unit_buyout_price() == 15000)
+    click_post(post)
+    server:ticks(20)
+    local sent = server.posts[1]
+    check('gear: the Wolf staff is posted at the Wolf price', sent and sent.version == 101 and sent.buyout == 15000 and #server.posts == 1)
+    post.validate_parameters()
+    check('gear: the post is over', post.disabled_reason() ~= 'Posting...')
+    post_teardown(server, post)
+  end)
+
   -- crates (0.8, FB-020): Alt-click a crate, then another before the first search has its answers.
   -- The search and the bottom bar must be the second crate's, with nothing of the first mixed in.
   try('timing: a second crate clicked while the first is still searching', function()
