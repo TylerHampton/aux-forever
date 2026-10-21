@@ -129,7 +129,7 @@ For whoever fixes or builds from it:
 | [FB-020](#fb-020-find-the-cheapest-way-to-fill-waylaid-crates-and-writs) | 2026-10-17 | Harro22 | request | Search | n/a | Find the cheapest way to fill Waylaid crates and writs | planned 0.8 |
 | [FB-021](#fb-021-a-typed-price-below-the-lowest-listing-cannot-be-posted-rough-stone-5c) | 2026-10-18 | sarrathsilentstrider | bug | Post | S2 | A typed price below the lowest listing cannot be posted (Rough Stone, 5c) | fixed 0.7.1.1 (released 2026-10-19) |
 | [FB-022](#fb-022-the-player-did-not-know-the-newest-listing-at-a-price-sells-first) | 2026-10-18 | sarrathsilentstrider | ux | Post | n/a | The player did not know the newest listing at a price sells first | new |
-| [FB-023](#fb-023-a-shopping-list-for-crafting-n-of-a-recipe) | 2026-10-20 | Kortan | request | Search | n/a | A shopping list for crafting N of a recipe | planned 0.8 |
+| [FB-023](#fb-023-a-shopping-list-for-crafting-n-of-a-recipe) | 2026-10-20 | Kortan | request | Search | n/a | A shopping list for crafting N of a recipe | planned 0.9 |
 
 ## Players
 
@@ -1250,8 +1250,9 @@ Ask Tyler: should the Post tab say why it matches (a line or a hint on the switc
 - Type: request
 - Area: Search (recipe search)
 - Severity: n/a
-- Status: planned 0.8 (Tyler, 2026-10-20: "add a feature to this update")
-- Proposed: 0.8
+- Status: planned 0.9 (Tyler, 2026-10-20: first "add a feature to this update", then "Any of the
+  shopping lists, list stuff I talked about, we'll save that for 0.9")
+- Proposed: 0.9
 
 Said (Tyler's retelling):
 > I want a feature that used to be in TSM (Trade Skill Master), where the user could put in a
