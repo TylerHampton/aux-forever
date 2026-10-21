@@ -44,6 +44,17 @@ Next: Tyler tests build 1, then says whether 0.8 ships with gamepad alone or wai
   two same-name gear tooltips (do the stats differ?). Waylaid crates: "cheapest way to fill one"
   (Tyler); a crate lists several bundles, any one fills it (guides, FB-020). Waiting on a crate's
   tooltip in game. Writs go to 0.9 with the shopping list (Tyler, 2026-10-20).
+- **Seen 2026-10-20 (Tyler's screenshots):** a Waylaid Crate's tooltip lists its bundles (FB-020).
+  Three Medicine Staffs with different endings (of the Bandit, of Arcane Protection, of the Wolf;
+  different stats) showed the same aux prices in their tooltips (Value 1g 50s, usually 25s, Today
+  1g 10s, 440%). Inference: aux's tooltip prices lump every ending of an item together. Likely
+  cause, not checked: on Forever the link's suffix field (`info.parse_link`, field 7) is 0 and the
+  ending lives elsewhere in the link, so every ending reads as `item_id:0`, while searches record
+  `itemKey.itemSuffix`. To confirm: the raw link of a hovered staff, printed with `/run`. Part of
+  0.8's gear versions work.
+- **Gamepad testing:** Tyler will not test the controller steps (2026-10-20: "That can be for the
+  small amount of users that want to test it"). Steps 1 and 2 of 0.8 build 1 (mouse and keyboard)
+  still stand.
 - **Other characters' items (0.9, Claude's thoughts 2026-10-20):** two ways. (a) aux
   records each character's bags (always), bank (when opened) and mail (when opened) in its
   account-wide saved data, as Syndicator does; counts only, saved on a timer and on logout, never

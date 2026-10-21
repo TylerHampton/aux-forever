@@ -1180,6 +1180,19 @@ Found 2026-10-20 (web guides written during Forever's beta; **Outside**, not see
   pages, quests 94256, 94282, 94221). "Cheapest" for a writ is buying the item versus crafting
   it, which is the shopping list's question (FB-023, 0.9).
 - Tyler, 2026-10-20: "writs in 0.9 with the shopping list". 0.8 builds crates only.
+
+Seen in game (Tyler's screenshots, 2026-10-20, aux's Search tab, search `waylaid crate`):
+- A crate's tooltip lists its bundles in its Use line **[Seen]**: "Waylaid Crate: Journeyman
+  Textiles. Use: Fill the crate with any bundle from the following list: - 20 Wool Cloth - 40
+  Silk Cloth - 20 Medium Leather. Requires Level 10." Journeyman Fabrics: "- 6 Bolt of Woolen
+  Cloth - 10 Bolt of Silk Cloth - 2 Cured Medium Hide".
+- Crates are sold on the auction house, many kinds at once **[Seen]**: Apprentice, Journeyman and
+  Expert Textiles, Fabrics, Herbs, Ore, Ingots, Parts and Curiosities, plus Earthly Artisan Herbs
+  and Flowering Expert Herbs (Req 10, 20 or 35). Journeyman Textiles listed around 60s, Journeyman
+  Fabrics around 2g.
+- Inference: since the list is in the tooltip text, aux can likely read it (each line "- <count>
+  <item name>") with no hand-written list. Not yet checked from code (the `/run` line in the chat
+  was not run).
 - Still to see in game: how a crate shows its bundles (tooltip or quest text), and whether aux
   can read them or needs a hand-written list.
 

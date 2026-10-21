@@ -24,7 +24,8 @@ With mouse and keyboard (gamepad mode off):
       game's usual popup asks "Are you sure you want to remove this search from your favorites?";
       Yes removes it.
 
-With a controller (skip 3 to 6 if you have none): Options, Controls, turn on gamepad mode.
+With a controller: Tyler will not test these (2026-10-20); they are for players with a
+controller who want to help. Options, Controls, turn on gamepad mode.
 
 - [ ] 3. Talk to an auctioneer: aux opens with a gold frame on a control and a strip under the
       window showing the controller's buttons. Move with the D-pad; RB and LB switch tabs.
