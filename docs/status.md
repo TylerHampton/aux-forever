@@ -52,7 +52,7 @@ say why it matches the lowest price?).
   does not seem to have gone through (screenshots, no error text). aux keeps gear in whole silver
   until a refused post is seen with its error text (`docs/forever-auction-house.md`, section 4).
 - Open for Tyler: FB-022 (should the Post tab say why it matches the lowest price, or is that
-  teaching the auction house?); a corrected reply to Sarrath (`docs/feedback.md`, FB-021, "Reply for the player").
+  teaching the auction house?). The corrected reply to Sarrath was posted by Tyler on 2026-10-19.
 
 **Before that:** **0.7.1 is released** (2026-10-17, PR #30, `main` e63ec0a): every own
 auction on its own row, cancels confirmed by the auction house, no silent search misses (FB-014 to
