@@ -84,8 +84,9 @@ What it records is the weak part. These are inferences from the code, not measur
    someone who scans once a week has a usual price spread over about two and a half months.
 4. **Nothing says how fresh a price is** when it is shown (except the Sniper's 3-day minimum).
 5. **Per faction.** History is kept per realm and faction, as in Classic. Whether Forever's
-   auction house is shared between factions is not recorded in `docs/forever-auction-house.md`; if
-   it is, each faction collects the same prices separately. Unverified.
+   auction house is shared between factions: guides say each faction has its own house and only
+   the neutral houses are shared (`docs/forever-auction-house.md`, section 1, Outside; experiment
+   E2). If they are right, prices seen at a neutral house are mixed into the faction's history.
 
 For comparison, from memory and not checked: TSM's "market value" averages the cheaper part of
 the listings over about two weeks instead of taking the single lowest auction. Check TSM's own

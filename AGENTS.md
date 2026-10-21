@@ -15,6 +15,13 @@ permission by email (quoted in `README.md`); he is not involved in this version.
   house API (`C_AuctionHouse`). aux was written for Classic Era's old auction house, so search,
   buying and posting were rewritten. Facts about Forever's auction house, with sources:
   `docs/forever-auction-house.md`. Read it before touching scanning, buying or posting.
+- **Only confirmed facts about Forever's auction house** (Tyler, 2026-10-11, "we need to confirm
+  things like this"). Every fact in `docs/forever-auction-house.md` is labeled Seen (seen in game),
+  Code (Blizzard's Forever code), Outside (another addon or a guide) or Unknown. Only a Seen fact
+  goes to a player, into a reply Tyler sends, or into a design decision as plain fact; anything
+  else is said with its label ("Blizzard's code shows X; not yet seen in game"). Retail WoW
+  knowledge counts as Outside. A new fact goes into that file with its label; an Unknown that
+  matters becomes an experiment there for Tyler.
 - The addon is the `auxForever/` folder. Players copy it into
   `World of Warcraft\_classic_beta_\Interface\AddOns`.
 - Released as a beta on CurseForge (unlisted). Page text and settings: `docs/curseforge.md`,
@@ -253,9 +260,12 @@ aux runs inside the game; every frame it spends time in costs the player frame r
 - Posting: an item auction's buyout must be above its starting bid, or the server answers
   "Internal auction error"; an equal bid is dropped (`item_post_prices` in `tabs/post/core.lua`).
   Gear is priced in whole silver; commodities may use copper. The auction house cut is the
-  constant `AUCTION_CUT = .05`. Deposits come from the game (`CalculateItemDeposit`).
-- On Forever the newest listing at a price sells first, so the Post tab matches the lowest price by
-  default; undercut mode (goblin switch) goes one step below. Undercut mode always starts off.
+  constant `AUCTION_CUT = .05` (Outside, not yet seen on an invoice). Deposits come from the game
+  (`CalculateItemDeposit`).
+- The Post tab matches the lowest price by default, on the belief that on Forever the newest
+  listing at a price sells first. That belief has no recorded source (Unknown, experiment E6 in
+  `docs/forever-auction-house.md`); do not tell players it as fact. Undercut mode (goblin switch)
+  goes one step below. Undercut mode always starts off.
 - Tables sort by column number (`listing:SetSort(2, 8)`; the last number is the main sort). Adding
   a column shifts the numbers after it: update every `SetSort` of that table (0.7, a test checks
   the main sort of each tab).

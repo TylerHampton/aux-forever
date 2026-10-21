@@ -1170,7 +1170,7 @@ whether he needs to buy one: not yet, only when 0.8 is planned in detail).
 - Status: fixed 0.7.1.1 (released 2026-10-19); tested in game by Tyler on 2026-10-19, build 2:
   Light Feather listed at 7c, 4c typed and posted, and 5c with Undercut on
 
-Reply for the player (Tyler's earlier reply named the wrong cause): "You were right, it was aux.
+Reply for the player (Tyler's earlier reply named the wrong cause; Tyler posted it 2026-10-19): "You were right, it was aux.
 For trade goods, aux kept a hidden starting bid at the automatic price, and typing a buyout below
 it turned the Post button off. Undercut set both to 6c, which is why 6c worked and 5c did not. It
 is fixed in 0.7.1.1, along with a few other things we found while looking into it."

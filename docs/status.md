@@ -8,6 +8,18 @@ UTC offsets, rule in `AGENTS.md`), mentions of when in his day he worked, and th
 name, handle and job (he is now only "webster"). New privacy rule in `AGENTS.md`, "The owner".
 Git history still has the old text; rewriting it was judged not worth it.
 
+**2026-10-20, branch cleanup (docs only):** two branches held work that never reached `main`.
+`claude/zealous-bardeen-i9v5mp` (Tyler posted the corrected FB-021 reply on 2026-10-19) and
+`claude/exciting-brown-a9k99n` (Tyler changed his mind and wanted it merged): the 2026-10-11
+rewrite of `docs/forever-auction-house.md` with a label on every fact (Seen, Code, Outside,
+Unknown) and the rule in `AGENTS.md` that only Seen facts go to players as fact. The facts seen in
+game since 2026-10-11 (deposit floor of 1 silver, `SupportsCopperValues()` true, the gear copper
+post, gear versions, no `itemLink` for owned trade goods) were added to it under their labels;
+E5 (durations) is settled as 2/8/24. The `AGENTS.md` gotcha about the newest listing selling first
+now says it has no source (E6). Every other branch was merged or replaced by later work.
+Tyler: GitHub Settings, General, Pull Requests, "Automatically delete head branches", so merged
+branches stop piling up.
+
 **Dates:** Tyler's (rule in `AGENTS.md`, "The owner"). On 2026-10-09 the dates agents
 had written from the UTC clock were moved to his date, checked against the time of the commit
 that wrote each line (the 0.6 and 0.6.0.1 releases were on 2026-10-09 his time, not
@@ -21,9 +33,9 @@ cdc2208): FB-021 (typed prices below the lowest listing can be posted), gear wit
 and the fixes found with the slow test auction house (below). Tag `v0.7.1.1`, GitHub pre-release
 https://github.com/TylerHampton/aux-forever/releases/tag/v0.7.1.1, CurseForge Beta file id 9253171
 (Release run 39214275264). `/reload` is enough for players. Tested in game by Tyler on build 2
-(`TESTING.md`). Next: 0.8 as planned (`docs/roadmap.md`); nothing is being built. For Tyler: the
-corrected CurseForge reply to sarrathsilentstrider (FB-021 entry), and FB-022 (should the Post
-tab say why it matches the lowest price?).
+(`TESTING.md`). Next: 0.8 as planned (`docs/roadmap.md`); nothing is being built. Tyler posted the
+corrected reply to sarrathsilentstrider (2026-10-19). Open for Tyler: FB-022 (should the Post tab
+say why it matches the lowest price?).
 
 - **What it is:** FB-021 (sarrathsilentstrider: Rough Stone listed at 7c, 5c typed, Post would
   not post it; 6c worked). Cause: trade goods have no starting bid (its box is hidden), but aux
@@ -52,7 +64,7 @@ tab say why it matches the lowest price?).
   does not seem to have gone through (screenshots, no error text). aux keeps gear in whole silver
   until a refused post is seen with its error text (`docs/forever-auction-house.md`, section 4).
 - Open for Tyler: FB-022 (should the Post tab say why it matches the lowest price, or is that
-  teaching the auction house?); a corrected reply to Sarrath (`docs/feedback.md`, FB-021, "Reply for the player").
+  teaching the auction house?). The corrected reply to Sarrath was posted by Tyler on 2026-10-19.
 
 **Before that:** **0.7.1 is released** (2026-10-17, PR #30, `main` e63ec0a): every own
 auction on its own row, cancels confirmed by the auction house, no silent search misses (FB-014 to
@@ -61,7 +73,8 @@ https://github.com/TylerHampton/aux-forever/releases/tag/v0.7.1, CurseForge Beta
 (Release run 39075770178). `/reload` is enough for players. Next: 0.8 is planned
 (`docs/roadmap.md`: Waylaid crates, gear versions); nothing is being built. Replies for
 sarrathsilentstrider (FB-017, FB-018) are in `docs/feedback.md` if Tyler wants to post them.
-Branch `claude/exciting-brown-a9k99n`: Tyler deletes it on GitHub (Branches page).
+Branch `claude/exciting-brown-a9k99n`: Tyler deletes it on GitHub (Branches page). (Changed
+2026-10-20: merged instead, see the top.)
 
 - **Build 3 in game** (Tyler, 2026-10-17, `builds/0-7-1-build-3/results`, screenshots): Settings
   without the start mode row; Undercut stays on across posts until the auction house closes; the
@@ -184,7 +197,7 @@ Branch `claude/exciting-brown-a9k99n`: Tyler deletes it on GitHub (Branches page
     Forever's item keys carry `itemLevel` (the item's own level is used when not).
 
 - Branch `claude/exciting-brown-a9k99n` (docs only: auction house facts, experiments not scheduled) is
-not merged; ask Tyler whether to merge it.
+not merged; ask Tyler whether to merge it. (Merged 2026-10-20.)
 
 - **Released 0.6.1.1** on 2026-10-12 (PR #25, `main` 154a584), "The Gaddor Update" (Tyler's
   name, used in the changelog only): a click on an item's icon in the Post tab's bag list selects
