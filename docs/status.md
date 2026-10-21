@@ -28,7 +28,7 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand (2026-10-20, end of session):** **0.8 build 6 (gear versions in the Post
+**Where things stand (2026-10-21, end of session):** **0.8 build 6 (gear versions in the Post
 tab)** is on branch `claude/fervent-planck-ry58jx`, built and pushed, not yet tested in game
 (`TESTING.md`, zip `auxForever-0.8-build6.zip`, test page build `0-8-build-6`). Every 0.8 item is
 built: gamepad (build 1, nokkty), Waylaid Crates (build 2, pass in game), gear versions (builds

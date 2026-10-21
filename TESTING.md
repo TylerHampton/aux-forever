@@ -44,7 +44,7 @@ Staff of the Whale). Zip `auxForever-0.8-build5.zip`; `/reload` is enough. Test 
 - [ ] 3. Medicine Staff of the Whale: once the bar turns gold, it says "None for sale. Type a price
       to post." (if nobody sells a Whale staff). Screenshot.
 
-Tested by Tyler 2026-10-20 (test page `0-8-build-5`, screenshots): Agility and Healing showed
+Tested by Tyler 2026-10-21 (test page `0-8-build-5`, screenshots): Agility and Healing showed
 listings of their own name and "Same as the lowest listing", but the counts did not match a search
 a minute later (Healing 1 + 3 in the Post tab, 6 in the search): the Post tab stopped after the
 first version with a listing (fixed in build 6; listings also changed in that minute, Agility was
@@ -66,7 +66,7 @@ Rows, the item heading and "Posted 1 × ..." now show the full name. Zip
 - [ ] 3. Only if you have gear with an ending up for sale: Auctions tab, its status (Tied, Undercut,
       Lowest) compares with listings of the same name. Skip otherwise.
 
-Tested by Tyler 2026-10-20 (test page `0-8-build-4`, screenshots): step 1 passes (Medicine Staff
+Tested by Tyler 2026-10-21 (test page `0-8-build-4`, screenshots): step 1 passes (Medicine Staff
 of the Whale, Merc Sword of Agility, Merc Sword of Healing). Step 2: the Whale staff showed no
 listings, right (none listed in the search), but "Type a price to post" read as broken; Merc Sword
 of Agility showed none though 4 were listed at 16s, a bug (fixed in build 5). Step 3 not done.
