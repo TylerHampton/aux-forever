@@ -30,6 +30,7 @@ refresh = true
 
 posting = nil
 posting_item = nil -- the item being posted and how many were in the bags before
+other_endings_lowest = nil -- 0.8: the cheapest listing of the selected gear's other endings
 
 last_post_update = nil
 
@@ -531,6 +532,8 @@ function M.price_note_text()
         note = aux.color.label.enabled('Your own price')
     elseif selection.historical_value then
         note = aux.color.label.enabled('The usual price for this item')
+    elseif selection.other_ending then
+        note = aux.color.label.enabled('None of this name for sale: the cheapest other ending')
     elseif selection.own then
         note = aux.color.label.enabled('Same as your own listing at ') .. money.to_string(selection.unit_price, true)
     elseif aux.account_data.post_undercut then
@@ -750,7 +753,7 @@ end
 -- auxForever: on Forever the newest listing at a price sells first, so by default aux matches the
 -- cheapest price. Undercut mode (the goblin toggle) goes one step below it, like aux on Classic.
 function M.undercut(record, stack_size, bid)
-    if record.historical_value or record.own or not aux.account_data.post_undercut then
+    if record.historical_value or record.other_ending or record.own or not aux.account_data.post_undercut then
         return record.unit_price
     else
         -- one step below: 1 copper for trade goods, 1 silver for gear
@@ -886,6 +889,10 @@ function M.auto_pick_price()
         local historical_value = history.value(selected_item.key)
         if historical_value then
             cheapest = { historical_value = true, stack_size = stack_size_input:GetNumber(), unit_price = historical_value }
+        elseif other_endings_lowest then
+            -- 0.8: none of this name for sale and no usual price: the cheapest other ending of the
+            -- item, said as such (a suggestion; the player can type any price)
+            cheapest = { other_ending = true, stack_size = stack_size_input:GetNumber(), unit_price = other_endings_lowest }
         end
     end
     if cheapest then
@@ -912,7 +919,9 @@ function refresh_entries()
         local location = find_item_location(item_key)
         local key = location and C_AuctionHouse.GetItemKeyFromItem and C_AuctionHouse.GetItemKeyFromItem(location)
         local key_info = type(key) == 'table' and C_AuctionHouse.GetItemKeyInfo(key)
-        local query = type(key_info) == 'table' and not key_info.isEquipment and { item_keys = {key} } or scan_util.item_query(selected_item.item_id)
+        local by_key = type(key_info) == 'table' and not key_info.isEquipment
+        local query = by_key and { item_keys = {key} } or scan_util.item_query(selected_item.item_id)
+        other_endings_lowest = nil
 
 		scan.start{
             type = 'list',
@@ -928,10 +937,12 @@ function refresh_entries()
             on_page_scanned = function()
                 bid_records[item_key] = bid_records[item_key] or {}
                 buyout_records[item_key] = buyout_records[item_key] or {}
-                -- 0.8: gear is read version by version, and only its own name counts, so a page
-                -- with none of it leaves the listings unready until the search ends: the price was
-                -- picked from the usual one before the item's own listings came (Tyler, build 4)
-                if next(buyout_records[item_key]) then
+                -- 0.8: gear is read by name, version by version, and one name can sit under several
+                -- versions, so its listings are complete only when the search ends: taken after the
+                -- first version, the price came from the usual one (build 4) or missed the rest of
+                -- the name's listings ("the numbers dont add up", Tyler, build 5). One item key (a
+                -- trade good, gear without an ending in the bags) is one page, as before.
+                if by_key and next(buyout_records[item_key]) then
                     listings_ready[item_key] = true
                     refresh = true
                     if not aux.account_data.post_full_scan then
@@ -945,6 +956,13 @@ function refresh_entries()
 				-- version of the item)
 				if (auction_record.price_key or auction_record.item_key) == item_key then
                     record_auction(auction_record)
+				-- the cheapest other ending, to suggest a price when nobody sells this one (Tyler,
+				-- build 5: "we need to give them a price to post at anyway")
+				elseif auction_record.item_id == selected_item.item_id and not auction_record.own and (auction_record.unit_buyout_price or 0) > 0 then
+				    local unit = ceil(auction_record.unit_buyout_price)
+				    if not other_endings_lowest or unit < other_endings_lowest then
+				        other_endings_lowest = unit
+				    end
 				end
 			end,
 			on_abort = function()

@@ -270,4 +270,7 @@ page once carried them as build id `ah-facts-1`.
   which assumes it does; the real game may drop it) **[Unknown]**. To try: search something with
   many items (for example `cloth`), and the moment it starts, search `copper ore/exact`. If the
   results show cloth items or nothing where Copper Ore is listed, the game answers replaced searches
-  and aux needs a fix.
+  and aux needs a fix. Also in the Post tab (found 2026-10-20 with the slow test auction house):
+  after a post, aux picks the next item and reads it; picking another item before that answer came
+  back read the late, empty answer as the new item's and said "None for sale". Same test in game:
+  post an item, and right away pick a different one in the bag list.

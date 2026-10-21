@@ -28,19 +28,20 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand (2026-10-20):** **0.8 build 5 (gear versions: the Post tab finds gear
-listings)** is on branch `claude/fervent-planck-ry58jx`, waiting for Tyler's test (`TESTING.md`,
-zip `auxForever-0.8-build5.zip`). Build 3: prices per ending pass. Build 4: names with endings
-pass; the Post tab found no listings for gear with an ending (filed under the wrong key, and
-counted as read after the item's first version), fixed in build 5 with tests. With it every 0.8 item is built: gamepad support (build 1, nokkty),
-Waylaid Crates (build 2, tested, pass), gear versions (build 3). Next: Tyler tests build 3, then
-says whether 0.8 is ready to release (pull request, merge, Release workflow). Build 1 was gamepad
-support alone; its mouse and keyboard steps are folded into build 2. It is nokkty's work (GitHub issue #27, fork
-branch `gamepad-navigation`, built with Claude and tested in game by them on 0.7, 2026-10-13),
-merged with their commits and authorship kept, onto `main` at 0.7.1.1. Tyler, on the issue: "ill
-check it out and merge tonight". Nothing is released; 0.7.1.1 is still the latest release.
-Next: Tyler tests build 1, then says whether 0.8 ships with gamepad alone or waits for the other
-0.8 items (`docs/roadmap.md`). Open for Tyler: FB-022 (below).
+**Where things stand (2026-10-20, end of session):** **0.8 build 6 (gear versions in the Post
+tab)** is on branch `claude/fervent-planck-ry58jx`, built and pushed, not yet tested in game
+(`TESTING.md`, zip `auxForever-0.8-build6.zip`, test page build `0-8-build-6`). Every 0.8 item is
+built: gamepad (build 1, nokkty), Waylaid Crates (build 2, pass in game), gear versions (builds
+3 to 6). Gear versions in game so far: prices per ending pass (build 3), endings in the bag list
+pass (build 4); the Post tab's gear listings needed two more rounds (build 5: listings filed under
+the wrong key and read as done too early; build 6: the Post tab stopped at the first version with
+a listing, and now suggests the cheapest other ending when nobody sells the name). Tyler, on build
+5: "Looks like we found our first real issue that you couldnt one-shot."
+
+Next session: read the test page results for `0-8-build-6` first. If they pass, ask Tyler whether
+0.8 is ready to release (pull request, merge, Release workflow). Open: E7 (whether Forever answers a
+replaced search; it would show as a Post tab item reading "None for sale" right after a post when
+another item is picked quickly), FB-022.
 
 - **0.8 planning (2026-10-20):** 0.8 is only gamepad support, Waylaid crates and gear versions
   (Tyler). The crafting shopping list (FB-023, Kortan) and counting other characters' items move

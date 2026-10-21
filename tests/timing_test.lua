@@ -465,7 +465,9 @@ return function(env)
     local server = new_server(env)
     local post = module 'aux.tabs.post'
     server.items[4575] = {name = 'Medicine Staff', commodity = false, vendor = 1487,
-      versions = {[101] = 'of the Bandit', [102] = 'of Arcane Protection', [103] = 'of Arcane Protection', [104] = 'of the Wolf', [105] = 'of the Whale'}}
+      versions = {[101] = 'of the Bandit', [102] = 'of Arcane Protection', [103] = 'of Arcane Protection', [104] = 'of the Wolf', [105] = 'of the Whale', [106] = 'of the Wolf'}}
+    -- an item nobody sells at all
+    server.items[4576] = {name = 'Sturdy Stick', commodity = false, vendor = 100}
     -- the Wolf is the last version the auction house lists (Tyler, build 4: Merc Sword of Agility
     -- had 4 listed, but the Post tab found none when another ending came first)
     server.listings[4575] = {
@@ -473,8 +475,11 @@ return function(env)
       {price = 11000, quantity = 1, version = 102},
       {price = 11500, quantity = 1, version = 103},
       {price = 15000, quantity = 1, version = 104},
+      -- a second version of the same name, read after the first and cheaper: the Post tab must read
+      -- every version (Tyler, build 5: "the numbers dont add up")
+      {price = 14000, quantity = 1, version = 106},
     }
-    server.bag = {{id = 4575, count = 1, version = 104}, {id = 4575, count = 1, version = 101}, {id = 4575, count = 1, version = 105}}
+    server.bag = {{id = 4575, count = 1, version = 104}, {id = 4575, count = 1, version = 101}, {id = 4575, count = 1, version = 105}, {id = 4576, count = 1}}
     server:install()
     -- a usual price of its own, so a price taken from it cannot pass for the Wolf listing's (it did
     -- in build 3: the listings were never shown and the usual price happened to match)
@@ -497,20 +502,38 @@ return function(env)
     check('gear: each is named with its ending', post.selected_item and post.selected_item.name == 'Medicine Staff of the Wolf')
     check('gear: the listings arrive', server:wait(function() return aux.status_bar.done and post.selected_item and post.selected_item.key == '4575:of the wolf' end, 150))
     server:ticks(3)
-    check('gear: priced against the Wolf listing, not the cheaper endings', post.get_unit_buyout_price() == 15000)
+    check('gear: priced against the cheapest Wolf of every version, not the cheaper endings', post.get_unit_buyout_price() == 14000)
     check('gear: the Wolf listing is shown in the table', plain(post.price_note_text()):find('lowest listing', 1, true) ~= nil)
     click_post(post)
     server:ticks(20)
     local sent = server.posts[1]
-    check('gear: the Wolf staff is posted at the Wolf price', sent and sent.version == 104 and sent.buyout == 15000 and #server.posts == 1)
+    check('gear: the Wolf staff is posted at the Wolf price', sent and sent.version == 104 and sent.buyout == 14000 and #server.posts == 1)
     post.validate_parameters()
     check('gear: the post is over', post.disabled_reason() ~= 'Posting...')
-    -- an ending nobody sells: said plainly once every version was read
+    -- read until the Post tab itself has the listings (the bar can still show the last item's)
+    local function read_done(key)
+      return function()
+        post.validate_parameters()
+        return post.selected_item and (not key or post.selected_item.key == key) and post.disabled_reason() ~= 'Reading the listings...' and server:pending() == 0
+      end
+    end
+    -- after a post the Post tab picks the next item and reads it; that read ends first. (Picked
+    -- before its item list came back, the late list was taken for the next item's: experiment E7 in
+    -- docs/forever-auction-house.md, not yet known to happen in game.)
+    server:wait(read_done(nil), 200)
+    -- an ending nobody sells: the cheapest other ending is suggested, said as such
     post.select_item('4575:of the whale')
-    check('gear: the Whale staff is read', server:wait(function() return aux.status_bar.done and post.selected_item and post.selected_item.key == '4575:of the whale' end, 150))
+    check('gear: the Whale staff is read', server:wait(read_done('4575:of the whale'), 200))
     server:ticks(3)
     post.validate_parameters()
-    check('gear: none of its name for sale, and it says so', post.disabled_reason() == 'None for sale. Type a price to post.')
+    check('gear: none of its name for sale: the cheapest other ending is suggested', post.get_unit_buyout_price() == 11000)
+    check('gear: and the note says where the price comes from', plain(post.price_note_text()):find('None of this name for sale', 1, true) ~= nil)
+    -- nothing of the item for sale at all: it says so
+    post.select_item('4576:0')
+    check('gear: the stick is read', server:wait(read_done('4576:0'), 200))
+    server:ticks(3)
+    post.validate_parameters()
+    check('gear: none for sale, and it says so', post.disabled_reason() == 'None for sale. Type a price to post.')
     post_teardown(server, post)
   end)
 

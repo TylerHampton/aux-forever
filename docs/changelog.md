@@ -46,7 +46,10 @@ A change that comes from a player's feedback credits them by in-game name at the
   filters now use the price of that ending.
 - Post tab: each ending is its own item in the bag list, named with its ending ("Merc Sword of the
   Eagle"), and it is priced against listings of the same name only, as in Blizzard's Sell window.
-  When nobody sells that name, it says "None for sale. Type a price to post." Before, a Merc Sword of the Eagle could be priced at
+  aux reads every version of the item first, since one name can be listed under several. When
+  nobody sells that name, it suggests the cheapest other ending of the item, and says so ("None of
+  this name for sale: the cheapest other ending"); with nothing of the item for sale at all it says
+  "None for sale. Type a price to post." Before, a Merc Sword of the Eagle could be priced at
   what a Merc Sword of Strength was listed for.
 - Auctions tab: your gear is checked against every listing of its name. The auction house files
   one name under several versions with the same stats, and checking only your exact version said

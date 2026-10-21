@@ -8,7 +8,26 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8 build 5
+## Current build: 0.8 build 6
+
+Fixes from Tyler's test of build 5 ("the numbers dont add up"; "we need to give them a price to
+post at anyway"). The Post tab now reads every version of gear before it picks a price: one name
+can sit under several versions, and stopping at the first one with a listing missed the rest. And
+when nobody sells that name, it suggests the cheapest other ending of the item, with the note "None
+of this name for sale: the cheapest other ending" (a suggestion; any price can be typed). Zip
+`auxForever-0.8-build6.zip`; `/reload` is enough. Test page build id `0-8-build-6`. Reading
+gear now takes a few seconds longer (one request per version of the item).
+
+- [ ] 1. Search `merc sword` (Full) and note how many of each ending are for sale and at what
+      price. Then Post tab, Merc Sword of Healing: once the bar turns gold, the table shows the
+      same Healing listings (same counts and prices) and "Same as the lowest listing". Screenshot of
+      both.
+- [ ] 2. Merc Sword of Agility: the same check (if none are listed now, see step 3).
+- [ ] 3. Medicine Staff of the Whale (nobody sells it): a price is filled in, the cheapest other
+      Medicine Staff, and the line under it says "None of this name for sale: the cheapest other
+      ending". Screenshot.
+
+### 0.8 build 5
 
 Fixes from Tyler's test of build 4: the Post tab found no listings for gear with an ending
 (Merc Sword of Agility: 4 listed at 16s, the Post tab showed none and took the usual price). Two
@@ -24,6 +43,13 @@ Staff of the Whale). Zip `auxForever-0.8-build5.zip`; `/reload` is enough. Test 
 - [ ] 2. Merc Sword of Healing: the same, with the Healing listings.
 - [ ] 3. Medicine Staff of the Whale: once the bar turns gold, it says "None for sale. Type a price
       to post." (if nobody sells a Whale staff). Screenshot.
+
+Tested by Tyler 2026-10-20 (test page `0-8-build-5`, screenshots): Agility and Healing showed
+listings of their own name and "Same as the lowest listing", but the counts did not match a search
+a minute later (Healing 1 + 3 in the Post tab, 6 in the search): the Post tab stopped after the
+first version with a listing (fixed in build 6; listings also changed in that minute, Agility was
+gone from the later search). The Whale said "None for sale"; Tyler: "we need to give them a price
+to post at anyway" (build 6 suggests the cheapest other ending).
 
 ### 0.8 build 4
 
