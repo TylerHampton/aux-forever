@@ -28,10 +28,11 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand (2026-10-20):** **0.8 build 4 (gear versions, with full names in the Post
-tab's bag list)** is on branch `claude/fervent-planck-ry58jx`, waiting for Tyler's test
-(`TESTING.md`, zip `auxForever-0.8-build4.zip`). Build 3 in game: prices per ending pass; the bag
-list named both Merc Swords alike (fixed in build 4). With it every 0.8 item is built: gamepad support (build 1, nokkty),
+**Where things stand (2026-10-20):** **0.8 build 5 (gear versions: the Post tab finds gear
+listings)** is on branch `claude/fervent-planck-ry58jx`, waiting for Tyler's test (`TESTING.md`,
+zip `auxForever-0.8-build5.zip`). Build 3: prices per ending pass. Build 4: names with endings
+pass; the Post tab found no listings for gear with an ending (filed under the wrong key, and
+counted as read after the item's first version), fixed in build 5 with tests. With it every 0.8 item is built: gamepad support (build 1, nokkty),
 Waylaid Crates (build 2, tested, pass), gear versions (build 3). Next: Tyler tests build 3, then
 says whether 0.8 is ready to release (pull request, merge, Release workflow). Build 1 was gamepad
 support alone; its mouse and keyboard steps are folded into build 2. It is nokkty's work (GitHub issue #27, fork

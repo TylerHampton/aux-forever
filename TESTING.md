@@ -8,7 +8,24 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8 build 4
+## Current build: 0.8 build 5
+
+Fixes from Tyler's test of build 4: the Post tab found no listings for gear with an ending
+(Merc Sword of Agility: 4 listed at 16s, the Post tab showed none and took the usual price). Two
+causes, each with a test that fails without its fix: the listings were filed under the old item
+key while the Post tab reads them by the price key; and the listings counted as read after the
+first version of the item, before the item's own name came, so the price was picked from the usual
+one. Also new: "None for sale. Type a price to post." when nothing of that name is listed (Medicine
+Staff of the Whale). Zip `auxForever-0.8-build5.zip`; `/reload` is enough. Test page build id
+`0-8-build-5`.
+
+- [ ] 1. Post tab, Merc Sword of Agility: once the bar turns gold, the table lists the swords of
+      Agility for sale and the price line says "Same as the lowest listing". Screenshot.
+- [ ] 2. Merc Sword of Healing: the same, with the Healing listings.
+- [ ] 3. Medicine Staff of the Whale: once the bar turns gold, it says "None for sale. Type a price
+      to post." (if nobody sells a Whale staff). Screenshot.
+
+### 0.8 build 4
 
 Fix from Tyler's test of build 3: the Post tab's bag list named gear without its ending, so two
 Merc Swords with different endings were two rows that looked alike ("I think we failed this").
@@ -22,6 +39,11 @@ Rows, the item heading and "Posted 1 × ..." now show the full name. Zip
       price to post". Compare with a Search tab search of the full name. Screenshot of both.
 - [ ] 3. Only if you have gear with an ending up for sale: Auctions tab, its status (Tied, Undercut,
       Lowest) compares with listings of the same name. Skip otherwise.
+
+Tested by Tyler 2026-10-20 (test page `0-8-build-4`, screenshots): step 1 passes (Medicine Staff
+of the Whale, Merc Sword of Agility, Merc Sword of Healing). Step 2: the Whale staff showed no
+listings, right (none listed in the search), but "Type a price to post" read as broken; Merc Sword
+of Agility showed none though 4 were listed at 16s, a bug (fixed in build 5). Step 3 not done.
 
 ### 0.8 build 3
 

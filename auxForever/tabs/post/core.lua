@@ -584,9 +584,13 @@ function M.disabled_reason()
     -- Stone listed at 7c, 5c typed; 6c worked only through Undercut, which set both)
     elseif not selected_item.commodity and get_unit_buyout_price() > 0 and get_unit_start_price() > get_unit_buyout_price() then
         return 'The starting bid is above the buyout.'
-    elseif selected_item.commodity and get_unit_buyout_price() == 0 then
-        return 'Type a price to post.'
-    elseif not selected_item.commodity and get_unit_start_price() == 0 and get_unit_buyout_price() == 0 then
+    elseif (selected_item.commodity and get_unit_buyout_price() == 0)
+            or (not selected_item.commodity and get_unit_start_price() == 0 and get_unit_buyout_price() == 0) then
+        -- 0.8: say when nothing of it is for sale (gear of an ending nobody sells): "Type a price"
+        -- alone read as broken (Tyler, build 4: Medicine Staff of the Whale)
+        if listings_ready[selected_item.key] and not next(buyout_records[selected_item.key] or empty) then
+            return 'None for sale. Type a price to post.'
+        end
         return 'Type a price to post.'
     elseif stack_count_input:GetNumber() == 0 then
         return 'Choose how many to post.'
@@ -924,11 +928,16 @@ function refresh_entries()
             on_page_scanned = function()
                 bid_records[item_key] = bid_records[item_key] or {}
                 buyout_records[item_key] = buyout_records[item_key] or {}
-                listings_ready[item_key] = true
-                refresh = true
-                if not aux.account_data.post_full_scan and next(buyout_records[item_key]) then
-                    scan.abort()
-                    aux.coro_wait()
+                -- 0.8: gear is read version by version, and only its own name counts, so a page
+                -- with none of it leaves the listings unready until the search ends: the price was
+                -- picked from the usual one before the item's own listings came (Tyler, build 4)
+                if next(buyout_records[item_key]) then
+                    listings_ready[item_key] = true
+                    refresh = true
+                    if not aux.account_data.post_full_scan then
+                        scan.abort()
+                        aux.coro_wait()
+                    end
                 end
             end,
 			on_auction = function(auction_record)
@@ -971,21 +980,24 @@ function M.memory_counts()
 end
 
 function M.record_auction(auction)
-    bid_records[auction.item_key] = bid_records[auction.item_key] or {}
+    -- 0.8: listings are kept under the price key, which the Post tab reads them by: gear under the
+    -- item key was never found (Tyler, build 4: Merc Sword of Agility, 4 listed, none shown)
+    local key = auction.price_key or auction.item_key
+    bid_records[key] = bid_records[key] or {}
     if not auction.commodity then
 	    local entry
-	    for _, record in pairs(bid_records[auction.item_key]) do
+	    for _, record in pairs(bid_records[key]) do
 	        if auction.unit_blizzard_bid == record.unit_price and auction.count == record.stack_size and auction.duration == record.duration and info.is_player(auction.owner) == record.own then
 	            entry = record
 	        end
 	    end
 	    if not entry then
 	        entry =  { stack_size = auction.count, unit_price = auction.unit_blizzard_bid, duration = auction.duration, own = info.is_player(auction.owner), count = 0 }
-	        tinsert(bid_records[auction.item_key], entry)
+	        tinsert(bid_records[key], entry)
 	    end
 	    entry.count = entry.count + (auction.auction_count or 1)
     end
-    buyout_records[auction.item_key] = buyout_records[auction.item_key] or {}
+    buyout_records[key] = buyout_records[key] or {}
     if auction.unit_buyout_price == 0 then return end
     -- auxForever (0.6.0.2 build 2): a commodity is bought by quantity, cheapest first, so its
     -- listings at one price are one row (yours apart), counted in units, with the longest time
@@ -993,14 +1005,14 @@ function M.record_auction(auction)
     -- 480 at 8c); gear keeps one row per kind of auction.
     if auction.commodity then
 	    local own, entry = info.is_player(auction.owner)
-	    for _, record in pairs(buyout_records[auction.item_key]) do
+	    for _, record in pairs(buyout_records[key]) do
 		    if auction.unit_buyout_price == record.unit_price and own == record.own then
 			    entry = record
 		    end
 	    end
 	    if not entry then
 		    entry = { stack_size = 1, unit_price = auction.unit_buyout_price, duration = auction.duration, own = own, count = 0 }
-		    tinsert(buyout_records[auction.item_key], entry)
+		    tinsert(buyout_records[key], entry)
 	    end
 	    entry.count = entry.count + auction.count * (auction.auction_count or 1)
 	    if auction.duration and (not entry.duration or auction.duration > entry.duration) then
@@ -1010,14 +1022,14 @@ function M.record_auction(auction)
     end
     do
 	    local entry
-	    for _, record in pairs(buyout_records[auction.item_key]) do
+	    for _, record in pairs(buyout_records[key]) do
 		    if auction.unit_buyout_price == record.unit_price and auction.count == record.stack_size and auction.duration == record.duration and info.is_player(auction.owner) == record.own then
 			    entry = record
 		    end
 	    end
 	    if not entry then
 		    entry = { stack_size = auction.count, unit_price = auction.unit_buyout_price, duration = auction.duration, own = info.is_player(auction.owner), count = 0 }
-		    tinsert(buyout_records[auction.item_key], entry)
+		    tinsert(buyout_records[key], entry)
 	    end
 	    entry.count = entry.count + (auction.auction_count or 1)
     end
