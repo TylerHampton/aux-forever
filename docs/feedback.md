@@ -1160,6 +1160,28 @@ Ask Tyler: answered 2026-10-17: "Forever does have waylaid crates... We could pl
 0.8." Still open: what writs are, and what each crate asks for (a crate's tooltip; Tyler asked
 whether he needs to buy one: not yet, only when 0.8 is planned in detail).
 
+Tyler, 2026-10-20: "most cost effective" means the cheapest way to fill one crate (not the best
+crate per gold). Writs: "I dont know you will need to look it up."
+
+Found 2026-10-20 (web guides written during Forever's beta; **Outside**, not seen in game):
+- A Waylaid Crate (for example "Waylaid Crate: Apprentice Herbs") lists several bundles; any one
+  of them fills it, and parts of two bundles cannot be mixed. Examples from guides: Apprentice
+  Herbs, 20 Peacebloom or 20 Silverleaf or 10 Earthroot or 10 Mageroyal or 10 Briarthorn;
+  Apprentice Ingots, 20 Copper Bar or 20 Tin Bar or 10 Bronze Bar; Artisan Textiles, 40
+  Runecloth or 20 Thick Leather or 20 Rugged Leather. Guides disagree on some lists. Filled
+  crates go to the Azeroth Commerce Authority (Three Corners, Redridge) or Durotar Supply and
+  Logistics (west of the Crossroads) for Merchant's Favor, a currency for recipes. Crates drop in
+  the world and are sold on the auction house. Sources: wowforeverbuilds.com/merchants-favor,
+  endgametools.com (items 248698, 248711), theforeverera.com/en/merchants-favor.
+- So "cheapest way to fill one" means: price each bundle and point to the cheapest.
+- Craftsman's Writs are something else: a Sealed Writ drops in the world and opens into a random
+  order to deliver one crafted item (for example a Frost Protection Potion or a Craftsman's
+  Monocle) for reputation with the two factions (75 or 125 each, per Wowhead's Forever quest
+  pages, quests 94256, 94282, 94221). "Cheapest" for a writ is buying the item versus crafting
+  it, which is the shopping list's question (FB-023, 0.9).
+- Still to see in game: how a crate shows its bundles (tooltip or quest text), and whether aux
+  can read them or needs a hand-written list.
+
 ### FB-021: A typed price below the lowest listing cannot be posted (Rough Stone, 5c)
 
 - Received: 2026-10-18 (two comments, the second a reply to Tyler's question)
