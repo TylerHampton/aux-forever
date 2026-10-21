@@ -29,8 +29,9 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 ## Start here (next session)
 
 **Where things stand (2026-10-20):** **0.8 build 2 (Waylaid Crates, plus build 1's gamepad
-support)** is on branch `claude/fervent-planck-ry58jx`, waiting for Tyler's test (`TESTING.md`,
-"Current build"; zip `auxForever-0.8-build2.zip`, **full game restart**). Build 1 was gamepad
+support)** is on branch `claude/fervent-planck-ry58jx`, tested in game by Tyler (crates pass;
+`TESTING.md`). Next: gear versions, the last 0.8 item; its plan waits on one answer from Tyler
+(below, "Gear versions plan"). Build 1 was gamepad
 support alone; its mouse and keyboard steps are folded into build 2. It is nokkty's work (GitHub issue #27, fork
 branch `gamepad-navigation`, built with Claude and tested in game by them on 0.7, 2026-10-13),
 merged with their commits and authorship kept, onto `main` at 0.7.1.1. Tyler, on the issue: "ill
@@ -45,7 +46,8 @@ Next: Tyler tests build 1, then says whether 0.8 ships with gamepad alone or wai
   two same-name gear tooltips (do the stats differ?). Waylaid crates: "cheapest way to fill one"
   (Tyler); a crate lists several bundles, any one fills it (guides, FB-020). Waiting on a crate's
   tooltip in game. Writs go to 0.9 with the shopping list (Tyler, 2026-10-20).
-- **0.8 build 2: Waylaid Crates built (2026-10-20)**, waiting for Tyler's test (`TESTING.md`, zip
+- **0.8 build 2: Waylaid Crates built and tested in game (2026-10-20)**: steps 1, 3 to 6 pass from
+  Tyler's screenshots (`TESTING.md`); was waiting for Tyler's test (`TESTING.md`, zip
   `auxForever-0.8-build2.zip`, full game restart). Tyler chose options A and C of the mockup. A: a
   crate's tooltip lists every bundle with its cost, cheapest in gold, bags counted
   (`add_crate_lines`, called from `core/tooltip.lua`). C: Alt-click a crate in the bags searches
@@ -82,6 +84,18 @@ Next: Tyler tests build 1, then says whether 0.8 ships with gamepad alone or wai
   installed: no new tracking code, but depends on another addon being installed and working on
   Forever (not checked). Claude's suggestion: build the list so "what you have" is one place,
   and add (a) with it, and (b) only if players already use Syndicator on Forever.
+- **Gear versions plan (2026-10-20, waiting on Tyler):** how aux keys gear prices today: a search
+  that reads each auction keys it by the link's suffix field, empty on Forever, so every ending
+  lands on `item_id:0` (`info.item_search_record`); fast searches key by the auction house's
+  version (`itemKey.itemSuffix`, `info.browse_record`); tooltips read the link, so they show the
+  lumped `:0` price. Blizzard's code (`Gethe/wow-ui-source`, forever,
+  `AuctionHouseDocumentation.lua`): `GetItemKeyFromItem(itemLocation)` gives a bag item's version;
+  every item search row carries both `itemLink` and `itemKey`; nothing turns a link alone into a
+  version. Plan: key gear by the auction house's version everywhere; tooltips learn link to
+  version from the search rows aux reads (and ask the game for bag items). Open: whether two gear
+  items with the same name but different versions have different stats (Outside: in original
+  Classic they could), which decides whether the Post and Auctions tabs compare with the exact
+  version or every version of the name.
 - **What it does:** auxForever can be used with a controller in Forever's gamepad mode: D-pad, A,
   B, X, Y, LB/RB, a hint strip with the controller's icons, aux's popups inside aux. Mouse and
   keyboard are unchanged. How and why: `docs/gamepad.md`. New file `auxForever/gamepad.lua`; five

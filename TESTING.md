@@ -15,6 +15,13 @@ build 1's gamepad support. Zip `auxForever-0.8-build2.zip`. **Full game restart*
 files `gamepad.lua` and `tabs/search/crate.lua`). Test page build id `0-8-build-2`. Use the New
 theme. Have a Waylaid Crate in your bags, and ideally a few of one of its bundle items.
 
+Tested by Tyler 2026-10-20 (test page `0-8-build-2`, screenshots, no marks; judged from the
+screenshots): steps 1, 3, 4, 5 and 6 pass, step 2 skipped. Journeyman Ore's tooltip listed 10
+Silver Ore 1g 50s (gold, cheapest) and 20 Iron Ore 2g 19s 60c; Alt-click searched `[Silver
+Ore];[Iron Ore]` and the bottom bar said "Crate  Journeyman Ore  cheapest fill  10 Silver Ore  1g
+50s  next  20 Iron Ore  2g 18s 31c"; Recent listed "Crate  Journeyman Ore  (2 bundles)";
+Shift-click searched the crate; a Linen Cloth posted ("Posted 1 × Linen Cloth").
+
 - [ ] 1. Hover the crate in your bags. Under aux's Value line: "Cheapest way to fill it", then each
       bundle with a price (or "no price yet" for items aux has not seen), the cheapest in gold.
       Screenshot.
