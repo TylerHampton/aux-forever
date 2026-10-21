@@ -824,7 +824,9 @@ function update_inventory_records(reset)
                     suffix_id = item_info.suffix_id,
                     key = item_info.price_key,
                     link = item_info.link,
-                    name = item_info.name,
+                    -- the full name, ending included: two Merc Swords with different endings are two
+                    -- rows and must not look alike (Tyler, 0.8 build 3)
+                    name = strmatch(item_info.link or '', '|h%[(.-)%]|h') or item_info.name,
                     texture = item_info.texture,
                     quality = item_info.quality,
                     count = item_info.count,

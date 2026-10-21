@@ -44,8 +44,8 @@ A change that comes from a player's feedback credits them by in-game name at the
   every ending of an item shared one price: the Bandit, Wolf and Arcane Protection staffs all showed
   the same Value, even though their stats differ. Tooltips, the % column, the Sniper and price
   filters now use the price of that ending.
-- Post tab: each ending is its own item in the bag list, and it is priced against listings of the
-  same name only, as in Blizzard's Sell window. Before, a Merc Sword of the Eagle could be priced at
+- Post tab: each ending is its own item in the bag list, named with its ending ("Merc Sword of the
+  Eagle"), and it is priced against listings of the same name only, as in Blizzard's Sell window. Before, a Merc Sword of the Eagle could be priced at
   what a Merc Sword of Strength was listed for.
 - Auctions tab: your gear is checked against every listing of its name. The auction house files
   one name under several versions with the same stats, and checking only your exact version said

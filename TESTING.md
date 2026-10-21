@@ -8,7 +8,30 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8 build 3
+## Current build: 0.8 build 4
+
+Fix from Tyler's test of build 3: the Post tab's bag list named gear without its ending, so two
+Merc Swords with different endings were two rows that looked alike ("I think we failed this").
+Rows, the item heading and "Posted 1 × ..." now show the full name. Zip
+`auxForever-0.8-build4.zip`; `/reload` is enough. Test page build id `0-8-build-4`.
+
+- [ ] 1. Post tab: gear in the bag list shows its ending ("[Merc Sword of the Eagle]"); two of one
+      kind with different endings show two different names. Screenshot.
+- [ ] 2. Pick the Medicine Staff: the heading shows its full name. Its listings are those of that
+      exact name; if nobody sells that ending right now, the list is empty and Post says "Type a
+      price to post". Compare with a Search tab search of the full name. Screenshot of both.
+- [ ] 3. Only if you have gear with an ending up for sale: Auctions tab, its status (Tied, Undercut,
+      Lowest) compares with listings of the same name. Skip otherwise.
+
+### 0.8 build 3
+
+Tested by Tyler 2026-10-20 (test page `0-8-build-3`, screenshots, no marks): step 1 passes
+(Medicine Staff of Arcane Protection Value 1g 15s, of the Wolf 1g 50s; the % column per ending);
+step 2 failed as seen (two "[Merc Sword]" rows, split but named alike: fixed in build 4); step 3:
+the Medicine Staff in the bags showed no listings, which is right only if nobody sold its ending
+(not known, its name was hidden; build 4 step 2); step 4 unclear (Tyler's note "???", no gear of
+his up); step 5 passes (Peacebloom posted).
+
 
 Gear versions, the last 0.8 item: gear with a random ending is priced per ending (Tyler, 2026-10-20:
 two Medicine Staffs of Arcane Protection have the same stats, so gear is grouped by name). Zip
