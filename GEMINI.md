@@ -10,6 +10,9 @@ The shared guide for every AI agent on this project is AGENTS.md, loaded here:
   repository (`C:\Users\tyler\.gemini\antigravity\scratch\aux-forever`). Use PowerShell commands.
   Ask before installing anything.
 - Before starting: `git fetch --all --prune` and `git pull` on the active branch.
+- Your role (Tyler, 2026-10-26): the supporting model, for second opinions. Claude Code stays the
+  primary engineer. Reviews go in `docs/reviews/` on a `gemini/<topic>` branch, never as edits to
+  Claude's branch; the format is in `AGENTS.md`, "Roles".
 - Working in tandem with Claude Code:
   - Read `docs/status.md` ("Start here") and `git log` first to see what Claude or a previous
     session built and which branch is active.

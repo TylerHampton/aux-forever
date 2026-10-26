@@ -75,6 +75,28 @@ Tyler owns the project and tests every change in the game. He is not a programme
 
 ## Workflow
 
+### Roles (Tyler, 2026-10-26)
+
+"They will be the supportive model where you are going to remain the primary engineer."
+
+- **Claude Code is the primary engineer.** It plans and builds features and fixes, owns the active
+  build branch, makes the zips and test pages, reads Tyler's test results, and runs releases when
+  Tyler asks.
+- **Gemini (Gemini 4 Argon) gives second opinions.** It reviews Claude's plans, diffs, mockups and
+  facts, checks claims against Blizzard's code and the game, and suggests other ways. It does not
+  rewrite Claude's work on Claude's branch.
+- **How a review travels:** Gemini writes it in `docs/reviews/<date>-<topic>.md` (its date, the
+  branch and commit it read, one numbered finding each: what, where, why it matters, how sure)
+  on a branch of its own, `gemini/<topic>`, and pushes. Claude merges the file in, treats every
+  finding as a claim to check (in the code, with a test, or in Blizzard's code), fixes the real
+  ones with a test that fails without the fix, and answers each finding in the same file: fixed
+  (commit), not reproduced, or not worth its cost and why. A disagreement that remains goes to
+  Tyler with both positions in plain words; he decides.
+- When Tyler asks Gemini to build something itself, it builds on its own `gemini/<topic>` branch
+  and Claude reviews it before it joins a release branch.
+- The facts rule applies to both: a review that states how Forever's auction house works labels
+  its source (Seen, Code, Outside, Unknown).
+
 ### Branches and coordination (several agents share this repo)
 
 - Never push to `main` or merge a pull request unless Tyler asks.
