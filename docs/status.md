@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-10-25, Tyler's time (Gemini Antigravity workspace synced and ready to work in tandem with Claude; 0.8 build 6: gear versions; build 2: Waylaid Crates; build 1: gamepad support from nokkty; 0.7.1.1 released).
+Last updated 2026-10-26, Tyler's time (**development paused until World of Warcraft: Forever releases**; 0.8 build 6 built, not tested; 0.7.1.1 is the latest release).
 
 **2026-10-25, Gemini (Antigravity) tandem setup (docs only, no addon change):** Tyler brought
 Gemini (Antigravity) onto the project alongside Claude Code. Local workspace synced to
@@ -33,6 +33,31 @@ that wrote each line (the 0.6 and 0.6.0.1 releases were on 2026-10-09 his time, 
 of outside events (Blizzard patches, players' messages) were left as their source gave them.
 
 ## Start here (next session)
+
+**On hiatus (Tyler, 2026-10-26):** "We are going to be on developmental hiatus until the game
+releases and I can begin rapid iterative testing." Work picks up again in the same Claude Code
+thread on Sunday 2026-11-08. Nothing is being built until then, by any agent. Nothing was
+released or merged for the pause: `main` is still 0.7.1.1, and 0.8 (builds 1 to 6) waits on
+branch `claude/fervent-planck-ry58jx`.
+
+When work resumes, in this order:
+1. Pull, read this file and `git log` (Gemini may have committed; see GEMINI.md).
+2. Release-day checks. Each is a question, not a known change: Forever's release may differ from
+   the beta this addon was built on.
+   - Does the game load aux, or call it out of date? The TOC says `## Interface: 16001` (beta
+     1.60.1); if the release reports another number, update the TOC, and the CurseForge game
+     version follows it (`docs/curseforge.md`).
+   - Where do addons go? Install steps in `README.md`, `AGENTS.md` and the CurseForge text name
+     `World of Warcraft\_classic_beta_\Interface\AddOns`; the release folder may differ.
+   - Did Blizzard's auction house code change? Compare the `forever` branch of
+     `Gethe/wow-ui-source` with what `docs/forever-auction-house.md` cites; if the categories
+     changed, run `tests/tools/make_forever_categories.lua` again.
+   - Do aux's saved prices survive a logout and login? Beta guides (Outside, 2026-10) reported a
+     beta bug where saved addon settings were written but not loaded.
+3. Tyler tests 0.8 build 6 (test page build `0-8-build-6`, 3 steps), then E7 (10 seconds,
+   `docs/forever-auction-house.md`).
+4. Ask Tyler whether 0.8 ships (pull request, merge, Release workflow), and whether it goes out
+   before or after the release-day fixes.
 
 **Where things stand (2026-10-21, end of session):** **0.8 build 6 (gear versions in the Post
 tab)** is on branch `claude/fervent-planck-ry58jx`, built and pushed, not yet tested in game

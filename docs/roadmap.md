@@ -5,6 +5,9 @@ TOC. Every release gets an entry in `docs/changelog.md`. Numbering (Tyler, 2026-
 raises the fourth number (0.6 -> 0.6.0.1 -> 0.6.0.2); a bigger update within the same version
 raises the third (0.6.1); new features are the next minor version (0.7).
 
+**Paused (Tyler, 2026-10-26)** until World of Warcraft: Forever releases; work resumes
+2026-11-08 (`docs/status.md`, "Start here"). 0.8 is built (builds 1 to 6), not yet released.
+
 ## 0.8: planned (Tyler, 2026-10-17)
 
 Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear versions.
