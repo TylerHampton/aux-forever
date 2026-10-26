@@ -36,6 +36,8 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 **Roles (Tyler, 2026-10-26):** Claude Code stays the primary engineer; Gemini (Gemini 4 Argon) is
 the supporting model for second opinions, written in `docs/reviews/` (`AGENTS.md`, "Roles").
+Agents talk through `docs/handoff.md`; Tyler only says "Check the handoff" to whoever goes next.
+Open there now: H-001, Gemini reviews the gear versions work.
 
 **On hiatus (Tyler, 2026-10-26):** "We are going to be on developmental hiatus until the game
 releases and I can begin rapid iterative testing." Work picks up again in the same Claude Code

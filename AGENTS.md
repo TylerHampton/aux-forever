@@ -85,10 +85,15 @@ Tyler owns the project and tests every change in the game. He is not a programme
 - **Gemini (Gemini 4 Argon) gives second opinions.** It reviews Claude's plans, diffs, mockups and
   facts, checks claims against Blizzard's code and the game, and suggests other ways. It does not
   rewrite Claude's work on Claude's branch.
+- **Talking to each other: `docs/handoff.md`** (Tyler, 2026-10-26: make the agent-to-agent
+  pipeline "efficient and easy" for him as the liaison). One file on the active branch holds every
+  open note between the agents. Tyler's whole part is to say "Check the handoff" to the next agent;
+  each agent ends its reply to him naming who goes next. Rules at the top of that file. Never ask
+  Tyler to copy, explain or carry anything else between agents.
 - **How a review travels:** Gemini writes it in `docs/reviews/<date>-<topic>.md` (its date, the
-  branch and commit it read, one numbered finding each: what, where, why it matters, how sure)
-  on a branch of its own, `gemini/<topic>`, and pushes. Claude merges the file in, treats every
-  finding as a claim to check (in the code, with a test, or in Blizzard's code), fixes the real
+  branch and commit it read, one numbered finding each: what, where, why it matters, how sure) on
+  the active branch, and leaves a handoff note for Claude. Claude treats every finding as a claim
+  to check (in the code, with a test, or in Blizzard's code), fixes the real
   ones with a test that fails without the fix, and answers each finding in the same file: fixed
   (commit), not reproduced, or not worth its cost and why. A disagreement that remains goes to
   Tyler with both positions in plain words; he decides.
