@@ -14,5 +14,6 @@ The shared guide for every AI agent on this project is AGENTS.md, loaded here:
   example `auxForever-0.6-build2.zip`), so his downloads never collide or get mixed up (Tyler,
   2026-10-08). `zip -qr <scratchpad>/auxForever-0.6-build2.zip auxForever -x '*.git*'`, then send
   it with the file-sending tool. The folder inside is always `auxForever`.
-- Other agents (Gemini) also work on this repository: pull before starting, and leave
-  `docs/status.md` up to date when done.
+- Other agents (Gemini via Antigravity / Gemini CLI) also work on this repository: pull before
+  starting, check `docs/status.md` ("Start here") and `git log`, and leave `docs/status.md` up to
+  date when done so either agent can pick up where the other left off.

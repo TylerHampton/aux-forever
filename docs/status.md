@@ -1,6 +1,12 @@
 # Status
 
-Last updated 2026-10-20, Tyler's time (0.8 build 3: gear versions; build 2: Waylaid Crates; build 1: gamepad support from nokkty; 0.7.1.1 released).
+Last updated 2026-10-25, Tyler's time (Gemini Antigravity workspace synced and ready to work in tandem with Claude; 0.8 build 6: gear versions; build 2: Waylaid Crates; build 1: gamepad support from nokkty; 0.7.1.1 released).
+
+**2026-10-25, Gemini (Antigravity) tandem setup (docs only, no addon change):** Tyler brought
+Gemini (Antigravity) onto the project alongside Claude Code. Local workspace synced to
+`origin/main` (`v0.7.1.1`) and checked out on `claude/fervent-planck-ry58jx` (`0.8 build 6`).
+Updated `GEMINI.md` and `CLAUDE.md` with the shared handoff workflow so either agent can pick up on
+the active branch or work on a separate branch without colliding.
 
 **2026-10-20, privacy pass (docs only, no addon change):** Tyler asked that the public repository
 say no more about him than the work needs. Removed: his city and time zone name (dates now use
