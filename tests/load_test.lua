@@ -3630,6 +3630,14 @@ try('0.7: result tables follow a fast resize', function()
   check('resize: the last cell of a row is anchored to the right edge', row and has(row.cells[#row.cells], 'TOPRIGHT'))
 end)
 
+-- White shirts (Brawler's Harness) must not show disenchant lines
+try('disenchant skips whites and shirts', function()
+  local de = assert(loadstring("select(2, ...) 'aux.core.disenchant'; return _M"))('auxForever', addon)
+  check('de: white chest empty', #de.distribution('INVTYPE_CHEST', 1, 20) == 0)
+  check('de: shirt slot empty even if uncommon', #de.distribution('INVTYPE_BODY', 2, 20) == 0)
+  check('de: green chest has outcomes', #de.distribution('INVTYPE_CHEST', 2, 20) > 0)
+end)
+
 -- Forever: random-suffix +stats missing from SetItemKey / stripped GetItem() links (FB-023)
 try('suffix stats on tooltip', function()
   local tip_mod = assert(loadstring("select(2, ...) 'aux.core.tooltip'; return _M"))('auxForever', addon)
