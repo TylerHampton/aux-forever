@@ -723,11 +723,33 @@ local methods = {
     OnEnter = function(self)
         local rt = self.rt
         -- auxForever (0.5): every row says what its clicks do, in one gray line (was: only grouped
-        -- and fast rows, in white)
+        -- and fast rows, in white). Forever: also show compact rolled +stats when we have a full
+        -- auction link (not a full item tooltip — that felt janky on the whole row).
         if self.record then
             GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
+            local key = self.record.browse_key
+            local stats_link = (key and tooltip.link_for_item_key(key)) or (not key and self.record.link) or nil
+            local try_link = stats_link or self.record.link
+            tooltip.note_hover(self.record, try_link)
+            local lines = self.record.suffix_stats
+            if not (lines and #lines > 0) and try_link then
+                lines = tooltip.cache_suffix_stats(try_link)
+                if lines then
+                    self.record.suffix_stats = lines
+                end
+            end
+            if lines and #lines > 0 then
+                for _, entry in ipairs(lines) do
+                    GameTooltip:AddLine(format('+%d %s', entry.amount, entry.label), 0, 1, 0)
+                end
+                GameTooltip:AddLine(' ')
+            end
             gui.add_click_hint(GameTooltip, rt:ClickHint(self), true)
             GameTooltip:Show()
+            if try_link then
+                tooltip.note_link(GameTooltip, try_link)
+                pcall(tooltip.schedule_suffix_stats, GameTooltip, try_link)
+            end
         end
 
         self.hover:Show()

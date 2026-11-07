@@ -49,7 +49,7 @@ function M.note_hover(record, link)
         prefetch_link(record.link)
     end
     local stats_link = last_hover.link
-    if record and stats_link and not record.suffix_stats then
+    if record and stats_link and not nonempty_stat_lines(record.suffix_stats) then
         record.suffix_stats = M.cache_suffix_stats(stats_link)
     end
 end
@@ -106,13 +106,17 @@ end
 -- Precomputed +stat lines by item string, filled when search results arrive (not on hover).
 local cached_suffix_lines = {}
 
+local function nonempty_stat_lines(lines)
+    return lines and #lines > 0 and lines or nil
+end
+
 function M.cache_suffix_stats(link)
     link = item_string(link)
     if not link then
         return
     end
-    local lines = M.suffix_stat_lines(link)
-    if lines and #lines > 0 then
+    local lines = nonempty_stat_lines(M.suffix_stat_lines(link))
+    if lines then
         cached_suffix_lines[link] = lines
     end
     return lines
@@ -169,7 +173,7 @@ function M.suffix_stat_lines(link)
             end
         end
     end
-    return lines
+    return nonempty_stat_lines(lines)
 end
 
 local suffix_retry = CreateFrame('Frame')
@@ -198,16 +202,16 @@ function M.add_suffix_stats(tooltip, link)
     if tooltip:NumLines() < 1 then
         return false
     end
-    local lines = cached_suffix_lines[link]
-        or (last_hover.record and last_hover.record.suffix_stats)
+    -- Empty tables from an early (failed) cache must not block a later GetItemStats retry.
+    local lines = nonempty_stat_lines(cached_suffix_lines[link])
+        or nonempty_stat_lines(last_hover.record and last_hover.record.suffix_stats)
         or M.suffix_stat_lines(link)
-    if lines and #lines > 0 then
+    if lines then
         cached_suffix_lines[link] = lines
         if last_hover.record then
             last_hover.record.suffix_stats = lines
         end
-    end
-    if not lines or #lines == 0 then
+    else
         return false
     end
     local added = false
