@@ -18,9 +18,15 @@ local last_link = {}
 local last_hover = {}
 local retry_tip, retry_link, retry_frames = nil, nil, 0
 local inject_announced
+local cached_suffix_lines = {}
 
 local function item_string(link)
     return type(link) == 'string' and (strmatch(link, 'item:[%-:%d]+') or link)
+end
+
+-- Must be declared before note_hover / cache_suffix_stats (Lua locals are nil above their line).
+local function nonempty_stat_lines(lines)
+    return lines and #lines > 0 and lines or nil
 end
 
 local function prefetch_link(link)
@@ -50,7 +56,10 @@ function M.note_hover(record, link)
     end
     local stats_link = last_hover.link
     if record and stats_link and not nonempty_stat_lines(record.suffix_stats) then
-        record.suffix_stats = M.cache_suffix_stats(stats_link)
+        local ok, lines = pcall(M.cache_suffix_stats, stats_link)
+        if ok then
+            record.suffix_stats = lines
+        end
     end
 end
 
@@ -104,12 +113,6 @@ local function stat_label(key)
 end
 
 -- Precomputed +stat lines by item string, filled when search results arrive (not on hover).
-local cached_suffix_lines = {}
-
-local function nonempty_stat_lines(lines)
-    return lines and #lines > 0 and lines or nil
-end
-
 function M.cache_suffix_stats(link)
     link = item_string(link)
     if not link then
