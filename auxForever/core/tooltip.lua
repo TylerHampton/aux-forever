@@ -49,17 +49,12 @@ function M.note_hover(record, link)
     last_hover.record = record
     if type(link) == 'string' then
         last_hover.link = link
-        prefetch_link(link)
     elseif record and type(record.link) == 'string' then
         last_hover.link = record.link
-        prefetch_link(record.link)
     end
-    local stats_link = last_hover.link
-    if record and stats_link and not nonempty_stat_lines(record.suffix_stats) then
-        local ok, lines = pcall(M.cache_suffix_stats, stats_link)
-        if ok then
-            record.suffix_stats = lines
-        end
+    -- Prefetch only; never compute stats here (errors on hover blanked the buy bar).
+    if last_hover.link then
+        pcall(prefetch_link, last_hover.link)
     end
 end
 
@@ -110,19 +105,6 @@ local function stat_label(key)
     if short then
         return gsub(strlower(short), '_', ' ')
     end
-end
-
--- Precomputed +stat lines by item string, filled when search results arrive (not on hover).
-function M.cache_suffix_stats(link)
-    link = item_string(link)
-    if not link then
-        return
-    end
-    local lines = nonempty_stat_lines(M.suffix_stat_lines(link))
-    if lines then
-        cached_suffix_lines[link] = lines
-    end
-    return lines
 end
 
 local function tooltip_has_label(tooltip, label)
@@ -177,6 +159,19 @@ function M.suffix_stat_lines(link)
         end
     end
     return nonempty_stat_lines(lines)
+end
+
+-- Precomputed +stat lines by item string, filled when search results arrive (not on hover).
+function M.cache_suffix_stats(link)
+    link = item_string(link)
+    if not link then
+        return
+    end
+    local lines = nonempty_stat_lines(M.suffix_stat_lines(link))
+    if lines then
+        cached_suffix_lines[link] = lines
+    end
+    return lines
 end
 
 local suffix_retry = CreateFrame('Frame')
