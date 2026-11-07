@@ -265,13 +265,15 @@ function M.item_search_record(result)
     record.duration = result.timeLeftSeconds and duration_from_seconds(result.timeLeftSeconds) or duration_from_band(result.timeLeft)
     record.sale_status = 0
     signatures(record)
-    -- Forever: remember the full bonus link so Fast parent rows of this item key can show +stats
+    -- Forever: remember the full bonus link so Fast parent rows of this item key can show +stats.
+    -- pcall: never let suffix work abort building a search row (buy bar depends on these records).
     local key = result.itemKey
     if key and result.itemLink then
-        remember_suffix_link(key.itemID, key.itemSuffix or 0, result.itemLink)
-        local tip = require 'aux.core.tooltip'
-        -- nil until GetItemStats is ready; never store an empty table (that blocked later retries)
-        record.suffix_stats = tip.cache_suffix_stats(result.itemLink)
+        pcall(function()
+            remember_suffix_link(key.itemID, key.itemSuffix or 0, result.itemLink)
+            local tip = require 'aux.core.tooltip'
+            record.suffix_stats = tip.cache_suffix_stats(result.itemLink)
+        end)
     end
     return record
 end
