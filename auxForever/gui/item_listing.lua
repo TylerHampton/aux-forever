@@ -75,9 +75,10 @@ local function create_row(item_listing, row_index)
 	row.item:SetPoint('LEFT', 2.5, 0)
 	row.item:SetPoint('RIGHT', -2.5, 0)
 	row.item.button:SetScript('OnEnter', function(self)
+		local tooltip = require 'aux.core.tooltip'
+		tooltip.note_link(GameTooltip, row.item_record.link)
 		info.set_tooltip(row.item_record.link, self, 'ANCHOR_RIGHT')
 		gui.add_click_hint(GameTooltip, HINT)
-		local tooltip = require 'aux.core.tooltip'
 		tooltip.add_suffix_stats(GameTooltip, row.item_record.link)
 		GameTooltip:Show()
 		tooltip.schedule_suffix_stats(GameTooltip, row.item_record.link)

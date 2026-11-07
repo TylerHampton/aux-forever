@@ -11,37 +11,59 @@ local UNKNOWN = GRAY_FONT_COLOR_CODE .. '?' .. FONT_COLOR_CODE_CLOSE
 
 -- Forever: GameTooltip:GetItem() and SetItemKey often drop the random-suffix bonus IDs that
 -- C_AuctionHouse item links carry, so the built-in tooltip shows the base item with no +stats.
--- Full auction links still work with C_Item.GetItemStats; we stash those links, remember them by
--- item key after an item search, and re-add the missing green +stat lines.
+-- Full auction links still work with GetItemStats; we note those links from AH hover code,
+-- remember them by item key after an item search, and re-add missing +stat lines.
 
 local last_link = {}
-local pending_suffix = {}
+local last_hover = {}
+local retry_tip, retry_link, retry_frames = nil, nil, 0
+local inject_announced
 
-local function stash_link(tooltip, link)
-    if type(link) == 'string' and strfind(link, 'item:', 1, true)
+local function item_string(link)
+    return type(link) == 'string' and (strmatch(link, 'item:[%-:%d]+') or link)
+end
+
+function M.note_link(tooltip, link)
+    if tooltip and type(link) == 'string' and strfind(link, 'item:', 1, true)
         and not (issecretvalue and issecretvalue(link)) then
         last_link[tooltip] = link
+        last_hover.link = link
     end
 end
 
-local function wrap_sethyperlink(tooltip)
-    if not tooltip or tooltip.AuxSuffixWrapped then
-        return
+function M.note_hover(record, link)
+    last_hover.record = record
+    if type(link) == 'string' then
+        last_hover.link = link
+    elseif record and type(record.link) == 'string' then
+        last_hover.link = record.link
     end
-    local orig = tooltip.SetHyperlink
-    tooltip.SetHyperlink = function(self, link, ...)
-        stash_link(self, link)
-        return orig(self, link, ...)
-    end
-    tooltip.AuxSuffixWrapped = true
 end
 
+-- Always fill a fresh table. A shared GetItemStats return value keeps leftover keys from the
+-- previous item, which made "full link vs base" deltas all zero.
 local function copy_stats(link)
-    if not (C_Item and C_Item.GetItemStats) or type(link) ~= 'string' then
+    link = item_string(link)
+    if not link then
         return
     end
-    local ok, src = pcall(C_Item.GetItemStats, link)
-    if not ok or type(src) ~= 'table' then
+    local t = {}
+    local ok, result = pcall(function()
+        if GetItemStats then
+            return GetItemStats(link, t)
+        end
+        if C_Item and C_Item.GetItemStats then
+            return C_Item.GetItemStats(link, t)
+        end
+    end)
+    if not ok then
+        return
+    end
+    local src = result
+    if type(src) ~= 'table' or not next(src) then
+        src = t
+    end
+    if type(src) ~= 'table' then
         return
     end
     local copy = {}
@@ -50,10 +72,39 @@ local function copy_stats(link)
             copy[k] = v
         end
     end
-    return copy
+    return next(copy) and copy or nil
 end
 
-local function bonus_deltas(link)
+local function stat_label(key)
+    local label = _G[key]
+    if type(label) == 'string' and label ~= '' then
+        return label
+    end
+    local short = strmatch(key, '^ITEM_MOD_(.+)_SHORT$') or strmatch(key, '^ITEM_MOD_(.+)$')
+    if short then
+        return gsub(strlower(short), '_', ' ')
+    end
+end
+
+local function tooltip_has_label(tooltip, label)
+    local name = tooltip:GetName()
+    for i = 1, tooltip:NumLines() do
+        local fs = _G[name .. 'TextLeft' .. i]
+        local text = fs and fs:GetText()
+        if type(text) == 'string' and strfind(text, label, 1, true) then
+            return true
+        end
+    end
+    return false
+end
+
+-- Equip-stat lines missing from the tooltip. Prefer bonus-vs-base deltas; if that yields nothing
+-- (shared-table quirks, base equal), fall back to every ITEM_MOD_* on the link not already shown.
+function M.suffix_stat_lines(link)
+    link = item_string(link)
+    if not link then
+        return
+    end
     local item_id = tonumber(strmatch(link, 'item:(%-?%d+)'))
     if not item_id then
         return
@@ -63,67 +114,67 @@ local function bonus_deltas(link)
         return
     end
     local base = copy_stats('item:' .. item_id) or {}
-    local deltas = {}
+    local lines, seen = {}, {}
+    local function add(label, amount)
+        if amount and amount > 0 and label and not seen[label] then
+            seen[label] = true
+            tinsert(lines, { label = label, amount = amount })
+        end
+    end
     for k, v in pairs(with) do
         if k ~= 'RESISTANCE0_NAME' then
+            local label = stat_label(k)
             local delta = v - (base[k] or 0)
-            local label = _G[k]
-            if delta > 0 and type(label) == 'string' then
-                tinsert(deltas, { label = label, delta = delta })
+            if delta > 0 then
+                add(label, delta)
             end
         end
     end
-    return deltas
-end
-
-local function line_has_stat(tooltip, label, delta)
-    local name = tooltip:GetName()
-    local needle_a = format('+%d %s', delta, label)
-    local needle_b = format('%s +%d', label, delta)
-    local needle_c = format('+%d', delta)
-    for i = 1, tooltip:NumLines() do
-        local fs = _G[name .. 'TextLeft' .. i]
-        local text = fs and fs:GetText()
-        if type(text) == 'string' and strfind(text, label, 1, true)
-            and (strfind(text, needle_a, 1, true) or strfind(text, needle_b, 1, true)
-                or strfind(text, needle_c, 1, true)) then
-            return true
+    if #lines == 0 then
+        for k, v in pairs(with) do
+            if strfind(k, 'ITEM_MOD_', 1, true) then
+                add(stat_label(k), v)
+            end
         end
     end
-    return false
+    return lines
 end
 
 local suffix_retry = CreateFrame('Frame')
 suffix_retry:Hide()
 suffix_retry:SetScript('OnUpdate', function(self)
-    self:Hide()
-    for tip, link in pairs(pending_suffix) do
-        pending_suffix[tip] = nil
-        if tip:IsShown() then
-            M.add_suffix_stats(tip, link ~= true and link or nil)
-        end
+    if retry_tip and retry_tip:IsShown() then
+        M.add_suffix_stats(retry_tip, retry_link)
+    end
+    retry_frames = retry_frames - 1
+    if retry_frames <= 0 then
+        self:Hide()
     end
 end)
 
 -- Returns true when at least one line was added.
 function M.add_suffix_stats(tooltip, link)
-    link = link or last_link[tooltip]
-    if not tooltip or type(link) ~= 'string' then
+    link = item_string(link or last_link[tooltip])
+    if not tooltip or not link then
         return false
     end
-    local deltas = bonus_deltas(link)
-    if not deltas or #deltas == 0 then
+    local lines = M.suffix_stat_lines(link)
+    if not lines or #lines == 0 then
         return false
     end
     local added = false
-    for _, entry in ipairs(deltas) do
-        if not line_has_stat(tooltip, entry.label, entry.delta) then
-            tooltip:AddLine(format('+%d %s', entry.delta, entry.label), 0, 1, 0)
+    for _, entry in ipairs(lines) do
+        if not tooltip_has_label(tooltip, entry.label) then
+            tooltip:AddLine(format('+%d %s', entry.amount, entry.label), 0, 1, 0)
             added = true
         end
     end
     if added then
         tooltip:Show()
+        if not inject_announced then
+            inject_announced = true
+            aux.print('Suffix stats: added +stat lines to the tooltip (this message once).')
+        end
     end
     return added
 end
@@ -133,22 +184,19 @@ local function synthetic_suffix_link(item_id, item_suffix)
         return
     end
     local level = UnitLevel('player') or 1
-    -- Forever bag links look like item:id::::::::level:spec::1:bonusId
     local candidates = {
         format('item:%d::::::::%d::::1:%d', item_id, level, item_suffix),
         format('item:%d::::::::::::1:1:%d', item_id, item_suffix),
         format('item:%d::::::%d', item_id, item_suffix),
     }
     for _, candidate in ipairs(candidates) do
-        local deltas = bonus_deltas(candidate)
-        if deltas and #deltas > 0 then
+        local lines = M.suffix_stat_lines(candidate)
+        if lines and #lines > 0 then
             return candidate
         end
     end
 end
 
--- Fast browse rows only have an ItemKey. Prefer a remembered auction link (from opening the
--- item), else a synthetic bonus link built from itemSuffix when GetItemStats accepts it.
 function M.link_for_item_key(item_key)
     if type(item_key) ~= 'table' or not item_key.itemID then
         return
@@ -166,10 +214,49 @@ function M.schedule_suffix_stats(tooltip, link)
         return
     end
     if link then
-        stash_link(tooltip, link)
+        M.note_link(tooltip, link)
     end
-    pending_suffix[tooltip] = link or last_link[tooltip] or true
+    retry_tip = tooltip
+    retry_link = link or last_link[tooltip]
+    retry_frames = 5
     suffix_retry:Show()
+end
+
+-- /aux suffix: dump the last hovered AH link and whether GetItemStats sees bonus stats
+function M.suffix_report()
+    local link = last_hover.link or last_link[GameTooltip]
+    local lines_out = {}
+    if not link then
+        tinsert(lines_out, 'No AH item hovered yet. Hover an auction icon, then run /aux suffix.')
+        return lines_out
+    end
+    tinsert(lines_out, 'link=' .. gsub(link, '|', '||'))
+    local stats = copy_stats(link)
+    if not stats then
+        tinsert(lines_out, 'GetItemStats: nil (link not usable)')
+    else
+        local parts = {}
+        for k, v in pairs(stats) do
+            tinsert(parts, format('%s=%s', tostring(stat_label(k) or k), tostring(v)))
+        end
+        sort(parts)
+        tinsert(lines_out, 'GetItemStats: ' .. (#parts > 0 and table.concat(parts, ', ') or '(empty)'))
+    end
+    local bonus = M.suffix_stat_lines(link)
+    if not bonus or #bonus == 0 then
+        tinsert(lines_out, 'bonus lines: none (no ITEM_MOD delta vs base)')
+    else
+        local parts = {}
+        for _, e in ipairs(bonus) do
+            tinsert(parts, format('+%d %s', e.amount, e.label))
+        end
+        tinsert(lines_out, 'bonus lines: ' .. table.concat(parts, ', '))
+    end
+    if GameTooltip:IsShown() then
+        local added = M.add_suffix_stats(GameTooltip, link)
+        tinsert(lines_out, added and 're-injected into the open tooltip' or 'open tooltip unchanged (already shown or nothing to add)')
+    end
+    return lines_out
 end
 
 -- Forever: item tooltips are built through TooltipDataProcessor, so one post-call replaces the
@@ -208,10 +295,6 @@ end
 
 function aux.event.AUX_LOADED()
     settings = aux.character_data.tooltip
-    wrap_sethyperlink(GameTooltip)
-    if ItemRefTooltip then
-        wrap_sethyperlink(ItemRefTooltip)
-    end
     TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tooltip, data)
         if tooltip ~= GameTooltip and tooltip ~= ItemRefTooltip then
             return
@@ -225,7 +308,6 @@ function aux.event.AUX_LOADED()
             return
         end
         extend_tooltip(tooltip, link, tooltip_quantity(tooltip))
-        M.add_suffix_stats(tooltip, link)
         M.schedule_suffix_stats(tooltip, link)
     end)
 end
@@ -262,6 +344,8 @@ function extend_tooltip(tooltip, link, quantity)
     -- 1 a stack's Value read as a far too high price per item (Windows' screenshot keys hold Shift).
     local per = quantity > 1 and ('  ' .. aux.color.label.enabled('for ' .. quantity)) or ''
     local item_info = info.item(item_id)
+    -- Forever: put missing random-suffix +stats above Value/vendor so they sit with the item body
+    M.add_suffix_stats(tooltip, link)
     -- auxForever: the disenchant table is only worked out when one of its lines is shown
     if item_info and (settings.disenchant_distribution or settings.disenchant_value) then
         local distribution = disenchant.distribution(item_info.slot, item_info.quality, item_info.level)

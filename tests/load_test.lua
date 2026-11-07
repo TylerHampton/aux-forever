@@ -3636,14 +3636,19 @@ try('suffix stats on tooltip', function()
   local info_mod = assert(loadstring("select(2, ...) 'aux.util.info'; return _M"))('auxForever', addon)
   G.ITEM_MOD_STRENGTH_SHORT = 'Strength'
   G.ITEM_MOD_STAMINA_SHORT = 'Stamina'
-  local base = { RESISTANCE0_NAME = 10 }
-  local with = { RESISTANCE0_NAME = 10, ITEM_MOD_STRENGTH_SHORT = 5, ITEM_MOD_STAMINA_SHORT = 3 }
-  G.C_Item.GetItemStats = function(link)
-    if type(link) == 'string' and (link:find('12732', 1, true) or link:find(':14312', 1, true) or link:find('1:1:14312', 1, true) or link:find('::::1:14312', 1, true)) then
-      return with
+  -- Simulate the shared-table bug: without a fresh dest table, leftover Strength would cancel deltas.
+  local shared = { RESISTANCE0_NAME = 10, ITEM_MOD_STRENGTH_SHORT = 5, ITEM_MOD_STAMINA_SHORT = 3 }
+  G.GetItemStats = function(link, dest)
+    dest = dest or shared
+    for k in pairs(dest) do dest[k] = nil end
+    dest.RESISTANCE0_NAME = 10
+    if type(link) == 'string' and (link:find('12732', 1, true) or link:find('14312', 1, true)) then
+      dest.ITEM_MOD_STRENGTH_SHORT = 5
+      dest.ITEM_MOD_STAMINA_SHORT = 3
     end
-    return base
+    return dest
   end
+  G.C_Item.GetItemStats = G.GetItemStats
   local lines = {}
   rawset(G.GameTooltip, 'NumLines', function() return #lines end)
   rawset(G.GameTooltip, 'AddLine', function(_, text) tinsert(lines, text) end)
