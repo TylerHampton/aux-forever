@@ -667,10 +667,9 @@ local methods = {
             local key = row.record.browse_key
             -- Forever: SetItemKey shows the suffix name but often omits the rolled +stats.
             -- Prefer a full auction link (from an opened item search, or a synthetic bonus link).
+            -- Do not inject +stats here: SetHyperlink is async and early AddLines get wiped,
+            -- which made the tooltip look empty until a later retry.
             local stats_link = key and tooltip.link_for_item_key(key)
-            if not stats_link and not key then
-                stats_link = row.record.link
-            end
             if stats_link then
                 tooltip.note_link(GameTooltip, stats_link)
                 GameTooltip:SetHyperlink(stats_link)
@@ -685,9 +684,8 @@ local methods = {
             tooltip.note_hover(row.record, inject_link)
             GameTooltip_ShowCompareItem()
             gui.add_click_hint(GameTooltip, rt:ClickHint(row))
-            tooltip.add_suffix_stats(GameTooltip, inject_link)
             GameTooltip:Show()
-            tooltip.schedule_suffix_stats(GameTooltip, inject_link)
+            pcall(tooltip.schedule_suffix_stats, GameTooltip, inject_link)
         end
     end,
 

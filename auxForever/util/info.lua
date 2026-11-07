@@ -56,6 +56,10 @@ function remember_suffix_link(item_id, item_suffix, link)
         return
     end
     suffix_link_by_key[item_id .. ':' .. item_suffix] = link
+    -- Warm the item cache so the first icon hover does not wait on GetItemStats
+    if C_Item and C_Item.RequestLoadItemDataByID then
+        C_Item.RequestLoadItemDataByID(item_id)
+    end
 end
 
 function M.suffix_link_for(item_id, item_suffix)
