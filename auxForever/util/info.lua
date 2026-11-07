@@ -269,6 +269,8 @@ function M.item_search_record(result)
     local key = result.itemKey
     if key and result.itemLink then
         remember_suffix_link(key.itemID, key.itemSuffix or 0, result.itemLink)
+        local tip = require 'aux.core.tooltip'
+        record.suffix_stats = tip.cache_suffix_stats(result.itemLink)
     end
     return record
 end

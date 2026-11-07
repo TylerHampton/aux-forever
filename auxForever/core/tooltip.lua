@@ -48,6 +48,10 @@ function M.note_hover(record, link)
         last_hover.link = record.link
         prefetch_link(record.link)
     end
+    local stats_link = last_hover.link
+    if record and stats_link and not record.suffix_stats then
+        record.suffix_stats = M.cache_suffix_stats(stats_link)
+    end
 end
 
 -- Always fill a fresh table. A shared GetItemStats return value keeps leftover keys from the
@@ -86,6 +90,9 @@ local function copy_stats(link)
 end
 
 local function stat_label(key)
+    if type(key) ~= 'string' then
+        return
+    end
     local label = _G[key]
     if type(label) == 'string' and label ~= '' then
         return label
@@ -94,6 +101,21 @@ local function stat_label(key)
     if short then
         return gsub(strlower(short), '_', ' ')
     end
+end
+
+-- Precomputed +stat lines by item string, filled when search results arrive (not on hover).
+local cached_suffix_lines = {}
+
+function M.cache_suffix_stats(link)
+    link = item_string(link)
+    if not link then
+        return
+    end
+    local lines = M.suffix_stat_lines(link)
+    if lines and #lines > 0 then
+        cached_suffix_lines[link] = lines
+    end
+    return lines
 end
 
 local function tooltip_has_label(tooltip, label)
@@ -142,7 +164,7 @@ function M.suffix_stat_lines(link)
     end
     if #lines == 0 then
         for k, v in pairs(with) do
-            if strfind(k, 'ITEM_MOD_', 1, true) then
+            if type(k) == 'string' and strfind(k, 'ITEM_MOD_', 1, true) then
                 add(stat_label(k), v)
             end
         end
@@ -154,7 +176,11 @@ local suffix_retry = CreateFrame('Frame')
 suffix_retry:Hide()
 suffix_retry:SetScript('OnUpdate', function(self)
     if retry_tip and retry_tip:IsShown() then
-        pcall(M.add_suffix_stats, retry_tip, retry_link)
+        local ok, added = pcall(M.add_suffix_stats, retry_tip, retry_link)
+        if ok and added then
+            retry_tip:Show()
+            retry_frames = 0
+        end
     end
     retry_frames = retry_frames - 1
     if retry_frames <= 0 then
@@ -162,18 +188,25 @@ suffix_retry:SetScript('OnUpdate', function(self)
     end
 end)
 
--- Returns true when at least one line was added.
+-- Returns true when at least one line was added. Does not Show(): callers must Show, because a
+-- mid-extend Show() on Forever can drop later AddLines (disenchant / value).
 function M.add_suffix_stats(tooltip, link)
     link = item_string(link or last_link[tooltip])
     if not tooltip or not link or (tooltip.IsForbidden and tooltip:IsForbidden()) then
         return false
     end
-    -- Wait until the game has actually built the item tooltip; adding lines earlier gets wiped
-    -- when SetHyperlink finishes asynchronously, which looks like a long empty delay.
     if tooltip:NumLines() < 1 then
         return false
     end
-    local lines = M.suffix_stat_lines(link)
+    local lines = cached_suffix_lines[link]
+        or (last_hover.record and last_hover.record.suffix_stats)
+        or M.suffix_stat_lines(link)
+    if lines and #lines > 0 then
+        cached_suffix_lines[link] = lines
+        if last_hover.record then
+            last_hover.record.suffix_stats = lines
+        end
+    end
     if not lines or #lines == 0 then
         return false
     end
@@ -184,34 +217,14 @@ function M.add_suffix_stats(tooltip, link)
             added = true
         end
     end
-    if added then
-        tooltip:Show()
-        if not inject_announced then
-            inject_announced = true
-            aux.print('Suffix stats: added +stat lines to the tooltip (this message once).')
-        end
+    if added and not inject_announced then
+        inject_announced = true
+        aux.print('Suffix stats: added +stat lines to the tooltip (this message once).')
     end
     return added
 end
 
-local function synthetic_suffix_link(item_id, item_suffix)
-    if not item_id or not item_suffix or item_suffix == 0 then
-        return
-    end
-    local level = UnitLevel('player') or 1
-    local candidates = {
-        format('item:%d::::::::%d::::1:%d', item_id, level, item_suffix),
-        format('item:%d::::::::::::1:1:%d', item_id, item_suffix),
-        format('item:%d::::::%d', item_id, item_suffix),
-    }
-    for _, candidate in ipairs(candidates) do
-        local lines = M.suffix_stat_lines(candidate)
-        if lines and #lines > 0 then
-            return candidate
-        end
-    end
-end
-
+-- Hover path: only a remembered auction link (never synthetic GetItemStats trials).
 function M.link_for_item_key(item_key)
     if type(item_key) ~= 'table' or not item_key.itemID then
         return
@@ -221,7 +234,6 @@ function M.link_for_item_key(item_key)
         return
     end
     return info.suffix_link_for(item_key.itemID, suffix)
-        or synthetic_suffix_link(item_key.itemID, suffix)
 end
 
 function M.schedule_suffix_stats(tooltip, link)
@@ -233,10 +245,8 @@ function M.schedule_suffix_stats(tooltip, link)
     end
     retry_tip = tooltip
     retry_link = link or last_link[tooltip]
-    -- A few frames covers async SetHyperlink / GetItemStats load without a long empty wait.
-    retry_frames = 10
+    retry_frames = 8
     suffix_retry:Show()
-    pcall(M.add_suffix_stats, tooltip, retry_link)
 end
 
 -- /aux suffix: dump the last hovered AH link and whether GetItemStats sees bonus stats
@@ -324,18 +334,22 @@ function aux.event.AUX_LOADED()
         if type(link) ~= 'string' or (issecretvalue and issecretvalue(link)) or not strfind(link, 'item:') then
             return
         end
-        -- pcall so a suffix/GetItemStats failure never blanks the whole tooltip
-        pcall(extend_tooltip, tooltip, link, tooltip_quantity(tooltip))
+        extend_tooltip(tooltip, link, tooltip_quantity(tooltip))
         pcall(M.schedule_suffix_stats, tooltip, link)
     end)
     aux.event_listener('GET_ITEM_INFO_RECEIVED', function(item_id, success)
-        if not success or not retry_tip or not retry_tip:IsShown() then
+        if not success then
             return
         end
-        local link = retry_link or last_link[retry_tip]
+        local link = retry_link or last_hover.link
         local link_id = link and tonumber(strmatch(link, 'item:(%-?%d+)'))
         if link_id and link_id == item_id then
-            pcall(M.add_suffix_stats, retry_tip, link)
+            M.cache_suffix_stats(link)
+            if retry_tip and retry_tip:IsShown() then
+                if pcall(M.add_suffix_stats, retry_tip, link) then
+                    retry_tip:Show()
+                end
+            end
         end
     end)
 end
@@ -372,8 +386,6 @@ function extend_tooltip(tooltip, link, quantity)
     -- 1 a stack's Value read as a far too high price per item (Windows' screenshot keys hold Shift).
     local per = quantity > 1 and ('  ' .. aux.color.label.enabled('for ' .. quantity)) or ''
     local item_info = info.item(item_id)
-    -- Forever: put missing random-suffix +stats above Value/vendor so they sit with the item body
-    M.add_suffix_stats(tooltip, link)
     -- auxForever: the disenchant table is only worked out when one of its lines is shown
     if item_info and (settings.disenchant_distribution or settings.disenchant_value) then
         local distribution = disenchant.distribution(item_info.slot, item_info.quality, item_info.level)
@@ -444,6 +456,9 @@ function extend_tooltip(tooltip, link, quantity)
 --    if tooltip == GameTooltip and game_tooltip_money > 0 then
 --        SetTooltipMoney(tooltip, game_tooltip_money)
 --    end
+    -- Forever: suffix +stats after Value/DE so a failed GetItemStats cannot skip those lines,
+    -- and without an extra Show() that would drop them on this client.
+    pcall(M.add_suffix_stats, tooltip, link)
     tooltip:Show()
 end
 

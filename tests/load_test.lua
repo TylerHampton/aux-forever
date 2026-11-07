@@ -3670,7 +3670,9 @@ try('suffix stats on tooltip', function()
   check('suffix: does not duplicate lines already shown', #lines == before)
   info_mod.remember_suffix_link(6545, 14312, auction_link)
   check('suffix: remembered link for Fast parent item key', tip_mod.link_for_item_key({ itemID = 6545, itemSuffix = 14312 }) == auction_link)
-  check('suffix: synthetic itemSuffix link works when GetItemStats accepts it', tip_mod.link_for_item_key({ itemID = 9999, itemSuffix = 14312 }) ~= nil)
+  check('suffix: no synthetic GetItemStats work on the hover path', tip_mod.link_for_item_key({ itemID = 9999, itemSuffix = 14312 }) == nil)
+  tip_mod.cache_suffix_stats(auction_link)
+  check('suffix: cache_suffix_stats stores lines', tip_mod.suffix_stat_lines(auction_link) ~= nil)
 end)
 
 -- what players do while the auction house is still answering: a slow auction house that answers
