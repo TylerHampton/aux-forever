@@ -390,8 +390,10 @@ function extend_tooltip(tooltip, link, quantity)
     -- 1 a stack's Value read as a far too high price per item (Windows' screenshot keys hold Shift).
     local per = quantity > 1 and ('  ' .. aux.color.label.enabled('for ' .. quantity)) or ''
     local item_info = info.item(item_id)
-    -- auxForever: the disenchant table is only worked out when one of its lines is shown
-    if item_info and (settings.disenchant_distribution or settings.disenchant_value) then
+    -- auxForever: the disenchant table is only worked out when one of its lines is shown.
+    -- Skip white/gray (and shirts): they cannot be disenchanted.
+    if item_info and (settings.disenchant_distribution or settings.disenchant_value)
+        and (item_info.quality or 0) >= 2 then
         local distribution = disenchant.distribution(item_info.slot, item_info.quality, item_info.level)
         if #distribution > 0 then
             if settings.disenchant_distribution then

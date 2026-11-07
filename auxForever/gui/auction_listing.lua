@@ -659,33 +659,38 @@ local methods = {
         rt:SetSort((descending and -1 or 1) * self.columnIndex)
     end,
 
+    -- Full item tooltip for a listing row (icon or whole row). Prefer a remembered auction link
+    -- with bonus IDs so random-suffix +stats can be injected after the tooltip builds.
+    ShowRecordTooltip = function(owner, record, click_hint)
+        if not record then
+            return
+        end
+        GameTooltip:SetOwner(owner, 'ANCHOR_RIGHT')
+        local key = record.browse_key
+        local stats_link = key and tooltip.link_for_item_key(key)
+        if stats_link then
+            tooltip.note_link(GameTooltip, stats_link)
+            GameTooltip:SetHyperlink(stats_link)
+        elseif key and GameTooltip.SetItemKey then
+            GameTooltip:SetItemKey(key.itemID, key.itemLevel or 0, key.itemSuffix or 0, record.requirement or 0)
+        else
+            stats_link = record.link
+            tooltip.note_link(GameTooltip, stats_link)
+            GameTooltip:SetHyperlink(stats_link)
+        end
+        local inject_link = stats_link or record.link
+        tooltip.note_hover(record, inject_link)
+        GameTooltip_ShowCompareItem()
+        gui.add_click_hint(GameTooltip, click_hint)
+        GameTooltip:Show()
+        pcall(tooltip.schedule_suffix_stats, GameTooltip, inject_link)
+    end,
+
     OnIconEnter = function(self)
         local rt = self:GetParent().row.rt
         local row = self:GetParent().row
         if row.record then
-	        GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-            local key = row.record.browse_key
-            -- Forever: SetItemKey shows the suffix name but often omits the rolled +stats.
-            -- Prefer a full auction link (from an opened item search, or a synthetic bonus link).
-            -- Do not inject +stats here: SetHyperlink is async and early AddLines get wiped,
-            -- which made the tooltip look empty until a later retry.
-            local stats_link = key and tooltip.link_for_item_key(key)
-            if stats_link then
-                tooltip.note_link(GameTooltip, stats_link)
-                GameTooltip:SetHyperlink(stats_link)
-            elseif key and GameTooltip.SetItemKey then
-                GameTooltip:SetItemKey(key.itemID, key.itemLevel or 0, key.itemSuffix or 0, row.record.requirement or 0)
-            else
-                stats_link = row.record.link
-                tooltip.note_link(GameTooltip, stats_link)
-                GameTooltip:SetHyperlink(stats_link)
-            end
-            local inject_link = stats_link or row.record.link
-            tooltip.note_hover(row.record, inject_link)
-            GameTooltip_ShowCompareItem()
-            gui.add_click_hint(GameTooltip, rt:ClickHint(row))
-            GameTooltip:Show()
-            pcall(tooltip.schedule_suffix_stats, GameTooltip, inject_link)
+            rt.ShowRecordTooltip(self, row.record, rt:ClickHint(row))
         end
     end,
 
@@ -722,36 +727,11 @@ local methods = {
 
     OnEnter = function(self)
         local rt = self.rt
-        -- auxForever (0.5): every row says what its clicks do, in one gray line (was: only grouped
-        -- and fast rows, in white). Forever: also show compact rolled +stats when we have a full
-        -- auction link (not a full item tooltip — that felt janky on the whole row).
+        -- Forever: full item tooltip on the whole row (same as the icon). Heavier than click-hints
+        -- alone, but it is the path that reliably shows random-suffix +stats.
         if self.record then
-            GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
-            local key = self.record.browse_key
-            local stats_link = (key and tooltip.link_for_item_key(key)) or (not key and self.record.link) or nil
-            local try_link = stats_link or self.record.link
-            tooltip.note_hover(self.record, try_link)
-            local lines = self.record.suffix_stats
-            if not (lines and #lines > 0) and try_link then
-                lines = tooltip.cache_suffix_stats(try_link)
-                if lines then
-                    self.record.suffix_stats = lines
-                end
-            end
-            if lines and #lines > 0 then
-                for _, entry in ipairs(lines) do
-                    GameTooltip:AddLine(format('+%d %s', entry.amount, entry.label), 0, 1, 0)
-                end
-                GameTooltip:AddLine(' ')
-            end
-            gui.add_click_hint(GameTooltip, rt:ClickHint(self), true)
-            GameTooltip:Show()
-            if try_link then
-                tooltip.note_link(GameTooltip, try_link)
-                pcall(tooltip.schedule_suffix_stats, GameTooltip, try_link)
-            end
+            rt.ShowRecordTooltip(self, self.record, rt:ClickHint(self))
         end
-
         self.hover:Show()
     end,
 

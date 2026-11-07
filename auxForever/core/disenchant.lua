@@ -5,11 +5,11 @@ local history = require 'aux.core.history'
 
 local UNCOMMON, RARE, EPIC = 2, 3, 4
 
+-- Shirts (INVTYPE_BODY) and tabards are not disenchantable; keep them out of this set.
 local ARMOR = aux.set(
     'INVTYPE_HEAD',
     'INVTYPE_NECK',
     'INVTYPE_SHOULDER',
-    'INVTYPE_BODY',
     'INVTYPE_CHEST',
     'INVTYPE_ROBE',
     'INVTYPE_WAIST',
@@ -45,7 +45,11 @@ function M.value(slot, quality, level)
 end
 
 function M.distribution(slot, quality, level)
-    if not ARMOR[slot] and not WEAPON[slot] or level == 0 then
+    -- White/gray and non-gear never disenchant; only uncommon / rare / epic armor and weapons.
+    if not ARMOR[slot] and not WEAPON[slot] or not level or level == 0 then
+        return {}
+    end
+    if quality ~= UNCOMMON and quality ~= RARE and quality ~= EPIC then
         return {}
     end
 
