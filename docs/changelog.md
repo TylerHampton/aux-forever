@@ -6,6 +6,16 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## Unreleased
+
+### Search / tooltips
+
+- Random-suffix gear ("of the Bear", "of Strength", ...) again shows its rolled +stats on auction
+  icon tooltips. Forever's Fast parent rows use `SetItemKey`, which often drops those bonuses;
+  opened auctions already had a full `itemLink`. aux now fills the missing green +stat lines from
+  `C_Item.GetItemStats`, and remembers a working link per item version so the Fast parent can show
+  the same stats after you open that item (reported by Eacail).
+
 ## 0.7.1.1 (2026-10-19)
 
 ### Post tab

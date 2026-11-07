@@ -129,6 +129,7 @@ For whoever fixes or builds from it:
 | [FB-020](#fb-020-find-the-cheapest-way-to-fill-waylaid-crates-and-writs) | 2026-10-17 | Harro22 | request | Search | n/a | Find the cheapest way to fill Waylaid crates and writs | planned 0.8 |
 | [FB-021](#fb-021-a-typed-price-below-the-lowest-listing-cannot-be-posted-rough-stone-5c) | 2026-10-18 | sarrathsilentstrider | bug | Post | S2 | A typed price below the lowest listing cannot be posted (Rough Stone, 5c) | fixed 0.7.1.1 (released 2026-10-19) |
 | [FB-022](#fb-022-the-player-did-not-know-the-newest-listing-at-a-price-sells-first) | 2026-10-18 | sarrathsilentstrider | ux | Post | n/a | The player did not know the newest listing at a price sells first | new |
+| [FB-023](#fb-023-random-suffix-stats-missing-on-fast-parent-tooltips) | 2026-11-06 | Eacail | bug | Search / tooltip | S2 | Random suffix +stats missing on Fast parent tooltips (opened auctions OK) | in-progress |
 
 ## Players
 
@@ -1236,6 +1237,39 @@ Recorder's notes:
 
 Ask Tyler: should the Post tab say why it matches (a line or a hint on the switch), or is this the
 "teaching the auction house" exception?
+
+### FB-023: Random suffix stats missing on Fast parent tooltips
+
+- Received: 2026-11-06
+- From: Eacail
+- Where: direct report while testing auxForever on Forever
+- Source: none (session notes)
+- Version: forever-0.7.1.1
+- Type: bug
+- Area: Search / tooltip
+- Severity: S2
+- Status: in-progress
+- Branch: fix/random-suffix-tooltip-stats
+- Proposed: this patch
+
+Said:
+> notice it does work when you right click a search result and it breaks out the auctions. that tooltip works but not the parent
+
+Steps / setup:
+1. Fast search for random-suffix gear (e.g. "of Strength", "of the Bear").
+2. Hover the parent Fast row icon: suffix name may show, rolled +stats do not.
+3. Open the item (click / break out auctions): hover an auction icon: +stats show.
+
+Recorder's notes:
+- Inference: Fast parent rows call `GameTooltip:SetItemKey`, which on Forever shows the suffix name
+  but often drops the bonus IDs that `C_Item.GetItemStats` needs. Opened auctions call
+  `SetHyperlink` with `result.itemLink`, which still carries the bonus IDs.
+- Fix: stash full links, inject missing +stat lines from `GetItemStats` deltas, remember one
+  auction link per `itemID:itemSuffix` so the Fast parent can reuse it after the item is opened,
+  and try a synthetic bonus link from `itemSuffix` when that works.
+
+Unknowns: whether Forever ever accepts `itemSuffix` as a bonus ID in a synthetic link without an
+opened auction; if not, parent rows need one open per item key per session.
 
 ## Before this log
 

@@ -3630,6 +3630,44 @@ try('0.7: result tables follow a fast resize', function()
   check('resize: the last cell of a row is anchored to the right edge', row and has(row.cells[#row.cells], 'TOPRIGHT'))
 end)
 
+-- Forever: random-suffix +stats missing from SetItemKey / stripped GetItem() links (FB-023)
+try('suffix stats on tooltip', function()
+  local tip_mod = assert(loadstring("select(2, ...) 'aux.core.tooltip'; return _M"))('auxForever', addon)
+  local info_mod = assert(loadstring("select(2, ...) 'aux.util.info'; return _M"))('auxForever', addon)
+  G.ITEM_MOD_STRENGTH_SHORT = 'Strength'
+  G.ITEM_MOD_STAMINA_SHORT = 'Stamina'
+  local base = { RESISTANCE0_NAME = 10 }
+  local with = { RESISTANCE0_NAME = 10, ITEM_MOD_STRENGTH_SHORT = 5, ITEM_MOD_STAMINA_SHORT = 3 }
+  G.C_Item.GetItemStats = function(link)
+    if type(link) == 'string' and (link:find('12732', 1, true) or link:find(':14312', 1, true) or link:find('1:1:14312', 1, true) or link:find('::::1:14312', 1, true)) then
+      return with
+    end
+    return base
+  end
+  local lines = {}
+  rawset(G.GameTooltip, 'NumLines', function() return #lines end)
+  rawset(G.GameTooltip, 'AddLine', function(_, text) tinsert(lines, text) end)
+  rawset(G.GameTooltip, 'Show', function() end)
+  rawset(G.GameTooltip, 'IsShown', function() return true end)
+  for i = 1, 10 do
+    G['GameTooltipTextLeft' .. i] = { GetText = function() return lines[i] end }
+  end
+  local auction_link = 'item:6545::::::::20:1489::1:12732::::'
+  check('suffix: injects strength from a full auction link', tip_mod.add_suffix_stats(G.GameTooltip, auction_link))
+  check('suffix: strength line present', (function()
+    for _, t in ipairs(lines) do if t == '+5 Strength' then return true end end
+  end)())
+  check('suffix: stamina line present', (function()
+    for _, t in ipairs(lines) do if t == '+3 Stamina' then return true end end
+  end)())
+  local before = #lines
+  tip_mod.add_suffix_stats(G.GameTooltip, auction_link)
+  check('suffix: does not duplicate lines already shown', #lines == before)
+  info_mod.remember_suffix_link(6545, 14312, auction_link)
+  check('suffix: remembered link for Fast parent item key', tip_mod.link_for_item_key({ itemID = 6545, itemSuffix = 14312 }) == auction_link)
+  check('suffix: synthetic itemSuffix link works when GetItemStats accepts it', tip_mod.link_for_item_key({ itemID = 9999, itemSuffix = 14312 }) ~= nil)
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
 dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({

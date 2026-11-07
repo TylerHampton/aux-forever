@@ -665,15 +665,23 @@ local methods = {
         if row.record then
 	        GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
             local key = row.record.browse_key
-            if key and GameTooltip.SetItemKey then
-                -- auxForever: a fast mode row has no link of its own; this shows its suffix too
+            -- Forever: SetItemKey shows the suffix name but often omits the rolled +stats.
+            -- Prefer a full auction link (from an opened item search, or a synthetic bonus link).
+            local stats_link = key and tooltip.link_for_item_key(key)
+            if stats_link then
+                GameTooltip:SetHyperlink(stats_link)
+            elseif key and GameTooltip.SetItemKey then
                 GameTooltip:SetItemKey(key.itemID, key.itemLevel or 0, key.itemSuffix or 0, row.record.requirement or 0)
             else
-                GameTooltip:SetHyperlink(row.record.link)
+                stats_link = row.record.link
+                GameTooltip:SetHyperlink(stats_link)
             end
             GameTooltip_ShowCompareItem()
             gui.add_click_hint(GameTooltip, rt:ClickHint(row))
+            local inject_link = stats_link or row.record.link
+            tooltip.add_suffix_stats(GameTooltip, inject_link)
             GameTooltip:Show()
+            tooltip.schedule_suffix_stats(GameTooltip, inject_link)
         end
     end,
 

@@ -9,6 +9,168 @@ local gui = require 'aux.gui'
 
 local UNKNOWN = GRAY_FONT_COLOR_CODE .. '?' .. FONT_COLOR_CODE_CLOSE
 
+-- Forever: GameTooltip:GetItem() and SetItemKey often drop the random-suffix bonus IDs that
+-- C_AuctionHouse item links carry, so the built-in tooltip shows the base item with no +stats.
+-- Full auction links still work with C_Item.GetItemStats; we stash those links, remember them by
+-- item key after an item search, and re-add the missing green +stat lines.
+
+local last_link = {}
+local pending_suffix = {}
+
+local function stash_link(tooltip, link)
+    if type(link) == 'string' and strfind(link, 'item:', 1, true)
+        and not (issecretvalue and issecretvalue(link)) then
+        last_link[tooltip] = link
+    end
+end
+
+local function wrap_sethyperlink(tooltip)
+    if not tooltip or tooltip.AuxSuffixWrapped then
+        return
+    end
+    local orig = tooltip.SetHyperlink
+    tooltip.SetHyperlink = function(self, link, ...)
+        stash_link(self, link)
+        return orig(self, link, ...)
+    end
+    tooltip.AuxSuffixWrapped = true
+end
+
+local function copy_stats(link)
+    if not (C_Item and C_Item.GetItemStats) or type(link) ~= 'string' then
+        return
+    end
+    local ok, src = pcall(C_Item.GetItemStats, link)
+    if not ok or type(src) ~= 'table' then
+        return
+    end
+    local copy = {}
+    for k, v in pairs(src) do
+        if type(v) == 'number' then
+            copy[k] = v
+        end
+    end
+    return copy
+end
+
+local function bonus_deltas(link)
+    local item_id = tonumber(strmatch(link, 'item:(%-?%d+)'))
+    if not item_id then
+        return
+    end
+    local with = copy_stats(link)
+    if not with then
+        return
+    end
+    local base = copy_stats('item:' .. item_id) or {}
+    local deltas = {}
+    for k, v in pairs(with) do
+        if k ~= 'RESISTANCE0_NAME' then
+            local delta = v - (base[k] or 0)
+            local label = _G[k]
+            if delta > 0 and type(label) == 'string' then
+                tinsert(deltas, { label = label, delta = delta })
+            end
+        end
+    end
+    return deltas
+end
+
+local function line_has_stat(tooltip, label, delta)
+    local name = tooltip:GetName()
+    local needle_a = format('+%d %s', delta, label)
+    local needle_b = format('%s +%d', label, delta)
+    local needle_c = format('+%d', delta)
+    for i = 1, tooltip:NumLines() do
+        local fs = _G[name .. 'TextLeft' .. i]
+        local text = fs and fs:GetText()
+        if type(text) == 'string' and strfind(text, label, 1, true)
+            and (strfind(text, needle_a, 1, true) or strfind(text, needle_b, 1, true)
+                or strfind(text, needle_c, 1, true)) then
+            return true
+        end
+    end
+    return false
+end
+
+local suffix_retry = CreateFrame('Frame')
+suffix_retry:Hide()
+suffix_retry:SetScript('OnUpdate', function(self)
+    self:Hide()
+    for tip, link in pairs(pending_suffix) do
+        pending_suffix[tip] = nil
+        if tip:IsShown() then
+            M.add_suffix_stats(tip, link ~= true and link or nil)
+        end
+    end
+end)
+
+-- Returns true when at least one line was added.
+function M.add_suffix_stats(tooltip, link)
+    link = link or last_link[tooltip]
+    if not tooltip or type(link) ~= 'string' then
+        return false
+    end
+    local deltas = bonus_deltas(link)
+    if not deltas or #deltas == 0 then
+        return false
+    end
+    local added = false
+    for _, entry in ipairs(deltas) do
+        if not line_has_stat(tooltip, entry.label, entry.delta) then
+            tooltip:AddLine(format('+%d %s', entry.delta, entry.label), 0, 1, 0)
+            added = true
+        end
+    end
+    if added then
+        tooltip:Show()
+    end
+    return added
+end
+
+local function synthetic_suffix_link(item_id, item_suffix)
+    if not item_id or not item_suffix or item_suffix == 0 then
+        return
+    end
+    local level = UnitLevel('player') or 1
+    -- Forever bag links look like item:id::::::::level:spec::1:bonusId
+    local candidates = {
+        format('item:%d::::::::%d::::1:%d', item_id, level, item_suffix),
+        format('item:%d::::::::::::1:1:%d', item_id, item_suffix),
+        format('item:%d::::::%d', item_id, item_suffix),
+    }
+    for _, candidate in ipairs(candidates) do
+        local deltas = bonus_deltas(candidate)
+        if deltas and #deltas > 0 then
+            return candidate
+        end
+    end
+end
+
+-- Fast browse rows only have an ItemKey. Prefer a remembered auction link (from opening the
+-- item), else a synthetic bonus link built from itemSuffix when GetItemStats accepts it.
+function M.link_for_item_key(item_key)
+    if type(item_key) ~= 'table' or not item_key.itemID then
+        return
+    end
+    local suffix = item_key.itemSuffix or 0
+    if suffix == 0 then
+        return
+    end
+    return info.suffix_link_for(item_key.itemID, suffix)
+        or synthetic_suffix_link(item_key.itemID, suffix)
+end
+
+function M.schedule_suffix_stats(tooltip, link)
+    if not tooltip then
+        return
+    end
+    if link then
+        stash_link(tooltip, link)
+    end
+    pending_suffix[tooltip] = link or last_link[tooltip] or true
+    suffix_retry:Show()
+end
 
 -- Forever: item tooltips are built through TooltipDataProcessor, so one post-call replaces the
 -- per-method GameTooltip hooks of Classic aux. The quantity (used when Shift is held) is read from
@@ -46,6 +208,10 @@ end
 
 function aux.event.AUX_LOADED()
     settings = aux.character_data.tooltip
+    wrap_sethyperlink(GameTooltip)
+    if ItemRefTooltip then
+        wrap_sethyperlink(ItemRefTooltip)
+    end
     TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tooltip, data)
         if tooltip ~= GameTooltip and tooltip ~= ItemRefTooltip then
             return
@@ -54,11 +220,13 @@ function aux.event.AUX_LOADED()
             return
         end
         local _, link = tooltip:GetItem()
-        link = link or data and data.hyperlink
+        link = last_link[tooltip] or link or data and data.hyperlink
         if type(link) ~= 'string' or (issecretvalue and issecretvalue(link)) or not strfind(link, 'item:') then
             return
         end
         extend_tooltip(tooltip, link, tooltip_quantity(tooltip))
+        M.add_suffix_stats(tooltip, link)
+        M.schedule_suffix_stats(tooltip, link)
     end)
 end
 

@@ -46,6 +46,27 @@ function M.duration_from_seconds(seconds)
     return 4
 end
 
+-- Forever: full auction itemLinks carry bonus IDs for random suffixes; Fast browse rows only
+-- have an ItemKey. Remember one working link per itemID:itemSuffix when an item search returns it.
+local suffix_link_by_key = {}
+
+function remember_suffix_link(item_id, item_suffix, link)
+    if type(link) ~= 'string' or not strfind(link, 'item:', 1, true)
+        or not item_id or not item_suffix or item_suffix == 0 then
+        return
+    end
+    suffix_link_by_key[item_id .. ':' .. item_suffix] = link
+end
+
+function M.suffix_link_for(item_id, item_suffix)
+    if not item_id or not item_suffix or item_suffix == 0 then
+        return
+    end
+    return suffix_link_by_key[item_id .. ':' .. item_suffix]
+end
+
+M.remember_suffix_link = remember_suffix_link
+
 function M.container_item(bag, slot)
 	local link = C_Container.GetContainerItemLink(bag, slot)
     if link then
@@ -240,6 +261,11 @@ function M.item_search_record(result)
     record.duration = result.timeLeftSeconds and duration_from_seconds(result.timeLeftSeconds) or duration_from_band(result.timeLeft)
     record.sale_status = 0
     signatures(record)
+    -- Forever: remember the full bonus link so Fast parent rows of this item key can show +stats
+    local key = result.itemKey
+    if key and result.itemLink then
+        remember_suffix_link(key.itemID, key.itemSuffix or 0, result.itemLink)
+    end
     return record
 end
 
@@ -354,6 +380,9 @@ function M.owned_record(owned)
     signatures(record)
     -- 0.7.1 (FB-015): identical auctions of your own stay apart, each with its own row and cancel
     record.search_signature = record.search_signature .. ':' .. (owned.auctionID or 0)
+    if owned.itemKey and owned.itemLink then
+        remember_suffix_link(owned.itemKey.itemID, owned.itemKey.itemSuffix or 0, owned.itemLink)
+    end
     return record
 end
 

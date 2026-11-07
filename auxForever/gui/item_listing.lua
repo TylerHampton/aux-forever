@@ -77,7 +77,10 @@ local function create_row(item_listing, row_index)
 	row.item.button:SetScript('OnEnter', function(self)
 		info.set_tooltip(row.item_record.link, self, 'ANCHOR_RIGHT')
 		gui.add_click_hint(GameTooltip, HINT)
+		local tooltip = require 'aux.core.tooltip'
+		tooltip.add_suffix_stats(GameTooltip, row.item_record.link)
 		GameTooltip:Show()
+		tooltip.schedule_suffix_stats(GameTooltip, row.item_record.link)
 	end)
 	row.item.button:SetScript('OnLeave', function() GameTooltip:Hide() end)
 	-- auxForever (0.6.1.1, FB-011): the icon catches the mouse for its tooltip, so a click on it
