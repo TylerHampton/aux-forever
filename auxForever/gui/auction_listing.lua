@@ -190,6 +190,11 @@ local function quantity_column(title)
             end
             cell.text:SetText(text)
         end,
+        -- an item's row sorts by all of it, as it shows: its first price alone put "18 (1)" below a
+        -- 17 (0.8 build 14, Tyler)
+        row_cmp = function(row_a, row_b, desc)
+            return sort_util.compare(row_a.totalUnits or 0, row_b.totalUnits or 0, desc)
+        end,
         -- a row of several auctions at one price sorts by all it holds, as it shows (review H-006, finding 5)
         cmp = function(record_a, record_b, desc)
             return sort_util.compare(record_a.count * (record_a.group_count or record_a.auction_count or 1), record_b.count * (record_b.group_count or record_b.auction_count or 1), desc)
@@ -941,7 +946,13 @@ local methods = {
                 end
 
                 for _, sort in pairs(self.sorts) do
-                    local ordering = self.columns[sort.index].cmp and self.columns[sort.index].cmp(record_a, record_b, sort.descending) or sort_util.EQ
+                    local column = self.columns[sort.index]
+                    local ordering
+                    if a.children and column.row_cmp then
+                        ordering = column.row_cmp(a, b, sort.descending)
+                    else
+                        ordering = column.cmp and column.cmp(record_a, record_b, sort.descending) or sort_util.EQ
+                    end
 
                     if ordering == sort_util.LT then
                         return true

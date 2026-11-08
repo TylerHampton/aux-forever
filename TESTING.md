@@ -8,7 +8,24 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8 build 13
+## Current build: 0.8 build 14
+
+Two fixes from Tyler's build 13 test. Crates hovered in aux's results showed no "Cheapest way to
+fill it" lines (Journeyman Herbs, Artisan Curiosities). Likely cause (not confirmed in game): the
+game loads a crate's list, the text of its use spell, after the item, and aux read the tooltip
+before that and kept "not a crate" for the session; it now waits for the list (Blizzard's code:
+`C_Item.GetItemSpell`, `C_Spell.IsSpellDataCached`). Sorting by For sale put "Merc Sword of Stamina
+18 (1)" below a 17: an item's row sorted by its first price only; now by all it has for sale. Zip
+`auxForever-0.8-build14.zip`; `/reload` is enough. Test page build id `0-8-build-14`.
+
+- [ ] 1. After `/reload`, open aux and search `waylaid crate`. Hover three kinds of crate in the
+      results: each shows "Cheapest way to fill it" with its bundles (the first hover may not; a
+      second hover must). Screenshot one.
+- [ ] 2. Hover the Waylaid Crate in your bags: the same lines show.
+- [ ] 3. Search `merc sword` (Full), click For sale until the arrow points down: the numbers in
+      that column only go down from the top (an item with yours, like "18 (1)", sits by its 18).
+
+### 0.8 build 13
 
 The release candidate for 0.8, after Gemini's last review (H-006,
 `docs/reviews/2026-11-08-release-0.8.md`): seven fixes, each with a test. Gear read on the Post tab
@@ -31,6 +48,12 @@ listing at a price sells first (not confirmed on Forever). Zip `auxForever-0.8-b
 - [ ] 5. Only if your Full scan is ready: Post tab, pick a gear item with an ending and click Full
       scan right away, while it says "Reading the listings...". Post stays faded and says
       "Reading stopped. Press Refresh, or type a price." Click Refresh: it reads again.
+
+Tested by Tyler 2026-11-08 (test page `0-8-build-13`, screenshots, no marks; judged from the
+screenshots): steps 2 (the Seller sort), 3 and 4 pass; step 2's For sale sort put "18 (1)" below a
+17 (fixed in build 14); step 1 fails: Journeyman Herbs and Artisan Curiosities, hovered in aux's
+results, showed their list but no "Cheapest way to fill it" (build 14); step 5 skipped ("I cant
+move my hand that fast"; covered by the test "H-006 2").
 
 ### 0.8 build 12
 

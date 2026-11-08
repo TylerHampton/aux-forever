@@ -6,8 +6,8 @@ local money = require 'aux.util.money'
 local history = require 'aux.core.history'
 
 -- auxForever (0.8, FB-020, Harro22): Waylaid Crates. A crate's tooltip lists the bundles that fill
--- it, any one of them, after the words "Fill the crate" (seen 2026-10-20 on the Journeyman Textiles
--- and Fabrics crates):
+-- it, any one of them, after the words "Fill the crate" (seen 2026-10-20 on Journeyman Textiles and
+-- Fabrics, 2026-11-08 on Journeyman Herbs and Artisan Curiosities):
 --   Use: Fill the crate with any bundle from the following list:
 --   - 20 Wool Cloth
 --   - 40 Silk Cloth
@@ -46,15 +46,40 @@ function M.crate_bundles_from_text(texts)
     return #bundles > 0 and bundles or nil
 end
 
+-- whether the game may still be filling in the item's "Use:" text: the item has a use spell and its
+-- text is not loaded, or its tooltip has no Use line yet (0.8 build 14: crates hovered in aux's
+-- results showed no bundles, Tyler, build 13; the list is the use spell's text, which the game loads
+-- after the item). Blizzard's code: C_Item.GetItemSpell, C_Spell.IsSpellDataCached.
+local function use_text_pending(item_id, texts)
+    local _, spell_id
+    if C_Item and C_Item.GetItemSpell then
+        _, spell_id = C_Item.GetItemSpell(item_id)
+    end
+    if not spell_id then
+        return false
+    end
+    if C_Spell and C_Spell.IsSpellDataCached and not C_Spell.IsSpellDataCached(spell_id) then
+        if C_Spell.RequestLoadSpellData then C_Spell.RequestLoadSpellData(spell_id) end
+        return true
+    end
+    local use = ITEM_SPELL_TRIGGER_ONUSE or 'Use:'
+    for _, text in ipairs(texts) do
+        if type(text) == 'string' and strfind(text, use, 1, true) then
+            return false
+        end
+    end
+    return true
+end
+
 -- the bundles of a crate, read from its tooltip lines the first time and kept. texts is the lines,
 -- or a function that reads them (only called the first time). An item that is not a crate is kept
 -- as one too, but only once the game has loaded it: before that its tooltip can be a bare
--- "Retrieving item information".
+-- "Retrieving item information", or lack the Use line that holds a crate's list.
 function M.crate_bundles(item_id, texts)
     if bundles_of[item_id] == nil and texts then
         if type(texts) == 'function' then texts = texts() end
         local bundles = crate_bundles_from_text(texts)
-        if bundles or info.item(item_id) then
+        if bundles or (info.item(item_id) and not use_text_pending(item_id, texts)) then
             bundles_of[item_id] = bundles or false
         end
         return bundles

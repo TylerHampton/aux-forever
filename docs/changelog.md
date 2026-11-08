@@ -34,7 +34,9 @@ A change that comes from a player's feedback credits them by in-game name at the
   ("(12 in bags)"), and a bundle you already hold says "in your bags". Prices are the latest aux
   has seen, or a vendor's when a vendor sells the item for less. aux reads the bundles from the
   crate itself, so new crates work without an update (requested by Harro22). Only a crate's own
-  list counts: a line such as "-5 Spirit" on gear is not read as a bundle.
+  list counts: a line such as "-5 Spirit" on gear is not read as a bundle. A crate hovered before
+  the game has loaded its list (often in aux's results) is read again on the next hover, instead of
+  showing no costs until the next login.
 - Alt-click a crate in your bags while aux is open: one search for every bundle's item, at today's
   prices, and the bottom bar names the cheapest way to fill it and the next cheapest. It takes the
   cheapest listings first, as many as the bundle needs, and skips your own auctions. The search
@@ -50,7 +52,7 @@ A change that comes from a player's feedback credits them by in-game name at the
   price shown; when it is gone the next one moves up. Your own auctions stay on a row of their
   own. The Auctions, Bids and Sniper tabs still show each auction separately, and an auction with
   no buyout keeps its own row. The buy bar and the result count match the merged rows. Sorting
-  by For sale counts the whole row, sorting by Seller puts "4 sellers" with the other rows of
+  by For sale counts the whole row and each item by all it has for sale, sorting by Seller puts "4 sellers" with the other rows of
   several sellers, and after you buy from a row it stays selected with its next auction, even when
   the sort moves it.
 

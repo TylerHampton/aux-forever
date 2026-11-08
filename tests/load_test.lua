@@ -4165,6 +4165,24 @@ try('0.8: Waylaid Crates', function()
   check('crate: an item that is not a crate has no bundles', search.crate_bundles_from_text({'Medicine Staff of the Wolf', '+4 Agility', '+5 Spirit', 'Requires Level 14'}) == nil)
   -- review H-006, finding 6: a negative stat reads like a bundle row; only a crate's Use line opens the list
   check('H-006 6: "-5 Spirit" on gear is not a crate', search.crate_bundles_from_text({'Ring of Odd Luck', '+8 Agility', '-5 Spirit', 'Requires Level 20'}) == nil)
+  -- build 14 (Tyler, build 13: crates in aux's results showed no bundles): the game loads a crate's
+  -- Use text after the item; a tooltip read before that must not mark it "not a crate"
+  do
+    local real_get, real_item, real_spell = G.GetItemInfo, G.C_Item, G.C_Spell
+    local loaded = false
+    G.GetItemInfo = function(x)
+      if x == 990004 or (type(x) == 'string' and x:find('item:990004', 1, true)) then return 'Waylaid Crate: Journeyman Herbs', 'item:990004', 2, 10, 10, 'Miscellaneous', 'Junk', 1, '', 1, 0 end
+      return real_get(x)
+    end
+    G.C_Item = setmetatable({GetItemSpell = function(id) if id == 990004 then return 'Fill', 4242 end end}, {__index = real_item})
+    G.C_Spell = {IsSpellDataCached = function() return loaded end, RequestLoadSpellData = function() end}
+    local early = search.crate_bundles(990004, {'Waylaid Crate: Journeyman Herbs', 'Requires Level 10'})
+    loaded = true
+    local herbs = search.crate_bundles(990004, {'Waylaid Crate: Journeyman Herbs', 'Use: Fill the crate with any bundle from the following list:', '- 10 Stranglekelp', '- 10 Kingsblood', 'Requires Level 10'})
+    check('build 14: a crate read before its Use text loaded is read again', early == nil and herbs and #herbs == 2 and herbs[1].name == 'Stranglekelp')
+    check('build 14: an item with no use spell is still read once', search.crate_bundles(990005, {'Copper Bar'}) == nil)
+    G.GetItemInfo, G.C_Item, G.C_Spell = real_get, real_item, real_spell
+  end
   check('crate: read once per crate', search.crate_bundles(990001, textiles) == search.crate_bundles(990001) and search.crate_bundles(990002, {'Linen Cloth'}) == nil)
 
   -- prices: Wool 30c each (latest), Silk 15c each, Medium Leather unknown to aux
@@ -4556,6 +4574,19 @@ try('0.8: one row per price', function()
     before == '1500 1100' and order() == '1100 1500' and t.selected == next_one)
   t:SetSelectedRecord(nil)
   t.handlers.OnSelectionChanged = on_select
+  -- build 14 (Tyler, build 13): in a table of several items, For sale sorts each item by all it has
+  -- for sale, as its row shows, not by its first price ("18 (1)" sat below a 17)
+  local function ending_row(ending, quantity, buyout)
+    id = id + 1
+    local ending_link = '|cff1eff00|Hitem:4570::::::::20:1487::1:1:12700:1:28:5254::::|h[Merc Sword ' .. ending .. ']|h|r'
+    return info.item_search_record({itemKey = {itemID = 4570, itemSuffix = 0}, itemLink = ending_link, auctionID = id, quantity = quantity,
+      buyoutAmount = buyout, minBid = 0, owners = {'S' .. id}, totalNumberOfOwners = 1, timeLeft = 2})
+  end
+  t:SetDatabase({ending_row('of Stamina', 16, 1100), ending_row('of Stamina', 2, 3000), ending_row('of the Owl', 17, 1100)})
+  t:SetSort(-4)
+  t:SetDatabase()
+  local first = t.rowInfo[1] and t.rowInfo[1].children[1].record.name
+  check('build 14: For sale sorts items by all they have for sale (18 before 17)', #t.rowInfo == 2 and first == 'Merc Sword of Stamina')
   t.sorts, t.isSorted = saved_sorts, nil
   t:SetDatabase({})
   G.GetItemInfo = real_get_info
