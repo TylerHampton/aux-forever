@@ -322,7 +322,9 @@ do
     btn:SetWidth(70)
     btn:SetText('Full scan')
     btn:SetScript('OnClick', function()
-        aux.full_scan_button:Click()
+        -- not a click on the top button: that one is faded during every Sniper round, and a
+        -- click on a faded button does nothing
+        aux.start_full_scan()
     end)
     btn:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_BOTTOM')

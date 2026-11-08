@@ -304,10 +304,20 @@ do
     end)
     btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
     btn:SetMotionScriptsWhileDisabled(true)
-    -- the Sniper's notice has a Full scan button of its own that clicks this one (0.6 build 9)
     M.full_scan_button = btn
-    btn:SetScript('OnClick', function()
-        local count, shown_percent = 0
+    -- Starts a Full scan. The top button and the Sniper's notice button (0.6 build 9) both call
+    -- this. The notice button used to click the top one, which does nothing while the top one is
+    -- faded, and it is faded during every Sniper round.
+    function M.start_full_scan()
+        if scan.is_full_scan() then
+            return
+        end
+        local seconds = seconds_until_scan()
+        if seconds > 0 then
+            print(format('Full scan is available again in %d:%02d. The game allows one every 15 minutes.', floor(seconds / 60), seconds % 60))
+            return
+        end
+        local count, shown_percent, shown_seconds, failed = 0
         scan.start{
             type = 'list',
             queries = {{blizzard_query = {}}},
@@ -319,6 +329,18 @@ do
                 status_bar:set_text('Full scan: waiting for the auction house...')
                 search.clear_selection()
             end,
+            -- the list takes about 30 seconds on Forever (2026-11-07): a running count shows the
+            -- scan is alive, where a fixed line looked stuck
+            on_waiting = function(elapsed)
+                local whole = floor(elapsed)
+                if whole ~= shown_seconds then
+                    shown_seconds = whole
+                    status_bar:set_text(format('Full scan: waiting for the auction house, %d s (usually about 30 s)...', whole))
+                end
+            end,
+            on_failed = function()
+                failed = true
+            end,
             on_auction = function(auction_record, total)
                 count = count + 1
                 status_bar:update_status(count / total, 0)
@@ -328,16 +350,26 @@ do
                     status_bar:set_text(format('Full scan: reading auctions, %d%%', percent))
                 end
             end,
+            -- closing the auction house, another search or a pick on the Post tab stops it; it
+            -- used to end without a word
             on_abort = function()
                 status_bar:update_status(1, 1)
                 status_bar:set_text()
+                print('Full scan stopped before it finished (the auction house was closed or another search started).')
             end,
             on_complete = function()
                 status_bar:update_status(1, 1)
                 status_bar:set_text()
-                print('full scan complete: ' .. count .. ' auctions recorded')
+                -- a scan the auction house did not answer said so already; "complete: 0 auctions"
+                -- after it read as if it had worked
+                if not failed then
+                    print('full scan complete: ' .. count .. ' auctions recorded')
+                end
             end,
         }
+    end
+    btn:SetScript('OnClick', function()
+        start_full_scan()
     end)
     scan_button = btn
 end

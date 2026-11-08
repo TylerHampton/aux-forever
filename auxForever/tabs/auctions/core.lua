@@ -247,7 +247,9 @@ function on_update()
         refresh = false
         next_refresh = GetTime() + REFRESH_SECONDS
         scan_auctions()
-        if auto_check then
+        -- a Full scan is not stopped for it (the game sends that list once every 15 minutes): the
+        -- check waits and is tried again at the next refresh
+        if auto_check and not scan.is_full_scan() then
             auto_check = false
             -- like the Sniper, the tab in front gets the requests: a search left running elsewhere
             -- stops. A recent check is reused unless an auction (newly posted) was never checked.

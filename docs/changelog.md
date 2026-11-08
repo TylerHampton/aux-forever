@@ -6,6 +6,21 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## Unreleased
+
+### Full scan
+
+- While waiting for the auction house, the bar counts the seconds ("usually about 30 s"). Before,
+  it showed the same line for up to two minutes and looked stuck.
+- When the auction house does not send the list, the chat says why: it does not send it again
+  soon after a Full scan, and a Full scan by another addon counts too. Before, it then also said
+  "full scan complete: 0 auctions recorded".
+- A Full scan is no longer stopped by the Sniper's next round or by the Auctions tab's price
+  check; they wait until it is done. A Full scan that is stopped (closing the auction house,
+  starting a search) says so in the chat.
+- The Full scan button next to the Sniper's notice works during a Sniper round. Before, it did
+  nothing while a round was running.
+
 ## 0.7.1.1 (2026-10-19)
 
 ### Post tab

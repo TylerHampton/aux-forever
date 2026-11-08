@@ -388,7 +388,13 @@ function M.update()
         end
         next_round_at = GetTime() + ROUND_PAUSE
     elseif running and not active and next_round_at and GetTime() >= next_round_at then
-        start_round()
+        -- except a Full scan: the game sends its list once every 15 minutes, so a round would
+        -- throw that away. The rounds wait until it is done.
+        if scan.is_full_scan() then
+            next_round_at = GetTime() + ROUND_PAUSE
+        else
+            start_round()
+        end
     end
     if GetTime() >= (next_controls or 0) then
         next_controls = GetTime() + .2

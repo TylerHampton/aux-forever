@@ -99,6 +99,13 @@ function M.is_scanning()
     return state ~= nil
 end
 
+-- a Full scan is running (waiting for the list or reading it). Background work (Sniper rounds,
+-- the Auctions tab's price check) waits for it instead of stopping it: the game sends the list
+-- only once every 15 minutes.
+function M.is_full_scan()
+    return state ~= nil and state.params.get_all and true or false
+end
+
 function M.owner_auctions()
     local auctions = {}
     for i = 1, C_AuctionHouse.GetNumOwnedAuctions() do
@@ -606,13 +613,21 @@ function M.read_item(item_key)
     return records
 end
 
+-- How long a Full scan waits for the list. On Forever the list of about 230,000 auctions came 25
+-- to 30 seconds after the request (2026-11-07). A request a few minutes after another addon's got
+-- no answer at all (docs/forever-auction-house.md, section 9).
+M.REPLICATE_TIMEOUT = 120
+
 function replicate()
     local scan_state = state
     local wait = listen({'REPLICATE_ITEM_LIST_UPDATE'})
     C_AuctionHouse.ReplicateItems()
     aux.account_data.replicate_time = time()
-    if not wait(120) then
-        aux.print('full scan: the auction house did not respond. It can only be used once every 15 minutes.')
+    -- the wait is long and silent, so the caller is told every frame how long it has been
+    local on_waiting = state.params.on_waiting or pass
+    if not wait(REPLICATE_TIMEOUT, function(elapsed) on_waiting(elapsed) end) then
+        aux.print('Full scan: the auction house did not send the list. It does not send it again soon after a Full scan, and a Full scan by another addon counts too. Nothing was recorded; try again in 15 minutes.')
+        do (state.params.on_failed or pass)() end
         return
     end
     -- the list can arrive in several parts; wait until it stops growing

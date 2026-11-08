@@ -3173,6 +3173,8 @@ try('0.5 build 3 results', function()
   set(C_AuctionHouse, 'GetNumReplicateItems', function() return #list end)
   set(C_AuctionHouse, 'GetReplicateItemInfo', function(i) local a = list[i + 1]; return 'Item', 1, a.count, 1, true, 1, nil, 0, 0, a.buyout, 0, false, nil, 'Seller', nil, 0, a.id, true end)
   set(C_AuctionHouse, 'GetReplicateItemLink', function() return link end)
+  -- the last Full scan (an earlier test) is more than 15 minutes ago, as when the button is lit
+  set(aux.account_data, 'replicate_time', 0)
   if scan_button then scan_button.__scripts.OnClick(scan_button) end
   for _ = 1, 3 do tick() end
   check('build 3: a Full scan says it is waiting for the auction house', texts[1] and texts[1]:find('waiting for the auction house', 1, true) ~= nil)
@@ -3182,6 +3184,80 @@ try('0.5 build 3 results', function()
   check('build 3: then how far it is, and nothing when done', joined:find('reading auctions, 100%', 1, true) ~= nil and texts[#texts] == '')
 
   aux.frame.__shown = was_shown
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+end)
+
+-- 2026-11-07: a Full scan sat on "waiting for the auction house..." for two minutes with no sign
+-- of life, then said "complete: 0 auctions recorded". The game had not answered: it sends the
+-- list once every 15 minutes, and another addon had asked minutes before. When it is answered,
+-- the list comes in 25 to 30 seconds, long enough for a Sniper round or the Auctions tab's price
+-- check to stop the scan without a word.
+try('Full scan: feedback, and background work does not stop it', function()
+  local req = loadstring("select(2, ...) 'aux.test71'; return require")('auxForever', addon)
+  local aux = req 'aux'
+  local scan = req 'aux.core.scan'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local auctions = loadstring("select(2, ...) 'aux.tabs.auctions'; return _M")('auxForever', addon)
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  local printed = {}
+  set(DEFAULT_CHAT_FRAME, 'AddMessage', function(_, text) tinsert(printed, text) end)
+  local function said(s)
+    for _, p in ipairs(printed) do if p:find(s, 1, true) then return true end end
+    return false
+  end
+  local texts = {}
+  set(aux.status_bar.text, 'SetText', function(_, t) tinsert(texts, t) end)
+  local calls = 0
+  set(C_AuctionHouse, 'ReplicateItems', function() calls = calls + 1 end)
+  set(C_AuctionHouse, 'GetNumReplicateItems', function() return 0 end)
+  scan.abort()
+
+  -- not answered: the wait counts seconds, then says why, and does not call it complete
+  set(aux.account_data, 'replicate_time', 0)
+  aux.start_full_scan()
+  check('full scan: started', calls == 1 and scan.is_full_scan())
+  for _ = 1, 30 do tick() end
+  check('full scan: the wait counts the seconds', table.concat(texts, '|'):find('waiting for the auction house, 2 s', 1, true) ~= nil)
+  clock = clock + scan.REPLICATE_TIMEOUT
+  for _ = 1, 5 do tick() end
+  check('full scan: no answer says why', said('did not send the list') and said('another addon counts too'))
+  check('full scan: no answer is not called complete', not said('full scan complete'))
+  check('full scan: over when not answered', not scan.is_scanning())
+
+  -- within 15 minutes it says when the next one is allowed, and asks nothing of the game
+  printed = {}
+  aux.start_full_scan()
+  check('full scan: too soon says when', calls == 1 and said('available again in') and not scan.is_scanning())
+
+  -- a Sniper round waits for it instead of stopping it
+  set(aux.account_data, 'replicate_time', 0)
+  aux.start_full_scan()
+  local was_running = sniper.running
+  sniper.active = false
+  sniper.start() -- a round is due right away
+  sniper.update()
+  check('full scan: a Sniper round waits', scan.is_full_scan() and not sniper.active and calls == 2)
+  if not was_running then sniper.stop() end
+
+  -- so does the Auctions tab's price check, which is tried again later
+  local was_check = auctions.auto_check
+  auctions.auto_check, auctions.refresh = true, true
+  auctions.on_update()
+  check('full scan: the Auctions price check waits', scan.is_full_scan() and auctions.auto_check == true)
+  auctions.auto_check = was_check
+
+  -- stopped all the same (closing the auction house): it says so
+  printed = {}
+  scan.abort()
+  check('full scan: stopped says so', said('stopped before it finished'))
+
+  -- the Sniper's notice button starts one even while the top button is faded by a round
+  set(aux.account_data, 'replicate_time', 0)
+  sniper.notice_button.__scripts.OnClick(sniper.notice_button)
+  check('full scan: the Sniper notice button starts it', scan.is_full_scan() and calls == 3)
+  scan.abort()
+
   for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
 end)
 
