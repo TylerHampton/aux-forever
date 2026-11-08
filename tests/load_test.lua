@@ -4692,6 +4692,104 @@ try('0.8: an empty search bar stays empty', function()
   check('empty bar: a search still shows as before', plain(search.search_box.formatter('linen cloth')):find('linen cloth', 1, true) ~= nil)
 end)
 
+-- 0.8.0.1, FB-024 (reported by GregoryWW): "hillman's cloak/exact" found nothing. An exact search
+-- asks for the item's own category; a cloak is cloth armor, so it asked for Armor > Cloth, but
+-- Forever keeps cloaks under Armor > Miscellaneous > Cloak, and the slot was never found because
+-- the game's equip location ("INVTYPE_CLOAK") is not the slot's name ("Cloak").
+try('0.8.0.1: an exact search finds the item\'s own slot', function()
+  local filter_util = loadstring("select(2, ...) 'aux.test.fb024'; return require 'aux.util.filter'")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.core.scan'; return _M")('auxForever', addon)
+  local aux = loadstring("select(2, ...) 'aux.test.fb024b'; return require 'aux'")('auxForever', addon)
+  local real_get_info = G.GetItemInfo
+  local items = {
+    [3719] = {"Hillman's Cloak", 1, 20, 15, 'Armor', 'Cloth', 'INVTYPE_CLOAK'},
+    [9001] = {'Test Robe', 2, 20, 15, 'Armor', 'Cloth', 'INVTYPE_ROBE'},
+    [9002] = {'Test Pendant', 2, 20, 15, 'Armor', 'Miscellaneous', 'INVTYPE_NECK'},
+    [9003] = {'Test Dagger', 2, 20, 15, 'Weapon', 'Daggers', 'INVTYPE_WEAPON'},
+  }
+  G.GetItemInfo = function(x)
+    local id = tonumber(tostring(x):match('%d+'))
+    local t = items[id]
+    if t then return t[1], 'link', t[2], t[3], t[4], t[5], t[6], 1, t[7], 1, 300 end
+    return real_get_info(x)
+  end
+  for id, t in pairs(items) do aux.account_data.item_ids[strlower(t[1])] = id end
+  local function filters_of(text)
+    local queries = filter_util.queries(text)
+    local q = queries and queries[1] and queries[1].blizzard_query
+    return q and scan.browse_query(q).itemClassFilters, q
+  end
+  local function only(filters, class, subclass, inventory_type)
+    if not filters or #filters == 0 then return false end
+    for _, f in ipairs(filters) do
+      if f.classID ~= class or f.subClassID ~= subclass or f.inventoryType ~= inventory_type then return false end
+    end
+    return true
+  end
+  local cloak = filters_of("hillman's cloak/exact")
+  check('fb024: a cloak is asked for under Miscellaneous > Cloak', only(cloak, 4, 1, 16))
+  local robe = filters_of('test robe/exact')
+  local robe_ok = robe and #robe == 2
+  for _, f in ipairs(robe or {}) do robe_ok = robe_ok and f.classID == 4 and f.subClassID == 1 and (f.inventoryType == 5 or f.inventoryType == 20) end
+  check('fb024: a robe is asked for under Cloth > Chest', robe_ok)
+  check('fb024: a pendant is asked for under Miscellaneous > Neck', only(filters_of('test pendant/exact'), 4, 0, 2))
+  local dagger, dq = filters_of('test dagger/exact')
+  check('fb024: a weapon keeps its whole category, as before', dq and dq.class == 1 and dq.subclass == nil and dq.slot == nil and dagger and #dagger > 1)
+  check('fb024: still the name, the level and no exact-match filter for gear', not not (dq and dq.name == 'test dagger' and dq.min_level == 15 and dq.max_level == 15))
+  G.GetItemInfo = real_get_info
+  for _, t in pairs(items) do aux.account_data.item_ids[strlower(t[1])] = nil end
+end)
+
+-- 0.8.0.1, FB-034 (reported by Chawitsch): with aux open, the Professions window moved a little to
+-- the right. Blizzard's auction house window takes the left and center places ("doublewide"), so
+-- the game puts a side window to its right; shrunk to 1% that window is a few pixels wide. aux puts
+-- the side window back where the game's layout would have it without the auction house.
+try('0.8.0.1: a side window stays put while aux is open', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local real = {G.GetUIPanel, G.GetUIPanelLayoutAttribute, G.UpdateUIPanelPositions, G.hooksecurefunc, G.InCombatLockdown}
+  local panels = {}
+  local side = {point = {'TOPLEFT', 'UIParent', 'TOPLEFT', 16 + 8 + 20 + 32 + 0, -104}, scale = 1, protected = false}
+  function side:GetPoint() return unpack(self.point) end
+  function side:SetPoint(p, r, rp, x, y) self.point = {p, r, rp, x, y} end
+  function side:GetScale() return self.scale end
+  function side:GetAttribute(name) if name == 'UIPanelLayout-xoffset' then return 0 end end
+  function side:IsProtected() return self.protected end
+  G.GetUIPanel = function(key) return panels[key] end
+  G.GetUIPanelLayoutAttribute = function(name) return ({LEFT_OFFSET = 16, PANEl_SPACING_X = 32})[name] end
+  local hooked
+  G.hooksecurefunc = function(name, f) if name == 'UpdateUIPanelPositions' then hooked = f end end
+  G.UpdateUIPanelPositions = function() end
+  G.InCombatLockdown = function() return false end
+  a.hook_panel_layout()
+  check('fb034: aux hooks the game\'s window layout (after it runs)', type(hooked) == 'function')
+  panels.doublewide, panels.right = AuctionHouseFrame, side
+  a.set_blizzard_frame_shown(false)
+  check('fb034: the side window goes back to the left place', side.point[4] == 16 and side.point[5] == -104 and side.point[1] == 'TOPLEFT')
+  side.point[4] = 76
+  hooked()
+  check('fb034: and again after each layout by the game', side.point[4] == 16)
+  side.scale, side.point[4] = .8, 76
+  hooked()
+  check('fb034: the game\'s offsets are divided by the window\'s scale, as the game does', math.abs(side.point[4] - 20) < 1e-9)
+  side.scale, side.point[4] = 1, 76
+  side.protected = true
+  G.InCombatLockdown = function() return true end
+  hooked()
+  check('fb034: a protected window is never moved in combat', side.point[4] == 76)
+  side.protected = false
+  G.InCombatLockdown = function() return false end
+  a.set_blizzard_frame_shown(true)
+  side.point[4] = 76
+  hooked()
+  check('fb034: with Blizzard\'s window shown, the game\'s place stays', side.point[4] == 76)
+  a.set_blizzard_frame_shown(false)
+  panels.doublewide = nil
+  side.point[4] = 76
+  hooked()
+  check('fb034: without the auction house, nothing is moved', side.point[4] == 76)
+  G.GetUIPanel, G.GetUIPanelLayoutAttribute, G.UpdateUIPanelPositions, G.hooksecurefunc, G.InCombatLockdown = real[1], real[2], real[3], real[4], real[5]
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
 dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({

@@ -283,6 +283,38 @@ do
         return blizzard_visible
     end
 
+    -- 0.8.0.1 (FB-034, reported by Chawitsch): Blizzard's auction house window takes the left and
+    -- center places of the game's window layout ("doublewide"), so a side window such as
+    -- Professions goes to the right of it. Shrunk to 1% and invisible, that window is only a few
+    -- pixels wide, so the side window moved a little to the right whenever aux was open
+    -- (Blizzard_UIParentPanelManager, UpdateUIPanelPositions: the right place is the doublewide
+    -- window's width plus its offset and the gap). While Blizzard's window is hidden, the side window
+    -- goes back to where it stands without the auction house: the left place, at the game's own
+    -- offsets. aux only moves that window after the game placed it (a hook that runs after the
+    -- game's code), never changes the game's layout tables, and skips protected windows in combat.
+    function M.settle_side_panel()
+        if blizzard_visible or not AuctionHouseFrame or not GetUIPanel or GetUIPanel('doublewide') ~= AuctionHouseFrame then
+            return
+        end
+        local side = GetUIPanel('right')
+        if not side or (side.IsProtected and side:IsProtected() and InCombatLockdown()) then
+            return
+        end
+        local point, relative_to, relative_point, _, y = side:GetPoint(1)
+        if point ~= 'TOPLEFT' or not GetUIPanelLayoutAttribute then
+            return
+        end
+        local x = (GetUIPanelLayoutAttribute('LEFT_OFFSET') or 0) + (side:GetAttribute('UIPanelLayout-xoffset') or 0)
+        side:SetPoint('TOPLEFT', relative_to, relative_point, x / side:GetScale(), y)
+    end
+
+    local layout_hooked
+    function M.hook_panel_layout()
+        if layout_hooked or not UpdateUIPanelPositions then return end
+        layout_hooked = true
+        hooksecurefunc('UpdateUIPanelPositions', function() settle_side_panel() end)
+    end
+
     function M.set_blizzard_frame_shown(shown)
         if not AuctionHouseFrame then return end
         blizzard_visible = shown
@@ -300,6 +332,8 @@ do
             AuctionHouseFrame:SetScale(HIDDEN_SCALE)
             AuctionHouseFrame:SetAlpha(0)
             AuctionHouseFrame:EnableMouse(false)
+            -- the game may have placed a side window while this window was still full size
+            settle_side_panel()
         end
         do (update_blizzard_button or pass)() end
     end
@@ -324,12 +358,14 @@ do
 
     function event.AUCTION_HOUSE_LOADED()
         hook_blizzard_frame()
+        hook_panel_layout()
     end
 end
 
 function AUCTION_HOUSE_SHOW()
     compat_load_auction_house_ui()
     hook_blizzard_frame()
+    hook_panel_layout()
     if AuctionHouseFrame and AuctionHouseFrame:IsShown() then
         set_blizzard_frame_shown(false)
     end

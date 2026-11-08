@@ -8,7 +8,25 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8 build 14
+## Current build: 0.8.0.1 build 1
+
+Two bug fixes from player feedback. An exact search for a cloak found nothing (FB-024, GregoryWW:
+`hillman's cloak/exact`): aux asked for Cloth armor, and Forever keeps cloaks under Miscellaneous,
+Cloak (Blizzard's code). With aux open, the Professions window moved a little to the right
+(FB-034, Chawitsch): the game places side windows next to its own auction house window, which aux
+keeps open but shrunk and invisible; aux now puts the side window back. Zip
+`auxForever-0.8.0.1-build1.zip`; `/reload` is enough. Test page build id `0-8-0-1-build-1`.
+
+- [ ] 1. Search for a cloak that is for sale with `/exact` after its name (for example
+      `hillman's cloak/exact`; search `cloak` first to find one). It lists that cloak.
+- [ ] 2. The same with a necklace, ring or robe that is for sale: it is found too.
+- [ ] 3. Away from the auction house, open your Professions window and note where it sits. Open
+      the auction house (aux opens): the Professions window stays where it was. Close it and open
+      it again while aux is open: same place. Before, it moved a little to the right.
+- [ ] 4. Click Blizzard UI, then go back to aux, then close the auction house. No errors, and the
+      Professions window (if open) is still usable where it is.
+
+### 0.8 build 14
 
 Two fixes from Tyler's build 13 test. Crates hovered in aux's results showed no "Cheapest way to
 fill it" lines (Journeyman Herbs, Artisan Curiosities). Likely cause (not confirmed in game): the

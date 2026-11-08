@@ -1,6 +1,24 @@
 # Status
 
-Last updated 2026-11-08, Tyler's time (0.8 released: tag `v0.8`, pull request #38; 11 new player feedback entries, FB-024 to FB-034, waiting for Tyler to pick versions).
+Last updated 2026-11-08, Tyler's time (0.8 released, tag `v0.8`; **0.8.0.1 build 1** built on `claude/magical-maxwell-eyud0b`, waiting for Tyler's test).
+
+**2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
+("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
+Two fixes, each with a test that fails without it:
+- FB-024 (GregoryWW): an exact search for a cloak asked for Armor > Cloth; Forever keeps cloaks
+  under Armor > Miscellaneous > Cloak (Blizzard's `Camelot/Blizzard_AuctionData.lua`, build
+  70862). Gear's slot is now found by equip location (`info.inventory_slot`, `util/info.lua`).
+- FB-034 (Chawitsch): Blizzard's auction house window is "doublewide", so the game puts a side
+  window such as Professions to its right; at aux's 1% scale that is about 60 pixels right of its
+  usual place. aux now moves the side window back after each layout (`settle_side_panel` in
+  `aux-addon.lua`, a `hooksecurefunc` on `UpdateUIPanelPositions`), only while Blizzard's window is
+  hidden and never a protected window in combat. Risk to watch in game: this is the first time aux
+  moves a Blizzard window; step 4 checks for errors.
+Version `forever-0.8.0.1` in the TOC, changelog entry "0.8.0.1 (not released yet)", checklist in
+`TESTING.md`, zip `auxForever-0.8.0.1-build1.zip`, test page build id `0-8-0-1-build-1`. Next:
+read the test page results; if they pass, ask Tyler whether 0.8.0.1 ships (pull request, merge,
+Release workflow), then 0.8.1. Open for 0.8.1: FB-026 reopens Tyler's FB-007 "cost only, no
+profit" for the Materials line, his call.
 
 **2026-11-08, Claude, feedback batch (docs only, no addon change):** Tyler passed on CurseForge
 comments, all written before 0.8. Logged as FB-024 to FB-034 in `docs/feedback.md` (source

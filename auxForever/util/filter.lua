@@ -529,6 +529,11 @@ function blizzard_query(filter)
         local class_index = info.category_index(item_info.class)
         local subclass_index = info.subcategory_index(class_index or 0, item_info.subclass)
         local slot_index = info.subsubcategory_index(class_index or 0, subclass_index or 0, item_info.slot)
+        if not slot_index then
+            -- 0.8.0.1 (FB-024): the slot by equip location; for a cloak this also moves the search
+            -- from Armor > Cloth (no cloaks there) to Armor > Miscellaneous > Cloak
+            subclass_index, slot_index = info.inventory_slot(class_index, subclass_index, item_info.slot)
+        end
         query.min_level = item_info.requirement
         query.max_level = item_info.requirement
         query.usable = item_info.usable

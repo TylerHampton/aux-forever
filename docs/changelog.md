@@ -6,6 +6,21 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.8.0.1 (not released yet)
+
+### Search
+
+- An exact search for a cloak finds it. `hillman's cloak/exact` found nothing while `hillman's`
+  found many: aux asked the auction house for Cloth armor, but Forever keeps cloaks under
+  Miscellaneous, Cloak. Exact searches for gear now ask for the slot the item really sits in, so
+  necklaces, robes and other armor are also asked for more narrowly (reported by GregoryWW).
+
+### Window
+
+- Opening aux no longer moves Blizzard's Professions window (or another side window) a little to
+  the right. The game places side windows next to its own auction house window, which aux keeps
+  open but invisible; aux now puts the side window back where it stood (reported by Chawitsch).
+
 ## 0.8 (2026-11-08)
 
 ### Gamepad
