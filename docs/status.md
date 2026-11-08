@@ -1,11 +1,13 @@
 # Status
 
-Last updated 2026-11-08, Tyler's time (0.8 merged into `main` with PR #38; Release workflow started, result being checked).
+Last updated 2026-11-08, Tyler's time (0.8 released: PR #38 merged, GitHub pre-release `v0.8`, CurseForge beta file uploaded; 0.8 is the latest release).
 
 **2026-11-08, 0.8 released (Tyler: "release 0.8"):** `main` was merged into the branch first (one
 docs commit from Gemini, already contained), the changelog section dated, PR #38 opened, CI green,
-merged, and the Release workflow started on `main` (it makes the GitHub pre-release `v0.8` and
-uploads the CurseForge beta). Still by hand: paste `docs/curseforge-description.md` into the CurseForge page description
+merged, and the Release workflow run on `main`: GitHub pre-release
+https://github.com/TylerHampton/aux-forever/releases/tag/v0.8 with `auxForever-0.8.zip`, and the
+same zip uploaded to CurseForge as beta file 'auxForever 0.8' (file id 9518588, game version
+1.60.1). Still by hand: paste `docs/curseforge-description.md` into the CurseForge page description
 (it now covers crates, gear endings and one row per price).
 
 **2026-11-08, Claude, 0.8 build 14:** Tyler's build 13 test: Seller sort, gear Value and the new
