@@ -4518,6 +4518,14 @@ try('0.8: H-004 note 8', function()
   G.GetItemInfo = real_get_info
 end)
 
+-- 0.8 (Tyler): clearing the search bar and clicking elsewhere showed "<>"
+try('0.8: an empty search bar stays empty', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  check('empty bar: shows nothing', search.search_box.formatter('') == '' and search.search_box.formatter('   ') == '')
+  check('empty bar: a search still shows as before', plain(search.search_box.formatter('linen cloth')):find('linen cloth', 1, true) ~= nil)
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
 dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({

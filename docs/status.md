@@ -52,8 +52,8 @@ Nothing open there now (H-004 done 2026-11-08).
 `docs/reviews/2026-11-08-one-row-per-price.md` (and reads Tyler's test results for build 9).
 
 **Resumed (Tyler, 2026-11-08):** Forever is out; Tyler has a level 20 character and said "go full
-auto mode". **0.8 build 10** is on `claude/fervent-planck-ry58jx`, tested in game on the released
-game, all steps pass (`TESTING.md`). On the released game: aux loads with no errors, saved prices
+auto mode". **0.8 build 11** (the release candidate) is on `claude/fervent-planck-ry58jx`: build 10,
+tested on the released game with all steps passing, plus the `<>` fix (`TESTING.md`). On the released game: aux loads with no errors, saved prices
 survive a login, Full scan works (build 7); the Post tab loads gear fast (build 8); one row per
 price works and buying from a merged row passes (build 9); Gemini's second review is taken and
 checked (build 10). Every 0.8 item is built and tested, except gamepad, which Tyler left to players
@@ -62,7 +62,7 @@ with a controller (nokkty tested it on the beta).
 The 5-minute check (`TESTING.md`) is done on the released game (2026-11-08): steps 1 to 5 during
 builds 9 and 10, step 6 (the Materials line, 13s 84c for a Woolen Bag, and Search in aux with the
 cost line) from Tyler's screenshot. Next: release 0.8 once Tyler says the word (pull request,
-merge, Release workflow). Open: where the `<>` in the search bar came from; E7 (replaced searches).
+merge, Release workflow). Open: E7 (replaced searches). The `<>` was aux's way of writing an empty search, shown in the bar after clearing it (fixed in build 11).
 
 **Was on hiatus (Tyler, 2026-10-26):** "We are going to be on developmental hiatus until the game
 releases and I can begin rapid iterative testing." Work picks up again in the same Claude Code

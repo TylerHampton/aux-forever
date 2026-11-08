@@ -8,7 +8,17 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8 build 10
+## Current build: 0.8 build 11
+
+The release candidate for 0.8. One fix on top of build 10: clearing the search bar and clicking
+elsewhere showed "<>" (Tyler: "This appears when you clear the search bar and click somewhere
+else"); aux writes an empty search that way, and the bar now stays empty. Zip
+`auxForever-0.8-build11.zip`; `/reload` is enough. Test page build id `0-8-build-11`.
+
+- [ ] 1. Search tab: clear the search bar (right-click it), then click somewhere else. The bar
+      stays empty.
+
+### 0.8 build 10
 
 Gemini's review of one row per price (H-004, `docs/reviews/2026-11-08-one-row-per-price.md`):
 all seven findings and the build 8 note taken, each with a test. The Bids and Sniper tabs list

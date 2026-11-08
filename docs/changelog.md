@@ -48,6 +48,10 @@ A change that comes from a player's feedback credits them by in-game name at the
   own. The Auctions, Bids and Sniper tabs still show each auction separately, and an auction with
   no buyout keeps its own row. The buy bar and the result count match the merged rows.
 
+### Fixes
+
+- Clearing the search bar and clicking elsewhere no longer leaves "<>" in it.
+
 ### Gear with random endings
 
 - Gear with a random ending ("Medicine Staff of the Wolf") now has its own price per ending. Before,
