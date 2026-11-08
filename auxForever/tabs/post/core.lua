@@ -18,6 +18,8 @@ local tab = aux.tab 'Post'
 -- which items' listings are complete enough to pick from
 local auto_price_key
 local listings_ready = {}
+-- items whose reading was stopped before all their listings were in (review H-006, finding 2)
+local listings_stopped = {}
 
 local settings_schema = {'tuple', '#', {duration='number'}, {start_price='number'}, {buyout_price='number'}, {hidden='boolean'}}
 
@@ -581,6 +583,9 @@ function M.disabled_reason()
     -- last visit, which may be days old; a quick click on Post (after the next item is picked by
     -- itself) posted at it. A price the player typed can be posted at once.
     elseif auto_price_key == selected_item.key and not listings_ready[selected_item.key] then
+        if listings_stopped[selected_item.key] then
+            return 'Reading stopped. Press Refresh, or type a price.'
+        end
         return 'Reading the listings...'
     -- gear only: trade goods have no starting bid (its box is hidden), but one was kept from the
     -- automatic price, so typing a buyout below it faded Post with this message (FB-021: Rough
@@ -750,8 +755,9 @@ function M.round_price(amount)
     return max(step, floor(amount / step) * step)
 end
 
--- auxForever: on Forever the newest listing at a price sells first, so by default aux matches the
--- cheapest price. Undercut mode (the goblin toggle) goes one step below it, like aux on Classic.
+-- auxForever: by default aux matches the cheapest price, on the belief that the newest listing at a
+-- price sells first (Unknown on Forever, experiment E6 in docs/forever-auction-house.md). Undercut
+-- mode (the goblin toggle) goes one step below it, like aux on Classic.
 function M.undercut(record, stack_size, bid)
     if record.historical_value or record.other_ending or record.own or not aux.account_data.post_undercut then
         return record.unit_price
@@ -980,9 +986,15 @@ function refresh_entries()
 				    end
 				end
 			end,
+			-- stopped before the end (a Full scan, another search): a single-key item was taken in
+			-- on_page_scanned before its stop, but gear may be missing versions, so its listings are
+			-- not ready and no price is picked from them (review H-006, finding 2). Refresh reads
+			-- them again; a typed price can still be posted.
 			on_abort = function()
                 aux.status_bar:update_status(1, 1)
-                listings_ready[item_key] = true
+                if not listings_ready[item_key] then
+                    listings_stopped[item_key] = true
+                end
                 refresh = true
                 update_post_done()
 			end,
@@ -1002,6 +1014,7 @@ end
 function M.clear_auctions()
     bid_records, buyout_records = {}, {}
     aux.wipe(listings_ready)
+    aux.wipe(listings_stopped)
     update_post_done()
 end
 

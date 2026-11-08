@@ -145,10 +145,11 @@ function SlashCmdList.AUX(command)
         if arguments[2] == 'on' or arguments[2] == 'off' then
             post.set_undercut_mode(arguments[2] == 'on')
         end
-        aux.print('Undercutting on Forever: when several listings share a price, the newest one sells first.')
-        aux.print('So posting at the cheapest price sells just as fast as going below it, and keeps prices from sliding.')
+        -- E6 in docs/forever-auction-house.md: said of the modern auction house, not yet seen on Forever
+        aux.print('Undercutting on Forever: on the modern auction house, the newest of several listings at one price is said to sell first. This is not yet confirmed on Forever.')
+        aux.print('If it holds, posting at the cheapest price sells just as fast as going below it, and keeps prices from sliding.')
         aux.print('auxForever matches the cheapest price by default. Undercut mode (the goblin on the Post tab) goes one step below it.')
-        aux.print('This is known for trade goods. For gear, buyers pick the listing themselves.')
+        aux.print('For gear, buyers pick the listing themselves.')
         aux.print('Undercut mode [' .. status(aux.account_data.post_undercut) .. '] - /aux undercut on|off (it starts off each time the auction house opens)')
     elseif arguments[1] == 'clear' and arguments[2] == 'post' then
         aux.faction_data.post = {}

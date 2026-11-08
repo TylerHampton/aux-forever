@@ -3784,6 +3784,35 @@ try('gamepad: aux popups open in a dialog of aux own', function()
   aux_env.hide_popup('AUX_TEST')
   check('gamepad popup: hidden by aux (the post went through), nothing is cancelled', cancelled == 2 and not dialog.__shown)
 
+  -- review H-006, finding 4: a popup with a box (renaming a favorite) starts in the box, so B stops
+  -- typing instead of closing it
+  rawset(dialog.editBox, 'SetFocus', function(self) self.__focus = true end)
+  rawset(dialog.editBox, 'ClearFocus', function(self) self.__focus = false end)
+  rawset(dialog.editBox, 'HasFocus', function(self) return self.__focus == true end)
+  G.StaticPopupDialogs.AUX_TEST_BOX = {
+    text = 'Name', button1 = 'Accept', button2 = 'Cancel', hasEditBox = 1,
+    OnShow = function(self) self.editBox:SetFocus() end,
+    OnCancel = function() cancelled = cancelled + 1 end,
+  }
+  aux_env.show_popup('AUX_TEST_BOX')
+  check('H-006 4: a popup with a box starts in the box', aux_env.gamepad_focused() == dialog.editBox)
+  pad('B')
+  check('H-006 4: and B stops typing, the popup stays', not dialog.editBox:HasFocus() and dialog.__shown and cancelled == 2)
+  pad('B')
+  check('H-006 4: a second B closes it', not dialog.__shown and cancelled == 3)
+  G.StaticPopupDialogs.AUX_TEST_BOX = nil
+  -- and a menu left open under the dialog (Settings is made long before it) does not take the pad
+  local menu
+  for _, child in ipairs{aux_frame:GetChildren()} do
+    if child ~= dialog and child:GetFrameStrata() == 'DIALOG' then menu = child break end
+  end
+  menu:Show()
+  aux_env.show_popup('AUX_TEST', '5g', nil, 1)
+  pad('left')
+  check('H-006 4: with a menu open under it, the pad stays in the dialog', menu ~= nil and aux_env.gamepad_focused() == dialog.button1)
+  pad('B')
+  menu:Hide()
+
   G.StaticPopupDialogs.AUX_TEST = nil
   aux_frame:Hide(); aux_frame:Show()
   -- closed while still in gamepad mode, so aux gives the pad buttons back before the stubs go
@@ -4134,6 +4163,8 @@ try('0.8: Waylaid Crates', function()
   local fabrics = search.crate_bundles_from_text({'Waylaid Crate: Journeyman Fabrics', 'Use: Fill the crate with any bundle from the following list:', '- 6 Bolt of Woolen Cloth', '- 10 Bolt of Silk Cloth', '- 2 Cured Medium Hide', 'Requires Level 10'})
   check('crate: rows on lines of their own', fabrics and #fabrics == 3 and fabrics[1].name == 'Bolt of Woolen Cloth' and fabrics[1].count == 6 and fabrics[3].count == 2)
   check('crate: an item that is not a crate has no bundles', search.crate_bundles_from_text({'Medicine Staff of the Wolf', '+4 Agility', '+5 Spirit', 'Requires Level 14'}) == nil)
+  -- review H-006, finding 6: a negative stat reads like a bundle row; only a crate's Use line opens the list
+  check('H-006 6: "-5 Spirit" on gear is not a crate', search.crate_bundles_from_text({'Ring of Odd Luck', '+8 Agility', '-5 Spirit', 'Requires Level 20'}) == nil)
   check('crate: read once per crate', search.crate_bundles(990001, textiles) == search.crate_bundles(990001) and search.crate_bundles(990002, {'Linen Cloth'}) == nil)
 
   -- prices: Wool 30c each (latest), Silk 15c each, Medium Leather unknown to aux
@@ -4491,6 +4522,41 @@ try('0.8: one row per price', function()
   local bids_tab = loadstring("select(2, ...) 'aux.tabs.bids'; return _M")('auxForever', addon)
   local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
   check('H-004 1 and 4: the Bids and Sniper tables keep each auction on its own row', bids_tab.listing.one_row_each == true and sniper.listing.one_row_each == true)
+
+  -- Gemini's release review (H-006, finding 5): sorting and selecting rows of several auctions.
+  -- Columns of the search table: 4 For sale, 5 Time Left, 6 Seller.
+  local saved_sorts = {}
+  for i, sort in ipairs(t.sorts) do saved_sorts[i] = {index = sort.index, descending = sort.descending} end
+  local function order()
+    local prices = {}
+    for _, info_row in ipairs(t.rowInfo) do
+      for _, child in ipairs(info_row.children) do tinsert(prices, child.record.buyout_price) end
+    end
+    return table.concat(prices, ' ')
+  end
+  t:SetDatabase({row('Aaron', 2, 1100, nil, 2), row('Abe', 2, 1100, nil, 2), row('Mia', 3, 1500, nil, 2)})
+  t:SetSort(-4)
+  t:SetDatabase()
+  check('H-006 5: For sale sorts a row by all it holds (4 before 3)', order() == '1100 1500')
+  t:SetSort(6)
+  t:SetDatabase()
+  check('H-006 5: "2 sellers" sorts with the unnamed rows, after Mia', order() == '1500 1100')
+  local kept = row('Lowbid', 1, 1100, 500, 3)
+  local next_one = row('Other', 1, 1100, nil, 0)
+  t:SetDatabase({kept, next_one, row('Mid', 1, 1500, nil, 1)})
+  t:SetSort(5)
+  t:SetDatabase()
+  -- the table only: selecting a row would also look the auction up for the buy bar
+  local on_select = t.handlers.OnSelectionChanged
+  t.handlers.OnSelectionChanged = nil
+  t:SetSelectedRecord(kept)
+  local before = order()
+  t:RemoveAuctionRecord(kept)
+  check('H-006 5: after buying the auction a row kept, the row stays selected with its next one, though the sort moved it',
+    before == '1500 1100' and order() == '1100 1500' and t.selected == next_one)
+  t:SetSelectedRecord(nil)
+  t.handlers.OnSelectionChanged = on_select
+  t.sorts, t.isSorted = saved_sorts, nil
   t:SetDatabase({})
   G.GetItemInfo = real_get_info
 end)
@@ -4522,6 +4588,69 @@ try('0.8: H-004 note 8', function()
   rawset(scan_exports, 'start', real_start); rawset(info, 'inventory', real_inventory)
   rawset(C_AuctionHouse, 'GetItemKeyInfo', real_key_info)
   G.GetItemInfo = real_get_info
+end)
+
+-- Gemini's release review (H-006, docs/reviews/2026-11-08-release-0.8.md), findings 1 and 2
+try('0.8: review H-006', function()
+  local req = loadstring("select(2, ...) 'aux.test.h006'; return require")('auxForever', addon)
+  local info = req 'aux.util.info'
+  local scan_exports = req 'aux.core.scan'
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local real_get_info, real_key_info = G.GetItemInfo, rawget(C_AuctionHouse, 'GetItemKeyInfo')
+  -- finding 1: the version's name has loaded, the item's own name not yet
+  local base_loaded = false
+  G.GetItemInfo = function(x)
+    if x == 4591 or (type(x) == 'string' and x:find('item:4591', 1, true)) then
+      if base_loaded then return 'Bandit Cloak', nil, 2, 18, 13, 'Armor', 'Cloth', 1, 'INVTYPE_CLOAK', 1, 900 end
+      return
+    end
+    return real_get_info(x)
+  end
+  rawset(C_AuctionHouse, 'GetItemKeyInfo', function(key)
+    if key.itemID == 4591 then return {itemName = 'Bandit Cloak of the Owl', isEquipment = true} end
+    if key.itemID == 4575 then return {itemName = 'Medicine Staff of the Wolf', isEquipment = true} end
+    return real_key_info and real_key_info(key)
+  end)
+  check('H-006 1: without the item\'s own name, no price key yet (not "4591:0")', info.item_key_price_key({itemID = 4591, itemSuffix = 103}) == nil)
+  base_loaded = true
+  check('H-006 1: once it loads, the ending', info.item_key_price_key({itemID = 4591, itemSuffix = 103}) == '4591:of the owl')
+
+  -- finding 2: a gear read stopped before its end (a Full scan) does not unlock Post
+  G.GetItemInfo = function(x)
+    if x == 4575 or (type(x) == 'string' and x:find('item:4575', 1, true)) then return 'Medicine Staff', nil, 2, 19, 14, 'Weapon', 'Staves', 1, 'INVTYPE_2HWEAPON', 1, 1487 end
+    return real_get_info(x)
+  end
+  local real_start, real_inventory = scan_exports.start, info.inventory
+  rawset(info, 'inventory', function() return function() end end)
+  local params
+  rawset(scan_exports, 'start', function(p) params = p end)
+  post.selected_item = {key = '4575:of the wolf', item_id = 4575, name = 'Medicine Staff of the Wolf', quality = 2, count = 1, max_stack = 1}
+  post.refresh_entries()
+  check('H-006 2: reading', post.disabled_reason() == 'Reading the listings...')
+  params.on_abort()
+  check('H-006 2: stopped halfway, Post stays faded and says how to go on', post.disabled_reason() == 'Reading stopped. Press Refresh, or type a price.')
+  post.refresh_entries()
+  check('H-006 2: Refresh reads again', post.disabled_reason() == 'Reading the listings...')
+  post.selected_item = nil
+  rawset(scan_exports, 'start', real_start); rawset(info, 'inventory', real_inventory)
+  rawset(C_AuctionHouse, 'GetItemKeyInfo', real_key_info)
+  G.GetItemInfo = real_get_info
+
+  -- finding 7: 0.7 kept one mixed price for every ending under "id:0"; the first price of an ending
+  -- retires it, so a price asked by item ID is not that old one forever. A plain price kept since
+  -- the update stays.
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local api = G.AuxForeverAPI
+  local today = h.today()
+  h.write_record('4593:0', {day = today - 30, low = 900, points = {{day = today - 31, value = 950}}})
+  h.write_record('4594:0', {day = today, low = 700, points = {}})
+  check('H-006 7: before, the old mixed price answers by item ID', api.GetUsualPrice(4593) ~= nil)
+  h.process_auction({buyout_price = 1000, count = 1, price_key = '4593:of the owl', item_key = '4593:0'})
+  h.process_auction({buyout_price = 1000, count = 1, price_key = '4594:of the owl', item_key = '4594:0'})
+  check('H-006 7: the old mixed price is retired once an ending has a price', h.data['4593:0'] == nil and api.GetUsualPrice(4593) == nil and api.GetLatestPrice(4593) == nil)
+  check('H-006 7: the ending keeps its own price', h.data['4593:of the owl'] ~= nil)
+  check('H-006 7: a plain price seen since the update stays', h.data['4594:0'] ~= nil)
+  for _, key in ipairs{'4593:of the owl', '4594:0', '4594:of the owl'} do h.data[key] = nil end
 end)
 
 -- 0.8 (Tyler): clearing the search bar and clicking elsewhere showed "<>"

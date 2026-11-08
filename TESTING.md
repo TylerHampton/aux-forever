@@ -8,7 +8,31 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8 build 12
+## Current build: 0.8 build 13
+
+The release candidate for 0.8, after Gemini's last review (H-006,
+`docs/reviews/2026-11-08-release-0.8.md`): seven fixes, each with a test. Gear read on the Post tab
+and stopped halfway (by a Full scan) no longer unlocks Post with a price from part of the listings;
+a search stopped halfway through an item's versions keeps the day's price; sorting merged rows by
+For sale and Seller; a crate's bundles are read only from a crate's own list; old shared gear
+prices are removed; two gamepad popup fixes; and the help no longer states as fact that the newest
+listing at a price sells first (not confirmed on Forever). Zip `auxForever-0.8-build13.zip`;
+`/reload` is enough. Test page build id `0-8-build-13`.
+
+- [ ] 1. Hover two kinds of Waylaid Crate other than Textiles and Fabrics (Herbs, Ore, Parts...):
+      each still shows "Cheapest way to fill it" with its bundles. Screenshot one.
+- [ ] 2. Search `merc sword` (Full). Click the For sale header (twice if needed): the rows with the
+      most for sale come first. Click the Seller header: the "N sellers" rows sit together, not
+      among the single names.
+- [ ] 3. Hover a gear item with an ending in your bags (a Merc Sword or Medicine Staff "of ..."):
+      Value shows as before.
+- [ ] 4. Post tab: hover the "?" next to the goblin. It says the newest listing selling first is
+      "Not yet confirmed on Forever". Type `/aux undercut`: the same.
+- [ ] 5. Only if your Full scan is ready: Post tab, pick a gear item with an ending and click Full
+      scan right away, while it says "Reading the listings...". Post stays faded and says
+      "Reading stopped. Press Refresh, or type a price." Click Refresh: it reads again.
+
+### 0.8 build 12
 
 The release candidate for 0.8. On top of build 11 (the empty search bar): after Cancel on a trade
 good's price, the Buy button kept the Confirm green (Tyler's screenshot, Wool Cloth). It is

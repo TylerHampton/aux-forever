@@ -521,10 +521,32 @@ function scan_item_keys(item_keys)
     local blizzard_query = get_query().blizzard_query or empty
     local first_page = blizzard_query.first_page or 0
     local last_page = min(blizzard_query.last_page or math.huge, #item_keys - 1)
+    -- 0.8 (review H-006, finding 3): the versions of one item add up to one price, written once the
+    -- item's last version is in (an item ID whose versions are not all complete writes none)
+    local left, held, partial = {}, {}, {}
+    for page = first_page, last_page do
+        local id = item_keys[page + 1].itemID
+        left[id] = (left[id] or 0) + 1
+    end
     for page = first_page, last_page do
         local t_item = GetTime()
+        local item_id = item_keys[page + 1].itemID
         local records, complete = search(item_keys[page + 1])
-        record_view(records, complete)
+        if complete and records and #records > 0 then
+            local key = history.record_view_of(records, state.views, true)
+            if key then
+                held[item_id] = held[item_id] or {}
+                held[item_id][key] = true
+            end
+        elseif not complete then
+            partial[item_id] = true
+        end
+        left[item_id] = left[item_id] - 1
+        if left[item_id] == 0 and not partial[item_id] then
+            for key in pairs(held[item_id] or empty) do
+                history.write_view(state.views, key)
+            end
+        end
         if timing then
             timing.items = timing.items + 1
             local seconds = GetTime() - t_item

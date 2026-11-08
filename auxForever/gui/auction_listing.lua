@@ -190,8 +190,9 @@ local function quantity_column(title)
             end
             cell.text:SetText(text)
         end,
+        -- a row of several auctions at one price sorts by all it holds, as it shows (review H-006, finding 5)
         cmp = function(record_a, record_b, desc)
-            return sort_util.compare(record_a.count * (record_a.auction_count or 1), record_b.count * (record_b.auction_count or 1), desc)
+            return sort_util.compare(record_a.count * (record_a.group_count or record_a.auction_count or 1), record_b.count * (record_b.group_count or record_b.auction_count or 1), desc)
         end,
     }
 end
@@ -236,14 +237,18 @@ M.search_columns = {
             cell.text:SetText(record.fast and '' or seller_text(record))
         end,
         cmp = function(record_a, record_b, desc)
-            if not record_a.owner and not record_b.owner then
+            -- a row of several sellers ("4 sellers") sorts with the other unnamed ones, not by the
+            -- name of the one auction it keeps (review H-006, finding 5)
+            local owner_a = (record_a.group_sellers or 1) <= 1 and record_a.owner
+            local owner_b = (record_b.group_sellers or 1) <= 1 and record_b.owner
+            if not owner_a and not owner_b then
                 return sort_util.EQ
-            elseif not record_a.owner then
+            elseif not owner_a then
                 return sort_util.GT
-            elseif not record_b.owner then
+            elseif not owner_b then
                 return sort_util.LT
             else
-                return sort_util.compare(record_a.owner, record_b.owner, desc)
+                return sort_util.compare(owner_a, owner_b, desc)
             end
         end,
     },
@@ -517,14 +522,18 @@ M.bids_columns = {
             cell.text:SetText(seller_text(record))
         end,
         cmp = function(record_a, record_b, desc)
-            if not record_a.owner and not record_b.owner then
+            -- a row of several sellers ("4 sellers") sorts with the other unnamed ones, not by the
+            -- name of the one auction it keeps (review H-006, finding 5)
+            local owner_a = (record_a.group_sellers or 1) <= 1 and record_a.owner
+            local owner_b = (record_b.group_sellers or 1) <= 1 and record_b.owner
+            if not owner_a and not owner_b then
                 return sort_util.EQ
-            elseif not record_a.owner then
+            elseif not owner_a then
                 return sort_util.GT
-            elseif not record_b.owner then
+            elseif not owner_b then
                 return sort_util.LT
             else
-                return sort_util.compare(record_a.owner, record_b.owner, desc)
+                return sort_util.compare(owner_a, owner_b, desc)
             end
         end,
     },
@@ -1042,6 +1051,19 @@ local methods = {
                     self:SetSelectedRecord(record)
                     break
                 end
+            end
+        end
+        -- 0.8: the auction bought was the one a price row kept; the row stays selected with its next
+        -- auction, even when a sort moved the row (review H-006, finding 5)
+        if not self.selected and prev_selected and prev_selected.price_group then
+            for _, info_row in ipairs(self.rowInfo) do
+                for _, child in ipairs(info_row.children) do
+                    if child.record.price_group == prev_selected.price_group then
+                        self:SetSelectedRecord(child.record)
+                        break
+                    end
+                end
+                if self.selected then break end
             end
         end
         if not self.selected and prevSelectedIndex then

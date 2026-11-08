@@ -512,6 +512,16 @@ end
 -- each item's own name, looked up once per session (a Full scan makes thousands of records)
 local base_names = {}
 
+-- the item's own name, without an ending; nil while the game has not loaded it
+local function base_name(item_id)
+    local base = base_names[item_id]
+    if not base then
+        base = GetItemInfo(item_id) or (item_info(item_id) or empty).name
+        base_names[item_id] = base
+    end
+    return base
+end
+
 -- auxForever (0.8, gear versions): the key aux keeps prices under. Gear with a random ending ("of
 -- the Wolf") is priced per ending, as Blizzard's Sell window groups it: on Forever a link's suffix
 -- field is empty (Medicine Staff of the Wolf, seen 2026-10-20), so every ending looked alike, and
@@ -522,11 +532,7 @@ function M.price_key(item_id, name)
     if not item_id or item_id <= 0 or type(name) ~= 'string' then
         return (item_id or 0) .. ':0'
     end
-    local base = base_names[item_id]
-    if not base then
-        base = GetItemInfo(item_id) or (item_info(item_id) or empty).name
-        base_names[item_id] = base
-    end
+    local base = base_name(item_id)
     -- any letter case: a typed name (/aux price) as well as the game's (0.8, review H-002)
     if base and #name > #base and strlower(strsub(name, 1, #base)) == strlower(base) then
         local ending = strlower(aux.trim(strsub(name, #base + 1)))
@@ -542,6 +548,12 @@ end
 function M.item_key_price_key(key)
     if (key.itemSuffix or 0) == 0 then
         return key.itemID .. ':0'
+    end
+    -- without the item's own name the ending cannot be told, and "4575:0" would be the wrong item
+    -- (review H-006, finding 1): wait, as for a version whose name has not loaded
+    if not base_name(key.itemID) then
+        request_item(key.itemID)
+        return
     end
     local key_info = C_AuctionHouse.GetItemKeyInfo(key)
     return type(key_info) == 'table' and key_info.itemName and price_key(key.itemID, key_info.itemName) or nil

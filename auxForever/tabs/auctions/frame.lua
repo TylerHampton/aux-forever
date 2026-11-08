@@ -222,7 +222,7 @@ local function selection_text(record)
         local cost = C_AuctionHouse.GetCancelCost(record.auction_id) or 0
         return 'Someone lists it at ' .. money.to_string(lowest, true) .. '. Cancelling costs ' .. money.to_string(cost, true) .. '; it comes back by mail, then post it again.'
     elseif status == 'tied' then
-        return 'Others list it at your price. On Forever the newest listing at a price sells first.'
+        return 'Others list it at your price.'
     elseif status == 'lowest' then
         return 'Yours is the cheapest.'
     elseif status == 'sold' then

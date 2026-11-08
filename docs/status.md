@@ -1,6 +1,12 @@
 # Status
 
-Last updated 2026-11-08, Tyler's time (0.8 build 12 tested on the released game, all pass; Gemini's H-005 pre-release review done, H-006 open for Claude; 0.7.1.1 is the latest release).
+Last updated 2026-11-08, Tyler's time (0.8 build 13 waiting for Tyler's test: Gemini's H-006 findings taken; build 12 passed in game; 0.7.1.1 is the latest release).
+
+**2026-11-08, Claude, H-006 (0.8 build 13):** checked Gemini's eight pre-release findings; seven
+fixed with a test each, the eighth (release text) rewritten. Answers under each finding in
+`docs/reviews/2026-11-08-release-0.8.md`. Also found: the in-game help (Post "?", Auctions tied
+line, `/aux undercut`) stated E6 as fact; now labeled. New saved field
+`faction_data.price_keys_since` (the first day of 0.8, used to retire 0.7's shared gear prices).
 
 **2026-11-08, Gemini H-005 pre-release review (docs only, no addon change):**
 Reviewed 0.8 builds 1 to 12 (`origin/main..544b8c2`) across all nine areas from H-005 in
@@ -54,11 +60,11 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 **Roles (Tyler, 2026-10-26):** Claude Code stays the primary engineer; Gemini (Gemini 4 Argon) is
 the supporting model for second opinions, written in `docs/reviews/` (`AGENTS.md`, "Roles").
 Agents talk through `docs/handoff.md`; Tyler only says "Check the handoff" to whoever goes next.
-Open there now: H-006, for Claude to check Gemini's 0.8 pre-release review in
-`docs/reviews/2026-11-08-release-0.8.md`.
+Nothing is open there (H-006 done, 2026-11-08).
 
 **Resumed (Tyler, 2026-11-08):** Forever is out; Tyler has a level 20 character and said "go full
-auto mode". **0.8 build 12** (the release candidate) is on `claude/fervent-planck-ry58jx`: build 10,
+auto mode". **0.8 build 13** (the release candidate, Gemini's H-006 findings, not yet tested in
+game; `TESTING.md` has its five steps) is on `claude/fervent-planck-ry58jx`. Before it: build 10,
 tested on the released game with all steps passing, plus the `<>` fix (build 11) and the Buy
 button that stayed Confirm green after Cancel (build 12), both passed in game (`TESTING.md`). On the released game: aux loads with no errors, saved prices
 survive a login, Full scan works (build 7); the Post tab loads gear fast (build 8); one row per
@@ -68,7 +74,7 @@ with a controller (nokkty tested it on the beta).
 
 The 5-minute check (`TESTING.md`) is done on the released game (2026-11-08): steps 1 to 5 during
 builds 9 and 10, step 6 (the Materials line, 13s 84c for a Woolen Bag, and Search in aux with the
-cost line) from Tyler's screenshot. Next: Claude checks H-006 (`docs/reviews/2026-11-08-release-0.8.md`), then 0.8 releases once Tyler says the word (pull request,
+cost line) from Tyler's screenshot. Next: Tyler tests build 13, then 0.8 releases once Tyler says "release 0.8" (pull request,
 merge, Release workflow). Open: E7 (replaced searches). The `<>` was aux's way of writing an empty search, shown in the bar after clearing it (fixed in build 11).
 
 **Was on hiatus (Tyler, 2026-10-26):** "We are going to be on developmental hiatus until the game

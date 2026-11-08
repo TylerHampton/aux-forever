@@ -130,7 +130,13 @@ local function find_popup(f)
     end
 end
 
+-- aux's own popup dialog in gamepad mode (made by create_dialog, below)
+local dialog
+
 local function root()
+    -- aux's dialog comes first: it is made last, so a menu left open under it was found before it
+    -- and the pad moved behind the dialog (review H-006, finding 4)
+    if dialog and dialog:IsShown() then return dialog end
     return find_popup(frame) or frame
 end
 
@@ -433,7 +439,6 @@ end
 -- popup was shown 259 times when the game froze). The dialog reads the same definition: text,
 -- buttons, OnShow, OnAccept, OnCancel, OnHide, an edit box. The focus starts on the second button
 -- (Cancel, No) when there is one: posting at a price the server warns about takes a deliberate move.
-local dialog
 local function create_dialog()
     dialog = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
     gui.set_panel_style(dialog)
@@ -512,7 +517,9 @@ function M.show_popup(name, text_arg1, text_arg2, data)
     gui.set_size(dialog, 380, 18 + text_height + (def.hasEditBox and 40 or 0) + 16 + 26 + 18)
     dialog:Show()
     if def.OnShow then def.OnShow(dialog, data) end
-    set_focus(two and dialog.button2 or dialog.button1)
+    -- a popup with a box (renaming a favorite) starts in the box its OnShow puts the cursor in, so A
+    -- and B type and stop typing there instead of pressing Cancel (review H-006, finding 4)
+    set_focus(def.hasEditBox and dialog.editBox or two and dialog.button2 or dialog.button1)
     return dialog
 end
 

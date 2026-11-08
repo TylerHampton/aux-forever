@@ -325,6 +325,9 @@ aux runs inside the game; every frame it spends time in costs the player frame r
   ("4575:of the wolf") because on Forever a link's suffix field is empty and versions of one name
   have the same stats; everything else is "id:0", as before. Any new code that reads or writes
   `history` uses the price key. The item key still finds bag slots and auction house rows.
+  A search writes an item's day price only once all its versions are read (`scan_item_keys`,
+  `history.record_view_of(..., true)` then `write_view`), and the first ending price of an item
+  removes a 0.7 `id:0` price older than `faction_data.price_keys_since` (`retire_plain`, H-006).
 - Gamepad: never write into Blizzard's gamepad code (`GamepadMode`, `SmartNavigation`, its window
   manager or binding groups). It taints them, and the game froze when aux registered with them
   (2026-10-13, `docs/gamepad.md`). Reading is fine. Show aux's popups with `aux.show_popup` and

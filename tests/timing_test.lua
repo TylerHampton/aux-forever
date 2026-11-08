@@ -584,6 +584,36 @@ return function(env)
     server:restore()
   end)
 
+  -- Gemini's release review (H-006, finding 3): a search stopped after one version of an item must
+  -- not replace the day's price, read from all its versions, with that one version's
+  try('timing: a search stopped between versions keeps the full price (review H-006, finding 3)', function()
+    local server = new_server(env)
+    local search = module 'aux.tabs.search'
+    local h = module 'aux.core.history'
+    local scan = loadstring("select(2, ...) 'aux.test.h006t'; return require 'aux.core.scan'")('auxForever', addon)
+    local filter_util = loadstring("select(2, ...) 'aux.test.h006t2'; return require 'aux.util.filter'")('auxForever', addon)
+    server.items[4592] = {name = 'Bandit Boots', commodity = false, versions = {[221] = 'of the Owl', [222] = 'of the Owl'}}
+    server.listings[4592] = {{price = 5000, quantity = 1, version = 221}, {price = 1000, quantity = 10, version = 222}}
+    server:install()
+    aux.set_tab(1)
+    search.frame:Show()
+    search.update_mode(search.NORMAL_MODE)
+    search.search_box:SetText('bandit boots/exact')
+    search.execute(nil, false)
+    check('stopped: the full search finishes', server:wait(function() local s = search.current_search(); return s and s.complete and #s.records > 0 end, 200))
+    local market, units = h.today_market('4592:of the owl')
+    check('stopped: both versions counted', units == 11 and market == 1000)
+    local stopped
+    scan.start{type = 'list', queries = filter_util.queries('bandit boots/exact'),
+      on_page_scanned = function() scan.abort() end, on_abort = function() stopped = true end}
+    server:wait(function() return stopped end, 150)
+    market, units = h.today_market('4592:of the owl')
+    check('stopped: the search was stopped after one version', stopped == true)
+    check('stopped: the day\'s price is still the one from both versions', units == 11 and market == 1000)
+    search.frame:Hide()
+    server:restore()
+  end)
+
   -- crates (0.8, FB-020): Alt-click a crate, then another before the first search has its answers.
   -- The search and the bottom bar must be the second crate's, with nothing of the first mixed in.
   try('timing: a second crate clicked while the first is still searching', function()

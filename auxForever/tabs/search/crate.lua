@@ -6,7 +6,8 @@ local money = require 'aux.util.money'
 local history = require 'aux.core.history'
 
 -- auxForever (0.8, FB-020, Harro22): Waylaid Crates. A crate's tooltip lists the bundles that fill
--- it, any one of them (seen 2026-10-20):
+-- it, any one of them, after the words "Fill the crate" (seen 2026-10-20 on the Journeyman Textiles
+-- and Fabrics crates):
 --   Use: Fill the crate with any bundle from the following list:
 --   - 20 Wool Cloth
 --   - 40 Silk Cloth
@@ -25,12 +26,18 @@ end
 -- the bundles in a tooltip's lines (strings; a line may hold several rows), or nil when the item
 -- is not a crate: {{name, count}, ...}, in the tooltip's order
 function M.crate_bundles_from_text(texts)
-    local bundles = {}
+    local bundles, crate = {}, false
     for _, text in ipairs(texts) do
         if type(text) == 'string' then
-            for row in string.gmatch(plain(text), '[^\n]+') do
+            text = plain(text)
+            -- only a crate's own Use line opens the list (review H-006, finding 6): a negative stat
+            -- such as "-5 Spirit" reads like a bundle row too
+            if strfind(strlower(text), 'fill the crate', 1, true) then
+                crate = true
+            end
+            for row in string.gmatch(text, '[^\n]+') do
                 local count, name = strmatch(row, '^%s*%-%s*(%d+)%s+(.-)%s*$')
-                if count and name ~= '' then
+                if crate and count and name ~= '' then
                     tinsert(bundles, {name = name, count = tonumber(count)})
                 end
             end

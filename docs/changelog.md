@@ -22,7 +22,9 @@ A change that comes from a player's feedback credits them by in-game name at the
 - A strip under the window shows the buttons with your controller's own icons and what each one
   does right now; Y shows only while its button can be pressed.
 - aux's popups (the post confirmation, the search notices, removing or renaming a favorite) open
-  inside aux in gamepad mode, where the pad can reach them, with the focus on Cancel.
+  inside aux in gamepad mode, where the pad can reach them, with the focus on Cancel. Renaming a
+  favorite starts in the name box, so B stops typing instead of closing the popup, and a popup
+  over an open menu (Settings, quick searches) keeps the pad inside the popup.
 - The Blizzard UI button hands the pad to Blizzard's window while it is shown.
 
 ### Waylaid Crates
@@ -31,7 +33,8 @@ A change that comes from a player's feedback credits them by in-game name at the
   it with what that bundle costs, the cheapest in gold. Items already in your bags are counted
   ("(12 in bags)"), and a bundle you already hold says "in your bags". Prices are the latest aux
   has seen, or a vendor's when a vendor sells the item for less. aux reads the bundles from the
-  crate itself, so new crates work without an update (requested by Harro22).
+  crate itself, so new crates work without an update (requested by Harro22). Only a crate's own
+  list counts: a line such as "-5 Spirit" on gear is not read as a bundle.
 - Alt-click a crate in your bags while aux is open: one search for every bundle's item, at today's
   prices, and the bottom bar names the cheapest way to fill it and the next cheapest. It takes the
   cheapest listings first, as many as the bundle needs, and skips your own auctions. The search
@@ -40,16 +43,21 @@ A change that comes from a player's feedback credits them by in-game name at the
 
 ### One row per price
 
-- Search results, the Sniper and the Post tab show one row per price. The auction house hands
+- Search results and the Post tab show one row per price. The auction house hands
   listings over per seller and time left, so one price could fill several rows (four rows of Merc
   Swords of Healing at 11s, 56 for sale in all). Now it is one row, "For sale" adds them up, and the
   seller column says how many sellers there are. Buying from the row buys one real auction at the
   price shown; when it is gone the next one moves up. Your own auctions stay on a row of their
   own. The Auctions, Bids and Sniper tabs still show each auction separately, and an auction with
-  no buyout keeps its own row. The buy bar and the result count match the merged rows.
+  no buyout keeps its own row. The buy bar and the result count match the merged rows. Sorting
+  by For sale counts the whole row, sorting by Seller puts "4 sellers" with the other rows of
+  several sellers, and after you buy from a row it stays selected with its next auction, even when
+  the sort moves it.
 
 ### Fixes
 
+- Post tab and `/aux undercut`: the help no longer states as fact that the newest listing at a
+  price sells first. That is said of the modern auction house but not yet confirmed on Forever.
 - Clearing the search bar and clicking elsewhere no longer leaves "<>" in it.
 - Buying a trade good: after Cancel (or when aux cancels a price that went up), the Buy button goes
   back to its own color. It stayed Confirm green, as if a price were still waiting to be confirmed.
@@ -72,7 +80,11 @@ A change that comes from a player's feedback credits them by in-game name at the
   only (`medicine staff/exact` still finds every ending), and so does a right-click on a Post tab
   price. `/aux price` takes a typed name with its ending.
 - When one name is listed under several versions, aux's price for the day now counts every version,
-  not only the last one it read.
+  not only the last one it read. A search stopped halfway through an item's versions keeps the
+  day's price it had, instead of replacing it with part of the listings.
+- Post tab: when reading a gear item's listings is stopped before the end (for example by a Full
+  scan), Post stays faded and says "Reading stopped. Press Refresh, or type a price." Before, it
+  picked a price from part of the listings and let you post at it.
 - Post tab: gear with an ending loads much faster. aux searches only the versions of its own name
   and takes the other endings' lowest prices from the item list, instead of searching every ending
   (a Merc Sword took about 25 searches).
@@ -80,7 +92,9 @@ A change that comes from a player's feedback credits them by in-game name at the
   one name under several versions with the same stats, and checking only your exact version said
   "Only one listed" while others of the same name were for sale.
 - Prices aux saw for gear before this update were kept under one price per item and are no longer
-  used for gear; each ending learns its own price again from your next searches or Full scan.
+  used for gear; each ending learns its own price again from your next searches or Full scan. The
+  old shared price is removed the first time aux prices one of the item's endings, so an addon that
+  asks aux for a price by item ID no longer gets it.
   Post settings saved for such gear (a hidden item, a duration) start fresh once.
 
 A **full game restart** is needed to update (new files).

@@ -67,8 +67,8 @@ end
 -- auxForever (0.4): undercut check. Each item you sell is read once (about half a second per
 -- item, only when the tab opens or Check prices is pressed, never in the background). For each
 -- item it keeps the cheapest price of other sellers and how many other sellers list it at each
--- price. On Forever the newest listing at a price sells first, so another seller at your price
--- ("tied") is shown, but only a lower price counts as undercut.
+-- price. Another seller at your price ("tied") is shown, but only a lower price counts as undercut
+-- (aux matches the lowest price by default; who sells first at one price is E6, Unknown).
 CHECK_AGAIN = 120 -- seconds before opening the tab checks again by itself
 
 checks = {} -- item key text -> {lowest = cheapest other seller per item, at_price = {[price] = other sellers}}

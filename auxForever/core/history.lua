@@ -31,8 +31,14 @@ M.OLD_DAYS = 7
 
 local value_cache = {}
 
+-- the first day this faction's prices were kept by price key (0.8): gear prices from before it were
+-- one price for every ending of an item, under "id:0" (see retire_plain)
+local price_keys_since
+
 function aux.event.PLAYER_LOGIN()
 	data = aux.faction_data.history
+	aux.faction_data.price_keys_since = aux.faction_data.price_keys_since or today()
+	price_keys_since = aux.faction_data.price_keys_since
 end
 
 -- the price history is read once the saved variables load (PLAYER_LOGIN); before that every price is unknown
@@ -112,11 +118,37 @@ function read_record(item_key)
 	return record
 end
 
+-- 0.8 (review H-006, finding 7): before 0.8 every ending of a gear item was priced as one, under
+-- "id:0". aux reads gear by its ending now, but that old mixed price stayed under "id:0", where a
+-- price asked by item ID (AuxForeverAPI) or a plain link still found it, never updated again. The
+-- first time an item's ending gets a price, an "id:0" price with nothing newer than the update is
+-- removed. One kept since the update is a real plain item and stays.
+local retire_checked = {}
+local function retire_plain(item_key)
+	local id, ending = strmatch(item_key, '^(%d+):(.+)$')
+	if not id or ending == '0' or retire_checked[id] then
+		return
+	end
+	retire_checked[id] = true
+	local plain = id .. ':0'
+	local str = data[plain]
+	if not str then
+		return
+	end
+	local old = unpack_record(str)
+	local last = (old.low or old.market) and old.day or (old.points and old.points[1] and old.points[1].day) or 0
+	if last < (price_keys_since or 0) then
+		data[plain] = nil
+		value_cache[plain] = nil
+	end
+end
+
 function write_record(item_key, record)
 	data[item_key] = persistence.write(history_schema, record)
 	if value_cache[item_key] then
 		value_cache[item_key] = nil
 	end
+	retire_plain(item_key)
 end
 
 -- the day's price for the record: its market price, else its lowest
@@ -223,7 +255,10 @@ end
 
 -- A complete view from auction records (one item's search results). views (0.8), when given, keeps
 -- what was seen of each price key earlier in the same scan, so the versions of one gear name add up.
-function M.record_view_of(records, views)
+-- hold (review H-006, finding 3): only add to views and write nothing yet; the scan writes the
+-- price with write_view once the item's last version is in, so a search stopped halfway through an
+-- item's versions does not replace today's price with part of them. Returns the price key.
+function M.record_view_of(records, views, hold)
 	local flat, key = {}, nil
 	for _, record in ipairs(records or empty) do
 		local units = record_units(record)
@@ -243,7 +278,17 @@ function M.record_view_of(records, views)
 			for _, v in ipairs(flat) do tinsert(seen, v) end
 			flat = seen
 		end
-		record_view(key, flat)
+		if not hold then
+			record_view(key, flat)
+		end
+	end
+	return key
+end
+
+-- the view kept for a price key in a scan's views (see record_view_of)
+function M.write_view(views, key)
+	if views and views[key] then
+		record_view(key, views[key])
 	end
 end
 
