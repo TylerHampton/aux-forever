@@ -59,9 +59,10 @@ price works and buying from a merged row passes (build 9); Gemini's second revie
 checked (build 10). Every 0.8 item is built and tested, except gamepad, which Tyler left to players
 with a controller (nokkty tested it on the beta).
 
-Next: Claude recommends releasing 0.8 now (CurseForge still offers 0.7.1.1, which lacks the gear
-fixes); waiting for Tyler's go, then the 5-minute check (`TESTING.md`), pull request, merge,
-Release workflow. Open: where the `<>` in the search bar came from; E7 (replaced searches).
+The 5-minute check (`TESTING.md`) is done on the released game (2026-11-08): steps 1 to 5 during
+builds 9 and 10, step 6 (the Materials line, 13s 84c for a Woolen Bag, and Search in aux with the
+cost line) from Tyler's screenshot. Next: release 0.8 once Tyler says the word (pull request,
+merge, Release workflow). Open: where the `<>` in the search bar came from; E7 (replaced searches).
 
 **Was on hiatus (Tyler, 2026-10-26):** "We are going to be on developmental hiatus until the game
 releases and I can begin rapid iterative testing." Work picks up again in the same Claude Code
