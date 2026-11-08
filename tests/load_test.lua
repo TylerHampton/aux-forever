@@ -1,9 +1,12 @@
 -- Run from the auxForever folder: lua5.1 ../tests/load_test.lua
+-- Fast tooltip/basics loop: lua5.1 ../tests/load_test.lua smoke
 -- Load test: stub the WoW API, load every file in TOC order, then fire the startup events
 -- (ADDON_LOADED, PLAYER_LOGIN), open the auction house, run OnUpdate scripts a few times and
 -- walk through a commodity purchase.
 local G = _G
 local frames = {}
+local MODE = arg and arg[1]
+local SMOKE_ONLY = (MODE == 'smoke')
 local NUMERIC = { GetRight=1, GetLeft=1, GetTop=1, GetBottom=1, GetWidth=1, GetHeight=1, GetNumber=1, GetScale=1, GetEffectiveScale=1, GetAlpha=1, GetID=1, GetNumPoints=1, GetVerticalScroll=1, GetHorizontalScroll=1, GetCursorPosition=1, GetStringWidth=1, GetTextWidth=1, GetFrameLevel=1, GetValue=1 }
 local function new_frame(name)
   local f = { __scripts = {}, __events = {}, __name = name, __shown = true, __text = '' }
@@ -76,6 +79,17 @@ setmetatable(G, {__index=function(_, k) if type(k)=='string' and (k:match('Butto
 
 local errors = 0
 local function try(label, f, ...)
+  if SMOKE_ONLY and type(label) == 'string' then
+    local allow = label:match('^load ')
+      or label:match('^smoke:')
+      or label == 'ADDON_LOADED'
+      or label == 'PLAYER_LOGIN'
+      or label == 'AUCTION_HOUSE_SHOW'
+      or label == 'OnUpdate'
+    if not allow then
+      return
+    end
+  end
   local ok, err = pcall(f, ...)
   if not ok then errors = errors + 1; print('ERROR', label, err) end
 end
@@ -93,11 +107,11 @@ local function fire(event, ...)
 end
 -- `lua5.1 ../tests/load_test.lua classic` runs everything again in the Classic look: the saved
 -- settings ask for it, as they would after a player picked Classic (they load after the files)
-THEME = (arg and arg[1] == 'classic') and 'classic' or 'new'
+THEME = (MODE == 'classic') and 'classic' or 'new'
 if THEME == 'classic' then G.aux = {account = {theme = 'classic'}} end
 -- a value the test expects, by look
 local function pick(new, classic) if THEME == 'classic' then return classic end return new end
-print('look: ' .. THEME)
+print('look: ' .. THEME .. (SMOKE_ONLY and ' (smoke only)' or ''))
 fire('ADDON_LOADED', 'auxForever')
 fire('PLAYER_LOGIN')
 fire('ADDON_LOADED', 'Blizzard_AuctionHouseUI')
@@ -122,6 +136,14 @@ local function same(a, b)
   if #a ~= #b then return false end
   for i = 1, #a do if a[i] ~= b[i] then return false end end
   return true
+end
+local smoke_dir = (arg and arg[0] or ''):gsub('[^/\\]*$', '')
+dofile(smoke_dir .. 'smoke_test.lua')({
+  G = G, check = check, try = try, addon = addon, tick = tick,
+})
+if SMOKE_ONLY then
+  print('done, errors: ' .. errors)
+  return
 end
 try('buy bar', function()
   local require = loadstring("select(2, ...) 'aux.test'; return require")('auxForever', addon)

@@ -10,6 +10,11 @@ A change that comes from a player's feedback credits them by in-game name at the
 
 ### Search / tooltips
 
+- Tooltip smoke checks: `lua5.1 ../tests/load_test.lua smoke` and in-game `/aux smoke` (hover an
+  item first) cover disenchant / value / vendor lines so suffix work cannot wipe them unnoticed.
+- Disenchant chance and value show again after suffix inject: Forever's late `Show()` dropped those
+  AddLines, and internal `M.fn()` calls never ran (the module proxy has no `__index`). (reported
+  while testing FB-023)
 - Random-suffix gear ("of the Bear", "of Strength", ...) again shows its rolled +stats on auction
   icon tooltips. Forever's Fast parent rows use `SetItemKey`, which often drops those bonuses;
   opened auctions already had a full `itemLink`. aux now fills the missing green +stat lines from

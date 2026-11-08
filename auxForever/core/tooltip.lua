@@ -167,7 +167,8 @@ function M.cache_suffix_stats(link)
     if not link then
         return
     end
-    local lines = nonempty_stat_lines(M.suffix_stat_lines(link))
+    -- Inside this module call the env name, not M.suffix_stat_lines: M has no __index.
+    local lines = nonempty_stat_lines(suffix_stat_lines(link))
     if lines then
         cached_suffix_lines[link] = lines
     end
@@ -177,10 +178,11 @@ end
 local suffix_retry = CreateFrame('Frame')
 suffix_retry:Hide()
 suffix_retry:SetScript('OnUpdate', function(self)
+    -- Forever: a late GameTooltip:Show() rebuilds the tip and drops aux AddLines (DE / value /
+    -- vendor). AddLine on an already-open tip is enough; never Show() from this retry.
     if retry_tip and retry_tip:IsShown() then
-        local ok, added = pcall(M.add_suffix_stats, retry_tip, retry_link)
+        local ok, added = pcall(add_suffix_stats, retry_tip, retry_link)
         if ok and added then
-            retry_tip:Show()
             retry_frames = 0
         end
     end
@@ -203,7 +205,7 @@ function M.add_suffix_stats(tooltip, link)
     -- Empty tables from an early (failed) cache must not block a later GetItemStats retry.
     local lines = nonempty_stat_lines(cached_suffix_lines[link])
         or nonempty_stat_lines(last_hover.record and last_hover.record.suffix_stats)
-        or M.suffix_stat_lines(link)
+        or suffix_stat_lines(link)
     if lines then
         cached_suffix_lines[link] = lines
         if last_hover.record then
@@ -243,7 +245,8 @@ function M.schedule_suffix_stats(tooltip, link)
         return
     end
     if link then
-        M.note_link(tooltip, link)
+        -- Call the env binding, not M.note_link: M has no __index, so reads on M are nil.
+        note_link(tooltip, link)
     end
     retry_tip = tooltip
     retry_link = link or last_link[tooltip]
@@ -271,7 +274,7 @@ function M.suffix_report()
         sort(parts)
         tinsert(lines_out, 'GetItemStats: ' .. (#parts > 0 and table.concat(parts, ', ') or '(empty)'))
     end
-    local bonus = M.suffix_stat_lines(link)
+    local bonus = suffix_stat_lines(link)
     if not bonus or #bonus == 0 then
         tinsert(lines_out, 'bonus lines: none (no ITEM_MOD delta vs base)')
     else
@@ -282,8 +285,77 @@ function M.suffix_report()
         tinsert(lines_out, 'bonus lines: ' .. table.concat(parts, ', '))
     end
     if GameTooltip:IsShown() then
-        local added = M.add_suffix_stats(GameTooltip, link)
+        local added = add_suffix_stats(GameTooltip, link)
         tinsert(lines_out, added and 're-injected into the open tooltip' or 'open tooltip unchanged (already shown or nothing to add)')
+    end
+    return lines_out
+end
+
+local function tip_has(fragment)
+    if not GameTooltip:IsShown() then
+        return false
+    end
+    for i = 1, GameTooltip:NumLines() do
+        local font = _G['GameTooltipTextLeft' .. i]
+        local text = font and font:GetText()
+        if text and strfind(text, fragment, 1, true) then
+            return true
+        end
+    end
+    return false
+end
+
+-- /aux smoke: tooltip switches and whether DE / value / vendor lines are on the open tip
+function M.smoke_report()
+    local s = settings or aux.character_data.tooltip
+    local lines_out = {}
+    local function on_off(v)
+        return v and 'on' or 'off'
+    end
+    tinsert(lines_out, format(
+        'switches: value=%s daily=%s vendor_sell=%s vendor_buy=%s de_value=%s de_into=%s',
+        on_off(s.value), on_off(s.daily), on_off(s.merchant_sell), on_off(s.merchant_buy),
+        on_off(s.disenchant_value), on_off(s.disenchant_distribution)
+    ))
+    local link = last_hover.link or last_link[GameTooltip]
+    if not link then
+        local _, tip_link = GameTooltip:GetItem()
+        link = tip_link
+    end
+    if not link then
+        tinsert(lines_out, 'No item tip open. Hover green gear, then /aux smoke.')
+        return lines_out
+    end
+    tinsert(lines_out, 'link=' .. gsub(link, '|', '||'))
+    local item_id = info.parse_link(link)
+    local item_info = info.item(item_id)
+    if not item_info then
+        tinsert(lines_out, 'GetItemInfo: not ready for this item')
+        return lines_out
+    end
+    tinsert(lines_out, format(
+        'item: quality=%s slot=%s level=%s',
+        tostring(item_info.quality), tostring(item_info.slot), tostring(item_info.level)
+    ))
+    local dist = disenchant.distribution(item_info.slot, item_info.quality, item_info.level)
+    tinsert(lines_out, format('de table: %d outcomes', #dist))
+    tinsert(lines_out, format(
+        'open tip: Disenchants into=%s Disenchant:=%s Vendor:=%s Value:=%s',
+        tip_has('Disenchants into:') and 'yes' or 'no',
+        tip_has('Disenchant:') and 'yes' or 'no',
+        tip_has('Vendor:') and 'yes' or 'no',
+        tip_has('Value:') and 'yes' or 'no'
+    ))
+    if (s.disenchant_distribution or s.disenchant_value) and #dist > 0
+        and (item_info.quality or 0) >= 2
+        and not tip_has('Disenchant') then
+        tinsert(lines_out, 'FAIL: DE should show on this tip (switch on, green+ gear, table non-empty).')
+    end
+    if s.merchant_sell and (item_info.sell_price or 0) ~= 0 and not tip_has('Vendor:') then
+        tinsert(lines_out, 'FAIL: Vendor should show on this tip.')
+    end
+    if s.value and is_auctionable(item_id, item_info) and not tip_has('Value:') then
+        tinsert(lines_out, 'FAIL: Value should show on this tip.')
     end
     return lines_out
 end
@@ -337,7 +409,7 @@ function aux.event.AUX_LOADED()
             return
         end
         extend_tooltip(tooltip, link, tooltip_quantity(tooltip))
-        pcall(M.schedule_suffix_stats, tooltip, link)
+        pcall(schedule_suffix_stats, tooltip, link)
     end)
     aux.event_listener('GET_ITEM_INFO_RECEIVED', function(item_id, success)
         if not success then
@@ -346,11 +418,10 @@ function aux.event.AUX_LOADED()
         local link = retry_link or last_hover.link
         local link_id = link and tonumber(strmatch(link, 'item:(%-?%d+)'))
         if link_id and link_id == item_id then
-            M.cache_suffix_stats(link)
+            cache_suffix_stats(link)
+            -- Same as the retry frame: AddLine only. Show() here wiped DE/value on Forever.
             if retry_tip and retry_tip:IsShown() then
-                if pcall(M.add_suffix_stats, retry_tip, link) then
-                    retry_tip:Show()
-                end
+                pcall(add_suffix_stats, retry_tip, link)
             end
         end
     end)
@@ -460,10 +531,13 @@ function extend_tooltip(tooltip, link, quantity)
 --    if tooltip == GameTooltip and game_tooltip_money > 0 then
 --        SetTooltipMoney(tooltip, game_tooltip_money)
 --    end
-    -- Forever: suffix +stats after Value/DE so a failed GetItemStats cannot skip those lines,
-    -- and without an extra Show() that would drop them on this client.
-    pcall(M.add_suffix_stats, tooltip, link)
-    tooltip:Show()
+    -- Forever: suffix +stats after Value/DE so a failed GetItemStats cannot skip those lines.
+    -- Show only when the tip is not already open: a second Show() on Forever rebuilds the tip
+    -- and drops these AddLines (DE / value / vendor).
+    pcall(add_suffix_stats, tooltip, link)
+    if not tooltip:IsShown() then
+        tooltip:Show()
+    end
 end
 
 -- auxForever: /aux memory detail
