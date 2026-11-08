@@ -1,6 +1,12 @@
 # Status
 
-Last updated 2026-11-08, Tyler's time (0.8 build 14 passed in game; waiting for Tyler's "release 0.8"; 0.7.1.1 is the latest release).
+Last updated 2026-11-08, Tyler's time (0.8 merged into `main` with PR #38; Release workflow started, result being checked).
+
+**2026-11-08, 0.8 released (Tyler: "release 0.8"):** `main` was merged into the branch first (one
+docs commit from Gemini, already contained), the changelog section dated, PR #38 opened, CI green,
+merged, and the Release workflow started on `main` (it makes the GitHub pre-release `v0.8` and
+uploads the CurseForge beta). Still by hand: paste `docs/curseforge-description.md` into the CurseForge page description
+(it now covers crates, gear endings and one row per price).
 
 **2026-11-08, Claude, 0.8 build 14:** Tyler's build 13 test: Seller sort, gear Value and the new
 help text pass; crates hovered in aux's results showed no costs, and For sale sorted an item by its
@@ -79,8 +85,8 @@ with a controller (nokkty tested it on the beta).
 
 The 5-minute check (`TESTING.md`) is done on the released game (2026-11-08): steps 1 to 5 during
 builds 9 and 10, step 6 (the Materials line, 13s 84c for a Woolen Bag, and Search in aux with the
-cost line) from Tyler's screenshot. Next: 0.8 releases once Tyler says "release 0.8" (pull request,
-merge, Release workflow). Open: E7 (replaced searches). The `<>` was aux's way of writing an empty search, shown in the bar after clearing it (fixed in build 11).
+cost line) from Tyler's screenshot. 0.8 is released (2026-11-08). Next: Tyler pastes the CurseForge description; then 0.9 (shopping
+list, writs, alt inventory; `docs/roadmap.md`). Open: E7 (replaced searches). The `<>` was aux's way of writing an empty search, shown in the bar after clearing it (fixed in build 11).
 
 **Was on hiatus (Tyler, 2026-10-26):** "We are going to be on developmental hiatus until the game
 releases and I can begin rapid iterative testing." Work picks up again in the same Claude Code
