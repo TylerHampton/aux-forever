@@ -1,6 +1,21 @@
 # Status
 
-Last updated 2026-11-08, Tyler's time (0.8 build 14 passed in game; waiting for Tyler's "release 0.8"; 0.7.1.1 is the latest release).
+Last updated 2026-11-08, Tyler's time (0.8 released: tag `v0.8`, pull request #38; 11 new player feedback entries, FB-024 to FB-034, waiting for Tyler to pick versions).
+
+**2026-11-08, Claude, feedback batch (docs only, no addon change):** Tyler passed on CurseForge
+comments, all written before 0.8. Logged as FB-024 to FB-034 in `docs/feedback.md` (source
+`docs/feedback/sources/2026-11-08-curseforge-comments.md`), each checked against the code:
+- Bugs: an exact search for a cloak finds nothing (FB-024; likely aux's request uses Armor >
+  Cloth, while cloaks sit under Miscellaneous), a tooltip word makes a search take minutes
+  (FB-025), the full scan takes 5+ minutes (FB-027), the Sniper takes 30+ seconds from sound to
+  purchase (FB-028), opening aux moves the Professions window (FB-034).
+- Already there but not found: profit or loss is in the recipe search's bottom bar, not on the
+  Materials line (FB-026); Shift shows a stack's prices in tooltips (FB-033).
+- Requests: prices per gear ending (FB-029, built in 0.8), how the % works and more history
+  (FB-030), posting rules like TSM (FB-031), an automatic full scan on open, off by default
+  (FB-032, Tyler already agreed in his reply).
+Next: Tyler picks what goes into 0.8.0.1 (bug fixes), 0.8.1 (speed) and 0.9 (features); each
+entry has a "Proposed" line and short "Ask Tyler" checks.
 
 **2026-11-08, Claude, 0.8 build 14:** Tyler's build 13 test: Seller sort, gear Value and the new
 help text pass; crates hovered in aux's results showed no costs, and For sale sorted an item by its
@@ -79,8 +94,8 @@ with a controller (nokkty tested it on the beta).
 
 The 5-minute check (`TESTING.md`) is done on the released game (2026-11-08): steps 1 to 5 during
 builds 9 and 10, step 6 (the Materials line, 13s 84c for a Woolen Bag, and Search in aux with the
-cost line) from Tyler's screenshot. Next: 0.8 releases once Tyler says "release 0.8" (pull request,
-merge, Release workflow). Open: E7 (replaced searches). The `<>` was aux's way of writing an empty search, shown in the bar after clearing it (fixed in build 11).
+cost line) from Tyler's screenshot. 0.8 was released on 2026-11-08 (tag `v0.8`). Next: the feedback batch
+FB-024 to FB-034 (above). Open: E7 (replaced searches). The `<>` was aux's way of writing an empty search, shown in the bar after clearing it (fixed in build 11).
 
 **Was on hiatus (Tyler, 2026-10-26):** "We are going to be on developmental hiatus until the game
 releases and I can begin rapid iterative testing." Work picks up again in the same Claude Code
