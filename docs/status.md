@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-08, Tyler's time (work resumed on the released game; 0.8 build 10 waiting for Tyler's test; 0.7.1.1 is the latest release).
+Last updated 2026-11-08, Tyler's time (0.8 build 10 tested on the released game, all pass; release waiting for Tyler; 0.7.1.1 is the latest release).
 
 **2026-11-08, Gemini H-003 review (docs only, no addon change):**
 Reviewed 0.8 build 9 (one row per price, `e76c347`) and 0.8 build 8 (Post tab skip of other gear
@@ -52,12 +52,16 @@ Nothing open there now (H-004 done 2026-11-08).
 `docs/reviews/2026-11-08-one-row-per-price.md` (and reads Tyler's test results for build 9).
 
 **Resumed (Tyler, 2026-11-08):** Forever is out; Tyler has a level 20 character and said "go full
-auto mode". **0.8 build 10** is on `claude/fervent-planck-ry58jx`, waiting for his test
-(`TESTING.md`, zip `auxForever-0.8-build10.zip`, test page build `0-8-build-10`). On the released
-game so far: aux loads with no errors, saved prices survive a login, Full scan works (build 7);
-the Post tab loads gear fast (build 8); one row per price works and buying from a merged row
-passes (build 9). Build 10 takes Gemini's second review (H-004, eight items). Open: where the
-`<>` in the search bar came from (Tyler did not say).
+auto mode". **0.8 build 10** is on `claude/fervent-planck-ry58jx`, tested in game on the released
+game, all steps pass (`TESTING.md`). On the released game: aux loads with no errors, saved prices
+survive a login, Full scan works (build 7); the Post tab loads gear fast (build 8); one row per
+price works and buying from a merged row passes (build 9); Gemini's second review is taken and
+checked (build 10). Every 0.8 item is built and tested, except gamepad, which Tyler left to players
+with a controller (nokkty tested it on the beta).
+
+Next: Claude recommends releasing 0.8 now (CurseForge still offers 0.7.1.1, which lacks the gear
+fixes); waiting for Tyler's go, then the 5-minute check (`TESTING.md`), pull request, merge,
+Release workflow. Open: where the `<>` in the search bar came from; E7 (replaced searches).
 
 **Was on hiatus (Tyler, 2026-10-26):** "We are going to be on developmental hiatus until the game
 releases and I can begin rapid iterative testing." Work picks up again in the same Claude Code

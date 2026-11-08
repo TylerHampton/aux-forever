@@ -23,6 +23,11 @@ Test page build id `0-8-build-10`.
 - [ ] 2. Click a merged row: the bar below says as many "for sale at this price" as the row shows.
 - [ ] 3. Sniper: start it for a minute; each deal is its own row.
 
+Tested by Tyler 2026-11-08 (test page `0-8-build-10`, screenshots, no marks; judged from the
+screenshots): all three pass. `merc sword` (Full): "23 items, 383 for sale", one row per ending, a
+seller count per row; the 9s Merc Sword of Intellect row's buy bar said "1 for sale at this price,
+The last one at this price"; the Sniper showed 13 deals and 1 gone, one row each.
+
 ### 0.8 build 9
 
 Tested by Tyler 2026-11-08 (test page `0-8-build-9`, screenshots): one row per price works in
