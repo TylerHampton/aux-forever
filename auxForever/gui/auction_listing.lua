@@ -25,6 +25,20 @@ gui.themed(function()
     TIME_LEFT_STRINGS[4] = aux.color.blue(info.time_left_label(4)) -- Very Long
 end)
 
+-- auxForever (0.8, Tyler, build 7: "Why are we separating these lines?"): which row a record goes
+-- in. Gear auctions at one buyout price share a row, whoever sells them and whatever time they have
+-- left; the auction house hands them over per seller and time left (four sellers at 11s were four
+-- rows). Trade goods come grouped by price already; an auction with no buyout keeps its own row,
+-- so different bids never hide behind one (review H-004, finding 2). Tables that list each auction
+-- apart (one_row_each: Auctions, Bids, Sniper) do not use it.
+function M.price_group(record)
+    if record.commodity or record.fast or (record.buyout_price or 0) == 0 then
+        return record.search_signature
+    end
+    return aux.join({record.price_key or record.item_key, record.buyout_price, record.count or 1, record.sale_status or 0,
+        info.is_player(record.owner) and 1 or 0, record.high_bidder and 1 or 0}, ':')
+end
+
 -- auxForever: Forever names the seller only when one player sells at a row's price
 function M.seller_text(record)
     -- 0.8: a row of several sellers' auctions at one price (UpdateRowInfo)
@@ -781,45 +795,56 @@ local methods = {
         -- keeps one real auction behind it (the lowest starting bid), so buying it buys exactly the
         -- price shown; when it is gone the next one moves up. Trade goods come grouped by price
         -- already; the Auctions tab keeps each of your auctions apart (one_row_each).
-        local function price_group(record)
-            if self.one_row_each or record.commodity or record.fast then
-                return record.search_signature
-            end
-            return aux.join({group(record), record.buyout_price, record.count or 1, record.sale_status or 0,
-                info.is_player(record.owner) and 1 or 0, record.high_bidder and 1 or 0}, ':')
+        local function row_group(record)
+            return self.one_row_each and record.search_signature or price_group(record)
         end
         for _, record in ipairs(records) do
-            record.price_group, record.group_sellers = price_group(record), nil
+            record.price_group, record.group_sellers, record.group_count = row_group(record), nil, nil
         end
+        -- within one price, the auction kept for the row is the one with the lowest starting bid, by
+        -- value (review H-004, finding 3: compared as text, "1200" came before "200")
         sort(records, function(a, b)
             if a.price_group ~= b.price_group then return a.price_group < b.price_group end
+            if (a.bid_price or 0) ~= (b.bid_price or 0) then return (a.bid_price or 0) < (b.bid_price or 0) end
             return a.search_signature < b.search_signature or a.search_signature == b.search_signature and tostring(a) < tostring(b)
         end)
 
-        local sellers -- the sellers of the row being built, to say "4 sellers"
+        -- the sellers of the row being built, to say "4 sellers": each named seller once (review H-004,
+        -- finding 6: one seller with two time lefts counted twice), unnamed ones by their count
+        local sellers, named
+        local function start_row(record)
+            named = {}
+            if record.owner then named[record.owner] = true end
+            sellers = max(1, record.seller_count or 1)
+        end
         for i = 1, #records do
             local record = records[i]
             local prevRecord = records[i - 1]
             if prevRecord and record.price_group == prevRecord.price_group then
                 local child = self.rowInfo[#self.rowInfo].children[#self.rowInfo[#self.rowInfo].children]
-                if record.owner ~= child.record.owner or not record.owner then
+                if not record.owner then
                     sellers = sellers + max(1, record.seller_count or 1)
-                    child.record.group_sellers = sellers
+                elseif not named[record.owner] then
+                    named[record.owner] = true
+                    sellers = sellers + 1
                 end
+                if sellers > 1 then child.record.group_sellers = sellers end
                 -- the same price as the previous row (identical, or another seller or time left), so
                 -- it adds to that row's count. Forever: one record can stand for a bucket of identical
                 -- auctions (auction_count)
                 child.count = child.count + (record.auction_count or 1)
+                -- the buy bar says how many the row holds (review H-004, finding 5)
+                child.record.group_count = child.count
             elseif not self.rowInfo.single_item and not self.one_row_each and prevRecord and group(record) == group(prevRecord) then
                 -- it's the same base item as the previous row so insert a new auction
-                sellers = max(1, record.seller_count or 1)
+                start_row(record)
                 tinsert(self.rowInfo[#self.rowInfo].children, { count = record.auction_count or 1, record = record })
                 if self.expanded[self.rowInfo[#self.rowInfo].expandKey] then
                     self.rowInfo.numDisplayRows = self.rowInfo.numDisplayRows + 1
                 end
             else
                 -- it's a different base item from the previous row
-                sellers = max(1, record.seller_count or 1)
+                start_row(record)
                 tinsert(self.rowInfo, { item_key = record.item_key, expandKey = group(record), children = {{ count = record.auction_count or 1, record = record }} })
                 self.rowInfo.numDisplayRows = self.rowInfo.numDisplayRows + 1
             end

@@ -8,7 +8,28 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8 build 9
+## Current build: 0.8 build 10
+
+Gemini's review of one row per price (H-004, `docs/reviews/2026-11-08-one-row-per-price.md`):
+all seven findings and the build 8 note taken, each with a test. The Bids and Sniper tabs list
+each auction apart again; an auction with no buyout keeps its own row; the row keeps the auction
+with the lowest starting bid; the buy bar and the result count match the merged rows; each seller
+is counted once ("65 sellers" in build 9). Zip `auxForever-0.8-build10.zip`; `/reload` is enough.
+Test page build id `0-8-build-10`.
+
+- [ ] 1. Search `merc sword` (Full): the seller counts look believable (not 65 sellers for 69
+      swords unless that many people really sell it), and the summary above the table counts the
+      rows shown. Screenshot.
+- [ ] 2. Click a merged row: the bar below says as many "for sale at this price" as the row shows.
+- [ ] 3. Sniper: start it for a minute; each deal is its own row.
+
+### 0.8 build 9
+
+Tested by Tyler 2026-11-08 (test page `0-8-build-9`, screenshots): one row per price works in
+search results ("Merc Sword of Healing 69, 65 sellers"; the seller count was wrong, review H-004
+finding 6), buying from a merged row passes, the Post tab shows 66 at 11s on one row, the Auctions
+tab still shows each auction ("Tied with 66 others").
+
 
 One row per price (Tyler, build 7: "Why are we separating these lines?"; build 8: "go full auto").
 Search results, the Sniper and the Post tab merge gear auctions at one buyout price into one row,

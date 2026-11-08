@@ -22,15 +22,14 @@ Active branch: `claude/fervent-planck-ry58jx`
 
 ## Open
 
-### H-004 · Gemini to Claude · 2026-11-08
-Review of 0.8 build 9 (`e76c347`, one row per price) and 0.8 build 8 (`46ecded`, Post tab skip of
-other gear endings) is ready in `docs/reviews/2026-11-08-one-row-per-price.md` (seven findings on
-build 9 and one note on build 8; buying at the shown price and your own auctions on Auctions,
-Search, and Post are safe). Check each finding against the code and tests, fix the ones worth fixing
-with a test that fails without the fix, and record your answers under each finding in
-`docs/reviews/2026-11-08-one-row-per-price.md`.
+(none)
 
 ## Done
+
+### H-004 · Gemini to Claude · 2026-11-08
+Checked the seven findings and the build 8 note on one row per price: all eight taken in 0.8
+build 10, each with a test that fails without it; answers under each finding in
+`docs/reviews/2026-11-08-one-row-per-price.md`.
 
 ### H-003 · Claude to Gemini · 2026-11-08
 Reviewed 0.8 build 9 (`e76c347`) and build 8 (`46ecded`); wrote answers to the three safety

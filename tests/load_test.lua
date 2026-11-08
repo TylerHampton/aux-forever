@@ -4457,7 +4457,64 @@ try('0.8: one row per price', function()
   auctions.listing:SetDatabase(mine)
   check('rows: the Auctions tab keeps one row per auction', auctions.listing.rowInfo.numDisplayRows == 2)
   auctions.listing:SetDatabase(real or {})
+
+  -- Gemini's review of one row per price (H-004, docs/reviews/2026-11-08-one-row-per-price.md)
+  t:SetDatabase(records)
+  local eleven
+  for _, info_row in ipairs(t.rowInfo) do
+    for _, child in ipairs(info_row.children) do if child.record.buyout_price == 1100 then eleven = child end end
+  end
+  check('H-004 5: the row tells the buy bar how many it holds', eleven and eleven.record.group_count == 56)
+  local summary = plain(search.results_summary({records = records}) or '')
+  check('H-004 7: the summary counts the rows shown', search.results_count({records = records}) == 4 and summary:find('4 price levels', 1, true) ~= nil)
+  -- finding 6: one seller with two time lefts is one seller
+  local twice = {row('Amelaina', 3, 1500, nil, 3), row('Amelaina', 2, 1500, nil, 1), row('Kadathi', 1, 1500, nil, 2)}
+  t:SetDatabase(twice)
+  local fifteen = t.rowInfo[1] and t.rowInfo[1].children[1]
+  check('H-004 6: each seller counted once', fifteen and fifteen.count == 6 and plain(al.seller_text(fifteen.record)) == '2 sellers')
+  -- finding 3: the row keeps the auction with the lowest starting bid, by value
+  local bids = {row('Buyoutonly', 1, 1200, nil, 3), row('Lowbid', 1, 1200, 200, 2), row('Midbid', 1, 1200, 900, 2)}
+  t:SetDatabase(bids)
+  local twelve = t.rowInfo[1] and t.rowInfo[1].children[1]
+  check('H-004 3: the 2s starting bid is the one kept, so Bid shows', twelve and twelve.count == 3 and twelve.record.owner == 'Lowbid')
+  -- finding 2: auctions with no buyout stay apart, whatever their bid
+  local bid_only = {row('Cheap', 1, 0, 200, 3), row('Dear', 1, 0, 10000, 3)}
+  t:SetDatabase(bid_only)
+  check('H-004 2: no-buyout auctions keep a row each', t.rowInfo.numDisplayRows == 2)
+  -- findings 1 and 4: the Bids and Sniper tables list each auction apart
+  local bids_tab = loadstring("select(2, ...) 'aux.tabs.bids'; return _M")('auxForever', addon)
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  check('H-004 1 and 4: the Bids and Sniper tables keep each auction on its own row', bids_tab.listing.one_row_each == true and sniper.listing.one_row_each == true)
   t:SetDatabase({})
+  G.GetItemInfo = real_get_info
+end)
+
+-- H-004, note 8: the Post tab's "cheapest other ending" never suggests your own listing back to you
+try('0.8: H-004 note 8', function()
+  local req = loadstring("select(2, ...) 'aux.test.h004'; return require")('auxForever', addon)
+  local scan_exports = req 'aux.core.scan'
+  local info = req 'aux.util.info'
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local real_start, real_inventory = scan_exports.start, info.inventory
+  local real_get_info, real_key_info = G.GetItemInfo, rawget(C_AuctionHouse, 'GetItemKeyInfo')
+  G.GetItemInfo = function(x)
+    if x == 4575 or (type(x) == 'string' and x:find('item:4575', 1, true)) then return 'Medicine Staff', nil, 2, 19, 14, 'Weapon', 'Staves', 1, 'INVTYPE_2HWEAPON', 1, 1487 end
+    return real_get_info(x)
+  end
+  local names = {[104] = 'Medicine Staff of the Wolf', [102] = 'Medicine Staff of Arcane Protection'}
+  rawset(C_AuctionHouse, 'GetItemKeyInfo', function(key) return names[key.itemSuffix] and {itemName = names[key.itemSuffix], isEquipment = true} end)
+  rawset(info, 'inventory', function() return function() end end)
+  local params
+  rawset(scan_exports, 'start', function(p) params = p end)
+  post.selected_item = {key = '4575:of the whale', item_id = 4575, name = 'Medicine Staff of the Whale', quality = 2, count = 1, max_stack = 1}
+  post.refresh_entries()
+  check('note 8: other endings are skipped', params and params.skip_key and params.skip_key({itemKey = {itemID = 4575, itemSuffix = 104}, minPrice = 9000, containsOwnerItem = true, totalQuantity = 1}) == true)
+  check('note 8: your own only listing is not the suggestion', post.other_endings_lowest == nil)
+  params.skip_key({itemKey = {itemID = 4575, itemSuffix = 102}, minPrice = 11000, totalQuantity = 2})
+  check('note 8: another seller\'s is', post.other_endings_lowest == 11000)
+  post.selected_item = nil
+  rawset(scan_exports, 'start', real_start); rawset(info, 'inventory', real_inventory)
+  rawset(C_AuctionHouse, 'GetItemKeyInfo', real_key_info)
   G.GetItemInfo = real_get_info
 end)
 

@@ -296,7 +296,9 @@ end
 local function update_item()
     local record = current.record
     local busy = current.busy()
-    sub_label:SetText((record.auction_count or 1) .. ' for sale at this price')
+    -- a row of several sellers at one price holds group_count auctions (0.8, review H-004, finding 5)
+    local at_price = record.group_count or record.auction_count or 1
+    sub_label:SetText(at_price .. ' for sale at this price')
     for _, chip in ipairs(chips) do chip:Hide() end
     cancel_button:Hide()
 
@@ -305,7 +307,7 @@ local function update_item()
     elseif record.own or current.own then
         set_lines('This is your own auction', 'It cannot be bought or bid on')
     elseif record.buyout_price > 0 then
-        set_lines('1 × ' .. current.name .. ' for ' .. money.to_string(record.buyout_price, true), (record.auction_count or 1) > 1 and 'The next one at this price is selected after buying' or 'The last one at this price')
+        set_lines('1 × ' .. current.name .. ' for ' .. money.to_string(record.buyout_price, true), at_price > 1 and 'The next one at this price is selected after buying' or 'The last one at this price')
     else
         set_lines('No buyout price', 'This auction can only be bid on')
     end

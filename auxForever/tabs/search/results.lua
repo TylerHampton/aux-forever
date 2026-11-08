@@ -1,5 +1,6 @@
 select(2, ...) 'aux.tabs.search'
 
+local auction_listing = require 'aux.gui.auction_listing'
 local aux = require 'aux'
 local info = require 'aux.util.info'
 local filter_util = require 'aux.util.filter'
@@ -432,20 +433,33 @@ local function thousands(n)
     end
 end
 
+-- the rows the table shows for these records: one per price (0.8, review H-004, finding 7)
+function count_price_levels(records)
+    local seen, n = {}, 0
+    for _, record in ipairs(records) do
+        local group = auction_listing.price_group(record) or record
+        if not seen[group] then
+            seen[group] = true
+            n = n + 1
+        end
+    end
+    return n
+end
+
 -- the number on the Search Results sub tab: items, or price levels when all results are one item
 function M.results_count(search)
     if not search or not search.records then
         return 0
     end
-    local items, item_count = {}, 0
+    local items, item_count, levels = {}, 0, count_price_levels(search.records)
     for _, record in ipairs(search.records) do
-        local key = record.item_key or record.item_id or record
+        local key = record.price_key or record.item_key or record.item_id or record
         if not items[key] then
             items[key] = true
             item_count = item_count + 1
         end
     end
-    return item_count > 1 and item_count or #search.records
+    return item_count > 1 and item_count or levels
 end
 
 function M.results_summary(search)
@@ -455,7 +469,7 @@ function M.results_summary(search)
     local units, items, item_count = 0, {}, 0
     for _, record in ipairs(search.records) do
         units = units + (record.count or 1) * (record.auction_count or 1)
-        local key = record.item_key or record.item_id or record
+        local key = record.price_key or record.item_key or record.item_id or record
         if not items[key] then
             items[key] = true
             item_count = item_count + 1
@@ -465,7 +479,7 @@ function M.results_summary(search)
     if item_count > 1 then
         text = thousands(item_count) .. ' items, '
     else
-        local levels = #search.records
+        local levels = count_price_levels(search.records)
         text = thousands(levels) .. (levels == 1 and ' price level, ' or ' price levels, ')
     end
     text = text .. thousands(units) .. ' for sale'

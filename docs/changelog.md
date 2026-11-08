@@ -45,7 +45,8 @@ A change that comes from a player's feedback credits them by in-game name at the
   Swords of Healing at 11s, 56 for sale in all). Now it is one row, "For sale" adds them up, and the
   seller column says how many sellers there are. Buying from the row buys one real auction at the
   price shown; when it is gone the next one moves up. Your own auctions stay on a row of their
-  own, and the Auctions tab still shows each of your auctions separately.
+  own. The Auctions, Bids and Sniper tabs still show each auction separately, and an auction with
+  no buyout keeps its own row. The buy bar and the result count match the merged rows.
 
 ### Gear with random endings
 

@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-08, Tyler's time (work resumed on the released game; 0.8 build 9 waiting for Tyler's test; 0.7.1.1 is the latest release).
+Last updated 2026-11-08, Tyler's time (work resumed on the released game; 0.8 build 10 waiting for Tyler's test; 0.7.1.1 is the latest release).
 
 **2026-11-08, Gemini H-003 review (docs only, no addon change):**
 Reviewed 0.8 build 9 (one row per price, `e76c347`) and 0.8 build 8 (Post tab skip of other gear
@@ -48,17 +48,16 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 **Roles (Tyler, 2026-10-26):** Claude Code stays the primary engineer; Gemini (Gemini 4 Argon) is
 the supporting model for second opinions, written in `docs/reviews/` (`AGENTS.md`, "Roles").
 Agents talk through `docs/handoff.md`; Tyler only says "Check the handoff" to whoever goes next.
-Open there now: H-004, Claude checks Gemini's review of build 9 and build 8 in
+Nothing open there now (H-004 done 2026-11-08).
 `docs/reviews/2026-11-08-one-row-per-price.md` (and reads Tyler's test results for build 9).
 
-**Resumed (Tyler, 2026-11-08):** Forever is out; Tyler has a level 20 character. **0.8 build 9** is
-on `claude/fervent-planck-ry58jx`, waiting for his test (`TESTING.md`, zip
-`auxForever-0.8-build9.zip`, test page build `0-8-build-9`): one row per price in search results,
-the Sniper and the Post tab. Tyler, on build 8: "Just go full auto mode and do your changes. I
-trust you." (no mockup for this one). In game so far on the released game: aux loads with no
-errors, saved prices survive a login, a Full scan recorded 161,999 auctions (build 7); the Post
-tab loads gear in a few seconds (build 8). Gemini's six findings (H-002) are fixed since build 7.
-Open: where the `<>` in the search bar came from (Tyler did not say yet).
+**Resumed (Tyler, 2026-11-08):** Forever is out; Tyler has a level 20 character and said "go full
+auto mode". **0.8 build 10** is on `claude/fervent-planck-ry58jx`, waiting for his test
+(`TESTING.md`, zip `auxForever-0.8-build10.zip`, test page build `0-8-build-10`). On the released
+game so far: aux loads with no errors, saved prices survive a login, Full scan works (build 7);
+the Post tab loads gear fast (build 8); one row per price works and buying from a merged row
+passes (build 9). Build 10 takes Gemini's second review (H-004, eight items). Open: where the
+`<>` in the search bar came from (Tyler did not say).
 
 **Was on hiatus (Tyler, 2026-10-26):** "We are going to be on developmental hiatus until the game
 releases and I can begin rapid iterative testing." Work picks up again in the same Claude Code

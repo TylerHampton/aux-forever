@@ -160,6 +160,8 @@ M.columns = {
 }
 
 listing = auction_listing.new(frame.listing.list, 19, columns)
+-- each deal on its own row (0.8, review H-004, finding 4): a gone deal never hides a live one
+listing.one_row_each = true
 listing:SetSort(-1)
 listing:Reset()
 listing:SetHandler('OnClick', function(row, button)

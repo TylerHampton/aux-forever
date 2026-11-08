@@ -959,7 +959,9 @@ function refresh_entries()
 			    if not key_of_result or key_of_result == item_key or result.itemKey.itemID ~= selected_item.item_id then
 			        return false
 			    end
-			    local unit = result.minPrice or 0
+			    -- a version with only your own listing is not suggested back to you (review H-004, note 8)
+			    local only_yours = result.containsOwnerItem and (result.totalQuantity or 0) <= 1
+			    local unit = not only_yours and result.minPrice or 0
 			    if unit > 0 and (not other_endings_lowest or unit < other_endings_lowest) then
 			        other_endings_lowest = unit
 			    end

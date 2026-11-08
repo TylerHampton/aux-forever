@@ -30,6 +30,8 @@ Below are the seven findings in build 9 and one note on build 8.
 - **Why it matters to a player:** On the Bids tab, each entry from `C_AuctionHouse.GetBidInfo` is a specific auction the player has bid on (`[Code]`, `docs/forever-auction-house.md`, section 8). If a player bids on two auctions of the same item or gear ending that have the same `buyout_price` (for example, two listings with a `12s` buyout, or two bid-only listings with `buyout_price = 0`) and the same `high_bidder` state (both `High Bidder` or both `Outbid`), `price_group` is identical for both. `UpdateRowInfo` merges them into one row showing `Quantity = 2` and `"2 sellers"` (because `not record.owner` is true on line 805). The second auction's current bid, time left, and `auction_id` are hidden behind the first, so the player cannot select, re-bid, or buy out the second auction independently. Setting `listing.one_row_each = true` in `tabs/bids/frame.lua` (just like `tabs/auctions/frame.lua:128`) keeps each bid on its own row.
 - **How sure:** Fact from the addon code (`tabs/bids/frame.lua`, `gui/auction_listing.lua`, `util/info.lua`) and `C_AuctionHouse.GetBidInfo` (`[Code]`, `docs/forever-auction-house.md`, section 8).
 
+**Claude (2026-11-08): fixed, 0.8 build 10.** Confirmed. The Bids table lists each auction apart (`one_row_each`). Test: "H-004 1 and 4".
+
 ---
 
 ### 2. Bid-only auctions (`buyout_price == 0`) at different bid prices merge into one row, and string sorting can hide the cheaper bid
@@ -40,6 +42,8 @@ Below are the seven findings in build 9 and one note on build 8.
   - `auxForever/util/info.lua:137` (`M.signatures`)
 - **Why it matters to a player:** When two sellers list the same item with no buyout (`buyout_price = 0`) at different bid prices, such as Seller A at `2s` (`200` copper) and Seller B at `1g` (`10000` copper), both records have `buyout_price = 0` and the same `price_group`. `UpdateRowInfo` merges them into one row with `Auction Buyout: ---` and `For sale: 2`. Furthermore, because `search_signature` joins numbers with `':'` and `sort` compares strings (`"10000" < "200"` because `'1' < '2'`), Seller B's `1g` auction sorts ahead of Seller A's `2s` auction and becomes `child.record`. The row displays `Auction Bid: 1g`, and clicking `Bid` bids `1g` on Seller B's auction while Seller A's `2s` auction cannot be seen or bid on. Separating bid-only auctions by `record.bid_price` in `price_group` (or not merging when `record.buyout_price == 0`) prevents different bid-only prices from collapsing together.
 - **How sure:** Fact from the addon code (`gui/auction_listing.lua:784-797`, `util/info.lua:137`).
+
+**Claude (2026-11-08): fixed, 0.8 build 10.** Confirmed. An auction with no buyout keeps its own row (`auction_listing.price_group`). Test: "H-004 2".
 
 ---
 
@@ -52,6 +56,8 @@ Below are the seven findings in build 9 and one note on build 8.
   - `auxForever/gui/buy_bar.lua:291-294` (`can_bid_item`)
 - **Why it matters to a player:** Suppose two sellers list the same gear ending at `12s` (`1200` copper) buyout: Seller A sets a `2s` (`200`) or `9s` (`900`) starting bid, while Seller B lists buyout-only (`min_bid = 0`, so `start_price = 1200` and `bid_price = 1200`). In `search_signature`, Seller B has `"1200:1200:1200"` while Seller A has `"200:1200:200"` or `"900:1200:900"`. Because `"1200" < "200"` and `"1200" < "900"` in ASCII order, Seller B's buyout-only auction sorts first and becomes `child.record`. The merged `12s` row then shows `Auction Bid: ---`, and `can_bid_item()` in `gui/buy_bar.lua:293` (`record.bid_price < record.buyout_price`) returns `false`, hiding the `Bid` button even though a biddable auction exists in that `12s` row. Sorting records within a `price_group` numerically by `a.bid_price ~= b.bid_price` (`a.bid_price < b.bid_price`), then `a.duration < b.duration`, makes the code match the comment on line 781.
 - **How sure:** Fact from the addon code (`gui/auction_listing.lua`, `util/info.lua`, `gui/buy_bar.lua`).
+
+**Claude (2026-11-08): fixed, 0.8 build 10.** Confirmed (the comment promised the lowest starting bid; the text sort did not give it). Within one price, records are now ordered by `bid_price` as a number. Test: "H-004 3", with a buyout-only auction and 2s and 9s starting bids at 12s.
 
 ---
 
@@ -67,6 +73,8 @@ Below are the seven findings in build 9 and one note on build 8.
   2. **Two versions of one gear ending at different prices fold into a collapsed `+` group:** When `deals` has more than one item (`single_item == false`), `UpdateRowInfo` (`gui/auction_listing.lua:813`) folds a second version of the same `price_key` (say version `106` at `12s` under version `104` at `11s`) as a hidden child row, and Sniper's `For sale` column (`sniper/frame.lua:98`) reads `record.auction_count` of the top record rather than `childInfo.units`. Setting `listing.one_row_each = true` in `tabs/sniper/frame.lua` keeps every Sniper deal on its own visible row.
 - **How sure:** Fact from the addon code (`tabs/sniper/frame.lua`, `tabs/sniper/core.lua`, `gui/auction_listing.lua`).
 
+**Claude (2026-11-08): fixed, 0.8 build 10.** Confirmed. Each Sniper deal is its own row (`one_row_each`); deals are single auctions to act on, so merging them helps nobody. Test: "H-004 1 and 4".
+
 ---
 
 ### 5. Buy bar reads `record.auction_count` instead of the merged row's `count`, showing `"2 for sale at this price"` or `"The last one at this price"` under a row of 56
@@ -79,6 +87,8 @@ Below are the seven findings in build 9 and one note on build 8.
 - **Why it matters to a player:** When a player clicks a merged gear row on the Search tab, the table row and the buy bar right underneath it say different numbers. In Tyler's Merc Sword of Healing case (`56` for sale at `11s` across four sellers: `10`, `2`, `39`, `5`), `child.record` is Kadathi's bucket (`auction_count = 2`). The table row shows `For sale: 56`, while the buy bar immediately below it says `"2 for sale at this price"`. Whenever the first seller in the merged group has only 1 auction (`auction_count = 1`), the buy bar says `"1 for sale at this price"` and `"The last one at this price"` even when the row has dozens more at that price and the next one will stay selected after buying. Passing the selected row's merged count (`selection.count`) to `buy_bar.show_item` for display while keeping `record.auction_count` inside `sync_bucket` keeps both in sync.
 - **How sure:** Fact from the addon code (`gui/buy_bar.lua`, `tabs/search/results.lua`, `gui/auction_listing.lua`).
 
+**Claude (2026-11-08): fixed, 0.8 build 10.** Confirmed. The table gives the kept record `group_count` (the row's count) and the buy bar shows it; `sync_bucket` still uses `auction_count`. Test: "H-004 5".
+
 ---
 
 ### 6. Seller count (`group_sellers`) in `UpdateRowInfo` overcounts when the same seller has multiple buckets at one price
@@ -89,6 +99,8 @@ Below are the seven findings in build 9 and one note on build 8.
 - **Where:** `auxForever/gui/auction_listing.lua:799-808`
 - **Why it matters to a player:** On Forever, the same seller can appear in multiple buckets at the same buyout price on one gear ending: either because they posted at two different durations (`Short` and `Long`), or because they posted two versions (`itemSuffix` 103 and 104) of the same ending (`[Seen]`, `docs/forever-auction-house.md`, section 9). If `child.record.owner` is `'Kadathi'` and `'Amelaina'` has two buckets at `11s`, `'Amelaina' ~= 'Kadathi'` is true for both of Amelaina's buckets, so `group_sellers` displays `"3 sellers"` in the Seller column and tooltip instead of `"2 sellers"`. Tracking seen seller names in a small table per `price_group` (and only adding 1 for a named seller the first time that name is seen in the group) fixes the count.
 - **How sure:** Fact from the addon code (`gui/auction_listing.lua:799-808`) and Forever's per-version item search rows (`[Seen]` and `[Code]`, `docs/forever-auction-house.md`, section 9).
+
+**Claude (2026-11-08): fixed, 0.8 build 10.** Confirmed, and visible in Tyler's build 9 screenshot ("65 sellers" for 69 Merc Swords of Healing). Named sellers are counted once per row; unnamed rows still add their `seller_count`. Test: "H-004 6".
 
 ---
 
@@ -101,6 +113,8 @@ Below are the seven findings in build 9 and one note on build 8.
   2. **Multiple endings of one base gear item are counted as 1 item:** Because `new_record` sets `record.item_key = item_id .. ':0'` (`auxForever/util/info.lua:187`), a full search for `merc sword` that returns several different endings (`of Healing`, `of Agility`, `of the Tiger`) sees only one `record.item_key` (`'4570:0'`), so `item_count` is `1` and the summary says `"N price levels"` instead of `"M items"`. Using `record.price_key or record.item_key` and reading the merged row count from `search.table.rowInfo` when available makes the badge and summary match the table.
 - **How sure:** Fact from the addon code (`tabs/search/results.lua:436-470`, `util/info.lua:187`, `gui/auction_listing.lua:775-825`).
 
+**Claude (2026-11-08): fixed, 0.8 build 10.** Confirmed (Tyler's screenshot: "311 price levels"). The count and summary group by price key and count rows with the same `auction_listing.price_group` the table uses. Test: "H-004 7".
+
 ---
 
 ### 8. Note on 0.8 build 8 (`46ecded`): `other_endings_lowest` from `skip_key` uses `result.minPrice`, which can be a starting bid or your own listing
@@ -109,3 +123,5 @@ Below are the seven findings in build 9 and one note on build 8.
 - **Where:** `auxForever/tabs/post/core.lua:957-967`
 - **Why it matters to a player:** Skipping the other endings' item searches cut a Merc Sword Post scan from ~25 requests down to 1-2 requests (`[Seen]`, 2026-11-08), which is a huge improvement. One small detail in `BrowseResultInfo` (`[Code]`, `docs/forever-auction-house.md`, section 9; also noted in `auxForever/tabs/sniper/core.lua:14`): `result.minPrice` on a browse row is the lowest price on that version, which can be a low starting bid rather than a buyout, or a version where `result.containsOwnerItem` is true and `result.totalQuantity == 1` (only your own auction). Because `other_endings_lowest` is only used as a clearly labeled fallback when nobody sells your item's ending (`"None of this name for sale: the cheapest other ending"`), it is never worth spending extra search requests just to verify buyout vs bid on other endings. One zero-cost guard is available if wanted: ignore `result.minPrice` when `owned_row(result)` is true (or when `result.containsOwnerItem` is true and `#result.owners == 1`), so your own listing of another ending is not suggested back to you as `"the cheapest other ending"`.
 - **How sure:** Fact from the addon code (`tabs/post/core.lua:957-967`) and `BrowseResultInfo` fields (`[Code]`, `docs/forever-auction-house.md`, section 2 and section 9).
+
+**Claude (2026-11-08): taken, 0.8 build 10.** A version holding only your own listing (`containsOwnerItem` and a total of 1) is not used for the suggestion. A starting bid in `minPrice` is left as is: the suggestion is labeled, and checking it would cost the searches build 8 removed. Test: "0.8: H-004 note 8".
