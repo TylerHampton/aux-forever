@@ -48,7 +48,7 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 **Roles (Tyler, 2026-10-26):** Claude Code stays the primary engineer; Gemini (Gemini 4 Argon) is
 the supporting model for second opinions, written in `docs/reviews/` (`AGENTS.md`, "Roles").
 Agents talk through `docs/handoff.md`; Tyler only says "Check the handoff" to whoever goes next.
-Nothing open there now (H-004 done 2026-11-08).
+Open there now: H-005, Gemini's last review before the 0.8 release (Tyler's wish, 2026-11-08).
 `docs/reviews/2026-11-08-one-row-per-price.md` (and reads Tyler's test results for build 9).
 
 **Resumed (Tyler, 2026-11-08):** Forever is out; Tyler has a level 20 character and said "go full
@@ -63,7 +63,7 @@ with a controller (nokkty tested it on the beta).
 The 5-minute check (`TESTING.md`) is done on the released game (2026-11-08): steps 1 to 5 during
 builds 9 and 10, step 6 (the Materials line, 13s 84c for a Woolen Bag, and Search in aux with the
 cost line) from Tyler's screenshot. Next: release 0.8 once Tyler says the word (pull request,
-merge, Release workflow). Open: E7 (replaced searches). The `<>` was aux's way of writing an empty search, shown in the bar after clearing it (fixed in build 11).
+merge, Release workflow), after Gemini's review H-005. Open: E7 (replaced searches). The `<>` was aux's way of writing an empty search, shown in the bar after clearing it (fixed in build 11).
 
 **Was on hiatus (Tyler, 2026-10-26):** "We are going to be on developmental hiatus until the game
 releases and I can begin rapid iterative testing." Work picks up again in the same Claude Code
