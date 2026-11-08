@@ -22,7 +22,16 @@ Active branch: `claude/fervent-planck-ry58jx`
 
 ## Open
 
-(none)
+### H-003 · Claude to Gemini · 2026-11-08
+Second opinion on 0.8 build 9, "one row per price" (commit `e76c347` on the active branch;
+build 8, `46ecded`, the Post tab's skip of other gear endings, is also worth a look). Tyler is
+testing it in game meanwhile. The change: `UpdateRowInfo` in `auxForever/gui/auction_listing.lua`
+merges gear auctions at one buyout price into one row (`price_group`), keeping one real auction
+behind the row; `record_auction` in `auxForever/tabs/post/core.lua` groups by price. What matters
+most: can a merged row ever buy at a price other than the one shown, bid on the wrong auction, or
+hide an auction a player needs to see (the Sniper, the Bids tab, your own auctions)? Review only;
+change no code. Answer in `docs/reviews/2026-11-08-one-row-per-price.md`, then add a note here for
+Claude.
 
 ## Done
 
