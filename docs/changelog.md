@@ -51,6 +51,8 @@ A change that comes from a player's feedback credits them by in-game name at the
 ### Fixes
 
 - Clearing the search bar and clicking elsewhere no longer leaves "<>" in it.
+- Buying a trade good: after Cancel (or when aux cancels a price that went up), the Buy button goes
+  back to its own color. It stayed Confirm green, as if a price were still waiting to be confirmed.
 
 ### Gear with random endings
 

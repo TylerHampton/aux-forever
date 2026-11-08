@@ -199,9 +199,13 @@ try('buy bar', function()
   local cancel_button
   for _, f in ipairs(frames) do if f.__text == 'Cancel' and not cancel_button then cancel_button = f end end -- the buy bar's is created first
   calls = {}
+  -- the colors the Buy button is painted in (0.8, Tyler: it stayed Confirm green after Cancel)
+  local painted
+  rawset(bar.primary_button, 'SetBackdropBorderColor', function(_, r, g, b) painted = r .. ',' .. g .. ',' .. b end)
   bar.primary_click()
   fire('COMMODITY_PRICE_UPDATED', 6, 120)
   tick()
+  local confirm_paint = painted
   check('Cancel button exists and is shown with a quote', cancel_button and cancel_button.__shown)
   -- the bar redraws every frame; hiding the button between mouse press and release loses the click
   local hides = 0
@@ -213,6 +217,8 @@ try('buy bar', function()
   tick()
   check('Cancel button cancels the quote', calls[2] == 'cancel' and #calls == 2)
   check('Cancel button returns to Buy', bar.primary_label():find('^Buy') ~= nil)
+  check('after Cancel the Buy button loses the Confirm color', confirm_paint and painted ~= confirm_paint)
+  rawset(bar.primary_button, 'SetBackdropBorderColor', nil)
 
   -- selecting something else while a price is shown cancels it
   calls = {}

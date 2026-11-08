@@ -60,8 +60,11 @@ end
 local function style_button(button, look, _, enabled)
     enabled = enabled and true or false
     if button.aux_look == look and button.aux_shown_enabled == enabled then return end
-    button.aux_look, button.aux_shown_enabled = look, enabled
+    button.aux_shown_enabled = enabled
     if enabled then button:Enable() else button:Disable() end
+    -- painted whenever the look changes: Enable and Disable repaint only when the button's state
+    -- changes, so Confirm, then Cancel kept the Confirm green on a Buy button (Tyler, 0.8)
+    gui.apply_look(button, look)
 end
 
 -- Money for button labels: the coloured g/s/c of money.to_string vanish on the coloured buttons

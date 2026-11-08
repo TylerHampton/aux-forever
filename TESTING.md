@@ -8,7 +8,18 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8 build 11
+## Current build: 0.8 build 12
+
+The release candidate for 0.8. On top of build 11 (the empty search bar): after Cancel on a trade
+good's price, the Buy button kept the Confirm green (Tyler's screenshot, Wool Cloth). It is
+repainted whenever its look changes now. Zip `auxForever-0.8-build12.zip`; `/reload` is enough.
+Test page build id `0-8-build-12`.
+
+- [ ] 1. Search a cheap trade good (`wool cloth`), click a row, Buy: the button turns to Confirm in
+      green. Click Cancel: the button says Buy again in its normal color, not green.
+- [ ] 2. Search tab: clear the search bar (right-click it), click somewhere else: it stays empty.
+
+### 0.8 build 11
 
 The release candidate for 0.8. One fix on top of build 10: clearing the search bar and clicking
 elsewhere showed "<>" (Tyler: "This appears when you clear the search bar and click somewhere
