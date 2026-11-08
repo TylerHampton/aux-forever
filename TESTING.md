@@ -19,6 +19,9 @@ Test page build id `0-8-build-12`.
       green. Click Cancel: the button says Buy again in its normal color, not green.
 - [ ] 2. Search tab: clear the search bar (right-click it), click somewhere else: it stays empty.
 
+Tested by Tyler 2026-11-08 (test page `0-8-build-12`): step 1 passes; step 2 passes from the
+screenshot (an empty bar, the Wool Cloth buy bar's button back to its normal look).
+
 ### 0.8 build 11
 
 The release candidate for 0.8. One fix on top of build 10: clearing the search bar and clicking

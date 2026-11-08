@@ -54,7 +54,7 @@ Nothing open there now (H-004 done 2026-11-08).
 **Resumed (Tyler, 2026-11-08):** Forever is out; Tyler has a level 20 character and said "go full
 auto mode". **0.8 build 12** (the release candidate) is on `claude/fervent-planck-ry58jx`: build 10,
 tested on the released game with all steps passing, plus the `<>` fix (build 11) and the Buy
-button that stayed Confirm green after Cancel (build 12) (`TESTING.md`). On the released game: aux loads with no errors, saved prices
+button that stayed Confirm green after Cancel (build 12), both passed in game (`TESTING.md`). On the released game: aux loads with no errors, saved prices
 survive a login, Full scan works (build 7); the Post tab loads gear fast (build 8); one row per
 price works and buying from a merged row passes (build 9); Gemini's second review is taken and
 checked (build 10). Every 0.8 item is built and tested, except gamepad, which Tyler left to players
