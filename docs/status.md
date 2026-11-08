@@ -1,6 +1,12 @@
 # Status
 
-Last updated 2026-10-26, Tyler's time (**development paused until World of Warcraft: Forever releases**; 0.8 build 6 built, not tested; 0.7.1.1 is the latest release).
+Last updated 2026-11-08, Tyler's time (**development paused until World of Warcraft: Forever releases**; 0.8 build 6 built, reviewed by Gemini in H-001, not yet tested in game; 0.7.1.1 is the latest release).
+
+**2026-11-08, Gemini remote setup and H-001 gear versions review (docs only, no addon change):**
+Updated `GEMINI.md` for Antigravity remote Linux VM mode (and removed the local Windows path per the
+privacy rule), synced the Claude + Gemini workflow rules onto `main`, and completed H-001 in
+`docs/reviews/2026-10-26-gear-versions.md` (six findings on 0.8 builds 3 to 6). Opened H-002 in
+`docs/handoff.md` for Claude to check the findings.
 
 **2026-10-25, Gemini (Antigravity) tandem setup (docs only, no addon change):** Tyler brought
 Gemini (Antigravity) onto the project alongside Claude Code. Local workspace synced to
@@ -37,7 +43,7 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 **Roles (Tyler, 2026-10-26):** Claude Code stays the primary engineer; Gemini (Gemini 4 Argon) is
 the supporting model for second opinions, written in `docs/reviews/` (`AGENTS.md`, "Roles").
 Agents talk through `docs/handoff.md`; Tyler only says "Check the handoff" to whoever goes next.
-Open there now: H-001, Gemini reviews the gear versions work.
+Open there now: H-002, Claude checks Gemini's review in `docs/reviews/2026-10-26-gear-versions.md`.
 
 **On hiatus (Tyler, 2026-10-26):** "We are going to be on developmental hiatus until the game
 releases and I can begin rapid iterative testing." Work picks up again in the same Claude Code
