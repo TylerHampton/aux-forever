@@ -8,7 +8,28 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8 build 7
+## Current build: 0.8 build 8
+
+From Tyler's test of build 7: the Post tab took a long time to load a Merc Sword. It searched every
+ending of the item (about 25 searches); it now searches only the versions of its own ending and
+takes the other endings' lowest prices from the item list. Zip `auxForever-0.8-build8.zip`;
+`/reload` is enough. Test page build id `0-8-build-8`.
+
+- [ ] 1. Post tab, a Merc Sword: the bar at the bottom turns gold in a few seconds (it took much
+      longer in build 7), and the list matches a Search tab search of that full name.
+- [ ] 2. Gear whose ending nobody sells: a price is still suggested ("None of this name for sale:
+      the cheapest other ending").
+
+### 0.8 build 7
+
+Tested by Tyler 2026-11-08 on the released game (test page `0-8-build-7`, screenshots): step 1
+passes (aux loads, BugSack "You have no bugs, yay!", a Full scan recorded 161,999 auctions; the
+`GetBuildInfo()` line was not captured), step 2 passes (Value kept after a login). Step 3: the Post
+tab's Merc Sword of Healing list matched the search (11s: 2, 5, 39 and 10 for sale; 12s, 18s,
+30s), but loading took long (fixed in build 8). Tyler asked why one price shows as several rows
+(four rows at 11s): open design question, `docs/status.md`. Steps 4 and 5 not done (the game
+changed since the beta, so Tyler's items differ). The search bar showed `<>` once, cause unknown.
+
 
 The first build on the released game. Fixes from Gemini's review of gear versions (H-002, all six
 findings, `docs/reviews/2026-10-26-gear-versions.md`) on top of build 6, which was never tested.

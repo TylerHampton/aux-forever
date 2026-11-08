@@ -57,6 +57,9 @@ A change that comes from a player's feedback credits them by in-game name at the
   price. `/aux price` takes a typed name with its ending.
 - When one name is listed under several versions, aux's price for the day now counts every version,
   not only the last one it read.
+- Post tab: gear with an ending loads much faster. aux searches only the versions of its own name
+  and takes the other endings' lowest prices from the item list, instead of searching every ending
+  (a Merc Sword took about 25 searches).
 - Auctions tab: your gear is checked against every listing of its name. The auction house files
   one name under several versions with the same stats, and checking only your exact version said
   "Only one listed" while others of the same name were for sale.

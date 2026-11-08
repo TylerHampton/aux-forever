@@ -951,9 +951,22 @@ function refresh_entries()
                     end
                 end
             end,
+			-- 0.8: only the versions of this item's own name are read; another ending is skipped and its
+			-- lowest price, from the item list, kept for the suggestion (Tyler, build 7: "loading the
+			-- post took quite a long time"). A version whose name has not loaded yet is read.
+			skip_key = not by_key and function(result)
+			    local key_of_result = info.item_key_price_key(result.itemKey)
+			    if not key_of_result or key_of_result == item_key or result.itemKey.itemID ~= selected_item.item_id then
+			        return false
+			    end
+			    local unit = result.minPrice or 0
+			    if unit > 0 and (not other_endings_lowest or unit < other_endings_lowest) then
+			        other_endings_lowest = unit
+			    end
+			    return true
+			end or nil,
 			on_auction = function(auction_record)
-				-- 0.8: gear is compared with listings of its own name only (the search reads every
-				-- version of the item)
+				-- 0.8: gear is compared with listings of its own name only
 				if (auction_record.price_key or auction_record.item_key) == item_key then
                     record_auction(auction_record)
 				-- the cheapest other ending, to suggest a price when nobody sells this one (Tyler,

@@ -497,12 +497,20 @@ return function(env)
     server:ticks(2)
     post.select_item('4575:of the bandit')
     check('gear: the Bandit staff is its own item in the bag list', post.selected_item and post.selected_item.key == '4575:of the bandit')
+    local requests_before = #server.requests
     post.select_item('4575:of the wolf')
     check('gear: and so is the Wolf staff', post.selected_item and post.selected_item.key == '4575:of the wolf')
     check('gear: each is named with its ending', post.selected_item and post.selected_item.name == 'Medicine Staff of the Wolf')
     check('gear: the listings arrive', server:wait(function() return aux.status_bar.done and post.selected_item and post.selected_item.key == '4575:of the wolf' end, 150))
     server:ticks(3)
     check('gear: priced against the cheapest Wolf of every version, not the cheaper endings', post.get_unit_buyout_price() == 14000)
+    -- only the Wolf's own two versions are searched; the other endings' lowest prices come from the
+    -- item list (Tyler, build 7: a Merc Sword took about 25 requests)
+    local searches = 0
+    for i = requests_before + 1, #server.requests do
+      if server.requests[i]:find('^search ') then searches = searches + 1 end
+    end
+    check('gear: only the versions of its own name are searched', searches == 2)
     check('gear: the Wolf listing is shown in the table', plain(post.price_note_text()):find('lowest listing', 1, true) ~= nil)
     click_post(post)
     server:ticks(20)

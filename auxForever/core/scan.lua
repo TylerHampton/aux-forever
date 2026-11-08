@@ -731,13 +731,22 @@ function scan()
             end
         else
             local t_browse = GetTime()
-            local item_keys = browse(get_query().blizzard_query or empty)
+            local results = browse_results(get_query().blizzard_query or empty)
             timing_add('browse', GetTime() - t_browse)
             -- the item list's own request time is counted as item list, not as server answers
-            if timing and item_keys then
+            if timing and results then
                 timing.answer = max(0, timing.answer - (GetTime() - t_browse))
             end
-            if item_keys then
+            if results then
+                -- 0.8: params.skip_key leaves out items the caller needs only the lowest price of,
+                -- which the item list already gives (the Post tab's other gear endings: one search
+                -- each made a Merc Sword take about 25 requests, Tyler, build 7)
+                local item_keys = {}
+                for _, result in ipairs(results) do
+                    if not (state.params.skip_key and state.params.skip_key(result)) then
+                        tinsert(item_keys, result.itemKey)
+                    end
+                end
                 scan_item_keys(item_keys)
             else
                 aux.print('the auction house did not respond to the search')
