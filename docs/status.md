@@ -1,10 +1,11 @@
 # Status
 
-Last updated 2026-11-08, Tyler's time (0.8 build 14 waiting for Tyler's test: crate tooltips in aux's results and the For sale sort, from his build 13 test; 0.7.1.1 is the latest release).
+Last updated 2026-11-08, Tyler's time (0.8 build 14 passed in game; waiting for Tyler's "release 0.8"; 0.7.1.1 is the latest release).
 
 **2026-11-08, Claude, 0.8 build 14:** Tyler's build 13 test: Seller sort, gear Value and the new
 help text pass; crates hovered in aux's results showed no costs, and For sale sorted an item by its
-first price only. Both fixed with a test each (`TESTING.md`, build 14).
+first price only. Both fixed with a test each (`TESTING.md`, build 14). Build 14 passed in game:
+crate costs show in aux's results and in the bags, and For sale sorts by each item's total.
 
 **2026-11-08, Claude, H-006 (0.8 build 13):** checked Gemini's eight pre-release findings; seven
 fixed with a test each, the eighth (release text) rewritten. Answers under each finding in
@@ -68,7 +69,7 @@ Nothing is open there (H-006 done, 2026-11-08).
 
 **Resumed (Tyler, 2026-11-08):** Forever is out; Tyler has a level 20 character and said "go full
 auto mode". **0.8 build 14** (the release candidate: Gemini's H-006 findings in build 13, tested by
-Tyler, plus two fixes from that test; `TESTING.md` has build 14's three steps) is on `claude/fervent-planck-ry58jx`. Before it: build 10,
+Tyler, plus two fixes from that test; all three build 14 steps passed in game) is on `claude/fervent-planck-ry58jx`. Before it: build 10,
 tested on the released game with all steps passing, plus the `<>` fix (build 11) and the Buy
 button that stayed Confirm green after Cancel (build 12), both passed in game (`TESTING.md`). On the released game: aux loads with no errors, saved prices
 survive a login, Full scan works (build 7); the Post tab loads gear fast (build 8); one row per
@@ -78,7 +79,7 @@ with a controller (nokkty tested it on the beta).
 
 The 5-minute check (`TESTING.md`) is done on the released game (2026-11-08): steps 1 to 5 during
 builds 9 and 10, step 6 (the Materials line, 13s 84c for a Woolen Bag, and Search in aux with the
-cost line) from Tyler's screenshot. Next: Tyler tests build 14, then 0.8 releases once Tyler says "release 0.8" (pull request,
+cost line) from Tyler's screenshot. Next: 0.8 releases once Tyler says "release 0.8" (pull request,
 merge, Release workflow). Open: E7 (replaced searches). The `<>` was aux's way of writing an empty search, shown in the bar after clearing it (fixed in build 11).
 
 **Was on hiatus (Tyler, 2026-10-26):** "We are going to be on developmental hiatus until the game

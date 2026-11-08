@@ -25,6 +25,13 @@ before that and kept "not a crate" for the session; it now waits for the list (B
 - [ ] 3. Search `merc sword` (Full), click For sale until the arrow points down: the numbers in
       that column only go down from the top (an item with yours, like "18 (1)", sits by its 18).
 
+Tested by Tyler 2026-11-08 (test page `0-8-build-14`, screenshots, no marks; judged from the
+screenshots): all three pass. In aux's results Apprentice Ore (20 Copper Ore 25s 80c, cheapest;
+20 Tin Ore 32s 20c), Earthly Expert Herbs (four bundles, 10 Khadgar's Whisker 35s cheapest) and
+Artisan Textiles (20 Thick Leather 96s 60c cheapest) show "Cheapest way to fill it"; the
+Apprentice Ore crate in the bags shows the same; For sale sorted down puts "Merc Sword of Stamina
+20 (1)" among the 20s.
+
 ### 0.8 build 13
 
 The release candidate for 0.8, after Gemini's last review (H-006,
