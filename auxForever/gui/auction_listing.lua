@@ -27,7 +27,10 @@ end)
 
 -- auxForever: Forever names the seller only when one player sells at a row's price
 function M.seller_text(record)
-    if info.is_player(record.owner) then
+    -- 0.8: a row of several sellers' auctions at one price (UpdateRowInfo)
+    if (record.group_sellers or 0) > 1 then
+        return aux.color.label.enabled(record.group_sellers .. ' sellers')
+    elseif info.is_player(record.owner) then
         return aux.color.yellow(record.owner)
     elseif record.owner then
         return record.owner
@@ -772,23 +775,51 @@ local methods = {
         local function group(record) return record.price_key or record.item_key end
         self.rowInfo.single_item = aux.all(records, function(record) return group(record) == group(records[1]) end)
 
-        sort(records, function(a, b) return a.search_signature < b.search_signature or a.search_signature == b.search_signature and tostring(a) < tostring(b) end)
+        -- auxForever (0.8, Tyler, build 7: "Why are we separating these lines?"): gear auctions at one
+        -- buyout price are one row, whoever sells them and whatever time they have left. The auction
+        -- house hands them over per seller and time left; four sellers at 11s were four rows. The row
+        -- keeps one real auction behind it (the lowest starting bid), so buying it buys exactly the
+        -- price shown; when it is gone the next one moves up. Trade goods come grouped by price
+        -- already; the Auctions tab keeps each of your auctions apart (one_row_each).
+        local function price_group(record)
+            if self.one_row_each or record.commodity or record.fast then
+                return record.search_signature
+            end
+            return aux.join({group(record), record.buyout_price, record.count or 1, record.sale_status or 0,
+                info.is_player(record.owner) and 1 or 0, record.high_bidder and 1 or 0}, ':')
+        end
+        for _, record in ipairs(records) do
+            record.price_group, record.group_sellers = price_group(record), nil
+        end
+        sort(records, function(a, b)
+            if a.price_group ~= b.price_group then return a.price_group < b.price_group end
+            return a.search_signature < b.search_signature or a.search_signature == b.search_signature and tostring(a) < tostring(b)
+        end)
 
+        local sellers -- the sellers of the row being built, to say "4 sellers"
         for i = 1, #records do
             local record = records[i]
             local prevRecord = records[i - 1]
-            if prevRecord and record.search_signature == prevRecord.search_signature then
-                -- it's an identical auction to the previous row so increment the number of auctions
-                -- Forever: one record can stand for a bucket of identical auctions (auction_count)
-                self.rowInfo[#self.rowInfo].children[#self.rowInfo[#self.rowInfo].children].count = self.rowInfo[#self.rowInfo].children[#self.rowInfo[#self.rowInfo].children].count + (record.auction_count or 1)
+            if prevRecord and record.price_group == prevRecord.price_group then
+                local child = self.rowInfo[#self.rowInfo].children[#self.rowInfo[#self.rowInfo].children]
+                if record.owner ~= child.record.owner or not record.owner then
+                    sellers = sellers + max(1, record.seller_count or 1)
+                    child.record.group_sellers = sellers
+                end
+                -- the same price as the previous row (identical, or another seller or time left), so
+                -- it adds to that row's count. Forever: one record can stand for a bucket of identical
+                -- auctions (auction_count)
+                child.count = child.count + (record.auction_count or 1)
             elseif not self.rowInfo.single_item and not self.one_row_each and prevRecord and group(record) == group(prevRecord) then
                 -- it's the same base item as the previous row so insert a new auction
+                sellers = max(1, record.seller_count or 1)
                 tinsert(self.rowInfo[#self.rowInfo].children, { count = record.auction_count or 1, record = record })
                 if self.expanded[self.rowInfo[#self.rowInfo].expandKey] then
                     self.rowInfo.numDisplayRows = self.rowInfo.numDisplayRows + 1
                 end
             else
                 -- it's a different base item from the previous row
+                sellers = max(1, record.seller_count or 1)
                 tinsert(self.rowInfo, { item_key = record.item_key, expandKey = group(record), children = {{ count = record.auction_count or 1, record = record }} })
                 self.rowInfo.numDisplayRows = self.rowInfo.numDisplayRows + 1
             end

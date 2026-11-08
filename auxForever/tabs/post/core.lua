@@ -1015,10 +1015,18 @@ function M.record_auction(auction)
     -- item key was never found (Tyler, build 4: Merc Sword of Agility, 4 listed, none shown)
     local key = auction.price_key or auction.item_key
     bid_records[key] = bid_records[key] or {}
+    -- 0.8 (Tyler, build 7: "Why are we separating these lines?"): one row per price, yours apart,
+    -- with the longest time left, for gear as for trade goods: seller and time left do not change
+    -- what to post at. Four sellers at 11s were four rows.
+    local function longest(entry)
+        if auction.duration and (not entry.duration or auction.duration > entry.duration) then
+            entry.duration = auction.duration
+        end
+    end
     if not auction.commodity then
 	    local entry
 	    for _, record in pairs(bid_records[key]) do
-	        if auction.unit_blizzard_bid == record.unit_price and auction.count == record.stack_size and auction.duration == record.duration and info.is_player(auction.owner) == record.own then
+	        if auction.unit_blizzard_bid == record.unit_price and info.is_player(auction.owner) == record.own then
 	            entry = record
 	        end
 	    end
@@ -1027,6 +1035,7 @@ function M.record_auction(auction)
 	        tinsert(bid_records[key], entry)
 	    end
 	    entry.count = entry.count + (auction.auction_count or 1)
+	    longest(entry)
     end
     buyout_records[key] = buyout_records[key] or {}
     if auction.unit_buyout_price == 0 then return end
@@ -1054,7 +1063,7 @@ function M.record_auction(auction)
     do
 	    local entry
 	    for _, record in pairs(buyout_records[key]) do
-		    if auction.unit_buyout_price == record.unit_price and auction.count == record.stack_size and auction.duration == record.duration and info.is_player(auction.owner) == record.own then
+		    if auction.unit_buyout_price == record.unit_price and info.is_player(auction.owner) == record.own then
 			    entry = record
 		    end
 	    end
@@ -1063,6 +1072,7 @@ function M.record_auction(auction)
 		    tinsert(buyout_records[key], entry)
 	    end
 	    entry.count = entry.count + (auction.auction_count or 1)
+	    longest(entry)
     end
 end
 

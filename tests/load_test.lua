@@ -855,9 +855,17 @@ try('post: one row per price for commodities', function()
   post.record_auction({item_key = '5210:0', unit_buyout_price = 700, unit_blizzard_bid = 700, count = 1, duration = 2, owner = 'Someone'})
   post.selected_item = {key = '5210:0', item_id = 5210, name = 'Blazing Wand', quality = 2, count = 1, max_stack = 1}
   post.update_auction_listings()
+  -- 0.8 (Tyler, build 7: "Why are we separating these lines?"): gear is one row per price too
+  n = 0
+  local wand
+  for _, row in ipairs(data or {}) do if not row.record.historical_value then n = n + 1; wand = row end end
+  check('gear rows: one row per price, whatever the time left', n == 1 and wand.cols[1].value == 2)
+  check('gear rows: the longest time left', wand and wand.record.duration == 4)
+  post.record_auction({item_key = '5210:0', unit_buyout_price = 700, unit_blizzard_bid = 700, count = 1, duration = 3, owner = 'P'})
+  post.update_auction_listings()
   n = 0
   for _, row in ipairs(data or {}) do if not row.record.historical_value then n = n + 1 end end
-  check('gear rows: auctions with another time left stay apart', n == 2)
+  check('gear rows: your own stay a row of their own', n == 2)
   rawset(post.buyout_listing, 'SetData', nil)
   post.selected_item = nil
   post.clear_auctions()
@@ -4399,6 +4407,57 @@ try('0.8: review H-002', function()
   auctions.listing.records = real_records
   rawset(scan_exports, 'start', real_start)
   ids['medicine staff'] = nil
+  G.GetItemInfo = real_get_info
+end)
+
+-- 0.8 (Tyler, build 7: "Why are we separating these lines?"): one row per price in the result
+-- tables. His Merc Sword of Healing search: 11s from four sellers (10, 2, 39 and 5 for sale, four
+-- time lefts), 12s twice (one with an 11s bid), 18s and 30s.
+try('0.8: one row per price', function()
+  local info = loadstring("select(2, ...) 'aux.util.info'; return _M")('auxForever', addon)
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local al = loadstring("select(2, ...) 'aux.gui.auction_listing'; return _M")('auxForever', addon)
+  local real_get_info = G.GetItemInfo
+  G.GetItemInfo = function(x)
+    if x == 4570 or (type(x) == 'string' and x:find('item:4570', 1, true)) then
+      return 'Merc Sword', type(x) == 'string' and x or nil, 2, 16, 11, 'Weapon', 'One-Handed Swords', 1, 'INVTYPE_WEAPON', 1, 1049
+    end
+    return real_get_info(x)
+  end
+  local link = '|cff1eff00|Hitem:4570::::::::20:1487::1:1:12700:1:28:5254::::|h[Merc Sword of Healing]|h|r'
+  local id = 0
+  local function row(seller, quantity, buyout, bid, band)
+    id = id + 1
+    return info.item_search_record({itemKey = {itemID = 4570, itemSuffix = 0}, itemLink = link, auctionID = id, quantity = quantity,
+      buyoutAmount = buyout, minBid = bid or 0, owners = {seller}, totalNumberOfOwners = 1, timeLeft = band})
+  end
+  local records = {
+    row('Amelaina', 10, 1100, nil, 3), row('Kadathi', 2, 1100, nil, 0), row('Matkal', 39, 1100, nil, 2), row('Miguel', 5, 1100, nil, 1),
+    row('Freddy', 1, 1200, 1100, 2), row('Bigldaddyl', 1, 1200, nil, 3), row('Lemon', 1, 1800, 1200, 2), row('Ungido', 1, 3000, nil, 2),
+  }
+  local t = search.current_search().table
+  t:SetDatabase(records)
+  -- one item in the table: each price is a row of its own
+  local by_price, n = {}, 0
+  for _, info_row in ipairs(t.rowInfo) do
+    for _, child in ipairs(info_row.children) do n = n + 1; by_price[child.record.buyout_price] = child end
+  end
+  check('rows: one row per price (11s, 12s, 18s, 30s)', n == 4 and t.rowInfo.numDisplayRows == 4)
+  check('rows: 11s adds up the four sellers', by_price[1100] and by_price[1100].count == 56)
+  local function plain(x) return ((x or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  check('rows: and says so', by_price[1100] and plain(al.seller_text(by_price[1100].record)) == '4 sellers')
+  check('rows: 12s is one row, with and without a bid', by_price[1200] and by_price[1200].count == 2)
+  check('rows: the row buys a real auction at the price shown', by_price[1100] and by_price[1100].record.buyout_price == 1100 and by_price[1200].record.buyout_price == 1200)
+  check('rows: one seller is named as before', by_price[3000] and plain(al.seller_text(by_price[3000].record)) == 'Ungido')
+  -- the Auctions tab keeps each of your own auctions on its own row
+  local auctions = loadstring("select(2, ...) 'aux.tabs.auctions'; return _M")('auxForever', addon)
+  local mine = {row('P', 1, 1100, nil, 3), row('P', 1, 1100, nil, 2)}
+  for _, r in ipairs(mine) do r.auction_id = r.auction_id + 1000; info.signatures(r) end
+  local real = auctions.listing.records
+  auctions.listing:SetDatabase(mine)
+  check('rows: the Auctions tab keeps one row per auction', auctions.listing.rowInfo.numDisplayRows == 2)
+  auctions.listing:SetDatabase(real or {})
+  t:SetDatabase({})
   G.GetItemInfo = real_get_info
 end)
 

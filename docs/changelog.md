@@ -38,6 +38,15 @@ A change that comes from a player's feedback credits them by in-game name at the
   stays in Recent searches as "Crate  Journeyman Textiles  (3 bundles)". Shift-click and
   right-click on a crate still search the crate itself.
 
+### One row per price
+
+- Search results, the Sniper and the Post tab show one row per price. The auction house hands
+  listings over per seller and time left, so one price could fill several rows (four rows of Merc
+  Swords of Healing at 11s, 56 for sale in all). Now it is one row, "For sale" adds them up, and the
+  seller column says how many sellers there are. Buying from the row buys one real auction at the
+  price shown; when it is gone the next one moves up. Your own auctions stay on a row of their
+  own, and the Auctions tab still shows each of your auctions separately.
+
 ### Gear with random endings
 
 - Gear with a random ending ("Medicine Staff of the Wolf") now has its own price per ending. Before,

@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-08, Tyler's time (work resumed on the released game; 0.8 build 8 waiting for Tyler's test; 0.7.1.1 is the latest release).
+Last updated 2026-11-08, Tyler's time (work resumed on the released game; 0.8 build 9 waiting for Tyler's test; 0.7.1.1 is the latest release).
 
 **2026-11-08, Gemini remote setup and H-001 gear versions review (docs only, no addon change):**
 Updated `GEMINI.md` for Antigravity remote Linux VM mode (and removed the local Windows path per the
@@ -45,20 +45,14 @@ the supporting model for second opinions, written in `docs/reviews/` (`AGENTS.md
 Agents talk through `docs/handoff.md`; Tyler only says "Check the handoff" to whoever goes next.
 Nothing open there now (H-002 done 2026-11-08).
 
-**Resumed (Tyler, 2026-11-08):** Forever is out; Tyler has a level 20 character. **0.8 build 8** is
+**Resumed (Tyler, 2026-11-08):** Forever is out; Tyler has a level 20 character. **0.8 build 9** is
 on `claude/fervent-planck-ry58jx`, waiting for his test (`TESTING.md`, zip
-`auxForever-0.8-build8.zip`, test page build `0-8-build-8`). Build 7 on the released game: aux
-loads with no errors, saved prices survive a login, a Full scan recorded 161,999 auctions; the
-Post tab was slow for gear (build 8 searches only the item's own ending). Gemini's six findings
-(H-002) are fixed since build 7.
-
-Open for Tyler: **one price, several rows.** A search for Merc Sword of Healing showed four rows at
-11s (10, 2, 39 and 5 for sale): one per seller and time left, which is how the auction house hands
-the listings over and how aux and Blizzard's window show them. Tyler: "Why are we separating these
-lines?" Claude's suggestion: one row per price on the Post tab (time left and seller do not change
-what to post at), and on the Search tab one row per price too, with the sellers counted and the
-single listings behind an expand click. Waiting for his choice; a mockup before building. Also
-asked: where the `<>` in the search bar came from.
+`auxForever-0.8-build9.zip`, test page build `0-8-build-9`): one row per price in search results,
+the Sniper and the Post tab. Tyler, on build 8: "Just go full auto mode and do your changes. I
+trust you." (no mockup for this one). In game so far on the released game: aux loads with no
+errors, saved prices survive a login, a Full scan recorded 161,999 auctions (build 7); the Post
+tab loads gear in a few seconds (build 8). Gemini's six findings (H-002) are fixed since build 7.
+Open: where the `<>` in the search bar came from (Tyler did not say yet).
 
 **Was on hiatus (Tyler, 2026-10-26):** "We are going to be on developmental hiatus until the game
 releases and I can begin rapid iterative testing." Work picks up again in the same Claude Code

@@ -8,7 +8,25 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8 build 8
+## Current build: 0.8 build 9
+
+One row per price (Tyler, build 7: "Why are we separating these lines?"; build 8: "go full auto").
+Search results, the Sniper and the Post tab merge gear auctions at one buyout price into one row,
+whatever the seller and time left; the seller column says "4 sellers". Zip
+`auxForever-0.8-build9.zip`; `/reload` is enough. Test page build id `0-8-build-9`.
+
+- [ ] 1. Search `merc sword of healing` (Full): one row per price; the 11s row adds up all the
+      sellers at 11s and says how many sellers. Screenshot.
+- [ ] 2. Buy one from the cheapest row (Buy, then Confirm): it costs the price shown, and the row's
+      count goes down by one (or the next seller's auctions take its place).
+- [ ] 3. Post tab, the same sword: one row per price there too (yours on a row of their own).
+- [ ] 4. Auctions tab, if you have auctions up: each of your auctions is still its own row.
+
+### 0.8 build 8
+
+Tested by Tyler 2026-11-08 (test page `0-8-build-8`): step 1 passes (gear loads in a few seconds),
+step 2 skipped.
+
 
 From Tyler's test of build 7: the Post tab took a long time to load a Merc Sword. It searched every
 ending of the item (about 25 searches); it now searches only the versions of its own ending and

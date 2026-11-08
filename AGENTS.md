@@ -220,7 +220,10 @@ Load order is the TOC (`auxForever/auxForever.toc`).
 - `gui/auction_listing.lua`: the result tables (columns Req, iLvl, Item, For sale, ...; Tyler,
   0.7: Req always first, and the units for sale never sit next to another column of plain numbers). Since 0.7
   Req is colored by distance from the player's level (`requirement_color`) and iLvl shows gear's
-  item level (`record.item_level`); the Sniper and Auctions tabs reuse both columns.
+  item level (`record.item_level`); the Sniper and Auctions tabs reuse both columns. Since 0.8 gear
+  auctions at one buyout price are one row whatever the seller and time left (`price_group` in
+  `UpdateRowInfo`, Tyler: "Why are we separating these lines?"); the row keeps one real auction
+  (the one bought), `one_row_each` tables (Auctions) keep every auction apart.
   `gui/buy_bar.lua`: buying under the search results.
 - `tabs/search/`: `core.lua` (sub tabs), `results.lua` (searches, history arrows), `saved.lua`
   (favorites and recent), `quick.lua` (quick search menu), `filter.lua` (Filter Builder logic:
