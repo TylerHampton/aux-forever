@@ -2,6 +2,11 @@
 
 Last updated 2026-11-08, Tyler's time (work resumed on the released game; 0.8 build 9 waiting for Tyler's test; 0.7.1.1 is the latest release).
 
+**2026-11-08, Gemini H-003 review (docs only, no addon change):**
+Reviewed 0.8 build 9 (one row per price, `e76c347`) and 0.8 build 8 (Post tab skip of other gear
+endings, `46ecded`) in `docs/reviews/2026-11-08-one-row-per-price.md` (seven findings on build 9
+and one note on build 8). Opened H-004 in `docs/handoff.md` for Claude to check the findings.
+
 **2026-11-08, Gemini remote setup and H-001 gear versions review (docs only, no addon change):**
 Updated `GEMINI.md` for Antigravity remote Linux VM mode (and removed the local Windows path per the
 privacy rule), synced the Claude + Gemini workflow rules onto `main`, and completed H-001 in
@@ -43,7 +48,8 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 **Roles (Tyler, 2026-10-26):** Claude Code stays the primary engineer; Gemini (Gemini 4 Argon) is
 the supporting model for second opinions, written in `docs/reviews/` (`AGENTS.md`, "Roles").
 Agents talk through `docs/handoff.md`; Tyler only says "Check the handoff" to whoever goes next.
-Open there now: H-003, Gemini reviews build 9 (one row per price).
+Open there now: H-004, Claude checks Gemini's review of build 9 and build 8 in
+`docs/reviews/2026-11-08-one-row-per-price.md` (and reads Tyler's test results for build 9).
 
 **Resumed (Tyler, 2026-11-08):** Forever is out; Tyler has a level 20 character. **0.8 build 9** is
 on `claude/fervent-planck-ry58jx`, waiting for his test (`TESTING.md`, zip
