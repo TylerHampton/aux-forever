@@ -127,7 +127,7 @@ handlers = {
 			execute()
         elseif button == 'RightButton' and IsControlKeyDown() then
             if st == favorite_searches_listing then
-                StaticPopup_Show('AUX_RENAME_FAVORITE', favorite_searches[data.index].prettified, nil, favorite_searches[data.index])
+                aux.show_popup('AUX_RENAME_FAVORITE', favorite_searches[data.index].prettified, nil, favorite_searches[data.index])
             end
 		elseif button == 'RightButton' then
 			if st == recent_searches_listing then
@@ -139,7 +139,7 @@ handlers = {
 				tinsert(favorite_searches, 1, data.search)
                 update_search_listings()
 			elseif st == favorite_searches_listing then
-                StaticPopup_Show('AUX_REMOVE_FAVORITE_CONFIRMATION', nil, nil, data.index)
+                aux.show_popup('AUX_REMOVE_FAVORITE_CONFIRMATION', nil, nil, data.index)
             end
         end
 	end,
@@ -164,7 +164,11 @@ handlers = {
             update_search_listings()
         end
 		GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
-		if data.search.recipe then
+		if data.search.recipe and data.search.recipe.crate then
+			GameTooltip:AddLine('Crate: ' .. (data.search.recipe.name or '?'), aux.color.accent.background())
+			GameTooltip:AddLine('Searches every bundle and finds the cheapest way to fill it.', 1, 1, 1, true)
+			GameTooltip:AddLine(' ')
+		elseif data.search.recipe then
 			GameTooltip:AddLine('Recipe: ' .. (data.search.recipe.name or '?'), aux.color.accent.background())
 			GameTooltip:AddLine('Searches the item and its materials, and adds up the cost.', 1, 1, 1, true)
 			GameTooltip:AddLine(' ')

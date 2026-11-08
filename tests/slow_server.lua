@@ -19,9 +19,12 @@ return function(env)
   local server = {
     delay = 1,       -- seconds before an answer arrives
     throttle = .3,   -- seconds the throttle stays busy after a request
-    items = {},      -- [item_id] = {name, commodity, quality, vendor, max_stack, level}
-    listings = {},   -- [item_id] = {{price, quantity, own, bid}, ...}; price per unit
-    bag = {},        -- {{id, count, locked}, ...}: bag 0, one slot each
+    items = {},      -- [item_id] = {name, commodity, quality, vendor, max_stack, level, versions}
+    listings = {},   -- [item_id] = {{price, quantity, own, bid, version}, ...}; price per unit
+    bag = {},        -- {{id, count, locked, version}, ...}: bag 0, one slot each
+    -- gear versions (0.8): an item's versions = {[suffix number] = 'of the Wolf'}; a listing or a
+    -- bag slot with a version is that version of the item. As seen on Forever (2026-10-20), the
+    -- link names the version but its suffix field is empty, and the item key carries the number.
     posts = {},      -- every post the addon sent: {id, quantity, unit_price, bid, buyout, duration}
     purchases = {},  -- every confirmed commodity purchase: {id, quantity, unit_price}
     requests = {},   -- names of the requests sent, in order
@@ -42,11 +45,20 @@ return function(env)
     ready_at = now() + server.throttle
   end
 
-  function server:link(id)
-    return '|cffffffff|Hitem:' .. id .. '::::::0:0|h[' .. self.items[id].name .. ']|h|r'
+  function server:name(id, version)
+    local it = self.items[id]
+    local ending = version and it.versions and it.versions[version]
+    return ending and (it.name .. ' ' .. ending) or it.name
   end
 
-  function server:key(id) return {itemID = id, itemLevel = 0, itemSuffix = 0, battlePetSpeciesID = 0} end
+  function server:link(id, version)
+    return '|cffffffff|Hitem:' .. id .. '::::::0:0|h[' .. self:name(id, version) .. ']|h|r'
+  end
+
+  function server:key(id, version) return {itemID = id, itemLevel = 0, itemSuffix = version or 0, battlePetSpeciesID = 0} end
+
+  -- where an item search's results are kept: by item and version
+  local function result_key(key) return key.itemID .. ':' .. (key.itemSuffix or 0) end
 
   local function item_id_of(x)
     if type(x) == 'table' then return x.itemID end
@@ -54,24 +66,24 @@ return function(env)
   end
 
   -- the listings as the server holds them now, cheapest first
-  local function sorted(id)
+  local function sorted(id, version)
     local list = {}
     for _, l in ipairs(server.listings[id] or {}) do
-      if l.quantity > 0 then table.insert(list, l) end
+      if l.quantity > 0 and (not version or l.version == version) then table.insert(list, l) end
     end
     table.sort(list, function(a, b) return a.price < b.price end)
     return list
   end
 
-  function server:bag_count(id)
+  function server:bag_count(id, version)
     local n = 0
-    for _, slot in ipairs(self.bag) do if slot.id == id then n = n + slot.count end end
+    for _, slot in ipairs(self.bag) do if slot.id == id and slot.version == version then n = n + slot.count end end
     return n
   end
 
-  local function take_from_bag(id, quantity)
+  local function take_from_bag(id, quantity, version)
     for _, slot in ipairs(server.bag) do
-      if slot.id == id and quantity > 0 then
+      if slot.id == id and slot.version == version and quantity > 0 then
         local taken = math.min(slot.count, quantity)
         slot.count = slot.count - taken
         quantity = quantity - taken
@@ -82,9 +94,9 @@ return function(env)
     end
   end
 
-  local function add_listing(id, price, quantity, own, bid)
+  local function add_listing(id, price, quantity, own, bid, version)
     server.listings[id] = server.listings[id] or {}
-    table.insert(server.listings[id], {price = price, quantity = quantity, own = own, bid = bid})
+    table.insert(server.listings[id], {price = price, quantity = quantity, own = own, bid = bid, version = version})
   end
 
   -- one commodity search result row, as GetCommoditySearchResultInfo returns it
@@ -101,7 +113,7 @@ return function(env)
   local function item_row(id, l, i)
     auctions[id * 100 + i] = {id = id, listing = l}
     return {
-      itemKey = server:key(id), itemLink = server:link(id), auctionID = id * 100 + i,
+      itemKey = server:key(id, l.version), itemLink = server:link(id, l.version), auctionID = id * 100 + i,
       quantity = l.quantity, buyoutAmount = l.price, minBid = l.bid, bidAmount = nil,
       owners = {l.own and 'player' or 'Someone'}, totalNumberOfOwners = 1,
       containsOwnerItem = l.own or false, timeLeftSeconds = 40000,
@@ -139,7 +151,9 @@ return function(env)
       local id = item_id_of(x)
       local it = id and server.items[id]
       if it then
-        return it.name, server:link(id), it.quality or 1, it.level or 1, it.requirement or 1,
+        -- a link gives its own (full) name, an item ID the item's own name
+        local name = type(x) == 'string' and x:match('|h%[(.-)%]|h') or it.name
+        return name, type(x) == 'string' and x:find('|h', 1, true) and x or server:link(id), it.quality or 1, it.level or 1, it.requirement or 1,
           it.commodity and 'Trade Goods' or 'Weapon', it.commodity and 'Parts' or 'Sword',
           it.max_stack or (it.commodity and 200 or 1), it.commodity and '' or 'INVTYPE_WEAPON', 1, it.vendor or 0
       end
@@ -155,7 +169,7 @@ return function(env)
 
     -- the bag
     set(G.C_Container, 'GetContainerNumSlots', function(b) return b == 0 and #server.bag or 0 end)
-    set(G.C_Container, 'GetContainerItemLink', function(b, i) local s = b == 0 and server.bag[i]; return s and server:link(s.id) end)
+    set(G.C_Container, 'GetContainerItemLink', function(b, i) local s = b == 0 and server.bag[i]; return s and server:link(s.id, s.version) end)
     set(G.C_Container, 'GetContainerItemInfo', function(b, i)
       local s = b == 0 and server.bag[i]
       return s and {stackCount = s.count, isLocked = s.locked or false, iconFileID = 1, hasLoot = false}
@@ -169,12 +183,12 @@ return function(env)
       local s = server.bag[location.slot]
       return s and (server.items[s.id].commodity and 2 or 1) or 0
     end)
-    set(C, 'GetAvailablePostCount', function(location) local s = server.bag[location.slot]; return s and server:bag_count(s.id) or 0 end)
-    set(C, 'GetItemKeyFromItem', function(location) local s = server.bag[location.slot]; return s and server:key(s.id) end)
+    set(C, 'GetAvailablePostCount', function(location) local s = server.bag[location.slot]; return s and server:bag_count(s.id, s.version) or 0 end)
+    set(C, 'GetItemKeyFromItem', function(location) local s = server.bag[location.slot]; return s and server:key(s.id, s.version) end)
     set(C, 'MakeItemKey', function(id) return server:key(id) end)
     set(C, 'GetItemKeyInfo', function(key)
       local it = server.items[key.itemID]
-      return it and {itemID = key.itemID, itemName = it.name, quality = it.quality or 1, isCommodity = it.commodity or false,
+      return it and {itemID = key.itemID, itemName = server:name(key.itemID, key.itemSuffix ~= 0 and key.itemSuffix or nil), quality = it.quality or 1, isCommodity = it.commodity or false,
         isEquipment = not it.commodity, iconFileID = 1}
     end)
     set(C, 'CalculateCommodityDeposit', function(_, _, quantity) return 15 * quantity end)
@@ -186,30 +200,31 @@ return function(env)
     set(C, 'SendSearchQuery', function(key, sorts, separate_own)
       sent('search ' .. key.itemID)
       local id = key.itemID
-      results[id] = nil -- a new search drops the old results, as the game does
+      local rk = result_key(key)
+      results[rk] = nil -- a new search drops the old results, as the game does
       later(function()
-        results[id] = sorted(id)
+        results[rk] = sorted(id, key.itemSuffix ~= 0 and key.itemSuffix or nil)
         if server.items[id].commodity then
           env.fire('COMMODITY_SEARCH_RESULTS_UPDATED', id)
         else
-          env.fire('ITEM_SEARCH_RESULTS_UPDATED', server:key(id), nil)
+          env.fire('ITEM_SEARCH_RESULTS_UPDATED', key, nil)
         end
       end)
     end)
-    set(C, 'HasFullCommoditySearchResults', function(id) return results[id] ~= nil end)
+    set(C, 'HasFullCommoditySearchResults', function(id) return results[id .. ':0'] ~= nil end)
     set(C, 'GetCommoditySearchResultsQuantity', function(id)
       local n = 0
-      for _, l in ipairs(results[id] or {}) do n = n + l.quantity end
+      for _, l in ipairs(results[id .. ':0'] or {}) do n = n + l.quantity end
       return n
     end)
-    set(C, 'GetNumCommoditySearchResults', function(id) return #(results[id] or {}) end)
-    set(C, 'GetCommoditySearchResultInfo', function(id, i) local l = (results[id] or {})[i]; return l and commodity_row(id, l, i) end)
+    set(C, 'GetNumCommoditySearchResults', function(id) return #(results[id .. ':0'] or {}) end)
+    set(C, 'GetCommoditySearchResultInfo', function(id, i) local l = (results[id .. ':0'] or {})[i]; return l and commodity_row(id, l, i) end)
     set(C, 'RequestMoreCommoditySearchResults', function() sent('more') end)
-    set(C, 'HasSearchResults', function(key) return results[key.itemID] ~= nil end)
-    set(C, 'HasFullItemSearchResults', function(key) return results[key.itemID] ~= nil end)
-    set(C, 'GetItemSearchResultsQuantity', function(key) return #(results[key.itemID] or {}) end)
-    set(C, 'GetNumItemSearchResults', function(key) return #(results[key.itemID] or {}) end)
-    set(C, 'GetItemSearchResultInfo', function(key, i) local l = (results[key.itemID] or {})[i]; return l and item_row(key.itemID, l, i) end)
+    set(C, 'HasSearchResults', function(key) return results[result_key(key)] ~= nil end)
+    set(C, 'HasFullItemSearchResults', function(key) return results[result_key(key)] ~= nil end)
+    set(C, 'GetItemSearchResultsQuantity', function(key) return #(results[result_key(key)] or {}) end)
+    set(C, 'GetNumItemSearchResults', function(key) return #(results[result_key(key)] or {}) end)
+    set(C, 'GetItemSearchResultInfo', function(key, i) local l = (results[result_key(key)] or {})[i]; return l and item_row(key.itemID, l, i) end)
     set(C, 'RequestMoreItemSearchResults', function() sent('more') end)
 
     -- the item list of a search (browse)
@@ -220,14 +235,22 @@ return function(env)
         browse = {}
         local text = string.lower(query.searchString or '')
         for id, it in pairs(server.items) do
-          local list = sorted(id)
-          if #list > 0 and string.find(string.lower(it.name), text, 1, true) then
-            local total, own = 0, false
-            for _, l in ipairs(list) do total = total + l.quantity; own = own or l.own end
-            table.insert(browse, {itemKey = server:key(id), totalQuantity = total, minPrice = list[1].price, containsOwnerItem = own})
+          -- one row per version that is listed (an item without versions: one row)
+          local versions = {}
+          for _, l in ipairs(sorted(id)) do versions[l.version or 0] = true end
+          for version in pairs(versions) do
+            local list = sorted(id, version ~= 0 and version or nil)
+            if #list > 0 and string.find(string.lower(server:name(id, version ~= 0 and version or nil)), text, 1, true) then
+              local total, own = 0, false
+              for _, l in ipairs(list) do total = total + l.quantity; own = own or l.own end
+              table.insert(browse, {itemKey = server:key(id, version ~= 0 and version or nil), totalQuantity = total, minPrice = list[1].price, containsOwnerItem = own})
+            end
           end
         end
-        table.sort(browse, function(a, b) return a.itemKey.itemID < b.itemKey.itemID end)
+        table.sort(browse, function(a, b)
+          if a.itemKey.itemID ~= b.itemKey.itemID then return a.itemKey.itemID < b.itemKey.itemID end
+          return a.itemKey.itemSuffix < b.itemKey.itemSuffix
+        end)
         env.fire('AUCTION_HOUSE_BROWSE_RESULTS_UPDATED')
       end)
     end)
@@ -237,8 +260,8 @@ return function(env)
 
     -- posting: the item leaves the bag and the listing appears when the server has answered
     local function finish_post(post)
-      take_from_bag(post.id, post.quantity)
-      add_listing(post.id, post.unit_price or post.buyout, post.quantity, true, post.bid)
+      take_from_bag(post.id, post.quantity, post.version)
+      add_listing(post.id, post.unit_price or post.buyout, post.quantity, true, post.bid, post.version)
       env.fire('AUCTION_HOUSE_AUCTION_CREATED', next_auction_id)
       next_auction_id = next_auction_id + 1
       env.fire('BAG_UPDATE', 0)
@@ -256,7 +279,7 @@ return function(env)
       local s = server.bag[location.slot]
       if not s then return false end
       sent('post')
-      local post = {id = s.id, quantity = quantity, bid = bid, buyout = buyout, duration = duration}
+      local post = {id = s.id, quantity = quantity, bid = bid, buyout = buyout, duration = duration, version = s.version}
       table.insert(server.posts, post)
       later(function() finish_post(post) end)
       return true

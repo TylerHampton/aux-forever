@@ -73,7 +73,7 @@ function M.quick_entry_detail(entry)
         local amount = money.to_string(abs(entry.last_profit), true)
         return (entry.last_profit >= 0 and 'Profit ' or 'Loss ') .. amount .. ', ' .. time_ago(entry.last_time)
     elseif entry.recipe then
-        return 'Recipe, ' .. time_ago(entry.last_time)
+        return (entry.recipe.crate and 'Crate, ' or 'Recipe, ') .. time_ago(entry.last_time)
     elseif entry.last_price then
         return 'Cheapest ' .. money.to_string(entry.last_price, true) .. ', ' .. time_ago(entry.last_time)
     elseif entry.item_id then
@@ -184,10 +184,11 @@ end
 
 local function fill_row(row, entry, pinned)
     row.entry, row.pinned = entry, pinned
-    local item_id = entry.recipe and entry.recipe.output and entry.recipe.output.item_id or entry.item_id
+    local item_id = entry.recipe and (entry.recipe.output and entry.recipe.output.item_id or entry.recipe.item_id) or entry.item_id
     local item = item_id and info.item(item_id)
     if entry.recipe then
-        -- a recipe search: the made item's icon and "Recipe  Colorful Kilt  (3 materials)"
+        -- a recipe search: the made item's icon and "Recipe  Colorful Kilt  (3 materials)" (a crate
+        -- search: the crate's icon and "Crate  Journeyman Textiles  (3 bundles)")
         if item then
             row.icon:SetTexture(item.texture)
             row.icon:SetTexCoord(.07, .93, .07, .93)

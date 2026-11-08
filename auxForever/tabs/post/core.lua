@@ -18,6 +18,8 @@ local tab = aux.tab 'Post'
 -- which items' listings are complete enough to pick from
 local auto_price_key
 local listings_ready = {}
+-- items whose reading was stopped before all their listings were in (review H-006, finding 2)
+local listings_stopped = {}
 
 local settings_schema = {'tuple', '#', {duration='number'}, {start_price='number'}, {buyout_price='number'}, {hidden='boolean'}}
 
@@ -30,6 +32,7 @@ refresh = true
 
 posting = nil
 posting_item = nil -- the item being posted and how many were in the bags before
+other_endings_lowest = nil -- 0.8: the cheapest listing of the selected gear's other endings
 
 last_post_update = nil
 
@@ -68,12 +71,12 @@ function aux.event.AUX_LOADED()
     -- Forever: the server can ask to confirm a post (e.g. a price far from the market); aux shows its own dialog
     aux.event_listener('AUCTION_HOUSE_POST_WARNING', function()
         if pending_post then
-            StaticPopup_Show('AUX_POST_CONFIRM', CONFIRM_AUCTION_POSTING_TEXT)
+            aux.show_popup('AUX_POST_CONFIRM', CONFIRM_AUCTION_POSTING_TEXT)
         end
     end)
     aux.event_listener('AUCTION_HOUSE_POST_ERROR', function()
         if pending_post then
-            StaticPopup_Show('AUX_POST_CONFIRM', AUCTION_POSTING_ERROR_TEXT)
+            aux.show_popup('AUX_POST_CONFIRM', AUCTION_POSTING_ERROR_TEXT)
         end
     end)
     -- auxForever (0.5, FB-003): the game's own error text while a post is under way (it shows it in
@@ -86,7 +89,7 @@ function aux.event.AUX_LOADED()
     aux.event_listener('AUCTION_HOUSE_SHOW_ERROR', function()
         if posting then
             post_outcome = 'refused'
-            StaticPopup_Hide('AUX_POST_CONFIRM')
+            aux.hide_popup('AUX_POST_CONFIRM')
             pending_post = nil
             posting = nil
             last_post_update = nil
@@ -173,8 +176,9 @@ function M.update_post_done()
     end
 end
 
-function tab.USE_ITEM(item_id, suffix_id)
-	select_item(item_id .. ':' .. suffix_id)
+-- 0.8: bag items are told apart by their price key, which keeps gear endings apart (info.price_key)
+function tab.USE_ITEM(item_id, suffix_id, name)
+	select_item(info.price_key(item_id, name))
 end
 
 function get_unit_start_price()
@@ -347,7 +351,7 @@ function M.missing_item_reason(item_key)
     local reason = 'gone'
     for slot in info.inventory() do
         local item_info = info.container_item(unpack(slot))
-        if item_info and item_info.item_key == item_key then
+        if item_info and item_info.price_key == item_key then
             local durability, max_durability = C_Container.GetContainerItemDurability(unpack(slot))
             if item_info.locked then
                 return 'locked'
@@ -366,7 +370,7 @@ function M.bag_count(item_key)
     local count = 0
     for slot in info.inventory() do
         local item_info = info.container_item(unpack(slot))
-        if item_info and item_info.item_key == item_key then
+        if item_info and item_info.price_key == item_key then
             count = count + (item_info.count or 1)
         end
     end
@@ -392,7 +396,7 @@ end
 function find_item_location(item_key)
     for slot in info.inventory() do
         local item_info = info.container_item(unpack(slot))
-        if item_info and item_info.auctionable and not item_info.locked and item_info.item_key == item_key then
+        if item_info and item_info.auctionable and not item_info.locked and item_info.price_key == item_key then
             return item_info.item_location
         end
     end
@@ -440,7 +444,7 @@ function post_auction()
         return
     end
 
-    StaticPopup_Hide('AUX_POST_CONFIRM')
+    aux.hide_popup('AUX_POST_CONFIRM')
     post_outcome, post_error_text, message = nil, nil, nil
     local bags_before = bag_count(item_key)
     posting_item = {key = item_key, before = bags_before}
@@ -482,7 +486,7 @@ function post_auction()
             -- waits longer while a confirmation dialog is open
             if GetTime() - last_post_update > (pending_post and 60 or 5) then
                 post_outcome = post_outcome or 'timeout'
-                StaticPopup_Hide('AUX_POST_CONFIRM')
+                aux.hide_popup('AUX_POST_CONFIRM')
                 pending_post = nil
                 posting = nil
                 last_post_update = nil
@@ -530,6 +534,8 @@ function M.price_note_text()
         note = aux.color.label.enabled('Your own price')
     elseif selection.historical_value then
         note = aux.color.label.enabled('The usual price for this item')
+    elseif selection.other_ending then
+        note = aux.color.label.enabled('None of this name for sale: the cheapest other ending')
     elseif selection.own then
         note = aux.color.label.enabled('Same as your own listing at ') .. money.to_string(selection.unit_price, true)
     elseif aux.account_data.post_undercut then
@@ -577,15 +583,22 @@ function M.disabled_reason()
     -- last visit, which may be days old; a quick click on Post (after the next item is picked by
     -- itself) posted at it. A price the player typed can be posted at once.
     elseif auto_price_key == selected_item.key and not listings_ready[selected_item.key] then
+        if listings_stopped[selected_item.key] then
+            return 'Reading stopped. Press Refresh, or type a price.'
+        end
         return 'Reading the listings...'
     -- gear only: trade goods have no starting bid (its box is hidden), but one was kept from the
     -- automatic price, so typing a buyout below it faded Post with this message (FB-021: Rough
     -- Stone listed at 7c, 5c typed; 6c worked only through Undercut, which set both)
     elseif not selected_item.commodity and get_unit_buyout_price() > 0 and get_unit_start_price() > get_unit_buyout_price() then
         return 'The starting bid is above the buyout.'
-    elseif selected_item.commodity and get_unit_buyout_price() == 0 then
-        return 'Type a price to post.'
-    elseif not selected_item.commodity and get_unit_start_price() == 0 and get_unit_buyout_price() == 0 then
+    elseif (selected_item.commodity and get_unit_buyout_price() == 0)
+            or (not selected_item.commodity and get_unit_start_price() == 0 and get_unit_buyout_price() == 0) then
+        -- 0.8: say when nothing of it is for sale (gear of an ending nobody sells): "Type a price"
+        -- alone read as broken (Tyler, build 4: Medicine Staff of the Whale)
+        if listings_ready[selected_item.key] and not next(buyout_records[selected_item.key] or empty) then
+            return 'None for sale. Type a price to post.'
+        end
         return 'Type a price to post.'
     elseif stack_count_input:GetNumber() == 0 then
         return 'Choose how many to post.'
@@ -742,10 +755,11 @@ function M.round_price(amount)
     return max(step, floor(amount / step) * step)
 end
 
--- auxForever: on Forever the newest listing at a price sells first, so by default aux matches the
--- cheapest price. Undercut mode (the goblin toggle) goes one step below it, like aux on Classic.
+-- auxForever: by default aux matches the cheapest price, on the belief that the newest listing at a
+-- price sells first (Unknown on Forever, experiment E6 in docs/forever-auction-house.md). Undercut
+-- mode (the goblin toggle) goes one step below it, like aux on Classic.
 function M.undercut(record, stack_size, bid)
-    if record.historical_value or record.own or not aux.account_data.post_undercut then
+    if record.historical_value or record.other_ending or record.own or not aux.account_data.post_undercut then
         return record.unit_price
     else
         -- one step below: 1 copper for trade goods, 1 silver for gear
@@ -816,13 +830,16 @@ function update_inventory_records(reset)
     for slot in info.inventory() do
 	    local item_info = info.container_item(unpack(slot))
         if item_info and item_info.auctionable then
-            if not auctionable_map[item_info.item_key] then
-                auctionable_map[item_info.item_key] = {
+            -- 0.8: one row per price key, so a staff of the Wolf and one of the Bandit are two items
+            if not auctionable_map[item_info.price_key] then
+                auctionable_map[item_info.price_key] = {
                     item_id = item_info.item_id,
                     suffix_id = item_info.suffix_id,
-                    key = item_info.item_key,
+                    key = item_info.price_key,
                     link = item_info.link,
-                    name = item_info.name,
+                    -- the full name, ending included: two Merc Swords with different endings are two
+                    -- rows and must not look alike (Tyler, 0.8 build 3)
+                    name = strmatch(item_info.link or '', '|h%[(.-)%]|h') or item_info.name,
                     texture = item_info.texture,
                     quality = item_info.quality,
                     count = item_info.count,
@@ -831,7 +848,7 @@ function update_inventory_records(reset)
                     commodity = C_AuctionHouse.GetItemCommodityStatus(item_info.item_location) == Enum.ItemCommodityStatus.Commodity,
                 }
             else
-                local auctionable = auctionable_map[item_info.item_key]
+                local auctionable = auctionable_map[item_info.price_key]
                 auctionable.count = auctionable.count + item_info.count
             end
         end
@@ -878,6 +895,10 @@ function M.auto_pick_price()
         local historical_value = history.value(selected_item.key)
         if historical_value then
             cheapest = { historical_value = true, stack_size = stack_size_input:GetNumber(), unit_price = historical_value }
+        elseif other_endings_lowest then
+            -- 0.8: none of this name for sale and no usual price: the cheapest other ending of the
+            -- item, said as such (a suggestion; the player can type any price)
+            cheapest = { other_ending = true, stack_size = stack_size_input:GetNumber(), unit_price = other_endings_lowest }
         end
     end
     if cheapest then
@@ -904,7 +925,9 @@ function refresh_entries()
         local location = find_item_location(item_key)
         local key = location and C_AuctionHouse.GetItemKeyFromItem and C_AuctionHouse.GetItemKeyFromItem(location)
         local key_info = type(key) == 'table' and C_AuctionHouse.GetItemKeyInfo(key)
-        local query = type(key_info) == 'table' and not key_info.isEquipment and { item_keys = {key} } or scan_util.item_query(selected_item.item_id)
+        local by_key = type(key_info) == 'table' and not key_info.isEquipment
+        local query = by_key and { item_keys = {key} } or scan_util.item_query(selected_item.item_id)
+        other_endings_lowest = nil
 
 		scan.start{
             type = 'list',
@@ -920,21 +943,58 @@ function refresh_entries()
             on_page_scanned = function()
                 bid_records[item_key] = bid_records[item_key] or {}
                 buyout_records[item_key] = buyout_records[item_key] or {}
-                listings_ready[item_key] = true
-                refresh = true
-                if not aux.account_data.post_full_scan and next(buyout_records[item_key]) then
-                    scan.abort()
-                    aux.coro_wait()
+                -- 0.8: gear is read by name, version by version, and one name can sit under several
+                -- versions, so its listings are complete only when the search ends: taken after the
+                -- first version, the price came from the usual one (build 4) or missed the rest of
+                -- the name's listings ("the numbers dont add up", Tyler, build 5). One item key (a
+                -- trade good, gear without an ending in the bags) is one page, as before.
+                if by_key and next(buyout_records[item_key]) then
+                    listings_ready[item_key] = true
+                    refresh = true
+                    if not aux.account_data.post_full_scan then
+                        scan.abort()
+                        aux.coro_wait()
+                    end
                 end
             end,
+			-- 0.8: only the versions of this item's own name are read; another ending is skipped and its
+			-- lowest price, from the item list, kept for the suggestion (Tyler, build 7: "loading the
+			-- post took quite a long time"). A version whose name has not loaded yet is read.
+			skip_key = not by_key and function(result)
+			    local key_of_result = info.item_key_price_key(result.itemKey)
+			    if not key_of_result or key_of_result == item_key or result.itemKey.itemID ~= selected_item.item_id then
+			        return false
+			    end
+			    -- a version with only your own listing is not suggested back to you (review H-004, note 8)
+			    local only_yours = result.containsOwnerItem and (result.totalQuantity or 0) <= 1
+			    local unit = not only_yours and result.minPrice or 0
+			    if unit > 0 and (not other_endings_lowest or unit < other_endings_lowest) then
+			        other_endings_lowest = unit
+			    end
+			    return true
+			end or nil,
 			on_auction = function(auction_record)
-				if auction_record.item_key == item_key then
+				-- 0.8: gear is compared with listings of its own name only
+				if (auction_record.price_key or auction_record.item_key) == item_key then
                     record_auction(auction_record)
+				-- the cheapest other ending, to suggest a price when nobody sells this one (Tyler,
+				-- build 5: "we need to give them a price to post at anyway")
+				elseif auction_record.item_id == selected_item.item_id and not auction_record.own and (auction_record.unit_buyout_price or 0) > 0 then
+				    local unit = ceil(auction_record.unit_buyout_price)
+				    if not other_endings_lowest or unit < other_endings_lowest then
+				        other_endings_lowest = unit
+				    end
 				end
 			end,
+			-- stopped before the end (a Full scan, another search): a single-key item was taken in
+			-- on_page_scanned before its stop, but gear may be missing versions, so its listings are
+			-- not ready and no price is picked from them (review H-006, finding 2). Refresh reads
+			-- them again; a typed price can still be posted.
 			on_abort = function()
                 aux.status_bar:update_status(1, 1)
-                listings_ready[item_key] = true
+                if not listings_ready[item_key] then
+                    listings_stopped[item_key] = true
+                end
                 refresh = true
                 update_post_done()
 			end,
@@ -954,6 +1014,7 @@ end
 function M.clear_auctions()
     bid_records, buyout_records = {}, {}
     aux.wipe(listings_ready)
+    aux.wipe(listings_stopped)
     update_post_done()
 end
 
@@ -965,21 +1026,33 @@ function M.memory_counts()
 end
 
 function M.record_auction(auction)
-    bid_records[auction.item_key] = bid_records[auction.item_key] or {}
+    -- 0.8: listings are kept under the price key, which the Post tab reads them by: gear under the
+    -- item key was never found (Tyler, build 4: Merc Sword of Agility, 4 listed, none shown)
+    local key = auction.price_key or auction.item_key
+    bid_records[key] = bid_records[key] or {}
+    -- 0.8 (Tyler, build 7: "Why are we separating these lines?"): one row per price, yours apart,
+    -- with the longest time left, for gear as for trade goods: seller and time left do not change
+    -- what to post at. Four sellers at 11s were four rows.
+    local function longest(entry)
+        if auction.duration and (not entry.duration or auction.duration > entry.duration) then
+            entry.duration = auction.duration
+        end
+    end
     if not auction.commodity then
 	    local entry
-	    for _, record in pairs(bid_records[auction.item_key]) do
-	        if auction.unit_blizzard_bid == record.unit_price and auction.count == record.stack_size and auction.duration == record.duration and info.is_player(auction.owner) == record.own then
+	    for _, record in pairs(bid_records[key]) do
+	        if auction.unit_blizzard_bid == record.unit_price and info.is_player(auction.owner) == record.own then
 	            entry = record
 	        end
 	    end
 	    if not entry then
 	        entry =  { stack_size = auction.count, unit_price = auction.unit_blizzard_bid, duration = auction.duration, own = info.is_player(auction.owner), count = 0 }
-	        tinsert(bid_records[auction.item_key], entry)
+	        tinsert(bid_records[key], entry)
 	    end
 	    entry.count = entry.count + (auction.auction_count or 1)
+	    longest(entry)
     end
-    buyout_records[auction.item_key] = buyout_records[auction.item_key] or {}
+    buyout_records[key] = buyout_records[key] or {}
     if auction.unit_buyout_price == 0 then return end
     -- auxForever (0.6.0.2 build 2): a commodity is bought by quantity, cheapest first, so its
     -- listings at one price are one row (yours apart), counted in units, with the longest time
@@ -987,14 +1060,14 @@ function M.record_auction(auction)
     -- 480 at 8c); gear keeps one row per kind of auction.
     if auction.commodity then
 	    local own, entry = info.is_player(auction.owner)
-	    for _, record in pairs(buyout_records[auction.item_key]) do
+	    for _, record in pairs(buyout_records[key]) do
 		    if auction.unit_buyout_price == record.unit_price and own == record.own then
 			    entry = record
 		    end
 	    end
 	    if not entry then
 		    entry = { stack_size = 1, unit_price = auction.unit_buyout_price, duration = auction.duration, own = own, count = 0 }
-		    tinsert(buyout_records[auction.item_key], entry)
+		    tinsert(buyout_records[key], entry)
 	    end
 	    entry.count = entry.count + auction.count * (auction.auction_count or 1)
 	    if auction.duration and (not entry.duration or auction.duration > entry.duration) then
@@ -1004,16 +1077,17 @@ function M.record_auction(auction)
     end
     do
 	    local entry
-	    for _, record in pairs(buyout_records[auction.item_key]) do
-		    if auction.unit_buyout_price == record.unit_price and auction.count == record.stack_size and auction.duration == record.duration and info.is_player(auction.owner) == record.own then
+	    for _, record in pairs(buyout_records[key]) do
+		    if auction.unit_buyout_price == record.unit_price and info.is_player(auction.owner) == record.own then
 			    entry = record
 		    end
 	    end
 	    if not entry then
 		    entry = { stack_size = auction.count, unit_price = auction.unit_buyout_price, duration = auction.duration, own = info.is_player(auction.owner), count = 0 }
-		    tinsert(buyout_records[auction.item_key], entry)
+		    tinsert(buyout_records[key], entry)
 	    end
 	    entry.count = entry.count + (auction.auction_count or 1)
+	    longest(entry)
     end
 end
 

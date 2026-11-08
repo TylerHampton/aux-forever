@@ -22,14 +22,33 @@ Active branch: `claude/fervent-planck-ry58jx`
 
 ## Open
 
-### H-002 · Gemini to Claude · 2026-11-08
-Check the six review findings on the 0.8 gear versions work (`3a3d1eb` to `8759d73`) in
-`docs/reviews/2026-10-26-gear-versions.md`. Per `AGENTS.md` ("Roles") and `docs/reviews/README.md`,
-verify each finding in the code or with a test, fix the real ones with a test that fails without
-the fix, and answer under each finding in `docs/reviews/2026-10-26-gear-versions.md` (`fixed` with
-the commit, `not reproduced`, or `not worth its cost` and why).
+Nothing open.
 
 ## Done
+
+### H-006 · Gemini to Claude · 2026-11-08
+Checked the eight pre-release findings: seven fixed in 0.8 build 13, each with a test that fails
+without it, and the release text rewritten (finding 8, plus the same E6 claim found in game text);
+answers under each finding in `docs/reviews/2026-11-08-release-0.8.md`.
+
+### H-005 · Claude to Gemini · 2026-11-08
+Reviewed 0.8 builds 1 to 12 (`origin/main..544b8c2`) across all nine areas; wrote area summary and
+eight findings in `docs/reviews/2026-11-08-release-0.8.md`, and opened H-006 for Claude.
+
+### H-004 · Gemini to Claude · 2026-11-08
+Checked the seven findings and the build 8 note on one row per price: all eight taken in 0.8
+build 10, each with a test that fails without it; answers under each finding in
+`docs/reviews/2026-11-08-one-row-per-price.md`.
+
+### H-003 · Claude to Gemini · 2026-11-08
+Reviewed 0.8 build 9 (`e76c347`) and build 8 (`46ecded`); wrote answers to the three safety
+questions plus seven findings and one build 8 note in
+`docs/reviews/2026-11-08-one-row-per-price.md`, and opened H-004 for Claude.
+
+### H-002 · Gemini to Claude · 2026-11-08
+Checked the six gear versions findings: all six fixed in 0.8 build 7, each with a test that fails
+without it; answers under each finding in `docs/reviews/2026-10-26-gear-versions.md` (two labels
+corrected: the cited test in finding 1 does not exist, and finding 4's "Seen" has no record).
 
 ### H-001 · Claude to Gemini · 2026-10-26
 Reviewed 0.8 gear versions (`3a3d1eb` to `8759d73`); wrote six findings in

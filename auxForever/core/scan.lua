@@ -134,6 +134,7 @@ function M.start(params)
             id = aux.coro_id(),
             params = params,
             listener_ids = {},
+            views = {}, -- price key -> unit prices and counts seen so far in this scan
         }
         scan_state = state
         -- background scans (Sniper rounds, the Auctions tab's price check) set quiet: no chat lines
@@ -482,10 +483,22 @@ function search(item_key)
 end
 
 -- auxForever (0.5): a complete view of one item is its market price for the day
-local function record_view(records, complete)
-    if complete and records and #records > 0 then
-        history.record_view_of(records)
+-- 0.8 (review H-002, finding 1): one gear name can be listed under several versions, each read as a
+-- search of its own. A scan adds up the views of one name (state.views), so the last version read
+-- no longer replaces the others. A single version read on its own (a fast row opened, a Sniper
+-- candidate) is not a complete look at gear with an ending, so it records only today's lowest.
+local function has_ending(record)
+    return record.price_key and record.price_key ~= record.item_id .. ':0'
+end
+
+local function record_view(records, complete, one_version)
+    if not (complete and records and #records > 0) then
+        return
     end
+    if one_version and has_ending(records[1]) then
+        return
+    end
+    history.record_view_of(records, state and state.views)
 end
 
 function process_auction(auction, page, total, collector)
@@ -508,10 +521,32 @@ function scan_item_keys(item_keys)
     local blizzard_query = get_query().blizzard_query or empty
     local first_page = blizzard_query.first_page or 0
     local last_page = min(blizzard_query.last_page or math.huge, #item_keys - 1)
+    -- 0.8 (review H-006, finding 3): the versions of one item add up to one price, written once the
+    -- item's last version is in (an item ID whose versions are not all complete writes none)
+    local left, held, partial = {}, {}, {}
+    for page = first_page, last_page do
+        local id = item_keys[page + 1].itemID
+        left[id] = (left[id] or 0) + 1
+    end
     for page = first_page, last_page do
         local t_item = GetTime()
+        local item_id = item_keys[page + 1].itemID
         local records, complete = search(item_keys[page + 1])
-        record_view(records, complete)
+        if complete and records and #records > 0 then
+            local key = history.record_view_of(records, state.views, true)
+            if key then
+                held[item_id] = held[item_id] or {}
+                held[item_id][key] = true
+            end
+        elseif not complete then
+            partial[item_id] = true
+        end
+        left[item_id] = left[item_id] - 1
+        if left[item_id] == 0 and not partial[item_id] then
+            for key in pairs(held[item_id] or empty) do
+                history.write_view(state.views, key)
+            end
+        end
         if timing then
             timing.items = timing.items + 1
             local seconds = GetTime() - t_item
@@ -559,7 +594,7 @@ function scan_item_list(results)
         if (result.totalQuantity or 0) > 0 then
             if open[item_key_string(result.itemKey)] then
                 local records, complete = search(result.itemKey)
-                record_view(records, complete)
+                record_view(records, complete, true)
                 for _, record in ipairs(records or empty) do
                     process_auction(record)
                     check_aborted(scan_state)
@@ -602,7 +637,7 @@ function M.read_item(item_key)
     for _, record in ipairs(records or empty) do
         history.process_auction(record)
     end
-    record_view(records, complete)
+    record_view(records, complete, true)
     return records
 end
 
@@ -718,13 +753,22 @@ function scan()
             end
         else
             local t_browse = GetTime()
-            local item_keys = browse(get_query().blizzard_query or empty)
+            local results = browse_results(get_query().blizzard_query or empty)
             timing_add('browse', GetTime() - t_browse)
             -- the item list's own request time is counted as item list, not as server answers
-            if timing and item_keys then
+            if timing and results then
                 timing.answer = max(0, timing.answer - (GetTime() - t_browse))
             end
-            if item_keys then
+            if results then
+                -- 0.8: params.skip_key leaves out items the caller needs only the lowest price of,
+                -- which the item list already gives (the Post tab's other gear endings: one search
+                -- each made a Merc Sword take about 25 requests, Tyler, build 7)
+                local item_keys = {}
+                for _, result in ipairs(results) do
+                    if not (state.params.skip_key and state.params.skip_key(result)) then
+                        tinsert(item_keys, result.itemKey)
+                    end
+                end
                 scan_item_keys(item_keys)
             else
                 aux.print('the auction house did not respond to the search')

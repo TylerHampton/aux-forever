@@ -11,16 +11,19 @@ local search_tab = require 'aux.tabs.search'
 -- keeps hidden, so it is taken over here. With a chat box open, Shift-click still links to chat.
 -- auxForever (0.4): Alt-click on a recipe in the profession window searches its item and materials
 -- (Shift-click on a recipe is Blizzard's "track recipe", so only Alt is used for recipes)
+-- auxForever (0.8): Alt-click on a Waylaid Crate searches its bundles (Shift-click and right-click
+-- still bring the crate itself into aux)
 
 -- the current tab uses the item, or the Search tab searches it
-function M.use_item(item_id, suffix_id)
+function M.use_item(item_id, suffix_id, _, _, name)
     local tab = aux.get_tab()
     if not (tab and tab.USE_ITEM) then
         aux.set_tab(1)
         tab = aux.get_tab()
     end
     if tab and tab.USE_ITEM then
-        tab.USE_ITEM(item_id, suffix_id or 0)
+        -- the name tells gear endings apart (info.price_key)
+        tab.USE_ITEM(item_id, suffix_id or 0, name)
     end
 end
 
@@ -40,6 +43,10 @@ function M.on_modified_click(item_link)
     end
     -- clicks on aux's own result rows are handled by aux itself
     if aux.frame:IsMouseOver() then
+        return
+    end
+    -- auxForever (0.8, FB-020): Alt-click a Waylaid Crate searches every bundle that fills it
+    if IsAltKeyDown() and search_tab.search_crate(item_link) then
         return
     end
     local chat_open = ChatFrameUtil and ChatFrameUtil.GetActiveWindow and ChatFrameUtil.GetActiveWindow()

@@ -183,6 +183,11 @@ do
 	local editbox = gui.editbox(frame)
     editbox:SetPoint('LEFT', mode_button, 'RIGHT', 4, 0)
 	editbox.formatter = function(str)
+		-- an empty bar stays empty: aux writes an empty search as "<>" (every item), which showed in
+		-- the bar after clearing it and clicking elsewhere (Tyler, 0.8 build 7)
+		if aux.trim(str or '') == '' then
+			return ''
+		end
 		local queries = filter_util.queries(str)
 		return queries and aux.join(aux.map(aux.copy(queries), function(query) return query.prettified end), ';') or aux.color.red(str)
 	end

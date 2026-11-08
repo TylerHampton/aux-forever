@@ -212,8 +212,7 @@ do
     local function select_cursor_item()
         local type, item_id, item_link = GetCursorInfo()
         if type == 'item' then
-            local _, suffix_id = info.parse_link(item_link)
-            select_item(item_id .. ':' .. suffix_id)
+            select_item(info.link_price_key(item_link))
             ClearCursor()
         end
     end
@@ -387,7 +386,8 @@ do
     help:SetScript('OnEnter', function(self)
         GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
         GameTooltip:AddLine('Match lowest or undercut?')
-        GameTooltip:AddLine('On Forever the newest listing at a price sells first, so matching the lowest price sells just as fast as going below it, and keeps prices from sliding.', 1, 1, 1, true)
+        -- the newest listing selling first is not confirmed on Forever (E6 in docs/forever-auction-house.md)
+        GameTooltip:AddLine('Matching the lowest price keeps prices from sliding. On the modern auction house the newest listing at a price is said to sell first, so matching may sell as fast as going below it. Not yet confirmed on Forever.', 1, 1, 1, true)
         GameTooltip:AddLine('Undercut goes one step below: 1 copper for trade goods, 1 silver for gear. It stays on until the auction house closes, and starts off each time it opens.', 1, 1, 1, true)
         GameTooltip:AddLine('/aux undercut for more', .6, .6, .6)
         GameTooltip:Show()
@@ -529,7 +529,8 @@ do
         end
     end)
     btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
-    post_button = btn
+    -- exported for the gamepad's Y (gamepad.lua)
+    M.post_button = btn
 end
 -- the receipt: a label on the left of the right column and its amount on the right
 do

@@ -5,13 +5,24 @@ TOC. Every release gets an entry in `docs/changelog.md`. Numbering (Tyler, 2026-
 raises the fourth number (0.6 -> 0.6.0.1 -> 0.6.0.2); a bigger update within the same version
 raises the third (0.6.1); new features are the next minor version (0.7).
 
+**Paused (Tyler, 2026-10-26)** until World of Warcraft: Forever releases; work resumes
+2026-11-08 (`docs/status.md`, "Start here"). 0.8 is built (builds 1 to 6), not yet released.
+
 ## 0.8: planned (Tyler, 2026-10-17)
 
-- **Waylaid crates** (FB-020, Harro22): the cheapest way to fill a crate from the auction house.
+Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear versions.
+
+- **Gamepad support** (built, testing): contributed by nokkty (GitHub issue #27, fork branch
+  `gamepad-navigation`, built and tested in game by them on 0.7, 2026-10-13), not planned by
+  Tyler, who chose to take it (2026-10-20). Brought onto 0.7.1.1 as 0.8 build 1. Details:
+  `docs/gamepad.md`.
+- **Waylaid crates** (built, 0.8 build 2; tooltip and Alt-click search, mockup options A and C)
+  (FB-020, Harro22): the cheapest way to fill a crate from the auction house.
   Tyler: Forever has them, "We could plan that for 0.8." Needs first: what each crate asks for
   (a crate's tooltip, from Tyler) and whether the game says it in a form the addon can read.
   "Writs" still unknown.
-- **Gear versions** (below, "After 0.6"), with what 0.7.1 build 3 showed (2026-10-17,
+- **Gear versions** (built, 0.8 build 3: prices, Post and Auctions per name; Tyler 2026-10-20: same
+  name, same stats) (below, "After 0.6"), with what 0.7.1 build 3 showed (2026-10-17,
   `docs/forever-auction-house.md`, section 4): one name can have several versions (Ritual Belt of
   Arcane Protection under four suffix numbers, all 6s). aux's Auctions tab and Post tab compare
   with the exact version only; Blizzard's Sell window compares with every version together. The
@@ -19,6 +30,20 @@ raises the third (0.6.1); new features are the next minor version (0.7).
   other versions, and Tyler had just bought the 9s one), not a broken check: in build 3 the check
   counted the exact version right ("Tied with 4 others"). To decide for 0.8: compare with the
   exact version, every version of the same name, or show both (mockup first).
+
+## 0.9: planned (Tyler, 2026-10-20: "Any of the shopping lists, list stuff I talked about, we'll save that for 0.9")
+
+- **Craftsman's Writs** (from FB-020, Harro22; Tyler, 2026-10-20): a writ asks for one crafted
+  item; show whether buying it or crafting it is cheaper. Built on the shopping list.
+- **Shopping list for crafting** (FB-023, Kortan): pick a recipe, type how many to craft, see
+  what is still needed (bags counted, the bank once opened) and where each material is cheaper,
+  auction house or vendor, then buy down the list. One recipe at a time. Likely home: a Shopping
+  sub tab in Search, reached from the profession window (mockup first). Open for Tyler: compare
+  crafted materials with crafting them; which price the list shows.
+- **What your other characters hold** (from FB-023, Kortan; Tyler, 2026-10-20: "could be a thing
+  that is so valuable to build in that we just save it for 0.9"): each character, when logged in
+  with aux, records its bags, bank and mail; the shopping list and tooltips then count them.
+  Options and trade-offs: `docs/status.md`, 2026-10-20.
 
 ## After 0.6: candidates for the next version (none decided)
 

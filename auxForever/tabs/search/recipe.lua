@@ -86,23 +86,33 @@ function M.search_recipe(recipe_id)
             if not missing or GetTime() - t0 > 2 then break end
             aux.coro_wait()
         end
-        local queries = {}
+        local found = {}
         for i = 1, #ids do
-            -- a slash or semicolon would break the search text; no such item names are known
-            if names[i] and not strfind(names[i], '[/;]') then
-                tinsert(queries, names[i] .. '/exact')
-            end
+            if names[i] then tinsert(found, names[i]) end
         end
-        if #queries == 0 then
-            return
-        end
-        pending_recipe = parts
-        aux.set_tab(1)
-        set_filter(table.concat(queries, ';'))
-        execute(nil, false)
-        -- taken by execute; never left for an unrelated later search
-        pending_recipe = nil
+        search_parts(parts, found)
     end)
+end
+
+-- one search for every item named (lower case), the parts kept with it (a recipe, or since 0.8 a
+-- crate) so the bottom bar can add up the cost
+function M.search_parts(parts, names)
+    local queries = {}
+    for _, name in ipairs(names) do
+        -- a slash or semicolon would break the search text; no such item names are known
+        if name and not strfind(name, '[/;]') then
+            tinsert(queries, name .. '/exact')
+        end
+    end
+    if #queries == 0 then
+        return
+    end
+    pending_recipe = parts
+    aux.set_tab(1)
+    set_filter(table.concat(queries, ';'))
+    execute(nil, false)
+    -- taken by execute; never left for an unrelated later search
+    pending_recipe = nil
 end
 
 -- coin letters in their colors, numbers in the color given (or the line's own) (Tyler, 0.6)
@@ -150,6 +160,9 @@ end
 local GAP = '   '
 function M.recipe_summary(search)
     local parts = search.recipe
+    if parts.crate then
+        return crate_summary(search)
+    end
     local cost, missing, net = recipe_costs(parts, search.records)
     local text = aux.color.accent.background(parts.name or 'Recipe') .. GAP .. 'materials ' .. plain_money(cost)
     if missing then
@@ -189,6 +202,11 @@ end
 
 -- a recipe search in the lists: "Recipe  Colorful Kilt  (3 materials)" instead of its search text
 function M.recipe_entry_name(entry)
+    if entry.recipe.crate then
+        local n = #(entry.recipe.bundles or empty)
+        return aux.color.accent.background('Crate') .. '  ' .. (entry.filter_name or entry.recipe.name or '?')
+            .. '  ' .. aux.color.label.enabled('(' .. n .. (n == 1 and ' bundle)' or ' bundles)'))
+    end
     local n = #(entry.recipe.reagents or empty)
     return aux.color.accent.background('Recipe') .. '  ' .. (entry.filter_name or entry.recipe.name or '?')
         .. '  ' .. aux.color.label.enabled('(' .. n .. (n == 1 and ' material)' or ' materials)'))

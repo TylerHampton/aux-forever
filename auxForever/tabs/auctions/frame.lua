@@ -185,7 +185,8 @@ do
     btn:SetText('Cancel')
     btn:Disable()
     btn:SetScript('OnClick', function() cancel_auction() end)
-    cancel_button = btn
+    -- exported for the gamepad's Y (gamepad.lua)
+    M.cancel_button = btn
 end
 do
     -- what the selected auction's status means
@@ -221,7 +222,7 @@ local function selection_text(record)
         local cost = C_AuctionHouse.GetCancelCost(record.auction_id) or 0
         return 'Someone lists it at ' .. money.to_string(lowest, true) .. '. Cancelling costs ' .. money.to_string(cost, true) .. '; it comes back by mail, then post it again.'
     elseif status == 'tied' then
-        return 'Others list it at your price. On Forever the newest listing at a price sells first.'
+        return 'Others list it at your price.'
     elseif status == 'lowest' then
         return 'Yours is the cheapest.'
     elseif status == 'sold' then
@@ -252,7 +253,8 @@ do
         set(summary_label, 'summary', summary_text(counts))
         local checked
         if checking then
-            checked = format('Checking prices, item %d of %d...', checking.done, checking.total)
+            checked = checking.total and format('Checking prices, item %d of %d...', checking.done, checking.total)
+                or format('Checking prices, %d read...', checking.done)
         elseif checked_at then
             checked = 'Prices checked ' .. search_tab.time_ago(checked_at) .. ', about half a second per item'
         else

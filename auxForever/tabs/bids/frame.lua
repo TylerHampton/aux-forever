@@ -17,6 +17,8 @@ frame.listing:SetPoint('BOTTOMLEFT', aux.frame.content, 'BOTTOMLEFT', 0, 0)
 frame.listing:SetPoint('BOTTOMRIGHT', aux.frame.content, 'BOTTOMRIGHT', 0, 0)
 
 listing = auction_listing.new(frame.listing, 22, auction_listing.bids_columns)
+-- each bid on its own row (0.8, review H-004, finding 1): two bids at one buyout are two auctions
+listing.one_row_each = true
 listing:SetSort(1, 2, 3, 4, 5, 6, 7, 8, 9)
 listing:Reset()
 listing.alt_hint = 'Alt-click: buyout  ·  Alt-right-click: bid'
@@ -50,5 +52,6 @@ do
     btn:SetText('Buyout')
     btn:Disable()
     btn:SetScript('OnClick', function() place_bid(true) end)
-    buyout_button = btn
+    -- exported for the gamepad's Y (gamepad.lua)
+    M.buyout_button = btn
 end

@@ -455,4 +455,256 @@ return function(env)
     check('buyout only: posted with no bid at 1g 90s', sent and sent.bid == nil and sent.buyout == 19000)
     post_teardown(server, post)
   end)
+
+  -- gear versions (0.8): a Medicine Staff of the Wolf in the bags, and on the auction house
+  -- cheaper staffs with other endings. The Post tab prices and posts the Wolf against Wolf listings
+  -- only, as Blizzard's Sell window does; before, every ending looked alike to aux (the link's
+  -- suffix field is empty on Forever, seen 2026-10-20) and the Wolf was priced at an Arcane
+  -- Protection staff's price.
+  try('timing: gear is posted against its own ending', function()
+    local server = new_server(env)
+    local post = module 'aux.tabs.post'
+    server.items[4575] = {name = 'Medicine Staff', commodity = false, vendor = 1487,
+      versions = {[101] = 'of the Bandit', [102] = 'of Arcane Protection', [103] = 'of Arcane Protection', [104] = 'of the Wolf', [105] = 'of the Whale', [106] = 'of the Wolf'}}
+    -- an item nobody sells at all
+    server.items[4576] = {name = 'Sturdy Stick', commodity = false, vendor = 100}
+    -- the Wolf is the last version the auction house lists (Tyler, build 4: Merc Sword of Agility
+    -- had 4 listed, but the Post tab found none when another ending came first)
+    server.listings[4575] = {
+      {price = 11500, quantity = 1, version = 101},
+      {price = 11000, quantity = 1, version = 102},
+      {price = 11500, quantity = 1, version = 103},
+      {price = 15000, quantity = 1, version = 104},
+      -- a second version of the same name, read after the first and cheaper: the Post tab must read
+      -- every version (Tyler, build 5: "the numbers dont add up")
+      {price = 14000, quantity = 1, version = 106},
+    }
+    server.bag = {{id = 4575, count = 1, version = 104}, {id = 4575, count = 1, version = 101}, {id = 4575, count = 1, version = 105}, {id = 4576, count = 1}}
+    server:install()
+    -- a usual price of its own, so a price taken from it cannot pass for the Wolf listing's (it did
+    -- in build 3: the listings were never shown and the usual price happened to match)
+    local h = module 'aux.core.history'
+    h.write_record('4575:of the wolf', {day = h.today(), points = {{day = h.today() - 1, value = 21000}}})
+    -- the quantity boxes and the duration keep what is set, as in post_setup
+    for _, box in ipairs{post.stack_size_input, post.stack_count_input} do
+      local n = 1
+      rawset(box, 'SetNumber', function(self, v) n = math.max(0, math.min(v, self.max_value or v)) end)
+      rawset(box, 'GetNumber', function() return n end)
+    end
+    rawset(post.duration_dropdown, 'GetIndex', function() return 2 end)
+    post.set_undercut_mode(false)
+    aux.set_tab(3)
+    server:ticks(2)
+    post.select_item('4575:of the bandit')
+    check('gear: the Bandit staff is its own item in the bag list', post.selected_item and post.selected_item.key == '4575:of the bandit')
+    local requests_before = #server.requests
+    post.select_item('4575:of the wolf')
+    check('gear: and so is the Wolf staff', post.selected_item and post.selected_item.key == '4575:of the wolf')
+    check('gear: each is named with its ending', post.selected_item and post.selected_item.name == 'Medicine Staff of the Wolf')
+    check('gear: the listings arrive', server:wait(function() return aux.status_bar.done and post.selected_item and post.selected_item.key == '4575:of the wolf' end, 150))
+    server:ticks(3)
+    check('gear: priced against the cheapest Wolf of every version, not the cheaper endings', post.get_unit_buyout_price() == 14000)
+    -- only the Wolf's own two versions are searched; the other endings' lowest prices come from the
+    -- item list (Tyler, build 7: a Merc Sword took about 25 requests)
+    local searches = 0
+    for i = requests_before + 1, #server.requests do
+      if server.requests[i]:find('^search ') then searches = searches + 1 end
+    end
+    check('gear: only the versions of its own name are searched', searches == 2)
+    check('gear: the Wolf listing is shown in the table', plain(post.price_note_text()):find('lowest listing', 1, true) ~= nil)
+    click_post(post)
+    server:ticks(20)
+    local sent = server.posts[1]
+    check('gear: the Wolf staff is posted at the Wolf price', sent and sent.version == 104 and sent.buyout == 14000 and #server.posts == 1)
+    post.validate_parameters()
+    check('gear: the post is over', post.disabled_reason() ~= 'Posting...')
+    -- read until the Post tab itself has the listings (the bar can still show the last item's)
+    local function read_done(key)
+      return function()
+        post.validate_parameters()
+        return post.selected_item and (not key or post.selected_item.key == key) and post.disabled_reason() ~= 'Reading the listings...' and server:pending() == 0
+      end
+    end
+    -- after a post the Post tab picks the next item and reads it; that read ends first. (Picked
+    -- before its item list came back, the late list was taken for the next item's: experiment E7 in
+    -- docs/forever-auction-house.md, not yet known to happen in game.)
+    server:wait(read_done(nil), 200)
+    -- an ending nobody sells: the cheapest other ending is suggested, said as such
+    post.select_item('4575:of the whale')
+    check('gear: the Whale staff is read', server:wait(read_done('4575:of the whale'), 200))
+    server:ticks(3)
+    post.validate_parameters()
+    check('gear: none of its name for sale: the cheapest other ending is suggested', post.get_unit_buyout_price() == 11000)
+    check('gear: and the note says where the price comes from', plain(post.price_note_text()):find('None of this name for sale', 1, true) ~= nil)
+    -- nothing of the item for sale at all: it says so
+    post.select_item('4576:0')
+    check('gear: the stick is read', server:wait(read_done('4576:0'), 200))
+    server:ticks(3)
+    post.validate_parameters()
+    check('gear: none for sale, and it says so', post.disabled_reason() == 'None for sale. Type a price to post.')
+    post_teardown(server, post)
+  end)
+
+  -- Gemini's review, finding 1 (H-002): one gear name listed under two versions. A full search reads
+  -- each version on its own; the day's market of the name must count both, not only the last read.
+  -- Reading one version alone afterwards (a Sniper candidate) must not replace that.
+  try('timing: the versions of one gear name add up (review H-002, finding 1)', function()
+    local server = new_server(env)
+    local search = module 'aux.tabs.search'
+    local h = module 'aux.core.history'
+    local scan = loadstring("select(2, ...) 'aux.test.h002t'; return require 'aux.core.scan'")('auxForever', addon)
+    server.items[4577] = {name = 'Ritual Belt', commodity = false,
+      versions = {[201] = 'of Arcane Protection', [202] = 'of Arcane Protection', [203] = 'of the Owl'}}
+    server.listings[4577] = {
+      {price = 600, quantity = 2, version = 201},
+      {price = 650, quantity = 3, version = 202},
+      {price = 900, quantity = 1, version = 203},
+    }
+    server:install()
+    aux.set_tab(1)
+    search.frame:Show()
+    search.update_mode(search.NORMAL_MODE)
+    search.search_box:SetText('ritual belt/exact')
+    search.execute(nil, false)
+    check('versions: the search finishes', server:wait(function() local s = search.current_search(); return s and s.complete and #s.records > 0 end, 200))
+    local _, units = h.today_market('4577:of arcane protection')
+    check('versions: both versions of the name counted (2 + 3 units)', units == 5)
+    local _, owl = h.today_market('4577:of the owl')
+    check('versions: another ending is apart', owl == 1)
+    -- one version read alone: today's lowest only, the full view stays
+    local done
+    local filter_util = loadstring("select(2, ...) 'aux.test.h002t2'; return require 'aux.util.filter'")('auxForever', addon)
+    scan.start{type = 'list', quiet = true, queries = filter_util.queries('ritual belt/exact'),
+      on_item_list = function() scan.read_item(server:key(4577, 202)); done = true end}
+    server:wait(function() return done end, 150)
+    check('versions: the one-version read ran', done)
+    _, units = h.today_market('4577:of arcane protection')
+    check('versions: one version read alone does not replace the full view', units == 5)
+    search.frame:Hide()
+    server:restore()
+  end)
+
+  -- Gemini's release review (H-006, finding 3): a search stopped after one version of an item must
+  -- not replace the day's price, read from all its versions, with that one version's
+  try('timing: a search stopped between versions keeps the full price (review H-006, finding 3)', function()
+    local server = new_server(env)
+    local search = module 'aux.tabs.search'
+    local h = module 'aux.core.history'
+    local scan = loadstring("select(2, ...) 'aux.test.h006t'; return require 'aux.core.scan'")('auxForever', addon)
+    local filter_util = loadstring("select(2, ...) 'aux.test.h006t2'; return require 'aux.util.filter'")('auxForever', addon)
+    server.items[4592] = {name = 'Bandit Boots', commodity = false, versions = {[221] = 'of the Owl', [222] = 'of the Owl'}}
+    server.listings[4592] = {{price = 5000, quantity = 1, version = 221}, {price = 1000, quantity = 10, version = 222}}
+    server:install()
+    aux.set_tab(1)
+    search.frame:Show()
+    search.update_mode(search.NORMAL_MODE)
+    search.search_box:SetText('bandit boots/exact')
+    search.execute(nil, false)
+    check('stopped: the full search finishes', server:wait(function() local s = search.current_search(); return s and s.complete and #s.records > 0 end, 200))
+    local market, units = h.today_market('4592:of the owl')
+    check('stopped: both versions counted', units == 11 and market == 1000)
+    local stopped
+    scan.start{type = 'list', queries = filter_util.queries('bandit boots/exact'),
+      on_page_scanned = function() scan.abort() end, on_abort = function() stopped = true end}
+    server:wait(function() return stopped end, 150)
+    market, units = h.today_market('4592:of the owl')
+    check('stopped: the search was stopped after one version', stopped == true)
+    check('stopped: the day\'s price is still the one from both versions', units == 11 and market == 1000)
+    search.frame:Hide()
+    server:restore()
+  end)
+
+  -- crates (0.8, FB-020): Alt-click a crate, then another before the first search has its answers.
+  -- The search and the bottom bar must be the second crate's, with nothing of the first mixed in.
+  try('timing: a second crate clicked while the first is still searching', function()
+    local server = new_server(env)
+    local search = module 'aux.tabs.search'
+    local shortcut = module 'aux.core.shortcut'
+    server.items[2592] = {name = 'Wool Cloth', commodity = true, max_stack = 200}
+    server.items[4306] = {name = 'Silk Cloth', commodity = true, max_stack = 200}
+    server.items[2997] = {name = 'Bolt of Woolen Cloth', commodity = true, max_stack = 200}
+    server.items[4305] = {name = 'Bolt of Silk Cloth', commodity = true, max_stack = 200}
+    server.items[990698] = {name = 'Waylaid Crate: Journeyman Textiles', commodity = false}
+    server.items[990711] = {name = 'Waylaid Crate: Journeyman Fabrics', commodity = false}
+    server.listings[2592] = {{price = 30, quantity = 60}}
+    server.listings[4306] = {{price = 14, quantity = 100}}
+    server.listings[2997] = {{price = 90, quantity = 20}}
+    server.listings[4305] = {{price = 70, quantity = 30}}
+    -- item numbers of their own: crate lists are kept per item, and other tests read real crates
+    server:install()
+    local lists = {
+      [990698] = '- 20 Wool Cloth\n- 40 Silk Cloth',
+      [990711] = '- 6 Bolt of Woolen Cloth\n- 10 Bolt of Silk Cloth',
+    }
+    local real_info, real_alt, was_shown = G.C_TooltipInfo, G.IsAltKeyDown, aux.frame.__shown
+    G.C_TooltipInfo = {GetHyperlink = function(link)
+      local id = tonumber(link:match('item:(%d+)'))
+      return {lines = {{leftText = 'Use: Fill the crate with any bundle from the following list:\n' .. lists[id]}}}
+    end}
+    G.IsAltKeyDown = function() return true end
+    aux.frame.__shown = true
+    aux.set_tab(1)
+    search.frame:Show()
+    search.update_mode(search.NORMAL_MODE)
+    shortcut.on_modified_click(server:link(990698))
+    -- the first crate's item list is in and its listings are on their way. (Clicked before its item
+    -- list arrives, the late list is taken for the second search's: a search engine question, not a
+    -- crate one, and whether Forever answers a replaced question is not known; status.md, 2026-10-20.)
+    server:ticks(12)
+    check('crates: the first search is still running', not search.current_search().complete)
+    shortcut.on_modified_click(server:link(990711))
+    local fabrics = 'bolt of woolen cloth/exact;bolt of silk cloth/exact'
+    local done = server:wait(function()
+      local s = search.current_search()
+      return s and s.complete and s.filter_string == fabrics
+    end, 200)
+    local s = search.current_search()
+    check('crates: the second search finishes', done)
+    check('crates: it is the second crate', s and s.recipe and s.recipe.name == 'Journeyman Fabrics')
+    search.update_results_summary(true)
+    local summary = plain(search.recipe_label.__text)
+    check('crates: the bottom bar prices the second crate', summary:find('Journeyman Fabrics', 1, true) and summary:find('6 Bolt of Woolen Cloth  5s 40c', 1, true) ~= nil)
+    check('crates: nothing of the first crate in it', not summary:find('Wool Cloth ', 1, true) and not summary:find('Textiles', 1, true))
+    G.C_TooltipInfo, G.IsAltKeyDown, aux.frame.__shown = real_info, real_alt, was_shown
+    server:ticks(40)
+    search.frame:Hide()
+    server:restore()
+  end)
+
+  -- gamepad (gamepad.lua, contributed by nokkty): Y presses Post. It must obey a faded Post as a
+  -- click does: nothing while the listings load, and one post for two quick presses.
+  try('timing: gamepad Y on the Post tab', function()
+    local server = new_server(env)
+    local post = post_setup(server)
+    local aux_frame = module('aux').frame
+    local real = {G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown}
+    G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = function() end, function() end, function() return false end
+    G.InputUtil = {IsGamepadUIEnabled = function() return true end}
+    aux_frame:Hide(); aux_frame:Show()
+    aux.set_tab(3)
+    -- as in the game: Post is faded while the addon has a reason (the harness's IsEnabled is always true)
+    rawset(post.post_button, 'IsVisible', function() return true end)
+    rawset(post.post_button, 'IsEnabled', function() return post.selected_item ~= nil and not post.disabled_reason() end)
+    rawset(post.post_button, 'Click', function(self) self.__scripts.OnClick(self) end)
+    local function y() post.validate_parameters(); local b = G.auxForeverPadY; b.__scripts.OnClick(b) end
+
+    post.select_item('2835:0')
+    post.set_unit_buyout_price(3000) -- remembered from an earlier visit
+    server:ticks(1)
+    y()
+    server:ticks(2)
+    check('pad Y: nothing posted while the listings load', #server.posts == 0)
+    check('pad Y: the listings arrive', server:wait(listings_in(post), 50))
+    server:ticks(3)
+    y(); y()
+    server:ticks(15)
+    check('pad Y: two quick presses post once, at the lowest listing', #server.posts == 1 and server.posts[1].unit_price == 7)
+
+    rawset(post.post_button, 'IsVisible', nil); rawset(post.post_button, 'IsEnabled', nil); rawset(post.post_button, 'Click', nil)
+    aux_frame:Hide()
+    G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = real[1], real[2], real[3]
+    G.InputUtil = nil
+    aux_frame:Show()
+    post_teardown(server, post)
+  end)
 end

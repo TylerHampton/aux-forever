@@ -126,9 +126,10 @@ For whoever fixes or builds from it:
 | [FB-017](#fb-017-the-deposit-aux-shows-is-lower-than-the-1-silver-the-game-charges) | 2026-10-17 | sarrathsilentstrider | bug | Post | S3 | The deposit aux shows is lower than the 1 silver the game charges | not reproduced (aux matched the game in Tyler's test) |
 | [FB-018](#fb-018-a-setting-for-whether-the-post-tab-starts-on-match-lowest-or-undercut) | 2026-10-17 | sarrathsilentstrider | request | Settings | n/a | A setting for whether the Post tab starts on Match lowest or Undercut | wont-fix (Tyler: keep as is) |
 | [FB-019](#fb-019-praise-everything-is-shte-in-comparison) | 2026-10-17 | sarrathsilentstrider | praise | Overall | n/a | Praise: "everything is SH!TE in comparison" | new |
-| [FB-020](#fb-020-find-the-cheapest-way-to-fill-waylaid-crates-and-writs) | 2026-10-17 | Harro22 | request | Search | n/a | Find the cheapest way to fill Waylaid crates and writs | planned 0.8 |
+| [FB-020](#fb-020-find-the-cheapest-way-to-fill-waylaid-crates-and-writs) | 2026-10-17 | Harro22 | request | Search | n/a | Find the cheapest way to fill Waylaid crates and writs | built 0.8 build 2 (crates; writs planned 0.9) |
 | [FB-021](#fb-021-a-typed-price-below-the-lowest-listing-cannot-be-posted-rough-stone-5c) | 2026-10-18 | sarrathsilentstrider | bug | Post | S2 | A typed price below the lowest listing cannot be posted (Rough Stone, 5c) | fixed 0.7.1.1 (released 2026-10-19) |
 | [FB-022](#fb-022-the-player-did-not-know-the-newest-listing-at-a-price-sells-first) | 2026-10-18 | sarrathsilentstrider | ux | Post | n/a | The player did not know the newest listing at a price sells first | new |
+| [FB-023](#fb-023-a-shopping-list-for-crafting-n-of-a-recipe) | 2026-10-20 | Kortan | request | Search | n/a | A shopping list for crafting N of a recipe | planned 0.9 |
 
 ## Players
 
@@ -157,6 +158,8 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
 - **sarrathsilentstrider**: CurseForge commenter (CurseForge name; in-game name unknown).
   Reported FB-017, asked for FB-018, praised in FB-019, reported FB-021 and FB-022. Plays in the
   Classic theme.
+- **Kortan**: told Tyler directly (Tyler's retelling, not his own words). Asked for FB-023. Knows
+  TSM well, including its alt inventory data. Spelling of the in-game name not yet confirmed.
 - **Harro22**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-020.
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
@@ -1132,7 +1135,7 @@ has users.
 - Type: request
 - Area: Search (new)
 - Severity: n/a
-- Status: planned 0.8 (Tyler, 2026-10-17)
+- Status: built 0.8 build 2 (crates, 2026-10-20: tooltip option A and Alt-click search C of the mockup, chosen by Tyler); writs planned 0.9
 - Proposed: 0.8
 
 Said:
@@ -1156,6 +1159,42 @@ Unknowns: which crates and writs exist on Forever and what each needs.
 Ask Tyler: answered 2026-10-17: "Forever does have waylaid crates... We could plan that for
 0.8." Still open: what writs are, and what each crate asks for (a crate's tooltip; Tyler asked
 whether he needs to buy one: not yet, only when 0.8 is planned in detail).
+
+Tyler, 2026-10-20: "most cost effective" means the cheapest way to fill one crate (not the best
+crate per gold). Writs: "I dont know you will need to look it up."
+
+Found 2026-10-20 (web guides written during Forever's beta; **Outside**, not seen in game):
+- A Waylaid Crate (for example "Waylaid Crate: Apprentice Herbs") lists several bundles; any one
+  of them fills it, and parts of two bundles cannot be mixed. Examples from guides: Apprentice
+  Herbs, 20 Peacebloom or 20 Silverleaf or 10 Earthroot or 10 Mageroyal or 10 Briarthorn;
+  Apprentice Ingots, 20 Copper Bar or 20 Tin Bar or 10 Bronze Bar; Artisan Textiles, 40
+  Runecloth or 20 Thick Leather or 20 Rugged Leather. Guides disagree on some lists. Filled
+  crates go to the Azeroth Commerce Authority (Three Corners, Redridge) or Durotar Supply and
+  Logistics (west of the Crossroads) for Merchant's Favor, a currency for recipes. Crates drop in
+  the world and are sold on the auction house. Sources: wowforeverbuilds.com/merchants-favor,
+  endgametools.com (items 248698, 248711), theforeverera.com/en/merchants-favor.
+- So "cheapest way to fill one" means: price each bundle and point to the cheapest.
+- Craftsman's Writs are something else: a Sealed Writ drops in the world and opens into a random
+  order to deliver one crafted item (for example a Frost Protection Potion or a Craftsman's
+  Monocle) for reputation with the two factions (75 or 125 each, per Wowhead's Forever quest
+  pages, quests 94256, 94282, 94221). "Cheapest" for a writ is buying the item versus crafting
+  it, which is the shopping list's question (FB-023, 0.9).
+- Tyler, 2026-10-20: "writs in 0.9 with the shopping list". 0.8 builds crates only.
+
+Seen in game (Tyler's screenshots, 2026-10-20, aux's Search tab, search `waylaid crate`):
+- A crate's tooltip lists its bundles in its Use line **[Seen]**: "Waylaid Crate: Journeyman
+  Textiles. Use: Fill the crate with any bundle from the following list: - 20 Wool Cloth - 40
+  Silk Cloth - 20 Medium Leather. Requires Level 10." Journeyman Fabrics: "- 6 Bolt of Woolen
+  Cloth - 10 Bolt of Silk Cloth - 2 Cured Medium Hide".
+- Crates are sold on the auction house, many kinds at once **[Seen]**: Apprentice, Journeyman and
+  Expert Textiles, Fabrics, Herbs, Ore, Ingots, Parts and Curiosities, plus Earthly Artisan Herbs
+  and Flowering Expert Herbs (Req 10, 20 or 35). Journeyman Textiles listed around 60s, Journeyman
+  Fabrics around 2g.
+- Inference: since the list is in the tooltip text, aux can likely read it (each line "- <count>
+  <item name>") with no hand-written list. Not yet checked from code (the `/run` line in the chat
+  was not run).
+- Still to see in game: how a crate shows its bundles (tooltip or quest text), and whether aux
+  can read them or needs a hand-written list.
 
 ### FB-021: A typed price below the lowest listing cannot be posted (Rough Stone, 5c)
 
@@ -1236,6 +1275,52 @@ Recorder's notes:
 
 Ask Tyler: should the Post tab say why it matches (a line or a hint on the switch), or is this the
 "teaching the auction house" exception?
+
+### FB-023: A shopping list for crafting N of a recipe
+
+- Received: 2026-10-20
+- From: Kortan (1 request)
+- Where: told to Tyler; Tyler retold it
+- Source: [source](feedback/sources/2026-10-20-kortan-via-tyler.md)
+- Version: unknown
+- Type: request
+- Area: Search (recipe search)
+- Severity: n/a
+- Status: planned 0.9 (Tyler, 2026-10-20: first "add a feature to this update", then "Any of the
+  shopping lists, list stuff I talked about, we'll save that for 0.9")
+- Proposed: 0.9
+
+Said (Tyler's retelling):
+> I want a feature that used to be in TSM (Trade Skill Master), where the user could put in a
+> number for how many of something they wanted to craft. There was a way to automatically buy the
+> materials for the amount you want to craft for a recipe. [...] it would tell you the best place
+> to get everything (or it would tell you to get it from a vendor if that's the best place to get
+> it).
+
+What is asked: pick a recipe, type how many to craft, and get a list of the materials still
+needed, each with where it is cheaper (auction house or vendor) and its price, then buy the
+auction house ones from the list.
+
+Tyler's notes: it feels like it goes in the Search tab. One recipe at a time for now. Counting
+what alts hold (Kortan: TSM could, with an addon called Syndicator) may be saved for 0.9.
+
+Recorder's notes:
+- Fact (code): aux already reads any recipe's materials (`recipe_parts` in
+  `auxForever/tabs/search/recipe.lua`, `C_TradeSkillUI.GetRecipeSchematic`), picks vendor or
+  auction house per material (`info.merchant_buy_info`, only for vendors the player has opened),
+  and buys through the buy bar, which never spends more than the price shown.
+- Inference: every purchase needs its own click (aux's purchase code runs from click handlers);
+  "automatic" therefore means one click per material line, with aux moving to the next line, as
+  in TSM. Not checked on Forever beyond aux's own buying.
+- Related: FB-007 (recipe cost line, built 0.5) and FB-020 (Waylaid crates, planned 0.8). A crate
+  is also "N of these items, cheapest source", so one shopping list could serve both.
+
+Unknowns: whether materials the player crafts (a Bolt of Silk Cloth) should be compared with
+crafting them (Claude's suggestion: not in the first version); which price the list shows.
+
+Ask Tyler: open as of 2026-10-20: materials crafted from other materials, and the price shown
+(Claude suggests today's auction house prices from a quick search when the list opens). Then a
+mockup before anything is built.
 
 ## Before this log
 

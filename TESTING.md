@@ -8,7 +8,351 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.7.1.1 build 2
+## Current build: 0.8 build 14
+
+Two fixes from Tyler's build 13 test. Crates hovered in aux's results showed no "Cheapest way to
+fill it" lines (Journeyman Herbs, Artisan Curiosities). Likely cause (not confirmed in game): the
+game loads a crate's list, the text of its use spell, after the item, and aux read the tooltip
+before that and kept "not a crate" for the session; it now waits for the list (Blizzard's code:
+`C_Item.GetItemSpell`, `C_Spell.IsSpellDataCached`). Sorting by For sale put "Merc Sword of Stamina
+18 (1)" below a 17: an item's row sorted by its first price only; now by all it has for sale. Zip
+`auxForever-0.8-build14.zip`; `/reload` is enough. Test page build id `0-8-build-14`.
+
+- [ ] 1. After `/reload`, open aux and search `waylaid crate`. Hover three kinds of crate in the
+      results: each shows "Cheapest way to fill it" with its bundles (the first hover may not; a
+      second hover must). Screenshot one.
+- [ ] 2. Hover the Waylaid Crate in your bags: the same lines show.
+- [ ] 3. Search `merc sword` (Full), click For sale until the arrow points down: the numbers in
+      that column only go down from the top (an item with yours, like "18 (1)", sits by its 18).
+
+Tested by Tyler 2026-11-08 (test page `0-8-build-14`, screenshots, no marks; judged from the
+screenshots): all three pass. In aux's results Apprentice Ore (20 Copper Ore 25s 80c, cheapest;
+20 Tin Ore 32s 20c), Earthly Expert Herbs (four bundles, 10 Khadgar's Whisker 35s cheapest) and
+Artisan Textiles (20 Thick Leather 96s 60c cheapest) show "Cheapest way to fill it"; the
+Apprentice Ore crate in the bags shows the same; For sale sorted down puts "Merc Sword of Stamina
+20 (1)" among the 20s.
+
+### 0.8 build 13
+
+The release candidate for 0.8, after Gemini's last review (H-006,
+`docs/reviews/2026-11-08-release-0.8.md`): seven fixes, each with a test. Gear read on the Post tab
+and stopped halfway (by a Full scan) no longer unlocks Post with a price from part of the listings;
+a search stopped halfway through an item's versions keeps the day's price; sorting merged rows by
+For sale and Seller; a crate's bundles are read only from a crate's own list; old shared gear
+prices are removed; two gamepad popup fixes; and the help no longer states as fact that the newest
+listing at a price sells first (not confirmed on Forever). Zip `auxForever-0.8-build13.zip`;
+`/reload` is enough. Test page build id `0-8-build-13`.
+
+- [ ] 1. Hover two kinds of Waylaid Crate other than Textiles and Fabrics (Herbs, Ore, Parts...):
+      each still shows "Cheapest way to fill it" with its bundles. Screenshot one.
+- [ ] 2. Search `merc sword` (Full). Click the For sale header (twice if needed): the rows with the
+      most for sale come first. Click the Seller header: the "N sellers" rows sit together, not
+      among the single names.
+- [ ] 3. Hover a gear item with an ending in your bags (a Merc Sword or Medicine Staff "of ..."):
+      Value shows as before.
+- [ ] 4. Post tab: hover the "?" next to the goblin. It says the newest listing selling first is
+      "Not yet confirmed on Forever". Type `/aux undercut`: the same.
+- [ ] 5. Only if your Full scan is ready: Post tab, pick a gear item with an ending and click Full
+      scan right away, while it says "Reading the listings...". Post stays faded and says
+      "Reading stopped. Press Refresh, or type a price." Click Refresh: it reads again.
+
+Tested by Tyler 2026-11-08 (test page `0-8-build-13`, screenshots, no marks; judged from the
+screenshots): steps 2 (the Seller sort), 3 and 4 pass; step 2's For sale sort put "18 (1)" below a
+17 (fixed in build 14); step 1 fails: Journeyman Herbs and Artisan Curiosities, hovered in aux's
+results, showed their list but no "Cheapest way to fill it" (build 14); step 5 skipped ("I cant
+move my hand that fast"; covered by the test "H-006 2").
+
+### 0.8 build 12
+
+The release candidate for 0.8. On top of build 11 (the empty search bar): after Cancel on a trade
+good's price, the Buy button kept the Confirm green (Tyler's screenshot, Wool Cloth). It is
+repainted whenever its look changes now. Zip `auxForever-0.8-build12.zip`; `/reload` is enough.
+Test page build id `0-8-build-12`.
+
+- [ ] 1. Search a cheap trade good (`wool cloth`), click a row, Buy: the button turns to Confirm in
+      green. Click Cancel: the button says Buy again in its normal color, not green.
+- [ ] 2. Search tab: clear the search bar (right-click it), click somewhere else: it stays empty.
+
+Tested by Tyler 2026-11-08 (test page `0-8-build-12`): step 1 passes; step 2 passes from the
+screenshot (an empty bar, the Wool Cloth buy bar's button back to its normal look).
+
+### 0.8 build 11
+
+The release candidate for 0.8. One fix on top of build 10: clearing the search bar and clicking
+elsewhere showed "<>" (Tyler: "This appears when you clear the search bar and click somewhere
+else"); aux writes an empty search that way, and the bar now stays empty. Zip
+`auxForever-0.8-build11.zip`; `/reload` is enough. Test page build id `0-8-build-11`.
+
+- [ ] 1. Search tab: clear the search bar (right-click it), then click somewhere else. The bar
+      stays empty.
+
+### 0.8 build 10
+
+Gemini's review of one row per price (H-004, `docs/reviews/2026-11-08-one-row-per-price.md`):
+all seven findings and the build 8 note taken, each with a test. The Bids and Sniper tabs list
+each auction apart again; an auction with no buyout keeps its own row; the row keeps the auction
+with the lowest starting bid; the buy bar and the result count match the merged rows; each seller
+is counted once ("65 sellers" in build 9). Zip `auxForever-0.8-build10.zip`; `/reload` is enough.
+Test page build id `0-8-build-10`.
+
+- [ ] 1. Search `merc sword` (Full): the seller counts look believable (not 65 sellers for 69
+      swords unless that many people really sell it), and the summary above the table counts the
+      rows shown. Screenshot.
+- [ ] 2. Click a merged row: the bar below says as many "for sale at this price" as the row shows.
+- [ ] 3. Sniper: start it for a minute; each deal is its own row.
+
+Tested by Tyler 2026-11-08 (test page `0-8-build-10`, screenshots, no marks; judged from the
+screenshots): all three pass. `merc sword` (Full): "23 items, 383 for sale", one row per ending, a
+seller count per row; the 9s Merc Sword of Intellect row's buy bar said "1 for sale at this price,
+The last one at this price"; the Sniper showed 13 deals and 1 gone, one row each.
+
+### 0.8 build 9
+
+Tested by Tyler 2026-11-08 (test page `0-8-build-9`, screenshots): one row per price works in
+search results ("Merc Sword of Healing 69, 65 sellers"; the seller count was wrong, review H-004
+finding 6), buying from a merged row passes, the Post tab shows 66 at 11s on one row, the Auctions
+tab still shows each auction ("Tied with 66 others").
+
+
+One row per price (Tyler, build 7: "Why are we separating these lines?"; build 8: "go full auto").
+Search results, the Sniper and the Post tab merge gear auctions at one buyout price into one row,
+whatever the seller and time left; the seller column says "4 sellers". Zip
+`auxForever-0.8-build9.zip`; `/reload` is enough. Test page build id `0-8-build-9`.
+
+- [ ] 1. Search `merc sword of healing` (Full): one row per price; the 11s row adds up all the
+      sellers at 11s and says how many sellers. Screenshot.
+- [ ] 2. Buy one from the cheapest row (Buy, then Confirm): it costs the price shown, and the row's
+      count goes down by one (or the next seller's auctions take its place).
+- [ ] 3. Post tab, the same sword: one row per price there too (yours on a row of their own).
+- [ ] 4. Auctions tab, if you have auctions up: each of your auctions is still its own row.
+
+### 0.8 build 8
+
+Tested by Tyler 2026-11-08 (test page `0-8-build-8`): step 1 passes (gear loads in a few seconds),
+step 2 skipped.
+
+
+From Tyler's test of build 7: the Post tab took a long time to load a Merc Sword. It searched every
+ending of the item (about 25 searches); it now searches only the versions of its own ending and
+takes the other endings' lowest prices from the item list. Zip `auxForever-0.8-build8.zip`;
+`/reload` is enough. Test page build id `0-8-build-8`.
+
+- [ ] 1. Post tab, a Merc Sword: the bar at the bottom turns gold in a few seconds (it took much
+      longer in build 7), and the list matches a Search tab search of that full name.
+- [ ] 2. Gear whose ending nobody sells: a price is still suggested ("None of this name for sale:
+      the cheapest other ending").
+
+### 0.8 build 7
+
+Tested by Tyler 2026-11-08 on the released game (test page `0-8-build-7`, screenshots): step 1
+passes (aux loads, BugSack "You have no bugs, yay!", a Full scan recorded 161,999 auctions; the
+`GetBuildInfo()` line was not captured), step 2 passes (Value kept after a login). Step 3: the Post
+tab's Merc Sword of Healing list matched the search (11s: 2, 5, 39 and 10 for sale; 12s, 18s,
+30s), but loading took long (fixed in build 8). Tyler asked why one price shows as several rows
+(four rows at 11s): open design question, `docs/status.md`. Steps 4 and 5 not done (the game
+changed since the beta, so Tyler's items differ). The search bar showed `<>` once, cause unknown.
+
+
+The first build on the released game. Fixes from Gemini's review of gear versions (H-002, all six
+findings, `docs/reviews/2026-10-26-gear-versions.md`) on top of build 6, which was never tested.
+Zip `auxForever-0.8-build7.zip`. Put the `auxForever` folder in the release game's
+`Interface\AddOns` folder (not `_classic_beta_` any more, most likely; wherever your other addons
+are) and **restart the game fully**. Test page build id `0-8-build-7`.
+
+- [ ] 1. Release check: at the character screen, AddOns: is auxForever listed and ticked, or does
+      it say "Out of date"? Then in game type `/run print(GetBuildInfo())` and screenshot the
+      chat line (it gives the game version and the number the addon must declare).
+- [ ] 2. Release check: hover an item you have searched before and note its Value. Log out, log
+      back in, hover it again: is the Value still there? (Saved prices survive a login.)
+- [ ] 3. Search `merc sword` (Full), then Post tab, Merc Sword of Healing: the Post tab lists the
+      same Healing swords as the search (same counts and prices). Screenshot of both.
+- [ ] 4. Medicine Staff of the Whale (or any gear nobody sells): a price is filled in and the line
+      under it says "None of this name for sale: the cheapest other ending".
+- [ ] 5. Still on the Post tab with a Merc Sword picked: right-click a price row. The Search tab
+      shows only that ending (before: nothing at all).
+
+### 0.8 build 6
+
+Not tested in game (development paused 2026-10-26 until the game's release).
+
+
+Fixes from Tyler's test of build 5 ("the numbers dont add up"; "we need to give them a price to
+post at anyway"). The Post tab now reads every version of gear before it picks a price: one name
+can sit under several versions, and stopping at the first one with a listing missed the rest. And
+when nobody sells that name, it suggests the cheapest other ending of the item, with the note "None
+of this name for sale: the cheapest other ending" (a suggestion; any price can be typed). Zip
+`auxForever-0.8-build6.zip`; `/reload` is enough. Test page build id `0-8-build-6`. Reading
+gear now takes a few seconds longer (one request per version of the item).
+
+- [ ] 1. Search `merc sword` (Full) and note how many of each ending are for sale and at what
+      price. Then Post tab, Merc Sword of Healing: once the bar turns gold, the table shows the
+      same Healing listings (same counts and prices) and "Same as the lowest listing". Screenshot of
+      both.
+- [ ] 2. Merc Sword of Agility: the same check (if none are listed now, see step 3).
+- [ ] 3. Medicine Staff of the Whale (nobody sells it): a price is filled in, the cheapest other
+      Medicine Staff, and the line under it says "None of this name for sale: the cheapest other
+      ending". Screenshot.
+
+### 0.8 build 5
+
+Fixes from Tyler's test of build 4: the Post tab found no listings for gear with an ending
+(Merc Sword of Agility: 4 listed at 16s, the Post tab showed none and took the usual price). Two
+causes, each with a test that fails without its fix: the listings were filed under the old item
+key while the Post tab reads them by the price key; and the listings counted as read after the
+first version of the item, before the item's own name came, so the price was picked from the usual
+one. Also new: "None for sale. Type a price to post." when nothing of that name is listed (Medicine
+Staff of the Whale). Zip `auxForever-0.8-build5.zip`; `/reload` is enough. Test page build id
+`0-8-build-5`.
+
+- [ ] 1. Post tab, Merc Sword of Agility: once the bar turns gold, the table lists the swords of
+      Agility for sale and the price line says "Same as the lowest listing". Screenshot.
+- [ ] 2. Merc Sword of Healing: the same, with the Healing listings.
+- [ ] 3. Medicine Staff of the Whale: once the bar turns gold, it says "None for sale. Type a price
+      to post." (if nobody sells a Whale staff). Screenshot.
+
+Tested by Tyler 2026-10-21 (test page `0-8-build-5`, screenshots): Agility and Healing showed
+listings of their own name and "Same as the lowest listing", but the counts did not match a search
+a minute later (Healing 1 + 3 in the Post tab, 6 in the search): the Post tab stopped after the
+first version with a listing (fixed in build 6; listings also changed in that minute, Agility was
+gone from the later search). The Whale said "None for sale"; Tyler: "we need to give them a price
+to post at anyway" (build 6 suggests the cheapest other ending).
+
+### 0.8 build 4
+
+Fix from Tyler's test of build 3: the Post tab's bag list named gear without its ending, so two
+Merc Swords with different endings were two rows that looked alike ("I think we failed this").
+Rows, the item heading and "Posted 1 × ..." now show the full name. Zip
+`auxForever-0.8-build4.zip`; `/reload` is enough. Test page build id `0-8-build-4`.
+
+- [ ] 1. Post tab: gear in the bag list shows its ending ("[Merc Sword of the Eagle]"); two of one
+      kind with different endings show two different names. Screenshot.
+- [ ] 2. Pick the Medicine Staff: the heading shows its full name. Its listings are those of that
+      exact name; if nobody sells that ending right now, the list is empty and Post says "Type a
+      price to post". Compare with a Search tab search of the full name. Screenshot of both.
+- [ ] 3. Only if you have gear with an ending up for sale: Auctions tab, its status (Tied, Undercut,
+      Lowest) compares with listings of the same name. Skip otherwise.
+
+Tested by Tyler 2026-10-21 (test page `0-8-build-4`, screenshots): step 1 passes (Medicine Staff
+of the Whale, Merc Sword of Agility, Merc Sword of Healing). Step 2: the Whale staff showed no
+listings, right (none listed in the search), but "Type a price to post" read as broken; Merc Sword
+of Agility showed none though 4 were listed at 16s, a bug (fixed in build 5). Step 3 not done.
+
+### 0.8 build 3
+
+Tested by Tyler 2026-10-20 (test page `0-8-build-3`, screenshots, no marks): step 1 passes
+(Medicine Staff of Arcane Protection Value 1g 15s, of the Wolf 1g 50s; the % column per ending);
+step 2 failed as seen (two "[Merc Sword]" rows, split but named alike: fixed in build 4); step 3:
+the Medicine Staff in the bags showed no listings, which is right only if nobody sold its ending
+(not known, its name was hidden; build 4 step 2); step 4 unclear (Tyler's note "???", no gear of
+his up); step 5 passes (Peacebloom posted).
+
+
+Gear versions, the last 0.8 item: gear with a random ending is priced per ending (Tyler, 2026-10-20:
+two Medicine Staffs of Arcane Protection have the same stats, so gear is grouped by name). Zip
+`auxForever-0.8-build3.zip`. `/reload` is enough (no new files since build 2). Test page build id
+`0-8-build-3`. Use the New theme.
+Have two pieces of gear of one kind with different endings in your bags if you can (any "of the
+..." items).
+
+- [ ] 1. Search `medicine staff` (or any gear with endings), Full. Hover two rows with different
+      endings. Value differs between endings (or says "?" for an ending aux has not priced yet; it
+      learns it from this search, so hover again after the search). Screenshot.
+- [ ] 2. Post tab: gear with two different endings shows as two items in the bag list. Skip if you
+      have none.
+- [ ] 3. Post tab, a piece of gear with an ending: the price matches the lowest listing of the same
+      name (check it in a Search tab search of that name), not a cheaper ending. Screenshot. No need
+      to post.
+- [ ] 4. Auctions tab, if you have gear with an ending up: its status compares with the same name
+      ("Tied with ...", "Undercut by ...", or "Lowest"). Skip if you have none up.
+- [ ] 5. A trade good: post 1 as usual ("Posted 1"); Value in its tooltip as before.
+
+### 0.8 build 2
+
+Waylaid Crates (FB-020, Harro22; mockup options A and C, chosen by Tyler on 2026-10-20), on top of
+build 1's gamepad support. Zip `auxForever-0.8-build2.zip`. **Full game restart** needed (new
+files `gamepad.lua` and `tabs/search/crate.lua`). Test page build id `0-8-build-2`. Use the New
+theme. Have a Waylaid Crate in your bags, and ideally a few of one of its bundle items.
+
+Tested by Tyler 2026-10-20 (test page `0-8-build-2`, screenshots, no marks; judged from the
+screenshots): steps 1, 3, 4, 5 and 6 pass, step 2 skipped. Journeyman Ore's tooltip listed 10
+Silver Ore 1g 50s (gold, cheapest) and 20 Iron Ore 2g 19s 60c; Alt-click searched `[Silver
+Ore];[Iron Ore]` and the bottom bar said "Crate  Journeyman Ore  cheapest fill  10 Silver Ore  1g
+50s  next  20 Iron Ore  2g 18s 31c"; Recent listed "Crate  Journeyman Ore  (2 bundles)";
+Shift-click searched the crate; a Linen Cloth posted ("Posted 1 × Linen Cloth").
+
+- [ ] 1. Hover the crate in your bags. Under aux's Value line: "Cheapest way to fill it", then each
+      bundle with a price (or "no price yet" for items aux has not seen), the cheapest in gold.
+      Screenshot.
+- [ ] 2. If you carry some of a bundle's item: that row says "(N in bags)" and is priced only for
+      the rest. Skip if you carry none.
+- [ ] 3. Open aux at the auction house, Alt-click the crate in your bags. The Search tab searches
+      every bundle's item, and the bottom bar says "Crate  <name>  cheapest fill  ..." and "next
+      ...". Screenshot.
+- [ ] 4. Recent searches (the clock button, or Saved Searches): the search is listed as "Crate
+      <name>  (N bundles)". Click it: it runs again with the same bottom line.
+- [ ] 5. Shift-click the crate: aux searches the crate itself, as before.
+- [ ] 6. With mouse and keyboard, post 1 of a cheap trade good: "Posted 1" (nothing else changed).
+
+### 0.8 build 1
+
+Gamepad support, contributed by nokkty (GitHub issue #27, `docs/gamepad.md`), brought onto
+0.7.1.1. Zip `auxForever-0.8-build1.zip`. **Full game restart** needed (new file `gamepad.lua`).
+Test page build id `0-8-build-1`. Use the New theme. nokkty tested all of it with a controller on
+0.7 (section "0.7 build 1" below); these steps check that it still works on top of 0.7.1.1 and,
+most of all, that nothing changed for mouse and keyboard players.
+
+With mouse and keyboard (gamepad mode off):
+
+- [ ] 1. Open aux: no strip under the window, everything as before. Post 1 of a cheap trade good:
+      "Posted 1".
+- [ ] 2. Search tab, a favorite search (star one first if you have none): right-click it. The
+      game's usual popup asks "Are you sure you want to remove this search from your favorites?";
+      Yes removes it.
+
+With a controller: Tyler will not test these (2026-10-20); they are for players with a
+controller who want to help. Options, Controls, turn on gamepad mode.
+
+- [ ] 3. Talk to an auctioneer: aux opens with a gold frame on a control and a strip under the
+      window showing the controller's buttons. Move with the D-pad; RB and LB switch tabs.
+- [ ] 4. Search `linen cloth` (typing it on the keyboard is fine), then with the pad: move onto a
+      result, A, then Y (Buy), then Y (Confirm): "Bought 1 × Linen Cloth".
+- [ ] 5. Post tab: pick a trade good with A, wait until the bar at the bottom turns gold, press Y:
+      "Posted". Pressing Y before the bar turns gold does nothing.
+- [ ] 6. Press B until aux closes: no freeze, no popup. Log out: no BugSack error.
+
+### 0.7 build 1 (gamepad, on nokkty's fork)
+
+Gamepad support (`docs/gamepad.md`). Zip `auxForever-0.7-build1.zip`. **Full game restart**
+needed (new file `gamepad.lua`). Test page build id `0-7-build-1`. Tested in game on 2026-10-13 by
+the contributor (New theme): all steps below pass, taint log clean (nothing
+blocked), no BugSack error. Not tested yet: the Classic theme, a PlayStation controller.
+
+Set up: Forever's gamepad mode on (Options, Controls, gamepad), BugSack enabled. Steps, in the New
+theme, using only the controller:
+
+- [x] 1. Talk to an auctioneer: aux opens with a gold frame on a control of the Search tab and a
+      strip under the window showing A, B, X and LB RB with your controller's icons.
+- [x] 2. Move around the Search tab with the D-pad: the gold frame goes to the nearest control in
+      each direction, and the strip's words change (a button: Select; a text box: Type).
+- [x] 3. Gold frame on Rarity, A, down twice, A: Rarity changes to the option picked.
+- [x] 4. Run a search, move onto a cheap result, A, then Y (Buy), then Y (Confirm): it is bought.
+- [x] 5. Down past the last result shown: the list scrolls.
+- [x] 6. RB through the tabs: each opens at once; after Bids the frame goes to Settings, Full scan
+      and Blizzard UI. LB goes back.
+- [x] 7. A on Settings: the frame stays inside the Settings popup; B closes it and aux stays open.
+- [x] 8. Post tab: pick an item with A; reach -, + and Max with the D-pad and press them; Y posts.
+- [x] 9. Post tab: X on an item in the bag list searches it on the Search tab.
+- [x] 10. Sniper: Y starts it. A on a deal: once checked, the frame moves to Buy; A, then A
+      (Confirm): it is bought. B on the buy bar goes back to the deal. Y stops it. (To get a deal
+      soon, set "% of usual" to 100 and "profit at least" to 1c, then set them back.)
+- [x] 11. Auctions tab: select an auction of yours, Y: it is cancelled (costs its deposit).
+- [x] 12. B until aux closes: no popup, no freeze. Log out: no BugSack error.
+
+Not checked by a test step: the post confirmation popup in gamepad mode (the server's warning did
+not come up during testing; covered by the automated tests), Bids with Y (no bid was up).
+
+### 0.7.1.1 build 2
+
 
 Fixes from FB-021 (sarrathsilentstrider could not post Rough Stone at 5c with the lowest at 7c)
 and from the new slow auction house in the tests, which plays each tab against answers that come

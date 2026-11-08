@@ -4,15 +4,31 @@
 -- walk through a commodity purchase.
 local G = _G
 local frames = {}
-local NUMERIC = { GetRight=1, GetLeft=1, GetTop=1, GetBottom=1, GetWidth=1, GetHeight=1, GetNumber=1, GetScale=1, GetEffectiveScale=1, GetAlpha=1, GetID=1, GetNumPoints=1, GetVerticalScroll=1, GetHorizontalScroll=1, GetCursorPosition=1, GetStringWidth=1, GetTextWidth=1, GetFrameLevel=1, GetValue=1 }
+local NUMERIC = { GetRight=1, GetLeft=1, GetTop=1, GetBottom=1, GetWidth=1, GetHeight=1, GetNumber=1, GetScale=1, GetEffectiveScale=1, GetAlpha=1, GetID=1, GetNumPoints=1, GetVerticalScroll=1, GetHorizontalScroll=1, GetCursorPosition=1, GetStringWidth=1, GetTextWidth=1, GetFrameLevel=1, GetValue=1, GetEffectiveAlpha=1, GetStringHeight=1 }
 local function new_frame(name)
   local f = { __scripts = {}, __events = {}, __name = name, __shown = true, __text = '' }
   return setmetatable(f, { __index = function(t, k)
     if type(k) ~= 'string' or not k:match('^%u') then return nil end
     if k == 'GetName' then return function() return t.__name or 'Stub' end end
+    -- frames made with CreateFrame know their parent, children and type, as in the game (the
+    -- gamepad navigator walks them); other stubs keep answering with a fresh stub
+    if k == 'GetParent' and t.__tracked then return function(self) return self.__parent end end
+    if k == 'GetChildren' then return function(self) return unpack(self.__children or {}) end end
+    if k == 'IsObjectType' then return function(self, kind)
+      local own = self.__type
+      return own == kind or (kind == 'Button' and own == 'CheckButton') or (kind == 'Frame' and own ~= nil)
+    end end
+    if k == 'GetObjectType' then return function(self) return self.__type end end
+    if k == 'GetCenter' then return function() return 10, 10 end end
+    if k == 'SetFrameStrata' then return function(self, strata) self.__strata = strata end end
+    if k == 'GetFrameStrata' then return function(self) return self.__strata or 'MEDIUM' end end
     if k == 'SetScript' then return function(self, s, fn) self.__scripts[s] = fn end end
     if k == 'GetScript' then return function(self, s) return self.__scripts[s] end end
-    if k == 'HookScript' then return function(self, s, fn) self.__scripts[s] = fn end end
+    -- like the game: a hook runs after the script already there
+    if k == 'HookScript' then return function(self, s, fn)
+      local before = self.__scripts[s]
+      self.__scripts[s] = before and function(...) before(...); return fn(...) end or fn
+    end end
     if k == 'RegisterEvent' then return function(self, e) self.__events[e] = true end end
     if k == 'UnregisterEvent' then return function(self, e) self.__events[e] = nil end end
     if k == 'Show' then return function(self) self.__shown = true; if self.__scripts.OnShow then self.__scripts.OnShow(self) end end end
@@ -49,8 +65,17 @@ local function new_frame(name)
     return function() end
   end })
 end
-G.CreateFrame = function(_, name) local f = new_frame(name); tinsert(frames, f); if name then G[name] = f end return f end
+G.CreateFrame = function(kind, name, parent)
+  local f = new_frame(name)
+  f.__type, f.__tracked, f.__parent = kind, true, parent
+  if type(parent) == 'table' then
+    rawset(parent, '__children', rawget(parent, '__children') or {})
+    tinsert(parent.__children, f)
+  end
+  tinsert(frames, f); if name then G[name] = f end return f
+end
 for _, n in ipairs{'UIParent','GameTooltip','ItemRefTooltip','DEFAULT_CHAT_FRAME','UIErrorsFrame','AuctionHouseFrame'} do G[n] = new_frame(n) end
+G.UIParent.__tracked = true -- the top of the frame tree: no parent
 G.UISpecialFrames = {}; G.StaticPopupDialogs = {}; G.SlashCmdList = {}; G.SOUNDKIT = {}
 local api = function(t) return setmetatable(t or {}, {__index=function() return function() return 0 end end}) end
 G.C_AuctionHouse = api{GetTimeLeftBandInfo=function(b) return 0, ({1800,7200,43200,86400})[b+1] end, IsThrottledMessageSystemReady=function() return true end, SupportsCopperValues=function() return true end, GetBrowseResults=function() return {} end}
@@ -174,9 +199,13 @@ try('buy bar', function()
   local cancel_button
   for _, f in ipairs(frames) do if f.__text == 'Cancel' and not cancel_button then cancel_button = f end end -- the buy bar's is created first
   calls = {}
+  -- the colors the Buy button is painted in (0.8, Tyler: it stayed Confirm green after Cancel)
+  local painted
+  rawset(bar.primary_button, 'SetBackdropBorderColor', function(_, r, g, b) painted = r .. ',' .. g .. ',' .. b end)
   bar.primary_click()
   fire('COMMODITY_PRICE_UPDATED', 6, 120)
   tick()
+  local confirm_paint = painted
   check('Cancel button exists and is shown with a quote', cancel_button and cancel_button.__shown)
   -- the bar redraws every frame; hiding the button between mouse press and release loses the click
   local hides = 0
@@ -188,6 +217,8 @@ try('buy bar', function()
   tick()
   check('Cancel button cancels the quote', calls[2] == 'cancel' and #calls == 2)
   check('Cancel button returns to Buy', bar.primary_label():find('^Buy') ~= nil)
+  check('after Cancel the Buy button loses the Confirm color', confirm_paint and painted ~= confirm_paint)
+  rawset(bar.primary_button, 'SetBackdropBorderColor', nil)
 
   -- selecting something else while a price is shown cancels it
   calls = {}
@@ -830,9 +861,17 @@ try('post: one row per price for commodities', function()
   post.record_auction({item_key = '5210:0', unit_buyout_price = 700, unit_blizzard_bid = 700, count = 1, duration = 2, owner = 'Someone'})
   post.selected_item = {key = '5210:0', item_id = 5210, name = 'Blazing Wand', quality = 2, count = 1, max_stack = 1}
   post.update_auction_listings()
+  -- 0.8 (Tyler, build 7: "Why are we separating these lines?"): gear is one row per price too
+  n = 0
+  local wand
+  for _, row in ipairs(data or {}) do if not row.record.historical_value then n = n + 1; wand = row end end
+  check('gear rows: one row per price, whatever the time left', n == 1 and wand.cols[1].value == 2)
+  check('gear rows: the longest time left', wand and wand.record.duration == 4)
+  post.record_auction({item_key = '5210:0', unit_buyout_price = 700, unit_blizzard_bid = 700, count = 1, duration = 3, owner = 'P'})
+  post.update_auction_listings()
   n = 0
   for _, row in ipairs(data or {}) do if not row.record.historical_value then n = n + 1 end end
-  check('gear rows: auctions with another time left stay apart', n == 2)
+  check('gear rows: your own stay a row of their own', n == 2)
   rawset(post.buyout_listing, 'SetData', nil)
   post.selected_item = nil
   post.clear_auctions()
@@ -2328,7 +2367,7 @@ try('post: an item in the bags is read with one request', function()
     local done = not in_bags
     return function() if not done then done = true return {0, 1} end end
   end)
-  rawset(info, 'container_item', function() return {item_key = '4422:0', auctionable = true, item_location = 'bag 0 slot 1'} end)
+  rawset(info, 'container_item', function() return {item_key = '4422:0', price_key = '4422:0', auctionable = true, item_location = 'bag 0 slot 1'} end)
   rawset(C_AuctionHouse, 'GetItemKeyFromItem', function(location) return location == 'bag 0 slot 1' and {itemID = 4422, itemLevel = 0, itemSuffix = 0} or nil end)
   local item = {key = '4422:0', item_id = 4422, commodity = true, name = 'Scroll of Stamina', quality = 1, count = 2, max_stack = 5}
   post.update_item(item)
@@ -3481,6 +3520,479 @@ try('0.6.1: items seen at the auction house join the item list', function()
   for i = #aux.account_data.auctionable_items, 1, -1 do if aux.account_data.auctionable_items[i] == 'forever blade' then tremove(aux.account_data.auctionable_items, i) end end
 end)
 
+-- Gamepad mode (gamepad.lua): aux binds the pad buttons to buttons of its own while it is open and
+-- never writes into Blizzard's gamepad system (2026-10-13: registering with Blizzard's window
+-- manager tainted it and froze the game when aux closed).
+try('gamepad: aux takes the pad buttons only while open, in gamepad mode', function()
+  local aux_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local bindings, combat, gamepad_ui = {}, false, false
+  local real = {G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown}
+  G.SetOverrideBindingClick = function(_, _, key, button) bindings[key] = 'CLICK ' .. button .. ':LeftButton' end
+  G.ClearOverrideBindings = function() bindings = {} end
+  G.InCombatLockdown = function() return combat end
+  G.InputUtil = {IsGamepadUIEnabled = function() return gamepad_ui end}
+  G.GamepadMode = setmetatable({}, {__index = function() error('aux must not touch GamepadMode') end})
+  local aux_frame = aux_env.frame
+  local function count() local n = 0 for _ in pairs(bindings) do n = n + 1 end return n end
+
+  aux_frame:Hide(); aux_frame:Show()
+  check('gamepad: mouse and keyboard, no pad buttons taken', count() == 0)
+
+  gamepad_ui = true
+  aux_frame:Hide(); aux_frame:Show()
+  check('gamepad: open, aux has the D-pad, A, B, X, Y, LB and RB', count() == 10 and bindings.PAD3 == 'CLICK auxForeverPadX:LeftButton' and bindings.PAD4 == 'CLICK auxForeverPadY:LeftButton' and bindings.PADDUP == 'CLICK auxForeverPadup:LeftButton' and bindings.PAD1 == 'CLICK auxForeverPadA:LeftButton')
+  aux_frame:Hide()
+  check('gamepad: closed, the pad buttons are given back', count() == 0)
+
+  aux_frame:Show()
+  combat = true
+  aux_frame:Hide()
+  check('gamepad: closed in combat, the bindings wait for the end of combat', count() == 10)
+  combat = false
+  for _, f in ipairs(frames) do
+    if f.__events.PLAYER_REGEN_ENABLED then f.__scripts.OnEvent(f, 'PLAYER_REGEN_ENABLED') end
+  end
+  check('gamepad: after combat they are given back', count() == 0)
+
+  aux_frame:Show()
+  aux_env.blizzard_button.__scripts.OnClick(aux_env.blizzard_button)
+  check('gamepad: Blizzard UI shown, its own navigation gets the pad back', count() == 0)
+  aux_env.blizzard_button.__scripts.OnClick(aux_env.blizzard_button)
+  check('gamepad: Blizzard UI hidden, aux takes it again', count() == 10)
+
+  aux_frame:Hide(); aux_frame:Show()
+  -- closed while still in gamepad mode, so aux gives the pad buttons back before the stubs go
+  aux_frame:Hide()
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = real[1], real[2], real[3]
+  G.InputUtil, G.GamepadMode = nil, nil
+  aux_frame:Show()
+end)
+
+-- The navigator: a test layout far from aux's own controls (the stubs put those at 10, 10)
+try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
+  local aux_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local require = loadstring("select(2, ...) 'aux.test.gamepad_nav'; return require")('auxForever', addon)
+  local gui = require 'aux.gui'
+  local real = {G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown}
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = function() end, function() end, function() return false end
+  G.InputUtil = {IsGamepadUIEnabled = function() return true end}
+  G.GamepadMode = setmetatable({}, {__index = function() error('aux must not touch GamepadMode') end})
+  local aux_frame = aux_env.frame
+  local function pad(name) local b = G['auxForeverPad' .. name]; b.__scripts.OnClick(b) end
+  local function place(f, x, y)
+    rawset(f, 'GetCenter', function() return x, y end)
+    rawset(f, 'GetLeft', function() return x - 5 end)
+    rawset(f, 'GetTop', function() return y + 5 end)
+    return f
+  end
+  local function typing(box)
+    rawset(box, 'SetFocus', function(self) self.__focus = true end)
+    rawset(box, 'ClearFocus', function(self) self.__focus = false end)
+    rawset(box, 'HasFocus', function(self) return self.__focus == true end)
+  end
+
+  local layout = CreateFrame('Frame', nil, aux_frame)
+  local clicked
+  local b1 = place(CreateFrame('Button', nil, layout), 1000, 600)
+  local b2 = place(CreateFrame('Button', nil, layout), 1100, 600)
+  for _, b in ipairs{b1, b2} do
+    b:SetScript('OnClick', function(self) clicked = self end)
+    rawset(b, 'Click', function(self) self.__scripts.OnClick(self) end)
+  end
+  local box = place(gui.editbox(layout), 1000, 550)
+  typing(box)
+  -- like the Post tab's -, + and Max: a button that is a child of the text box
+  local plus = place(CreateFrame('Button', nil, box), 1060, 550)
+  local list = CreateFrame('Frame', nil, layout)
+  local content = CreateFrame('Frame', nil, list)
+  local r1 = place(CreateFrame('Button', nil, content), 1000, 500)
+  local r2 = place(CreateFrame('Button', nil, content), 1000, 480)
+  local scroll_frame = CreateFrame('ScrollFrame', nil, list)
+  local value = 0
+  scroll_frame.ScrollBar = {
+    GetValue = function() return value end,
+    SetValue = function(_, v) value = v end,
+    GetMinMaxValues = function() return 0, 50 end,
+  }
+
+  aux_frame:Hide(); aux_frame:Show()
+  check('gamepad nav: aux opens with the focus on the first control', aux_env.gamepad_focused() == b1)
+  pad('right')
+  check('gamepad nav: right goes to the control on the right', aux_env.gamepad_focused() == b2)
+  pad('A')
+  check('gamepad nav: A clicks it', clicked == b2)
+  pad('left'); pad('down')
+  check('gamepad nav: down goes to the control below', aux_env.gamepad_focused() == box)
+  pad('A')
+  check('gamepad nav: A on a text box starts typing', box:HasFocus())
+  pad('B')
+  check('gamepad nav: B stops typing and stays', not box:HasFocus() and aux_env.gamepad_focused() == box and aux_frame.__shown)
+  pad('right')
+  check('gamepad nav: a button inside a text box can be reached (Post tab quantity -, +, Max)', aux_env.gamepad_focused() == plus)
+  pad('left')
+  check('gamepad nav: and left goes back to the box', aux_env.gamepad_focused() == box)
+  pad('down'); pad('down')
+  check('gamepad nav: down walks a list row by row', aux_env.gamepad_focused() == r2)
+  pad('down')
+  check('gamepad nav: past the last row shown, down scrolls the list', aux_env.gamepad_focused() == r2 and value == 10)
+  pad('up')
+  check('gamepad nav: up goes back a row', aux_env.gamepad_focused() == r1)
+
+  -- LB and RB: tabs switch at once; past them come Settings, Full scan and Blizzard UI
+  aux_env.set_tab(1)
+  pad('RB')
+  check('gamepad nav: RB opens the next tab', aux_env.tabs._selected == 2 and aux_env.gamepad_focused() == aux_env.tabs._tabs[2])
+  pad('LB'); pad('LB')
+  check('gamepad nav: LB from the first tab goes round to Blizzard UI, the tab stays', aux_env.tabs._selected == 1 and aux_env.gamepad_focused() == aux_env.blizzard_button)
+  pad('RB')
+  check('gamepad nav: RB from Blizzard UI goes round to the first tab', aux_env.tabs._selected == 1 and aux_env.gamepad_focused() == aux_env.tabs._tabs[1])
+  pad('A')
+  check('gamepad nav: A on a tab goes into it', aux_env.gamepad_focused() == b1)
+
+  -- a popup (Settings, quick searches) keeps the focus inside it; B closes it
+  local popup = CreateFrame('Frame', nil, layout)
+  popup:SetFrameStrata('DIALOG')
+  local inside = place(CreateFrame('Button', nil, popup), 2000, 300)
+  pad('down')
+  check('gamepad nav: an open popup takes the focus', aux_env.gamepad_focused() == inside)
+  pad('B')
+  check('gamepad nav: B closes the popup, aux stays open', not popup.__shown and aux_frame.__shown and aux_env.gamepad_focused() == b1)
+
+  -- a dropdown: its menu opens outside aux; up and down walk the options, A picks one
+  local dropdown = place(gui.dropdown(layout), 3000, -5000)
+  typing(dropdown)
+  dropdown:SetOptions{'All', 'Poor', 'Common', 'Uncommon'}
+  dropdown:SetIndex(1)
+  aux_env.gamepad_set_focus(dropdown)
+  pad('A')
+  dropdown.focus_gain()
+  check('gamepad nav: A opens the dropdown', dropdown:HasFocus() and gui.dropdown_menu.__shown)
+  pad('down'); pad('down')
+  pad('A')
+  check('gamepad nav: down twice and A picks the third option', dropdown:GetIndex() == 3 and not gui.dropdown_menu.__shown and aux_env.gamepad_focused() == dropdown)
+  dropdown:SetFocus(); dropdown.focus_gain()
+  pad('down')
+  pad('B')
+  check('gamepad nav: B closes the menu and keeps the choice', dropdown:GetIndex() == 3 and not gui.dropdown_menu.__shown)
+
+  -- X: a right-click on the control
+  local right_clicked
+  local row = place(CreateFrame('Button', nil, layout), 4000, -6000)
+  row:SetScript('OnClick', function(_, button) right_clicked = button end)
+  rawset(row, 'Click', function(self, button) self.__scripts.OnClick(self, button) end)
+  aux_env.gamepad_set_focus(row)
+  pad('X')
+  check('gamepad nav: X right-clicks a row', right_clicked == 'RightButton')
+  box:SetText('linen')
+  aux_env.gamepad_set_focus(box)
+  pad('X')
+  check('gamepad nav: X on a text box clears it, as a right-click does', box:GetText() == '')
+
+  -- Y: the tab's main action (Search 1: Buy, Sniper 2: Start, Post 3: Post)
+  local pressed = {}
+  local quick = {
+    require('aux.gui.buy_bar').primary_button,
+    require('aux.tabs.sniper').run_button,
+    require('aux.tabs.post').post_button,
+    require('aux.tabs.auctions').cancel_button,
+    require('aux.tabs.bids').buyout_button,
+  }
+  for i, b in ipairs(quick) do
+    rawset(b, 'Click', function() pressed[i] = (pressed[i] or 0) + 1 end)
+    rawset(b, 'IsVisible', function() return true end)
+  end
+  for i = 1, 5 do
+    aux_env.set_tab(i)
+    pad('Y')
+  end
+  check('gamepad nav: Y buys on Search, starts the Sniper, posts on Post', pressed[1] == 1 and pressed[2] == 1 and pressed[3] == 1)
+  check('gamepad nav: Y cancels on Auctions and buys out on Bids', pressed[4] == 1 and pressed[5] == 1)
+  aux_env.set_tab(3)
+  rawset(quick[3], 'IsVisible', function() return false end)
+  pad('Y')
+  check('gamepad nav: Y does nothing when the action is not shown (no item picked)', pressed[3] == 1)
+  rawset(quick[3], 'IsVisible', function() return true end)
+  local cover = CreateFrame('Frame', nil, layout)
+  cover:SetFrameStrata('DIALOG')
+  place(CreateFrame('Button', nil, cover), 2000, 300)
+  pad('Y')
+  check('gamepad nav: Y does nothing while a popup is open', pressed[3] == 1)
+  cover:Hide()
+  for _, b in ipairs(quick) do rawset(b, 'Click', nil); rawset(b, 'IsVisible', nil) end
+  aux_env.set_tab(1)
+
+  aux_env.gamepad_set_focus(b1)
+  pad('B')
+  check('gamepad nav: B with nothing open closes aux', not aux_frame.__shown)
+
+  layout:Hide()
+  aux_frame:Show()
+  -- closed while still in gamepad mode, so aux gives the pad buttons back before the stubs go
+  aux_frame:Hide()
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = real[1], real[2], real[3]
+  G.InputUtil, G.GamepadMode = nil, nil
+  aux_frame:Show()
+end)
+
+-- aux's popups in gamepad mode: shown in a dialog of aux's own the pad can reach (a Blizzard popup
+-- shown from aux's code registers with Blizzard's gamepad navigation, which taints it)
+try('gamepad: aux popups open in a dialog of aux own', function()
+  local aux_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local real = {G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown, G.StaticPopup_Show}
+  local gamepad_ui, blizzard_popup = false, nil
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = function() end, function() end, function() return false end
+  G.StaticPopup_Show = function(name) blizzard_popup = name end
+  G.InputUtil = {IsGamepadUIEnabled = function() return gamepad_ui end}
+  G.GamepadMode = setmetatable({}, {__index = function() error('aux must not touch GamepadMode') end})
+  local function pad(name) local b = G['auxForeverPad' .. name]; b.__scripts.OnClick(b) end
+  local accepted, cancelled, hidden = 0, 0, 0
+  G.StaticPopupDialogs.AUX_TEST = {
+    text = 'Post at %s?', button1 = 'Accept', button2 = 'Cancel',
+    OnAccept = function(_, data) accepted = accepted + data end,
+    OnCancel = function() cancelled = cancelled + 1 end,
+    OnHide = function() hidden = hidden + 1 end,
+  }
+  local aux_frame = aux_env.frame
+  aux_frame:Hide(); aux_frame:Show()
+
+  aux_env.show_popup('AUX_TEST', '5g', nil, 1)
+  check('gamepad popup: mouse and keyboard keep the game popup', blizzard_popup == 'AUX_TEST')
+
+  gamepad_ui = true
+  aux_frame:Hide(); aux_frame:Show()
+  blizzard_popup = nil
+  local dialog = aux_env.show_popup('AUX_TEST', '5g', nil, 1)
+  for _, b in ipairs{dialog.button1, dialog.button2} do
+    rawset(b, 'Click', function(self) self.__scripts.OnClick(self) end)
+  end
+  check('gamepad popup: shown by aux, not the game', blizzard_popup == nil and dialog and dialog.__shown and dialog.text.__text == 'Post at 5g?')
+  check('gamepad popup: the focus starts on Cancel', aux_env.gamepad_focused() == dialog.button2)
+  pad('A')
+  check('gamepad popup: Cancel cancels and closes it, aux stays', cancelled == 1 and accepted == 0 and hidden == 1 and not dialog.__shown and aux_frame.__shown)
+
+  aux_env.show_popup('AUX_TEST', '5g', nil, 2)
+  rawset(dialog.button1, 'GetCenter', function() return 500, 100 end)
+  rawset(dialog.button2, 'GetCenter', function() return 600, 100 end)
+  pad('left'); pad('A')
+  check('gamepad popup: Accept runs the action with its data', accepted == 2 and cancelled == 1 and not dialog.__shown)
+
+  aux_env.show_popup('AUX_TEST', '5g', nil, 1)
+  pad('B')
+  check('gamepad popup: B cancels it and aux stays open', cancelled == 2 and not dialog.__shown and aux_frame.__shown)
+
+  aux_env.show_popup('AUX_TEST', '5g', nil, 1)
+  aux_env.hide_popup('AUX_TEST')
+  check('gamepad popup: hidden by aux (the post went through), nothing is cancelled', cancelled == 2 and not dialog.__shown)
+
+  -- review H-006, finding 4: a popup with a box (renaming a favorite) starts in the box, so B stops
+  -- typing instead of closing it
+  rawset(dialog.editBox, 'SetFocus', function(self) self.__focus = true end)
+  rawset(dialog.editBox, 'ClearFocus', function(self) self.__focus = false end)
+  rawset(dialog.editBox, 'HasFocus', function(self) return self.__focus == true end)
+  G.StaticPopupDialogs.AUX_TEST_BOX = {
+    text = 'Name', button1 = 'Accept', button2 = 'Cancel', hasEditBox = 1,
+    OnShow = function(self) self.editBox:SetFocus() end,
+    OnCancel = function() cancelled = cancelled + 1 end,
+  }
+  aux_env.show_popup('AUX_TEST_BOX')
+  check('H-006 4: a popup with a box starts in the box', aux_env.gamepad_focused() == dialog.editBox)
+  pad('B')
+  check('H-006 4: and B stops typing, the popup stays', not dialog.editBox:HasFocus() and dialog.__shown and cancelled == 2)
+  pad('B')
+  check('H-006 4: a second B closes it', not dialog.__shown and cancelled == 3)
+  G.StaticPopupDialogs.AUX_TEST_BOX = nil
+  -- and a menu left open under the dialog (Settings is made long before it) does not take the pad
+  local menu
+  for _, child in ipairs{aux_frame:GetChildren()} do
+    if child ~= dialog and child:GetFrameStrata() == 'DIALOG' then menu = child break end
+  end
+  menu:Show()
+  aux_env.show_popup('AUX_TEST', '5g', nil, 1)
+  pad('left')
+  check('H-006 4: with a menu open under it, the pad stays in the dialog', menu ~= nil and aux_env.gamepad_focused() == dialog.button1)
+  pad('B')
+  menu:Hide()
+
+  G.StaticPopupDialogs.AUX_TEST = nil
+  aux_frame:Hide(); aux_frame:Show()
+  -- closed while still in gamepad mode, so aux gives the pad buttons back before the stubs go
+  aux_frame:Hide()
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown, G.StaticPopup_Show = real[1], real[2], real[3], real[4]
+  G.InputUtil, G.GamepadMode = nil, nil
+  aux_frame:Show()
+end)
+
+-- Button hints: one strip under the window with A, B, X, Y and LB/RB, each a badge with the letter or
+-- the controller's own icon
+try('gamepad: button hints', function()
+  local aux_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local require = loadstring("select(2, ...) 'aux.test.gamepad_hints'; return require")('auxForever', addon)
+  local gui = require 'aux.gui'
+  local real = {G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown, G.C_Texture, G.C_GamePad}
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = function() end, function() end, function() return false end
+  local gamepad_ui = true
+  G.InputUtil = {IsGamepadUIEnabled = function() return gamepad_ui end}
+  G.GamepadMode = setmetatable({}, {__index = function() error('aux must not touch GamepadMode') end})
+  -- on Forever GetAtlasInfo fails (it needs Vector2DMixin, not loaded): aux must not depend on it
+  G.C_Texture = {GetAtlasInfo = function() error('unable to find mixin or metatable (Vector2DMixin)') end}
+  -- Blizzard's table of icons for the controller in use (InputIconTextureSetUtility), as PADChat reads it
+  local icon_sets = {
+    xbox = {PAD1 = 'gamepad-xbox1-buttona-normal', PAD2 = 'gamepad-xbox1-buttonb-normal', PADRSHOULDER = 'gamepad-xbox1-trigger-rb-normal'},
+    ps = {PAD1 = 'gamepad-ps-buttoncrox-normal', PAD2 = 'gamepad-ps-buttoncircle-normal', PADRSHOULDER = 'gamepad-ps-triggerr1-normal'},
+  }
+  local controller
+  local real_util = G.InputIconTextureSetUtility
+  G.InputIconTextureSetUtility = {GetNormalActiveInputIconButtonTexture = function(key)
+    if not controller then error('no icon set') end
+    return icon_sets[controller][key]
+  end}
+  local function place(f, x, y)
+    rawset(f, 'GetCenter', function() return x, y end)
+    rawset(f, 'GetLeft', function() return x - 5 end)
+    rawset(f, 'GetTop', function() return y + 5 end)
+    return f
+  end
+  local aux_frame = aux_env.frame
+  aux_env.set_tab(4)
+  aux_frame:Hide(); aux_frame:Show()
+  local hints = aux_env.gamepad_hints()
+  local function label(key) local item = hints.items[key] return item.label.__shown and item.label:GetText() or nil end
+  local function badges() local t = {} for _, key in ipairs{'A', 'B', 'X', 'Y', 'LB'} do tinsert(t, hints.items[key].badge) end tinsert(t, hints.items.LB.badge2) return t end
+  for _, badge in ipairs(badges()) do
+    rawset(badge.texture, 'SetAtlas', function(self, name) self.__atlas = name end)
+    badge.key = nil
+  end
+  aux_env.update_hints()
+  check('hints: the strip is shown in gamepad mode, with LB RB Tabs', hints.strip.__shown and label('LB') == 'Tabs' and hints.items.LB.badge2.__shown)
+  check('hints: without the controller icons, each badge shows its letter', hints.items.A.badge.letters:GetText() == 'A' and hints.items.LB.badge2.letters:GetText() == 'RB' and not hints.items.A.badge.texture.__shown)
+
+  local layout = CreateFrame('Frame', nil, aux_frame)
+  local b1 = place(CreateFrame('Button', nil, layout), 1000, 600)
+  local box = place(gui.editbox(layout), 1000, 550)
+  local dropdown = place(gui.dropdown(layout), 1000, 500)
+  aux_env.gamepad_set_focus(b1); aux_env.update_hints()
+  check('hints: on a button, A selects, B closes, X right-clicks', label('A') == 'Select' and label('B') == 'Close' and label('X') == 'Right-click')
+  aux_env.gamepad_set_focus(box); aux_env.update_hints()
+  check('hints: on a text box, A types and X clears', label('A') == 'Type' and label('X') == 'Clear')
+  rawset(box, 'HasFocus', function() return true end); aux_env.update_hints()
+  check('hints: while typing, B is Done and there is no A', label('B') == 'Done' and label('A') == nil)
+  check('hints: a hint left out leaves no gap (B moves to the start)', hints.items.B.after == false)
+  rawset(box, 'HasFocus', nil)
+  aux_env.gamepad_set_focus(dropdown); aux_env.update_hints()
+  check('hints: on a dropdown, A opens it', label('A') == 'Open')
+  rawset(dropdown, 'HasFocus', function() return true end)
+  dropdown:SetOptions{'All', 'Poor'}
+  dropdown.focus_gain(); aux_env.update_hints()
+  check('hints: with its menu open, A picks and B closes, no X', label('A') == 'Pick' and label('B') == 'Close' and label('X') == nil)
+  gui.dropdown_menu:Hide(); rawset(dropdown, 'HasFocus', nil)
+
+  -- Y: named for the tab's action (Auctions: Cancel), only while its button can be pressed
+  local cancel = require('aux.tabs.auctions').cancel_button
+  rawset(cancel, 'IsVisible', function() return true end)
+  rawset(cancel, 'IsEnabled', function() return false end)
+  aux_env.update_hints()
+  check('hints: no Y while its button is greyed out', label('Y') == nil)
+  rawset(cancel, 'IsEnabled', function() return true end)
+  aux_env.update_hints()
+  check('hints: Y Cancel on Auctions', label('Y') == 'Cancel')
+  local cover = CreateFrame('Frame', nil, layout)
+  cover:SetFrameStrata('DIALOG')
+  aux_env.update_hints()
+  check('hints: no Y while a popup is open', label('Y') == nil)
+  cover:Hide()
+  rawset(cancel, 'IsVisible', nil); rawset(cancel, 'IsEnabled', nil)
+  local buy = require('aux.gui.buy_bar').primary_button
+  rawset(buy, 'IsVisible', function() return true end)
+  rawset(buy, 'IsEnabled', function() return true end)
+  aux_env.set_tab(1)
+  buy:SetText('Buy 5 for 1g'); aux_env.update_hints()
+  check('hints: Y Buy on Search', label('Y') == 'Buy')
+  buy:SetText('Confirm 1g'); aux_env.update_hints()
+  check('hints: Y Confirm once the price is known', label('Y') == 'Confirm')
+  rawset(buy, 'IsVisible', nil); rawset(buy, 'IsEnabled', nil)
+
+  controller = 'xbox'; aux_env.update_hints()
+  check('hints: the Xbox icons from Blizzard\'s table', hints.items.A.badge.texture.__atlas == 'gamepad-xbox1-buttona-normal' and hints.items.A.badge.texture.__shown and hints.items.A.badge.letters:GetText() == '')
+  controller = 'ps'; aux_env.update_hints()
+  check('hints: switching to a PlayStation controller switches the icons', hints.items.B.badge.texture.__atlas == 'gamepad-ps-buttoncircle-normal' and hints.items.LB.badge2.texture.__atlas == 'gamepad-ps-triggerr1-normal')
+  check('hints: a key the table has no icon for keeps its letter', hints.items.X.badge.letters:GetText() == 'X' and not hints.items.X.badge.texture.__shown)
+
+  aux_env.blizzard_button.__scripts.OnClick(aux_env.blizzard_button)
+  check('hints: hidden while Blizzard UI has the pad', not hints.strip.__shown)
+  aux_env.blizzard_button.__scripts.OnClick(aux_env.blizzard_button)
+  check('hints: back when aux has it again', hints.strip.__shown)
+  aux_frame:Hide()
+  check('hints: hidden when aux closes', not hints.strip.__shown)
+
+  layout:Hide()
+  gamepad_ui = false
+  aux_frame:Show()
+  check('hints: none with mouse and keyboard', not hints.strip.__shown)
+  aux_frame:Hide(); aux_frame:Show()
+  aux_env.set_tab(1)
+  -- closed while still in gamepad mode, so aux gives the pad buttons back before the stubs go
+  aux_frame:Hide()
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown, G.C_Texture, G.C_GamePad = real[1], real[2], real[3], real[4], real[5]
+  G.InputUtil, G.GamepadMode, G.InputIconTextureSetUtility = nil, nil, real_util
+  aux_frame:Show()
+end)
+
+-- Sniper by pad: A on a deal moves the focus to the buy bar's Buy once it shows (it shows only after
+-- the deal is checked); B goes back to the deal. Y stays Start/Stop, so Y never buys on the Sniper.
+try('gamepad: A on a Sniper deal jumps to Buy', function()
+  local aux_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local require = loadstring("select(2, ...) 'aux.test.gamepad_sniper'; return require")('auxForever', addon)
+  local real = {G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown}
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = function() end, function() end, function() return false end
+  G.InputUtil = {IsGamepadUIEnabled = function() return true end}
+  G.GamepadMode = setmetatable({}, {__index = function() error('aux must not touch GamepadMode') end})
+  local function pad(name) local b = G['auxForeverPad' .. name]; b.__scripts.OnClick(b) end
+  local aux_frame = aux_env.frame
+  aux_frame:Hide(); aux_frame:Show()
+  aux_env.set_tab(2)
+  local deal = CreateFrame('Button', nil, require('aux.tabs.sniper').deals_list)
+  local picked
+  deal:SetScript('OnClick', function() picked = true end)
+  rawset(deal, 'Click', function(self) self.__scripts.OnClick(self) end)
+  local buy = require('aux.gui.buy_bar').primary_button
+  local shown = false
+  rawset(buy, 'IsVisible', function() return shown end)
+
+  aux_env.gamepad_set_focus(deal)
+  pad('A')
+  check('sniper pad: A picks the deal; Buy is not shown yet, the focus waits', picked and aux_env.gamepad_focused() == deal)
+  shown = true
+  aux_env.gamepad_poll()
+  check('sniper pad: once Buy shows, the focus moves to it', aux_env.gamepad_focused() == buy)
+  aux_env.update_hints()
+  check('sniper pad: B says Back there', aux_env.gamepad_hints().items.B.label:GetText() == 'Back')
+  pad('B')
+  check('sniper pad: B goes back to the deal, aux stays open', aux_env.gamepad_focused() == deal and aux_frame.__shown)
+
+  shown = false
+  pad('A')
+  clock = clock + 6
+  shown = true
+  aux_env.gamepad_poll()
+  check('sniper pad: a deal that never shows Buy (gone) is given up after 5 seconds', aux_env.gamepad_focused() == deal)
+  shown = false
+  pad('A')
+  pad('down')
+  shown = true
+  aux_env.gamepad_poll()
+  check('sniper pad: another press cancels the jump', aux_env.gamepad_focused() ~= buy)
+
+  rawset(buy, 'IsVisible', nil)
+  deal:Hide()
+  aux_env.set_tab(1)
+  aux_frame:Hide(); aux_frame:Show()
+  -- closed while still in gamepad mode, so aux gives the pad buttons back before the stubs go
+  aux_frame:Hide()
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = real[1], real[2], real[3]
+  G.InputUtil, G.GamepadMode = nil, nil
+  aux_frame:Show()
+end)
+
 -- 0.7 (FB-013, HoaxBox): an item level column, and the required level colored by how far it is from
 -- the player's level (Tyler, 2026-10-13: red far above, then orange, yellow, green; gray far below)
 try('0.7: Req and iLvl columns', function()
@@ -3564,11 +4076,15 @@ try('0.7: AuxForeverAPI', function()
   check('api: ready after login', api.IsReady() == true)
   local d = h.today()
   h.write_record('214001:0', {day = d, market = 1200, units = 8, low = 1100, points = {{value = 1000, day = d - 1, units = 5}, {value = 1000, day = d - 2, units = 5}}})
-  h.write_record('214001:1234', {day = d, market = 9000, units = 1, low = 9000, points = {}})
+  -- 0.8: gear with a random ending is priced under its ending (info.price_key)
+  h.write_record('214001:of the eagle', {day = d, market = 9000, units = 1, low = 9000, points = {}})
+  local real_get_info = G.GetItemInfo
+  G.GetItemInfo = function(x) if x == 214001 then return 'Thing' end return real_get_info(x) end
   local latest, age = api.GetLatestPrice(214001)
   check('api: the latest price by item ID', latest == 1200 and age == 0)
   check('api: by ID as text and by item string', api.GetLatestPrice('214001') == 1200 and api.GetLatestPrice('item:214001::::::') == 1200)
   check('api: by link, with its random ending', api.GetLatestPrice('|cff1eff00|Hitem:214001::::::1234:::|h[Thing of the Eagle]|h|r') == 9000)
+  G.GetItemInfo = real_get_info
   check('api: same as the tooltip Value', api.GetLatestPrice(214001) == h.latest('214001:0'))
   local usual, seen = api.GetUsualPrice(214001)
   check('api: the usual price', usual == h.value('214001:0') and seen == 0)
@@ -3628,6 +4144,552 @@ try('0.7: result tables follow a fast resize', function()
   check('resize: shown again, the table measures its width', near(first_width(), 1200 * al.search_columns[1].width / total))
   local row = rt.all_rows and rt.all_rows[1]
   check('resize: the last cell of a row is anchored to the right edge', row and has(row.cells[#row.cells], 'TOPRIGHT'))
+end)
+
+-- 0.8 (FB-020, Harro22): Waylaid Crates. The bundles come from the crate's tooltip text, as seen in
+-- game (Tyler, 2026-10-20); each is priced like a recipe's materials, less what is in the bags.
+try('0.8: Waylaid Crates', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local aux = loadstring("select(2, ...) 'aux.test.crate'; return require 'aux'")('auxForever', addon)
+  local today = h.today()
+  -- the tooltip as the game shows it: the Use line holds the list, one row per line
+  local textiles = {'Waylaid Crate: Journeyman Textiles',
+    '|cff00ff00Use: Fill the crate with any bundle from the following list:\n- 20 Wool Cloth\n- 40 Silk Cloth\n- 20 Medium Leather|r',
+    'Requires Level 10', 'Value: 60s seen today'}
+  local b = search.crate_bundles_from_text(textiles)
+  check('crate: three bundles read from the tooltip', b and #b == 3 and b[1].name == 'Wool Cloth' and b[1].count == 20 and b[2].name == 'Silk Cloth' and b[2].count == 40 and b[3].name == 'Medium Leather')
+  -- the same list when the game gives each row its own line
+  local fabrics = search.crate_bundles_from_text({'Waylaid Crate: Journeyman Fabrics', 'Use: Fill the crate with any bundle from the following list:', '- 6 Bolt of Woolen Cloth', '- 10 Bolt of Silk Cloth', '- 2 Cured Medium Hide', 'Requires Level 10'})
+  check('crate: rows on lines of their own', fabrics and #fabrics == 3 and fabrics[1].name == 'Bolt of Woolen Cloth' and fabrics[1].count == 6 and fabrics[3].count == 2)
+  check('crate: an item that is not a crate has no bundles', search.crate_bundles_from_text({'Medicine Staff of the Wolf', '+4 Agility', '+5 Spirit', 'Requires Level 14'}) == nil)
+  -- review H-006, finding 6: a negative stat reads like a bundle row; only a crate's Use line opens the list
+  check('H-006 6: "-5 Spirit" on gear is not a crate', search.crate_bundles_from_text({'Ring of Odd Luck', '+8 Agility', '-5 Spirit', 'Requires Level 20'}) == nil)
+  -- build 14 (Tyler, build 13: crates in aux's results showed no bundles): the game loads a crate's
+  -- Use text after the item; a tooltip read before that must not mark it "not a crate"
+  do
+    local real_get, real_item, real_spell = G.GetItemInfo, G.C_Item, G.C_Spell
+    local loaded = false
+    G.GetItemInfo = function(x)
+      if x == 990004 or (type(x) == 'string' and x:find('item:990004', 1, true)) then return 'Waylaid Crate: Journeyman Herbs', 'item:990004', 2, 10, 10, 'Miscellaneous', 'Junk', 1, '', 1, 0 end
+      return real_get(x)
+    end
+    G.C_Item = setmetatable({GetItemSpell = function(id) if id == 990004 then return 'Fill', 4242 end end}, {__index = real_item})
+    G.C_Spell = {IsSpellDataCached = function() return loaded end, RequestLoadSpellData = function() end}
+    local early = search.crate_bundles(990004, {'Waylaid Crate: Journeyman Herbs', 'Requires Level 10'})
+    loaded = true
+    local herbs = search.crate_bundles(990004, {'Waylaid Crate: Journeyman Herbs', 'Use: Fill the crate with any bundle from the following list:', '- 10 Stranglekelp', '- 10 Kingsblood', 'Requires Level 10'})
+    check('build 14: a crate read before its Use text loaded is read again', early == nil and herbs and #herbs == 2 and herbs[1].name == 'Stranglekelp')
+    check('build 14: an item with no use spell is still read once', search.crate_bundles(990005, {'Copper Bar'}) == nil)
+    G.GetItemInfo, G.C_Item, G.C_Spell = real_get, real_item, real_spell
+  end
+  check('crate: read once per crate', search.crate_bundles(990001, textiles) == search.crate_bundles(990001) and search.crate_bundles(990002, {'Linen Cloth'}) == nil)
+
+  -- prices: Wool 30c each (latest), Silk 15c each, Medium Leather unknown to aux
+  local ids = aux.account_data.item_ids
+  ids['wool cloth'], ids['silk cloth'] = 2592, 4306
+  h.write_record('2592:0', {day = today, points = {{day = today - 1, value = 30}}})
+  h.write_record('4306:0', {day = today, points = {{day = today - 1, value = 15}}})
+  local bags = {}
+  local real_item = G.C_Item
+  G.C_Item = {GetItemCount = function(id) return bags[id] or 0 end}
+  local rows, cheapest = search.crate_costs(b)
+  check('crate: each bundle priced', rows[1].cost == 600 and rows[2].cost == 600 and rows[3].cost == nil)
+  check('crate: a tie keeps the first listed', cheapest == 1)
+  h.write_record('4306:0', {day = today, points = {{day = today - 1, value = 14}}})
+  rows, cheapest = search.crate_costs(b)
+  check('crate: the cheapest bundle is found', cheapest == 2 and rows[2].cost == 560)
+  -- what is already in the bags is not bought again
+  bags[2592] = 15
+  rows, cheapest = search.crate_costs(b)
+  check('crate: bags count, only the rest is priced', rows[1].have == 15 and rows[1].need == 5 and rows[1].cost == 150 and cheapest == 1)
+  bags[2592] = 25
+  rows, cheapest = search.crate_costs(b)
+  check('crate: a bundle already in the bags costs nothing', rows[1].need == 0 and rows[1].cost == 0 and rows[1].source == 'bags' and cheapest == 1)
+  -- no bundle with a price: no cheapest
+  local none = search.crate_costs({{name = 'Medium Leather', count = 20}})
+  check('crate: nothing priced, no cheapest', select(2, search.crate_costs({{name = 'Medium Leather', count = 20}})) == nil and none[1].cost == nil)
+
+  G.C_Item = real_item
+  ids['wool cloth'], ids['silk cloth'] = nil, nil
+end)
+
+-- 0.8: what aux shows for a crate (option A of the mockup, Tyler 2026-10-20) and the crate search
+-- (option C: Alt-click a crate in the bags searches every bundle)
+try('0.8: Waylaid Crates in the tooltip and the search', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local tooltip = loadstring("select(2, ...) 'aux.core.tooltip'; return _M")('auxForever', addon)
+  local shortcut = loadstring("select(2, ...) 'aux.core.shortcut'; return _M")('auxForever', addon)
+  local aux = loadstring("select(2, ...) 'aux.test.crate2'; return require 'aux'")('auxForever', addon)
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local today = h.today()
+  local ids = aux.account_data.item_ids
+  ids['wool cloth'], ids['silk cloth'] = 2592, 4306
+  h.write_record('2592:0', {day = today, points = {{day = today - 1, value = 32}}})
+  h.write_record('4306:0', {day = today, points = {{day = today - 1, value = 14}}})
+  local bags = {[2592] = 12}
+  local real_item, real_info = G.C_Item, G.C_TooltipInfo
+  G.C_Item = setmetatable({GetItemCount = function(id) return bags[id] or 0 end}, {__index = real_item})
+  local crate_lines = {{leftText = 'Waylaid Crate: Journeyman Textiles'},
+    {leftText = 'Use: Fill the crate with any bundle from the following list:\n- 20 Wool Cloth\n- 40 Silk Cloth\n- 20 Medium Leather'},
+    {leftText = 'Requires Level 10'}}
+
+  -- the tooltip: every bundle, the cheapest in gold, the bags counted
+  local lines, colors = {}, {}
+  local tip = new_frame()
+  rawset(tip, 'AddLine', function(_, t) tinsert(lines, plain(t)) end)
+  rawset(tip, 'AddDoubleLine', function(_, a, b, r, g, bl) tinsert(lines, plain(a) .. ' | ' .. plain(b)); colors[plain(a)] = {r, g, bl} end)
+  local reads = 0
+  local function data() reads = reads + 1; return {lines = crate_lines} end
+  tooltip.extend_tooltip(tip, '|cffffffff|Hitem:248698::::::0:0|h[Waylaid Crate: Journeyman Textiles]|h|r', 1, data())
+  local all = table.concat(lines, '\n')
+  check('crate tooltip: says what it shows', all:find('Cheapest way to fill it', 1, true) and all:find('Latest prices, less what is in your bags', 1, true))
+  check('crate tooltip: a bundle partly in the bags, priced for the rest', all:find('20 Wool Cloth (12 in bags) | 2s 56c', 1, true) ~= nil)
+  check('crate tooltip: the others', all:find('40 Silk Cloth | 5s 60c', 1, true) and all:find('20 Medium Leather | no price yet', 1, true))
+  local gold = {aux.color.accent.background()}
+  local wool = colors['20 Wool Cloth (12 in bags)']
+  check('crate tooltip: the cheapest is in the accent gold, the others white', wool and wool[1] == gold[1] and wool[2] == gold[2] and colors['40 Silk Cloth'][1] == 1)
+  bags[2592] = 20
+  lines = {}
+  tooltip.extend_tooltip(tip, '|cffffffff|Hitem:248698::::::0:0|h[Waylaid Crate: Journeyman Textiles]|h|r', 1, data())
+  check('crate tooltip: a bundle already in the bags says so', table.concat(lines, '\n'):find('20 Wool Cloth | in your bags', 1, true) ~= nil)
+  lines = {}
+  tooltip.extend_tooltip(tip, '|cffffffff|Hitem:4575::::::0:0|h[Medicine Staff]|h|r', 1, {lines = {{leftText = 'Medicine Staff'}, {leftText = '+4 Agility'}}})
+  check('crate tooltip: other items get no crate lines', not table.concat(lines, '\n'):find('Cheapest way', 1, true))
+  -- the font strings, when the game hands no tooltip data
+  local named = new_frame()
+  rawset(named, 'GetName', function() return 'AuxCrateTip' end)
+  rawset(named, 'NumLines', function() return 2 end)
+  G.AuxCrateTipTextLeft1, G.AuxCrateTipTextLeft2 = new_frame(), new_frame()
+  G.AuxCrateTipTextLeft1:SetText('Use: Fill the crate with any bundle from the following list:')
+  G.AuxCrateTipTextLeft2:SetText('- 6 Bolt of Woolen Cloth')
+  local texts = search.tooltip_texts(named, nil)
+  check('crate tooltip: lines read from the tooltip itself', #texts == 2 and texts[2] == '- 6 Bolt of Woolen Cloth')
+  G.AuxCrateTipTextLeft1, G.AuxCrateTipTextLeft2 = nil, nil
+
+  -- live prices: the cheapest listings first, as many as the bundle needs
+  local records = {
+    {name = 'Wool Cloth', buyout_price = 300, count = 10, unit_buyout_price = 30},
+    {name = 'Wool Cloth', buyout_price = 2000, count = 50, unit_buyout_price = 40},
+    {name = 'Silk Cloth', buyout_price = 1400, count = 100, unit_buyout_price = 14},
+    {name = 'Silk Cloth', buyout_price = 10, count = 1, unit_buyout_price = 10, own = true},
+  }
+  local parts = {crate = true, name = 'Journeyman Textiles', bundles = {{name = 'Wool Cloth', count = 20}, {name = 'Silk Cloth', count = 40}, {name = 'Medium Leather', count = 20}}, reagents = {}}
+  bags[2592] = 0
+  local rows, cheapest = search.crate_live_costs(parts, records)
+  check('crate search: 10 at 30c then 10 at 40c', rows[1].cost == 700)
+  check('crate search: your own auctions are not bought', rows[2].cost == 560 and cheapest == 2)
+  check('crate search: nothing listed, the bundle cannot be filled', rows[3].short == 20)
+  bags[2592] = 12
+  rows, cheapest = search.crate_live_costs(parts, records)
+  check('crate search: the bags change the cheapest', rows[1].cost == 240 and cheapest == 1)
+
+  -- Alt-click a crate in the bags with aux open: one search for every bundle, the crate kept with it
+  local run, restore = fake_ah({
+    {id = 2592, name = 'Wool Cloth', commodity = true, min = 30, qty = 60, auctions = {{qty = 10, buyout = 30}, {qty = 50, buyout = 40}}},
+    {id = 4306, name = 'Silk Cloth', commodity = true, min = 14, qty = 100, auctions = {{qty = 100, buyout = 14}}},
+    {id = 4234, name = 'Medium Leather', commodity = true, min = 0, qty = 0, auctions = {}},
+  })
+  G.C_TooltipInfo = {GetHyperlink = function() return {lines = crate_lines} end}
+  search.update_mode(search.NORMAL_MODE)
+  local was_shown = aux.frame.__shown
+  aux.frame.__shown = true
+  local real_alt = IsAltKeyDown
+  G.IsAltKeyDown = function() return true end
+  shortcut.on_modified_click('|cff1eff00|Hitem:248711::::::0:0|h[Waylaid Crate: Journeyman Textiles]|h|r')
+  G.IsAltKeyDown = real_alt
+  run(120)
+  local s = search.current_search()
+  check('crate search: Alt-click searches every bundle', search.search_box:GetText() == 'wool cloth/exact;silk cloth/exact;medium leather/exact')
+  check('crate search: the search knows its crate', s.recipe and s.recipe.crate and s.recipe.name == 'Journeyman Textiles')
+  search.update_results_summary(true)
+  local summary = plain(search.recipe_label.__text)
+  check('crate search: the bottom bar names the cheapest fill', summary:find('Crate  Journeyman Textiles', 1, true) and summary:find('cheapest fill  20 Wool Cloth (12 in bags)  2s 40c', 1, true) ~= nil)
+  check('crate search: and the next one', summary:find('next  40 Silk Cloth  5s 60c', 1, true) ~= nil)
+  check('crate search: named as a crate in Recent searches', plain(search.recipe_entry_name(s)):find('Crate  Journeyman Textiles  (3 bundles)', 1, true) ~= nil)
+  -- a plain Alt-click on something that is not a crate still brings the item into aux
+  G.C_TooltipInfo = {GetHyperlink = function() return {lines = {{leftText = 'Spellbinder Robe'}}} end}
+  aux.frame.__shown = was_shown
+  restore()
+
+  G.C_Item, G.C_TooltipInfo = real_item, real_info
+  ids['wool cloth'], ids['silk cloth'] = nil, nil
+end)
+
+-- 0.8, gear versions: gear with a random ending is priced per ending. On Forever a link's suffix
+-- field is empty (Medicine Staff of the Wolf, seen 2026-10-20), so every ending used to share one
+-- price; the auction house's versions of one name have the same stats (seen 2026-10-20), so the
+-- name is the key, as Blizzard's Sell window groups gear.
+try('0.8: gear versions', function()
+  local info = loadstring("select(2, ...) 'aux.util.info'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local tooltip = loadstring("select(2, ...) 'aux.core.tooltip'; return _M")('auxForever', addon)
+  local auctions = loadstring("select(2, ...) 'aux.tabs.auctions'; return _M")('auxForever', addon)
+  local scan_exports = loadstring("select(2, ...) 'aux.test.gear'; return require 'aux.core.scan'")('auxForever', addon)
+  local real_get_info = G.GetItemInfo
+  G.GetItemInfo = function(x)
+    if x == 4575 then return 'Medicine Staff' end
+    if type(x) == 'string' and x:find('item:4575', 1, true) then return x:match('|h%[(.-)%]|h'), x end
+    return real_get_info(x)
+  end
+  local function link(name) return '|cff1eff00|Hitem:4575::::::::24:1487::1:1:12726:1:28:5254::::|h[' .. name .. ']|h|r' end
+
+  check('gear: an ending is part of the price key', info.price_key(4575, 'Medicine Staff of the Wolf') == '4575:of the wolf')
+  check('gear: the link Tyler printed, ending from its name', info.link_price_key(link('Medicine Staff of the Wolf')) == '4575:of the wolf')
+  check('gear: no ending, the key as before', info.price_key(4575, 'Medicine Staff') == '4575:0' and info.price_key(2589, 'Linen Cloth') == '2589:0')
+  check('gear: no name, the key as before', info.price_key(4575, nil) == '4575:0')
+  local real_key_info = rawget(C_AuctionHouse, 'GetItemKeyInfo')
+  rawset(C_AuctionHouse, 'GetItemKeyInfo', function(key) return key.itemSuffix == 103 and {itemName = 'Medicine Staff of Arcane Protection'} or nil end)
+  check('gear: an auction house version is keyed by its name', info.item_key_price_key({itemID = 4575, itemSuffix = 103}) == '4575:of arcane protection')
+  check('gear: a version whose name has not loaded has no key yet', info.item_key_price_key({itemID = 4575, itemSuffix = 999}) == nil)
+  check('gear: version 0 needs no name', info.item_key_price_key({itemID = 2589, itemSuffix = 0}) == '2589:0')
+  rawset(C_AuctionHouse, 'GetItemKeyInfo', real_key_info)
+
+  -- the tooltip of each ending shows that ending's price (all three showed 1g 50s before)
+  local d = h.today()
+  h.write_record('4575:of the wolf', {day = d, market = 15000, units = 1, low = 15000, points = {}})
+  h.write_record('4575:of the bandit', {day = d, market = 11500, units = 1, low = 11500, points = {}})
+  local function value_line(name)
+    local lines = {}
+    local tip = new_frame()
+    rawset(tip, 'AddLine', function(_, text) tinsert(lines, text) end)
+    rawset(tip, 'AddDoubleLine', function() end)
+    tooltip.extend_tooltip(tip, link(name), 1, {lines = {}})
+    for _, l in ipairs(lines) do if l:find('^Value') then return l end end
+    return ''
+  end
+  rawset(AuxTooltip, 'NumLines', function() return 0 end)
+  local wolf, bandit = value_line('Medicine Staff of the Wolf'), value_line('Medicine Staff of the Bandit')
+  rawset(AuxTooltip, 'NumLines', nil)
+  local function plain(t) return (t:gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  check('gear: the Wolf staff shows the Wolf price', plain(wolf):find('Value: 1.50', 1, true) ~= nil)
+  check('gear: the Bandit staff shows the Bandit price', plain(bandit):find('Value: 1.15', 1, true) ~= nil)
+
+  -- prices seen in a search go to the ending's key
+  h.process_auction({item_key = '4575:0', price_key = '4575:of the tiger', buyout_price = 9000, count = 1})
+  check('gear: a search records the price under the ending', h.market_value('4575:of the tiger') == 9000 and h.market_value('4575:0') ~= 9000)
+
+  -- the Auctions tab checks gear against every listing of its name: one name search for the item
+  -- (the search is made from the item's own name, which the game gives for a plain item string)
+  local gear_get_info = G.GetItemInfo
+  G.GetItemInfo = function(x)
+    if type(x) == 'string' and x:find('^item:4575') then return 'Medicine Staff', x end
+    return gear_get_info(x)
+  end
+  local params
+  local real_start = scan_exports.start
+  rawset(scan_exports, 'start', function(p) params = p end)
+  local mine = {item_id = 4575, price_key = '4575:of arcane protection', item_search_key = {itemID = 4575, itemSuffix = 103},
+    unit_buyout_price = 12000, buyout_price = 12000, sale_status = 0}
+  local cloth = {item_id = 2589, price_key = '2589:0', item_search_key = {itemID = 2589, itemSuffix = 0},
+    unit_buyout_price = 20, buyout_price = 20, sale_status = 0}
+  local real_records = auctions.listing.records
+  auctions.listing.records = {mine, cloth}
+  auctions.check_prices()
+  local by_key, by_name = 0, 0
+  for _, q in ipairs(params and params.queries or {}) do
+    if q.item_keys then by_key = by_key + #q.item_keys elseif q.blizzard_query then by_name = by_name + 1 end
+  end
+  check('gear: cloth is read by its item key, the staff by a name search', by_key == 1 and by_name == 1)
+  params.on_auction({item_id = 4575, price_key = '4575:of arcane protection', unit_buyout_price = 11000, seller_count = 1})
+  params.on_auction({item_id = 4575, price_key = '4575:of arcane protection', unit_buyout_price = 11500, seller_count = 1})
+  params.on_auction({item_id = 4575, price_key = '4575:of the wolf', unit_buyout_price = 9000, seller_count = 1})
+  params.on_complete()
+  local status, by, lowest = auctions.auction_status(mine)
+  check('gear: undercut by the cheapest of its name, other versions counted, other endings not', status == 'undercut' and lowest == 11000 and by == 1000)
+  auctions.listing.records = real_records
+  rawset(scan_exports, 'start', real_start)
+  G.GetItemInfo = real_get_info
+end)
+
+-- 0.8, Gemini's review of gear versions (docs/reviews/2026-10-26-gear-versions.md, H-002): findings 2
+-- to 6 (finding 1 is in timing_test.lua, it needs the slow auction house)
+try('0.8: review H-002', function()
+  local info = loadstring("select(2, ...) 'aux.util.info'; return _M")('auxForever', addon)
+  local filter_util = loadstring("select(2, ...) 'aux.test.h002'; return require 'aux.util.filter'")('auxForever', addon)
+  local auctions = loadstring("select(2, ...) 'aux.tabs.auctions'; return _M")('auxForever', addon)
+  local scan_exports = loadstring("select(2, ...) 'aux.test.h002b'; return require 'aux.core.scan'")('auxForever', addon)
+  local aux = loadstring("select(2, ...) 'aux.test.h002c'; return require 'aux'")('auxForever', addon)
+  local real_get_info = G.GetItemInfo
+  -- the game's answer for the item: its own name, also for a link (finding 4's worry)
+  G.GetItemInfo = function(x)
+    if x == 4575 or (type(x) == 'string' and x:find('item:4575', 1, true)) then
+      return 'Medicine Staff', type(x) == 'string' and x or '|cff1eff00|Hitem:4575::::::0:0|h[Medicine Staff]|h|r', 2, 19, 14, 'Weapon', 'Staves', 1, 'INVTYPE_2HWEAPON', 1, 1487
+    end
+    return real_get_info(x)
+  end
+  local ids = aux.account_data.item_ids
+  ids['medicine staff'] = 4575
+  local function link(name) return '|cff1eff00|Hitem:4575::::::::24:1487::1:1:12726:1:28:5254::::|h[' .. name .. ']|h|r' end
+
+  -- finding 6: a typed full name, in any letter case
+  check('H-002 6: a typed name finds its item and ending', info.split_ending('Medicine Staff of the Wolf') == 4575 and select(2, info.split_ending('medicine staff of the wolf')) == 'medicine staff')
+  check('H-002 6: a typed name gives the ending key', info.price_key(4575, 'medicine staff of the wolf') == '4575:of the wolf')
+  check('H-002 6: an unknown name finds nothing', info.split_ending('Unknown Thing of the Bear') == nil)
+
+  -- finding 4: a record's name is the link's full name
+  local function staff(name, buyout)
+    return info.item_search_record({itemKey = {itemID = 4575, itemSuffix = 0}, itemLink = link(name), auctionID = 1, quantity = 1,
+      buyoutAmount = buyout or 11000, minBid = 0, owners = {'Seller'}, totalNumberOfOwners = 1, timeLeft = 2})
+  end
+  local wolf, bandit = staff('Medicine Staff of the Wolf'), staff('Medicine Staff of the Bandit')
+  check('H-002 4: the record is named with its ending', wolf and wolf.name == 'Medicine Staff of the Wolf')
+
+  -- finding 3: two endings at the same price, time and seller are two rows
+  check('H-002 3: different endings never share a row', wolf and bandit and wolf.search_signature ~= bandit.search_signature and wolf.sniping_signature ~= bandit.sniping_signature)
+
+  -- finding 2: an exact search for a full name asks for the item and keeps only that ending
+  local queries = filter_util.queries('medicine staff of the wolf/exact')
+  local q = queries and queries[1]
+  check('H-002 2: the auction house is asked for the item', q and q.blizzard_query.name == 'medicine staff')
+  check('H-002 2: that ending is kept', q and q.validator(wolf) == true)
+  check('H-002 2: other endings are not', q and q.validator(bandit) == false)
+  local all = filter_util.queries('medicine staff/exact')
+  check('H-002 2: the item\'s own name still finds every ending', all and all[1].validator(wolf) and all[1].validator(bandit))
+
+  -- finding 5: the price check counts what it read when a name search is in it
+  local params
+  local real_start = scan_exports.start
+  rawset(scan_exports, 'start', function(p) params = p end)
+  local real_records = auctions.listing.records
+  auctions.listing.records = {{item_id = 4575, price_key = '4575:of the wolf', item_search_key = {itemID = 4575, itemSuffix = 101},
+    unit_buyout_price = 15000, buyout_price = 15000, sale_status = 0}}
+  auctions.check_prices()
+  for _ = 1, 4 do params.on_page_loaded() end
+  check('H-002 5: no "4 of 1": the count read so far, with no total', auctions.checking.done == 4 and auctions.checking.total == nil)
+  params.on_complete()
+  auctions.listing.records = real_records
+  rawset(scan_exports, 'start', real_start)
+  ids['medicine staff'] = nil
+  G.GetItemInfo = real_get_info
+end)
+
+-- 0.8 (Tyler, build 7: "Why are we separating these lines?"): one row per price in the result
+-- tables. His Merc Sword of Healing search: 11s from four sellers (10, 2, 39 and 5 for sale, four
+-- time lefts), 12s twice (one with an 11s bid), 18s and 30s.
+try('0.8: one row per price', function()
+  local info = loadstring("select(2, ...) 'aux.util.info'; return _M")('auxForever', addon)
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local al = loadstring("select(2, ...) 'aux.gui.auction_listing'; return _M")('auxForever', addon)
+  local real_get_info = G.GetItemInfo
+  G.GetItemInfo = function(x)
+    if x == 4570 or (type(x) == 'string' and x:find('item:4570', 1, true)) then
+      return 'Merc Sword', type(x) == 'string' and x or nil, 2, 16, 11, 'Weapon', 'One-Handed Swords', 1, 'INVTYPE_WEAPON', 1, 1049
+    end
+    return real_get_info(x)
+  end
+  local link = '|cff1eff00|Hitem:4570::::::::20:1487::1:1:12700:1:28:5254::::|h[Merc Sword of Healing]|h|r'
+  local id = 0
+  local function row(seller, quantity, buyout, bid, band)
+    id = id + 1
+    return info.item_search_record({itemKey = {itemID = 4570, itemSuffix = 0}, itemLink = link, auctionID = id, quantity = quantity,
+      buyoutAmount = buyout, minBid = bid or 0, owners = {seller}, totalNumberOfOwners = 1, timeLeft = band})
+  end
+  local records = {
+    row('Amelaina', 10, 1100, nil, 3), row('Kadathi', 2, 1100, nil, 0), row('Matkal', 39, 1100, nil, 2), row('Miguel', 5, 1100, nil, 1),
+    row('Freddy', 1, 1200, 1100, 2), row('Bigldaddyl', 1, 1200, nil, 3), row('Lemon', 1, 1800, 1200, 2), row('Ungido', 1, 3000, nil, 2),
+  }
+  local t = search.current_search().table
+  t:SetDatabase(records)
+  -- one item in the table: each price is a row of its own
+  local by_price, n = {}, 0
+  for _, info_row in ipairs(t.rowInfo) do
+    for _, child in ipairs(info_row.children) do n = n + 1; by_price[child.record.buyout_price] = child end
+  end
+  check('rows: one row per price (11s, 12s, 18s, 30s)', n == 4 and t.rowInfo.numDisplayRows == 4)
+  check('rows: 11s adds up the four sellers', by_price[1100] and by_price[1100].count == 56)
+  local function plain(x) return ((x or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  check('rows: and says so', by_price[1100] and plain(al.seller_text(by_price[1100].record)) == '4 sellers')
+  check('rows: 12s is one row, with and without a bid', by_price[1200] and by_price[1200].count == 2)
+  check('rows: the row buys a real auction at the price shown', by_price[1100] and by_price[1100].record.buyout_price == 1100 and by_price[1200].record.buyout_price == 1200)
+  check('rows: one seller is named as before', by_price[3000] and plain(al.seller_text(by_price[3000].record)) == 'Ungido')
+  -- the Auctions tab keeps each of your own auctions on its own row
+  local auctions = loadstring("select(2, ...) 'aux.tabs.auctions'; return _M")('auxForever', addon)
+  local mine = {row('P', 1, 1100, nil, 3), row('P', 1, 1100, nil, 2)}
+  for _, r in ipairs(mine) do r.auction_id = r.auction_id + 1000; info.signatures(r) end
+  local real = auctions.listing.records
+  auctions.listing:SetDatabase(mine)
+  check('rows: the Auctions tab keeps one row per auction', auctions.listing.rowInfo.numDisplayRows == 2)
+  auctions.listing:SetDatabase(real or {})
+
+  -- Gemini's review of one row per price (H-004, docs/reviews/2026-11-08-one-row-per-price.md)
+  t:SetDatabase(records)
+  local eleven
+  for _, info_row in ipairs(t.rowInfo) do
+    for _, child in ipairs(info_row.children) do if child.record.buyout_price == 1100 then eleven = child end end
+  end
+  check('H-004 5: the row tells the buy bar how many it holds', eleven and eleven.record.group_count == 56)
+  local summary = plain(search.results_summary({records = records}) or '')
+  check('H-004 7: the summary counts the rows shown', search.results_count({records = records}) == 4 and summary:find('4 price levels', 1, true) ~= nil)
+  -- finding 6: one seller with two time lefts is one seller
+  local twice = {row('Amelaina', 3, 1500, nil, 3), row('Amelaina', 2, 1500, nil, 1), row('Kadathi', 1, 1500, nil, 2)}
+  t:SetDatabase(twice)
+  local fifteen = t.rowInfo[1] and t.rowInfo[1].children[1]
+  check('H-004 6: each seller counted once', fifteen and fifteen.count == 6 and plain(al.seller_text(fifteen.record)) == '2 sellers')
+  -- finding 3: the row keeps the auction with the lowest starting bid, by value
+  local bids = {row('Buyoutonly', 1, 1200, nil, 3), row('Lowbid', 1, 1200, 200, 2), row('Midbid', 1, 1200, 900, 2)}
+  t:SetDatabase(bids)
+  local twelve = t.rowInfo[1] and t.rowInfo[1].children[1]
+  check('H-004 3: the 2s starting bid is the one kept, so Bid shows', twelve and twelve.count == 3 and twelve.record.owner == 'Lowbid')
+  -- finding 2: auctions with no buyout stay apart, whatever their bid
+  local bid_only = {row('Cheap', 1, 0, 200, 3), row('Dear', 1, 0, 10000, 3)}
+  t:SetDatabase(bid_only)
+  check('H-004 2: no-buyout auctions keep a row each', t.rowInfo.numDisplayRows == 2)
+  -- findings 1 and 4: the Bids and Sniper tables list each auction apart
+  local bids_tab = loadstring("select(2, ...) 'aux.tabs.bids'; return _M")('auxForever', addon)
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  check('H-004 1 and 4: the Bids and Sniper tables keep each auction on its own row', bids_tab.listing.one_row_each == true and sniper.listing.one_row_each == true)
+
+  -- Gemini's release review (H-006, finding 5): sorting and selecting rows of several auctions.
+  -- Columns of the search table: 4 For sale, 5 Time Left, 6 Seller.
+  local saved_sorts = {}
+  for i, sort in ipairs(t.sorts) do saved_sorts[i] = {index = sort.index, descending = sort.descending} end
+  local function order()
+    local prices = {}
+    for _, info_row in ipairs(t.rowInfo) do
+      for _, child in ipairs(info_row.children) do tinsert(prices, child.record.buyout_price) end
+    end
+    return table.concat(prices, ' ')
+  end
+  t:SetDatabase({row('Aaron', 2, 1100, nil, 2), row('Abe', 2, 1100, nil, 2), row('Mia', 3, 1500, nil, 2)})
+  t:SetSort(-4)
+  t:SetDatabase()
+  check('H-006 5: For sale sorts a row by all it holds (4 before 3)', order() == '1100 1500')
+  t:SetSort(6)
+  t:SetDatabase()
+  check('H-006 5: "2 sellers" sorts with the unnamed rows, after Mia', order() == '1500 1100')
+  local kept = row('Lowbid', 1, 1100, 500, 3)
+  local next_one = row('Other', 1, 1100, nil, 0)
+  t:SetDatabase({kept, next_one, row('Mid', 1, 1500, nil, 1)})
+  t:SetSort(5)
+  t:SetDatabase()
+  -- the table only: selecting a row would also look the auction up for the buy bar
+  local on_select = t.handlers.OnSelectionChanged
+  t.handlers.OnSelectionChanged = nil
+  t:SetSelectedRecord(kept)
+  local before = order()
+  t:RemoveAuctionRecord(kept)
+  check('H-006 5: after buying the auction a row kept, the row stays selected with its next one, though the sort moved it',
+    before == '1500 1100' and order() == '1100 1500' and t.selected == next_one)
+  t:SetSelectedRecord(nil)
+  t.handlers.OnSelectionChanged = on_select
+  -- build 14 (Tyler, build 13): in a table of several items, For sale sorts each item by all it has
+  -- for sale, as its row shows, not by its first price ("18 (1)" sat below a 17)
+  local function ending_row(ending, quantity, buyout)
+    id = id + 1
+    local ending_link = '|cff1eff00|Hitem:4570::::::::20:1487::1:1:12700:1:28:5254::::|h[Merc Sword ' .. ending .. ']|h|r'
+    return info.item_search_record({itemKey = {itemID = 4570, itemSuffix = 0}, itemLink = ending_link, auctionID = id, quantity = quantity,
+      buyoutAmount = buyout, minBid = 0, owners = {'S' .. id}, totalNumberOfOwners = 1, timeLeft = 2})
+  end
+  t:SetDatabase({ending_row('of Stamina', 16, 1100), ending_row('of Stamina', 2, 3000), ending_row('of the Owl', 17, 1100)})
+  t:SetSort(-4)
+  t:SetDatabase()
+  local first = t.rowInfo[1] and t.rowInfo[1].children[1].record.name
+  check('build 14: For sale sorts items by all they have for sale (18 before 17)', #t.rowInfo == 2 and first == 'Merc Sword of Stamina')
+  t.sorts, t.isSorted = saved_sorts, nil
+  t:SetDatabase({})
+  G.GetItemInfo = real_get_info
+end)
+
+-- H-004, note 8: the Post tab's "cheapest other ending" never suggests your own listing back to you
+try('0.8: H-004 note 8', function()
+  local req = loadstring("select(2, ...) 'aux.test.h004'; return require")('auxForever', addon)
+  local scan_exports = req 'aux.core.scan'
+  local info = req 'aux.util.info'
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local real_start, real_inventory = scan_exports.start, info.inventory
+  local real_get_info, real_key_info = G.GetItemInfo, rawget(C_AuctionHouse, 'GetItemKeyInfo')
+  G.GetItemInfo = function(x)
+    if x == 4575 or (type(x) == 'string' and x:find('item:4575', 1, true)) then return 'Medicine Staff', nil, 2, 19, 14, 'Weapon', 'Staves', 1, 'INVTYPE_2HWEAPON', 1, 1487 end
+    return real_get_info(x)
+  end
+  local names = {[104] = 'Medicine Staff of the Wolf', [102] = 'Medicine Staff of Arcane Protection'}
+  rawset(C_AuctionHouse, 'GetItemKeyInfo', function(key) return names[key.itemSuffix] and {itemName = names[key.itemSuffix], isEquipment = true} end)
+  rawset(info, 'inventory', function() return function() end end)
+  local params
+  rawset(scan_exports, 'start', function(p) params = p end)
+  post.selected_item = {key = '4575:of the whale', item_id = 4575, name = 'Medicine Staff of the Whale', quality = 2, count = 1, max_stack = 1}
+  post.refresh_entries()
+  check('note 8: other endings are skipped', params and params.skip_key and params.skip_key({itemKey = {itemID = 4575, itemSuffix = 104}, minPrice = 9000, containsOwnerItem = true, totalQuantity = 1}) == true)
+  check('note 8: your own only listing is not the suggestion', post.other_endings_lowest == nil)
+  params.skip_key({itemKey = {itemID = 4575, itemSuffix = 102}, minPrice = 11000, totalQuantity = 2})
+  check('note 8: another seller\'s is', post.other_endings_lowest == 11000)
+  post.selected_item = nil
+  rawset(scan_exports, 'start', real_start); rawset(info, 'inventory', real_inventory)
+  rawset(C_AuctionHouse, 'GetItemKeyInfo', real_key_info)
+  G.GetItemInfo = real_get_info
+end)
+
+-- Gemini's release review (H-006, docs/reviews/2026-11-08-release-0.8.md), findings 1 and 2
+try('0.8: review H-006', function()
+  local req = loadstring("select(2, ...) 'aux.test.h006'; return require")('auxForever', addon)
+  local info = req 'aux.util.info'
+  local scan_exports = req 'aux.core.scan'
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local real_get_info, real_key_info = G.GetItemInfo, rawget(C_AuctionHouse, 'GetItemKeyInfo')
+  -- finding 1: the version's name has loaded, the item's own name not yet
+  local base_loaded = false
+  G.GetItemInfo = function(x)
+    if x == 4591 or (type(x) == 'string' and x:find('item:4591', 1, true)) then
+      if base_loaded then return 'Bandit Cloak', nil, 2, 18, 13, 'Armor', 'Cloth', 1, 'INVTYPE_CLOAK', 1, 900 end
+      return
+    end
+    return real_get_info(x)
+  end
+  rawset(C_AuctionHouse, 'GetItemKeyInfo', function(key)
+    if key.itemID == 4591 then return {itemName = 'Bandit Cloak of the Owl', isEquipment = true} end
+    if key.itemID == 4575 then return {itemName = 'Medicine Staff of the Wolf', isEquipment = true} end
+    return real_key_info and real_key_info(key)
+  end)
+  check('H-006 1: without the item\'s own name, no price key yet (not "4591:0")', info.item_key_price_key({itemID = 4591, itemSuffix = 103}) == nil)
+  base_loaded = true
+  check('H-006 1: once it loads, the ending', info.item_key_price_key({itemID = 4591, itemSuffix = 103}) == '4591:of the owl')
+
+  -- finding 2: a gear read stopped before its end (a Full scan) does not unlock Post
+  G.GetItemInfo = function(x)
+    if x == 4575 or (type(x) == 'string' and x:find('item:4575', 1, true)) then return 'Medicine Staff', nil, 2, 19, 14, 'Weapon', 'Staves', 1, 'INVTYPE_2HWEAPON', 1, 1487 end
+    return real_get_info(x)
+  end
+  local real_start, real_inventory = scan_exports.start, info.inventory
+  rawset(info, 'inventory', function() return function() end end)
+  local params
+  rawset(scan_exports, 'start', function(p) params = p end)
+  post.selected_item = {key = '4575:of the wolf', item_id = 4575, name = 'Medicine Staff of the Wolf', quality = 2, count = 1, max_stack = 1}
+  post.refresh_entries()
+  check('H-006 2: reading', post.disabled_reason() == 'Reading the listings...')
+  params.on_abort()
+  check('H-006 2: stopped halfway, Post stays faded and says how to go on', post.disabled_reason() == 'Reading stopped. Press Refresh, or type a price.')
+  post.refresh_entries()
+  check('H-006 2: Refresh reads again', post.disabled_reason() == 'Reading the listings...')
+  post.selected_item = nil
+  rawset(scan_exports, 'start', real_start); rawset(info, 'inventory', real_inventory)
+  rawset(C_AuctionHouse, 'GetItemKeyInfo', real_key_info)
+  G.GetItemInfo = real_get_info
+
+  -- finding 7: 0.7 kept one mixed price for every ending under "id:0"; the first price of an ending
+  -- retires it, so a price asked by item ID is not that old one forever. A plain price kept since
+  -- the update stays.
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local api = G.AuxForeverAPI
+  local today = h.today()
+  h.write_record('4593:0', {day = today - 30, low = 900, points = {{day = today - 31, value = 950}}})
+  h.write_record('4594:0', {day = today, low = 700, points = {}})
+  check('H-006 7: before, the old mixed price answers by item ID', api.GetUsualPrice(4593) ~= nil)
+  h.process_auction({buyout_price = 1000, count = 1, price_key = '4593:of the owl', item_key = '4593:0'})
+  h.process_auction({buyout_price = 1000, count = 1, price_key = '4594:of the owl', item_key = '4594:0'})
+  check('H-006 7: the old mixed price is retired once an ending has a price', h.data['4593:0'] == nil and api.GetUsualPrice(4593) == nil and api.GetLatestPrice(4593) == nil)
+  check('H-006 7: the ending keeps its own price', h.data['4593:of the owl'] ~= nil)
+  check('H-006 7: a plain price seen since the update stays', h.data['4594:0'] ~= nil)
+  for _, key in ipairs{'4593:of the owl', '4594:0', '4594:of the owl'} do h.data[key] = nil end
+end)
+
+-- 0.8 (Tyler): clearing the search bar and clicking elsewhere showed "<>"
+try('0.8: an empty search bar stays empty', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  check('empty bar: shows nothing', search.search_box.formatter('') == '' and search.search_box.formatter('   ') == '')
+  check('empty bar: a search still shows as before', plain(search.search_box.formatter('linen cloth')):find('linen cloth', 1, true) ~= nil)
 end)
 
 -- what players do while the auction house is still answering: a slow auction house that answers

@@ -38,9 +38,13 @@ from aux on Classic:
   asks the server for the real price, and nothing is bought until you press Confirm. If the price
   went up in the meantime, the purchase is cancelled and the listings are read again.
 - **Gear is bought one at a time** at the price on the button, and can still be bid on.
-- **Match the lowest price by default.** On Forever the newest listing at a price sells first, so
-  matching the cheapest listing sells just as fast as undercutting it and keeps prices from sliding.
-  Undercut mode (the goblin on the Post tab) goes one step below when you want it.
+- **Match the lowest price by default.** The Post tab starts at the cheapest listing's price, so
+  prices do not slide one step lower with every new listing. On the modern auction house the newest
+  listing at a price is said to sell first, which would make matching sell as fast as undercutting;
+  that is not yet confirmed on Forever. Undercut mode (the goblin on the Post tab) goes one step
+  below when you want it.
+- **Gear with a random ending** ("of the Wolf") has its own price per ending, told apart by the
+  item's name, as Blizzard's Sell window groups it.
 - **Full scans** are allowed once every 15 minutes.
 
 ## Features
@@ -53,6 +57,9 @@ from aux on Classic:
 - Settings behind the gear: two themes (New, and Classic for the 0.5 look), background opacity,
   window scale, the default auction length, and an on/off switch for each tooltip line.
 - Many convenient shortcuts.
+- Works with a controller in Forever's gamepad mode: the D-pad moves between controls, A presses,
+  B goes back, X right-clicks, Y does the tab's main action (buy, post, start the Sniper), LB and
+  RB switch tabs, and a strip under the window shows the buttons with your controller's icons.
 
 **Search**
 
@@ -69,6 +76,10 @@ from aux on Classic:
   away. Back and forward arrows step through earlier results like a web browser.
 - Concise listings: level, item, how many are for sale at that price, time left, seller, bid,
   buyout and the percentage of the usual price.
+- One row per price: auctions of an item at the same price share a row, with how many are for sale
+  and how many sellers, whoever sells them and whatever their time left.
+- Gear with a random ending is its own item: `medicine staff of the wolf/exact` finds that ending
+  only, `medicine staff/exact` every ending.
 - Sorting across all results, by unit price or by percentage of the historical value.
 - A count of the results and a summary of what they hold: price levels, items for sale and when
   the search ran.
@@ -82,6 +93,13 @@ from aux on Classic:
   profit or loss.
 - Recipe searches stay in your recent and saved searches, labeled "Recipe", with the last profit
   or loss in the quick search menu.
+
+**Waylaid Crates**
+
+- Hover a Waylaid Crate: its tooltip lists every bundle that fills it with what it costs, counting
+  what is already in your bags, and names the cheapest.
+- Alt-click a crate in your bags while aux is open to search every bundle's item at once; the bar
+  under the results names the cheapest way to fill it at today's prices.
 
 **Sniper**
 
@@ -103,6 +121,8 @@ from aux on Classic:
 - Trade goods are posted as one listing of any quantity, up to everything you have.
 - Reads the existing auctions for the item and starts at the lowest price (or one step below in
   undercut mode). Click any listing to use its price instead.
+- Gear with a random ending is priced against listings of the same name only. When nobody sells
+  that name, aux suggests the cheapest other ending of the item, and says so.
 - A receipt beside the price: the total, the auction house cut, what you get and the deposit, with
   a red warning you cannot miss when a vendor would pay more.
 - Remembers your settings per item. Prices are typed the aux way (see Usage).

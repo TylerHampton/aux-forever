@@ -21,6 +21,8 @@ frame.listing = gui.panel(frame)
 frame.listing:SetAllPoints(aux.frame.content)
 
 frame.listing.list = CreateFrame('Frame', nil, frame.listing)
+-- exported for the gamepad: A on a deal moves the focus to the buy bar (gamepad.lua)
+M.deals_list = frame.listing.list
 frame.listing.list:SetPoint('TOPLEFT', 0, 0)
 frame.listing.list:SetPoint('BOTTOMRIGHT', 0, buy_bar.HEIGHT + 4)
 
@@ -158,6 +160,8 @@ M.columns = {
 }
 
 listing = auction_listing.new(frame.listing.list, 19, columns)
+-- each deal on its own row (0.8, review H-004, finding 4): a gone deal never hides a live one
+listing.one_row_each = true
 listing:SetSort(-1)
 listing:Reset()
 listing:SetHandler('OnClick', function(row, button)
@@ -188,7 +192,8 @@ do
     btn:SetScript('OnClick', function()
         if running then stop() else start() end
     end)
-    run_button = btn
+    -- exported for the gamepad's Y (gamepad.lua)
+    M.run_button = btn
 end
 do
     local label = gui.label(frame, gui.font_size.medium)

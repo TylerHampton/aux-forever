@@ -1,5 +1,6 @@
 select(2, ...) 'aux.tabs.search'
 
+local auction_listing = require 'aux.gui.auction_listing'
 local aux = require 'aux'
 local info = require 'aux.util.info'
 local filter_util = require 'aux.util.filter'
@@ -209,7 +210,7 @@ function start_live_scan(query, search)
         on_auction = function(auction_record)
             if not seen[auction_record.sniping_signature] and (search.alert_validator or pass)(auction_record) and not alerted then
                 alerted = true
-                StaticPopup_Show('AUX_SCAN_ALERT')
+                aux.show_popup('AUX_SCAN_ALERT')
                 if type(FlashClientIcon) == 'function' then
                     FlashClientIcon()
                 end
@@ -219,7 +220,7 @@ function start_live_scan(query, search)
         on_complete = function()
             aux.status_bar:update_status(1, 1)
             if #new_records > 2000 then
-                StaticPopup_Show('AUX_SEARCH_TABLE_FULL')
+                aux.show_popup('AUX_SEARCH_TABLE_FULL')
             else
                 local selected = search.table.selected and search.table.selected.search_signature
                 search.records = new_records
@@ -432,20 +433,33 @@ local function thousands(n)
     end
 end
 
+-- the rows the table shows for these records: one per price (0.8, review H-004, finding 7)
+function count_price_levels(records)
+    local seen, n = {}, 0
+    for _, record in ipairs(records) do
+        local group = auction_listing.price_group(record) or record
+        if not seen[group] then
+            seen[group] = true
+            n = n + 1
+        end
+    end
+    return n
+end
+
 -- the number on the Search Results sub tab: items, or price levels when all results are one item
 function M.results_count(search)
     if not search or not search.records then
         return 0
     end
-    local items, item_count = {}, 0
+    local items, item_count, levels = {}, 0, count_price_levels(search.records)
     for _, record in ipairs(search.records) do
-        local key = record.item_key or record.item_id or record
+        local key = record.price_key or record.item_key or record.item_id or record
         if not items[key] then
             items[key] = true
             item_count = item_count + 1
         end
     end
-    return item_count > 1 and item_count or #search.records
+    return item_count > 1 and item_count or levels
 end
 
 function M.results_summary(search)
@@ -455,7 +469,7 @@ function M.results_summary(search)
     local units, items, item_count = 0, {}, 0
     for _, record in ipairs(search.records) do
         units = units + (record.count or 1) * (record.auction_count or 1)
-        local key = record.item_key or record.item_id or record
+        local key = record.price_key or record.item_key or record.item_id or record
         if not items[key] then
             items[key] = true
             item_count = item_count + 1
@@ -465,7 +479,7 @@ function M.results_summary(search)
     if item_count > 1 then
         text = thousands(item_count) .. ' items, '
     else
-        local levels = #search.records
+        local levels = count_price_levels(search.records)
         text = thousands(levels) .. (levels == 1 and ' price level, ' or ' price levels, ')
     end
     text = text .. thousands(units) .. ' for sale'
@@ -562,12 +576,12 @@ function start_search(queries, continuation)
         end,
         on_auction = function(auction_record)
             if (search.alert_validator or pass)(auction_record) then
-                StaticPopup_Show('AUX_SCAN_ALERT') -- TODO retail improve this
+                aux.show_popup('AUX_SCAN_ALERT') -- TODO retail improve this
             end
             if #search.records < 2000 then
                 tinsert(search.records, auction_record)
                 if #search.records == 2000 then
-                    StaticPopup_Show('AUX_SEARCH_TABLE_FULL')
+                    aux.show_popup('AUX_SEARCH_TABLE_FULL')
                 end
             end
         end,
@@ -956,7 +970,7 @@ do
             end
         end
         if loaded[1] then
-            search.table.expanded[loaded[1].item_key] = true
+            search.table.expanded[loaded[1].price_key or loaded[1].item_key] = true
         end
         search.table:SetDatabase()
         if aux.account_data.debug_timing and cheapest and ceil(cheapest.unit_buyout_price) ~= ceil(fast_record.unit_buyout_price) then

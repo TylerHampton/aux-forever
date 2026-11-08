@@ -1,6 +1,40 @@
 # Status
 
-Last updated 2026-10-20, Tyler's time (privacy pass; 0.7.1.1 released).
+Last updated 2026-11-08, Tyler's time (0.8 build 14 passed in game; waiting for Tyler's "release 0.8"; 0.7.1.1 is the latest release).
+
+**2026-11-08, Claude, 0.8 build 14:** Tyler's build 13 test: Seller sort, gear Value and the new
+help text pass; crates hovered in aux's results showed no costs, and For sale sorted an item by its
+first price only. Both fixed with a test each (`TESTING.md`, build 14). Build 14 passed in game:
+crate costs show in aux's results and in the bags, and For sale sorts by each item's total.
+
+**2026-11-08, Claude, H-006 (0.8 build 13):** checked Gemini's eight pre-release findings; seven
+fixed with a test each, the eighth (release text) rewritten. Answers under each finding in
+`docs/reviews/2026-11-08-release-0.8.md`. Also found: the in-game help (Post "?", Auctions tied
+line, `/aux undercut`) stated E6 as fact; now labeled. New saved field
+`faction_data.price_keys_since` (the first day of 0.8, used to retire 0.7's shared gear prices).
+
+**2026-11-08, Gemini H-005 pre-release review (docs only, no addon change):**
+Reviewed 0.8 builds 1 to 12 (`origin/main..544b8c2`) across all nine areas from H-005 in
+`docs/reviews/2026-11-08-release-0.8.md` (confirmed gamepad mouse/keyboard non-interference and
+taint safety, confirmed the `AuxForeverAPI` contract, and recorded eight findings ordered most
+serious first). Opened H-006 in `docs/handoff.md` for Claude to check the findings.
+
+**2026-11-08, Gemini H-003 review (docs only, no addon change):**
+Reviewed 0.8 build 9 (one row per price, `e76c347`) and 0.8 build 8 (Post tab skip of other gear
+endings, `46ecded`) in `docs/reviews/2026-11-08-one-row-per-price.md` (seven findings on build 9
+and one note on build 8). Opened H-004 in `docs/handoff.md` for Claude to check the findings.
+
+**2026-11-08, Gemini remote setup and H-001 gear versions review (docs only, no addon change):**
+Updated `GEMINI.md` for Antigravity remote Linux VM mode (and removed the local Windows path per the
+privacy rule), synced the Claude + Gemini workflow rules onto `main`, and completed H-001 in
+`docs/reviews/2026-10-26-gear-versions.md` (six findings on 0.8 builds 3 to 6). Opened H-002 in
+`docs/handoff.md` for Claude to check the findings.
+
+**2026-10-25, Gemini (Antigravity) tandem setup (docs only, no addon change):** Tyler brought
+Gemini (Antigravity) onto the project alongside Claude Code. Local workspace synced to
+`origin/main` (`v0.7.1.1`) and checked out on `claude/fervent-planck-ry58jx` (`0.8 build 6`).
+Updated `GEMINI.md` and `CLAUDE.md` with the shared handoff workflow so either agent can pick up on
+the active branch or work on a separate branch without colliding.
 
 **2026-10-20, privacy pass (docs only, no addon change):** Tyler asked that the public repository
 say no more about him than the work needs. Removed: his city and time zone name (dates now use
@@ -28,7 +62,166 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 
 ## Start here (next session)
 
-**Where things stand (2026-10-19):** **0.7.1.1 is released** (2026-10-19, PR #32, `main`
+**Roles (Tyler, 2026-10-26):** Claude Code stays the primary engineer; Gemini (Gemini 4 Argon) is
+the supporting model for second opinions, written in `docs/reviews/` (`AGENTS.md`, "Roles").
+Agents talk through `docs/handoff.md`; Tyler only says "Check the handoff" to whoever goes next.
+Nothing is open there (H-006 done, 2026-11-08).
+
+**Resumed (Tyler, 2026-11-08):** Forever is out; Tyler has a level 20 character and said "go full
+auto mode". **0.8 build 14** (the release candidate: Gemini's H-006 findings in build 13, tested by
+Tyler, plus two fixes from that test; all three build 14 steps passed in game) is on `claude/fervent-planck-ry58jx`. Before it: build 10,
+tested on the released game with all steps passing, plus the `<>` fix (build 11) and the Buy
+button that stayed Confirm green after Cancel (build 12), both passed in game (`TESTING.md`). On the released game: aux loads with no errors, saved prices
+survive a login, Full scan works (build 7); the Post tab loads gear fast (build 8); one row per
+price works and buying from a merged row passes (build 9); Gemini's second review is taken and
+checked (build 10). Every 0.8 item is built and tested, except gamepad, which Tyler left to players
+with a controller (nokkty tested it on the beta).
+
+The 5-minute check (`TESTING.md`) is done on the released game (2026-11-08): steps 1 to 5 during
+builds 9 and 10, step 6 (the Materials line, 13s 84c for a Woolen Bag, and Search in aux with the
+cost line) from Tyler's screenshot. Next: 0.8 releases once Tyler says "release 0.8" (pull request,
+merge, Release workflow). Open: E7 (replaced searches). The `<>` was aux's way of writing an empty search, shown in the bar after clearing it (fixed in build 11).
+
+**Was on hiatus (Tyler, 2026-10-26):** "We are going to be on developmental hiatus until the game
+releases and I can begin rapid iterative testing." Work picks up again in the same Claude Code
+thread on Sunday 2026-11-08. Nothing is being built until then, by any agent. Nothing was
+released or merged for the pause: `main` is still 0.7.1.1, and 0.8 (builds 1 to 6) waits on
+branch `claude/fervent-planck-ry58jx`.
+
+When work resumes, in this order:
+1. Pull, read this file and `git log` (Gemini may have committed; see GEMINI.md).
+2. Release-day checks. Each is a question, not a known change: Forever's release may differ from
+   the beta this addon was built on.
+   - Does the game load aux, or call it out of date? The TOC says `## Interface: 16001` (beta
+     1.60.1); if the release reports another number, update the TOC, and the CurseForge game
+     version follows it (`docs/curseforge.md`).
+   - Where do addons go? Install steps in `README.md`, `AGENTS.md` and the CurseForge text name
+     `World of Warcraft\_classic_beta_\Interface\AddOns`; the release folder may differ.
+   - Did Blizzard's auction house code change? Compare the `forever` branch of
+     `Gethe/wow-ui-source` with what `docs/forever-auction-house.md` cites; if the categories
+     changed, run `tests/tools/make_forever_categories.lua` again.
+   - Do aux's saved prices survive a logout and login? Beta guides (Outside, 2026-10) reported a
+     beta bug where saved addon settings were written but not loaded.
+3. Tyler tests 0.8 build 6 (test page build `0-8-build-6`, 3 steps), then E7 (10 seconds,
+   `docs/forever-auction-house.md`).
+4. Ask Tyler whether 0.8 ships (pull request, merge, Release workflow), and whether it goes out
+   before or after the release-day fixes.
+
+**Where things stand (2026-10-21, end of session):** **0.8 build 6 (gear versions in the Post
+tab)** is on branch `claude/fervent-planck-ry58jx`, built and pushed, not yet tested in game
+(`TESTING.md`, zip `auxForever-0.8-build6.zip`, test page build `0-8-build-6`). Every 0.8 item is
+built: gamepad (build 1, nokkty), Waylaid Crates (build 2, pass in game), gear versions (builds
+3 to 6). Gear versions in game so far: prices per ending pass (build 3), endings in the bag list
+pass (build 4); the Post tab's gear listings needed two more rounds (build 5: listings filed under
+the wrong key and read as done too early; build 6: the Post tab stopped at the first version with
+a listing, and now suggests the cheapest other ending when nobody sells the name). Tyler, on build
+5: "Looks like we found our first real issue that you couldnt one-shot."
+
+Next session: read the test page results for `0-8-build-6` first. If they pass, ask Tyler whether
+0.8 is ready to release (pull request, merge, Release workflow). Open: E7 (whether Forever answers a
+replaced search; it would show as a Post tab item reading "None for sale" right after a post when
+another item is picked quickly), FB-022.
+
+- **0.8 planning (2026-10-20):** 0.8 is only gamepad support, Waylaid crates and gear versions
+  (Tyler). The crafting shopping list (FB-023, Kortan) and counting other characters' items move
+  to 0.9 together. Still open for 0.9: compare crafted materials with crafting them, and which
+  price the list shows; then a mockup. Gear versions: Tyler asked what it meant; the way to settle it is a screenshot of
+  two same-name gear tooltips (do the stats differ?). Waylaid crates: "cheapest way to fill one"
+  (Tyler); a crate lists several bundles, any one fills it (guides, FB-020). Waiting on a crate's
+  tooltip in game. Writs go to 0.9 with the shopping list (Tyler, 2026-10-20).
+- **0.8 build 2: Waylaid Crates built and tested in game (2026-10-20)**: steps 1, 3 to 6 pass from
+  Tyler's screenshots (`TESTING.md`); was waiting for Tyler's test (`TESTING.md`, zip
+  `auxForever-0.8-build2.zip`, full game restart). Tyler chose options A and C of the mockup. A: a
+  crate's tooltip lists every bundle with its cost, cheapest in gold, bags counted
+  (`add_crate_lines`, called from `core/tooltip.lua`). C: Alt-click a crate in the bags searches
+  every bundle's item through the recipe search path (`search_parts`); the bottom bar prices each
+  bundle from live listings, cheapest first as many as needed, own auctions skipped
+  (`crate_live_costs`, `crate_summary`); Recent searches keep it as a crate. Tests: load_test
+  (tooltip, live costs, Alt-click end to end with the fake auction house) and timing_test (a
+  second crate clicked mid-search), each checked to fail with the code broken. Found on the way:
+  E7 in `docs/forever-auction-house.md` (whether Forever answers a replaced search; if it does, a
+  search started while another loads its item list can read the old list).
+- **Earlier the same day:** the crate logic was built first, without display: `auxForever/tabs/search/crate.lua` (new file, so a
+  full game restart once it ships): reads a crate's bundles from its tooltip text (each row
+  "- <count> <name>", one or several per line), keeps them per crate, prices each bundle like a
+  recipe's materials (vendor when cheaper, else the latest price; `recipe_usual_cost`), less what
+  is in the bags, and finds the cheapest. Tests: "0.8: Waylaid Crates" in `tests/load_test.lua`,
+  checked to fail when the bags or the tie rule are broken. Waiting on Tyler: the mockup
+  https://claude.ai/artifact/946XmJEswoKZAoNjme1mAq, option A (every bundle in the tooltip), B (one
+  line) and the extra C (Alt-click a crate searches its bundles, live prices, like recipe search).
+- **Seen 2026-10-20 (Tyler's screenshots):** a Waylaid Crate's tooltip lists its bundles (FB-020).
+  Three Medicine Staffs with different endings (of the Bandit, of Arcane Protection, of the Wolf;
+  different stats) showed the same aux prices in their tooltips (Value 1g 50s, usually 25s, Today
+  1g 10s, 440%): aux's tooltip prices lump every ending of an item together. Cause confirmed by the
+  raw link Tyler printed (`item:4575::::::::24:1487::1:1:12726:1:28:5254::::`): the suffix field is
+  empty, so every ending reads as `item_id:0`, while searches record `itemKey.itemSuffix`
+  (`docs/forever-auction-house.md`, section 4). The fix is the next 0.8 item, gear versions.
+- **Gamepad testing:** Tyler will not test the controller steps (2026-10-20: "That can be for the
+  small amount of users that want to test it"). The mouse and keyboard check moved into build 2
+  (step 6).
+- **Other characters' items (0.9, Claude's thoughts 2026-10-20):** two ways. (a) aux
+  records each character's bags (always), bank (when opened) and mail (when opened) in its
+  account-wide saved data, as Syndicator does; counts only, saved on a timer and on logout, never
+  per bag event. Works only for characters logged in at least once with aux, on the same account
+  folder, and is as fresh as each one's last login. (b) Read Syndicator's data when it is
+  installed: no new tracking code, but depends on another addon being installed and working on
+  Forever (not checked). Claude's suggestion: build the list so "what you have" is one place,
+  and add (a) with it, and (b) only if players already use Syndicator on Forever.
+- **0.8 build 3: gear versions (2026-10-20).** Tyler's screenshots: two Medicine Staffs of Arcane
+  Protection have the same stats, so gear is grouped by full name. New `info.price_key` (ending
+  from the name: "4575:of the wolf"; else "id:0"), set on every record and bag item; price history,
+  filters, the % column, tooltips, the API, `/aux price` and the Sniper use it. Post tab: bag items
+  are grouped by price key and compared with listings of the same name. Auctions tab: gear with an
+  ending is checked with a name search of the item, against every listing of its name. Old gear
+  prices under "id:0" are no longer read for gear. Tests: "0.8: gear versions" (load_test) and
+  "gear is posted against its own ending" (timing_test, the slow server now models versions), each
+  checked to fail with the change undone.
+- **Gear versions plan (2026-10-20, answered, built in build 3):** how aux keys gear prices today: a search
+  that reads each auction keys it by the link's suffix field, empty on Forever, so every ending
+  lands on `item_id:0` (`info.item_search_record`); fast searches key by the auction house's
+  version (`itemKey.itemSuffix`, `info.browse_record`); tooltips read the link, so they show the
+  lumped `:0` price. Blizzard's code (`Gethe/wow-ui-source`, forever,
+  `AuctionHouseDocumentation.lua`): `GetItemKeyFromItem(itemLocation)` gives a bag item's version;
+  every item search row carries both `itemLink` and `itemKey`; nothing turns a link alone into a
+  version. Plan: key gear by the auction house's version everywhere; tooltips learn link to
+  version from the search rows aux reads (and ask the game for bag items). Open: whether two gear
+  items with the same name but different versions have different stats (Outside: in original
+  Classic they could), which decides whether the Post and Auctions tabs compare with the exact
+  version or every version of the name.
+- **What it does:** auxForever can be used with a controller in Forever's gamepad mode: D-pad, A,
+  B, X, Y, LB/RB, a hint strip with the controller's icons, aux's popups inside aux. Mouse and
+  keyboard are unchanged. How and why: `docs/gamepad.md`. New file `auxForever/gamepad.lua`; five
+  buttons exported for Y (`buy_bar.primary_button`, the Sniper's `run_button` and `deals_list`,
+  `post_button`, the Auctions tab's `cancel_button`, the Bids tab's `buyout_button`); aux's popups
+  go through `aux.show_popup`/`aux.hide_popup` (every popup on `main` already did after the merge).
+  Version raised to 0.8 (a new feature, by the numbering rule).
+- **Fixed while bringing it in** (2026-10-20): nokkty's merge of `main` into their branch
+  (2026-10-15) had cut the closing `end)` off their Sniper gamepad test, so `tests/load_test.lua`
+  no longer ran at all on their branch. Restored. Every gamepad test also left aux holding the pad
+  buttons when it finished; once 0.7.1.1's timing tests closed the auction house after them, that
+  gave 2 errors. The tests now close aux while still in gamepad mode. New timing test (rule from
+  FB-021): Y on the Post tab posts nothing while the listings load, and two quick presses post
+  once; checked to fail when Y ignores a faded Post.
+- **Found while building it** (rule added to `AGENTS.md`, Code gotchas): aux must never write into
+  Blizzard's gamepad code (`GamepadMode`, `SmartNavigation`, its window manager or binding
+  groups). The first try registered aux with Blizzard's window manager; closing aux by pad then
+  got `SetPreferredGamepadInteractTarget()` blocked, each "blocked" popup was blocked again (259
+  times) and the game froze (`Logs/taint.log`). aux now has a navigator of its own with override
+  bindings on a frame it owns. Also: `C_Texture.GetAtlasInfo` fails on Forever (Vector2DMixin).
+- **Tested in game** (2026-10-13, the contributor, New theme): every step of
+  `TESTING.md` "0.7 build 1" passes; taint log with nothing blocked; no BugSack error. Not tested:
+  the Classic theme, a PlayStation controller, the post confirmation popup by pad (covered by the
+  automated tests), Y on Bids.
+- **Test harness:** stub frames made with `CreateFrame` now know their parent, children, type and
+  frame strata, `HookScript` adds to a script instead of replacing it, and `GetCenter`,
+  `GetEffectiveAlpha` and `GetStringHeight` return numbers, all as in the game.
+- `docs/curseforge-description.md` already has a line about controllers: paste it on CurseForge
+  only once 0.8 is released.
+- **Open questions for Tyler:** a look at the hint strip (no mockup was made; the layout was
+  nokkty's choice after trying icons beside the tabs and buttons), a short pass in Classic, and
+  whether to thank nokkty on the issue once it is merged.
+
+**Before that:** **0.7.1.1 is released** (2026-10-19, PR #32, `main`
 cdc2208): FB-021 (typed prices below the lowest listing can be posted), gear with only a buyout,
 and the fixes found with the slow test auction house (below). Tag `v0.7.1.1`, GitHub pre-release
 https://github.com/TylerHampton/aux-forever/releases/tag/v0.7.1.1, CurseForge Beta file id 9253171

@@ -25,9 +25,26 @@ gui.themed(function()
     TIME_LEFT_STRINGS[4] = aux.color.blue(info.time_left_label(4)) -- Very Long
 end)
 
+-- auxForever (0.8, Tyler, build 7: "Why are we separating these lines?"): which row a record goes
+-- in. Gear auctions at one buyout price share a row, whoever sells them and whatever time they have
+-- left; the auction house hands them over per seller and time left (four sellers at 11s were four
+-- rows). Trade goods come grouped by price already; an auction with no buyout keeps its own row,
+-- so different bids never hide behind one (review H-004, finding 2). Tables that list each auction
+-- apart (one_row_each: Auctions, Bids, Sniper) do not use it.
+function M.price_group(record)
+    if record.commodity or record.fast or (record.buyout_price or 0) == 0 then
+        return record.search_signature
+    end
+    return aux.join({record.price_key or record.item_key, record.buyout_price, record.count or 1, record.sale_status or 0,
+        info.is_player(record.owner) and 1 or 0, record.high_bidder and 1 or 0}, ':')
+end
+
 -- auxForever: Forever names the seller only when one player sells at a row's price
 function M.seller_text(record)
-    if info.is_player(record.owner) then
+    -- 0.8: a row of several sellers' auctions at one price (UpdateRowInfo)
+    if (record.group_sellers or 0) > 1 then
+        return aux.color.label.enabled(record.group_sellers .. ' sellers')
+    elseif info.is_player(record.owner) then
         return aux.color.yellow(record.owner)
     elseif record.owner then
         return record.owner
@@ -173,8 +190,14 @@ local function quantity_column(title)
             end
             cell.text:SetText(text)
         end,
+        -- an item's row sorts by all of it, as it shows: its first price alone put "18 (1)" below a
+        -- 17 (0.8 build 14, Tyler)
+        row_cmp = function(row_a, row_b, desc)
+            return sort_util.compare(row_a.totalUnits or 0, row_b.totalUnits or 0, desc)
+        end,
+        -- a row of several auctions at one price sorts by all it holds, as it shows (review H-006, finding 5)
         cmp = function(record_a, record_b, desc)
-            return sort_util.compare(record_a.count * (record_a.auction_count or 1), record_b.count * (record_b.auction_count or 1), desc)
+            return sort_util.compare(record_a.count * (record_a.group_count or record_a.auction_count or 1), record_b.count * (record_b.group_count or record_b.auction_count or 1), desc)
         end,
     }
 end
@@ -219,14 +242,18 @@ M.search_columns = {
             cell.text:SetText(record.fast and '' or seller_text(record))
         end,
         cmp = function(record_a, record_b, desc)
-            if not record_a.owner and not record_b.owner then
+            -- a row of several sellers ("4 sellers") sorts with the other unnamed ones, not by the
+            -- name of the one auction it keeps (review H-006, finding 5)
+            local owner_a = (record_a.group_sellers or 1) <= 1 and record_a.owner
+            local owner_b = (record_b.group_sellers or 1) <= 1 and record_b.owner
+            if not owner_a and not owner_b then
                 return sort_util.EQ
-            elseif not record_a.owner then
+            elseif not owner_a then
                 return sort_util.GT
-            elseif not record_b.owner then
+            elseif not owner_b then
                 return sort_util.LT
             else
-                return sort_util.compare(record_a.owner, record_b.owner, desc)
+                return sort_util.compare(owner_a, owner_b, desc)
             end
         end,
     },
@@ -500,14 +527,18 @@ M.bids_columns = {
             cell.text:SetText(seller_text(record))
         end,
         cmp = function(record_a, record_b, desc)
-            if not record_a.owner and not record_b.owner then
+            -- a row of several sellers ("4 sellers") sorts with the other unnamed ones, not by the
+            -- name of the one auction it keeps (review H-006, finding 5)
+            local owner_a = (record_a.group_sellers or 1) <= 1 and record_a.owner
+            local owner_b = (record_b.group_sellers or 1) <= 1 and record_b.owner
+            if not owner_a and not owner_b then
                 return sort_util.EQ
-            elseif not record_a.owner then
+            elseif not owner_a then
                 return sort_util.GT
-            elseif not record_b.owner then
+            elseif not owner_b then
                 return sort_util.LT
             else
-                return sort_util.compare(record_a.owner, record_b.owner, desc)
+                return sort_util.compare(owner_a, owner_b, desc)
             end
         end,
     },
@@ -582,7 +613,7 @@ M.bids_columns = {
 function record_percentage(record)
     if not record then return end
 
-    local historical_value = history.value(record.item_key) or 0
+    local historical_value = history.value(record.price_key or record.item_key) or 0
     if historical_value > 0 then
         if record.unit_buyout_price > 0 or percentage_for_bid then
             local unit_price = percentage_for_bid and record.unit_bid_price or record.unit_buyout_price
@@ -768,26 +799,67 @@ local methods = {
 
 	    local records = self.records
 
-        self.rowInfo.single_item = aux.all(records, function(record) return record.item_key == records[1].item_key end)
+        -- 0.8: grouped by price key, so each gear ending is an item of its own (review H-002, finding 3)
+        local function group(record) return record.price_key or record.item_key end
+        self.rowInfo.single_item = aux.all(records, function(record) return group(record) == group(records[1]) end)
 
-        sort(records, function(a, b) return a.search_signature < b.search_signature or a.search_signature == b.search_signature and tostring(a) < tostring(b) end)
+        -- auxForever (0.8, Tyler, build 7: "Why are we separating these lines?"): gear auctions at one
+        -- buyout price are one row, whoever sells them and whatever time they have left. The auction
+        -- house hands them over per seller and time left; four sellers at 11s were four rows. The row
+        -- keeps one real auction behind it (the lowest starting bid), so buying it buys exactly the
+        -- price shown; when it is gone the next one moves up. Trade goods come grouped by price
+        -- already; the Auctions tab keeps each of your auctions apart (one_row_each).
+        local function row_group(record)
+            return self.one_row_each and record.search_signature or price_group(record)
+        end
+        for _, record in ipairs(records) do
+            record.price_group, record.group_sellers, record.group_count = row_group(record), nil, nil
+        end
+        -- within one price, the auction kept for the row is the one with the lowest starting bid, by
+        -- value (review H-004, finding 3: compared as text, "1200" came before "200")
+        sort(records, function(a, b)
+            if a.price_group ~= b.price_group then return a.price_group < b.price_group end
+            if (a.bid_price or 0) ~= (b.bid_price or 0) then return (a.bid_price or 0) < (b.bid_price or 0) end
+            return a.search_signature < b.search_signature or a.search_signature == b.search_signature and tostring(a) < tostring(b)
+        end)
 
+        -- the sellers of the row being built, to say "4 sellers": each named seller once (review H-004,
+        -- finding 6: one seller with two time lefts counted twice), unnamed ones by their count
+        local sellers, named
+        local function start_row(record)
+            named = {}
+            if record.owner then named[record.owner] = true end
+            sellers = max(1, record.seller_count or 1)
+        end
         for i = 1, #records do
             local record = records[i]
             local prevRecord = records[i - 1]
-            if prevRecord and record.search_signature == prevRecord.search_signature then
-                -- it's an identical auction to the previous row so increment the number of auctions
-                -- Forever: one record can stand for a bucket of identical auctions (auction_count)
-                self.rowInfo[#self.rowInfo].children[#self.rowInfo[#self.rowInfo].children].count = self.rowInfo[#self.rowInfo].children[#self.rowInfo[#self.rowInfo].children].count + (record.auction_count or 1)
-            elseif not self.rowInfo.single_item and not self.one_row_each and prevRecord and record.item_key == prevRecord.item_key then
+            if prevRecord and record.price_group == prevRecord.price_group then
+                local child = self.rowInfo[#self.rowInfo].children[#self.rowInfo[#self.rowInfo].children]
+                if not record.owner then
+                    sellers = sellers + max(1, record.seller_count or 1)
+                elseif not named[record.owner] then
+                    named[record.owner] = true
+                    sellers = sellers + 1
+                end
+                if sellers > 1 then child.record.group_sellers = sellers end
+                -- the same price as the previous row (identical, or another seller or time left), so
+                -- it adds to that row's count. Forever: one record can stand for a bucket of identical
+                -- auctions (auction_count)
+                child.count = child.count + (record.auction_count or 1)
+                -- the buy bar says how many the row holds (review H-004, finding 5)
+                child.record.group_count = child.count
+            elseif not self.rowInfo.single_item and not self.one_row_each and prevRecord and group(record) == group(prevRecord) then
                 -- it's the same base item as the previous row so insert a new auction
+                start_row(record)
                 tinsert(self.rowInfo[#self.rowInfo].children, { count = record.auction_count or 1, record = record })
                 if self.expanded[self.rowInfo[#self.rowInfo].expandKey] then
                     self.rowInfo.numDisplayRows = self.rowInfo.numDisplayRows + 1
                 end
             else
                 -- it's a different base item from the previous row
-                tinsert(self.rowInfo, { item_key = record.item_key, expandKey = record.item_key, children = {{ count = record.auction_count or 1, record = record }} })
+                start_row(record)
+                tinsert(self.rowInfo, { item_key = record.item_key, expandKey = group(record), children = {{ count = record.auction_count or 1, record = record }} })
                 self.rowInfo.numDisplayRows = self.rowInfo.numDisplayRows + 1
             end
         end
@@ -874,7 +946,13 @@ local methods = {
                 end
 
                 for _, sort in pairs(self.sorts) do
-                    local ordering = self.columns[sort.index].cmp and self.columns[sort.index].cmp(record_a, record_b, sort.descending) or sort_util.EQ
+                    local column = self.columns[sort.index]
+                    local ordering
+                    if a.children and column.row_cmp then
+                        ordering = column.row_cmp(a, b, sort.descending)
+                    else
+                        ordering = column.cmp and column.cmp(record_a, record_b, sort.descending) or sort_util.EQ
+                    end
 
                     if ordering == sort_util.LT then
                         return true
@@ -984,6 +1062,19 @@ local methods = {
                     self:SetSelectedRecord(record)
                     break
                 end
+            end
+        end
+        -- 0.8: the auction bought was the one a price row kept; the row stays selected with its next
+        -- auction, even when a sort moved the row (review H-006, finding 5)
+        if not self.selected and prev_selected and prev_selected.price_group then
+            for _, info_row in ipairs(self.rowInfo) do
+                for _, child in ipairs(info_row.children) do
+                    if child.record.price_group == prev_selected.price_group then
+                        self:SetSelectedRecord(child.record)
+                        break
+                    end
+                end
+                if self.selected then break end
             end
         end
         if not self.selected and prevSelectedIndex then

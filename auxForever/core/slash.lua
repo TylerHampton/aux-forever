@@ -70,14 +70,16 @@ function SlashCmdList.AUX(command)
         if strfind(target, 'item:', 1, true) then
             item_id, suffix_id = info.parse_link(target)
         elseif target ~= '' then
-            item_id, suffix_id = info.item_id(target), 0
+            -- a typed full name with its ending works too (0.8, review H-002, finding 6)
+            item_id, suffix_id = info.split_ending(target), 0
         end
         if not item_id then
             aux.print('Usage: /aux price followed by an item link (Shift-click the item) or its exact name.')
         else
             local item_info = info.item(item_id)
             aux.print('Price data for ' .. (item_info and item_info.link or ('item ' .. item_id)) .. ':')
-            for _, line in ipairs(require('aux.core.history').report(item_id .. ':' .. (suffix_id or 0), function(amount) return money.to_string(amount, true) end)) do
+            local key = strfind(target, 'item:', 1, true) and info.link_price_key(target) or info.price_key(item_id, target)
+            for _, line in ipairs(require('aux.core.history').report(key, function(amount) return money.to_string(amount, true) end)) do
                 aux.print('  ' .. line)
             end
         end
@@ -143,10 +145,11 @@ function SlashCmdList.AUX(command)
         if arguments[2] == 'on' or arguments[2] == 'off' then
             post.set_undercut_mode(arguments[2] == 'on')
         end
-        aux.print('Undercutting on Forever: when several listings share a price, the newest one sells first.')
-        aux.print('So posting at the cheapest price sells just as fast as going below it, and keeps prices from sliding.')
+        -- E6 in docs/forever-auction-house.md: said of the modern auction house, not yet seen on Forever
+        aux.print('Undercutting on Forever: on the modern auction house, the newest of several listings at one price is said to sell first. This is not yet confirmed on Forever.')
+        aux.print('If it holds, posting at the cheapest price sells just as fast as going below it, and keeps prices from sliding.')
         aux.print('auxForever matches the cheapest price by default. Undercut mode (the goblin on the Post tab) goes one step below it.')
-        aux.print('This is known for trade goods. For gear, buyers pick the listing themselves.')
+        aux.print('For gear, buyers pick the listing themselves.')
         aux.print('Undercut mode [' .. status(aux.account_data.post_undercut) .. '] - /aux undercut on|off (it starts off each time the auction house opens)')
     elseif arguments[1] == 'clear' and arguments[2] == 'post' then
         aux.faction_data.post = {}
