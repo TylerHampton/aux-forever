@@ -51,6 +51,12 @@ A change that comes from a player's feedback credits them by in-game name at the
   this name for sale: the cheapest other ending"); with nothing of the item for sale at all it says
   "None for sale. Type a price to post." Before, a Merc Sword of the Eagle could be priced at
   what a Merc Sword of Strength was listed for.
+- Search tables keep each ending apart: two staffs with different endings at the same price are
+  two rows, not one row that hid the second. `medicine staff of the wolf/exact` finds that ending
+  only (`medicine staff/exact` still finds every ending), and so does a right-click on a Post tab
+  price. `/aux price` takes a typed name with its ending.
+- When one name is listed under several versions, aux's price for the day now counts every version,
+  not only the last one it read.
 - Auctions tab: your gear is checked against every listing of its name. The auction house files
   one name under several versions with the same stats, and checking only your exact version said
   "Only one listed" while others of the same name were for sale.

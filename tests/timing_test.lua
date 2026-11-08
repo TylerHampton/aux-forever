@@ -537,6 +537,45 @@ return function(env)
     post_teardown(server, post)
   end)
 
+  -- Gemini's review, finding 1 (H-002): one gear name listed under two versions. A full search reads
+  -- each version on its own; the day's market of the name must count both, not only the last read.
+  -- Reading one version alone afterwards (a Sniper candidate) must not replace that.
+  try('timing: the versions of one gear name add up (review H-002, finding 1)', function()
+    local server = new_server(env)
+    local search = module 'aux.tabs.search'
+    local h = module 'aux.core.history'
+    local scan = loadstring("select(2, ...) 'aux.test.h002t'; return require 'aux.core.scan'")('auxForever', addon)
+    server.items[4577] = {name = 'Ritual Belt', commodity = false,
+      versions = {[201] = 'of Arcane Protection', [202] = 'of Arcane Protection', [203] = 'of the Owl'}}
+    server.listings[4577] = {
+      {price = 600, quantity = 2, version = 201},
+      {price = 650, quantity = 3, version = 202},
+      {price = 900, quantity = 1, version = 203},
+    }
+    server:install()
+    aux.set_tab(1)
+    search.frame:Show()
+    search.update_mode(search.NORMAL_MODE)
+    search.search_box:SetText('ritual belt/exact')
+    search.execute(nil, false)
+    check('versions: the search finishes', server:wait(function() local s = search.current_search(); return s and s.complete and #s.records > 0 end, 200))
+    local _, units = h.today_market('4577:of arcane protection')
+    check('versions: both versions of the name counted (2 + 3 units)', units == 5)
+    local _, owl = h.today_market('4577:of the owl')
+    check('versions: another ending is apart', owl == 1)
+    -- one version read alone: today's lowest only, the full view stays
+    local done
+    local filter_util = loadstring("select(2, ...) 'aux.test.h002t2'; return require 'aux.util.filter'")('auxForever', addon)
+    scan.start{type = 'list', quiet = true, queries = filter_util.queries('ritual belt/exact'),
+      on_item_list = function() scan.read_item(server:key(4577, 202)); done = true end}
+    server:wait(function() return done end, 150)
+    check('versions: the one-version read ran', done)
+    _, units = h.today_market('4577:of arcane protection')
+    check('versions: one version read alone does not replace the full view', units == 5)
+    search.frame:Hide()
+    server:restore()
+  end)
+
   -- crates (0.8, FB-020): Alt-click a crate, then another before the first search has its answers.
   -- The search and the bottom bar must be the second crate's, with nothing of the first mixed in.
   try('timing: a second crate clicked while the first is still searching', function()

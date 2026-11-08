@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-08, Tyler's time (**development paused until World of Warcraft: Forever releases**; 0.8 build 6 built, reviewed by Gemini in H-001, not yet tested in game; 0.7.1.1 is the latest release).
+Last updated 2026-11-08, Tyler's time (**work resumed: Forever is released**; 0.8 build 7 waiting for Tyler's test; 0.7.1.1 is the latest release).
 
 **2026-11-08, Gemini remote setup and H-001 gear versions review (docs only, no addon change):**
 Updated `GEMINI.md` for Antigravity remote Linux VM mode (and removed the local Windows path per the
@@ -43,9 +43,19 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 **Roles (Tyler, 2026-10-26):** Claude Code stays the primary engineer; Gemini (Gemini 4 Argon) is
 the supporting model for second opinions, written in `docs/reviews/` (`AGENTS.md`, "Roles").
 Agents talk through `docs/handoff.md`; Tyler only says "Check the handoff" to whoever goes next.
-Open there now: H-002, Claude checks Gemini's review in `docs/reviews/2026-10-26-gear-versions.md`.
+Nothing open there now (H-002 done 2026-11-08).
 
-**On hiatus (Tyler, 2026-10-26):** "We are going to be on developmental hiatus until the game
+**Resumed (Tyler, 2026-11-08):** Forever is out; Tyler has a level 20 character and is "ready to get
+the bugs worked out". **0.8 build 7** is on `claude/fervent-planck-ry58jx`, waiting for his test
+(`TESTING.md`, zip `auxForever-0.8-build7.zip`, test page build `0-8-build-7`). It fixes all six
+findings of Gemini's gear versions review (H-002, each with a test that fails without it) on top
+of build 6, which was never tested. Its first two steps are release checks: does the game load aux
+(the TOC's Interface number may need to change; `GetBuildInfo()` tells), and do saved prices
+survive a login. The other release checks below (AddOns folder, Blizzard's auction house code)
+follow from those answers. `main` also holds the Claude and Gemini workflow docs (Tyler,
+2026-11-08) but no addon code past 0.7.1.1.
+
+**Was on hiatus (Tyler, 2026-10-26):** "We are going to be on developmental hiatus until the game
 releases and I can begin rapid iterative testing." Work picks up again in the same Claude Code
 thread on Sunday 2026-11-08. Nothing is being built until then, by any agent. Nothing was
 released or merged for the pause: `main` is still 0.7.1.1, and 0.8 (builds 1 to 6) waits on

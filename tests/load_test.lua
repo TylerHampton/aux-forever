@@ -4340,6 +4340,68 @@ try('0.8: gear versions', function()
   G.GetItemInfo = real_get_info
 end)
 
+-- 0.8, Gemini's review of gear versions (docs/reviews/2026-10-26-gear-versions.md, H-002): findings 2
+-- to 6 (finding 1 is in timing_test.lua, it needs the slow auction house)
+try('0.8: review H-002', function()
+  local info = loadstring("select(2, ...) 'aux.util.info'; return _M")('auxForever', addon)
+  local filter_util = loadstring("select(2, ...) 'aux.test.h002'; return require 'aux.util.filter'")('auxForever', addon)
+  local auctions = loadstring("select(2, ...) 'aux.tabs.auctions'; return _M")('auxForever', addon)
+  local scan_exports = loadstring("select(2, ...) 'aux.test.h002b'; return require 'aux.core.scan'")('auxForever', addon)
+  local aux = loadstring("select(2, ...) 'aux.test.h002c'; return require 'aux'")('auxForever', addon)
+  local real_get_info = G.GetItemInfo
+  -- the game's answer for the item: its own name, also for a link (finding 4's worry)
+  G.GetItemInfo = function(x)
+    if x == 4575 or (type(x) == 'string' and x:find('item:4575', 1, true)) then
+      return 'Medicine Staff', type(x) == 'string' and x or '|cff1eff00|Hitem:4575::::::0:0|h[Medicine Staff]|h|r', 2, 19, 14, 'Weapon', 'Staves', 1, 'INVTYPE_2HWEAPON', 1, 1487
+    end
+    return real_get_info(x)
+  end
+  local ids = aux.account_data.item_ids
+  ids['medicine staff'] = 4575
+  local function link(name) return '|cff1eff00|Hitem:4575::::::::24:1487::1:1:12726:1:28:5254::::|h[' .. name .. ']|h|r' end
+
+  -- finding 6: a typed full name, in any letter case
+  check('H-002 6: a typed name finds its item and ending', info.split_ending('Medicine Staff of the Wolf') == 4575 and select(2, info.split_ending('medicine staff of the wolf')) == 'medicine staff')
+  check('H-002 6: a typed name gives the ending key', info.price_key(4575, 'medicine staff of the wolf') == '4575:of the wolf')
+  check('H-002 6: an unknown name finds nothing', info.split_ending('Unknown Thing of the Bear') == nil)
+
+  -- finding 4: a record's name is the link's full name
+  local function staff(name, buyout)
+    return info.item_search_record({itemKey = {itemID = 4575, itemSuffix = 0}, itemLink = link(name), auctionID = 1, quantity = 1,
+      buyoutAmount = buyout or 11000, minBid = 0, owners = {'Seller'}, totalNumberOfOwners = 1, timeLeft = 2})
+  end
+  local wolf, bandit = staff('Medicine Staff of the Wolf'), staff('Medicine Staff of the Bandit')
+  check('H-002 4: the record is named with its ending', wolf and wolf.name == 'Medicine Staff of the Wolf')
+
+  -- finding 3: two endings at the same price, time and seller are two rows
+  check('H-002 3: different endings never share a row', wolf and bandit and wolf.search_signature ~= bandit.search_signature and wolf.sniping_signature ~= bandit.sniping_signature)
+
+  -- finding 2: an exact search for a full name asks for the item and keeps only that ending
+  local queries = filter_util.queries('medicine staff of the wolf/exact')
+  local q = queries and queries[1]
+  check('H-002 2: the auction house is asked for the item', q and q.blizzard_query.name == 'medicine staff')
+  check('H-002 2: that ending is kept', q and q.validator(wolf) == true)
+  check('H-002 2: other endings are not', q and q.validator(bandit) == false)
+  local all = filter_util.queries('medicine staff/exact')
+  check('H-002 2: the item\'s own name still finds every ending', all and all[1].validator(wolf) and all[1].validator(bandit))
+
+  -- finding 5: the price check counts what it read when a name search is in it
+  local params
+  local real_start = scan_exports.start
+  rawset(scan_exports, 'start', function(p) params = p end)
+  local real_records = auctions.listing.records
+  auctions.listing.records = {{item_id = 4575, price_key = '4575:of the wolf', item_search_key = {itemID = 4575, itemSuffix = 101},
+    unit_buyout_price = 15000, buyout_price = 15000, sale_status = 0}}
+  auctions.check_prices()
+  for _ = 1, 4 do params.on_page_loaded() end
+  check('H-002 5: no "4 of 1": the count read so far, with no total', auctions.checking.done == 4 and auctions.checking.total == nil)
+  params.on_complete()
+  auctions.listing.records = real_records
+  rawset(scan_exports, 'start', real_start)
+  ids['medicine staff'] = nil
+  G.GetItemInfo = real_get_info
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
 dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({

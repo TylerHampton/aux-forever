@@ -8,7 +8,30 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8 build 6
+## Current build: 0.8 build 7
+
+The first build on the released game. Fixes from Gemini's review of gear versions (H-002, all six
+findings, `docs/reviews/2026-10-26-gear-versions.md`) on top of build 6, which was never tested.
+Zip `auxForever-0.8-build7.zip`. Put the `auxForever` folder in the release game's
+`Interface\AddOns` folder (not `_classic_beta_` any more, most likely; wherever your other addons
+are) and **restart the game fully**. Test page build id `0-8-build-7`.
+
+- [ ] 1. Release check: at the character screen, AddOns: is auxForever listed and ticked, or does
+      it say "Out of date"? Then in game type `/run print(GetBuildInfo())` and screenshot the
+      chat line (it gives the game version and the number the addon must declare).
+- [ ] 2. Release check: hover an item you have searched before and note its Value. Log out, log
+      back in, hover it again: is the Value still there? (Saved prices survive a login.)
+- [ ] 3. Search `merc sword` (Full), then Post tab, Merc Sword of Healing: the Post tab lists the
+      same Healing swords as the search (same counts and prices). Screenshot of both.
+- [ ] 4. Medicine Staff of the Whale (or any gear nobody sells): a price is filled in and the line
+      under it says "None of this name for sale: the cheapest other ending".
+- [ ] 5. Still on the Post tab with a Merc Sword picked: right-click a price row. The Search tab
+      shows only that ending (before: nothing at all).
+
+### 0.8 build 6
+
+Not tested in game (development paused 2026-10-26 until the game's release).
+
 
 Fixes from Tyler's test of build 5 ("the numbers dont add up"; "we need to give them a price to
 post at anyway"). The Post tab now reads every version of gear before it picks a price: one name

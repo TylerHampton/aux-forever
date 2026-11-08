@@ -253,7 +253,8 @@ do
         set(summary_label, 'summary', summary_text(counts))
         local checked
         if checking then
-            checked = format('Checking prices, item %d of %d...', checking.done, checking.total)
+            checked = checking.total and format('Checking prices, item %d of %d...', checking.done, checking.total)
+                or format('Checking prices, %d read...', checking.done)
         elseif checked_at then
             checked = 'Prices checked ' .. search_tab.time_ago(checked_at) .. ', about half a second per item'
         else

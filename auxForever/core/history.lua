@@ -221,8 +221,9 @@ function M.record_view(item_key, flat)
 	mins[item_key] = record.low
 end
 
--- A complete view from auction records (one item's search results)
-function M.record_view_of(records)
+-- A complete view from auction records (one item's search results). views (0.8), when given, keeps
+-- what was seen of each price key earlier in the same scan, so the versions of one gear name add up.
+function M.record_view_of(records, views)
 	local flat, key = {}, nil
 	for _, record in ipairs(records or empty) do
 		local units = record_units(record)
@@ -236,6 +237,12 @@ function M.record_view_of(records)
 		end
 	end
 	if key then
+		if views then
+			local seen = views[key] or {}
+			views[key] = seen
+			for _, v in ipairs(flat) do tinsert(seen, v) end
+			flat = seen
+		end
 		record_view(key, flat)
 	end
 end

@@ -956,7 +956,7 @@ do
             end
         end
         if loaded[1] then
-            search.table.expanded[loaded[1].item_key] = true
+            search.table.expanded[loaded[1].price_key or loaded[1].item_key] = true
         end
         search.table:SetDatabase()
         if aux.account_data.debug_timing and cheapest and ceil(cheapest.unit_buyout_price) ~= ceil(fast_record.unit_buyout_price) then

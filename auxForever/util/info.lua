@@ -131,8 +131,11 @@ end
 
 function M.signatures(record)
     local own = aux.account_data.ignore_owner and (is_player(record.owner) and 0 or 1) or (record.owner or '?')
-    record.search_signature = aux.join({record.item_id, record.suffix_id, record.enchant_id, record.start_price, record.buyout_price, record.bid_price, record.count, record.sale_status == 1 and 0 or (record.duration or 0), record.high_bidder and 1 or 0, record.sale_status or 0, own}, ':')
-    record.sniping_signature = aux.join({record.item_id, record.suffix_id, record.enchant_id, record.start_price, record.buyout_price, record.count, own, record.auction_id or 0}, ':')
+    -- 0.8 (review H-002, finding 3): the price key, not the suffix field (empty on Forever), so two
+    -- endings at the same price never merge into one row
+    local version = record.price_key or record.suffix_id
+    record.search_signature = aux.join({record.item_id, version, record.enchant_id, record.start_price, record.buyout_price, record.bid_price, record.count, record.sale_status == 1 and 0 or (record.duration or 0), record.high_bidder and 1 or 0, record.sale_status or 0, own}, ':')
+    record.sniping_signature = aux.join({record.item_id, version, record.enchant_id, record.start_price, record.buyout_price, record.count, own, record.auction_id or 0}, ':')
 end
 
 -- auxForever (0.7): equip slots whose item level means nothing to a player (bags, quivers)
@@ -182,8 +185,9 @@ local function new_record(item_id, link, count)
     record.enchant_id = enchant_id
     record.link = link
     record.item_key = item_id .. ':' .. suffix_id
-    record.name = name
-    record.price_key = price_key(item_id, strmatch(link or '', '|h%[(.-)%]|h') or name)
+    -- 0.8 (review H-002, finding 4): the link's own name, ending included, as fast rows have it
+    record.name = strmatch(link or '', '|h%[(.-)%]|h') or name
+    record.price_key = price_key(item_id, record.name)
     record.texture = texture
     record.quality = quality
     record.requirement = requirement
@@ -523,7 +527,8 @@ function M.price_key(item_id, name)
         base = GetItemInfo(item_id) or (item_info(item_id) or empty).name
         base_names[item_id] = base
     end
-    if base and #name > #base and strsub(name, 1, #base) == base then
+    -- any letter case: a typed name (/aux price) as well as the game's (0.8, review H-002)
+    if base and #name > #base and strlower(strsub(name, 1, #base)) == strlower(base) then
         local ending = strlower(aux.trim(strsub(name, #base + 1)))
         if ending ~= '' then
             return item_id .. ':' .. ending
@@ -540,6 +545,33 @@ function M.item_key_price_key(key)
     end
     local key_info = C_AuctionHouse.GetItemKeyInfo(key)
     return type(key_info) == 'table' and key_info.itemName and price_key(key.itemID, key_info.itemName) or nil
+end
+
+-- 0.8 (review H-002): the item behind a typed full name ("Medicine Staff of the Wolf"). aux's item
+-- list knows items by their own name only, so if the whole name is not in it, the part before an
+-- " of " is tried, the last one first. Returns the item ID and its own name, or nil.
+function M.split_ending(name)
+    if type(name) ~= 'string' or name == '' then
+        return
+    end
+    local id = item_id(name)
+    if id then
+        return id, name
+    end
+    local positions, from = {}, 1
+    while true do
+        local at = strfind(strlower(name), ' of ', from, true)
+        if not at then break end
+        tinsert(positions, at)
+        from = at + 1
+    end
+    for i = #positions, 1, -1 do
+        local base = strsub(name, 1, positions[i] - 1)
+        id = item_id(base)
+        if id then
+            return id, base
+        end
+    end
 end
 
 -- the price key of a link (its name is the full name, ending included)

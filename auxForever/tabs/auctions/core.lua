@@ -124,13 +124,16 @@ function M.check_prices()
         return
     end
     local found = {}
-    checking = {done = 0, total = #keys + #queries - (#keys > 0 and 1 or 0)}
+    -- 0.8 (review H-002, finding 5): a name search reads every version of the item, so how many items
+    -- are left is not known in advance; then only the count read so far is shown
+    local by_name = #queries - (#keys > 0 and 1 or 0)
+    checking = {done = 0, total = by_name == 0 and #keys or nil}
     scan.start{
         type = 'list',
         quiet = true,
         queries = queries,
-        on_page_loaded = function(done)
-            if checking then checking.done = done end
+        on_page_loaded = function()
+            if checking then checking.done = checking.done + 1 end
         end,
         on_auction = function(record)
             if record.own then return end

@@ -22,14 +22,14 @@ Active branch: `claude/fervent-planck-ry58jx`
 
 ## Open
 
-### H-002 · Gemini to Claude · 2026-11-08
-Check the six review findings on the 0.8 gear versions work (`3a3d1eb` to `8759d73`) in
-`docs/reviews/2026-10-26-gear-versions.md`. Per `AGENTS.md` ("Roles") and `docs/reviews/README.md`,
-verify each finding in the code or with a test, fix the real ones with a test that fails without
-the fix, and answer under each finding in `docs/reviews/2026-10-26-gear-versions.md` (`fixed` with
-the commit, `not reproduced`, or `not worth its cost` and why).
+(none)
 
 ## Done
+
+### H-002 · Gemini to Claude · 2026-11-08
+Checked the six gear versions findings: all six fixed in 0.8 build 7, each with a test that fails
+without it; answers under each finding in `docs/reviews/2026-10-26-gear-versions.md` (two labels
+corrected: the cited test in finding 1 does not exist, and finding 4's "Seen" has no record).
 
 ### H-001 · Claude to Gemini · 2026-10-26
 Reviewed 0.8 gear versions (`3a3d1eb` to `8759d73`); wrote six findings in

@@ -514,6 +514,16 @@ function blizzard_query(filter)
     local filters = filter.blizzard
     local query = {name = filters.name, exact = aux.index(filters.exact, 2)}
     local item_id = filters.name and info.item_id(filters.name)
+    -- 0.8 (review H-002, finding 2): an exact search for gear with its ending ("medicine staff of
+    -- the wolf/exact", or a right-click on a Post tab price) asks the auction house for the item's
+    -- own name; the validator keeps the listings of that full name
+    if not item_id and filters.name and filters.exact then
+        local base
+        item_id, base = info.split_ending(filters.name)
+        if base then
+            query.name = strlower(base)
+        end
+    end
     local item_info = item_id and info.item(item_id)
     if filters.exact and item_info then
         local class_index = info.category_index(item_info.class)
@@ -544,7 +554,10 @@ function validator(filter)
     end
     return function(record)
         local item_info_without_suffix = info.item(record.item_id) -- TODO retail is this always available?
-        if filter.blizzard.exact and (not item_info_without_suffix or strlower(item_info_without_suffix.name) ~= filter.blizzard.name) then
+        -- exact: the item's own name (every ending), or since 0.8 its full name with the ending
+        if filter.blizzard.exact
+            and not (item_info_without_suffix and strlower(item_info_without_suffix.name) == filter.blizzard.name)
+            and not (record.name and strlower(record.name) == filter.blizzard.name) then
             return false
         end
         local stack = {}

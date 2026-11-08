@@ -70,14 +70,15 @@ function SlashCmdList.AUX(command)
         if strfind(target, 'item:', 1, true) then
             item_id, suffix_id = info.parse_link(target)
         elseif target ~= '' then
-            item_id, suffix_id = info.item_id(target), 0
+            -- a typed full name with its ending works too (0.8, review H-002, finding 6)
+            item_id, suffix_id = info.split_ending(target), 0
         end
         if not item_id then
             aux.print('Usage: /aux price followed by an item link (Shift-click the item) or its exact name.')
         else
             local item_info = info.item(item_id)
             aux.print('Price data for ' .. (item_info and item_info.link or ('item ' .. item_id)) .. ':')
-            local key = strfind(target, 'item:', 1, true) and info.link_price_key(target) or item_id .. ':0'
+            local key = strfind(target, 'item:', 1, true) and info.link_price_key(target) or info.price_key(item_id, target)
             for _, line in ipairs(require('aux.core.history').report(key, function(amount) return money.to_string(amount, true) end)) do
                 aux.print('  ' .. line)
             end

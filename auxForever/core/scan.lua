@@ -134,6 +134,7 @@ function M.start(params)
             id = aux.coro_id(),
             params = params,
             listener_ids = {},
+            views = {}, -- price key -> unit prices and counts seen so far in this scan
         }
         scan_state = state
         -- background scans (Sniper rounds, the Auctions tab's price check) set quiet: no chat lines
@@ -482,10 +483,22 @@ function search(item_key)
 end
 
 -- auxForever (0.5): a complete view of one item is its market price for the day
-local function record_view(records, complete)
-    if complete and records and #records > 0 then
-        history.record_view_of(records)
+-- 0.8 (review H-002, finding 1): one gear name can be listed under several versions, each read as a
+-- search of its own. A scan adds up the views of one name (state.views), so the last version read
+-- no longer replaces the others. A single version read on its own (a fast row opened, a Sniper
+-- candidate) is not a complete look at gear with an ending, so it records only today's lowest.
+local function has_ending(record)
+    return record.price_key and record.price_key ~= record.item_id .. ':0'
+end
+
+local function record_view(records, complete, one_version)
+    if not (complete and records and #records > 0) then
+        return
     end
+    if one_version and has_ending(records[1]) then
+        return
+    end
+    history.record_view_of(records, state and state.views)
 end
 
 function process_auction(auction, page, total, collector)
@@ -559,7 +572,7 @@ function scan_item_list(results)
         if (result.totalQuantity or 0) > 0 then
             if open[item_key_string(result.itemKey)] then
                 local records, complete = search(result.itemKey)
-                record_view(records, complete)
+                record_view(records, complete, true)
                 for _, record in ipairs(records or empty) do
                     process_auction(record)
                     check_aborted(scan_state)
@@ -602,7 +615,7 @@ function M.read_item(item_key)
     for _, record in ipairs(records or empty) do
         history.process_auction(record)
     end
-    record_view(records, complete)
+    record_view(records, complete, true)
     return records
 end
 

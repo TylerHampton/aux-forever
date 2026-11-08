@@ -768,7 +768,9 @@ local methods = {
 
 	    local records = self.records
 
-        self.rowInfo.single_item = aux.all(records, function(record) return record.item_key == records[1].item_key end)
+        -- 0.8: grouped by price key, so each gear ending is an item of its own (review H-002, finding 3)
+        local function group(record) return record.price_key or record.item_key end
+        self.rowInfo.single_item = aux.all(records, function(record) return group(record) == group(records[1]) end)
 
         sort(records, function(a, b) return a.search_signature < b.search_signature or a.search_signature == b.search_signature and tostring(a) < tostring(b) end)
 
@@ -779,7 +781,7 @@ local methods = {
                 -- it's an identical auction to the previous row so increment the number of auctions
                 -- Forever: one record can stand for a bucket of identical auctions (auction_count)
                 self.rowInfo[#self.rowInfo].children[#self.rowInfo[#self.rowInfo].children].count = self.rowInfo[#self.rowInfo].children[#self.rowInfo[#self.rowInfo].children].count + (record.auction_count or 1)
-            elseif not self.rowInfo.single_item and not self.one_row_each and prevRecord and record.item_key == prevRecord.item_key then
+            elseif not self.rowInfo.single_item and not self.one_row_each and prevRecord and group(record) == group(prevRecord) then
                 -- it's the same base item as the previous row so insert a new auction
                 tinsert(self.rowInfo[#self.rowInfo].children, { count = record.auction_count or 1, record = record })
                 if self.expanded[self.rowInfo[#self.rowInfo].expandKey] then
@@ -787,7 +789,7 @@ local methods = {
                 end
             else
                 -- it's a different base item from the previous row
-                tinsert(self.rowInfo, { item_key = record.item_key, expandKey = record.item_key, children = {{ count = record.auction_count or 1, record = record }} })
+                tinsert(self.rowInfo, { item_key = record.item_key, expandKey = group(record), children = {{ count = record.auction_count or 1, record = record }} })
                 self.rowInfo.numDisplayRows = self.rowInfo.numDisplayRows + 1
             end
         end
