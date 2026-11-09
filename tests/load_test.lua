@@ -5216,61 +5216,172 @@ try('0.8.2: Usually switch and the Shift hint', function()
   h.data['7601:0'] = nil
 end)
 
--- 0.8.2 build 2, FB-036 (Swiftwren's second comment): Invoker's Cord offered at 12s (usual 32s)
--- with 78 listed at 13s, and 1,792 possible deals opened in one round. The round's pre-check now
--- knows today's market too: the price of today's complete look (a Full scan) and the lowest price of
--- another version of the same gear name. A version opened counts the other versions as supply.
-try('0.8.2: the Sniper\'s list check knows today\'s market', function()
+-- 0.8.2 build 3, review H-008 (Gemini, docs/reviews/2026-11-09-sniper-0.8.2.md) of the Sniper's
+-- logic, with the reviewer's own listings. FB-036 (Swiftwren): an Invoker's Cord at 12s next to 78 at
+-- 13s, and 1,792 items opened in one round.
+try('0.8.2: Sniper review H-008', function()
   local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
   local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
-  local aux = loadstring("select(2, ...) 'aux.test.fb036b'; return require 'aux'")('auxForever', addon)
-  local scan = loadstring("select(2, ...) 'aux.test.fb036c'; return require 'aux.core.scan'")('auxForever', addon)
-  local d = h.today()
-  local function usual(key, extra)
-    local r = {day = d, points = {{value = 3200, day = d - 1, units = 10}, {value = 3200, day = d - 2, units = 10}, {value = 3200, day = d - 3, units = 10}}}
+  local aux = loadstring("select(2, ...) 'aux.test.h008'; return require 'aux'")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.test.h008b'; return require 'aux.core.scan'")('auxForever', addon)
+  local function rec(price, units, extra)
+    local r = {buyout_price = price, unit_buyout_price = price, count = 1, auction_count = units, seller_count = 1}
     for k, v in pairs(extra or {}) do r[k] = v end
-    h.write_record(key, r)
+    return r
   end
-  usual('901:0'); usual('902:0', {market = 1300, units = 79, low = 1200}); usual('903:0', {market = 3200, units = 40, low = 3100})
-  local names = {[901] = "Invoker's Cord", [902] = 'Flat Belt', [903] = 'Lone Belt'}
+  -- finding 1: a price 3 or more sellers ask is the market, whatever is listed above it
+  check('h008 1: 6 sellers at 2s 10c next to one at 22s is the market', sniper.market_now({rec(210, 80, {seller_count = 6}), rec(2200, 1)}) == 210)
+  check('h008 1: the wall left after the cheap unit is bought', sniper.market_now({rec(87, 200, {seller_count = 5}), rec(2200, 5)}) == 87)
+  -- finding 4: fewer than 3 units above the cheapest price are not a market
+  check('h008 4: two cheap units 1c apart, nothing else: no market', sniper.market_now({rec(209, 1), rec(210, 1)}) == nil)
+  check('h008 4: with 100 at 22s above them, 22s', sniper.market_now({rec(209, 1), rec(210, 1), rec(2200, 100)}) == 2200)
+  check('h008 4: 78 at 13s above one at 12s is still the market (Invoker\'s Cord)', sniper.market_now({rec(1200, 1), rec(1300, 78)}) == 1300)
+
+  -- item names and 3 days of usual price (32s) for the items below
+  local d = h.today()
+  local names = {[901] = "Invoker's Cord", [902] = 'Flat Belt', [903] = 'Lone Belt', [904] = 'Wall Herb'}
+  for id in pairs(names) do
+    h.write_record(id .. ':0', {day = d, points = {{value = 3200, day = d - 1, units = 10}, {value = 3200, day = d - 2, units = 10}, {value = 3200, day = d - 3, units = 10}}})
+  end
   local real_info, real_key_info = G.GetItemInfo, C_AuctionHouse.GetItemKeyInfo
   G.GetItemInfo = function(x)
     local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
-    if names[id] then return names[id], 'link', 2, 20, 15, 'Armor', 'Cloth', 1, 'INVTYPE_WAIST', 1, 100 end
+    if names[id] then return names[id], '|cffffffff|Hitem:' .. id .. '::::::0:0|h[' .. names[id] .. ']|h|r', 2, 20, 15, 'Armor', 'Cloth', 1, 'INVTYPE_WAIST', 1, 1 end
     return real_info(x)
   end
   rawset(C_AuctionHouse, 'GetItemKeyInfo', function(key) return names[key.itemID] and {itemID = key.itemID, itemName = names[key.itemID], quality = 2} or real_key_info(key) end)
-  local real_check = sniper.check_item
-  local opened, others_seen = {}, {}
-  sniper.check_item = function(item_key, key, price, others) opened[key] = true; others_seen[key] = others end
   aux.account_data.sniper_percent, aux.account_data.sniper_profit = 60, 1
-  local function list(...) return {...} end
+
+  -- finding 2: today's market on the item list comes from the last Full scan by the Sniper's own
+  -- rule (cheapest price left out), not from price history's latest price
+  local list = {}
+  for _ = 1, 78 do tinsert(list, {id = 902, buyout = 1300}) end
+  tinsert(list, {id = 902, buyout = 1250})
+  tinsert(list, {id = 903, buyout = 300}) -- a snipe already up during the scan
+  for _ = 1, 39 do tinsert(list, {id = 903, buyout = 3200}) end
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  set(C_AuctionHouse, 'ReplicateItems', function() end)
+  set(C_AuctionHouse, 'GetNumReplicateItems', function() return #list end)
+  set(C_AuctionHouse, 'GetReplicateItemInfo', function(i) local x = list[i + 1]; return names[x.id], 1, 1, 2, true, 20, nil, 0, 0, x.buyout, 0, false, nil, 'Seller', nil, 0, x.id, true end)
+  set(C_AuctionHouse, 'GetReplicateItemLink', function(i) local id = list[i + 1].id; return '|cffffffff|Hitem:' .. id .. '::::::0:0|h[' .. names[id] .. ']|h|r' end)
+  local done
+  scan.start{type = 'list', queries = {{blizzard_query = {}}}, get_all = true, quiet = true, on_complete = function() done = true end}
+  for _ = 1, 10 do tick() end
+  fire('REPLICATE_ITEM_LIST_UPDATE')
+  for _ = 1, 120 do tick(); if done then break end end
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  check('h008 2: the Full scan finished', done)
+  check('h008 2: price history counts the snipe as the market (why it is not used)', h.latest('903:0') == 300)
+
+  local real_check = sniper.check_item
+  local opened = {}
+  sniper.check_item = function(item_key, key, price, others) opened[key] = others or true end
   local function result(id, suffix, qty, price) return {itemKey = {itemID = id, itemSuffix = suffix, itemLevel = 20}, totalQuantity = qty, minPrice = price} end
-  local function round(results)
-    sniper.settings_changed()
-    opened, others_seen = {}, {}
+  local function round(results, keep)
+    if not keep then sniper.settings_changed() end
+    opened = {}
     sniper.check_list(results, {})
   end
-  local a, b = result(901, 11, 1, 1200), result(901, 12, 78, 1300)
+  local flat, lone = result(902, 0, 79, 1250), result(903, 0, 40, 300)
+  local kflat, klone = scan.item_key_string(flat.itemKey), scan.item_key_string(lone.itemKey)
+  round({flat, lone})
+  check('h008 2: a price close to the Full scan\'s market is not opened', not opened[kflat])
+  check('h008 2: a snipe that was up during the Full scan is still opened', opened[klone] ~= nil)
+  -- the Sniper's own read of an item no longer hides it next round
+  h.write_record('903:0', {day = d, market = 300, units = 1, low = 300, points = h.data_points('903:0')})
+  round({lone})
+  check('h008 2: a deal read today is opened again next round', opened[klone] ~= nil)
+
+  -- finding 3: versions are read for real when a candidate is opened, not judged on the list
+  local a, b = result(901, 11, 1, 1000), result(901, 12, 1, 1100)
   local ka, kb = scan.item_key_string(a.itemKey), scan.item_key_string(b.itemKey)
-  round(list(a, b))
-  check('fb036b: a version at 12s next to another at 13s is not opened (Invoker\'s Cord)', not opened[ka] and not opened[kb])
-  round(list(a))
-  check('fb036b: alone, it is still a deal to open', opened[ka] and others_seen[ka] == nil)
-  round(list(result(901, 11, 1, 600), b))
-  check('fb036b: well below the other version it is opened, with that version\'s price', opened[ka] and others_seen[ka] and others_seen[ka][1] == 1300)
-  check('fb036b: a version opened counts the other versions as supply', sniper.market_now({{buyout_price = 600, unit_buyout_price = 600, count = 1}}, {1300}) == 1300)
-  local flat = result(902, 0, 79, 1250)
-  round(list(flat))
-  check('fb036b: a price close to today\'s Full scan is not opened', not opened[scan.item_key_string(flat.itemKey)])
-  local lone = result(903, 0, 1, 300)
-  round(list(lone))
-  check('fb036b: a cheap auction listed after today\'s Full scan is opened', opened[scan.item_key_string(lone.itemKey)])
+  round({a, b})
+  check('h008 3: two cheap versions no longer block each other', opened[ka] and opened[kb])
+  check('h008 3: and each is opened with the other to read', type(opened[ka]) == 'table' and opened[ka][1].itemSuffix == 12)
   sniper.check_item = real_check
+  -- check_item with fake reads: version 11 has 1 at 12s and 8 at 32s, version 12 has 78 at 13s
+  local scan_exports = loadstring("select(2, ...) 'aux.test.h008c'; return require 'aux.core.scan'")('auxForever', addon)
+  local real_read = scan_exports.read_item
+  local function item_rec(id, price, units)
+    return rec(price, units, {item_id = id, price_key = id .. ':0', item_key = id .. ':0', name = names[id], quality = 2, texture = 1,
+      link = '|cff1eff00|Hitem:' .. id .. '::::::0:0|h[' .. names[id] .. ']|h|r'})
+  end
+  local function cord(price, units) return item_rec(901, price, units) end
+  local reads = {}
+  rawset(scan_exports, 'read_item', function(key)
+    reads[#reads + 1] = key.itemSuffix
+    if key.itemSuffix == 11 then return {cord(1200, 1), cord(3200, 8)} end
+    if key.itemSuffix == 12 then return {cord(1300, 78)} end
+  end)
+  sniper.clear_deals()
+  sniper.check_item(a.itemKey, ka, 1200, {b.itemKey})
+  local deal
+  for _, x in ipairs(sniper.deals) do if x.deal_key == ka then deal = x end end
+  check('h008 3: the other version\'s 78 at 13s count, so 12s is no deal (Invoker\'s Cord)', deal == nil and reads[1] == 11 and reads[2] == 12)
+  rawset(scan_exports, 'read_item', function(key)
+    if key.itemSuffix == 11 then return {cord(600, 1), cord(3200, 8)} end
+    if key.itemSuffix == 12 then return {cord(1300, 78)} end
+  end)
+  sniper.check_item(a.itemKey, ka, 600, {b.itemKey})
+  for _, x in ipairs(sniper.deals) do if x.deal_key == ka then deal = x end end
+  check('h008 3: 6s next to 78 at 13s is a deal against that market', deal and deal.deal_reason == 'market' and deal.deal_market == 1300)
+
+  -- finding 5: a remembered market is dropped when the list shows the units that made it are gone,
+  -- and an item refused only because of it is judged again
+  rawset(scan_exports, 'read_item', function() return {item_rec(904, 85, 2), item_rec(904, 87, 45), item_rec(904, 2200, 100)} end)
+  local herb = result(904, 0, 147, 85)
+  local kherb = scan.item_key_string(herb.itemKey)
+  sniper.settings_changed()
+  sniper.check_item(herb.itemKey, kherb, 85)
+  sniper.check_item = function(item_key, key) opened[key] = true end
+  local function herb_round(price) herb.minPrice = price; round({herb}, true) end
+  herb_round(55)
+  check('h008 5: a 55c herb next to the 87c wall is not opened', not opened[kherb])
+  herb_round(2200)
+  herb_round(55)
+  check('h008 5: once the wall sold (lowest 22s), a 55c snipe is opened', opened[kherb])
+  sniper.settings_changed()
+  sniper.check_item = real_check
+  sniper.check_item(herb.itemKey, kherb, 85)
+  sniper.check_item = function(item_key, key) opened[key] = true end
+  herb_round(86)
+  local memory = sniper.MARKET_MEMORY
+  sniper.MARKET_MEMORY = 0
+  herb_round(86)
+  sniper.MARKET_MEMORY = memory
+  check('h008 5: refused only because of the remembered market, it is judged again when that is gone', opened[kherb])
+
+  sniper.check_item = real_check
+  rawset(scan_exports, 'read_item', real_read)
   G.GetItemInfo = real_info
   rawset(C_AuctionHouse, 'GetItemKeyInfo', real_key_info)
+  sniper.clear_deals()
   sniper.settings_changed()
-  for _, key in ipairs{'901:0', '902:0', '903:0'} do h.data[key] = nil end
+  for id in pairs(names) do h.data[id .. ':0'] = nil end
+end)
+
+-- review H-008 (note under finding 2): reading one version of a Sniper deal again before buying it
+-- recorded that version alone as the item's day price; that read records none now
+try('0.8.2: a deal read again records no day price', function()
+  local scan = loadstring("select(2, ...) 'aux.test.h008d'; return require 'aux.core.scan'")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local items = {{id = 951, name = 'Reread Belt', min = 500, qty = 2, auctions = {{buyout = 500}, {buyout = 600}}}}
+  local run, restore = fake_ah(items)
+  h.data['951:0'] = nil
+  local done
+  scan.start{type = 'list', quiet = true, no_view = true, queries = {{item_keys = {{itemID = 951, itemSuffix = 0, itemLevel = 0}}}}, on_complete = function() done = true end}
+  for _ = 1, 40 do run(1); if done then break end end
+  local _, units = h.today_market('951:0')
+  check('h008: the re-read finished', done)
+  check('h008: and wrote no day price', units == nil)
+  done = false
+  scan.start{type = 'list', quiet = true, queries = {{item_keys = {{itemID = 951, itemSuffix = 0, itemLevel = 0}}}}, on_complete = function() done = true end}
+  for _ = 1, 40 do run(1); if done then break end end
+  _, units = h.today_market('951:0')
+  check('h008: a normal read still does', done and units == 2)
+  restore()
+  h.data['951:0'] = nil
 end)
 
 -- what players do while the auction house is still answering: a slow auction house that answers

@@ -117,6 +117,14 @@ function M.is_scanning()
     return state ~= nil
 end
 
+-- 0.8.2 build 3 (review H-008, finding 2): code that wants every item's prices from a Full scan (the
+-- Sniper) registers f(at, key, flat): at is the same for every item of one scan, flat the unit prices
+-- and units as history.market_price takes them
+local view_handlers = {}
+function M.on_full_scan_view(f)
+    tinsert(view_handlers, f)
+end
+
 -- 0.8.2 (FB-037): a Full scan is running. Since launch the server can take minutes to answer one,
 -- so scans that start by themselves (Sniper rounds, the Auctions tab's price check) wait for it
 -- instead of stopping it.
@@ -562,7 +570,9 @@ function scan_item_keys(item_keys)
         local t_item = GetTime()
         local item_id = item_keys[page + 1].itemID
         local records, complete = search(item_keys[page + 1])
-        if complete and records and #records > 0 then
+        -- params.no_view: a read that is not a look at the whole item (the Sniper reading one version
+        -- of a deal again before it is bought, review H-008) records no day price
+        if complete and records and #records > 0 and not state.params.no_view then
             local key = history.record_view_of(records, state.views, true)
             if key then
                 held[item_id] = held[item_id] or {}
@@ -760,7 +770,12 @@ function replicate()
             collector.partial[item_id] = true
         end
     end
-    history.finish_collector(collector)
+    local at = GetTime()
+    history.finish_collector(collector, #view_handlers > 0 and function(key, flat)
+        for _, f in ipairs(view_handlers) do
+            f(at, key, flat)
+        end
+    end or nil)
     check_aborted(scan_state)
 end
 

@@ -40,10 +40,19 @@ local known = {} -- item key text -> the lowest price already judged
 local markets = {}
 MARKET_MEMORY = 15 * 60 -- seconds a read market is trusted for that
 local seen_items = {} -- during a round: item key text -> lowest price on the list
--- 0.8.2 build 2 (FB-036, Swiftwren's Invoker's Cord): during a round, price key -> the list's entry
--- for that item, or a list of entries when one gear name is listed under several versions (same
--- stats, docs/forever-auction-house.md). One table for every round, like seen_items.
+-- 0.8.2 build 2 (FB-036, Swiftwren's Invoker's Cord): during a round, item ID -> the list's entry for
+-- a gear version (an item key with a suffix number), or a list of them when one ID has several.
+-- Versions of one name have the same stats (docs/forever-auction-house.md), so when one is opened as
+-- a possible deal, the others are read too and count toward today's market. One table every round.
 local versions = {}
+-- 0.8.2 build 3 (review H-008, finding 2): price key -> today's market from the last Full scan, the
+-- same rule as market_now with the cheapest price left out (rest_market), so the round's check on the
+-- item list need not open an item whose price is the normal one. It replaced price history's latest
+-- price, which counts the cheapest listing as the market for items with 40 units or fewer (a snipe
+-- already up during the Full scan was hidden all day) and was rewritten by the Sniper's own reads.
+local scan_markets = {}
+local scan_markets_at -- GetTime() of the Full scan they come from
+SCAN_MARKET_TRUST = 2 * 60 * 60 -- seconds a Full scan's markets are trusted for that
 local next_round_at
 local last_alert -- GetTime() of the last sound
 local checked -- the selected deal, as the buy bar shows it
@@ -90,17 +99,44 @@ function M.judge(unit_price, usual, vendor, days, percent, min_profit, market)
     end
 end
 
--- 0.8.2 (FB-036): today's market for one item, from all its listings just read (records of one
--- item, the player's own left out). The units at the cheapest price are the possible deal; the
--- market is what the other units ask: the middle price of their cheapest quarter (MARKET_NOW_SHARE).
--- Hundreds listed just above the cheapest price make that the market; a few cheap units next to a
--- normal market do not (price history's market price uses the cheapest 5%, where 2 cheap units in
--- a small listing already set it). A price that 3 or more sellers ask is the market even with
--- nothing else listed. nil when the listings say nothing more: one cheap auction alone is judged
--- against the usual price, as before. Costs no request: the Sniper reads a candidate's auctions anyway.
+-- 0.8.2 (FB-036): today's market for one item, from its listings. The units at the cheapest price
+-- are the possible deal; the market is what the units above it ask: the middle price of their
+-- cheapest quarter (MARKET_NOW_SHARE). Hundreds listed just above the cheapest price make that the
+-- market; a few cheap units next to a normal market do not (price history's market price uses the
+-- cheapest 5%, where 2 cheap units in a small listing already set it).
+-- Review H-008 (Gemini, docs/reviews/2026-11-09-sniper-0.8.2.md):
+-- - finding 1: a price that 3 or more sellers ask is the market, whatever is listed above it. It
+--   was only checked when nothing was listed above, so 80 units from 6 sellers at 2s 10c next to one
+--   at 22s were a "deal".
+-- - finding 4: fewer than 3 units above the cheapest price are not a market. Two cheap listings 1c
+--   apart, nothing else, hid a deal that adding 100 units at the usual price showed.
+-- cheapest: the cheapest unit price; sellers: how many sellers ask it (0 when not known); others:
+-- {price, units} of the units above it, any order (sorted here); total: their units. nil when the
+-- listings say nothing more: one cheap auction alone is judged against the usual price, as before.
 MARKET_NOW_SHARE = .25
 MARKET_SELLERS = 3
-function M.market_now(records, other_versions)
+MARKET_MIN_UNITS = 3
+function M.rest_market(cheapest, sellers, others, total)
+    if sellers >= MARKET_SELLERS then
+        return cheapest
+    end
+    if total < MARKET_MIN_UNITS then
+        return
+    end
+    sort(others, function(a, b) return a.price < b.price end)
+    local middle = ceil(max(1, ceil(total * MARKET_NOW_SHARE)) / 2)
+    local seen = 0
+    for _, other in ipairs(others) do
+        seen = seen + other.units
+        if seen >= middle then
+            return other.price
+        end
+    end
+end
+
+-- today's market from records just read (one item, every version of its name read; the player's own
+-- left out). Costs no request: the Sniper reads a candidate's auctions anyway.
+function M.market_now(records)
     local cheapest
     for _, record in ipairs(records or empty) do
         if not record.own and (record.buyout_price or 0) > 0 then
@@ -126,26 +162,7 @@ function M.market_now(records, other_versions)
             end
         end
     end
-    -- 0.8.2 build 2: the lowest price of each other version of the same gear name (same stats) is
-    -- the same item for sale too; only its lowest listing is known, so it counts as one unit
-    for _, price in ipairs(other_versions or empty) do
-        tinsert(others, {price = price, units = 1})
-        total = total + 1
-    end
-    if total > 0 then
-        sort(others, function(a, b) return a.price < b.price end)
-        local middle = ceil(max(1, ceil(total * MARKET_NOW_SHARE)) / 2)
-        local seen = 0
-        for _, other in ipairs(others) do
-            seen = seen + other.units
-            if seen >= middle then
-                return other.price
-            end
-        end
-    end
-    if sellers >= MARKET_SELLERS then
-        return cheapest
-    end
+    return rest_market(cheapest, sellers, others, total)
 end
 
 -- usual price, vendor price, days of history; nil when the client has not loaded the item yet
@@ -252,13 +269,26 @@ end
 
 -- Open one item (inside the round) and keep its cheapest auction when it is a deal. price: its
 -- lowest price on the list, which counts as judged once the item is open.
-function check_item(item_key, key, price, other_versions)
+function check_item(item_key, key, price, other_keys)
     local records = scan.read_item(item_key)
     if not records then
         known[key] = nil -- no answer: try again next round
         return
     end
     known[key] = price
+    -- review H-008, finding 3: the other versions of a gear name are read too, so their real buyouts
+    -- and amounts count toward today's market (the item list only knows each one's lowest price,
+    -- which may be a bid or the player's own). Only the version opened can be bought from this deal.
+    local listed = records
+    if other_keys then
+        listed = {}
+        for _, record in ipairs(records) do tinsert(listed, record) end
+        for _, other_key in ipairs(other_keys) do
+            for _, record in ipairs(scan.read_item(other_key) or empty) do
+                tinsert(listed, record)
+            end
+        end
+    end
     local cheapest
     local tiers = {}
     for _, record in ipairs(records) do
@@ -274,7 +304,7 @@ function check_item(item_key, key, price, other_versions)
         set_gone(old)
         return
     end
-    local market = market_now(records, other_versions)
+    local market = market_now(listed)
     markets[key] = market and {market = market, at = GetTime()} or nil
     local reason, profit, pct = judge_record(cheapest, market)
     if not reason then
@@ -322,50 +352,91 @@ end
 
 -- One round's item list: judge every item whose lowest price changed, then open the ones that
 -- look like a deal
--- the lowest prices of the other versions of a candidate's name on this round's list (nil: none)
-local function other_versions(price_key, result)
-    local entry = price_key and versions[price_key]
+-- the Full scan's prices of one item -> its market by the Sniper's rule (rest_market, the cheapest
+-- price left out; how many sellers ask it is not kept by the scan, so that rule is not used here)
+scan.on_full_scan_view(function(at, key, flat)
+    if at ~= scan_markets_at then
+        aux.wipe(scan_markets)
+        scan_markets_at = at
+    end
+    local cheapest
+    for i = 1, #flat, 2 do
+        if not cheapest or flat[i] < cheapest then
+            cheapest = flat[i]
+        end
+    end
+    if not cheapest then
+        return
+    end
+    local others, total = {}, 0
+    for i = 1, #flat, 2 do
+        if flat[i] > cheapest then
+            tinsert(others, {price = flat[i], units = flat[i + 1]})
+            total = total + flat[i + 1]
+        end
+    end
+    scan_markets[key] = rest_market(cheapest, 0, others, total)
+end)
+
+-- today's market as far as the Sniper remembers it, for the round's check on the item list: the
+-- market read when the item was last opened (kept MARKET_MEMORY) and the last Full scan's market for
+-- its price key (kept SCAN_MARKET_TRUST). The lower counts. Review H-008, finding 5: a remembered
+-- market is dropped as soon as the list's lowest price is above it, since the units that made it are
+-- gone (a 55c snipe was refused against an 87c wall that had sold out).
+local function remembered_market(key, price_key, price)
+    local market
+    local memory = markets[key]
+    if memory then
+        if GetTime() - memory.at >= MARKET_MEMORY or price > memory.market then
+            markets[key] = nil
+        else
+            market = memory.market
+        end
+    end
+    local scanned = price_key and scan_markets[price_key]
+    if scanned and scan_markets_at and GetTime() - scan_markets_at < SCAN_MARKET_TRUST and price <= scanned then
+        market = market and min(market, scanned) or scanned
+    end
+    return market
+end
+
+-- the other versions on this round's list of a gear candidate's name (item keys; nil: none)
+local function other_versions(result, price_key)
+    local entry = versions[result.itemKey.itemID]
     if type(entry) ~= 'table' or entry.itemKey then
         return
     end
-    local prices
+    local keys
     for _, other in ipairs(entry) do
-        if other ~= result then
-            prices = prices or {}
-            tinsert(prices, other.minPrice)
+        if other ~= result and info.item_key_price_key(other.itemKey) == price_key then
+            keys = keys or {}
+            tinsert(keys, other.itemKey)
         end
     end
-    return prices
+    return keys
 end
 
 function check_list(results, seen)
     local percent, min_profit = settings()
-    local candidates, candidate_versions = {}, {}
-    -- 0.8.2 build 2: the versions of each name first, so a version is judged next to the others
+    local candidates, candidate_keys = {}, {}
     aux.wipe(versions)
-    for i, result in ipairs(results) do
-        if (result.totalQuantity or 0) > 0 and (result.minPrice or 0) > 0 then
-            local price_key = info.item_key_price_key(result.itemKey)
-            if price_key then
-                local entry = versions[price_key]
-                if not entry then
-                    versions[price_key] = result
-                elseif entry.itemKey then
-                    versions[price_key] = {entry, result}
-                else
-                    tinsert(entry, result)
-                end
-            end
-        end
-        if i % 200 == 0 then
-            aux.coro_wait()
-        end
-    end
     for i, result in ipairs(results) do
         local price = result.minPrice or 0
         if (result.totalQuantity or 0) > 0 and price > 0 then
             local key = scan.item_key_string(result.itemKey)
             seen[key] = price
+            -- gear versions by item ID (a number, no work for the rest; review H-008, finding 8)
+            if (result.itemKey.itemSuffix or 0) ~= 0 then
+                local id = result.itemKey.itemID
+                local entry = versions[id]
+                if not entry then
+                    versions[id] = result
+                elseif entry.itemKey then
+                    versions[id] = {entry, result}
+                else
+                    tinsert(entry, result)
+                end
+            end
             if not aux.account_data.sniper_ignored[key] and known[key] ~= price then
                 -- 0.8: prices are kept per ending (info.price_key), the list's key is a version
                 local price_key = info.item_key_price_key(result.itemKey)
@@ -376,27 +447,14 @@ function check_list(results, seen)
                     -- stopped by a click on a deal left the rest marked judged, never opened, so
                     -- those deals were missed until their price changed (found with the slow test
                     -- auction house)
-                    -- today's market, as far as the list and price history know it (0.8.2): the
-                    -- market last read when the item was opened, the price of today's complete look
-                    -- (a Full scan today: 1,792 items were opened in one round for Swiftwren, each
-                    -- a request, though the scan already showed most were the normal price), and
-                    -- the lowest price of another version of the same name. The lowest counts.
-                    -- (An auction alone and listed since today's Full scan is that scan's price, so
-                    -- it is no longer offered; one listed after it is.)
-                    local memory = markets[key]
-                    local market = memory and GetTime() - memory.at < MARKET_MEMORY and memory.market or nil
-                    local latest, age = history.latest(price_key)
-                    if latest and latest > 0 and age == 0 then
-                        market = market and min(market, latest) or latest
-                    end
-                    local others = other_versions(price_key, result)
-                    for _, other in ipairs(others or empty) do
-                        market = market and min(market, other) or other
-                    end
+                    local market = remembered_market(key, price_key, price)
                     if judge(price, usual, vendor, days, percent, min_profit, market) then
                         tinsert(candidates, result)
-                        candidate_versions[#candidates] = others
-                    else
+                        candidate_keys[#candidates] = price_key
+                    elseif not (market and judge(price, usual, vendor, days, percent, min_profit)) then
+                        -- review H-008, finding 5: an item refused only because of a remembered
+                        -- market is judged again next round (that memory may be gone by then);
+                        -- one refused against the usual price waits for its price to change
                         known[key] = price
                     end
                 end
@@ -406,10 +464,11 @@ function check_list(results, seen)
             aux.coro_wait()
         end
     end
-    -- each one is a request: shown as "checking 12 possible deals (3 done)" while it runs
+    -- each one is a request (and one per other version of a gear name): shown as "checking 12
+    -- possible deals (3 done)" while it runs
     checking = {done = 0, total = #candidates}
     for i, result in ipairs(candidates) do
-        check_item(result.itemKey, scan.item_key_string(result.itemKey), result.minPrice, candidate_versions[i])
+        check_item(result.itemKey, scan.item_key_string(result.itemKey), result.minPrice, other_versions(result, candidate_keys[i]))
         checking.done = checking.done + 1
     end
     checking = nil
@@ -562,6 +621,8 @@ function aux.event.CLOSE()
     running = false
     active = false
     next_round_at = nil
+    -- review H-008, finding 5: markets read are for this visit only
+    aux.wipe(markets)
 end
 
 function tab.OPEN()
@@ -639,6 +700,7 @@ local function refresh_deal(record)
     scan.start{
         type = 'list',
         quiet = true,
+        no_view = true,
         queries = {{item_keys = {item_key}}},
         on_auction = function(auction)
             if not auction.own and auction.buyout_price > 0 then
@@ -809,5 +871,5 @@ end
 
 -- /aux memory detail: what the Sniper keeps
 function M.memory_counts()
-    return count(known), count(seen_items), #deals, count(markets)
+    return count(known), count(seen_items), #deals, count(markets) + count(scan_markets)
 end

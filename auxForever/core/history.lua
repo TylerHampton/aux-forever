@@ -455,11 +455,15 @@ function M.collect(collector, record)
 	tinsert(flat, units)
 end
 
--- must run inside a coroutine (it yields)
-function M.finish_collector(collector)
+-- must run inside a coroutine (it yields). each(key, flat), optional, sees every complete item's
+-- prices before they are recorded (0.8.2: the Sniper's markets from a Full scan)
+function M.finish_collector(collector, each)
 	local done = 0
 	for key, flat in pairs(collector.items) do
 		if not collector.partial[tonumber(strmatch(key, '^%d+'))] then
+			if each then
+				each(key, flat)
+			end
 			record_view(key, flat)
 		end
 		done = done + 1
