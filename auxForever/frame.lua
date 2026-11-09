@@ -319,6 +319,12 @@ do
                 status_bar:set_text('Full scan: waiting for the auction house...')
                 search.clear_selection()
             end,
+            -- 0.8.2 (FB-037): since launch the answer can take minutes; show how long so far
+            on_wait = function(seconds)
+                if seconds >= 5 then
+                    status_bar:set_text(format('Full scan: waiting for the auction house, %d:%02d so far. A search now would stop it.', floor(seconds / 60), seconds % 60))
+                end
+            end,
             on_auction = function(auction_record, total)
                 count = count + 1
                 status_bar:update_status(count / total, 0)
@@ -332,10 +338,14 @@ do
                 status_bar:update_status(1, 1)
                 status_bar:set_text()
             end,
-            on_complete = function()
+            on_complete = function(result)
                 status_bar:update_status(1, 1)
                 status_bar:set_text()
-                print('full scan complete: ' .. count .. ' auctions recorded')
+                -- 0.8.2: nothing more when the auction house never answered (the scan said why)
+                local line = scan.full_scan_summary(result, count)
+                if line then
+                    print(line)
+                end
             end,
         }
     end)

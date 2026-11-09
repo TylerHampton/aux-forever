@@ -13,6 +13,10 @@ local info = require 'aux.util.info'
 local history = require 'aux.core.history'
 
 M.REPLICATE_COOLDOWN = 15 * 60
+-- 0.8.2 (FB-037, FB-027): how long a Full scan waits for the server's first answer. It was 2 minutes;
+-- since Forever launched a player saw the list take more than 5 minutes to arrive, so the scan gave
+-- up before the server answered ("i cant scan today", deep_structure).
+M.REPLICATE_WAIT = 10 * 60
 
 local TIMEOUT = 20
 
@@ -59,6 +63,20 @@ function M.timing_report(t, total, stopped)
     return lines
 end
 
+-- 0.8.2 (FB-027): the chat line when a Full scan ends, with how long it took and how much of that was
+-- the auction house's answer, so slow scans can be measured in game without /aux debug. nil when
+-- the scan got no answer (it printed why already).
+function M.full_scan_summary(result, recorded)
+    local full = result and result.full
+    if not full or full.failed then
+        return
+    end
+    local total = (full.server or 0) + (full.arriving or 0) + (full.reading or 0) + (full.items or 0)
+    return format('Full scan complete: %d auctions recorded in %s (the auction house took %s to answer, %s to send the list; reading took %s).',
+        recorded or full.auctions or 0, format_seconds(total), format_seconds(full.server or 0), format_seconds(full.arriving or 0),
+        format_seconds((full.reading or 0) + (full.items or 0)))
+end
+
 function M.new_timing()
     return {t0 = GetTime(), items = 0, event = 0, cached = 0, timeout = 0, dropped = 0,
         browse = 0, answer = 0, throttle = 0, item_data = 0, slow = {}}
@@ -99,6 +117,13 @@ function M.is_scanning()
     return state ~= nil
 end
 
+-- 0.8.2 (FB-037): a Full scan is running. Since launch the server can take minutes to answer one,
+-- so scans that start by themselves (Sniper rounds, the Auctions tab's price check) wait for it
+-- instead of stopping it.
+function M.is_full_scan()
+    return state ~= nil and state.params.get_all == true
+end
+
 function M.owner_auctions()
     local auctions = {}
     for i = 1, C_AuctionHouse.GetNumOwnedAuctions() do
@@ -125,6 +150,11 @@ end
 
 function M.start(params)
     if state then
+        -- 0.8.2 (FB-037): a Full scan stopped before its list was read records nothing, and the game
+        -- still counts it; say so instead of losing it without a word
+        if state.params.get_all and not params.get_all then
+            aux.print('Full scan stopped by a new search before it finished; nothing was recorded.')
+        end
         abort()
     end
     do (params.on_scan_start or pass)() end
@@ -170,13 +200,13 @@ end
 
 function complete()
     local on_complete = state.params.on_complete
-    local unread, quiet = state.unread, state.params.quiet
+    local unread, quiet, result = state.unread, state.params.quiet, state.result
     state = nil
     timing_finish()
     if unread and not quiet then
         aux.print(unread_text(unread))
     end
-    do (on_complete or pass)() end
+    do (on_complete or pass)(result) end
 end
 
 -- auxForever (0.7.1, FB-014): an item the search could not read (the auction house did not
@@ -644,13 +674,29 @@ end
 function replicate()
     local scan_state = state
     local wait = listen({'REPLICATE_ITEM_LIST_UPDATE'})
+    local t_request = GetTime()
+    -- 0.8.2: what the Full scan's parts took, for its closing line (FB-027: measure before guessing)
+    local result = {full = {}}
+    state.result = result
     C_AuctionHouse.ReplicateItems()
     aux.account_data.replicate_time = time()
-    if not wait(120) then
-        aux.print('full scan: the auction house did not respond. It can only be used once every 15 minutes.')
+    -- the seconds waited so far, once a second, so a long wait does not look stuck
+    local shown
+    local answered = wait(REPLICATE_WAIT, function(elapsed)
+        local second = floor(elapsed)
+        if second ~= shown then
+            shown = second
+            do (state.params.on_wait or pass)(second) end
+        end
+    end)
+    if not answered then
+        result.full.failed = true
+        aux.print(format('Full scan: the auction house did not answer within %d minutes, so nothing was recorded. It may be busy. The Full scan button lights up again 15 minutes after this try.', REPLICATE_WAIT / 60))
         return
     end
+    result.full.server = GetTime() - t_request
     -- the list can arrive in several parts; wait until it stops growing
+    local t_arriving = GetTime()
     local count, t0 = C_AuctionHouse.GetNumReplicateItems(), GetTime()
     while GetTime() - t0 < 2 do
         aux.coro_wait()
@@ -658,6 +704,9 @@ function replicate()
             count, t0 = C_AuctionHouse.GetNumReplicateItems(), GetTime()
         end
     end
+    result.full.arriving = GetTime() - t_arriving
+    result.full.auctions = count
+    local t_reading = GetTime()
 
     -- auxForever (0.5): each item's prices are gathered while the list is read and recorded once at
     -- the end (core/history.lua); the gathered numbers are dropped after that
@@ -678,6 +727,7 @@ function replicate()
             aux.coro_wait()
         end
     end
+    result.full.reading = GetTime() - t_reading
     -- items the client had not cached yet
     local t1 = GetTime()
     while next(pending) and GetTime() - t1 < 30 do
@@ -693,6 +743,7 @@ function replicate()
             end
         end
     end
+    result.full.items = GetTime() - t1
     -- an item with auctions that never loaded was not seen completely: no market price for it
     for _, item_id in pairs(pending) do
         if item_id ~= true then

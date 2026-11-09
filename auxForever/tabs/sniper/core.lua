@@ -463,7 +463,12 @@ function M.update()
         end
         next_round_at = GetTime() + ROUND_PAUSE
     elseif running and not active and next_round_at and GetTime() >= next_round_at then
-        start_round()
+        if scan.is_full_scan() then
+            -- 0.8.2 (FB-037): a round would stop the Full scan; the next try is a pause later
+            next_round_at = GetTime() + ROUND_PAUSE
+        else
+            start_round()
+        end
     end
     if GetTime() >= (next_controls or 0) then
         next_controls = GetTime() + .2

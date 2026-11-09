@@ -4936,6 +4936,111 @@ try('0.8.2: the Sniper checks today\'s market', function()
   for id = 601, 605 do h.data[id .. ':0'] = nil end
 end)
 
+-- 0.8.2, FB-037 (reported by deep_structure: "i cant scan today") and FB-027: since launch the
+-- server can take more than 5 minutes to send a Full scan's list (user_ayzkr6rhvrlna3ya). aux gave
+-- up after 2 minutes. It now waits up to 10, shows how long so far, and says what each part took.
+try('0.8.2: a Full scan waits for a slow auction house', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.test.fb037'; return require 'aux.core.scan'")('auxForever', addon)
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  local list = {}
+  for i = 1, 30 do tinsert(list, {id = 9301, count = 2, buyout = 200 + i}) end
+  local asked = 0
+  set(C_AuctionHouse, 'ReplicateItems', function() asked = asked + 1 end)
+  set(C_AuctionHouse, 'GetNumReplicateItems', function() return #list end)
+  set(C_AuctionHouse, 'GetReplicateItemInfo', function(i) local x = list[i + 1]; return 'Item', 1, x.count, 1, true, 1, nil, 0, 0, x.buyout, 0, false, nil, 'Seller', nil, 0, x.id, true end)
+  set(C_AuctionHouse, 'GetReplicateItemLink', function() return '|cffffffff|Hitem:9301::::::0:0|h[Item]|h|r' end)
+  set(G, 'GetItemInfo', function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id ~= 9301 then return end
+    return 'Slow Herb', '|cffffffff|Hitem:9301::::::0:0|h[Slow Herb]|h|r', 1, 10, 1, 'Trade Goods', 'Herb', 20, '', 1, 1
+  end)
+  local texts, printed = {}, {}
+  set(a.status_bar.text, 'SetText', function(_, t) tinsert(texts, t or '') end)
+  set(DEFAULT_CHAT_FRAME, 'AddMessage', function(_, t) tinsert(printed, t) end)
+  local was_shown = a.frame.__shown
+  a.frame.__shown = true
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', '')) end
+  local function said(pattern)
+    for _, t in ipairs(printed) do if plain(t):find(pattern, 1, true) then return plain(t) end end
+  end
+
+  -- the answer comes after 4 minutes
+  a.account_data.replicate_time = 0
+  a.full_scan_button.__scripts.OnClick(a.full_scan_button)
+  for _ = 1, 2400 do tick() end
+  check('fb037: still waiting after 4 minutes', scan.is_scanning() and asked == 1)
+  local waiting = texts[#texts] or ''
+  check('fb037: the status bar shows how long so far', waiting:find('waiting for the auction house, 4:00 so far', 1, true) ~= nil or waiting:find('waiting for the auction house, 3:59 so far', 1, true) ~= nil)
+  fire('REPLICATE_ITEM_LIST_UPDATE')
+  for _ = 1, 100 do tick(); if not scan.is_scanning() then break end end
+  local line = said('Full scan complete')
+  check('fb037: an answer after 4 minutes is read (2 minutes gave up)', not scan.is_scanning() and line ~= nil and line:find('30 auctions recorded', 1, true) ~= nil)
+  check('fb027: the closing line says how long the auction house took', line and line:find('the auction house took 4m 0', 1, true) ~= nil)
+  check('fb037: no "did not answer" for a slow answer', said('did not answer') == nil)
+
+  -- no answer at all
+  printed = {}
+  a.account_data.replicate_time = 0
+  a.full_scan_button.__scripts.OnClick(a.full_scan_button)
+  for _ = 1, 6100 do tick(); if not scan.is_scanning() then break end end
+  check('fb037: after 10 minutes without an answer it stops', not scan.is_scanning())
+  check('fb037: and says nothing was recorded', said('did not answer within 10 minutes, so nothing was recorded') ~= nil)
+  check('fb037: no "complete" line when nothing came', said('Full scan complete') == nil and said('full scan complete') == nil)
+  check('fb037: the summary is empty for a failed scan', scan.full_scan_summary({full = {failed = true}}) == nil)
+
+  a.frame.__shown = was_shown
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  a.account_data.replicate_time = 0
+end)
+
+-- 0.8.2, FB-037: while a Full scan waits for the server (minutes since launch), the Sniper's next
+-- round and the Auctions tab's price check started scans of their own, which stopped it: nothing was
+-- recorded and the game still counted it. They now wait; a search the player starts says it stopped it.
+try('0.8.2: nothing stops a Full scan by itself', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.test.fb037b'; return require 'aux.core.scan'")('auxForever', addon)
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local auctions = loadstring("select(2, ...) 'aux.tabs.auctions'; return _M")('auxForever', addon)
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  set(C_AuctionHouse, 'ReplicateItems', function() end)
+  set(C_AuctionHouse, 'GetNumReplicateItems', function() return 0 end)
+  local printed = {}
+  set(DEFAULT_CHAT_FRAME, 'AddMessage', function(_, t) tinsert(printed, t) end)
+  local was_shown = a.frame.__shown
+  a.frame.__shown = true
+
+  -- the Sniper is running when the Full scan starts
+  a.set_tab(2)
+  sniper.start()
+  for _ = 1, 5 do tick() end
+  a.account_data.replicate_time = 0
+  a.full_scan_button.__scripts.OnClick(a.full_scan_button)
+  for _ = 1, 100 do tick() end
+  check('fb037: the Sniper does not stop a waiting Full scan', scan.is_full_scan())
+  sniper.stop()
+
+  -- the Auctions tab opens and would check prices
+  a.set_tab(4)
+  for _ = 1, 100 do tick() end
+  check('fb037: the Auctions tab\'s price check waits too', scan.is_full_scan() and auctions.checking == nil)
+
+  -- a search the player starts stops it, and says so
+  scan.start{type = 'list', queries = {{blizzard_query = {}}}, quiet = true}
+  local said
+  for _, t in ipairs(printed) do if t:find('Full scan stopped by a new search', 1, true) then said = true end end
+  check('fb037: a search stops it and says nothing was recorded', not scan.is_full_scan() and said)
+  scan.abort()
+  for _ = 1, 30 do tick() end
+
+  a.set_tab(1)
+  a.frame.__shown = was_shown
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  a.account_data.replicate_time = 0
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
 dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({
