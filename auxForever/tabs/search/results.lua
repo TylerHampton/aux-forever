@@ -630,8 +630,9 @@ function start_search(queries, continuation)
 end
 
 -- auxForever: fast mode reads only the item list (each item once, with its lowest price). A search
--- for one exact item, or one using a condition the list does not have (seller, time left, bid,
--- tooltip text), reads every auction as before; so does every search when Full is chosen.
+-- for one exact item, or one using a condition the list does not have (seller, time left, bid),
+-- reads every auction as before; so does every search when Full is chosen. Tooltip text is checked
+-- on the list since 0.8.2 (FB-025, util/filter.lua uses_tooltip).
 -- Returns whether the search is fast, and why not when a condition is the reason.
 function M.fast_choice(queries)
     if aux.account_data.full_search then

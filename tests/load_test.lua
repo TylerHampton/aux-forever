@@ -1348,7 +1348,9 @@ local function fake_ah(items)
   local pending = {}
   local by_id = {}
   for _, it in ipairs(items) do by_id[it.id] = it end
-  local function link(it) return '|cff1eff00|Hitem:' .. it.id .. '::::::' .. (it.suffix or 0) .. ':0|h[' .. it.name .. ']|h|r' end
+  -- it.full_name: gear with a random ending, listed under its full name ("Bear Chest of the Bear")
+  -- while the item's own name (GetItemInfo) is the plain one (0.8.2 test of FB-025)
+  local function link(it, full) return '|cff1eff00|Hitem:' .. it.id .. '::::::' .. (it.suffix or 0) .. ':0|h[' .. (full and it.full_name or it.name) .. ']|h|r' end
   local browses = 0
   set(C_AuctionHouse, 'SendBrowseQuery', function() browses = browses + 1; tinsert(pending, {'AUCTION_HOUSE_BROWSE_RESULTS_UPDATED'}) end)
   set(C_AuctionHouse, 'HasFullBrowseResults', function() return true end)
@@ -1359,7 +1361,7 @@ local function fake_ah(items)
     end
     return r
   end)
-  set(C_AuctionHouse, 'GetItemKeyInfo', function(key) local it = by_id[key.itemID]; return it and {itemID = it.id, itemName = it.name, quality = it.quality or 2, iconFileID = 1, isCommodity = it.commodity or false} end)
+  set(C_AuctionHouse, 'GetItemKeyInfo', function(key) local it = by_id[key.itemID]; return it and {itemID = it.id, itemName = it.full_name or it.name, quality = it.quality or 2, iconFileID = 1, isCommodity = it.commodity or false} end)
   set(C_AuctionHouse, 'GetItemKeyRequiredLevel', function(key) return by_id[key.itemID].req or 1 end)
   set(C_AuctionHouse, 'SendSearchQuery', function(key)
     local it = by_id[key.itemID]
@@ -1372,7 +1374,7 @@ local function fake_ah(items)
   set(C_AuctionHouse, 'GetNumCommoditySearchResults', function(id) return by_id[id].qty > 0 and #by_id[id].auctions or 0 end)
   set(C_AuctionHouse, 'GetItemSearchResultInfo', function(key, i)
     local it = by_id[key.itemID]; local a = it.auctions[i]
-    return {itemKey = key, itemLink = link(it), auctionID = it.id * 100 + i, quantity = a.qty or 1, buyoutAmount = a.buyout, minBid = a.bid or 0, bidAmount = 0,
+    return {itemKey = key, itemLink = link(it, true), auctionID = it.id * 100 + i, quantity = a.qty or 1, buyoutAmount = a.buyout, minBid = a.bid or 0, bidAmount = 0,
       owners = {a.own and 'player' or 'Seller'}, totalNumberOfOwners = a.sellers or 1, containsOwnerItem = a.own or false, timeLeft = 3}
   end)
   set(C_AuctionHouse, 'GetCommoditySearchResultInfo', function(id, i)
@@ -1411,8 +1413,9 @@ try('fast mode choice', function()
   check('time left search reads every auction', fast == false and why == 'time left')
   fast, why = search.fast_choice(filter.queries('robe/bid-price/1g'))
   check('bid search reads every auction', fast == false and why == 'bid')
+  -- 0.8.2 (FB-025): tooltip text is checked on the item list; only gear with an ending is read in full
   fast, why = search.fast_choice(filter.queries('robe/of the owl'))
-  check('tooltip text search reads every auction', fast == false and why == 'tooltip text')
+  check('tooltip text search is fast', fast == true and why == nil)
   fast, why = search.fast_choice(filter.queries('linen cloth/exact'))
   check('one exact item reads every auction', fast == false and why == nil)
   aux.account_data.full_search = true
@@ -5098,6 +5101,59 @@ try('0.8.2: a fresh Sniper deal goes straight to the buy bar', function()
   restore()
   sniper.clear_deals()
   bar.clear()
+end)
+
+-- 0.8.2, FB-025 (suggested by RushJet1): "armor/mail/chest/usable/strength" took 2 minutes, because
+-- tooltip text made the search read every auction of every item. The item list's own tooltips are
+-- checked instead; only gear with a random ending (stats in the ending) is read in full.
+try('0.8.2: tooltip text is checked on the item list', function()
+  local scan = loadstring("select(2, ...) 'aux.test.fb025'; return require 'aux.core.scan'")('auxForever', addon)
+  local filter_util = loadstring("select(2, ...) 'aux.test.fb025b'; return require 'aux.util.filter'")('auxForever', addon)
+  local items = {
+    {id = 811, name = 'Strong Chest', min = 1000, qty = 2, auctions = {{buyout = 1000}, {buyout = 1100}}},
+    {id = 812, name = 'Weak Chest', min = 900, qty = 1, auctions = {{buyout = 900}}},
+    {id = 813, name = 'Bear Chest', full_name = 'Bear Chest of the Bear', suffix = 77, min = 1500, qty = 1, auctions = {{buyout = 1500}}},
+    {id = 814, name = 'Owl Chest', full_name = 'Owl Chest of the Owl', suffix = 78, min = 1400, qty = 1, auctions = {{buyout = 1400}}},
+  }
+  local run, restore = fake_ah(items)
+  -- each tooltip as the game would build it from that link
+  local lines_of = {
+    ['Strong Chest'] = {'Strong Chest', '+5 Strength'},
+    ['Weak Chest'] = {'Weak Chest', '+5 Intellect'},
+    ['Bear Chest'] = {'Bear Chest', '<Random enchantment>'},
+    ['Bear Chest of the Bear'] = {'Bear Chest of the Bear', '+3 Strength', '+3 Stamina'},
+    ['Owl Chest'] = {'Owl Chest', '<Random enchantment>'},
+    ['Owl Chest of the Owl'] = {'Owl Chest of the Owl', '+3 Intellect', '+3 Spirit'},
+  }
+  local shown = {}
+  local old_lines = {}
+  for i = 1, 4 do old_lines[i] = {G['AuxTooltipTextLeft' .. i], G['AuxTooltipTextRight' .. i]} end
+  rawset(AuxTooltip, 'SetHyperlink', function(_, l) shown = lines_of[tostring(l):match('|h%[(.-)%]|h')] or {} end)
+  rawset(AuxTooltip, 'NumLines', function() return #shown end)
+  for i = 1, 4 do
+    G['AuxTooltipTextLeft' .. i] = {GetText = function() return shown[i] end}
+    G['AuxTooltipTextRight' .. i] = {GetText = function() end}
+  end
+  local searched = {}
+  local real_send = C_AuctionHouse.SendSearchQuery
+  rawset(C_AuctionHouse, 'SendSearchQuery', function(key, ...) searched[key.itemID] = (searched[key.itemID] or 0) + 1; return real_send(key, ...) end)
+  local found, done = {}, false
+  local queries = filter_util.queries('chest/strength')
+  check('fb025: the search is fast', queries and queries[1].tooltip_text == true and queries[1].full_reason == nil)
+  scan.start{type = 'list', queries = queries, fast = true, quiet = true,
+    on_auction = function(record) found[record.name] = (found[record.name] or 0) + 1 end,
+    on_complete = function() done = true end}
+  for _ = 1, 100 do run(1); if done then break end end
+  check('fb025: the search finished', done)
+  check('fb025: a plain item with the word in its tooltip is listed from the item list', found['Strong Chest'] == 1 and not searched[811])
+  check('fb025: a plain item without it is left out, unread', not found['Weak Chest'] and not searched[812])
+  check('fb025: gear with an ending is read in full and matched on its own auctions', found['Bear Chest of the Bear'] == 1 and searched[813] == 1)
+  check('fb025: gear with another ending is read and left out', not found['Owl Chest of the Owl'] and searched[814] == 1)
+  rawset(C_AuctionHouse, 'SendSearchQuery', real_send)
+  rawset(AuxTooltip, 'SetHyperlink', nil)
+  rawset(AuxTooltip, 'NumLines', nil)
+  for i = 1, 4 do G['AuxTooltipTextLeft' .. i], G['AuxTooltipTextRight' .. i] = old_lines[i][1], old_lines[i][2] end
+  restore()
 end)
 
 -- what players do while the auction house is still answering: a slow auction house that answers

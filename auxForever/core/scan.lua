@@ -610,11 +610,26 @@ function scan_item_list(results)
     local scan_state = state
     local open = state.params.open or empty
     local validator = get_query().validator
+    local tooltip_text = get_query().tooltip_text
     local pending = {}
+    local function read_full(item_key)
+        local records, complete = search(item_key)
+        record_view(records, complete, true)
+        for _, record in ipairs(records or empty) do
+            process_auction(record)
+            check_aborted(scan_state)
+        end
+    end
     local function add(result)
         local record = info.browse_record(result)
         if not record then
             return false
+        end
+        -- 0.8.2 (FB-025): tooltip text is checked on the fast row's own tooltip, except for gear
+        -- with a random ending, whose stats only its auctions' links carry
+        if tooltip_text and has_ending(record) then
+            read_full(result.itemKey)
+            return true
         end
         record.validator = validator
         process_auction(record)
@@ -623,12 +638,7 @@ function scan_item_list(results)
     for i, result in ipairs(results) do
         if (result.totalQuantity or 0) > 0 then
             if open[item_key_string(result.itemKey)] then
-                local records, complete = search(result.itemKey)
-                record_view(records, complete, true)
-                for _, record in ipairs(records or empty) do
-                    process_auction(record)
-                    check_aborted(scan_state)
-                end
+                read_full(result.itemKey)
             elseif not add(result) then
                 info.request_item(result.itemKey.itemID)
                 tinsert(pending, result)

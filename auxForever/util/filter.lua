@@ -200,13 +200,26 @@ M.FULL_ONLY = {
     ['bid-profit'] = 'bid',
     ['bid-disenchant-profit'] = 'bid',
     ['bid-vendor-profit'] = 'bid',
-    ['tooltip'] = 'tooltip text',
 }
 
 function M.full_reason(filter)
     for _, component in ipairs(filter.post) do
         if component[1] == 'filter' and FULL_ONLY[component[2]] then
             return FULL_ONLY[component[2]]
+        end
+    end
+end
+
+-- 0.8.2 (FB-025, suggested by RushJet1): tooltip text ("armor/mail/chest/usable/strength") made a
+-- search read every auction of every item, one request each: 2 minutes instead of an instant. An
+-- item's own tooltip is the same on all its auctions, so fast mode now checks it on the item list
+-- (the fast row's tooltip, built only when asked). Gear with a random ending is the exception: its
+-- stats come from the ending, which the item's own tooltip lacks, so those rows are read in full
+-- (scan_item_list). True when the search uses tooltip text.
+function M.uses_tooltip(filter)
+    for _, component in ipairs(filter.post) do
+        if component[1] == 'filter' and component[2] == 'tooltip' then
+            return true
         end
     end
 end
@@ -366,6 +379,7 @@ function M.query(filter_string)
         validator = validator(filter),
         prettified = prettified_filter_string(filter),
         full_reason = full_reason(filter),
+        tooltip_text = uses_tooltip(filter) or nil,
         exact = filter.blizzard.exact and true or nil,
     }, _M.suggestions(filter)
 end
