@@ -13,8 +13,8 @@ Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to
 0.8.0.1 build 1 (below, the cloak search and the Professions window, unchanged) plus profit or
 loss on the profession window's Materials line (FB-026, deep_structure; option A of the mockup,
 https://claude.ai/artifact/6VxaaXKXe3f9uJEjK7Gtoy). Zip `auxForever-0.8.1-build1.zip`; `/reload`
-is enough. Test page build id `0-8-1-build-1` (the profit steps; 0.8.0.1 build 1's steps are on
-their own page).
+is enough. Test page build id `0-8-1-build-1`: seven steps, 0.8.0.1 build 1's four steps (below)
+first, then these three (Tyler had not started the 0.8.0.1 page).
 
 - [ ] 1. Open your Professions window and pick a recipe whose made item aux has seen (searched or
       full scanned), for example Woolen Bag. The line under the reagents reads "Materials ...

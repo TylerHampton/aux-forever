@@ -27,9 +27,9 @@ it). Built on the same branch while 0.8.0.1 build 1 was in testing, so the next 
 branch carries both: Claude proposed naming it 0.8.1 and moving the speed work (FB-025, FB-027,
 FB-028) and the Shift hint (FB-033) to 0.8.2 (`docs/roadmap.md`). If Tyler wants 0.8.0.1 shipped on
 its own first, revert this commit, release, then re-apply it. Version `forever-0.8.1`; checklist in
-`TESTING.md` (0.8.1 build 1, three steps); zip `auxForever-0.8.1-build1.zip`. The test page still
-shows 0.8.0.1 build 1 (Tyler was testing it); publish the 0.8.1 steps (build id `0-8-1-build-1`)
-after reading his 0.8.0.1 results.
+`TESTING.md` (0.8.1 build 1, three steps); zip `auxForever-0.8.1-build1.zip`. Tyler had not started the
+0.8.0.1 page, so the test page now holds all seven steps under build id `0-8-1-build-1` (0.8.0.1's
+four, then the three profit steps). Next: read those results.
 
 **2026-11-08, Claude, feedback batch (docs only, no addon change):** Tyler passed on CurseForge
 comments, all written before 0.8. Logged as FB-024 to FB-034 in `docs/feedback.md` (source
