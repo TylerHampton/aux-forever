@@ -142,6 +142,8 @@ For whoever fixes or builds from it:
 | [FB-033](#fb-033-tooltip-prices-for-the-whole-stack-not-one-item) | 2026-11-08 | Chawitsch | ux | Other | n/a | Tooltip prices for the whole stack, not one item | planned 0.8.2 |
 | [FB-034](#fb-034-opening-aux-moves-blizzards-professions-window-to-the-right) | 2026-11-08 | Chawitsch | bug | Window | S3 | Opening aux moves Blizzard's Professions window to the right | fixed 0.8.1 (released 2026-11-09) |
 | [FB-035](#fb-035-a-setting-to-hide-the-usually-price-line-in-tooltips) | 2026-11-09 | deep_structure | request | Settings | n/a | A setting to hide the "usually" price line in tooltips | new |
+| [FB-036](#fb-036-the-sniper-calls-a-flat-market-a-deal-at-4-of-the-usual-price) | 2026-11-09 | Swiftwren | bug | Sniper | S2 | The Sniper calls a flat market a deal at 4% of the usual price | new |
+| [FB-037](#fb-037-i-cant-scan-today) | 2026-11-09 | deep_structure | bug | Full scan | S2 | "i cant scan today" | new |
 
 ## Players
 
@@ -177,7 +179,9 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
 - **RushJet1**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-025.
   Writes search text by hand (`armor/mail/chest/usable/strength`).
 - **deep_structure**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for
-  FB-026 and FB-035.
+  FB-026 and FB-035, reported FB-037. Uses the Sniper and crafts.
+- **Swiftwren**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-036.
+  Uses the Sniper, buys deals and relists them (flipping).
 - **user_ayzkr6rhvrlna3ya**: CurseForge commenter (a name CurseForge generated; in-game name
   unknown). Reported FB-027 and FB-028. Used aux for a couple of weeks before Forever launched.
   Uses the Sniper.
@@ -1838,6 +1842,97 @@ Unknowns: why the player wants it off. The switch works whatever the reason.
 
 Ask Tyler: is a switch the right answer, and does adding one row to Settings need a mockup (it
 copies the rows already there)?
+
+### FB-036: The Sniper calls a flat market a deal at 4% of the usual price
+
+- Received: 2026-11-09 (posted about 5 hours before Tyler's screenshot)
+- From: Swiftwren (1 report; deep_structure answered "nah", meaning no luck with the Sniper either)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-09-swiftwren-deep_structure-curseforge.md)
+- Version: 0.8 or 0.8.1 (posted a few hours after 0.8.1 came out)
+- Type: bug
+- Area: Sniper
+- Severity: S2 (the player loses money buying "deals" that are the normal price; the Sniper can be
+  ignored)
+- Status: new
+- Proposed: 0.8.2
+
+Said:
+> Is anyone having luck with the Sniper? I'm finding it's offering me deals that are at 4% of the usual price and it's saying there are only  2 left. Then, when you look at the actual listings for that, there's hundreds (if not thousands) of entries within 1s of the price.
+
+> The result is that you buy a great deal, you go to relist the item, and there are 45 copies only 2c dearer than what you paid for it.
+
+Steps / setup: the Sniper running on the released game. A trade good (inference: "45 copies only
+2c dearer" is a commodity listing) shows as a deal at 4% of the usual price, with 2 for sale. The
+auction house has hundreds or thousands within 1s of that price. Bought and relisted: 45 listed
+just 2c above the price paid.
+
+Tyler's notes: none yet.
+
+Recorder's notes (from the code; the cause is an inference, not seen):
+- What a deal is (`judge` in `tabs/sniper/core.lua`): a price at or below the player's percent
+  of the usual price, the usual price resting on at least 3 days of complete looks. The usual price
+  is `history.value`: the weighted middle of up to 14 past days' prices, each day's weight halving
+  every 7 days, today not counted until the day ends (`core/history.lua`, `docs/price-data.md`).
+- Likely cause: prices fell after Forever launched, and the usual price follows them slowly. A
+  material that sold for 25 times more in the first days keeps a high usual price for a week or
+  more, so today's ordinary price is "4% of the usual". Every listing of it is then a "deal", and
+  the Sniper offers the cheapest. Nothing in the rule asks whether today's market agrees.
+- The "2 left": the Sniper's table shows how many are for sale at the cheapest price only (`count`
+  of the cheapest checked auction, `tabs/sniper/frame.lua`). The hundreds just above it are not
+  shown, so the row reads as a rare chance. The buy bar does offer only the units that are deals,
+  but on a flat market they all are.
+- aux already keeps today's market price (`history.latest`, Value in tooltips: the average of the
+  cheapest 20% of units in the latest complete look). Inference: judging against the lower of the
+  usual price and the latest price, or requiring the deal to be well below what is listed right
+  after it on the same item (the Sniper reads all of an item's auctions before calling a deal, so
+  that costs no extra request), would stop this. Which rule fits best is a decision for Tyler,
+  with numbers from the game.
+- Related: FB-030 (the usual price moving and how it works), FB-028 (Sniper speed).
+
+Unknowns: which item and the player's percent setting; how many days of history they had. A fix
+can work without them: the check against today's market applies whatever they were.
+
+Ask Tyler: can you find one such "deal" in your Sniper? A screenshot of the deal row and of a
+search for the same item (Full) shows whether the usual price is far above today's market.
+
+### FB-037: "i cant scan today"
+
+- Received: 2026-11-09 (posted about 5 hours before Tyler's screenshot)
+- From: deep_structure (1 report)
+- Where: CurseForge comment, a reply to Swiftwren's (FB-036)
+- Source: [source](feedback/sources/2026-11-09-swiftwren-deep_structure-curseforge.md)
+- Version: 0.8 or 0.8.1
+- Type: bug
+- Area: Full scan (or Search; not said)
+- Severity: S2 (provisional: a scan that does not work at all would be S1 for that player)
+- Status: new
+- Proposed: 0.8.2, once Tyler can say whether it happens to him
+
+Said:
+> nah and i cant scan today either
+
+Steps / setup: none given. "Scan" most likely means the Full scan (players call it that; the
+button says "Full scan"), but it could be a search.
+
+Tyler's notes: none yet.
+
+Recorder's notes (from the code):
+- A Full scan asks the server for the whole auction house, and the game allows it once every 15
+  minutes. If the server does not answer within 2 minutes, aux prints "full scan: the auction house
+  did not respond. It can only be used once every 15 minutes." (`replicate` in `core/scan.lua`).
+  aux records the time of the request before the answer comes (`account_data.replicate_time`), so
+  a scan that got no answer still starts the 15 minutes in aux's own count. Inference, not checked:
+  if the server is slow or busy (FB-027: a full scan already took 5+ minutes for another player),
+  a player can get the "did not respond" message, then wait, and see it again.
+- Inference: "today" may point at the server rather than aux (launch traffic, maintenance). That
+  cannot be told from the comment.
+
+Unknowns: which scan, what happened (a message, nothing, an error), and whether it worked before.
+A fix can work without them: make every way a scan can fail say why and what to do next, and check
+the 2-minute limit against how long Forever takes now.
+
+Ask Tyler: does your Full scan work today? If not, what does the chat or the status bar say?
 
 ## Before this log
 
