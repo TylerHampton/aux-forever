@@ -687,7 +687,10 @@ local show_item_bar, show_commodity_bar
 -- on deals found minutes earlier, Tyler, 0.4.1).
 local function refresh_deal(record)
     local item_key = record.deal_item_key or record.item_search_key
-    if not item_key or (record.deal_read_at and GetTime() - record.deal_read_at <= FRESH_SECONDS) then
+    -- review H-008, finding 6: gear only when nothing else was searched since (see scan.last_read_is)
+    local fresh = record.deal_read_at and GetTime() - record.deal_read_at <= FRESH_SECONDS
+        and (record.commodity or scan.last_read_is(item_key))
+    if not item_key or fresh then
         if record.commodity then show_commodity_bar(record) else show_item_bar(record) end
         return
     end

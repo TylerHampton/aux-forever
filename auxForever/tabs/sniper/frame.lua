@@ -52,6 +52,17 @@ local function price_text(record, amount)
     return money.to_string(amount, true)
 end
 
+-- the price a deal was judged against: what a vendor pays, today's market, or the usual price (shown
+-- only when it rests on enough history, as before)
+function M.compared_price(record)
+    if record.deal_reason == 'vendor' then
+        return record.deal_vendor
+    elseif record.deal_reason == 'market' then
+        return record.deal_market
+    end
+    return record.deal_usual
+end
+
 M.columns = {
     {
         title = 'Found',
@@ -114,14 +125,17 @@ M.columns = {
         end,
     },
     {
-        title = 'Usual',
+        -- review H-008, finding 7: the price the deal was compared with (usual price, today's market or
+        -- vendor price, as the Why column says), so price, this, the percent and the profit add up
+        title = 'Compared to',
         width = .12,
         align = 'RIGHT',
         fill = function(cell, record)
-            cell.text:SetText(record.deal_usual and price_text(record, record.deal_usual) or dim(record, '?'))
+            local compared = compared_price(record)
+            cell.text:SetText(compared and price_text(record, compared) or dim(record, '?'))
         end,
         cmp = function(a, b, desc)
-            return sort_util.compare(a.deal_usual or 0, b.deal_usual or 0, desc)
+            return sort_util.compare(compared_price(a) or 0, compared_price(b) or 0, desc)
         end,
     },
     {

@@ -390,9 +390,18 @@ end
 
 -- auxForever: the item list of a query, one entry per item with only itemKey, totalQuantity,
 -- minPrice and containsOwnerItem. Returns nil if the auction house did not answer.
+-- 0.8.2 build 3 (review H-008, finding 6): the item key of the last item search sent (nil after an
+-- item list). In 0.4.1 a gear deal could not be bought once other items had been searched after it
+-- (Seen); the Sniper reads a gear deal again first unless its own search was the last one.
+local last_read
+function M.last_read_is(item_key)
+    return same_item_key(last_read, item_key)
+end
+
 function browse_results(blizzard_query)
     local events = {'AUCTION_HOUSE_BROWSE_RESULTS_UPDATED', 'AUCTION_HOUSE_BROWSE_RESULTS_ADDED', 'AUCTION_HOUSE_BROWSE_FAILURE'}
     local query = browse_query(blizzard_query)
+    last_read = nil
     local answer = request(function() C_AuctionHouse.SendBrowseQuery(query) end, events)
     if not answer or answer == 'AUCTION_HOUSE_BROWSE_FAILURE' then
         return
@@ -449,6 +458,7 @@ function search(item_key)
         note_unread()
         return
     end
+    last_read = item_key
     wait_item(item_key.itemID)
 
     local records, complete, rows = {}, true

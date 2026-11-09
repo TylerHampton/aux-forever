@@ -5062,9 +5062,10 @@ try('0.8.2: a fresh Sniper deal goes straight to the buy bar', function()
   local aux = aux_require 'aux'
   local bar = aux_require 'aux.gui.buy_bar'
   local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  -- the axe after the ore, so the round's last search is the axe's (review H-008, finding 6)
   local items = {
-    {id = 701, name = 'Quick Axe', min = 2800, qty = 1, sell = 3036, auctions = {{buyout = 2800}}},
     {id = 702, name = 'Quick Ore', commodity = true, min = 100, qty = 7, sell = 300, auctions = {{buyout = 100, qty = 7}}},
+    {id = 701, name = 'Quick Axe', min = 2800, qty = 1, sell = 3036, auctions = {{buyout = 2800}}},
   }
   local run, restore = fake_ah(items)
   local searched = {}
@@ -5101,6 +5102,23 @@ try('0.8.2: a fresh Sniper deal goes straight to the buy bar', function()
   run(2)
   check('fb028: a trade good clicked at once is not read again', reading == nil and (searched[702] or 0) == before)
   check('fb028: and the buy bar offers it at once', bar.primary_label():find('^Buy') ~= nil)
+  sniper.listing:SetSelectedRecord()
+  run(1)
+  -- review H-008, finding 6: once another item was searched, a gear deal is read again first (0.4.1:
+  -- a gear purchase did nothing after other searches), however fresh
+  local scan = aux_require 'aux.core.scan'
+  local done
+  scan.start{type = 'list', quiet = true, no_view = true, queries = {{item_keys = {{itemID = 702, itemSuffix = 0, itemLevel = 0}}}}, on_complete = function() done = true end}
+  for _ = 1, 20 do run(1); if done then break end end
+  before = searched[701] or 0
+  sniper.listing:SetSelectedRecord(axe)
+  for _ = 1, 10 do run(1) end
+  check('fb028: gear clicked after another search is read again', done and (searched[701] or 0) > before)
+  check('h008 6: the last search is known', scan.last_read_is({itemID = 701, itemSuffix = 0, itemLevel = 0}))
+  done = false
+  scan.start{type = 'list', quiet = true, fast = true, queries = {{blizzard_query = {}}}, on_complete = function() done = true end}
+  for _ = 1, 20 do run(1); if done then break end end
+  check('h008 6: an item list in between clears it', done and not scan.last_read_is({itemID = 701, itemSuffix = 0, itemLevel = 0}))
   sniper.listing:SetSelectedRecord()
   sniper.stop()
   run(5)
@@ -5229,6 +5247,11 @@ try('0.8.2: Sniper review H-008', function()
     for k, v in pairs(extra or {}) do r[k] = v end
     return r
   end
+  -- finding 7: the column next to the price shows the price the deal was compared with
+  check('h008 7: a market deal shows the market', sniper.compared_price({deal_reason = 'market', deal_market = 1000, deal_usual = 2200}) == 1000)
+  check('h008 7: a usual deal shows the usual price', sniper.compared_price({deal_reason = 'usual', deal_market = 5000, deal_usual = 2200}) == 2200)
+  check('h008 7: a below vendor deal shows the vendor price', sniper.compared_price({deal_reason = 'vendor', deal_vendor = 300, deal_usual = 2200}) == 300)
+  check('h008 7: the column is called Compared to', sniper.columns[7] and sniper.columns[7].title == 'Compared to')
   -- finding 1: a price 3 or more sellers ask is the market, whatever is listed above it
   check('h008 1: 6 sellers at 2s 10c next to one at 22s is the market', sniper.market_now({rec(210, 80, {seller_count = 6}), rec(2200, 1)}) == 210)
   check('h008 1: the wall left after the cheap unit is bought', sniper.market_now({rec(87, 200, {seller_count = 5}), rec(2200, 5)}) == 87)
