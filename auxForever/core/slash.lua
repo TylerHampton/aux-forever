@@ -35,11 +35,11 @@ end
 
 -- /aux memory detail: how many entries aux's main stores hold, to find one that keeps growing
 function M.memory_detail()
-    local known, seen, deals = require('aux.tabs.sniper').memory_counts()
+    local known, seen, deals, markets = require('aux.tabs.sniper').memory_counts()
     local cached, today = require('aux.core.history').memory_counts()
     local searches, records = require('aux.tabs.search').memory_counts()
     return {
-        format('Sniper: %d items known, %d seen last round, %d deals', known, seen, deals),
+        format('Sniper: %d items known, %d seen last round, %d deals, %d markets read', known, seen, deals, markets),
         format('History: %d usual prices cached, %d items seen today', cached, today),
         format('Search: %d searches kept, %d result rows', searches, records),
         format('Post: listings kept for %d items', require('aux.tabs.post').memory_counts()),

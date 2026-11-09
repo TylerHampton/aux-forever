@@ -1373,11 +1373,11 @@ local function fake_ah(items)
   set(C_AuctionHouse, 'GetItemSearchResultInfo', function(key, i)
     local it = by_id[key.itemID]; local a = it.auctions[i]
     return {itemKey = key, itemLink = link(it), auctionID = it.id * 100 + i, quantity = a.qty or 1, buyoutAmount = a.buyout, minBid = a.bid or 0, bidAmount = 0,
-      owners = {a.own and 'player' or 'Seller'}, totalNumberOfOwners = 1, containsOwnerItem = a.own or false, timeLeft = 3}
+      owners = {a.own and 'player' or 'Seller'}, totalNumberOfOwners = a.sellers or 1, containsOwnerItem = a.own or false, timeLeft = 3}
   end)
   set(C_AuctionHouse, 'GetCommoditySearchResultInfo', function(id, i)
     local a = by_id[id].auctions[i]
-    return {itemID = id, quantity = a.qty or 1, unitPrice = a.buyout, auctionID = id * 100 + i, owners = {'Seller'}, numOwnerItems = 0, timeLeftSeconds = 3600, totalNumberOfOwners = 1}
+    return {itemID = id, quantity = a.qty or 1, unitPrice = a.buyout, auctionID = id * 100 + i, owners = {'Seller'}, numOwnerItems = 0, timeLeftSeconds = 3600, totalNumberOfOwners = a.sellers or 1}
   end)
   set(G, 'GetItemInfo', function(x)
     local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
@@ -1675,7 +1675,9 @@ try('sniper round', function()
   -- the kilt was only seen today: a usual price, but not one to show
   h.write_record('202:0', {day = h.today(), low = 1500, points = {}})
   local items = {
-    {id = 201, name = 'Kingsblood', commodity = true, min = 850, qty = 41, sell = 50, stack = 20, auctions = {{buyout = 850, qty = 12}, {buyout = 900, qty = 29}}},
+    -- 0.8.2 (FB-036): the normal market (300 at 23s) sits above the deal; 12 at 85c and 29 at 90c
+    -- alone would be a flat market, which is no longer a deal
+    {id = 201, name = 'Kingsblood', commodity = true, min = 850, qty = 341, sell = 50, stack = 20, auctions = {{buyout = 850, qty = 12}, {buyout = 900, qty = 29}, {buyout = 2300, qty = 300}}},
     {id = 202, name = 'Ritual Kilt', min = 1500, qty = 1, sell = 2200, auctions = {{buyout = 1500}}},
     {id = 203, name = 'Wool Cloth', commodity = true, min = 210, qty = 80, sell = 33, auctions = {{buyout = 210, qty = 80}}},
     {id = 204, name = 'Bid Only Robe', min = 1000, qty = 1, sell = 0, auctions = {{buyout = 0, bid = 1000}}},
@@ -4851,6 +4853,87 @@ try('0.8.1: profit or loss on the Materials line', function()
   all = table.concat(lines, '\n')
   check('fb026: the hover says how to learn a missing price', all:find('no price yet', 1, true) and all:find('Search for it at the auction house', 1, true) ~= nil)
   for _, key in ipairs{'7601:0', '7610:0', '7611:0'} do h.data[key] = nil end
+end)
+
+-- 0.8.2, FB-036 (reported by Swiftwren): the Sniper offered "deals at 4% of the usual price" on items
+-- listed by hundreds at that same price. The usual price is a slow average of past days; after
+-- launch prices fell faster. Today's market, read from the item's own listings, now counts too.
+try('0.8.2: the Sniper checks today\'s market', function()
+  local aux_require = loadstring("select(2, ...) 'aux.test.fb036'; return require")('auxForever', addon)
+  local aux = aux_require 'aux'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  -- the rule on its own: usual 22s, 3 days of history, 60%, profit at least 1c
+  local reason, profit, pct = sniper.judge(850, 2200, 0, 3, 60, 1, 900)
+  check('fb036: today\'s market just above the price: not a deal', reason == nil)
+  reason, profit, pct = sniper.judge(300, 2200, 0, 3, 60, 1, 1000)
+  check('fb036: well below today\'s market: a deal against the market', reason == 'market' and pct == 30 and profit == 950 - 300)
+  reason, profit, pct = sniper.judge(850, 2200, 0, 3, 60, 1, 5000)
+  check('fb036: a market above the usual price leaves the usual price', reason == 'usual' and pct == 39)
+  reason = sniper.judge(850, 2200, 0, 3, 60, 1, nil)
+  check('fb036: no market known: as before', reason == 'usual')
+  reason, profit = sniper.judge(50, 2200, 100, 3, 60, 1, 60)
+  check('fb036: below vendor price is still a deal whatever the market', reason == 'vendor' and profit == 50)
+  local function rec(price, units, extra)
+    local r = {buyout_price = price * units, unit_buyout_price = price, count = units, seller_count = 1}
+    for k, v in pairs(extra or {}) do r[k] = v end
+    return r
+  end
+  check('fb036: market: hundreds just above the cheapest price', sniper.market_now({rec(85, 2), rec(87, 45), rec(90, 300)}) == 87)
+  check('fb036: market: a few cheap units next to a normal market do not set it', sniper.market_now({rec(850, 12), rec(1000, 5), rec(2300, 100)}) == 2300)
+  check('fb036: market: one price asked by 3 sellers is the market', sniper.market_now({rec(210, 80, {seller_count = 3})}) == 210)
+  check('fb036: market: one price from one seller says nothing', sniper.market_now({rec(210, 80)}) == nil)
+  check('fb036: market: a lone auction says nothing', sniper.market_now({rec(500, 1)}) == nil)
+  check('fb036: market: the player\'s own listings do not count', sniper.market_now({rec(500, 1), rec(510, 50, {own = true})}) == nil)
+
+  -- a round: usual 22s for every item, 3 days of Full scans
+  local d = h.today()
+  for id = 601, 605 do
+    h.write_record(id .. ':0', {day = d, points = {{value = 2200, day = d - 1, units = 10}, {value = 2200, day = d - 2, units = 10}, {value = 2200, day = d - 3, units = 10}}})
+  end
+  local items = {
+    -- Swiftwren's case: 2 at 85c, hundreds within a few copper
+    {id = 601, name = 'Flat Herb', commodity = true, min = 85, qty = 347, sell = 1, auctions = {{buyout = 85, qty = 2}, {buyout = 87, qty = 45}, {buyout = 90, qty = 300}}},
+    -- the whole market at one price, many sellers
+    {id = 602, name = 'Flat Ore', commodity = true, min = 210, qty = 80, sell = 1, auctions = {{buyout = 210, qty = 80, sellers = 6}}},
+    -- one seller dumping, nothing else listed: still a deal against the usual price
+    {id = 603, name = 'Dumped Ore', commodity = true, min = 210, qty = 80, sell = 1, auctions = {{buyout = 210, qty = 80}}},
+    -- a lone piece of gear far below its usual price: the classic snipe
+    {id = 604, name = 'Lone Sword', min = 300, qty = 1, sell = 1, auctions = {{buyout = 300}}},
+    -- the market fell to 10s, and one is listed at 3s
+    {id = 605, name = 'Fallen Cloth', commodity = true, min = 300, qty = 205, sell = 1, auctions = {{buyout = 300, qty = 5}, {buyout = 1000, qty = 200}}},
+  }
+  local run, restore = fake_ah(items)
+  local opened = {}
+  local send = C_AuctionHouse.SendSearchQuery
+  rawset(C_AuctionHouse, 'SendSearchQuery', function(key, ...) opened[key.itemID] = (opened[key.itemID] or 0) + 1; return send(key, ...) end)
+  aux.account_data.sniper_percent, aux.account_data.sniper_profit = 60, 1
+  sniper.clear_deals()
+  sniper.settings_changed()
+  aux.set_tab(2)
+  local r0 = sniper.round
+  sniper.start()
+  for _ = 1, 200 do run(1); if sniper.round > r0 then break end end
+  local found = {}
+  for _, deal in ipairs(sniper.deals) do found[deal.name] = deal end
+  check('fb036: a flat market is not a deal (Swiftwren)', not found['Flat Herb'])
+  check('fb036: one price many sellers ask is not a deal', not found['Flat Ore'])
+  check('fb036: one seller dumping is still a deal', found['Dumped Ore'] and found['Dumped Ore'].deal_reason == 'usual')
+  check('fb036: a lone sword is still a deal', found['Lone Sword'] and found['Lone Sword'].deal_reason == 'usual')
+  check('fb036: below a fallen market it says so', found['Fallen Cloth'] and found['Fallen Cloth'].deal_reason == 'market' and found['Fallen Cloth'].deal_percent == 30
+    and #found['Fallen Cloth'].deal_tiers == 1)
+  -- the next rounds do not open the flat market again while its price only moves a copper
+  local herb_opened = opened[601]
+  items[1].min, items[1].auctions[1].buyout = 86, 86
+  local r1 = sniper.round
+  for _ = 1, 200 do run(1); if sniper.round > r1 then break end end
+  check('fb036: a flat market whose price moves is not opened again', herb_opened == 1 and opened[601] == 1)
+  sniper.stop()
+  rawset(C_AuctionHouse, 'SendSearchQuery', send)
+  restore()
+  sniper.clear_deals()
+  sniper.settings_changed()
+  for id = 601, 605 do h.data[id .. ':0'] = nil end
 end)
 
 -- what players do while the auction house is still answering: a slow auction house that answers

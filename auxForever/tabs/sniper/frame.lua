@@ -129,7 +129,9 @@ M.columns = {
         width = .13,
         align = 'CENTER',
         fill = function(cell, record)
-            local text = record.deal_reason == 'vendor' and 'below vendor' or (record.deal_percent or '?') .. '% of usual'
+            -- 0.8.2 (FB-036): 'market' when today's listings put the item below its usual price
+            local basis = record.deal_reason == 'market' and '% of market' or '% of usual'
+            local text = record.deal_reason == 'vendor' and 'below vendor' or (record.deal_percent or '?') .. basis
             if record.deal_gone then
                 cell.text:SetText(aux.color.label.disabled(text))
             elseif record.deal_reason == 'vendor' then

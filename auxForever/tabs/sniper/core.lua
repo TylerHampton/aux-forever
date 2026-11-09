@@ -30,6 +30,10 @@ last_count, last_seconds = nil, nil
 deals = {} -- one record per item: the cheapest checked auction, with deal_* fields
 
 local known = {} -- item key text -> the lowest price already judged
+-- 0.8.2 (FB-036): item key text -> {market, at}: today's market as last read (market_now), so the
+-- next rounds do not open an item again and again while its price only moves along a flat market
+local markets = {}
+MARKET_MEMORY = 15 * 60 -- seconds a read market is trusted for that
 local seen_items = {} -- during a round: item key text -> lowest price on the list
 local next_round_at
 local last_alert -- GetTime() of the last sound
@@ -46,7 +50,12 @@ deals_changed = false -- the table is redrawn soon (throttled) while a round fin
 -- thin price history does not fake deals. Either way the profit per item (after the auction house
 -- cut when reselling) must be at least min_profit, which hides trivial finds.
 -- The usual price used here is never below the vendor price.
-function M.judge(unit_price, usual, vendor, days, percent, min_profit)
+-- 0.8.2 (FB-036, reported by Swiftwren): market is today's market for the item, from its listings
+-- just read (market_now; nil when they say nothing). The usual price is a slow average of past days,
+-- and after Forever launched prices fell faster than it follows: a material listed by hundreds at
+-- one price showed as "4% of usual", and a "deal" bought there could only be relisted at a loss.
+-- When today's market is lower, the deal is judged against it instead, and the reason is 'market'.
+function M.judge(unit_price, usual, vendor, days, percent, min_profit, market)
     vendor = vendor or 0
     if not unit_price or unit_price <= 0 then
         return
@@ -61,10 +70,66 @@ function M.judge(unit_price, usual, vendor, days, percent, min_profit)
     if not reference or (days or 0) < MIN_DAYS then
         return
     end
+    local reason = 'usual'
+    if market and market > 0 and max(market, vendor) < reference then
+        reference, reason = max(market, vendor), 'market'
+    end
     local profit = floor(reference * (1 - AUCTION_CUT)) - unit_price
     local pct = 100 * unit_price / reference
     if pct <= percent and profit >= min_profit then
-        return 'usual', profit, aux.round(pct)
+        return reason, profit, aux.round(pct)
+    end
+end
+
+-- 0.8.2 (FB-036): today's market for one item, from all its listings just read (records of one
+-- item, the player's own left out). The units at the cheapest price are the possible deal; the
+-- market is what the other units ask: the middle price of their cheapest quarter (MARKET_NOW_SHARE).
+-- Hundreds listed just above the cheapest price make that the market; a few cheap units next to a
+-- normal market do not (price history's market price uses the cheapest 5%, where 2 cheap units in
+-- a small listing already set it). A price that 3 or more sellers ask is the market even with
+-- nothing else listed. nil when the listings say nothing more: one cheap auction alone is judged
+-- against the usual price, as before. Costs no request: the Sniper reads a candidate's auctions anyway.
+MARKET_NOW_SHARE = .25
+MARKET_SELLERS = 3
+function M.market_now(records)
+    local cheapest
+    for _, record in ipairs(records or empty) do
+        if not record.own and (record.buyout_price or 0) > 0 then
+            local unit = ceil(record.unit_buyout_price)
+            if not cheapest or unit < cheapest then
+                cheapest = unit
+            end
+        end
+    end
+    if not cheapest then
+        return
+    end
+    local others, total, sellers = {}, 0, 0
+    for _, record in ipairs(records) do
+        if not record.own and (record.buyout_price or 0) > 0 then
+            local unit = ceil(record.unit_buyout_price)
+            if unit > cheapest then
+                local units = history.record_units(record)
+                tinsert(others, {price = unit, units = units})
+                total = total + units
+            else
+                sellers = sellers + max(1, record.seller_count or 1)
+            end
+        end
+    end
+    if total > 0 then
+        sort(others, function(a, b) return a.price < b.price end)
+        local middle = ceil(max(1, ceil(total * MARKET_NOW_SHARE)) / 2)
+        local seen = 0
+        for _, other in ipairs(others) do
+            seen = seen + other.units
+            if seen >= middle then
+                return other.price
+            end
+        end
+    end
+    if sellers >= MARKET_SELLERS then
+        return cheapest
     end
 end
 
@@ -122,7 +187,7 @@ local function settings()
     return aux.account_data.sniper_percent, aux.account_data.sniper_profit
 end
 
-function M.judge_record(record)
+function M.judge_record(record, market)
     local usual, vendor, days = item_facts(record.price_key or record.item_key, record.item_id)
     if usual == nil and vendor == nil then
         if not record.deal_key then
@@ -132,7 +197,8 @@ function M.judge_record(record)
         -- (without this, every deal could vanish from the table at once and come back later)
         usual, vendor, days = record.deal_history, record.deal_vendor, record.deal_days
     end
-    return judge(ceil(record.unit_buyout_price), usual, vendor, days, settings())
+    local percent, min_profit = settings()
+    return judge(ceil(record.unit_buyout_price), usual, vendor, days, percent, min_profit, market)
 end
 
 local function find_deal(key)
@@ -192,7 +258,9 @@ function check_item(item_key, key, price)
         set_gone(old)
         return
     end
-    local reason, profit, pct = judge_record(cheapest)
+    local market = market_now(records)
+    markets[key] = market and {market = market, at = GetTime()} or nil
+    local reason, profit, pct = judge_record(cheapest, market)
     if not reason then
         -- the list showed a bid, or the cheap one sold meanwhile
         set_gone(old)
@@ -202,7 +270,7 @@ function check_item(item_key, key, price)
     -- only the units that are a deal can be bought here: the buy bar offered 20 Ironweb Spider Silk
     -- where 7 were below vendor price and the rest cost more (Tyler, 0.4.1)
     for i = #tiers, 1, -1 do
-        if not judge_record(tiers[i]) then
+        if not judge_record(tiers[i], market) then
             tremove(tiers, i)
         end
     end
@@ -215,6 +283,7 @@ function check_item(item_key, key, price)
     cheapest.deal_key = key
     cheapest.deal_item_key = item_key -- to read the item again when the deal is selected
     cheapest.deal_reason = reason
+    cheapest.deal_market = market
     cheapest.deal_profit = profit
     cheapest.deal_percent = pct
     cheapest.deal_usual = usual and max(usual, vendor or 0) or nil
@@ -254,7 +323,9 @@ function check_list(results, seen)
                     -- stopped by a click on a deal left the rest marked judged, never opened, so
                     -- those deals were missed until their price changed (found with the slow test
                     -- auction house)
-                    if judge(price, usual, vendor, days, percent, min_profit) then
+                    local memory = markets[key]
+                    local market = memory and GetTime() - memory.at < MARKET_MEMORY and memory.market or nil
+                    if judge(price, usual, vendor, days, percent, min_profit, market) then
                         tinsert(candidates, result)
                     else
                         known[key] = price
@@ -339,6 +410,7 @@ end
 -- the settings changed: every item is judged again
 function M.settings_changed()
     aux.wipe(known)
+    aux.wipe(markets)
     update_deals()
 end
 
@@ -504,8 +576,9 @@ local function refresh_deal(record)
             refreshing = nil
             if record.commodity then
                 local tiers = {}
+                local market = market_now(fresh)
                 for _, tier in ipairs(fresh) do
-                    if judge_record(tier) then
+                    if judge_record(tier, market) then
                         tinsert(tiers, tier)
                     end
                 end
@@ -662,5 +735,5 @@ end
 
 -- /aux memory detail: what the Sniper keeps
 function M.memory_counts()
-    return count(known), count(seen_items), #deals
+    return count(known), count(seen_items), #deals, count(markets)
 end
