@@ -8,7 +8,16 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.2 build 2
+## Current build: 0.8.2 build 3
+
+Build 2 plus Gemini's review of the Sniper logic (H-008, eight findings, all fixed with a test each,
+`docs/reviews/2026-11-09-sniper-0.8.2.md`): the Sniper's check before opening an item uses the last
+Full scan's market by the Sniper's own rule (the cheapest price left out), other gear versions are
+read when one is opened, a price 3 sellers ask is the market, the column next to the price is
+"Compared to". Zip `auxForever-0.8.2-build3.zip`; `/reload` is enough. Test page build id
+`0-8-2-build-3`. The same six steps as build 2 (below); step 5 also checks the new column.
+
+### 0.8.2 build 2 (not tested; replaced by build 3)
 
 Fixes and small changes from player feedback (FB-025, FB-027, FB-028, FB-033, FB-035, FB-036,
 FB-037). Build 1 was never tested (the game was down); build 2 adds Swiftwren's second comment: the
@@ -33,7 +42,8 @@ page build id `0-8-2-build-2`. The steps are the same as build 1's.
 - [ ] 5. Right after the Full scan of step 1, Sniper tab, Start, and let it run about 2 minutes.
       Screenshot the Sniper with its deals table and the line above it ("checking ... possible
       deals" while a round runs). Expect far fewer possible deals than before and none like
-      Swiftwren's (an item listed by many at about the same price).
+      Swiftwren's (an item listed by many at about the same price). The column after "Price each"
+      is called "Compared to" (build 3).
 - [ ] 6. Only if the Sniper finds a deal while you watch: when it appears (with the sound), click it
       within 15 seconds. The Buy button appears at once, without a "Checking..." message first. Do
       not buy. (A deal found longer ago is checked again first, as before.)

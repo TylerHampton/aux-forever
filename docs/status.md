@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-09, Tyler's time (**0.8.2 build 2** on `claude/magical-maxwell-eyud0b`, waiting for Tyler's test; build 1 was never tested, the game was down; 0.8.1 is the latest release).
+Last updated 2026-11-09, Tyler's time (**0.8.2 build 3** on `claude/magical-maxwell-eyud0b`, waiting for Tyler's test once Forever is up; 0.8.1 is the latest release).
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
@@ -145,6 +145,19 @@ Open in `docs/handoff.md`: H-008 (Gemini to Claude, 2026-11-09, check the eight 
 Sniper changes (`fddd029..219db5f`), answered all five questions from H-007, and wrote eight
 numbered findings in `docs/reviews/2026-11-09-sniper-0.8.2.md` (with concrete listings and line
 numbers). Opened H-008 in `docs/handoff.md` for Claude to check the findings.
+
+**2026-11-09, Claude, 0.8.2 build 3:** Tyler brought Gemini in as an analyst on the Sniper logic
+(H-007, tight scope, the Sniper's purpose explained). Gemini found eight issues
+(`docs/reviews/2026-11-09-sniper-0.8.2.md`); all hold and are fixed, each with a check that fails
+without it (d62bbd0, 8e1a7bb). The two biggest: the round's check used price history's latest
+price, which is the cheapest listing for items with 40 units or fewer and was rewritten by the
+Sniper's own reads (now the Full scan hands the Sniper markets by its own rule,
+`scan.on_full_scan_view`); and other gear versions were judged from the item list, where a lowest
+price can be a bid or the player's own (now read for real when a candidate is opened). Also: the
+3-seller rule was unreachable, 2 units could be a market, a remembered market outlived the wall,
+gear skipped its re-read after other searches (0.4.1 risk), and the price column did not match the
+percent. Zip `auxForever-0.8.2-build3.zip`, test page build id `0-8-2-build-3`, same steps.
+Handoff: nothing open.
 
 **2026-11-09, Claude, 0.8.2 build 2:** Forever was down, so build 1 was not tested. Swiftwren's
 second comment (FB-036: Invoker's Cord at 12s next to 78 at 13s, 1,792 possible deals in a round)

@@ -18,12 +18,21 @@ A change that comes from a player's feedback credits them by in-game name at the
   price, the deal is judged against it and the Why column says "% of market". A single cheap
   auction on its own is still judged against the usual price (reported by Swiftwren).
 - The Sniper opens far fewer items per round. Before opening an item it now also compares with the
-  price from today's Full scan and with other listings of the same gear under another version, so
-  a normal price is not opened at all (Swiftwren saw 1,792 possible deals in one round, each one a
-  request). An Invoker's Cord at 12s next to 78 at 13s is not a deal, whether the 78 are the same
-  version or another. A cheap auction listed after today's Full scan is still found.
+  market from your last Full scan (if it was in the last 2 hours), worked out the same way with the
+  cheapest price left out, so a normal price is not opened at all (Swiftwren saw 1,792 possible
+  deals in one round, each one a request). A snipe that was already up during the Full scan is
+  still found.
+- Gear listed under several versions (same name, same stats): when one version looks like a deal,
+  the Sniper reads the others too, and their listings count. An Invoker's Cord at 12s next to 78
+  at 13s is not a deal, whether the 78 are the same version or another.
+- A price that 3 or more sellers ask counts as the market, and fewer than 3 units listed above the
+  cheapest price do not.
+- The column next to the price is now "Compared to": the price the deal was compared with (the
+  usual price, today's market or the vendor price), so the price, the percent and the profit add
+  up.
 - Clicking a deal found in the last 15 seconds shows the Buy button at once, without reading the
-  item again first. Older deals are still read again. Buying still never spends more than the
+  item again first. Older deals are still read again, and so is gear when aux has searched another
+  item since (buying gear needs its own search to be the latest). Buying still never spends more than the
   price shown (reported by user_ayzkr6rhvrlna3ya).
 
 ### Full scan

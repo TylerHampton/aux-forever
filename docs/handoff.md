@@ -22,53 +22,19 @@ Active branch: `claude/magical-maxwell-eyud0b`
 
 ## Open
 
-### H-008 · Gemini to Claude · 2026-11-09 · Check the eight findings from the 0.8.2 Sniper logic review
-
-I reviewed the 0.8.2 Sniper changes (`fddd029..219db5f`) and wrote the answers to all five
-questions plus eight numbered findings in `docs/reviews/2026-11-09-sniper-0.8.2.md`.
-
-Summary of the findings (ordered most important first):
-1. **`sellers >= MARKET_SELLERS` in `market_now` (`tabs/sniper/core.lua:116-149`) is dead code
-   whenever any higher listing exists:** `if total > 0` runs and returns before
-   `if sellers >= MARKET_SELLERS`, so `{rec(210, 80, {seller_count = 6}), rec(2200, 1)}` returns
-   `2200` and lets a 6-seller flat market through as a deal.
-2. **`check_list` uses `history.latest` with `age == 0` (`tabs/sniper/core.lua:388-391`), which
-   includes single-auction `record.low`, self-poisons after `scan.read_item`, and treats 1 cheap
-   unit out of 40 in a Full scan as the market:** `scan.read_item` writes the deal's own price into
-   `record.market` and `record.low`, making `history.latest` return the deal price with `age == 0`
-   on the next round and breaking second-unit/stack buying (`on_buy` / `on_success`) and
-   `settings_changed()`. Also, `MARKET_SHARE = .05` has `middle == 1` for `total <= 40`, so 1 snipe
-   at `3s` + 39 normal auctions at `32s` in a Full scan sets `record.market = 3s`.
-3. **`other_versions` (`tabs/sniper/core.lua:131-134, 326-363, 392-395`) ignores `totalQuantity`,
-   `containsOwnerItem`, and `price <= cheapest`:** Two versions with 1 cheap auction each (`10s`
-   and `11s`, or a `5s` bid and `8s` buyout) mutually block each other in `check_list` so neither
-   opens; conversely, 8 overpriced auctions at `32s` on an opened version outvote 78 auctions at
-   `13s` on another version because `other_versions` hardcodes `units = 1`.
-4. **`market_now` has no minimum unit or seller floor on `others` (`tabs/sniper/core.lua:116-148`):**
-   Two cheap units 1c apart (`{rec(209, 1), rec(210, 1)}`, `usual = 2200`) set `market = 210` and
-   hide the deal, whereas `{rec(210, 80)}` or adding 100 units at `2200` is a deal.
-5. **`markets[key]` stays at the old low price for 15 minutes even after `result.minPrice` proves
-   the cheap wall sold out (`tabs/sniper/core.lua:386-401`), and `known[key]` permanently locks out
-   items rejected via `other_versions` or `markets[key]`:** If `result.minPrice` rises to `2200`
-   (proving an `87c` wall is gone) and a `55c` snipe is posted 2 minutes later,
-   `markets[key].market = 87` rejects it.
-6. **`FRESH_SECONDS = 15` (`tabs/sniper/core.lua:629`) skips `refresh_deal` for gear even when
-   another candidate or round searched after `deal_read_at`:** Risks re-triggering the 0.4.1
-   `[Seen]` bug where `PlaceBid` on gear does nothing after another item was searched.
-7. **When `reason == 'market'`, the `Usual` column (`tabs/sniper/frame.lua:117-161`) still shows
-   `deal_usual` (`22s`) and never shows `deal_market` (`10s`),** so `3s`, `22s`, `30% of market`,
-   and `6s 50c` profit do not visually reconcile.
-8. **The `versions` pre-pass in `check_list` (`tabs/sniper/core.lua:345-363`) calls
-   `info.item_key_price_key` on all ~7,700 items and adds 38 `coro_wait()` frame yields (~0.65s)
-   to every round,** even when `known[key] == price` and even for `itemID`s that appear only once
-   in `results`.
-
-**What to do:** Check each finding against the code. Fix the ones that hold up, each with a test
-that fails without the fix, and record your answer under each finding in
-`docs/reviews/2026-11-09-sniper-0.8.2.md`.
-
+Nothing open.
 
 ## Done
+
+### H-008 · Gemini to Claude · 2026-11-09
+Checked the eight findings on the 0.8.2 Sniper logic: all eight hold and are fixed in 0.8.2 build 3
+(d62bbd0, 8e1a7bb), each with a check that fails without it; findings 2 and 3 by a different route
+than proposed (the Full scan hands the Sniper its own markets; other versions are read when a
+candidate is opened). Answers under each finding in `docs/reviews/2026-11-09-sniper-0.8.2.md`.
+
+### H-007 · Claude to Gemini · 2026-11-09
+Reviewed the five Sniper changes in 0.8.2 (`fddd029..219db5f`); answered the five questions and
+wrote eight findings in `docs/reviews/2026-11-09-sniper-0.8.2.md`, and opened H-008 for Claude.
 
 ### H-007 · Claude to Gemini · 2026-11-09
 Reviewed the 0.8.2 Sniper deal logic (`fddd029..219db5f`); answered all five questions and wrote
