@@ -180,8 +180,9 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
   Writes search text by hand (`armor/mail/chest/usable/strength`).
 - **deep_structure**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for
   FB-026 and FB-035, reported FB-037. Uses the Sniper and crafts.
-- **Swiftwren**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-036.
-  Uses the Sniper, buys deals and relists them (flipping).
+- **Swiftwren**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-036
+  (two comments, the second with an example: Invoker's Cord). Uses the Sniper, buys deals and
+  relists them (flipping); Full scans daily.
 - **user_ayzkr6rhvrlna3ya**: CurseForge commenter (a name CurseForge generated; in-game name
   unknown). Reported FB-027 and FB-028. Used aux for a couple of weeks before Forever launched.
   Uses the Sniper.
@@ -1896,6 +1897,26 @@ can work without them: the check against today's market applies whatever they we
 Ask Tyler: can you find one such "deal" in your Sniper? A screenshot of the deal row and of a
 search for the same item (Full) shows whether the usual price is far above today's market.
 
+Second comment (Swiftwren, 2026-11-09, [source](feedback/sources/2026-11-09-swiftwren-curseforge-2.md)),
+on 0.8.1 or earlier:
+> Looking at my issue, Sniper is currently recommending I pick up Invoker's Cord. 1 for sale. Current price 12s. Usual price 32s.
+
+> But, when I search for Invokers Cord I see 1 for sale at 12s and 78 for 13s.  The  "Usual Price" might be a function of the ever changing market at the moment, but there needs to be something that factors in what's actually available. Otherwise it's a lot of manual effort.
+
+> For reference, Sniper currently thinks there are 1,792 possible deals.
+
+Recorder's notes on it:
+- This is the case 0.8.2 build 1 was built for: today's market from the other listings is 13s, so
+  12s is 92% of it and no deal. One gap (inference, not checked for this item): on Forever one gear
+  name can be listed under several versions (`docs/forever-auction-house.md`, gear versions). If the
+  12s Cord and the 78 at 13s are different versions, build 1 reads only the 12s version and still
+  calls it a deal. Build 2 counts the other versions' lowest prices from the item list as well.
+- "1,792 possible deals" is the round's count of items to open: judged on the item list against the
+  usual price alone, each costs a request before it is rejected. Build 2 also uses the price from
+  today's complete look (a Full scan today: the player says they scan) on the item list, so a flat
+  market is not opened at all. Tested by a player who Full scans daily, this should cut that count
+  to the real candidates.
+
 ### FB-037: "i cant scan today"
 
 - Received: 2026-11-09 (posted about 5 hours before Tyler's screenshot)
@@ -1927,6 +1948,13 @@ Recorder's notes (from the code):
   a player can get the "did not respond" message, then wait, and see it again.
 - Inference: "today" may point at the server rather than aux (launch traffic, maintenance). That
   cannot be told from the comment.
+
+Swiftwren, the same day ([source](feedback/sources/2026-11-09-swiftwren-curseforge-2.md)):
+> @tyehampton I've been able to scan today. Sometimes, the auction house is very slow. i've found that affects ALL addons so I don't think it's yours.
+
+Recorder's note: a player's report (**Outside**) that the slowness is the server's, matching
+FB-027. Not a reason to drop the fixes: the 2-minute limit and the Sniper and Auctions tab
+stopping a waiting Full scan were aux's.
 
 Unknowns: which scan, what happened (a message, nothing, an error), and whether it worked before.
 A fix can work without them: make every way a scan can fail say why and what to do next, and check
