@@ -26,6 +26,13 @@ the player placed alone. Zip `auxForever-0.8.1-build2.zip`; `/reload` is enough.
       (for example one you just learned). The small line under its reagents reads like
       "Materials 2s 40c   no sell price yet".
 
+Tested by Tyler 2026-11-08 (build 2, test page `0-8-1-build-2`): steps 1 and 2 pass (the
+Professions window, at his own spot, stays there when aux opens and after reopening). Step 3 could
+not be done: "I dont think I have a single item that aux didnt already fullscan." The step needed
+something the tester does not have (the rule under "For agents"); the "no sell price yet" case is
+covered by the automated test `fb026: a made item with no price says so`. Every 0.8.1 change has
+now passed in game.
+
 Tested by Tyler 2026-11-08 (build 1, test page `0-8-1-build-1`): steps 1 and 2 pass from the
 screenshots (`hillman's cloak/exact` lists Hillman's Cloak, 415 for sale; Robes of Arcana found
 the same way); step 3 fails: his Professions window, at a spot he set himself, went to the far left

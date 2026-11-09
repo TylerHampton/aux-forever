@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-08, Tyler's time (0.8 released, tag `v0.8`; **0.8.1 build 2** on `claude/magical-maxwell-eyud0b`, waiting for Tyler's test).
+Last updated 2026-11-08, Tyler's time (0.8 released, tag `v0.8`; **0.8.1 tested and ready** on `claude/magical-maxwell-eyud0b`, waiting for Tyler's "release").
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
@@ -39,6 +39,14 @@ that fails on build 1. Tyler's "What?" on the profit hover meant the step was wo
 hover itself is right in his screenshot, so step 6 passes. New rule for writing test steps in
 `AGENTS.md` ("Tests"). Test page build id
 `0-8-1-build-2` (three steps), zip `auxForever-0.8.1-build2.zip`.
+
+**2026-11-08, 0.8.1 tested:** build 2 passes in game (the Professions window stays at Tyler's own
+spot when aux opens and after reopening). Its third step could not be done (every item Tyler has
+is full scanned); the automated test covers it. Every 0.8.1 change has passed in game: the cloak
+search (FB-024), the Professions window (FB-034), the profit line (FB-026). 0.8.1 is a patch, so the
+5-minute check is not needed (it is for minor releases). Next: Tyler says whether 0.8.1 ships;
+then the changelog section gets its date, a PR from `claude/magical-maxwell-eyud0b` to `main`,
+merge, and the Release workflow (which also uploads to CurseForge). After that, 0.8.2 (speed).
 
 **2026-11-08, Claude, feedback batch (docs only, no addon change):** Tyler passed on CurseForge
 comments, all written before 0.8. Logged as FB-024 to FB-034 in `docs/feedback.md` (source
