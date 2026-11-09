@@ -6,7 +6,17 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
-## 0.8.0.1 (not released yet)
+## 0.8.1 (not released yet)
+
+### Professions window
+
+- The Materials line under a recipe's reagents now says whether the craft makes a profit or a
+  loss: "Materials 13s 84c   Profit 7s 6c" in green, or "Loss" in red. The made item's price is
+  its latest price (its Value), minus the 5% auction house cut, so it works anywhere in the world.
+  Hover the line for the selling price, the cut and the sum. "Profit at most" means a material has
+  no price yet; "no sell price yet" means aux has not seen the made item at the auction house. A
+  recipe that makes no item (an enchant) shows its cost only, as before (suggested by
+  deep_structure).
 
 ### Search
 

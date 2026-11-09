@@ -8,7 +8,23 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.0.1 build 1
+## Current build: 0.8.1 build 1
+
+0.8.0.1 build 1 (below, the cloak search and the Professions window, unchanged) plus profit or
+loss on the profession window's Materials line (FB-026, deep_structure; option A of the mockup,
+https://claude.ai/artifact/6VxaaXKXe3f9uJEjK7Gtoy). Zip `auxForever-0.8.1-build1.zip`; `/reload`
+is enough. Test page build id `0-8-1-build-1` (the profit steps; 0.8.0.1 build 1's steps are on
+their own page).
+
+- [ ] 1. Open your Professions window and pick a recipe whose made item aux has seen (searched or
+      full scanned), for example Woolen Bag. The line under the reagents reads "Materials ...
+      Profit ..." in green, or "Loss ..." in red. Screenshot it.
+- [ ] 2. Hover that line. Under the total: "<item> sells for" with how old the price is, "After
+      the 5% auction house cut", and Profit or Loss with the same amount as the line.
+- [ ] 3. Pick a recipe whose made item aux has never seen: the line says "no sell price yet". If
+      you have a recipe that makes no item (an enchant), it shows the cost only.
+
+### 0.8.0.1 build 1
 
 Two bug fixes from player feedback. An exact search for a cloak found nothing (FB-024, GregoryWW:
 `hillman's cloak/exact`): aux asked for Cloth armor, and Forever keeps cloaks under Miscellaneous,

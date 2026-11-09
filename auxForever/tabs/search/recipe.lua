@@ -238,14 +238,53 @@ function M.recipe_usual_cost(parts)
     return total, missing, rows
 end
 
--- the line's text: "Materials  1g 24s", a gray "+" when some have no price, "no price yet" for none
+-- 0.8.1 (FB-026, suggested by deep_structure; Tyler, 2026-11-08: option A of the mockup, reversing
+-- FB-007's "cost only, no profit"): what one craft's made items bring after the auction house cut,
+-- from the made item's latest price (Value in its tooltip), with no request. Returns the amount
+-- after the cut, the price of the whole output before it and that price's age; nil when the recipe
+-- makes no item or the made item has no price yet. The deposit is left out: it comes back on a sale.
+function M.recipe_sale(parts)
+    local output = parts.output
+    if not output then return end
+    local price, age = history.latest(output.item_id .. ':0')
+    if not price then return end
+    local gross = ceil(price) * output.count
+    return floor(gross * (1 - AUCTION_CUT)), gross, age
+end
+
+-- "Profit" and "7s 6c" in green, or "Loss" and "1s 10c" in red; "at most" / "at least" when a
+-- material has no price (the true cost is higher). nil when the recipe makes no item or the made
+-- item has no price yet.
+local function profit_parts(parts, total, missing)
+    local net = recipe_sale(parts)
+    if not net then return end
+    if net >= total then
+        return aux.color.green(missing > 0 and 'Profit at most' or 'Profit'), plain_money(net - total, aux.color.green)
+    end
+    return aux.color.red(missing > 0 and 'Loss at least' or 'Loss'), plain_money(total - net, aux.color.red)
+end
+
+-- the line's profit part: "Profit  7s 6c", or "no sell price yet"; nil for a recipe that makes no item
+local function profit_text(parts, total, missing)
+    if not parts.output then return end
+    local label, amount = profit_parts(parts, total, missing)
+    if not label then
+        return aux.color.label.disabled('no sell price yet')
+    end
+    return label .. '  ' .. amount
+end
+
+-- the line's text: "Materials  1g 24s   Profit  36s", a gray "+" when some materials have no price,
+-- "no price yet" for none
 function M.recipe_cost_text(parts)
     local total, missing = recipe_usual_cost(parts)
     local text = aux.color.label.enabled('Materials  ')
     if #parts.reagents > 0 and missing == #parts.reagents then
         return text .. aux.color.label.disabled('no price yet')
     end
-    return text .. money.to_string(total, true) .. (missing > 0 and aux.color.label.disabled('+') or '')
+    text = text .. money.to_string(total, true) .. (missing > 0 and aux.color.label.disabled('+') or '')
+    local profit = profit_text(parts, total, missing)
+    return profit and (text .. GAP .. profit) or text
 end
 
 function M.recipe_cost_tooltip(tooltip, parts)
@@ -274,6 +313,26 @@ function M.recipe_cost_tooltip(tooltip, parts)
         tooltip:AddDoubleLine(missing > 0 and ('Total, without ' .. missing .. ' unpriced') or 'Total', money.to_string(total, true) .. (missing > 0 and '+' or ''), r, g, b, 1, 1, 1)
     else
         tooltip:AddLine('Search or scan at the auction house to learn prices.', aux.color.label.enabled())
+    end
+    -- 0.8.1 (FB-026): what the made item sells for, after the cut, and the profit or loss
+    local output = parts.output
+    if output and missing < #rows then
+        local item_info = info.item(output.item_id)
+        if not item_info then info.request_item(output.item_id) end
+        local name = (item_info and item_info.name or ('item ' .. output.item_id)) .. (output.count > 1 and (' ×' .. output.count) or '')
+        local net, gross, age = recipe_sale(parts)
+        local r, g, b = aux.color.label.enabled()
+        tooltip:AddLine(' ')
+        if not net then
+            tooltip:AddDoubleLine(name .. ' sells for', aux.color.label.disabled('no price yet'), 1, 1, 1, 1, 1, 1)
+            tooltip:AddLine('Search for it at the auction house to learn its price.', r, g, b)
+            return
+        end
+        local dim = age and age >= history.OLD_DAYS
+        tooltip:AddDoubleLine(name .. ' sells for', money.to_string(gross, true) .. '  ' .. (dim and aux.color.label.disabled or aux.color.label.enabled)('seen ' .. (history.age_text(age) or '?')), 1, 1, 1, 1, 1, 1)
+        tooltip:AddDoubleLine('After the 5% auction house cut', money.to_string(net, true), r, g, b, 1, 1, 1)
+        local label, amount = profit_parts(parts, total, missing)
+        tooltip:AddDoubleLine(label, amount, 1, 1, 1, 1, 1, 1)
     end
 end
 

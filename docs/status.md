@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-08, Tyler's time (0.8 released, tag `v0.8`; **0.8.0.1 build 1** built on `claude/magical-maxwell-eyud0b`, waiting for Tyler's test).
+Last updated 2026-11-08, Tyler's time (0.8 released, tag `v0.8`; **0.8.1 build 1** (0.8.0.1's two fixes plus the profit line) on `claude/magical-maxwell-eyud0b`; Tyler is testing 0.8.0.1 build 1).
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
@@ -19,8 +19,17 @@ Version `forever-0.8.0.1` in the TOC, changelog entry "0.8.0.1 (not released yet
 read the test page results; if they pass, ask Tyler whether 0.8.0.1 ships (pull request, merge,
 Release workflow), then 0.8.1. Decided for 0.8.1 (Tyler, 2026-11-08): profit goes on the
 Materials line (FB-026), reversing FB-007's "cost only, no profit". Mockup made while Tyler tests
-0.8.0.1: https://claude.ai/artifact/6VxaaXKXe3f9uJEjK7Gtoy (options A, B, C; Claude recommends A);
-waiting for his pick.
+0.8.0.1: https://claude.ai/artifact/6VxaaXKXe3f9uJEjK7Gtoy (options A, B, C); Tyler chose A.
+
+**2026-11-08, Claude, 0.8.1 build 1:** option A built (`tabs/search/recipe.lua`: `recipe_sale`, the
+line and its hover; test `0.8.1: profit or loss on the Materials line`, checked to fail without
+it). Built on the same branch while 0.8.0.1 build 1 was in testing, so the next release from this
+branch carries both: Claude proposed naming it 0.8.1 and moving the speed work (FB-025, FB-027,
+FB-028) and the Shift hint (FB-033) to 0.8.2 (`docs/roadmap.md`). If Tyler wants 0.8.0.1 shipped on
+its own first, revert this commit, release, then re-apply it. Version `forever-0.8.1`; checklist in
+`TESTING.md` (0.8.1 build 1, three steps); zip `auxForever-0.8.1-build1.zip`. The test page still
+shows 0.8.0.1 build 1 (Tyler was testing it); publish the 0.8.1 steps (build id `0-8-1-build-1`)
+after reading his 0.8.0.1 results.
 
 **2026-11-08, Claude, feedback batch (docs only, no addon change):** Tyler passed on CurseForge
 comments, all written before 0.8. Logged as FB-024 to FB-034 in `docs/feedback.md` (source

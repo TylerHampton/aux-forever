@@ -130,17 +130,17 @@ For whoever fixes or builds from it:
 | [FB-021](#fb-021-a-typed-price-below-the-lowest-listing-cannot-be-posted-rough-stone-5c) | 2026-10-18 | sarrathsilentstrider | bug | Post | S2 | A typed price below the lowest listing cannot be posted (Rough Stone, 5c) | fixed 0.7.1.1 (released 2026-10-19) |
 | [FB-022](#fb-022-the-player-did-not-know-the-newest-listing-at-a-price-sells-first) | 2026-10-18 | sarrathsilentstrider | ux | Post | n/a | The player did not know the newest listing at a price sells first | new |
 | [FB-023](#fb-023-a-shopping-list-for-crafting-n-of-a-recipe) | 2026-10-20 | Kortan | request | Search | n/a | A shopping list for crafting N of a recipe | planned 0.9 |
-| [FB-024](#fb-024-an-exact-search-for-hillmans-cloak-finds-nothing-a-search-for-hillmans-finds-many) | 2026-11-08 | GregoryWW | bug | Search | S2 | An exact search for Hillman's Cloak finds nothing; a search for Hillman's finds many | in-progress 0.8.0.1 |
-| [FB-025](#fb-025-adding-a-tooltip-word-strength-turns-an-instant-search-into-a-2-minute-one) | 2026-11-08 | RushJet1 | bug | Performance | S2 | Adding a tooltip word (strength) turns an instant search into a 2 minute one | planned 0.8.1 |
-| [FB-026](#fb-026-show-whether-a-craft-makes-a-profit-or-a-loss) | 2026-11-08 | deep_structure | request | Recipe search | n/a | Show whether a craft makes a profit or a loss | planned 0.8.1 |
-| [FB-027](#fb-027-the-full-scan-takes-more-than-5-minutes-since-forever-launched) | 2026-11-08 | user_ayzkr6rhvrlna3ya | bug | Performance | S3 | The full scan takes more than 5 minutes since Forever launched | planned 0.8.1 |
-| [FB-028](#fb-028-the-sniper-takes-over-30-seconds-from-its-sound-to-the-purchase) | 2026-11-08 | user_ayzkr6rhvrlna3ya | bug | Sniper | S2 | The Sniper takes over 30 seconds from its sound to the purchase | planned 0.8.1 |
+| [FB-024](#fb-024-an-exact-search-for-hillmans-cloak-finds-nothing-a-search-for-hillmans-finds-many) | 2026-11-08 | GregoryWW | bug | Search | S2 | An exact search for Hillman's Cloak finds nothing; a search for Hillman's finds many | in-progress 0.8.1 (built in 0.8.0.1 build 1) |
+| [FB-025](#fb-025-adding-a-tooltip-word-strength-turns-an-instant-search-into-a-2-minute-one) | 2026-11-08 | RushJet1 | bug | Performance | S2 | Adding a tooltip word (strength) turns an instant search into a 2 minute one | planned 0.8.2 |
+| [FB-026](#fb-026-show-whether-a-craft-makes-a-profit-or-a-loss) | 2026-11-08 | deep_structure | request | Recipe search | n/a | Show whether a craft makes a profit or a loss | in-progress 0.8.1 |
+| [FB-027](#fb-027-the-full-scan-takes-more-than-5-minutes-since-forever-launched) | 2026-11-08 | user_ayzkr6rhvrlna3ya | bug | Performance | S3 | The full scan takes more than 5 minutes since Forever launched | planned 0.8.2 |
+| [FB-028](#fb-028-the-sniper-takes-over-30-seconds-from-its-sound-to-the-purchase) | 2026-11-08 | user_ayzkr6rhvrlna3ya | bug | Sniper | S2 | The Sniper takes over 30 seconds from its sound to the purchase | planned 0.8.2 |
 | [FB-029](#fb-029-price-gear-with-a-random-ending-of-the-eagle-of-the-bear-separately) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Other | n/a | Price gear with a random ending ("of the Eagle", "of the Bear") separately | built 0.8 (released 2026-11-08) |
 | [FB-030](#fb-030-how-the--of-historical-value-works-keep-more-price-history) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | question | Other | n/a | How the % of historical value works; keep more price history | new |
 | [FB-031](#fb-031-posting-rules-based-on-historical-value-like-tsm) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Post | n/a | Posting rules based on historical value, like TSM | planned 0.9 |
 | [FB-032](#fb-032-start-a-full-scan-when-the-window-opens-if-the-15-minute-wait-is-over) | 2026-11-08 | Chawitsch | request | Settings | n/a | Start a full scan when the window opens, if the 15 minute wait is over | planned 0.9 (Tyler: option, off by default) |
-| [FB-033](#fb-033-tooltip-prices-for-the-whole-stack-not-one-item) | 2026-11-08 | Chawitsch | ux | Other | n/a | Tooltip prices for the whole stack, not one item | planned 0.8.1 |
-| [FB-034](#fb-034-opening-aux-moves-blizzards-professions-window-to-the-right) | 2026-11-08 | Chawitsch | bug | Window | S3 | Opening aux moves Blizzard's Professions window to the right | in-progress 0.8.0.1 |
+| [FB-033](#fb-033-tooltip-prices-for-the-whole-stack-not-one-item) | 2026-11-08 | Chawitsch | ux | Other | n/a | Tooltip prices for the whole stack, not one item | planned 0.8.2 |
+| [FB-034](#fb-034-opening-aux-moves-blizzards-professions-window-to-the-right) | 2026-11-08 | Chawitsch | bug | Window | S3 | Opening aux moves Blizzard's Professions window to the right | in-progress 0.8.1 (built in 0.8.0.1 build 1) |
 
 ## Players
 
@@ -1357,7 +1357,7 @@ mockup before anything is built.
 - Type: bug
 - Area: Search
 - Severity: S2 (no results for an item that is for sale; searching without `/exact` works)
-- Status: in-progress 0.8.0.1 (`claude/magical-maxwell-eyud0b`, 2026-11-08; fix and test built, not yet seen in game)
+- Status: in-progress 0.8.1 (`claude/magical-maxwell-eyud0b`; built in 0.8.0.1 build 1, 2026-11-08, which ships as part of 0.8.1; not yet seen in game)
 - Proposed: next patch (0.8.0.1)
 
 Said:
@@ -1407,7 +1407,7 @@ Ask Tyler: the in-game check is steps 1 and 2 of 0.8.0.1 build 1 (`TESTING.md`).
 - Area: Performance (Search)
 - Severity: S2 (works, but takes minutes; leaving the word out and reading tooltips by hand is the
   way around)
-- Status: planned 0.8.1 (Tyler, 2026-11-08: "go with your version plan")
+- Status: planned 0.8.2 (Tyler, 2026-11-08: "go with your version plan"; moved from 0.8.1 when the profit line joined the bug fixes)
 - Proposed: 0.8.1 (speed)
 
 Said:
@@ -1444,7 +1444,7 @@ wants numbers before and after.
 - Type: request (a finding: the feature partly exists and was not found)
 - Area: Recipe search
 - Severity: n/a
-- Status: planned 0.8.1 (Tyler, 2026-11-08: "go with your version plan")
+- Status: in-progress 0.8.1 (`claude/magical-maxwell-eyud0b`, 0.8.1 build 1, 2026-11-08: option A built with a test; not yet seen in game)
 - Proposed: 0.8.1 (a small change to an existing line)
 
 Said:
@@ -1476,8 +1476,9 @@ addon we should make it easier to see." Planned 0.8.1; a mockup of the line come
 visual changes are shown before they are built). Mockup (2026-11-08):
 https://claude.ai/artifact/6VxaaXKXe3f9uJEjK7Gtoy. Option A (cost and profit on one line, the
 selling price in the hover), B (cost, selling price and profit on one line), C (two lines; does not
-fit the 20-pixel gap above Blizzard's optional reagents). Claude recommends A. Waiting for Tyler's
-pick.
+fit the 20-pixel gap above Blizzard's optional reagents). Claude recommends A. Tyler,
+2026-11-08: "go with A". Built in 0.8.1 build 1 (`recipe_sale`, `recipe_cost_text` and the hover in `tabs/search/recipe.lua`; test
+`0.8.1: profit or loss on the Materials line`, checked to fail without the change).
 
 ### FB-027: The full scan takes more than 5 minutes since Forever launched
 
@@ -1489,7 +1490,7 @@ pick.
 - Type: bug
 - Area: Performance (Full scan)
 - Severity: S3 (it finishes; it is slow)
-- Status: planned 0.8.1 (Tyler, 2026-11-08: "go with your version plan")
+- Status: planned 0.8.2 (Tyler, 2026-11-08: "go with your version plan"; moved from 0.8.1 when the profit line joined the bug fixes)
 - Proposed: 0.8.1 (speed), after measuring
 
 Said:
@@ -1528,7 +1529,7 @@ saying "waiting for the auction house"?
 - Type: bug
 - Area: Sniper (Performance)
 - Severity: S2 (the Sniper finds deals but is too slow to get them)
-- Status: planned 0.8.1 (Tyler, 2026-11-08: "go with your version plan")
+- Status: planned 0.8.2 (Tyler, 2026-11-08: "go with your version plan"; moved from 0.8.1 when the profit line joined the bug fixes)
 - Proposed: 0.8.1 (speed)
 
 Said:
@@ -1714,7 +1715,7 @@ Unknowns: as above.
 - Type: ux (the feature exists; the player did not find it)
 - Area: Other (tooltips)
 - Severity: n/a
-- Status: planned 0.8.1 (Tyler, 2026-11-08: "go with your version plan")
+- Status: planned 0.8.2 (Tyler, 2026-11-08: "go with your version plan"; moved from 0.8.1 when the profit line joined the bug fixes)
 - Proposed: next patch (a hint line), if Tyler wants one
 
 Said:
@@ -1748,7 +1749,7 @@ added?
 - Type: bug
 - Area: Window
 - Severity: S3 (cosmetic)
-- Status: in-progress 0.8.0.1 (`claude/magical-maxwell-eyud0b`, 2026-11-08; fix and test built, not yet seen in game)
+- Status: in-progress 0.8.1 (`claude/magical-maxwell-eyud0b`; built in 0.8.0.1 build 1, 2026-11-08, which ships as part of 0.8.1; not yet seen in game)
 - Proposed: next patch, if the fix does not touch Blizzard's code in a risky way
 
 Said:

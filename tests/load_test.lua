@@ -4790,6 +4790,51 @@ try('0.8.0.1: a side window stays put while aux is open', function()
   G.GetUIPanel, G.GetUIPanelLayoutAttribute, G.UpdateUIPanelPositions, G.hooksecurefunc, G.InCombatLockdown = real[1], real[2], real[3], real[4], real[5]
 end)
 
+-- 0.8.1, FB-026 (suggested by deep_structure): the Materials line says whether a craft makes a
+-- profit or a loss (Tyler, 2026-11-08: option A of the mockup, reversing FB-007's "cost only")
+try('0.8.1: profit or loss on the Materials line', function()
+  local req = loadstring("select(2, ...) 'aux.test.fb026'; return require")('auxForever', addon)
+  local aux = req 'aux'
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local today = h.today()
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  h.write_record('7601:0', {day = today, points = {{day = today - 1, value = 26}}})   -- material, 26c
+  h.write_record('7610:0', {day = today, points = {{day = today - 1, value = 200}}})  -- made item, 2s
+  h.write_record('7611:0', {day = today, points = {{day = today - 1, value = 50}}})   -- made item, 50c
+  local function recipe(output, count, reagents)
+    return {name = 'Test', reagents = reagents or {{item_id = 7601, count = 2}}, output = output and {item_id = output, count = count or 1}}
+  end
+  local net, gross = search.recipe_sale(recipe(7610))
+  check('fb026: the made item after the 5% cut', net == 190 and gross == 200)
+  net, gross = search.recipe_sale(recipe(7610, 2))
+  check('fb026: a recipe that makes two counts both', net == 380 and gross == 400)
+  local line = plain(search.recipe_cost_text(recipe(7610)))
+  check('fb026: profit on the line (190 - 52 = 138c)', line:find('Materials', 1, true) and line:find('Profit', 1, true) and line:find('1s 38c', 1, true) ~= nil)
+  line = plain(search.recipe_cost_text(recipe(7611)))
+  check('fb026: a loss says Loss (52 - 47 = 5c)', line:find('Loss', 1, true) and line:find('5c', 1, true) and not line:find('Profit', 1, true))
+  line = plain(search.recipe_cost_text(recipe(7610, 1, {{item_id = 7601, count = 2}, {item_id = 7699, count = 1}})))
+  check('fb026: a material with no price makes it "at most"', line:find('+', 1, true) and line:find('Profit at most', 1, true) ~= nil)
+  line = plain(search.recipe_cost_text(recipe(7612)))
+  check('fb026: a made item with no price says so', line:find('no sell price yet', 1, true) ~= nil)
+  line = plain(search.recipe_cost_text(recipe(nil)))
+  check('fb026: a recipe that makes no item shows the cost only', not line:find('Profit', 1, true) and not line:find('Loss', 1, true) and not line:find('sell', 1, true))
+  line = plain(search.recipe_cost_text(recipe(7610, 1, {{item_id = 7698, count = 1}})))
+  check('fb026: no material priced still says no price yet, nothing else', line:find('no price yet', 1, true) and not line:find('Profit', 1, true))
+  local lines = {}
+  local tip = new_frame()
+  rawset(tip, 'AddLine', function(_, t) tinsert(lines, plain(t)) end)
+  rawset(tip, 'AddDoubleLine', function(_, a, b) tinsert(lines, plain(a) .. ' | ' .. plain(b)) end)
+  search.recipe_cost_tooltip(tip, recipe(7610))
+  local all = table.concat(lines, '\n')
+  check('fb026: the hover shows the selling price, the cut and the profit', all:find('sells for | 2s', 1, true) and all:find('After the 5% auction house cut | 1s 90c', 1, true) and all:find('Profit | 1s 38c', 1, true) ~= nil)
+  lines = {}
+  search.recipe_cost_tooltip(tip, recipe(7612))
+  all = table.concat(lines, '\n')
+  check('fb026: the hover says how to learn a missing price', all:find('no price yet', 1, true) and all:find('Search for it at the auction house', 1, true) ~= nil)
+  for _, key in ipairs{'7601:0', '7610:0', '7611:0'} do h.data[key] = nil end
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
 dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({
