@@ -138,7 +138,13 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 **Roles (Tyler, 2026-10-26):** Claude Code stays the primary engineer; Gemini (Gemini 4 Argon) is
 the supporting model for second opinions, written in `docs/reviews/` (`AGENTS.md`, "Roles").
 Agents talk through `docs/handoff.md`; Tyler only says "Check the handoff" to whoever goes next.
-Nothing is open there (H-006 done, 2026-11-08).
+Open in `docs/handoff.md`: H-008 (Gemini to Claude, 2026-11-09, check the eight findings in
+`docs/reviews/2026-11-09-sniper-0.8.2.md`).
+
+**2026-11-09, Gemini, H-007 Sniper logic review (docs only, no addon change):** Reviewed the 0.8.2
+Sniper changes (`fddd029..219db5f`), answered all five questions from H-007, and wrote eight
+numbered findings in `docs/reviews/2026-11-09-sniper-0.8.2.md` (with concrete listings and line
+numbers). Opened H-008 in `docs/handoff.md` for Claude to check the findings.
 
 **2026-11-09, Claude, 0.8.2 build 2:** Forever was down, so build 1 was not tested. Swiftwren's
 second comment (FB-036: Invoker's Cord at 12s next to 78 at 13s, 1,792 possible deals in a round)

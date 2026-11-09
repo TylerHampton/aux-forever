@@ -22,73 +22,57 @@ Active branch: `claude/magical-maxwell-eyud0b`
 
 ## Open
 
-### H-007 · Claude to Gemini · 2026-11-09 · Review the Sniper logic in 0.8.2 (tight scope)
+### H-008 · Gemini to Claude · 2026-11-09 · Check the eight findings from the 0.8.2 Sniper logic review
 
-Tyler wants you as an analyst: is the Sniper's new deal logic the best way to solve the players'
-problem, and did Claude miss anything in the logic? Review only, no code changes on this branch.
+I reviewed the 0.8.2 Sniper changes (`fddd029..219db5f`) and wrote the answers to all five
+questions plus eight numbered findings in `docs/reviews/2026-11-09-sniper-0.8.2.md`.
 
-**What the Sniper is for (read this first).** The Sniper is a flipping tool. While its tab is open
-it reads the whole auction house's item list again and again (one request per 500 items, a round
-every few seconds) and lists the auctions priced well below what the item really sells for, or
-below what a vendor pays for it, with a sound. The player then decides: clicks the deal, aux shows
-the buy bar, the player buys, and later resells the item at the normal price (or sells it to a
-vendor) for a profit. So a deal is only a deal if the player can resell above the price paid,
-after the auction house's 5% cut. Two ways it fails a player:
-- **A false deal costs gold.** Swiftwren bought "deals at 4% of the usual price" and could only
-  relist them at a loss: hundreds were listed at about the same price.
-- **A missed or slow deal costs the chance.** Another player gets it first; a player reported over
-  30 seconds from the sound to the purchase.
-The player's settings are a percent (a deal is at most this share of the reference price) and a
-minimum profit. Rules that hold whatever you suggest (`AGENTS.md`): aux informs, it never buys or
-decides for the player; buying never spends more than the price shown (the buy bar confirms only a
-server quote at or below it); every item opened is a request under the game's request limit, so
-fewer requests means faster rounds (Performance section).
+Summary of the findings (ordered most important first):
+1. **`sellers >= MARKET_SELLERS` in `market_now` (`tabs/sniper/core.lua:116-149`) is dead code
+   whenever any higher listing exists:** `if total > 0` runs and returns before
+   `if sellers >= MARKET_SELLERS`, so `{rec(210, 80, {seller_count = 6}), rec(2200, 1)}` returns
+   `2200` and lets a 6-seller flat market through as a deal.
+2. **`check_list` uses `history.latest` with `age == 0` (`tabs/sniper/core.lua:388-391`), which
+   includes single-auction `record.low`, self-poisons after `scan.read_item`, and treats 1 cheap
+   unit out of 40 in a Full scan as the market:** `scan.read_item` writes the deal's own price into
+   `record.market` and `record.low`, making `history.latest` return the deal price with `age == 0`
+   on the next round and breaking second-unit/stack buying (`on_buy` / `on_success`) and
+   `settings_changed()`. Also, `MARKET_SHARE = .05` has `middle == 1` for `total <= 40`, so 1 snipe
+   at `3s` + 39 normal auctions at `32s` in a Full scan sets `record.market = 3s`.
+3. **`other_versions` (`tabs/sniper/core.lua:131-134, 326-363, 392-395`) ignores `totalQuantity`,
+   `containsOwnerItem`, and `price <= cheapest`:** Two versions with 1 cheap auction each (`10s`
+   and `11s`, or a `5s` bid and `8s` buyout) mutually block each other in `check_list` so neither
+   opens; conversely, 8 overpriced auctions at `32s` on an opened version outvote 78 auctions at
+   `13s` on another version because `other_versions` hardcodes `units = 1`.
+4. **`market_now` has no minimum unit or seller floor on `others` (`tabs/sniper/core.lua:116-148`):**
+   Two cheap units 1c apart (`{rec(209, 1), rec(210, 1)}`, `usual = 2200`) set `market = 210` and
+   hide the deal, whereas `{rec(210, 80)}` or adding 100 units at `2200` is a deal.
+5. **`markets[key]` stays at the old low price for 15 minutes even after `result.minPrice` proves
+   the cheap wall sold out (`tabs/sniper/core.lua:386-401`), and `known[key]` permanently locks out
+   items rejected via `other_versions` or `markets[key]`:** If `result.minPrice` rises to `2200`
+   (proving an `87c` wall is gone) and a `55c` snipe is posted 2 minutes later,
+   `markets[key].market = 87` rejects it.
+6. **`FRESH_SECONDS = 15` (`tabs/sniper/core.lua:629`) skips `refresh_deal` for gear even when
+   another candidate or round searched after `deal_read_at`:** Risks re-triggering the 0.4.1
+   `[Seen]` bug where `PlaceBid` on gear does nothing after another item was searched.
+7. **When `reason == 'market'`, the `Usual` column (`tabs/sniper/frame.lua:117-161`) still shows
+   `deal_usual` (`22s`) and never shows `deal_market` (`10s`),** so `3s`, `22s`, `30% of market`,
+   and `6s 50c` profit do not visually reconcile.
+8. **The `versions` pre-pass in `check_list` (`tabs/sniper/core.lua:345-363`) calls
+   `info.item_key_price_key` on all ~7,700 items and adds 38 `coro_wait()` frame yields (~0.65s)
+   to every round,** even when `known[key] == price` and even for `itemID`s that appear only once
+   in `results`.
 
-**The player reports** (word for word in `docs/feedback.md`): FB-036 (Swiftwren, two comments; the
-second gives Invoker's Cord: 1 at 12s, usual 32s, while 78 are listed at 13s, and "1,792 possible
-deals" in one round) and FB-028 (slow from sound to purchase).
-
-**What changed** (`git diff fddd029 219db5f -- auxForever/tabs/sniper`, plus `is_full_scan` in
-`auxForever/core/scan.lua`):
-1. `judge`: the reference price is the lower of the usual price (`history.value`, a weighted middle
-   of up to 14 past days) and today's market; the Why column says "% of market" when the market is
-   lower (commit bde3033, re-judging fix in 4090883).
-2. `market_now`: today's market from the item's own listings, read when a candidate is opened: the
-   middle price of the cheapest quarter of the units above the cheapest price; or that cheapest
-   price when 3 or more sellers ask it; other versions of the same gear name count as one unit each
-   at their lowest price; nil for a lone auction (then the usual price alone, as before).
-3. `check_list`, the round's check on the item list before opening anything: also uses the market
-   last read for the item (kept 15 minutes), the price of today's complete look (`history.latest`
-   with age 0, from a Full scan today) and the other versions' lowest prices (build 2, 219db5f).
-   Trade-off written in the code: an auction alone and listed since today's Full scan is that
-   scan's price, so it is no longer offered.
-4. `refresh_deal`: a deal read in the last 15 seconds (`FRESH_SECONDS`) goes to the buy bar without
-   reading it again (8a4aa64).
-5. `update`: no new round while a Full scan runs, so the round does not stop it (19921b1).
-
-**Questions to answer, one finding each where you disagree:**
-1. Is "the lower of the usual price and today's market" the right reference for a flip, or is
-   there a better practice (for example how other auction addons decide a snipe; label it Outside)?
-2. `market_now`: do the cheapest quarter, the 3-seller rule and one unit per other version hide
-   real deals or let false ones through? Give a concrete listing for each case you find.
-3. The list check (point 3): is the trade-off acceptable, and is there a cheaper or safer way to
-   cut the 1,792 opens?
-4. `FRESH_SECONDS` and the 15-minute market memory: any case where they buy the wrong thing, spend
-   more than shown, or keep a stale market too long?
-5. Anything in these five changes that breaks a rule above or a test's intent.
-
-**Out of scope:** the rest of 0.8.2 (Full scan wait and messages, tooltip text search, Usually
-switch, Shift hint) and anything already released.
-
-**How:** pull this branch, read `AGENTS.md` (Roles, Performance, Code gotchas) and the five
-changes. The tests: `cd auxForever && lua5.1 ../tests/load_test.lua` (and `classic`); the Sniper's
-are named `fb036`, `fb036b` and `fb028`. Facts about Forever's auction house carry their label
-(Seen, Code, Outside, Unknown). Write `docs/reviews/2026-11-09-sniper-0.8.2.md` (date, branch,
-commit 219db5f; a short verdict first, then numbered findings: what, where, why it matters to a
-player, how sure). Then add H-008 for Claude here, commit and push.
+**What to do:** Check each finding against the code. Fix the ones that hold up, each with a test
+that fails without the fix, and record your answer under each finding in
+`docs/reviews/2026-11-09-sniper-0.8.2.md`.
 
 
 ## Done
+
+### H-007 · Claude to Gemini · 2026-11-09
+Reviewed the 0.8.2 Sniper deal logic (`fddd029..219db5f`); answered all five questions and wrote
+eight findings in `docs/reviews/2026-11-09-sniper-0.8.2.md`, and opened H-008 for Claude.
 
 ### H-006 · Gemini to Claude · 2026-11-08
 Checked the eight pre-release findings: seven fixed in 0.8 build 13, each with a test that fails
