@@ -22,6 +22,11 @@ MIN_DAYS = 3 -- days of price history needed before a price can be a deal agains
 ROUND_PAUSE = 2.5 -- seconds between rounds: less garbage and fewer requests than 1s, deals still quick (Tyler)
 MAX_DEALS = 100
 ALERT_GAP = 10 -- seconds: at most one sound per this long, however many deals turn up
+-- 0.8.2 (FB-028): a deal read this many seconds ago or less goes straight to the buy bar when
+-- clicked, without reading its auctions again (one request less between the sound and the purchase;
+-- a player reported over 30 seconds). Buying still never spends more than shown: a trade good's
+-- price is confirmed only at or below it, and an item's auction has a fixed buyout.
+FRESH_SECONDS = 15
 
 running = false -- Start was pressed
 active = false -- a round is under way
@@ -284,6 +289,7 @@ function check_item(item_key, key, price)
     cheapest.deal_item_key = item_key -- to read the item again when the deal is selected
     cheapest.deal_reason = reason
     cheapest.deal_market = market
+    cheapest.deal_read_at = GetTime()
     cheapest.deal_profit = profit
     cheapest.deal_percent = pct
     cheapest.deal_usual = usual and max(usual, vendor or 0) or nil
@@ -557,7 +563,7 @@ local show_item_bar, show_commodity_bar
 -- on deals found minutes earlier, Tyler, 0.4.1).
 local function refresh_deal(record)
     local item_key = record.deal_item_key or record.item_search_key
-    if not item_key then
+    if not item_key or (record.deal_read_at and GetTime() - record.deal_read_at <= FRESH_SECONDS) then
         if record.commodity then show_commodity_bar(record) else show_item_bar(record) end
         return
     end

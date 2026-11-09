@@ -2232,7 +2232,9 @@ try('sniper: only deal-priced units to buy, rounds wait while buying', function(
   for _, tier in ipairs(deal and deal.deal_tiers or {}) do units = units + tier.count end
   check('sniper: only the units below vendor price can be bought', deal and units == 7)
   -- selected later, after someone bought 4 of the 7: the deal is read again with today's counts
+  -- (0.8.2, FB-028: "later" is more than FRESH_SECONDS; a deal read just now is not read again)
   items[1].auctions[1].qty = 3
+  deal.deal_read_at = GetTime() - sniper.FRESH_SECONDS - 1
   sniper.listing:SetSelectedRecord(deal)
   run(10)
   units = 0
@@ -2281,6 +2283,8 @@ try('sniper: a selected gear deal is checked again and the rounds hold', functio
   for _, d in ipairs(sniper.deals) do if d.item_id == 601 then axe = d end end
   check('sniper gear: the deal is found', axe ~= nil)
   local before = searched[601] or 0
+  -- 0.8.2 (FB-028): selected after FRESH_SECONDS, it is read again first
+  axe.deal_read_at = GetTime() - sniper.FRESH_SECONDS - 1
   sniper.listing:SetSelectedRecord(axe)
   run(3)
   check('sniper gear: selecting it reads its item again', (searched[601] or 0) > before)
@@ -5039,6 +5043,61 @@ try('0.8.2: nothing stops a Full scan by itself', function()
   a.frame.__shown = was_shown
   for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
   a.account_data.replicate_time = 0
+end)
+
+-- 0.8.2, FB-028 (reported by user_ayzkr6rhvrlna3ya): "over 30 seconds from sounding off to
+-- attempting the purchase". A deal clicked right after it was found is not read again first.
+try('0.8.2: a fresh Sniper deal goes straight to the buy bar', function()
+  local aux_require = loadstring("select(2, ...) 'aux.test.fb028'; return require")('auxForever', addon)
+  local aux = aux_require 'aux'
+  local bar = aux_require 'aux.gui.buy_bar'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local items = {
+    {id = 701, name = 'Quick Axe', min = 2800, qty = 1, sell = 3036, auctions = {{buyout = 2800}}},
+    {id = 702, name = 'Quick Ore', commodity = true, min = 100, qty = 7, sell = 300, auctions = {{buyout = 100, qty = 7}}},
+  }
+  local run, restore = fake_ah(items)
+  local searched = {}
+  local real_send = C_AuctionHouse.SendSearchQuery
+  rawset(C_AuctionHouse, 'SendSearchQuery', function(key, ...) searched[key.itemID] = (searched[key.itemID] or 0) + 1; return real_send(key, ...) end)
+  aux.account_data.sniper_profit = 1
+  sniper.clear_deals()
+  sniper.settings_changed()
+  aux.set_tab(2)
+  local r0 = sniper.round
+  sniper.start()
+  for _ = 1, 300 do run(1) if sniper.round > r0 then break end end
+  local axe, ore
+  for _, d in ipairs(sniper.deals) do if d.item_id == 701 then axe = d elseif d.item_id == 702 then ore = d end end
+  check('fb028: both deals found', axe ~= nil and ore ~= nil)
+  -- the table shows new deals at most twice a second
+  for _ = 1, 10 do tick() end
+  local in_table = 0
+  for _, r in ipairs(sniper.listing.records or {}) do if r == axe or r == ore then in_table = in_table + 1 end end
+  check('fb028: both deals in the table', in_table == 2)
+  local before = searched[701] or 0
+  sniper.listing:SetSelectedRecord(axe)
+  run(1)
+  local reading = sniper.refreshing
+  run(2)
+  check('fb028: gear clicked at once is not read again', reading == nil and (searched[701] or 0) == before)
+  check('fb028: and the buy bar offers it at once', bar.primary_label():find('^Buy for') ~= nil)
+  sniper.listing:SetSelectedRecord()
+  run(1)
+  before = searched[702] or 0
+  sniper.listing:SetSelectedRecord(ore)
+  run(1)
+  reading = sniper.refreshing
+  run(2)
+  check('fb028: a trade good clicked at once is not read again', reading == nil and (searched[702] or 0) == before)
+  check('fb028: and the buy bar offers it at once', bar.primary_label():find('^Buy') ~= nil)
+  sniper.listing:SetSelectedRecord()
+  sniper.stop()
+  run(5)
+  rawset(C_AuctionHouse, 'SendSearchQuery', real_send)
+  restore()
+  sniper.clear_deals()
+  bar.clear()
 end)
 
 -- what players do while the auction house is still answering: a slow auction house that answers
