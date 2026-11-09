@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-08, Tyler's time (0.8 released, tag `v0.8`; **0.8.1 build 1** (0.8.0.1's two fixes plus the profit line) on `claude/magical-maxwell-eyud0b`; Tyler is testing 0.8.0.1 build 1).
+Last updated 2026-11-08, Tyler's time (0.8 released, tag `v0.8`; **0.8.1 build 2** on `claude/magical-maxwell-eyud0b`, waiting for Tyler's test).
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
@@ -29,7 +29,15 @@ FB-028) and the Shift hint (FB-033) to 0.8.2 (`docs/roadmap.md`). If Tyler wants
 its own first, revert this commit, release, then re-apply it. Version `forever-0.8.1`; checklist in
 `TESTING.md` (0.8.1 build 1, three steps); zip `auxForever-0.8.1-build1.zip`. Tyler had not started the
 0.8.0.1 page, so the test page now holds all seven steps under build id `0-8-1-build-1` (0.8.0.1's
-four, then the three profit steps). Next: read those results.
+four, then the three profit steps).
+
+**2026-11-08, Claude, 0.8.1 build 2:** Tyler's build 1 test (`TESTING.md`): the cloak search, the
+Blizzard UI step and the profit line work; the Professions step failed because Tyler keeps that
+window at his own spot and aux pulled it to the far left behind aux. Build 2 moves the side window
+only when it stands exactly where the game's right place puts it (`settle_side_panel`), with a test
+that fails on build 1. Open: Tyler's "What?" on the profit hover (unclear step, or surprised that
+Woolen Bag shows a loss of 8s 22c because it was seen selling for 5s). Test page build id
+`0-8-1-build-2` (three steps), zip `auxForever-0.8.1-build2.zip`.
 
 **2026-11-08, Claude, feedback batch (docs only, no addon change):** Tyler passed on CurseForge
 comments, all written before 0.8. Logged as FB-024 to FB-034 in `docs/feedback.md` (source

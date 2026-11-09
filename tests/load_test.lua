@@ -4746,9 +4746,13 @@ end)
 -- the side window back where the game's layout would have it without the auction house.
 try('0.8.0.1: a side window stays put while aux is open', function()
   local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
-  local real = {G.GetUIPanel, G.GetUIPanelLayoutAttribute, G.UpdateUIPanelPositions, G.hooksecurefunc, G.InCombatLockdown}
+  local real = {G.GetUIPanel, G.GetUIPanelLayoutAttribute, G.UpdateUIPanelPositions, G.hooksecurefunc, G.InCombatLockdown, G.GetUIPanelWidth, G.GetUIPanelWidthUnscaled}
+  local real_attr = rawget(AuctionHouseFrame, 'GetAttribute')
+  rawset(AuctionHouseFrame, 'GetAttribute', function(_, name) if name == 'UIPanelLayout-xoffset' then return 20 end end)
   local panels = {}
-  local side = {point = {'TOPLEFT', 'UIParent', 'TOPLEFT', 16 + 8 + 20 + 32 + 0, -104}, scale = 1, protected = false}
+  -- the game's numbers: left place 16, gap 32, the auction house window's offset 20 and width 800
+  -- (8 at aux's 1% scale)
+  local side = {point = {'TOPLEFT', 'UIParent', 'TOPLEFT', 16 + 8 + 20 + 32, -104}, scale = 1, protected = false}
   function side:GetPoint() return unpack(self.point) end
   function side:SetPoint(p, r, rp, x, y) self.point = {p, r, rp, x, y} end
   function side:GetScale() return self.scale end
@@ -4756,6 +4760,8 @@ try('0.8.0.1: a side window stays put while aux is open', function()
   function side:IsProtected() return self.protected end
   G.GetUIPanel = function(key) return panels[key] end
   G.GetUIPanelLayoutAttribute = function(name) return ({LEFT_OFFSET = 16, PANEl_SPACING_X = 32})[name] end
+  G.GetUIPanelWidth = function(f) return f == AuctionHouseFrame and 8 or 600 end
+  G.GetUIPanelWidthUnscaled = function(f) return f == AuctionHouseFrame and 800 or 600 end
   local hooked
   G.hooksecurefunc = function(name, f) if name == 'UpdateUIPanelPositions' then hooked = f end end
   G.UpdateUIPanelPositions = function() end
@@ -4768,10 +4774,21 @@ try('0.8.0.1: a side window stays put while aux is open', function()
   side.point[4] = 76
   hooked()
   check('fb034: and again after each layout by the game', side.point[4] == 16)
-  side.scale, side.point[4] = .8, 76
+  side.point[4] = 16 + 800 + 20 + 32
+  hooked()
+  check('fb034: also when the game placed it before aux shrank its window', side.point[4] == 16)
+  side.scale, side.point[4] = .8, 76 / .8
   hooked()
   check('fb034: the game\'s offsets are divided by the window\'s scale, as the game does', math.abs(side.point[4] - 20) < 1e-9)
-  side.scale, side.point[4] = 1, 76
+  side.scale = 1
+  -- build 2 (Tyler's test): a window the player put somewhere themselves stays there
+  side.point[4] = 500
+  hooked()
+  check('fb034: a window placed by the player is never moved', side.point[4] == 500)
+  side.point = {'CENTER', 'UIParent', 'CENTER', 76, 0}
+  hooked()
+  check('fb034: nor one anchored another way', side.point[1] == 'CENTER' and side.point[4] == 76)
+  side.point = {'TOPLEFT', 'UIParent', 'TOPLEFT', 76, -104}
   side.protected = true
   G.InCombatLockdown = function() return true end
   hooked()
@@ -4787,7 +4804,8 @@ try('0.8.0.1: a side window stays put while aux is open', function()
   side.point[4] = 76
   hooked()
   check('fb034: without the auction house, nothing is moved', side.point[4] == 76)
-  G.GetUIPanel, G.GetUIPanelLayoutAttribute, G.UpdateUIPanelPositions, G.hooksecurefunc, G.InCombatLockdown = real[1], real[2], real[3], real[4], real[5]
+  rawset(AuctionHouseFrame, 'GetAttribute', real_attr)
+  G.GetUIPanel, G.GetUIPanelLayoutAttribute, G.UpdateUIPanelPositions, G.hooksecurefunc, G.InCombatLockdown, G.GetUIPanelWidth, G.GetUIPanelWidthUnscaled = real[1], real[2], real[3], real[4], real[5], real[6], real[7]
 end)
 
 -- 0.8.1, FB-026 (suggested by deep_structure): the Materials line says whether a craft makes a

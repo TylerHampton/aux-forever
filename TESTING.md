@@ -8,7 +8,32 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.1 build 1
+## Current build: 0.8.1 build 2
+
+One fix from Tyler's build 1 test. Tyler keeps his Professions window where he dragged it; with
+aux open, build 1 pulled it to the far left, behind aux's window (the fix for FB-034 moved any
+window in the right-hand place). Now aux only undoes the game's own small shift and leaves a window
+the player placed alone. Zip `auxForever-0.8.1-build2.zip`; `/reload` is enough. Test page build id
+`0-8-1-build-2`.
+
+- [ ] 1. Away from the auction house, open your Professions window (at your own spot) and open
+      the auction house: it stays at your spot. Close it and open it again with aux open: it ends
+      at your spot (a short jump on opening is your window addon's own behavior, as without aux).
+- [ ] 2. Optional, only if you can: put the Professions window back at the game's own place
+      (whatever resets it in your window addon), and repeat step 1. It stays at the left, not a
+      little to the right.
+- [ ] 3. Pick a recipe whose made item aux has never seen: the line says "no sell price yet".
+
+Tested by Tyler 2026-11-08 (build 1, test page `0-8-1-build-1`): steps 1 and 2 pass from the
+screenshots (`hillman's cloak/exact` lists Hillman's Cloak, 415 for sale; Robes of Arcana found
+the same way); step 3 fails: his Professions window, at a spot he set himself, went to the far left
+behind aux when the auction house opened, and on reopening it "starts on the left then teleports
+to its custom position set by me" (fixed in build 2); step 4 passes; step 5 works from the
+screenshot (Woolen Bag: "Materials 12s 97c  Loss 8s 22c"); step 6's hover shows "Woolen Bag sells
+for 5s seen today, After the 5% auction house cut 4s 75c, Loss 8s 22c", Tyler's note "What?";
+step 7 skipped.
+
+### 0.8.1 build 1
 
 0.8.0.1 build 1 (below, the cloak search and the Professions window, unchanged) plus profit or
 loss on the profession window's Materials line (FB-026, deep_structure; option A of the mockup,

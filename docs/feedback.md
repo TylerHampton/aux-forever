@@ -1357,7 +1357,7 @@ mockup before anything is built.
 - Type: bug
 - Area: Search
 - Severity: S2 (no results for an item that is for sale; searching without `/exact` works)
-- Status: in-progress 0.8.1 (`claude/magical-maxwell-eyud0b`; built in 0.8.0.1 build 1, 2026-11-08, which ships as part of 0.8.1; not yet seen in game)
+- Status: in-progress 0.8.1 (`claude/magical-maxwell-eyud0b`; built in 0.8.0.1 build 1; seen working in game by Tyler 2026-11-08: `hillman's cloak/exact` lists Hillman's Cloak, 415 for sale)
 - Proposed: next patch (0.8.0.1)
 
 Said:
@@ -1444,7 +1444,7 @@ wants numbers before and after.
 - Type: request (a finding: the feature partly exists and was not found)
 - Area: Recipe search
 - Severity: n/a
-- Status: in-progress 0.8.1 (`claude/magical-maxwell-eyud0b`, 0.8.1 build 1, 2026-11-08: option A built with a test; not yet seen in game)
+- Status: in-progress 0.8.1 (`claude/magical-maxwell-eyud0b`, 0.8.1 build 1, 2026-11-08: option A built with a test; seen in game by Tyler the same day: Woolen Bag "Materials 12s 97c  Loss 8s 22c" with the hover's sum)
 - Proposed: 0.8.1 (a small change to an existing line)
 
 Said:
@@ -1749,7 +1749,7 @@ added?
 - Type: bug
 - Area: Window
 - Severity: S3 (cosmetic)
-- Status: in-progress 0.8.1 (`claude/magical-maxwell-eyud0b`; built in 0.8.0.1 build 1, 2026-11-08, which ships as part of 0.8.1; not yet seen in game)
+- Status: in-progress 0.8.1 (`claude/magical-maxwell-eyud0b`; built in 0.8.0.1 build 1; build 1 failed Tyler's test with a window he placed himself, changed in 0.8.1 build 2, 2026-11-08)
 - Proposed: next patch, if the fix does not touch Blizzard's code in a risky way
 
 Said:
@@ -1786,7 +1786,18 @@ the game's layout tables. Not covered: a few layout passes the game starts from 
 window manager (it calls itself directly there), so a side window could still shift in a rare
 case. Test: `0.8.0.1: a side window stays put while aux is open`, checked to fail without the fix.
 
-Unknowns: none left for the fix; in game it still needs Tyler's check.
+Seen in game (Tyler, 2026-11-08, 0.8.1 build 1): Tyler keeps his Professions window at a spot he
+set himself. With aux open, the fix pulled it to the far left place, behind aux's window, and on
+reopening it "starts on the left then teleports to its custom position set by me". Inference:
+whatever keeps his window there re-places it after the game's layout (as window addons such as
+BlizzMove do by hooking the same function, **Outside**), and aux's hook ran after it. Build 2:
+aux moves the side window only when it stands exactly where the game's right place puts it (at
+the hidden window's 1% width, or at full width when the layout ran before aux shrank it); any
+other position is the player's and stays. Test extended (`a window placed by the player is never
+moved`, checked to fail on build 1).
+
+Unknowns: which addon (or game setting) keeps Tyler's window position; the fix does not depend on
+it.
 
 Ask Tyler: the in-game check is step 3 of 0.8.0.1 build 1 (`TESTING.md`).
 

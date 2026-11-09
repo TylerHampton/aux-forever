@@ -29,7 +29,8 @@ A change that comes from a player's feedback credits them by in-game name at the
 
 - Opening aux no longer moves Blizzard's Professions window (or another side window) a little to
   the right. The game places side windows next to its own auction house window, which aux keeps
-  open but invisible; aux now puts the side window back where it stood (reported by Chawitsch).
+  open but invisible; aux now undoes that small shift. A window you placed yourself with a window
+  addon is left where you put it (reported by Chawitsch).
 
 ## 0.8 (2026-11-08)
 
