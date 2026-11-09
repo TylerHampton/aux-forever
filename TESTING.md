@@ -16,13 +16,15 @@ window in the right-hand place). Now aux only undoes the game's own small shift 
 the player placed alone. Zip `auxForever-0.8.1-build2.zip`; `/reload` is enough. Test page build id
 `0-8-1-build-2`.
 
-- [ ] 1. Away from the auction house, open your Professions window (at your own spot) and open
-      the auction house: it stays at your spot. Close it and open it again with aux open: it ends
-      at your spot (a short jump on opening is your window addon's own behavior, as without aux).
-- [ ] 2. Optional, only if you can: put the Professions window back at the game's own place
-      (whatever resets it in your window addon), and repeat step 1. It stays at the left, not a
-      little to the right.
-- [ ] 3. Pick a recipe whose made item aux has never seen: the line says "no sell price yet".
+- [ ] 1. Stand next to an auctioneer. Open your Professions window (it appears at the spot you
+      moved it to). Right-click the auctioneer, so aux opens. The Professions window does not move
+      (in build 1 it jumped to the far left, behind aux).
+- [ ] 2. Keep aux open. Close the Professions window with its X, then open it again. It ends up at
+      your spot (flashing at the left first and then jumping there is fine; it did that in build 1
+      too).
+- [ ] 3. In the Professions window, click a recipe whose item you have never searched for in aux
+      (for example one you just learned). The small line under its reagents reads like
+      "Materials 2s 40c   no sell price yet".
 
 Tested by Tyler 2026-11-08 (build 1, test page `0-8-1-build-1`): steps 1 and 2 pass from the
 screenshots (`hillman's cloak/exact` lists Hillman's Cloak, 415 for sale; Robes of Arcana found
