@@ -1473,7 +1473,11 @@ Found after logging: when the Materials line was built (FB-007, 2026-10-07), Tyl
 Tyler, 2026-11-08 (decided): profit goes on the Materials line, reversing FB-007's "cost only, no
 profit": "Yeah reverse my decision, because if it was enough for someone to leave a comment on the
 addon we should make it easier to see." Planned 0.8.1; a mockup of the line comes first (AGENTS.md:
-visual changes are shown before they are built).
+visual changes are shown before they are built). Mockup (2026-11-08):
+https://claude.ai/artifact/6VxaaXKXe3f9uJEjK7Gtoy. Option A (cost and profit on one line, the
+selling price in the hover), B (cost, selling price and profit on one line), C (two lines; does not
+fit the 20-pixel gap above Blizzard's optional reagents). Claude recommends A. Waiting for Tyler's
+pick.
 
 ### FB-027: The full scan takes more than 5 minutes since Forever launched
 

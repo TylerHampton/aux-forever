@@ -18,7 +18,9 @@ Version `forever-0.8.0.1` in the TOC, changelog entry "0.8.0.1 (not released yet
 `TESTING.md`, zip `auxForever-0.8.0.1-build1.zip`, test page build id `0-8-0-1-build-1`. Next:
 read the test page results; if they pass, ask Tyler whether 0.8.0.1 ships (pull request, merge,
 Release workflow), then 0.8.1. Decided for 0.8.1 (Tyler, 2026-11-08): profit goes on the
-Materials line (FB-026), reversing FB-007's "cost only, no profit"; mockup first.
+Materials line (FB-026), reversing FB-007's "cost only, no profit". Mockup made while Tyler tests
+0.8.0.1: https://claude.ai/artifact/6VxaaXKXe3f9uJEjK7Gtoy (options A, B, C; Claude recommends A);
+waiting for his pick.
 
 **2026-11-08, Claude, feedback batch (docs only, no addon change):** Tyler passed on CurseForge
 comments, all written before 0.8. Logged as FB-024 to FB-034 in `docs/feedback.md` (source
