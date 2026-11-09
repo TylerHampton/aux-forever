@@ -5216,6 +5216,63 @@ try('0.8.2: Usually switch and the Shift hint', function()
   h.data['7601:0'] = nil
 end)
 
+-- 0.8.2 build 2, FB-036 (Swiftwren's second comment): Invoker's Cord offered at 12s (usual 32s)
+-- with 78 listed at 13s, and 1,792 possible deals opened in one round. The round's pre-check now
+-- knows today's market too: the price of today's complete look (a Full scan) and the lowest price of
+-- another version of the same gear name. A version opened counts the other versions as supply.
+try('0.8.2: the Sniper\'s list check knows today\'s market', function()
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local aux = loadstring("select(2, ...) 'aux.test.fb036b'; return require 'aux'")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.test.fb036c'; return require 'aux.core.scan'")('auxForever', addon)
+  local d = h.today()
+  local function usual(key, extra)
+    local r = {day = d, points = {{value = 3200, day = d - 1, units = 10}, {value = 3200, day = d - 2, units = 10}, {value = 3200, day = d - 3, units = 10}}}
+    for k, v in pairs(extra or {}) do r[k] = v end
+    h.write_record(key, r)
+  end
+  usual('901:0'); usual('902:0', {market = 1300, units = 79, low = 1200}); usual('903:0', {market = 3200, units = 40, low = 3100})
+  local names = {[901] = "Invoker's Cord", [902] = 'Flat Belt', [903] = 'Lone Belt'}
+  local real_info, real_key_info = G.GetItemInfo, C_AuctionHouse.GetItemKeyInfo
+  G.GetItemInfo = function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if names[id] then return names[id], 'link', 2, 20, 15, 'Armor', 'Cloth', 1, 'INVTYPE_WAIST', 1, 100 end
+    return real_info(x)
+  end
+  rawset(C_AuctionHouse, 'GetItemKeyInfo', function(key) return names[key.itemID] and {itemID = key.itemID, itemName = names[key.itemID], quality = 2} or real_key_info(key) end)
+  local real_check = sniper.check_item
+  local opened, others_seen = {}, {}
+  sniper.check_item = function(item_key, key, price, others) opened[key] = true; others_seen[key] = others end
+  aux.account_data.sniper_percent, aux.account_data.sniper_profit = 60, 1
+  local function list(...) return {...} end
+  local function result(id, suffix, qty, price) return {itemKey = {itemID = id, itemSuffix = suffix, itemLevel = 20}, totalQuantity = qty, minPrice = price} end
+  local function round(results)
+    sniper.settings_changed()
+    opened, others_seen = {}, {}
+    sniper.check_list(results, {})
+  end
+  local a, b = result(901, 11, 1, 1200), result(901, 12, 78, 1300)
+  local ka, kb = scan.item_key_string(a.itemKey), scan.item_key_string(b.itemKey)
+  round(list(a, b))
+  check('fb036b: a version at 12s next to another at 13s is not opened (Invoker\'s Cord)', not opened[ka] and not opened[kb])
+  round(list(a))
+  check('fb036b: alone, it is still a deal to open', opened[ka] and others_seen[ka] == nil)
+  round(list(result(901, 11, 1, 600), b))
+  check('fb036b: well below the other version it is opened, with that version\'s price', opened[ka] and others_seen[ka] and others_seen[ka][1] == 1300)
+  check('fb036b: a version opened counts the other versions as supply', sniper.market_now({{buyout_price = 600, unit_buyout_price = 600, count = 1}}, {1300}) == 1300)
+  local flat = result(902, 0, 79, 1250)
+  round(list(flat))
+  check('fb036b: a price close to today\'s Full scan is not opened', not opened[scan.item_key_string(flat.itemKey)])
+  local lone = result(903, 0, 1, 300)
+  round(list(lone))
+  check('fb036b: a cheap auction listed after today\'s Full scan is opened', opened[scan.item_key_string(lone.itemKey)])
+  sniper.check_item = real_check
+  G.GetItemInfo = real_info
+  rawset(C_AuctionHouse, 'GetItemKeyInfo', real_key_info)
+  sniper.settings_changed()
+  for _, key in ipairs{'901:0', '902:0', '903:0'} do h.data[key] = nil end
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
 dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({

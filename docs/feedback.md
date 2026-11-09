@@ -1855,7 +1855,7 @@ copies the rows already there)?
 - Area: Sniper
 - Severity: S2 (the player loses money buying "deals" that are the normal price; the Sniper can be
   ignored)
-- Status: in-progress 0.8.2 (`claude/magical-maxwell-eyud0b`, commits bde3033 and 4090883: deals judged against the lower of the usual price and today's market; not yet seen in game)
+- Status: in-progress 0.8.2 (`claude/magical-maxwell-eyud0b`, commits bde3033 and 4090883: deals judged against the lower of the usual price and today's market; build 2: the list check also uses today's Full scan and other versions of the name; not yet seen in game)
 - Proposed: 0.8.2
 
 Said:

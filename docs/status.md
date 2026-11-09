@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-09, Tyler's time (**0.8.2 build 1** built on `claude/magical-maxwell-eyud0b`, waiting for Tyler's test; 0.8.1 is the latest release).
+Last updated 2026-11-09, Tyler's time (**0.8.2 build 2** on `claude/magical-maxwell-eyud0b`, waiting for Tyler's test; build 1 was never tested, the game was down; 0.8.1 is the latest release).
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
@@ -139,6 +139,17 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 the supporting model for second opinions, written in `docs/reviews/` (`AGENTS.md`, "Roles").
 Agents talk through `docs/handoff.md`; Tyler only says "Check the handoff" to whoever goes next.
 Nothing is open there (H-006 done, 2026-11-08).
+
+**2026-11-09, Claude, 0.8.2 build 2:** Forever was down, so build 1 was not tested. Swiftwren's
+second comment (FB-036: Invoker's Cord at 12s next to 78 at 13s, 1,792 possible deals in a round)
+showed two gaps: the round's list check opened every item cheap against the usual price (a request
+each), and one gear name can be listed under several versions, of which the Sniper read only the
+cheap one. The list check now also uses today's complete look (`history.latest`, age 0) and the
+other versions' lowest prices; an opened version counts them as supply (`market_now`). Trade-off,
+written in the code: an auction alone and listed since today's Full scan is that scan's price and
+no longer offered. Test `0.8.2: the Sniper's list check knows today's market`, checked to fail
+without it. Test page build id `0-8-2-build-2`, zip `auxForever-0.8.2-build2.zip`, same steps
+(step 5 now asks for the possible deals count).
 
 **2026-11-09, Claude, 0.8.2 build 1** (Tyler: "let's fix all these issues", no Gemini review asked):
 every open 0.8.2 item built, each with a test checked to fail without it (`docs/changelog.md`, 0.8.2):

@@ -40,6 +40,10 @@ local known = {} -- item key text -> the lowest price already judged
 local markets = {}
 MARKET_MEMORY = 15 * 60 -- seconds a read market is trusted for that
 local seen_items = {} -- during a round: item key text -> lowest price on the list
+-- 0.8.2 build 2 (FB-036, Swiftwren's Invoker's Cord): during a round, price key -> the list's entry
+-- for that item, or a list of entries when one gear name is listed under several versions (same
+-- stats, docs/forever-auction-house.md). One table for every round, like seen_items.
+local versions = {}
 local next_round_at
 local last_alert -- GetTime() of the last sound
 local checked -- the selected deal, as the buy bar shows it
@@ -96,7 +100,7 @@ end
 -- against the usual price, as before. Costs no request: the Sniper reads a candidate's auctions anyway.
 MARKET_NOW_SHARE = .25
 MARKET_SELLERS = 3
-function M.market_now(records)
+function M.market_now(records, other_versions)
     local cheapest
     for _, record in ipairs(records or empty) do
         if not record.own and (record.buyout_price or 0) > 0 then
@@ -121,6 +125,12 @@ function M.market_now(records)
                 sellers = sellers + max(1, record.seller_count or 1)
             end
         end
+    end
+    -- 0.8.2 build 2: the lowest price of each other version of the same gear name (same stats) is
+    -- the same item for sale too; only its lowest listing is known, so it counts as one unit
+    for _, price in ipairs(other_versions or empty) do
+        tinsert(others, {price = price, units = 1})
+        total = total + 1
     end
     if total > 0 then
         sort(others, function(a, b) return a.price < b.price end)
@@ -242,7 +252,7 @@ end
 
 -- Open one item (inside the round) and keep its cheapest auction when it is a deal. price: its
 -- lowest price on the list, which counts as judged once the item is open.
-function check_item(item_key, key, price)
+function check_item(item_key, key, price, other_versions)
     local records = scan.read_item(item_key)
     if not records then
         known[key] = nil -- no answer: try again next round
@@ -264,7 +274,7 @@ function check_item(item_key, key, price)
         set_gone(old)
         return
     end
-    local market = market_now(records)
+    local market = market_now(records, other_versions)
     markets[key] = market and {market = market, at = GetTime()} or nil
     local reason, profit, pct = judge_record(cheapest, market)
     if not reason then
@@ -312,9 +322,45 @@ end
 
 -- One round's item list: judge every item whose lowest price changed, then open the ones that
 -- look like a deal
+-- the lowest prices of the other versions of a candidate's name on this round's list (nil: none)
+local function other_versions(price_key, result)
+    local entry = price_key and versions[price_key]
+    if type(entry) ~= 'table' or entry.itemKey then
+        return
+    end
+    local prices
+    for _, other in ipairs(entry) do
+        if other ~= result then
+            prices = prices or {}
+            tinsert(prices, other.minPrice)
+        end
+    end
+    return prices
+end
+
 function check_list(results, seen)
     local percent, min_profit = settings()
-    local candidates = {}
+    local candidates, candidate_versions = {}, {}
+    -- 0.8.2 build 2: the versions of each name first, so a version is judged next to the others
+    aux.wipe(versions)
+    for i, result in ipairs(results) do
+        if (result.totalQuantity or 0) > 0 and (result.minPrice or 0) > 0 then
+            local price_key = info.item_key_price_key(result.itemKey)
+            if price_key then
+                local entry = versions[price_key]
+                if not entry then
+                    versions[price_key] = result
+                elseif entry.itemKey then
+                    versions[price_key] = {entry, result}
+                else
+                    tinsert(entry, result)
+                end
+            end
+        end
+        if i % 200 == 0 then
+            aux.coro_wait()
+        end
+    end
     for i, result in ipairs(results) do
         local price = result.minPrice or 0
         if (result.totalQuantity or 0) > 0 and price > 0 then
@@ -330,10 +376,26 @@ function check_list(results, seen)
                     -- stopped by a click on a deal left the rest marked judged, never opened, so
                     -- those deals were missed until their price changed (found with the slow test
                     -- auction house)
+                    -- today's market, as far as the list and price history know it (0.8.2): the
+                    -- market last read when the item was opened, the price of today's complete look
+                    -- (a Full scan today: 1,792 items were opened in one round for Swiftwren, each
+                    -- a request, though the scan already showed most were the normal price), and
+                    -- the lowest price of another version of the same name. The lowest counts.
+                    -- (An auction alone and listed since today's Full scan is that scan's price, so
+                    -- it is no longer offered; one listed after it is.)
                     local memory = markets[key]
                     local market = memory and GetTime() - memory.at < MARKET_MEMORY and memory.market or nil
+                    local latest, age = history.latest(price_key)
+                    if latest and latest > 0 and age == 0 then
+                        market = market and min(market, latest) or latest
+                    end
+                    local others = other_versions(price_key, result)
+                    for _, other in ipairs(others or empty) do
+                        market = market and min(market, other) or other
+                    end
                     if judge(price, usual, vendor, days, percent, min_profit, market) then
                         tinsert(candidates, result)
+                        candidate_versions[#candidates] = others
                     else
                         known[key] = price
                     end
@@ -346,8 +408,8 @@ function check_list(results, seen)
     end
     -- each one is a request: shown as "checking 12 possible deals (3 done)" while it runs
     checking = {done = 0, total = #candidates}
-    for _, result in ipairs(candidates) do
-        check_item(result.itemKey, scan.item_key_string(result.itemKey), result.minPrice)
+    for i, result in ipairs(candidates) do
+        check_item(result.itemKey, scan.item_key_string(result.itemKey), result.minPrice, candidate_versions[i])
         checking.done = checking.done + 1
     end
     checking = nil

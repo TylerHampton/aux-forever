@@ -8,11 +8,13 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.2 build 1
+## Current build: 0.8.2 build 2
 
 Fixes and small changes from player feedback (FB-025, FB-027, FB-028, FB-033, FB-035, FB-036,
-FB-037). Zip
-`auxForever-0.8.2-build1.zip`; `/reload` is enough. Test page build id `0-8-2-build-1`.
+FB-037). Build 1 was never tested (the game was down); build 2 adds Swiftwren's second comment: the
+Sniper's list check uses today's Full scan and other versions of the same gear name, so far fewer
+items are opened per round (FB-036). Zip `auxForever-0.8.2-build2.zip`; `/reload` is enough. Test
+page build id `0-8-2-build-2`. The steps are the same as build 1's.
 
 - [ ] 1. Full scan with the Sniper running. Open the Sniper tab and click Start. Then click Full
       scan at the top right (if it is grayed out, point the mouse at it: it says when it is
@@ -28,8 +30,10 @@ FB-037). Zip
       for 20". Hold Shift: the line shows the whole stack's price and ends with "for 20".
 - [ ] 4. Click the gear at the top right (Settings). Under Tooltip lines there is a new row,
       Usually, under Value, and nothing is cut off at the bottom of the window.
-- [ ] 5. Sniper tab, Start, and let it run about 2 minutes. Screenshot the deals table, with the
-      Why column showing. (A deal now says "% of usual" or "% of market"; I check the screenshot.)
+- [ ] 5. Right after the Full scan of step 1, Sniper tab, Start, and let it run about 2 minutes.
+      Screenshot the Sniper with its deals table and the line above it ("checking ... possible
+      deals" while a round runs). Expect far fewer possible deals than before and none like
+      Swiftwren's (an item listed by many at about the same price).
 - [ ] 6. Only if the Sniper finds a deal while you watch: when it appears (with the sound), click it
       within 15 seconds. The Buy button appears at once, without a "Checking..." message first. Do
       not buy. (A deal found longer ago is checked again first, as before.)

@@ -17,6 +17,11 @@ A change that comes from a player's feedback credits them by in-game name at the
   before calling a deal, so this costs nothing). When that is lower than the usual
   price, the deal is judged against it and the Why column says "% of market". A single cheap
   auction on its own is still judged against the usual price (reported by Swiftwren).
+- The Sniper opens far fewer items per round. Before opening an item it now also compares with the
+  price from today's Full scan and with other listings of the same gear under another version, so
+  a normal price is not opened at all (Swiftwren saw 1,792 possible deals in one round, each one a
+  request). An Invoker's Cord at 12s next to 78 at 13s is not a deal, whether the 78 are the same
+  version or another. A cheap auction listed after today's Full scan is still found.
 - Clicking a deal found in the last 15 seconds shows the Buy button at once, without reading the
   item again first. Older deals are still read again. Buying still never spends more than the
   price shown (reported by user_ayzkr6rhvrlna3ya).
