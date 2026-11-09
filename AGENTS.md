@@ -169,6 +169,11 @@ for f in $(find . -name '*.lua'); do luac5.1 -p "$f"; done   # syntax check
 - Tests cannot show layout or how the game reacts. Add the in-game checks for each change to
   `TESTING.md` ("Current build") so Tyler can verify; Claude also makes a test page per build
   where Tyler marks each step and Claude reads the results.
+- Write each step so Tyler can follow it without guessing (Tyler, 2026-11-08, on a step that said
+  "Hover that line. Under the total: '<item> sells for' ...": "It was very unclear what you were
+  asking"). Name the exact action and where ("point the mouse at the Materials line, without
+  clicking"), say what appears in the words the screen uses, with a real example instead of
+  placeholders such as `<item>`, and ask for one thing per step.
 
 ### Releases
 

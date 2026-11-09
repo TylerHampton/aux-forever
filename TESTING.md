@@ -29,9 +29,11 @@ screenshots (`hillman's cloak/exact` lists Hillman's Cloak, 415 for sale; Robes 
 the same way); step 3 fails: his Professions window, at a spot he set himself, went to the far left
 behind aux when the auction house opened, and on reopening it "starts on the left then teleports
 to its custom position set by me" (fixed in build 2); step 4 passes; step 5 works from the
-screenshot (Woolen Bag: "Materials 12s 97c  Loss 8s 22c"); step 6's hover shows "Woolen Bag sells
-for 5s seen today, After the 5% auction house cut 4s 75c, Loss 8s 22c", Tyler's note "What?";
-step 7 skipped.
+screenshot (Woolen Bag: "Materials 12s 97c  Loss 8s 22c"); step 6 passes from the same screenshot
+(the hover shows "Woolen Bag sells for 5s seen today, After the 5% auction house cut 4s 75c, Loss
+8s 22c"); Tyler's note "What?" meant the step's wording was unclear ("It was very unclear what you
+were asking"), not the result, so the step-writing rule in `AGENTS.md` ("Tests") was added; step 7
+skipped.
 
 ### 0.8.1 build 1
 

@@ -35,8 +35,9 @@ four, then the three profit steps).
 Blizzard UI step and the profit line work; the Professions step failed because Tyler keeps that
 window at his own spot and aux pulled it to the far left behind aux. Build 2 moves the side window
 only when it stands exactly where the game's right place puts it (`settle_side_panel`), with a test
-that fails on build 1. Open: Tyler's "What?" on the profit hover (unclear step, or surprised that
-Woolen Bag shows a loss of 8s 22c because it was seen selling for 5s). Test page build id
+that fails on build 1. Tyler's "What?" on the profit hover meant the step was worded unclearly; the
+hover itself is right in his screenshot, so step 6 passes. New rule for writing test steps in
+`AGENTS.md` ("Tests"). Test page build id
 `0-8-1-build-2` (three steps), zip `auxForever-0.8.1-build2.zip`.
 
 **2026-11-08, Claude, feedback batch (docs only, no addon change):** Tyler passed on CurseForge
