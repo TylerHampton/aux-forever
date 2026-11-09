@@ -141,6 +141,7 @@ For whoever fixes or builds from it:
 | [FB-032](#fb-032-start-a-full-scan-when-the-window-opens-if-the-15-minute-wait-is-over) | 2026-11-08 | Chawitsch | request | Settings | n/a | Start a full scan when the window opens, if the 15 minute wait is over | planned 0.9 (Tyler: option, off by default) |
 | [FB-033](#fb-033-tooltip-prices-for-the-whole-stack-not-one-item) | 2026-11-08 | Chawitsch | ux | Other | n/a | Tooltip prices for the whole stack, not one item | planned 0.8.2 |
 | [FB-034](#fb-034-opening-aux-moves-blizzards-professions-window-to-the-right) | 2026-11-08 | Chawitsch | bug | Window | S3 | Opening aux moves Blizzard's Professions window to the right | fixed 0.8.1 (released 2026-11-09) |
+| [FB-035](#fb-035-a-setting-to-hide-the-usually-price-line-in-tooltips) | 2026-11-09 | deep_structure | request | Settings | n/a | A setting to hide the "usually" price line in tooltips | new |
 
 ## Players
 
@@ -176,7 +177,7 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
 - **RushJet1**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-025.
   Writes search text by hand (`armor/mail/chest/usable/strength`).
 - **deep_structure**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for
-  FB-026.
+  FB-026 and FB-035.
 - **user_ayzkr6rhvrlna3ya**: CurseForge commenter (a name CurseForge generated; in-game name
   unknown). Reported FB-027 and FB-028. Used aux for a couple of weeks before Forever launched.
   Uses the Sniper.
@@ -1800,6 +1801,43 @@ Unknowns: which addon (or game setting) keeps Tyler's window position; the fix d
 it.
 
 Ask Tyler: the in-game check is step 3 of 0.8.0.1 build 1 (`TESTING.md`).
+
+### FB-035: A setting to hide the "usually" price line in tooltips
+
+- Received: 2026-11-09 (posted about 6 hours before Tyler's screenshot)
+- From: deep_structure (1 request)
+- Where: CurseForge comment on the auxForever project page, a reply to their own FB-026 comment
+- Source: [source](feedback/sources/2026-11-09-deep_structure-curseforge.md)
+- Version: 0.8 or earlier (posted before 0.8.1 was released; the line exists since 0.5)
+- Type: request
+- Area: Settings (tooltips)
+- Severity: n/a
+- Status: new
+- Proposed: 0.8.2 (a small thing: one switch)
+
+Said:
+> also is it possible to remove the 'usually' price as an option?
+
+Steps / setup: none; a request.
+
+Tyler's notes: none yet.
+
+Recorder's notes (from the code):
+- Under Value, the item tooltip adds a gray line "usually 12s" (the multi-day usual price) when it
+  differs from Value by 30% or more (`core/tooltip.lua`, `history.usually_differs`,
+  `USUALLY_SHARE = .3`, since 0.5 build 3). It belongs to the Value line: the only way to hide it
+  today is to hide Value too ("Value" switch in Settings, Tooltip lines, or `/aux tooltip value`).
+- A fix fits the existing switches: a "Usually" row in Settings, Tooltip lines (kept per character,
+  like the others), and the same as a chat command (AGENTS.md: a setting with a chat command
+  behaves the same from both). Default on, so nothing changes for other players.
+- Inference: the reason is not given. It may be clutter, or two prices on one tooltip being
+  confusing (FB-030 asked how the % of the historical value works). Under the main rule, if the
+  line confuses, its wording is the addon's to fix too; the switch is what was asked.
+
+Unknowns: why the player wants it off. The switch works whatever the reason.
+
+Ask Tyler: is a switch the right answer, and does adding one row to Settings need a mockup (it
+copies the rows already there)?
 
 ## Before this log
 
