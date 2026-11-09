@@ -650,6 +650,61 @@ function M.subsubcategory_index(category_index, subcategory_index, subsubcategor
     end
 end
 
+-- 0.8.0.1 (FB-024, reported by GregoryWW): the game's equip location of an item (GetItemInfo's
+-- ninth answer) as the inventory type number Forever's auction house categories use
+-- (Enum.InventoryType; the numbers in tests/forever_categories.lua)
+local INVENTORY_TYPES = {
+    INVTYPE_HEAD = 1, INVTYPE_NECK = 2, INVTYPE_SHOULDER = 3, INVTYPE_BODY = 4, INVTYPE_CHEST = 5,
+    INVTYPE_WAIST = 6, INVTYPE_LEGS = 7, INVTYPE_FEET = 8, INVTYPE_WRIST = 9, INVTYPE_HAND = 10,
+    INVTYPE_FINGER = 11, INVTYPE_TRINKET = 12, INVTYPE_WEAPON = 13, INVTYPE_SHIELD = 14,
+    INVTYPE_RANGED = 15, INVTYPE_CLOAK = 16, INVTYPE_2HWEAPON = 17, INVTYPE_BAG = 18,
+    INVTYPE_TABARD = 19, INVTYPE_ROBE = 20, INVTYPE_WEAPONMAINHAND = 21, INVTYPE_WEAPONOFFHAND = 22,
+    INVTYPE_HOLDABLE = 23, INVTYPE_AMMO = 24, INVTYPE_THROWN = 25, INVTYPE_RANGEDRIGHT = 26,
+    INVTYPE_QUIVER = 27, INVTYPE_RELIC = 28,
+}
+
+-- The slot of an item in the auction house's categories, found by its equip location
+-- ("INVTYPE_CLOAK"), not by name: the game names slots ("Cloak") differently from equip locations,
+-- so an exact search never had a slot. Worse, a cloak is cloth armor that Forever files under
+-- Armor > Miscellaneous > Cloak (Blizzard's Camelot/Blizzard_AuctionData.lua), so an exact search
+-- for one asked for Armor > Cloth, which has no cloaks, and found nothing. Looks in the item's own
+-- type first (Cloth > Head), then in its whole category, used only when exactly one slot there
+-- holds that equip location. Returns the type and slot numbers; the type unchanged and no slot
+-- when nothing fits (weapons, whose slots are weapon types, not equip locations).
+function M.inventory_slot(category_index, subcategory_index, equip_location)
+    local inventory_type = INVENTORY_TYPES[equip_location or '']
+    local category = category_index and AuctionCategories[category_index]
+    if not inventory_type or not category then
+        return subcategory_index
+    end
+    local function holds(slot)
+        for _, filter in ipairs(slot.filters or empty) do
+            if filter.inventoryType == inventory_type then
+                return true
+            end
+        end
+    end
+    local subcategories = category.subCategories or empty
+    local own = subcategory_index and subcategories[subcategory_index]
+    for i, slot in ipairs(own and own.subCategories or empty) do
+        if holds(slot) then
+            return subcategory_index, i
+        end
+    end
+    local found_type, found_slot, count = nil, nil, 0
+    for t, subcategory in ipairs(subcategories) do
+        for i, slot in ipairs(subcategory.subCategories or empty) do
+            if holds(slot) then
+                found_type, found_slot, count = t, i, count + 1
+            end
+        end
+    end
+    if count == 1 then
+        return found_type, found_slot
+    end
+    return subcategory_index
+end
+
 function M.item_quality_index(item_quality)
     for i = 0, 4 do
         local quality = _G['ITEM_QUALITY' .. i .. '_DESC']

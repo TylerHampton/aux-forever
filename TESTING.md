@@ -8,7 +8,77 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8 build 14
+## Current build: 0.8.1 build 2
+
+One fix from Tyler's build 1 test. Tyler keeps his Professions window where he dragged it; with
+aux open, build 1 pulled it to the far left, behind aux's window (the fix for FB-034 moved any
+window in the right-hand place). Now aux only undoes the game's own small shift and leaves a window
+the player placed alone. Zip `auxForever-0.8.1-build2.zip`; `/reload` is enough. Test page build id
+`0-8-1-build-2`.
+
+- [ ] 1. Stand next to an auctioneer. Open your Professions window (it appears at the spot you
+      moved it to). Right-click the auctioneer, so aux opens. The Professions window does not move
+      (in build 1 it jumped to the far left, behind aux).
+- [ ] 2. Keep aux open. Close the Professions window with its X, then open it again. It ends up at
+      your spot (flashing at the left first and then jumping there is fine; it did that in build 1
+      too).
+- [ ] 3. In the Professions window, click a recipe whose item you have never searched for in aux
+      (for example one you just learned). The small line under its reagents reads like
+      "Materials 2s 40c   no sell price yet".
+
+Tested by Tyler 2026-11-08 (build 2, test page `0-8-1-build-2`): steps 1 and 2 pass (the
+Professions window, at his own spot, stays there when aux opens and after reopening). Step 3 could
+not be done: "I dont think I have a single item that aux didnt already fullscan." The step needed
+something the tester does not have (the rule under "For agents"); the "no sell price yet" case is
+covered by the automated test `fb026: a made item with no price says so`. Every 0.8.1 change has
+now passed in game.
+
+Tested by Tyler 2026-11-08 (build 1, test page `0-8-1-build-1`): steps 1 and 2 pass from the
+screenshots (`hillman's cloak/exact` lists Hillman's Cloak, 415 for sale; Robes of Arcana found
+the same way); step 3 fails: his Professions window, at a spot he set himself, went to the far left
+behind aux when the auction house opened, and on reopening it "starts on the left then teleports
+to its custom position set by me" (fixed in build 2); step 4 passes; step 5 works from the
+screenshot (Woolen Bag: "Materials 12s 97c  Loss 8s 22c"); step 6 passes from the same screenshot
+(the hover shows "Woolen Bag sells for 5s seen today, After the 5% auction house cut 4s 75c, Loss
+8s 22c"); Tyler's note "What?" meant the step's wording was unclear ("It was very unclear what you
+were asking"), not the result, so the step-writing rule in `AGENTS.md` ("Tests") was added; step 7
+skipped.
+
+### 0.8.1 build 1
+
+0.8.0.1 build 1 (below, the cloak search and the Professions window, unchanged) plus profit or
+loss on the profession window's Materials line (FB-026, deep_structure; option A of the mockup,
+https://claude.ai/artifact/6VxaaXKXe3f9uJEjK7Gtoy). Zip `auxForever-0.8.1-build1.zip`; `/reload`
+is enough. Test page build id `0-8-1-build-1`: seven steps, 0.8.0.1 build 1's four steps (below)
+first, then these three (Tyler had not started the 0.8.0.1 page).
+
+- [ ] 1. Open your Professions window and pick a recipe whose made item aux has seen (searched or
+      full scanned), for example Woolen Bag. The line under the reagents reads "Materials ...
+      Profit ..." in green, or "Loss ..." in red. Screenshot it.
+- [ ] 2. Hover that line. Under the total: "<item> sells for" with how old the price is, "After
+      the 5% auction house cut", and Profit or Loss with the same amount as the line.
+- [ ] 3. Pick a recipe whose made item aux has never seen: the line says "no sell price yet". If
+      you have a recipe that makes no item (an enchant), it shows the cost only.
+
+### 0.8.0.1 build 1
+
+Two bug fixes from player feedback. An exact search for a cloak found nothing (FB-024, GregoryWW:
+`hillman's cloak/exact`): aux asked for Cloth armor, and Forever keeps cloaks under Miscellaneous,
+Cloak (Blizzard's code). With aux open, the Professions window moved a little to the right
+(FB-034, Chawitsch): the game places side windows next to its own auction house window, which aux
+keeps open but shrunk and invisible; aux now puts the side window back. Zip
+`auxForever-0.8.0.1-build1.zip`; `/reload` is enough. Test page build id `0-8-0-1-build-1`.
+
+- [ ] 1. Search for a cloak that is for sale with `/exact` after its name (for example
+      `hillman's cloak/exact`; search `cloak` first to find one). It lists that cloak.
+- [ ] 2. The same with a necklace, ring or robe that is for sale: it is found too.
+- [ ] 3. Away from the auction house, open your Professions window and note where it sits. Open
+      the auction house (aux opens): the Professions window stays where it was. Close it and open
+      it again while aux is open: same place. Before, it moved a little to the right.
+- [ ] 4. Click Blizzard UI, then go back to aux, then close the auction house. No errors, and the
+      Professions window (if open) is still usable where it is.
+
+### 0.8 build 14
 
 Two fixes from Tyler's build 13 test. Crates hovered in aux's results showed no "Cheapest way to
 fill it" lines (Journeyman Herbs, Artisan Curiosities). Likely cause (not confirmed in game): the

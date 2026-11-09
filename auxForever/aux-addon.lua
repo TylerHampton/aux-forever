@@ -283,6 +283,53 @@ do
         return blizzard_visible
     end
 
+    -- 0.8.0.1 (FB-034, reported by Chawitsch): Blizzard's auction house window takes the left and
+    -- center places of the game's window layout ("doublewide"), so a side window such as
+    -- Professions goes to the right of it. Shrunk to 1% and invisible, that window is only a few
+    -- pixels wide, so the side window moved a little to the right whenever aux was open
+    -- (Blizzard_UIParentPanelManager, UpdateUIPanelPositions: the right place starts after the
+    -- doublewide window's width and offset, plus the gap). While Blizzard's window is hidden, the side
+    -- window goes back to where it stands without the auction house: the left place, at the game's
+    -- own offsets. aux only moves that window after the game placed it (a hook that runs after the
+    -- game's code), never changes the game's layout tables, and skips protected windows in combat.
+    -- 0.8.1 build 2 (Tyler's test): only a window standing exactly where the game's right place puts
+    -- it is moved. A window the player placed themselves (with an addon that keeps windows where they
+    -- were dragged) was pulled to the left, behind aux; it is now left where it is.
+    local function number(v) return type(v) == 'number' and v or 0 end
+
+    function M.settle_side_panel()
+        if blizzard_visible or not AuctionHouseFrame or not GetUIPanel or GetUIPanel('doublewide') ~= AuctionHouseFrame then
+            return
+        end
+        local side = GetUIPanel('right')
+        if not side or (side.IsProtected and side:IsProtected() and InCombatLockdown()) then
+            return
+        end
+        local point, relative_to, relative_point, x, y = side:GetPoint(1)
+        if point ~= 'TOPLEFT' or type(x) ~= 'number' or not GetUIPanelLayoutAttribute or not GetUIPanelWidth then
+            return
+        end
+        local scale = side:GetScale()
+        local left = number(GetUIPanelLayoutAttribute('LEFT_OFFSET')) + number(side:GetAttribute('UIPanelLayout-xoffset'))
+        -- where the game puts the right place: after the auction house window as it is now (1%), or
+        -- at full size when the layout ran before aux shrank it
+        local gap = number(AuctionHouseFrame:GetAttribute('UIPanelLayout-xoffset')) + number(GetUIPanelLayoutAttribute('PANEl_SPACING_X'))
+        local widths = {number(GetUIPanelWidth(AuctionHouseFrame)), GetUIPanelWidthUnscaled and number(GetUIPanelWidthUnscaled(AuctionHouseFrame)) or nil}
+        for _, width in ipairs(widths) do
+            if abs(x * scale - (left + width + gap)) < 1.5 then
+                side:SetPoint('TOPLEFT', relative_to, relative_point, left / scale, y)
+                return
+            end
+        end
+    end
+
+    local layout_hooked
+    function M.hook_panel_layout()
+        if layout_hooked or not UpdateUIPanelPositions then return end
+        layout_hooked = true
+        hooksecurefunc('UpdateUIPanelPositions', function() settle_side_panel() end)
+    end
+
     function M.set_blizzard_frame_shown(shown)
         if not AuctionHouseFrame then return end
         blizzard_visible = shown
@@ -300,6 +347,8 @@ do
             AuctionHouseFrame:SetScale(HIDDEN_SCALE)
             AuctionHouseFrame:SetAlpha(0)
             AuctionHouseFrame:EnableMouse(false)
+            -- the game may have placed a side window while this window was still full size
+            settle_side_panel()
         end
         do (update_blizzard_button or pass)() end
     end
@@ -324,12 +373,14 @@ do
 
     function event.AUCTION_HOUSE_LOADED()
         hook_blizzard_frame()
+        hook_panel_layout()
     end
 end
 
 function AUCTION_HOUSE_SHOW()
     compat_load_auction_house_ui()
     hook_blizzard_frame()
+    hook_panel_layout()
     if AuctionHouseFrame and AuctionHouseFrame:IsShown() then
         set_blizzard_frame_shown(false)
     end

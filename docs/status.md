@@ -1,6 +1,67 @@
 # Status
 
-Last updated 2026-11-08, Tyler's time (0.8 build 14 passed in game; waiting for Tyler's "release 0.8"; 0.7.1.1 is the latest release).
+Last updated 2026-11-08, Tyler's time (0.8 released, tag `v0.8`; **0.8.1 tested and ready** on `claude/magical-maxwell-eyud0b`, waiting for Tyler's "release").
+
+**2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
+("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
+Two fixes, each with a test that fails without it:
+- FB-024 (GregoryWW): an exact search for a cloak asked for Armor > Cloth; Forever keeps cloaks
+  under Armor > Miscellaneous > Cloak (Blizzard's `Camelot/Blizzard_AuctionData.lua`, build
+  70862). Gear's slot is now found by equip location (`info.inventory_slot`, `util/info.lua`).
+- FB-034 (Chawitsch): Blizzard's auction house window is "doublewide", so the game puts a side
+  window such as Professions to its right; at aux's 1% scale that is about 60 pixels right of its
+  usual place. aux now moves the side window back after each layout (`settle_side_panel` in
+  `aux-addon.lua`, a `hooksecurefunc` on `UpdateUIPanelPositions`), only while Blizzard's window is
+  hidden and never a protected window in combat. Risk to watch in game: this is the first time aux
+  moves a Blizzard window; step 4 checks for errors.
+Version `forever-0.8.0.1` in the TOC, changelog entry "0.8.0.1 (not released yet)", checklist in
+`TESTING.md`, zip `auxForever-0.8.0.1-build1.zip`, test page build id `0-8-0-1-build-1`. Next:
+read the test page results; if they pass, ask Tyler whether 0.8.0.1 ships (pull request, merge,
+Release workflow), then 0.8.1. Decided for 0.8.1 (Tyler, 2026-11-08): profit goes on the
+Materials line (FB-026), reversing FB-007's "cost only, no profit". Mockup made while Tyler tests
+0.8.0.1: https://claude.ai/artifact/6VxaaXKXe3f9uJEjK7Gtoy (options A, B, C); Tyler chose A.
+
+**2026-11-08, Claude, 0.8.1 build 1:** option A built (`tabs/search/recipe.lua`: `recipe_sale`, the
+line and its hover; test `0.8.1: profit or loss on the Materials line`, checked to fail without
+it). Built on the same branch while 0.8.0.1 build 1 was in testing, so the next release from this
+branch carries both: Claude proposed naming it 0.8.1 and moving the speed work (FB-025, FB-027,
+FB-028) and the Shift hint (FB-033) to 0.8.2 (`docs/roadmap.md`). If Tyler wants 0.8.0.1 shipped on
+its own first, revert this commit, release, then re-apply it. Version `forever-0.8.1`; checklist in
+`TESTING.md` (0.8.1 build 1, three steps); zip `auxForever-0.8.1-build1.zip`. Tyler had not started the
+0.8.0.1 page, so the test page now holds all seven steps under build id `0-8-1-build-1` (0.8.0.1's
+four, then the three profit steps).
+
+**2026-11-08, Claude, 0.8.1 build 2:** Tyler's build 1 test (`TESTING.md`): the cloak search, the
+Blizzard UI step and the profit line work; the Professions step failed because Tyler keeps that
+window at his own spot and aux pulled it to the far left behind aux. Build 2 moves the side window
+only when it stands exactly where the game's right place puts it (`settle_side_panel`), with a test
+that fails on build 1. Tyler's "What?" on the profit hover meant the step was worded unclearly; the
+hover itself is right in his screenshot, so step 6 passes. New rule for writing test steps in
+`AGENTS.md` ("Tests"). Test page build id
+`0-8-1-build-2` (three steps), zip `auxForever-0.8.1-build2.zip`.
+
+**2026-11-08, 0.8.1 tested:** build 2 passes in game (the Professions window stays at Tyler's own
+spot when aux opens and after reopening). Its third step could not be done (every item Tyler has
+is full scanned); the automated test covers it. Every 0.8.1 change has passed in game: the cloak
+search (FB-024), the Professions window (FB-034), the profit line (FB-026). 0.8.1 is a patch, so the
+5-minute check is not needed (it is for minor releases). Next: Tyler says whether 0.8.1 ships;
+then the changelog section gets its date, a PR from `claude/magical-maxwell-eyud0b` to `main`,
+merge, and the Release workflow (which also uploads to CurseForge). After that, 0.8.2 (speed).
+
+**2026-11-08, Claude, feedback batch (docs only, no addon change):** Tyler passed on CurseForge
+comments, all written before 0.8. Logged as FB-024 to FB-034 in `docs/feedback.md` (source
+`docs/feedback/sources/2026-11-08-curseforge-comments.md`), each checked against the code:
+- Bugs: an exact search for a cloak finds nothing (FB-024; likely aux's request uses Armor >
+  Cloth, while cloaks sit under Miscellaneous), a tooltip word makes a search take minutes
+  (FB-025), the full scan takes 5+ minutes (FB-027), the Sniper takes 30+ seconds from sound to
+  purchase (FB-028), opening aux moves the Professions window (FB-034).
+- Already there but not found: profit or loss is in the recipe search's bottom bar, not on the
+  Materials line (FB-026); Shift shows a stack's prices in tooltips (FB-033).
+- Requests: prices per gear ending (FB-029, built in 0.8), how the % works and more history
+  (FB-030), posting rules like TSM (FB-031), an automatic full scan on open, off by default
+  (FB-032, Tyler already agreed in his reply).
+Next: Tyler picks what goes into 0.8.0.1 (bug fixes), 0.8.1 (speed) and 0.9 (features); each
+entry has a "Proposed" line and short "Ask Tyler" checks.
 
 **2026-11-08, Claude, 0.8 build 14:** Tyler's build 13 test: Seller sort, gear Value and the new
 help text pass; crates hovered in aux's results showed no costs, and For sale sorted an item by its
@@ -79,8 +140,8 @@ with a controller (nokkty tested it on the beta).
 
 The 5-minute check (`TESTING.md`) is done on the released game (2026-11-08): steps 1 to 5 during
 builds 9 and 10, step 6 (the Materials line, 13s 84c for a Woolen Bag, and Search in aux with the
-cost line) from Tyler's screenshot. Next: 0.8 releases once Tyler says "release 0.8" (pull request,
-merge, Release workflow). Open: E7 (replaced searches). The `<>` was aux's way of writing an empty search, shown in the bar after clearing it (fixed in build 11).
+cost line) from Tyler's screenshot. 0.8 was released on 2026-11-08 (tag `v0.8`). Next: the feedback batch
+FB-024 to FB-034 (above). Open: E7 (replaced searches). The `<>` was aux's way of writing an empty search, shown in the bar after clearing it (fixed in build 11).
 
 **Was on hiatus (Tyler, 2026-10-26):** "We are going to be on developmental hiatus until the game
 releases and I can begin rapid iterative testing." Work picks up again in the same Claude Code

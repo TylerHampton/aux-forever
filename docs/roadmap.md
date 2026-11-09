@@ -5,10 +5,28 @@ TOC. Every release gets an entry in `docs/changelog.md`. Numbering (Tyler, 2026-
 raises the fourth number (0.6 -> 0.6.0.1 -> 0.6.0.2); a bigger update within the same version
 raises the third (0.6.1); new features are the next minor version (0.7).
 
-**Paused (Tyler, 2026-10-26)** until World of Warcraft: Forever releases; work resumes
-2026-11-08 (`docs/status.md`, "Start here"). 0.8 is built (builds 1 to 6), not yet released.
+0.8 was released on 2026-11-08 (tag `v0.8`).
 
-## 0.8: planned (Tyler, 2026-10-17)
+## After 0.8: the plan for the next versions (Tyler, 2026-11-08: "go with your version plan")
+
+From the player feedback logged on 2026-11-08 (FB-024 to FB-034, `docs/feedback.md`):
+
+- **0.8.1 (building):** the two bug fixes first built as 0.8.0.1: an exact search for a cloak
+  finds nothing (FB-024, GregoryWW); opening aux moves the Professions window to the right (FB-034,
+  Chawitsch). Plus profit or loss on the profession window's Materials line (FB-026,
+  deep_structure; Tyler, 2026-11-08, reverses FB-007's "cost only, no profit"; option A of the
+  mockup). The profit line was built while 0.8.0.1 was in testing, so the two ship together as
+  0.8.1 (Claude's proposal, 2026-11-08; Tyler can keep 0.8.0.1 separate instead).
+- **0.8.2 (speed and small things):** a search with a tooltip word reads every auction and takes
+  minutes (FB-025, RushJet1); the full scan takes 5+ minutes (FB-027) and the Sniper 30+ seconds
+  from its sound to the purchase (FB-028, both user_ayzkr6rhvrlna3ya), measure first; a hint in
+  the tooltip that Shift shows the whole stack (FB-033, Chawitsch).
+- **0.9 (features), with the 0.9 list below:** a Settings option to start a full scan when the
+  window opens, off by default (FB-032, Chawitsch; Tyler agreed in his reply); posting rules
+  based on the usual price, like TSM (FB-031, user_yt0k9lezehn1ukm993387), mockup first.
+- Not placed yet: showing how many days a usual price rests on, and keeping more days (FB-030).
+
+## 0.8: released 2026-11-08 (planned by Tyler, 2026-10-17)
 
 Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear versions.
 

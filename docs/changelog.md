@@ -6,6 +6,32 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.8.1 (2026-11-09)
+
+### Professions window
+
+- The Materials line under a recipe's reagents now says whether the craft makes a profit or a
+  loss: "Materials 13s 84c   Profit 7s 6c" in green, or "Loss" in red. The made item's price is
+  its latest price (its Value), minus the 5% auction house cut, so it works anywhere in the world.
+  Hover the line for the selling price, the cut and the sum. "Profit at most" means a material has
+  no price yet; "no sell price yet" means aux has not seen the made item at the auction house. A
+  recipe that makes no item (an enchant) shows its cost only, as before (suggested by
+  deep_structure).
+
+### Search
+
+- An exact search for a cloak finds it. `hillman's cloak/exact` found nothing while `hillman's`
+  found many: aux asked the auction house for Cloth armor, but Forever keeps cloaks under
+  Miscellaneous, Cloak. Exact searches for gear now ask for the slot the item really sits in, so
+  necklaces, robes and other armor are also asked for more narrowly (reported by GregoryWW).
+
+### Window
+
+- Opening aux no longer moves Blizzard's Professions window (or another side window) a little to
+  the right. The game places side windows next to its own auction house window, which aux keeps
+  open but invisible; aux now undoes that small shift. A window you placed yourself with a window
+  addon is left where you put it (reported by Chawitsch).
+
 ## 0.8 (2026-11-08)
 
 ### Gamepad

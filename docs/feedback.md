@@ -130,6 +130,17 @@ For whoever fixes or builds from it:
 | [FB-021](#fb-021-a-typed-price-below-the-lowest-listing-cannot-be-posted-rough-stone-5c) | 2026-10-18 | sarrathsilentstrider | bug | Post | S2 | A typed price below the lowest listing cannot be posted (Rough Stone, 5c) | fixed 0.7.1.1 (released 2026-10-19) |
 | [FB-022](#fb-022-the-player-did-not-know-the-newest-listing-at-a-price-sells-first) | 2026-10-18 | sarrathsilentstrider | ux | Post | n/a | The player did not know the newest listing at a price sells first | new |
 | [FB-023](#fb-023-a-shopping-list-for-crafting-n-of-a-recipe) | 2026-10-20 | Kortan | request | Search | n/a | A shopping list for crafting N of a recipe | planned 0.9 |
+| [FB-024](#fb-024-an-exact-search-for-hillmans-cloak-finds-nothing-a-search-for-hillmans-finds-many) | 2026-11-08 | GregoryWW | bug | Search | S2 | An exact search for Hillman's Cloak finds nothing; a search for Hillman's finds many | fixed 0.8.1 (tested, not released) |
+| [FB-025](#fb-025-adding-a-tooltip-word-strength-turns-an-instant-search-into-a-2-minute-one) | 2026-11-08 | RushJet1 | bug | Performance | S2 | Adding a tooltip word (strength) turns an instant search into a 2 minute one | planned 0.8.2 |
+| [FB-026](#fb-026-show-whether-a-craft-makes-a-profit-or-a-loss) | 2026-11-08 | deep_structure | request | Recipe search | n/a | Show whether a craft makes a profit or a loss | built 0.8.1 (tested, not released) |
+| [FB-027](#fb-027-the-full-scan-takes-more-than-5-minutes-since-forever-launched) | 2026-11-08 | user_ayzkr6rhvrlna3ya | bug | Performance | S3 | The full scan takes more than 5 minutes since Forever launched | planned 0.8.2 |
+| [FB-028](#fb-028-the-sniper-takes-over-30-seconds-from-its-sound-to-the-purchase) | 2026-11-08 | user_ayzkr6rhvrlna3ya | bug | Sniper | S2 | The Sniper takes over 30 seconds from its sound to the purchase | planned 0.8.2 |
+| [FB-029](#fb-029-price-gear-with-a-random-ending-of-the-eagle-of-the-bear-separately) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Other | n/a | Price gear with a random ending ("of the Eagle", "of the Bear") separately | built 0.8 (released 2026-11-08) |
+| [FB-030](#fb-030-how-the--of-historical-value-works-keep-more-price-history) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | question | Other | n/a | How the % of historical value works; keep more price history | new |
+| [FB-031](#fb-031-posting-rules-based-on-historical-value-like-tsm) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Post | n/a | Posting rules based on historical value, like TSM | planned 0.9 |
+| [FB-032](#fb-032-start-a-full-scan-when-the-window-opens-if-the-15-minute-wait-is-over) | 2026-11-08 | Chawitsch | request | Settings | n/a | Start a full scan when the window opens, if the 15 minute wait is over | planned 0.9 (Tyler: option, off by default) |
+| [FB-033](#fb-033-tooltip-prices-for-the-whole-stack-not-one-item) | 2026-11-08 | Chawitsch | ux | Other | n/a | Tooltip prices for the whole stack, not one item | planned 0.8.2 |
+| [FB-034](#fb-034-opening-aux-moves-blizzards-professions-window-to-the-right) | 2026-11-08 | Chawitsch | bug | Window | S3 | Opening aux moves Blizzard's Professions window to the right | fixed 0.8.1 (tested, not released) |
 
 ## Players
 
@@ -147,7 +158,8 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
 - **Maggew**: CurseForge commenter (CurseForge name; in-game name unknown). Plays with Classic
   auction house habits (FB-009). Whether they also wrote the
   CurseForge comment behind FB-008 is not known.
-- **GregoryWW**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-010.
+- **GregoryWW**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-010
+  and FB-024.
 - **Gaddor**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-011.
 - **MDHippie**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-012.
   Names `history.latest`, so has read aux's code. Inference: writes addons or scripts of their own.
@@ -161,6 +173,18 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
 - **Kortan**: told Tyler directly (Tyler's retelling, not his own words). Asked for FB-023. Knows
   TSM well, including its alt inventory data. Spelling of the in-game name not yet confirmed.
 - **Harro22**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-020.
+- **RushJet1**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-025.
+  Writes search text by hand (`armor/mail/chest/usable/strength`).
+- **deep_structure**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for
+  FB-026.
+- **user_ayzkr6rhvrlna3ya**: CurseForge commenter (a name CurseForge generated; in-game name
+  unknown). Reported FB-027 and FB-028. Used aux for a couple of weeks before Forever launched.
+  Uses the Sniper.
+- **user_yt0k9lezehn1ukm993387**: CurseForge commenter (a name CurseForge generated; in-game name
+  unknown). Asked for FB-029, FB-030 and FB-031. Used aux for the whole beta ("made lots of
+  gold") and knows TSM's posting rules.
+- **Chawitsch**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-032
+  and FB-033, reported FB-034. Agreed to FB-032 as an option, off by default.
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
   words.
@@ -521,7 +545,8 @@ and profit.
 Tyler's notes (scope): "Come to think of it, maybe not profit, maybe just cost of crafting based on
 the last full scan data. I don't think we need to bloat the user with information when we could
 just give them only what they need. We don't want to suffer from feature creep too much." So the
-request as Tyler shapes it: **cost only, no profit**. Tyler first said "tooltip", then "in the
+request as Tyler shapes it: **cost only, no profit** (reversed 2026-11-08 by Tyler for FB-026: profit
+goes on the line in 0.8.1). Tyler first said "tooltip", then "in the
 professions menu"; where exactly it shows is open (see Ask Tyler).
 
 Recorder's notes:
@@ -1321,6 +1346,460 @@ crafting them (Claude's suggestion: not in the first version); which price the l
 Ask Tyler: open as of 2026-10-20: materials crafted from other materials, and the price shown
 (Claude suggests today's auction house prices from a quick search when the list opens). Then a
 mockup before anything is built.
+
+### FB-024: An exact search for Hillman's Cloak finds nothing; a search for Hillman's finds many
+
+- Received: 2026-11-08 (posted about 5 hours before Tyler's screenshot)
+- From: GregoryWW (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-08-curseforge-comments.md)
+- Version: before 0.8 (Tyler); likely 0.7.1.1, the release on CurseForge then (inference)
+- Type: bug
+- Area: Search
+- Severity: S2 (no results for an item that is for sale; searching without `/exact` works)
+- Status: fixed 0.8.1 (built in 0.8.0.1 build 1, commit 0d27989; tested by Tyler 2026-11-08: `hillman's cloak/exact` lists Hillman's Cloak, 415 for sale; not yet released)
+- Proposed: next patch (0.8.0.1)
+
+Said:
+> got some weird bug. if i search for hillman's cloak/exact it shows nothing, but if i look just for hillman's there is many
+
+Steps / setup: typed `hillman's cloak/exact`: no results. Typed `hillman's`: many results.
+
+Tyler's notes: none yet.
+
+Recorder's notes (from the code, not reproduced in game):
+- An exact search narrows the request with the item's own category, required level and quality
+  (`blizzard_query` in `auxForever/util/filter.lua`). Two likely ways it goes wrong for a cloak:
+  1. If aux knows the item's name, it asks for Armor > Cloth at exactly the cloak's required level.
+     Forever's auction house files cloaks under Armor > Miscellaneous > Cloak
+     (`tests/forever_categories.lua`, made from Blizzard's code). The slot is never matched: the
+     item's slot is the game's code name (`INVTYPE_CLOAK`), and aux compares it with the category
+     names ("Cloak"). Whether the server returns cloaks for Armor > Cloth is Unknown: the Cloth
+     category's filter list has a plain "cloth armor" filter, but cloaks also appear separately
+     under Miscellaneous, which suggests the plain one does not include them.
+  2. If aux does not know the name yet (not in its item cache), it sends the typed name with
+     Blizzard's exact-match filter, in lower case. How the server compares case and the
+     apostrophe in an exact match is Unknown.
+- Either way the cause is aux's request, not the item: the same item appears in a plain search.
+- Related: FB-010 (GregoryWW too: a weapon slot read wrongly, fixed 0.6.1).
+
+Unknowns: which of the two paths the player hit. Path 2 is unlikely for this item: aux learns
+every item numbered below 30000 at login (`fetch_item_data` in `core/cache.lua`), and Hillman's
+Cloak is a Classic item (inference: its number is in that range).
+
+Fix (0.8.0.1, 2026-11-08): the slot is found by equip location in Forever's category list
+(`info.inventory_slot`), looking in the item's own type first and then in its whole category when
+only one slot there fits. A cloak is now asked for under Armor > Miscellaneous > Cloak.
+**Code** (Blizzard's `Camelot/Blizzard_AuctionData.lua`, branch `forever`, build 70862): Armor >
+Cloth gets one filter per armor slot, none for cloaks, and cloaks are added under Miscellaneous.
+Test: `0.8.0.1: an exact search finds the item's own slot`, checked to fail without the fix.
+
+Ask Tyler: the in-game check is steps 1 and 2 of 0.8.0.1 build 1 (`TESTING.md`).
+
+### FB-025: Adding a tooltip word (strength) turns an instant search into a 2 minute one
+
+- Received: 2026-11-08 (posted about 18 hours before Tyler's screenshot)
+- From: RushJet1 (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-08-curseforge-comments.md)
+- Version: before 0.8 (Tyler); likely 0.7.1.1 (inference)
+- Type: bug
+- Area: Performance (Search)
+- Severity: S2 (works, but takes minutes; leaving the word out and reading tooltips by hand is the
+  way around)
+- Status: planned 0.8.2 (Tyler, 2026-11-08: "go with your version plan"; moved from 0.8.1 when the profit line joined the bug fixes)
+- Proposed: 0.8.1 (speed)
+
+Said:
+> Searching for things that don't search through the text is still instant, such as armor/mail/chest/usable but if I put armor/mail/chest/usable/strength it will take 2 minutes instead.  Shouldn't it just be doing the same search but then searching locally through the results?
+
+Steps / setup: `armor/mail/chest/usable` is instant; `armor/mail/chest/usable/strength` takes
+about 2 minutes.
+
+Tyler's notes: none yet.
+
+Recorder's notes (from the code):
+- "strength" is not a category or a filter name, so aux reads it as tooltip text
+  (`util/filter.lua`, the `tooltip` filter). A tooltip condition switches the search from fast
+  mode (one list of items with their lowest price, one request per 500 items) to reading every
+  auction of every item, one request per item (`fast_choice` in `tabs/search/results.lua`). With
+  many mail chest pieces and the auction house's limit on requests, that is minutes.
+- The player's idea fits most items. Inference: an item's tooltip text ("+5 Strength") is the
+  same for every auction of it, so aux could check the text from the item itself after the fast
+  list and open only the items that match. The exception is gear with a random ending ("of
+  Strength"), whose stats come from the ending; on Forever versions of one name have the same
+  stats (`docs/forever-auction-house.md`, section 4), so the ending's name can stand for them. Not
+  checked: whether the game gives an item's tooltip text without the item being cached.
+
+Unknowns: none that change the fix. `/aux debug` prints where a search's time goes, if Tyler
+wants numbers before and after.
+
+### FB-026: Show whether a craft makes a profit or a loss
+
+- Received: 2026-11-08 (posted about 2 days before Tyler's screenshot)
+- From: deep_structure (1 request)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-08-curseforge-comments.md)
+- Version: before 0.8 (Tyler); likely 0.7.1.1 (inference)
+- Type: request (a finding: the feature partly exists and was not found)
+- Area: Recipe search
+- Severity: n/a
+- Status: built 0.8.1 (0.8.1 build 1, commit 639b425; tested by Tyler 2026-11-08: Woolen Bag "Materials 12s 97c  Loss 8s 22c" with the hover's sum; not yet released)
+- Proposed: 0.8.1 (a small change to an existing line)
+
+Said:
+> Is it possible to add the feature in crafting where it tells you if a craft is a profit or a loss? Thanks,
+
+Steps / setup: none; a request.
+
+Tyler's notes: none yet.
+
+Recorder's notes (from the code):
+- aux already says it, in one place: after a recipe search (the button on the profession window,
+  or Alt-click on a recipe) the bottom bar reads "materials 6s 10c   sells 42s 75c after cut
+  profit 36s 65c", or "loss" in red (`recipe_summary` in `tabs/search/recipe.lua`, since 0.5).
+- The line that is always visible, "Materials" under the profession window's reagents (0.5),
+  shows the cost only. The player looked there, or never ran a recipe search; either way, under
+  the main rule, the addon did not show them.
+- Inference: the Materials line could add the made item's latest price after the cut and the
+  difference ("sells 42s, profit 36s"), from saved prices with no request. Same price source as
+  the cost (`history.latest`), so it costs almost nothing.
+
+Unknowns: none that change the fix.
+
+Found after logging: when the Materials line was built (FB-007, 2026-10-07), Tyler chose
+"cost only, no profit" for it. Adding profit there reopens his decision.
+
+Tyler, 2026-11-08 (decided): profit goes on the Materials line, reversing FB-007's "cost only, no
+profit": "Yeah reverse my decision, because if it was enough for someone to leave a comment on the
+addon we should make it easier to see." Planned 0.8.1; a mockup of the line comes first (AGENTS.md:
+visual changes are shown before they are built). Mockup (2026-11-08):
+https://claude.ai/artifact/6VxaaXKXe3f9uJEjK7Gtoy. Option A (cost and profit on one line, the
+selling price in the hover), B (cost, selling price and profit on one line), C (two lines; does not
+fit the 20-pixel gap above Blizzard's optional reagents). Claude recommends A. Tyler,
+2026-11-08: "go with A". Built in 0.8.1 build 1 (`recipe_sale`, `recipe_cost_text` and the hover in `tabs/search/recipe.lua`; test
+`0.8.1: profit or loss on the Materials line`, checked to fail without the change).
+
+### FB-027: The full scan takes more than 5 minutes since Forever launched
+
+- Received: 2026-11-08 (posted about 2 days before Tyler's screenshot)
+- From: user_ayzkr6rhvrlna3ya (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-08-curseforge-comments.md)
+- Version: before 0.8 (Tyler); likely 0.7.1.1 (inference)
+- Type: bug
+- Area: Performance (Full scan)
+- Severity: S3 (it finishes; it is slow)
+- Status: planned 0.8.2 (Tyler, 2026-11-08: "go with your version plan"; moved from 0.8.1 when the profit line joined the bug fixes)
+- Proposed: 0.8.1 (speed), after measuring
+
+Said:
+> With the Forever launch, it seems to be slower - perhaps just so much more data.  In particular, the full scan now takes more than 5 minutes to get data before processing.
+
+Steps / setup: a full scan on the released game; more than 5 minutes before aux starts
+processing. The player used aux for a couple of weeks before launch.
+
+Tyler's notes: "Ive noticed it as well :( I am investigating currently. Trying to get to a high
+enough level in game that I can actually do lots of..." (his reply, cut off by CurseForge).
+
+Recorder's notes (from the code):
+- A full scan asks the server for the whole auction house once (`C_AuctionHouse.ReplicateItems`,
+  `replicate` in `core/scan.lua`), waits up to 2 minutes for the first part, waits until the list
+  stops growing for 2 seconds, then reads every entry (waiting up to 30 seconds more for items the
+  game had not loaded).
+- Inference: "to get data before processing" sounds like the part before aux reads anything,
+  which is the server sending the list. More players at launch means more auctions. How much of
+  the 5 minutes is the server and how much is aux is not known.
+
+Unknowns: how many auctions, and which part is slow. With `/aux debug` on, a full scan prints its
+total time, but not split into parts (code: `replicate` records no parts), so it cannot say yet
+which part is slow. The scan's own status bar shows "Full scan: waiting for the auction house..."
+while the server has not answered.
+
+Ask Tyler: how long does a full scan take for you now, and how much of it is the status bar
+saying "waiting for the auction house"?
+
+### FB-028: The Sniper takes over 30 seconds from its sound to the purchase
+
+- Received: 2026-11-08 (posted about 2 days before Tyler's screenshot)
+- From: user_ayzkr6rhvrlna3ya (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-08-curseforge-comments.md)
+- Version: before 0.8 (Tyler); likely 0.7.1.1 (inference)
+- Type: bug
+- Area: Sniper (Performance)
+- Severity: S2 (the Sniper finds deals but is too slow to get them)
+- Status: planned 0.8.2 (Tyler, 2026-11-08: "go with your version plan"; moved from 0.8.1 when the profit line joined the bug fixes)
+- Proposed: 0.8.1 (speed)
+
+Said:
+> And the sniper function takes over 30 seconds from sounding off to attempting the purchase.  That speed is really not enough to get an actual snipe in.
+
+Steps / setup: the Sniper running on the released game; over 30 seconds between the sound and
+"attempting the purchase".
+
+Tyler's notes: same reply as FB-027 ("Ive noticed it as well").
+
+Recorder's notes (from the code):
+- The sound plays once aux has read the deal's auctions (`check_item` and `alert` in
+  `tabs/sniper/core.lua`). A click on the deal stops the round and reads the item again
+  (`refresh_deal`), then shows the buy bar; Buy asks the server for a price quote, then the
+  confirm click buys. That is two or three server requests after the sound.
+- Inference: on a busy launch server each request can wait on the request limit, and the read
+  after the click repeats the one made just before the sound. Reusing that read when it is a few
+  seconds old would save one request; buying must still never spend more than shown (AGENTS.md).
+
+Unknowns: what "attempting the purchase" means (clicking Buy, or the purchase going through),
+and whether the player clicked at once. A timing of each step in the Sniper would settle where
+the 30 seconds go; `/aux debug` prints nothing for the Sniper today (its reads are quiet).
+
+### FB-029: Price gear with a random ending ("of the Eagle", "of the Bear") separately
+
+- Received: 2026-11-08 (posted about 18 days before Tyler's screenshot, about 2026-10-21)
+- From: user_yt0k9lezehn1ukm993387 (1 request)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-08-curseforge-comments.md)
+- Version: before 0.8 (Tyler); likely 0.7.1.1 (inference)
+- Type: request
+- Area: Other (price history, Post)
+- Severity: n/a
+- Status: built 0.8 (released 2026-11-08, tag `v0.8`, commit 0028685)
+- Proposed: 0.8
+
+Said:
+> One more request. It would be AMAZING if the addon could track prices differently depending on the suffixes like "of the Eagle" having a different historical value and being posted in a different way than "of the Bear" for example. They are currently all merged together. Thank you so much.
+
+Steps / setup: none; a request.
+
+Tyler's notes: replied the same day: "This an issue I was working on last night and boy is it a
+hard one to solve. .8 will address these kinds of items in a permanent way."
+
+Recorder's notes: 0.8 keeps prices per ending (`info.price_key`, "gear versions" in
+`docs/roadmap.md` and `docs/changelog.md`), and the Post tab compares a piece with listings of
+the same ending. The work was already under way when the comment came (Tyler's reply), so the
+request confirms it rather than started it.
+
+Ask Tyler: credit the player in the 0.8 changelog ("also suggested by ...")? The 0.8 notes are
+already published on GitHub and CurseForge, so it would show only in the repository's file unless
+the release text is edited.
+
+### FB-030: How the % of historical value works; keep more price history
+
+- Received: 2026-11-08 (posted about 18 days before Tyler's screenshot, about 2026-10-21)
+- From: user_yt0k9lezehn1ukm993387
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-08-curseforge-comments.md)
+- Version: before 0.8 (Tyler); likely 0.7.1.1 (inference). Used aux "for the entire beta".
+- Type: question (and a request)
+- Area: Other (price history)
+- Severity: n/a
+- Status: new
+- Proposed: later (the answer first; any change after Tyler decides)
+
+Said:
+> 1. How does % historical value work? It seems to be updating very often and not storing a lot of historical data, so items often change what 100% historical value is to the current lowest value. I would love if the addon could store more historical data to get more accurate values, it would be amazing.
+
+Steps / setup: none. What the player saw: 100% of the historical value often moves to the
+current lowest price.
+
+Tyler's notes: "Great feedback here. I will use this feedback to shape future updates. Stay tuned
+and I may reach out with questions." (his reply, covering FB-030 and FB-031)
+
+Recorder's notes (from the code and `docs/price-data.md`):
+- The % columns, the Post tab's % badge and the Sniper compare with the usual price
+  (`history.value` in `core/history.lua`): the weighted middle of up to 14 past days' prices,
+  each day's weight halving every 7 days. A day's price is the average of the cheapest 20% of the
+  units seen in a complete look that day, or that day's lowest. Today does not count until the day
+  ends. With no past days yet, today's price is used.
+- Inference: that last rule explains what the player saw. Early on (the beta, a new item, or a
+  realm where aux has scanned only a few days) the usual price is today's price, so 100% is the
+  current lowest. It steadies as days are added, and only days on which the player scans count.
+- Inference: the tooltip's Value line is the latest price (today's market price), with "usually"
+  only when the two differ; a player reading Value as the historical value would also see it
+  follow the current price.
+- Nothing on screen says how many days a usual price rests on, outside the Sniper's notice. That
+  is the addon's part of this question.
+
+Unknowns: how many days of scans the player had. A change can work without it: show the number of
+days behind the % (for example in the tooltip: "usually 12s, 9 days").
+
+Ask Tyler: should aux show how many days a usual price rests on, and is 14 days the right amount
+to keep? (Keeping more days costs memory per item; aux keeps one short line of text per item.)
+
+### FB-031: Posting rules based on historical value, like TSM
+
+- Received: 2026-11-08 (posted about 18 days before Tyler's screenshot, about 2026-10-21)
+- From: user_yt0k9lezehn1ukm993387
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-08-curseforge-comments.md)
+- Version: before 0.8 (Tyler); likely 0.7.1.1 (inference)
+- Type: request
+- Area: Post
+- Severity: n/a
+- Status: planned 0.9 (Tyler, 2026-11-08: "go with your version plan"; mockup first)
+- Proposed: a later minor version (0.9 or after), mockup first
+
+Said:
+> 2. Would it be possible to get a feature where you can always decide what you want to sell items for, in relation to historical values? Like, what if I want to post all my items at [150%] historical value? Would be amazing with a setting that just automatically posts all items at a set value like that. This could also be something like "always undercut by [1c]" if people would want to post their items like that. Or something more advanced like "if [150%] historical value is lowest, post, but if [150%] historical value is higher than the lowest auction, undercut, but if lowest auction is under [80%] historical value, don't post at all", like how TradeSkillMaster would be able to do.
+
+What is asked, three levels:
+1. Post at a set share of the usual price (150%).
+2. A fixed undercut ("always undercut by 1c").
+3. Rules, as in TSM's posting settings: post at 150% of usual if that is below the lowest listing;
+   otherwise undercut the lowest; skip the item when the lowest is under 80% of usual.
+Also implied: posting "all items" with one setting, not one item at a time.
+
+Tyler's notes: same reply as FB-030.
+
+Recorder's notes:
+- Today (code): the Post tab's price is the lowest listing (Match lowest) or one step below
+  (Undercut), or the usual price when nothing is listed; the % of usual badge shows how the price
+  compares. There are no saved rules and no posting of several items at once.
+- The player's own rules fit the rule that aux informs and does not decide (AGENTS.md): the player
+  sets them. A floor ("don't post below 80%") would be the player's own limit, not aux refusing.
+- Level 2 overlaps FB-018 (a default for Undercut; wont-fix, Tyler: keep as is) and E6 (whether the
+  newest listing at a price sells first, Unknown). Inference: a fixed undercut setting reopens
+  that decision.
+- Inference: this is the largest request in the batch: rule settings, a place for them, and a way
+  to apply them to every item in the bag list. Close to TSM's posting operations, which matches the
+  direction (AGENTS.md: resemble TSM and the original aux).
+
+Unknowns: whether rules are per item, per group or one for everything (the player says "all my
+items"). A first version could be one rule for everything, with the Post tab showing what the rule
+picked and why.
+
+Ask Tyler: which version, if any; and whether level 2 (always undercut by N) is still a no after
+FB-018.
+
+### FB-032: Start a full scan when the window opens, if the 15 minute wait is over
+
+- Received: 2026-11-08 (posted about 17 days before Tyler's screenshot, about 2026-10-22)
+- From: Chawitsch (1 request)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-08-curseforge-comments.md)
+- Version: before 0.8 (Tyler); likely 0.7.1.1 (inference)
+- Type: request
+- Area: Settings (Full scan)
+- Severity: n/a
+- Status: planned 0.9 (Tyler, in his reply: an option in Settings, off by default; version from the plan he approved 2026-11-08)
+- Proposed: 0.9 (a new setting is a feature)
+
+Said:
+> 1) Starting a full scan of the AH automatically when the AuxForever window opens, in case the 15 minute cooldown period is over.
+
+> 1) It would absolutely be fine as an option and off by default....
+
+Steps / setup: none; a request.
+
+Tyler's notes: "I will make it an option in the settings, turning that on by default I feels goes
+against Simon's vision." (his reply)
+
+Recorder's notes (from the code):
+- aux saves when the last full scan was asked for (`account_data.replicate_time`) and knows the
+  15-minute wait (`REPLICATE_COOLDOWN` in `core/scan.lua`), so it can tell when one is allowed.
+- Inference: a full scan blocks other searches while it runs (one scan at a time), so an automatic
+  one would delay the player's first search; the setting's text should say so.
+- The saved time is account-wide; whether the server's 15 minutes count per character or per
+  account is Unknown (`docs/forever-auction-house.md` has the wait, not who it applies to). With
+  per-character waits, aux would skip a scan it could have made.
+
+Unknowns: as above.
+
+### FB-033: Tooltip prices for the whole stack, not one item
+
+- Received: 2026-11-08 (posted about 17 days before Tyler's screenshot, about 2026-10-22)
+- From: Chawitsch
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-08-curseforge-comments.md)
+- Version: before 0.8 (Tyler); likely 0.7.1.1 (inference)
+- Type: ux (the feature exists; the player did not find it)
+- Area: Other (tooltips)
+- Severity: n/a
+- Status: planned 0.8.2 (Tyler, 2026-11-08: "go with your version plan"; moved from 0.8.1 when the profit line joined the bug fixes)
+- Proposed: next patch (a hint line), if Tyler wants one
+
+Said:
+> 2) Calculating the AH price in item tooltips for the current stack, instead of a single item.
+
+Steps / setup: none; a request.
+
+Tyler's notes: "Does this not currently work when holding shift and hovering the stack? I will
+answer that question myself eventually, and if that's not how it works now, it will." (his reply)
+
+Recorder's notes (from the code): Tyler is right. Since 0.5, holding Shift while hovering a stack
+turns aux's tooltip prices into prices for the whole stack, and the lines say so ("for 20")
+(`core/tooltip.lua`; `docs/changelog.md`, 0.5). Not found in the test history as a step Tyler
+checked in game. Nothing in the tooltip tells a player about Shift, so under the main rule this is
+the addon's to fix: for example a gray "Shift: whole stack" line on stacks of more than one.
+
+Reply for the player (once Tyler has seen it work in game): "It does: hold Shift while hovering a
+stack and aux's prices change to the whole stack (the lines say 'for 20'). We will add a hint to
+the tooltip so it is easier to find."
+
+Ask Tyler: check Shift on a stack in game before sending the reply; and should the hint line be
+added?
+
+### FB-034: Opening aux moves Blizzard's Professions window to the right
+
+- Received: 2026-11-08 (posted about 17 days before Tyler's screenshot, about 2026-10-22)
+- From: Chawitsch (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-08-curseforge-comments.md)
+- Version: before 0.8 (Tyler); likely 0.7.1.1 (inference)
+- Type: bug
+- Area: Window
+- Severity: S3 (cosmetic)
+- Status: fixed 0.8.1 (0.8.0.1 build 1 commit 0d27989, changed in 0.8.1 build 2 commit bc47ef5; tested by Tyler 2026-11-08 with his window at his own spot; not yet released)
+- Proposed: next patch, if the fix does not touch Blizzard's code in a risky way
+
+Said:
+> I also noticed a very minor bug. When the AuxForever window opens, the default Professions window is moved slightly to the right.
+
+Steps / setup: the Professions window open, then aux's window opens (at the auction house); the
+Professions window moves a little to the right.
+
+Tyler's notes: "I'll try to fix the professions menu bug." (his reply)
+
+Recorder's notes:
+- Fact (code): aux's window is not one of Blizzard's managed panels; it is only listed so Escape
+  closes it (`UISpecialFrames`, `frame.lua`). Blizzard's auction house window stays open but
+  invisible under aux (AGENTS.md, Code gotchas).
+- Inference: Blizzard's panel manager places side-by-side windows next to each other, so the open,
+  invisible auction house window pushes the Professions window over, as it would with Blizzard's
+  own window. Not checked in Blizzard's code (the panel layout in `UIParent`, branch `forever` of
+  `Gethe/wow-ui-source`).
+- Any fix must not taint Blizzard's windows (see the gamepad gotcha in AGENTS.md); moving the
+  Professions window back after Blizzard moves it is likely safer than changing the panel manager.
+
+Confirmed in Blizzard's code (**Code**, `Blizzard_UIParentPanelManager/Shared/
+UIParentPanelManager.lua`, branch `forever`, build 70862): the auction house window is
+"doublewide" (`UIPanelWindows["AuctionHouseFrame"]`, xoffset 20). A side window shown with it goes
+to the right place, which starts after the doublewide window's width times its scale, plus 20,
+plus a 32 gap. aux keeps that window at 1% scale, so its width counts as a few pixels: the side
+window lands about 60 pixels right of where it stands alone. That is the "slightly".
+
+Fix (0.8.0.1, 2026-11-08): after each layout by the game (a `hooksecurefunc` on the global
+`UpdateUIPanelPositions`, which runs after the game's own code), and when aux hides Blizzard's
+window, aux moves the right-hand side window back to the left place at the game's own offsets.
+Only while Blizzard's window is hidden; never a protected window in combat; aux does not change
+the game's layout tables. Not covered: a few layout passes the game starts from inside its
+window manager (it calls itself directly there), so a side window could still shift in a rare
+case. Test: `0.8.0.1: a side window stays put while aux is open`, checked to fail without the fix.
+
+Seen in game (Tyler, 2026-11-08, 0.8.1 build 1): Tyler keeps his Professions window at a spot he
+set himself. With aux open, the fix pulled it to the far left place, behind aux's window, and on
+reopening it "starts on the left then teleports to its custom position set by me". Inference:
+whatever keeps his window there re-places it after the game's layout (as window addons such as
+BlizzMove do by hooking the same function, **Outside**), and aux's hook ran after it. Build 2:
+aux moves the side window only when it stands exactly where the game's right place puts it (at
+the hidden window's 1% width, or at full width when the layout ran before aux shrank it); any
+other position is the player's and stays. Test extended (`a window placed by the player is never
+moved`, checked to fail on build 1).
+
+Unknowns: which addon (or game setting) keeps Tyler's window position; the fix does not depend on
+it.
+
+Ask Tyler: the in-game check is step 3 of 0.8.0.1 build 1 (`TESTING.md`).
 
 ## Before this log
 

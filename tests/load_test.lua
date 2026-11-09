@@ -4692,6 +4692,167 @@ try('0.8: an empty search bar stays empty', function()
   check('empty bar: a search still shows as before', plain(search.search_box.formatter('linen cloth')):find('linen cloth', 1, true) ~= nil)
 end)
 
+-- 0.8.0.1, FB-024 (reported by GregoryWW): "hillman's cloak/exact" found nothing. An exact search
+-- asks for the item's own category; a cloak is cloth armor, so it asked for Armor > Cloth, but
+-- Forever keeps cloaks under Armor > Miscellaneous > Cloak, and the slot was never found because
+-- the game's equip location ("INVTYPE_CLOAK") is not the slot's name ("Cloak").
+try('0.8.0.1: an exact search finds the item\'s own slot', function()
+  local filter_util = loadstring("select(2, ...) 'aux.test.fb024'; return require 'aux.util.filter'")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.core.scan'; return _M")('auxForever', addon)
+  local aux = loadstring("select(2, ...) 'aux.test.fb024b'; return require 'aux'")('auxForever', addon)
+  local real_get_info = G.GetItemInfo
+  local items = {
+    [3719] = {"Hillman's Cloak", 1, 20, 15, 'Armor', 'Cloth', 'INVTYPE_CLOAK'},
+    [9001] = {'Test Robe', 2, 20, 15, 'Armor', 'Cloth', 'INVTYPE_ROBE'},
+    [9002] = {'Test Pendant', 2, 20, 15, 'Armor', 'Miscellaneous', 'INVTYPE_NECK'},
+    [9003] = {'Test Dagger', 2, 20, 15, 'Weapon', 'Daggers', 'INVTYPE_WEAPON'},
+  }
+  G.GetItemInfo = function(x)
+    local id = tonumber(tostring(x):match('%d+'))
+    local t = items[id]
+    if t then return t[1], 'link', t[2], t[3], t[4], t[5], t[6], 1, t[7], 1, 300 end
+    return real_get_info(x)
+  end
+  for id, t in pairs(items) do aux.account_data.item_ids[strlower(t[1])] = id end
+  local function filters_of(text)
+    local queries = filter_util.queries(text)
+    local q = queries and queries[1] and queries[1].blizzard_query
+    return q and scan.browse_query(q).itemClassFilters, q
+  end
+  local function only(filters, class, subclass, inventory_type)
+    if not filters or #filters == 0 then return false end
+    for _, f in ipairs(filters) do
+      if f.classID ~= class or f.subClassID ~= subclass or f.inventoryType ~= inventory_type then return false end
+    end
+    return true
+  end
+  local cloak = filters_of("hillman's cloak/exact")
+  check('fb024: a cloak is asked for under Miscellaneous > Cloak', only(cloak, 4, 1, 16))
+  local robe = filters_of('test robe/exact')
+  local robe_ok = robe and #robe == 2
+  for _, f in ipairs(robe or {}) do robe_ok = robe_ok and f.classID == 4 and f.subClassID == 1 and (f.inventoryType == 5 or f.inventoryType == 20) end
+  check('fb024: a robe is asked for under Cloth > Chest', robe_ok)
+  check('fb024: a pendant is asked for under Miscellaneous > Neck', only(filters_of('test pendant/exact'), 4, 0, 2))
+  local dagger, dq = filters_of('test dagger/exact')
+  check('fb024: a weapon keeps its whole category, as before', dq and dq.class == 1 and dq.subclass == nil and dq.slot == nil and dagger and #dagger > 1)
+  check('fb024: still the name, the level and no exact-match filter for gear', not not (dq and dq.name == 'test dagger' and dq.min_level == 15 and dq.max_level == 15))
+  G.GetItemInfo = real_get_info
+  for _, t in pairs(items) do aux.account_data.item_ids[strlower(t[1])] = nil end
+end)
+
+-- 0.8.0.1, FB-034 (reported by Chawitsch): with aux open, the Professions window moved a little to
+-- the right. Blizzard's auction house window takes the left and center places ("doublewide"), so
+-- the game puts a side window to its right; shrunk to 1% that window is a few pixels wide. aux puts
+-- the side window back where the game's layout would have it without the auction house.
+try('0.8.0.1: a side window stays put while aux is open', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local real = {G.GetUIPanel, G.GetUIPanelLayoutAttribute, G.UpdateUIPanelPositions, G.hooksecurefunc, G.InCombatLockdown, G.GetUIPanelWidth, G.GetUIPanelWidthUnscaled}
+  local real_attr = rawget(AuctionHouseFrame, 'GetAttribute')
+  rawset(AuctionHouseFrame, 'GetAttribute', function(_, name) if name == 'UIPanelLayout-xoffset' then return 20 end end)
+  local panels = {}
+  -- the game's numbers: left place 16, gap 32, the auction house window's offset 20 and width 800
+  -- (8 at aux's 1% scale)
+  local side = {point = {'TOPLEFT', 'UIParent', 'TOPLEFT', 16 + 8 + 20 + 32, -104}, scale = 1, protected = false}
+  function side:GetPoint() return unpack(self.point) end
+  function side:SetPoint(p, r, rp, x, y) self.point = {p, r, rp, x, y} end
+  function side:GetScale() return self.scale end
+  function side:GetAttribute(name) if name == 'UIPanelLayout-xoffset' then return 0 end end
+  function side:IsProtected() return self.protected end
+  G.GetUIPanel = function(key) return panels[key] end
+  G.GetUIPanelLayoutAttribute = function(name) return ({LEFT_OFFSET = 16, PANEl_SPACING_X = 32})[name] end
+  G.GetUIPanelWidth = function(f) return f == AuctionHouseFrame and 8 or 600 end
+  G.GetUIPanelWidthUnscaled = function(f) return f == AuctionHouseFrame and 800 or 600 end
+  local hooked
+  G.hooksecurefunc = function(name, f) if name == 'UpdateUIPanelPositions' then hooked = f end end
+  G.UpdateUIPanelPositions = function() end
+  G.InCombatLockdown = function() return false end
+  a.hook_panel_layout()
+  check('fb034: aux hooks the game\'s window layout (after it runs)', type(hooked) == 'function')
+  panels.doublewide, panels.right = AuctionHouseFrame, side
+  a.set_blizzard_frame_shown(false)
+  check('fb034: the side window goes back to the left place', side.point[4] == 16 and side.point[5] == -104 and side.point[1] == 'TOPLEFT')
+  side.point[4] = 76
+  hooked()
+  check('fb034: and again after each layout by the game', side.point[4] == 16)
+  side.point[4] = 16 + 800 + 20 + 32
+  hooked()
+  check('fb034: also when the game placed it before aux shrank its window', side.point[4] == 16)
+  side.scale, side.point[4] = .8, 76 / .8
+  hooked()
+  check('fb034: the game\'s offsets are divided by the window\'s scale, as the game does', math.abs(side.point[4] - 20) < 1e-9)
+  side.scale = 1
+  -- build 2 (Tyler's test): a window the player put somewhere themselves stays there
+  side.point[4] = 500
+  hooked()
+  check('fb034: a window placed by the player is never moved', side.point[4] == 500)
+  side.point = {'CENTER', 'UIParent', 'CENTER', 76, 0}
+  hooked()
+  check('fb034: nor one anchored another way', side.point[1] == 'CENTER' and side.point[4] == 76)
+  side.point = {'TOPLEFT', 'UIParent', 'TOPLEFT', 76, -104}
+  side.protected = true
+  G.InCombatLockdown = function() return true end
+  hooked()
+  check('fb034: a protected window is never moved in combat', side.point[4] == 76)
+  side.protected = false
+  G.InCombatLockdown = function() return false end
+  a.set_blizzard_frame_shown(true)
+  side.point[4] = 76
+  hooked()
+  check('fb034: with Blizzard\'s window shown, the game\'s place stays', side.point[4] == 76)
+  a.set_blizzard_frame_shown(false)
+  panels.doublewide = nil
+  side.point[4] = 76
+  hooked()
+  check('fb034: without the auction house, nothing is moved', side.point[4] == 76)
+  rawset(AuctionHouseFrame, 'GetAttribute', real_attr)
+  G.GetUIPanel, G.GetUIPanelLayoutAttribute, G.UpdateUIPanelPositions, G.hooksecurefunc, G.InCombatLockdown, G.GetUIPanelWidth, G.GetUIPanelWidthUnscaled = real[1], real[2], real[3], real[4], real[5], real[6], real[7]
+end)
+
+-- 0.8.1, FB-026 (suggested by deep_structure): the Materials line says whether a craft makes a
+-- profit or a loss (Tyler, 2026-11-08: option A of the mockup, reversing FB-007's "cost only")
+try('0.8.1: profit or loss on the Materials line', function()
+  local req = loadstring("select(2, ...) 'aux.test.fb026'; return require")('auxForever', addon)
+  local aux = req 'aux'
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local today = h.today()
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  h.write_record('7601:0', {day = today, points = {{day = today - 1, value = 26}}})   -- material, 26c
+  h.write_record('7610:0', {day = today, points = {{day = today - 1, value = 200}}})  -- made item, 2s
+  h.write_record('7611:0', {day = today, points = {{day = today - 1, value = 50}}})   -- made item, 50c
+  local function recipe(output, count, reagents)
+    return {name = 'Test', reagents = reagents or {{item_id = 7601, count = 2}}, output = output and {item_id = output, count = count or 1}}
+  end
+  local net, gross = search.recipe_sale(recipe(7610))
+  check('fb026: the made item after the 5% cut', net == 190 and gross == 200)
+  net, gross = search.recipe_sale(recipe(7610, 2))
+  check('fb026: a recipe that makes two counts both', net == 380 and gross == 400)
+  local line = plain(search.recipe_cost_text(recipe(7610)))
+  check('fb026: profit on the line (190 - 52 = 138c)', line:find('Materials', 1, true) and line:find('Profit', 1, true) and line:find('1s 38c', 1, true) ~= nil)
+  line = plain(search.recipe_cost_text(recipe(7611)))
+  check('fb026: a loss says Loss (52 - 47 = 5c)', line:find('Loss', 1, true) and line:find('5c', 1, true) and not line:find('Profit', 1, true))
+  line = plain(search.recipe_cost_text(recipe(7610, 1, {{item_id = 7601, count = 2}, {item_id = 7699, count = 1}})))
+  check('fb026: a material with no price makes it "at most"', line:find('+', 1, true) and line:find('Profit at most', 1, true) ~= nil)
+  line = plain(search.recipe_cost_text(recipe(7612)))
+  check('fb026: a made item with no price says so', line:find('no sell price yet', 1, true) ~= nil)
+  line = plain(search.recipe_cost_text(recipe(nil)))
+  check('fb026: a recipe that makes no item shows the cost only', not line:find('Profit', 1, true) and not line:find('Loss', 1, true) and not line:find('sell', 1, true))
+  line = plain(search.recipe_cost_text(recipe(7610, 1, {{item_id = 7698, count = 1}})))
+  check('fb026: no material priced still says no price yet, nothing else', line:find('no price yet', 1, true) and not line:find('Profit', 1, true))
+  local lines = {}
+  local tip = new_frame()
+  rawset(tip, 'AddLine', function(_, t) tinsert(lines, plain(t)) end)
+  rawset(tip, 'AddDoubleLine', function(_, a, b) tinsert(lines, plain(a) .. ' | ' .. plain(b)) end)
+  search.recipe_cost_tooltip(tip, recipe(7610))
+  local all = table.concat(lines, '\n')
+  check('fb026: the hover shows the selling price, the cut and the profit', all:find('sells for | 2s', 1, true) and all:find('After the 5% auction house cut | 1s 90c', 1, true) and all:find('Profit | 1s 38c', 1, true) ~= nil)
+  lines = {}
+  search.recipe_cost_tooltip(tip, recipe(7612))
+  all = table.concat(lines, '\n')
+  check('fb026: the hover says how to learn a missing price', all:find('no price yet', 1, true) and all:find('Search for it at the auction house', 1, true) ~= nil)
+  for _, key in ipairs{'7601:0', '7610:0', '7611:0'} do h.data[key] = nil end
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
 dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({
