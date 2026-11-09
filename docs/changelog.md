@@ -6,6 +6,49 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.8.2 (not released yet)
+
+### Sniper
+
+- Deals are checked against today's market. The Sniper compared prices only with an item's usual
+  price, an average of past days, which can lag far behind when prices change fast: an item listed
+  by hundreds at one price showed as "4% of usual", and a "deal" bought there could only be relisted
+  at a loss. The Sniper now also looks at what the item's other listings ask (it reads them anyway
+  before calling a deal, so this costs nothing). When that is lower than the usual
+  price, the deal is judged against it and the Why column says "% of market". A single cheap
+  auction on its own is still judged against the usual price (reported by Swiftwren).
+- Clicking a deal found in the last 15 seconds shows the Buy button at once, without reading the
+  item again first. Older deals are still read again. Buying still never spends more than the
+  price shown (reported by user_ayzkr6rhvrlna3ya).
+
+### Full scan
+
+- The Full scan waits up to 10 minutes for the auction house to answer, instead of giving up after
+  2: a player saw the answer take more than 5 minutes since launch. The bar under the window shows
+  how long it has waited so far, and the chat line at the end says how long the auction house took to answer
+  and to send the list (reported by deep_structure and user_ayzkr6rhvrlna3ya).
+- The Sniper's rounds and the Auctions tab's price check no longer stop a Full scan that is
+  waiting for the auction house; they wait until it is done. A search you start yourself still
+  stops it, and the chat now says so. Before, the scan ended without a word and the next one was
+  15 minutes away.
+- When the auction house never answers, the chat says nothing was recorded, instead of "full scan
+  complete: 0 auctions recorded".
+
+### Search
+
+- Searching with a word from item tooltips, such as `armor/mail/chest/usable/strength`, is fast
+  again. aux read every auction of every item to check the word, which took minutes; it now checks
+  each item's own tooltip in the item list. Gear with a random ending ("of the Bear") is still read
+  in full, because its stats come from the ending (suggested by RushJet1).
+
+### Tooltips
+
+- The gray "usually" price under Value has its own switch: Settings, Tooltip lines, Usually, or
+  `/aux tooltip usually`. It is on unless you turn it off (suggested by deep_structure).
+- A stack in your bags says that Shift shows its prices: its Value line ends with "Shift for 20".
+  Holding Shift already showed the whole stack's prices, but nothing told you (Chawitsch asked for
+  stack prices).
+
 ## 0.8.1 (2026-11-09)
 
 ### Professions window

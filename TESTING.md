@@ -8,7 +8,33 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.1 build 2
+## Current build: 0.8.2 build 1
+
+Fixes and small changes from player feedback (FB-025, FB-027, FB-028, FB-033, FB-035, FB-036,
+FB-037). Zip
+`auxForever-0.8.2-build1.zip`; `/reload` is enough. Test page build id `0-8-2-build-1`.
+
+- [ ] 1. Full scan with the Sniper running. Open the Sniper tab and click Start. Then click Full
+      scan at the top right (if it is grayed out, point the mouse at it: it says when it is
+      available), and wait without searching. The bar under the window says "Full scan:
+      waiting for the auction house, 0:05 so far..." if the answer takes more than 5 seconds. At
+      the end the chat says "Full scan complete: ... auctions recorded in ... (the auction house
+      took ... to answer, ... to send the list; reading took ...)". Screenshot that chat line.
+      (Before, the Sniper's next round stopped the Full scan after a few seconds.)
+- [ ] 2. Stop the Sniper. On the Search tab, with Fast selected (top right of the search bar),
+      search `armor/mail/chest/usable/strength`. The results come in seconds, not minutes, and the
+      chests in them say Strength in their tooltip.
+- [ ] 3. Hover a stack in your bags, for example 20 Linen Cloth. The Value line ends with "Shift
+      for 20". Hold Shift: the line shows the whole stack's price and ends with "for 20".
+- [ ] 4. Click the gear at the top right (Settings). Under Tooltip lines there is a new row,
+      Usually, under Value, and nothing is cut off at the bottom of the window.
+- [ ] 5. Sniper tab, Start, and let it run about 2 minutes. Screenshot the deals table, with the
+      Why column showing. (A deal now says "% of usual" or "% of market"; I check the screenshot.)
+- [ ] 6. Only if the Sniper finds a deal while you watch: when it appears (with the sound), click it
+      within 15 seconds. The Buy button appears at once, without a "Checking..." message first. Do
+      not buy. (A deal found longer ago is checked again first, as before.)
+
+### 0.8.1 build 2
 
 One fix from Tyler's build 1 test. Tyler keeps his Professions window where he dragged it; with
 aux open, build 1 pulled it to the far left, behind aux's window (the fix for FB-034 moved any

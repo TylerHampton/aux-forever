@@ -60,7 +60,8 @@ after a logout and away from the auction house.
 - Post tab: the "% of usual" badge, and the starting price when an item has no listings
   (`tabs/post/core.lua`).
 - Sniper: the deal rule compares prices with the usual price, shown only with 3 or more days of
-  history (`tabs/sniper/core.lua`).
+  history (`tabs/sniper/core.lua`). Since 0.8.2 (FB-036) also with today's market, read from the
+  item's other listings (`market_now`): the lower of the two counts.
 - Search filters such as `pct` and `profit` (`util/filter.lua`), disenchant values
   (`core/disenchant.lua`).
 - Planned: recipe cost in the profession window (`docs/feedback.md`, FB-007).
