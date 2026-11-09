@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-09, Tyler's time (**0.8.1 released**, tag `v0.8.1`, PR #39; next: 0.8.2, speed).
+Last updated 2026-11-09, Tyler's time (**0.8.1 released**, tag `v0.8.1`; paused by Tyler, next: 0.8.2).
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
@@ -139,6 +139,22 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 the supporting model for second opinions, written in `docs/reviews/` (`AGENTS.md`, "Roles").
 Agents talk through `docs/handoff.md`; Tyler only says "Check the handoff" to whoever goes next.
 Nothing is open there (H-006 done, 2026-11-08).
+
+**Paused (Tyler, 2026-11-09):** "We start more work later on, this is enough effort for this
+week." Nothing is being built until Tyler resumes. Where things stand:
+- **Released:** 0.8 (2026-11-08) and 0.8.1 (2026-11-09, PR #39, CurseForge file 9522779).
+  Branch `claude/magical-maxwell-eyud0b` matches `main` plus docs (feedback FB-035, this file).
+- **Next version, 0.8.2** (`docs/roadmap.md`, "After 0.8"): FB-025 (a tooltip word such as
+  `/strength` makes a search read every item; plan: check tooltips from the quick list and open
+  only matches; to check first: gear with random endings, and whether the game gives an unloaded
+  item's tooltip at once), FB-027 and FB-028 (full scan and Sniper speed; measure first with timing
+  lines and a short test for Tyler), FB-033 (a Shift hint in tooltips), FB-035 (a "Usually" switch
+  under Tooltip lines plus its chat command, default on).
+- **Open for Tyler:** does the Usually switch need a mockup (Claude: no, it copies the rows
+  there); did he post the replies drafted for GregoryWW, Chawitsch, deep_structure and RushJet1
+  (texts in the chat of 2026-11-09, not kept in the repo).
+- **Start with:** pull, read this section and `git log`, check `docs/handoff.md`, then ask Tyler
+  the open questions and start 0.8.2 when he says so.
 
 **Resumed (Tyler, 2026-11-08):** Forever is out; Tyler has a level 20 character and said "go full
 auto mode". **0.8 build 14** (the release candidate: Gemini's H-006 findings in build 13, tested by
