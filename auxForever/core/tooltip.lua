@@ -90,6 +90,7 @@ end
 
 function extend_tooltip(tooltip, link, quantity, data)
     local item_id, suffix_id = info.parse_link(link)
+    local stack = quantity
     quantity = IsShiftKeyDown() and quantity or 1
     -- auxForever (0.5): with Shift held the prices are for the whole stack; say so ("for 3"). In build
     -- 1 a stack's Value read as a far too high price per item (Windows' screenshot keys hold Shift).
@@ -148,8 +149,12 @@ function extend_tooltip(tooltip, link, quantity, data)
             local function coins(amount)
                 return settings.money_icons and GetCoinTextureString(amount) or money.to_string2(amount)
             end
-            tooltip:AddLine('Value: ' .. (latest and coins(latest * quantity) .. per .. age_suffix(age) or UNKNOWN), aux.color.tooltip.value())
-            if history.usually_differs(latest, value) then
+            -- 0.8.2 (FB-033, Chawitsch asked for stack prices): a stack says Shift shows its prices
+            -- ("Shift for 20"), on the Value line rather than a line of its own
+            local hint = latest and stack > 1 and quantity == 1 and ('  ' .. aux.color.label.enabled('Shift for ' .. stack)) or ''
+            tooltip:AddLine('Value: ' .. (latest and coins(latest * quantity) .. per .. age_suffix(age) .. hint or UNKNOWN), aux.color.tooltip.value())
+            -- 0.8.2 (FB-035, deep_structure): the "usually" line has a switch of its own
+            if settings.usually ~= false and history.usually_differs(latest, value) then
                 tooltip:AddLine('  ' .. aux.color.label.enabled('usually ') .. coins(value * quantity), aux.color.label.enabled())
             end
         end

@@ -114,6 +114,9 @@ function SlashCmdList.AUX(command)
     elseif arguments[1] == 'tooltip' and arguments[2] == 'value' then
 	    tooltip_settings.value = not tooltip_settings.value
         aux.print('tooltip value ' .. status(tooltip_settings.value))
+    elseif arguments[1] == 'tooltip' and arguments[2] == 'usually' then
+	    tooltip_settings.usually = not tooltip_settings.usually
+        aux.print('tooltip usually ' .. status(tooltip_settings.usually))
     elseif arguments[1] == 'tooltip' and arguments[2] == 'daily' then
 	    tooltip_settings.daily = not tooltip_settings.daily
         aux.print('tooltip daily ' .. status(tooltip_settings.daily))
@@ -165,6 +168,7 @@ function SlashCmdList.AUX(command)
         aux.print('- undercut [' .. status(aux.account_data.post_undercut) .. ']')
         aux.print('- opacity [' .. aux.color.blue(floor(aux.account_data.background_opacity * 100 + .5) .. '%') .. ']')
 		aux.print('- tooltip value [' .. status(tooltip_settings.value) .. ']')
+		aux.print('- tooltip usually [' .. status(tooltip_settings.usually) .. ']')
 		aux.print('- tooltip daily [' .. status(tooltip_settings.daily) .. ']')
 		aux.print('- tooltip merchant buy [' .. status(tooltip_settings.merchant_buy) .. ']')
 		aux.print('- tooltip merchant sell [' .. status(tooltip_settings.merchant_sell) .. ']')

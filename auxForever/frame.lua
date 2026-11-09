@@ -378,7 +378,8 @@ do
     local popup = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
     gui.set_panel_style(popup)
     popup:SetFrameStrata('DIALOG')
-    gui.set_size(popup, WIDTH, 292)
+    -- 322: the tooltip column's rows (Usually added in 0.8.2) plus the padding
+    gui.set_size(popup, WIDTH, 322)
     popup:SetPoint('TOPRIGHT', btn, 'BOTTOMRIGHT', 0, -4)
     popup:EnableMouse(true)
     popup:Hide()
@@ -528,6 +529,8 @@ do
     -- chat settings in this menu, FB-008). Kept per character, like the chat commands.
     local TOOLTIP_LINES = {
         {'value', 'Value', 'Price from your latest scan', 'The market price from your latest look at the item.'},
+        -- 0.8.2 (FB-035, suggested by deep_structure): the "usually" line could only go with Value
+        {'usually', 'Usually', nil, 'Under Value, the usual price over the last days, when it differs from Value by 30% or more.'},
         {'daily', 'Today', "Today's lowest, against the usual", "Today's lowest price, and how it compares with the usual price."},
         {'merchant_sell', 'Vendor sell price', nil, 'What a vendor pays you for it.'},
         {'merchant_buy', 'Vendor buy price', nil, 'What a vendor sells it for, once you have seen it at one.'},

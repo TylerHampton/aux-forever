@@ -3385,10 +3385,10 @@ try('0.6: settings', function()
   local keys = {}
   for _, box in ipairs(a.tooltip_boxes) do keys[box.key] = true end
   local all = true
-  for _, k in ipairs{'value', 'daily', 'merchant_sell', 'merchant_buy', 'disenchant_value', 'disenchant_distribution', 'money_icons'} do
+  for _, k in ipairs{'value', 'usually', 'daily', 'merchant_sell', 'merchant_buy', 'disenchant_value', 'disenchant_distribution', 'money_icons'} do
     if not keys[k] then all = false end
   end
-  check('settings: every /aux tooltip line has a box', all and #a.tooltip_boxes == 7)
+  check('settings: every /aux tooltip line has a box', all and #a.tooltip_boxes == 8)
   local box = a.tooltip_boxes[1]
   local checked
   local own_set_checked = rawget(box, 'SetChecked')
@@ -5154,6 +5154,59 @@ try('0.8.2: tooltip text is checked on the item list', function()
   rawset(AuxTooltip, 'NumLines', nil)
   for i = 1, 4 do G['AuxTooltipTextLeft' .. i], G['AuxTooltipTextRight' .. i] = old_lines[i][1], old_lines[i][2] end
   restore()
+end)
+
+-- 0.8.2, FB-035 (suggested by deep_structure): the "usually" line in tooltips gets a switch of its
+-- own (it could only go with Value). FB-033 (Chawitsch asked for stack prices, which Shift already
+-- shows): a stack's Value line says so ("Shift for 20").
+try('0.8.2: Usually switch and the Shift hint', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local tooltip = loadstring("select(2, ...) 'aux.core.tooltip'; return _M")('auxForever', addon)
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local today = h.today()
+  -- latest 39c, usual 87c: a big gap, so "usually" shows when on
+  h.write_record('7601:0', {day = today, low = 38, market = 39, units = 82, points = {{day = today - 2, value = 87}, {day = today - 3, value = 87}}})
+  local shift = false
+  local real_shift = G.IsShiftKeyDown
+  G.IsShiftKeyDown = function() return shift end
+  local function tip_lines(quantity)
+    local lines = {}
+    local tip = new_frame()
+    rawset(tip, 'AddLine', function(_, t) tinsert(lines, plain(t)) end)
+    rawset(AuxTooltip, 'NumLines', function() return 0 end)
+    tooltip.extend_tooltip(tip, '|cffffffff|Hitem:7601::::::0:0|h[X]|h|r', quantity or 1)
+    rawset(AuxTooltip, 'NumLines', nil)
+    return table.concat(lines, '\n')
+  end
+  local settings = a.character_data.tooltip
+  check('fb035: the switch is on by default', settings.usually == true)
+  check('fb035: on, the line shows', tip_lines():find('usually 0.87', 1, true) ~= nil)
+  SlashCmdList.AUX('tooltip usually')
+  check('fb035: /aux tooltip usually turns it off', settings.usually == false and tip_lines():find('usually', 1, true) == nil)
+  check('fb035: Value stays', tip_lines():find('Value: 0.39', 1, true) ~= nil)
+  local box
+  for _, b in ipairs(a.tooltip_boxes) do if b.key == 'usually' then box = b end end
+  box.__scripts.OnClick(box)
+  check('fb035: the Settings switch turns it back on', settings.usually == true and tip_lines():find('usually 0.87', 1, true) ~= nil)
+  -- a character saved before 0.8.2 has tooltip settings without the new line: it is filled in, on,
+  -- and the player's own choices stay
+  local older = a.character_settings({tooltip = {value = false, merchant_sell = true, daily = true}, bid_auction_ids = {7}})
+  check('fb035: an older character gets the line on', older.tooltip.usually == true)
+  check('fb035: and keeps its own choices', older.tooltip.value == false and older.tooltip.daily == true and older.bid_auction_ids[1] == 7)
+  check('fb035: other missing lines get their defaults', older.tooltip.money_icons == false and older.tooltip.merchant_buy == false)
+  local fresh = a.character_settings({})
+  check('fb035: a new character gets every default', fresh.tooltip.value == true and fresh.tooltip.usually == true and fresh.tooltip.daily == false and type(fresh.bid_auction_ids) == 'table')
+
+  -- the Shift hint
+  local stack = tip_lines(20)
+  check('fb033: a stack says Shift shows it', stack:find('Value: 0.39  seen today  Shift for 20', 1, true) ~= nil)
+  check('fb033: one item says nothing', tip_lines(1):find('Shift for', 1, true) == nil)
+  shift = true
+  stack = tip_lines(20)
+  check('fb033: with Shift held, the stack price and no hint', stack:find('for 20', 1, true) ~= nil and stack:find('Shift for', 1, true) == nil)
+  G.IsShiftKeyDown = real_shift
+  h.data['7601:0'] = nil
 end)
 
 -- what players do while the auction house is still answering: a slow auction house that answers

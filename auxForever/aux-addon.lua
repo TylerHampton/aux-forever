@@ -65,6 +65,25 @@ function M.full_scan_reminder(last, now)
     return 'Last ' .. scan .. ': ' .. age .. '. Run one on each visit to the auction house to keep your tooltip prices current.'
 end
 
+-- one character's saved settings with the defaults filled in. 0.8.2 (FB-035): the tooltip lines are
+-- filled in one by one, so a line added later (Usually) starts on for a character that already had
+-- tooltip settings (assign only fills what is missing at its own level)
+TOOLTIP_DEFAULTS = {
+    value = true,
+    usually = true,
+    merchant_sell = true,
+    merchant_buy = false,
+    daily = false,
+    disenchant_value = false,
+    disenchant_distribution = false,
+    money_icons = false,
+}
+function M.character_settings(saved)
+    assign(saved, {bid_auction_ids = {}, tooltip = {}})
+    assign(saved.tooltip, TOOLTIP_DEFAULTS)
+    return saved
+end
+
 function event.AUX_LOADED()
     _G.aux = aux or {}
     assign(aux, {
@@ -101,18 +120,7 @@ function event.AUX_LOADED()
     do
         local key = format('%s|%s', GetRealmName(), UnitName'player')
         aux.character[key] = aux.character[key] or {}
-        M.character_data = assign(aux.character[key], {
-            bid_auction_ids = {},
-            tooltip = {
-                value = true,
-                merchant_sell = true,
-                merchant_buy = false,
-                daily = false,
-                disenchant_value = false,
-                disenchant_distribution = false,
-                money_icons = false
-            }
-        })
+        M.character_data = character_settings(aux.character[key])
     end
     do
         local key = GetRealmName()
