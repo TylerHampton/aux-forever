@@ -16,8 +16,8 @@ From the player feedback logged on 2026-11-08 (FB-024 to FB-034, `docs/feedback.
 - **0.8.1 (speed and small things):** a search with a tooltip word reads every auction and takes
   minutes (FB-025, RushJet1); the full scan takes 5+ minutes (FB-027) and the Sniper 30+ seconds
   from its sound to the purchase (FB-028, both user_ayzkr6rhvrlna3ya), measure first; profit or
-  loss on the profession window's Materials line (FB-026, deep_structure; reopens Tyler's FB-007
-  "cost only, no profit", so his call); a hint in the tooltip that Shift shows the whole stack
+  loss on the profession window's Materials line (FB-026, deep_structure; Tyler, 2026-11-08,
+  reverses FB-007's "cost only, no profit"; mockup first); a hint in the tooltip that Shift shows the whole stack
   (FB-033, Chawitsch).
 - **0.9 (features), with the 0.9 list below:** a Settings option to start a full scan when the
   window opens, off by default (FB-032, Chawitsch; Tyler agreed in his reply); posting rules

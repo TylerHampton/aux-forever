@@ -545,7 +545,8 @@ and profit.
 Tyler's notes (scope): "Come to think of it, maybe not profit, maybe just cost of crafting based on
 the last full scan data. I don't think we need to bloat the user with information when we could
 just give them only what they need. We don't want to suffer from feature creep too much." So the
-request as Tyler shapes it: **cost only, no profit**. Tyler first said "tooltip", then "in the
+request as Tyler shapes it: **cost only, no profit** (reversed 2026-11-08 by Tyler for FB-026: profit
+goes on the line in 0.8.1). Tyler first said "tooltip", then "in the
 professions menu"; where exactly it shows is open (see Ask Tyler).
 
 Recorder's notes:
@@ -1469,8 +1470,10 @@ Unknowns: none that change the fix.
 Found after logging: when the Materials line was built (FB-007, 2026-10-07), Tyler chose
 "cost only, no profit" for it. Adding profit there reopens his decision.
 
-Ask Tyler: is profit on the Materials line now wanted (it reverses FB-007's "cost only, no
-profit")? If not, the fix is to point to the recipe search's profit line instead.
+Tyler, 2026-11-08 (decided): profit goes on the Materials line, reversing FB-007's "cost only, no
+profit": "Yeah reverse my decision, because if it was enough for someone to leave a comment on the
+addon we should make it easier to see." Planned 0.8.1; a mockup of the line comes first (AGENTS.md:
+visual changes are shown before they are built).
 
 ### FB-027: The full scan takes more than 5 minutes since Forever launched
 
