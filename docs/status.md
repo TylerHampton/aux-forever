@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-08, Tyler's time (0.8 released, tag `v0.8`; **0.8.1 tested and ready** on `claude/magical-maxwell-eyud0b`, waiting for Tyler's "release").
+Last updated 2026-11-09, Tyler's time (**0.8.1 released**, tag `v0.8.1`, PR #39; next: 0.8.2, speed).
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
@@ -30,6 +30,18 @@ its own first, revert this commit, release, then re-apply it. Version `forever-0
 `TESTING.md` (0.8.1 build 1, three steps); zip `auxForever-0.8.1-build1.zip`. Tyler had not started the
 0.8.0.1 page, so the test page now holds all seven steps under build id `0-8-1-build-1` (0.8.0.1's
 four, then the three profit steps).
+
+**2026-11-09, Claude, 0.8.1 released** (Tyler: "release 0.8.1"): changelog dated, PR #39 merged
+into `main` (squash, commit fddd029) after its tests passed, Release workflow run on `main` (tag
+`v0.8.1`, GitHub release, CurseForge upload as Beta, file id 9522779, "Uploaded."). Contents: exact cloak search (FB-024,
+GregoryWW), the Professions window no longer shifts and a window the player placed stays put
+(FB-034, Chawitsch), profit or loss on the Materials line (FB-026, deep_structure). `main` was
+merged back into `claude/magical-maxwell-eyud0b` after the squash merge (a force push to restart it
+was refused by the session's permission check), so the branch matches `main`. Next: 0.8.2, speed
+(`docs/roadmap.md`, "After 0.8"): measure first where the time goes in a tooltip-word search
+(FB-025), the full scan (FB-027) and the Sniper from its sound to the purchase (FB-028); plus the
+Shift hint in tooltips (FB-033). Replies for the players are not written yet; ask Tyler whether he
+wants them.
 
 **2026-11-08, Claude, 0.8.1 build 2:** Tyler's build 1 test (`TESTING.md`): the cloak search, the
 Blizzard UI step and the profit line work; the Professions step failed because Tyler keeps that

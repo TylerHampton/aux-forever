@@ -11,7 +11,7 @@ raises the third (0.6.1); new features are the next minor version (0.7).
 
 From the player feedback logged on 2026-11-08 (FB-024 to FB-034, `docs/feedback.md`):
 
-- **0.8.1 (building):** the two bug fixes first built as 0.8.0.1: an exact search for a cloak
+- **0.8.1 (released 2026-11-09, PR #39):** the two bug fixes first built as 0.8.0.1: an exact search for a cloak
   finds nothing (FB-024, GregoryWW); opening aux moves the Professions window to the right (FB-034,
   Chawitsch). Plus profit or loss on the profession window's Materials line (FB-026,
   deep_structure; Tyler, 2026-11-08, reverses FB-007's "cost only, no profit"; option A of the
