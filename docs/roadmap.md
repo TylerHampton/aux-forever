@@ -20,7 +20,10 @@ From the player feedback logged on 2026-11-08 (FB-024 to FB-034, `docs/feedback.
 - **0.8.2 (speed and small things):** a search with a tooltip word reads every auction and takes
   minutes (FB-025, RushJet1); the full scan takes 5+ minutes (FB-027) and the Sniper 30+ seconds
   from its sound to the purchase (FB-028, both user_ayzkr6rhvrlna3ya), measure first; a hint in
-  the tooltip that Shift shows the whole stack (FB-033, Chawitsch).
+  the tooltip that Shift shows the whole stack (FB-033, Chawitsch); a "Usually" switch for tooltips
+  (FB-035, deep_structure). Proposed 2026-11-09, Tyler to confirm: the Sniper calling a flat market
+  a deal because the usual price lags after launch (FB-036, Swiftwren), and "i cant scan today"
+  (FB-037, deep_structure).
 - **0.9 (features), with the 0.9 list below:** a Settings option to start a full scan when the
   window opens, off by default (FB-032, Chawitsch; Tyler agreed in his reply); posting rules
   based on the usual price, like TSM (FB-031, user_yt0k9lezehn1ukm993387), mockup first.

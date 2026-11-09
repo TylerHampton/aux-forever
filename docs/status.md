@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-09, Tyler's time (**0.8.1 released**, tag `v0.8.1`; paused by Tyler, next: 0.8.2).
+Last updated 2026-11-09, Tyler's time (**0.8.1 released**; Tyler back, new feedback FB-036 and FB-037 logged; next: 0.8.2).
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
@@ -139,6 +139,13 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 the supporting model for second opinions, written in `docs/reviews/` (`AGENTS.md`, "Roles").
 Agents talk through `docs/handoff.md`; Tyler only says "Check the handoff" to whoever goes next.
 Nothing is open there (H-006 done, 2026-11-08).
+
+**Back (Tyler, 2026-11-09):** new CurseForge feedback logged: FB-036 (Swiftwren: the Sniper
+offers "deals at 4% of the usual price" on items with hundreds listed at the same price; likely
+cause: the usual price lags after launch prices fell, and the Sniper never checks today's market)
+and FB-037 (deep_structure: "i cant scan today"; unknown which scan). Both proposed for 0.8.2.
+Open for Tyler: a screenshot of one such Sniper deal plus a Full search of the item, and whether
+his own Full scan works today.
 
 **Paused (Tyler, 2026-11-09):** "We start more work later on, this is enough effort for this
 week." Nothing is being built until Tyler resumes. Where things stand:
