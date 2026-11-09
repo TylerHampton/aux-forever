@@ -203,7 +203,8 @@ function M.judge_record(record, market)
         usual, vendor, days = record.deal_history, record.deal_vendor, record.deal_days
     end
     local percent, min_profit = settings()
-    return judge(ceil(record.unit_buyout_price), usual, vendor, days, percent, min_profit, market)
+    -- a deal already found is judged again (shown_deals) with the market it was found with
+    return judge(ceil(record.unit_buyout_price), usual, vendor, days, percent, min_profit, market or record.deal_market)
 end
 
 local function find_deal(key)

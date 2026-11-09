@@ -150,10 +150,10 @@ end
 
 function M.start(params)
     if state then
-        -- 0.8.2 (FB-037): a Full scan stopped before its list was read records nothing, and the game
-        -- still counts it; say so instead of losing it without a word
+        -- 0.8.2 (FB-037): a Full scan stopped before it finished leaves its prices incomplete, and the
+        -- game still counts it; say so instead of losing it without a word
         if state.params.get_all and not params.get_all then
-            aux.print('Full scan stopped by a new search before it finished; nothing was recorded.')
+            aux.print('Full scan stopped by a new search before it finished, so its prices are incomplete. Run it again when the Full scan button lights up.')
         end
         abort()
     end

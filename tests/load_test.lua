@@ -4929,6 +4929,13 @@ try('0.8.2: the Sniper checks today\'s market', function()
   check('fb036: a lone sword is still a deal', found['Lone Sword'] and found['Lone Sword'].deal_reason == 'usual')
   check('fb036: below a fallen market it says so', found['Fallen Cloth'] and found['Fallen Cloth'].deal_reason == 'market' and found['Fallen Cloth'].deal_percent == 30
     and #found['Fallen Cloth'].deal_tiers == 1)
+  -- a stricter setting judges a found deal again against the market it was found with: 30% of the
+  -- market is 14% of the usual price, so at 20% it would wrongly stay with the usual price alone
+  aux.account_data.sniper_percent = 20
+  local still
+  for _, deal in ipairs(sniper.shown_deals()) do if deal == found['Fallen Cloth'] then still = true end end
+  check('fb036: a stricter rule hides a market deal that no longer passes', not still)
+  aux.account_data.sniper_percent = 60
   -- the next rounds do not open the flat market again while its price only moves a copper
   local herb_opened = opened[601]
   items[1].min, items[1].auctions[1].buyout = 86, 86
@@ -5037,8 +5044,8 @@ try('0.8.2: nothing stops a Full scan by itself', function()
   -- a search the player starts stops it, and says so
   scan.start{type = 'list', queries = {{blizzard_query = {}}}, quiet = true}
   local said
-  for _, t in ipairs(printed) do if t:find('Full scan stopped by a new search', 1, true) then said = true end end
-  check('fb037: a search stops it and says nothing was recorded', not scan.is_full_scan() and said)
+  for _, t in ipairs(printed) do if t:find('Full scan stopped by a new search before it finished', 1, true) then said = true end end
+  check('fb037: a search stops it and says so', not scan.is_full_scan() and said)
   scan.abort()
   for _ = 1, 30 do tick() end
 
