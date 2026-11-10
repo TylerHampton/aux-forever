@@ -2009,17 +2009,6 @@ Recorder's notes:
 
 Unknowns: none for the decision.
 
-## Before this log
-
-Feedback before 2026-10-07 was recorded in other files, not here:
-
-- Two guild testers (Darkhorse, Hotpocket) asked for recipe search, built in 0.4
-  (`docs/roadmap.md`, 0.4, "Recipe search"); their concern about memory use led to `/aux memory`
-  (0.3.1).
-- Tyler's own in-game test results, build by build: `docs/status.md` and `docs/testing-history.md`.
-- Tyler's notes for the Sniper rework and the Auctions tab: `docs/roadmap.md`, 0.5.
-- Tyler's brother (Garsterson) found the gear posting error fixed in 0.1.1 (`docs/status.md`, Fixed in 0.1.1).
-
 ### FB-039: Full scan not working for a player Tyler knows
 
 - Received: 2026-11-09
@@ -2053,3 +2042,13 @@ Unknowns: the version, what he saw (a chat message, a gray button, an error), an
 Sniper was running. The fix works without them: 0.8.2 waits up to 10 minutes, nothing but the
 player's own search stops a Full scan, and every way it ends says why in the chat.
 
+## Before this log
+
+Feedback before 2026-10-07 was recorded in other files, not here:
+
+- Two guild testers (Darkhorse, Hotpocket) asked for recipe search, built in 0.4
+  (`docs/roadmap.md`, 0.4, "Recipe search"); their concern about memory use led to `/aux memory`
+  (0.3.1).
+- Tyler's own in-game test results, build by build: `docs/status.md` and `docs/testing-history.md`.
+- Tyler's notes for the Sniper rework and the Auctions tab: `docs/roadmap.md`, 0.5.
+- Tyler's brother (Garsterson) found the gear posting error fixed in 0.1.1 (`docs/status.md`, Fixed in 0.1.1).
