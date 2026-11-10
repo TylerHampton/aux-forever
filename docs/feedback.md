@@ -131,21 +131,21 @@ For whoever fixes or builds from it:
 | [FB-022](#fb-022-the-player-did-not-know-the-newest-listing-at-a-price-sells-first) | 2026-10-18 | sarrathsilentstrider | ux | Post | n/a | The player did not know the newest listing at a price sells first | new |
 | [FB-023](#fb-023-a-shopping-list-for-crafting-n-of-a-recipe) | 2026-10-20 | Kortan | request | Search | n/a | A shopping list for crafting N of a recipe | planned 0.9 |
 | [FB-024](#fb-024-an-exact-search-for-hillmans-cloak-finds-nothing-a-search-for-hillmans-finds-many) | 2026-11-08 | GregoryWW | bug | Search | S2 | An exact search for Hillman's Cloak finds nothing; a search for Hillman's finds many | fixed 0.8.1 (released 2026-11-09) |
-| [FB-025](#fb-025-adding-a-tooltip-word-strength-turns-an-instant-search-into-a-2-minute-one) | 2026-11-08 | RushJet1 | bug | Performance | S2 | Adding a tooltip word (strength) turns an instant search into a 2 minute one | in-progress 0.8.2 |
+| [FB-025](#fb-025-adding-a-tooltip-word-strength-turns-an-instant-search-into-a-2-minute-one) | 2026-11-08 | RushJet1 | bug | Performance | S2 | Adding a tooltip word (strength) turns an instant search into a 2 minute one | fixed 0.8.2 (released 2026-11-09) |
 | [FB-026](#fb-026-show-whether-a-craft-makes-a-profit-or-a-loss) | 2026-11-08 | deep_structure | request | Recipe search | n/a | Show whether a craft makes a profit or a loss | built 0.8.1 (released 2026-11-09) |
-| [FB-027](#fb-027-the-full-scan-takes-more-than-5-minutes-since-forever-launched) | 2026-11-08 | user_ayzkr6rhvrlna3ya | bug | Performance | S3 | The full scan takes more than 5 minutes since Forever launched | in-progress 0.8.2 |
-| [FB-028](#fb-028-the-sniper-takes-over-30-seconds-from-its-sound-to-the-purchase) | 2026-11-08 | user_ayzkr6rhvrlna3ya | bug | Sniper | S2 | The Sniper takes over 30 seconds from its sound to the purchase | in-progress 0.8.2 |
+| [FB-027](#fb-027-the-full-scan-takes-more-than-5-minutes-since-forever-launched) | 2026-11-08 | user_ayzkr6rhvrlna3ya | bug | Performance | S3 | The full scan takes more than 5 minutes since Forever launched | fixed 0.8.2 (released 2026-11-09) |
+| [FB-028](#fb-028-the-sniper-takes-over-30-seconds-from-its-sound-to-the-purchase) | 2026-11-08 | user_ayzkr6rhvrlna3ya | bug | Sniper | S2 | The Sniper takes over 30 seconds from its sound to the purchase | fixed 0.8.2 (released 2026-11-09) |
 | [FB-029](#fb-029-price-gear-with-a-random-ending-of-the-eagle-of-the-bear-separately) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Other | n/a | Price gear with a random ending ("of the Eagle", "of the Bear") separately | built 0.8 (released 2026-11-08) |
 | [FB-030](#fb-030-how-the--of-historical-value-works-keep-more-price-history) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | question | Other | n/a | How the % of historical value works; keep more price history | new |
 | [FB-031](#fb-031-posting-rules-based-on-historical-value-like-tsm) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Post | n/a | Posting rules based on historical value, like TSM | planned 0.9 |
 | [FB-032](#fb-032-start-a-full-scan-when-the-window-opens-if-the-15-minute-wait-is-over) | 2026-11-08 | Chawitsch | request | Settings | n/a | Start a full scan when the window opens, if the 15 minute wait is over | planned 0.9 (Tyler: option, off by default) |
 | [FB-033](#fb-033-tooltip-prices-for-the-whole-stack-not-one-item) | 2026-11-08 | Chawitsch | ux | Other | n/a | Tooltip prices for the whole stack, not one item | wont-fix (Tyler: no Shift instructions in tooltips; Shift already works) |
 | [FB-034](#fb-034-opening-aux-moves-blizzards-professions-window-to-the-right) | 2026-11-08 | Chawitsch | bug | Window | S3 | Opening aux moves Blizzard's Professions window to the right | fixed 0.8.1 (released 2026-11-09) |
-| [FB-035](#fb-035-a-setting-to-hide-the-usually-price-line-in-tooltips) | 2026-11-09 | deep_structure | request | Settings | n/a | A setting to hide the "usually" price line in tooltips | in-progress 0.8.2 |
-| [FB-036](#fb-036-the-sniper-calls-a-flat-market-a-deal-at-4-of-the-usual-price) | 2026-11-09 | Swiftwren | bug | Sniper | S2 | The Sniper calls a flat market a deal at 4% of the usual price | in-progress 0.8.2 |
-| [FB-037](#fb-037-i-cant-scan-today) | 2026-11-09 | deep_structure | bug | Full scan | S2 | "i cant scan today" | in-progress 0.8.2 |
+| [FB-035](#fb-035-a-setting-to-hide-the-usually-price-line-in-tooltips) | 2026-11-09 | deep_structure | request | Settings | n/a | A setting to hide the "usually" price line in tooltips | built 0.8.2 (released 2026-11-09) |
+| [FB-036](#fb-036-the-sniper-calls-a-flat-market-a-deal-at-4-of-the-usual-price) | 2026-11-09 | Swiftwren | bug | Sniper | S2 | The Sniper calls a flat market a deal at 4% of the usual price | fixed 0.8.2 (released 2026-11-09) |
+| [FB-037](#fb-037-i-cant-scan-today) | 2026-11-09 | deep_structure | bug | Full scan | S2 | "i cant scan today" | fixed 0.8.2 (released 2026-11-09) |
 | [FB-038](#fb-038-show-auxs-tooltip-lines-only-while-holding-a-key) | 2026-11-09 | blackmyin | request | Settings | n/a | Show aux's tooltip lines only while holding a key | wont-fix (Tyler: the tooltip line switches cover it) |
-| [FB-039](#fb-039-full-scan-not-working-for-a-player-tyler-knows) | 2026-11-09 | a player Tyler knows (name not given) | bug | Full scan | S2 | Full scan "wasnt working" | in-progress 0.8.2 (likely the same as FB-037) |
+| [FB-039](#fb-039-full-scan-not-working-for-a-player-tyler-knows) | 2026-11-09 | a player Tyler knows (name not given) | bug | Full scan | S2 | Full scan "wasnt working" | fixed 0.8.2 (released 2026-11-09) |
 
 ## Players
 
@@ -1416,7 +1416,7 @@ Ask Tyler: the in-game check is steps 1 and 2 of 0.8.0.1 build 1 (`TESTING.md`).
 - Area: Performance (Search)
 - Severity: S2 (works, but takes minutes; leaving the word out and reading tooltips by hand is the
   way around)
-- Status: in-progress 0.8.2 (`claude/magical-maxwell-eyud0b`; build 5 failed in game with gear with endings read one by one; build 6, commit 82c546c: their tooltips come from the item key, no request; not yet seen in game)
+- Status: fixed 0.8.2 (released 2026-11-09, PR #40; tested by Tyler in build 7: "That was LIGHTNING fast"; build 5 failed in game with gear with endings read one by one; build 6, commit 82c546c: their tooltips come from the item key, no request; not yet seen in game)
 - Proposed: 0.8.1 (speed)
 
 Said:
@@ -1499,7 +1499,7 @@ fit the 20-pixel gap above Blizzard's optional reagents). Claude recommends A. T
 - Type: bug
 - Area: Performance (Full scan)
 - Severity: S3 (it finishes; it is slow)
-- Status: in-progress 0.8.2 (`claude/magical-maxwell-eyud0b`, commit 19921b1: the Full scan prints how long the answer and the list took; the cause, the server, is not aux's to fix; the numbers come from Tyler's test)
+- Status: fixed 0.8.2 (released 2026-11-09, PR #40; Tyler's build 7 test: 215090 auctions in 50.5s, 2.0s to send the list; commit 19921b1: the Full scan prints how long the answer and the list took; the cause, the server, is not aux's to fix; the numbers come from Tyler's test)
 - Proposed: 0.8.1 (speed), after measuring
 
 Said:
@@ -1538,7 +1538,7 @@ saying "waiting for the auction house"?
 - Type: bug
 - Area: Sniper (Performance)
 - Severity: S2 (the Sniper finds deals but is too slow to get them)
-- Status: in-progress 0.8.2 (`claude/magical-maxwell-eyud0b`, commit 8a4aa64: a deal read in the last 15 seconds goes straight to the buy bar; not yet seen in game)
+- Status: fixed 0.8.2 (released 2026-11-09, PR #40; commit 8a4aa64: a deal read in the last 15 seconds goes straight to the buy bar; not yet seen in game)
 - Proposed: 0.8.1 (speed)
 
 Said:
@@ -1820,7 +1820,7 @@ Ask Tyler: the in-game check is step 3 of 0.8.0.1 build 1 (`TESTING.md`).
 - Type: request
 - Area: Settings (tooltips)
 - Severity: n/a
-- Status: in-progress 0.8.2 (`claude/magical-maxwell-eyud0b`, commit 153132a: Usually switch; build 4: the usual price is a percent on the Value line, switch "% of usual"; not yet seen in game)
+- Status: built 0.8.2 (released 2026-11-09, PR #40; tested by Tyler in build 5: the % of usual switch turns the percent off; commit 153132a: Usually switch; build 4: the usual price is a percent on the Value line, switch "% of usual"; not yet seen in game)
 - Proposed: 0.8.2 (a small thing: one switch)
 
 Said:
@@ -1868,7 +1868,7 @@ on, shown whenever a usual price exists.
 - Area: Sniper
 - Severity: S2 (the player loses money buying "deals" that are the normal price; the Sniper can be
   ignored)
-- Status: in-progress 0.8.2 (`claude/magical-maxwell-eyud0b`, commits bde3033 and 4090883: deals judged against the lower of the usual price and today's market; build 2: the list check also uses today's Full scan and other versions of the name; build 3: Gemini's review H-008, eight findings fixed; not yet seen in game)
+- Status: fixed 0.8.2 (released 2026-11-09, PR #40; Tyler's build 5 test showed "% of market" deals; commits bde3033 and 4090883: deals judged against the lower of the usual price and today's market; build 2: the list check also uses today's Full scan and other versions of the name; build 3: Gemini's review H-008, eight findings fixed; not yet seen in game)
 - Proposed: 0.8.2
 
 Said:
@@ -1940,7 +1940,7 @@ Recorder's notes on it:
 - Type: bug
 - Area: Full scan (or Search; not said)
 - Severity: S2 (provisional: a scan that does not work at all would be S1 for that player)
-- Status: in-progress 0.8.2 (`claude/magical-maxwell-eyud0b`, commit 19921b1: the Full scan waits up to 10 minutes and is no longer stopped by the Sniper or the Auctions tab; whether this was the player's problem is not known)
+- Status: fixed 0.8.2 (released 2026-11-09, PR #40; commit 19921b1: the Full scan waits up to 10 minutes and is no longer stopped by the Sniper or the Auctions tab; whether this was the player's problem is not known)
 - Proposed: 0.8.2, once Tyler can say whether it happens to him
 
 Said:
@@ -2019,7 +2019,7 @@ Unknowns: none for the decision.
 - Type: bug
 - Area: Full scan
 - Severity: S2 (provisional, as FB-037)
-- Status: in-progress 0.8.2 (likely the same as FB-037: the fixes in commit 19921b1 are not released yet)
+- Status: fixed 0.8.2 (released 2026-11-09, PR #40; likely the same as FB-037, fixed by commit 19921b1)
 - Proposed: release 0.8.2
 
 Tyler's summary:
