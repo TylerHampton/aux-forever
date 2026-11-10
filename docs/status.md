@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-09, Tyler's time (**0.8.2 build 8** on `claude/magical-maxwell-eyud0b`, tested and passing, ready to release when Tyler says; nothing open in the handoff; 0.8.1 is the latest release).
+Last updated 2026-11-09, Tyler's time (**0.8.2 released**; `claude/magical-maxwell-eyud0b` matches `main`; nothing open in the handoff).
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
@@ -151,6 +151,13 @@ for Claude.
 Sniper changes (`fddd029..219db5f`), answered all five questions from H-007, and wrote eight
 numbered findings in `docs/reviews/2026-11-09-sniper-0.8.2.md` (with concrete listings and line
 numbers). Opened H-008 in `docs/handoff.md` for Claude to check the findings.
+
+**2026-11-09, Claude, 0.8.2 released** (Tyler: "release 0.8.2"): changelog dated, feedback entries
+marked released, PR #40 merged into `main` (squash, commit 5194560) after its tests passed, Release
+workflow run on `main` (tag `v0.8.2`, GitHub pre-release with `auxForever-0.8.2.zip`, CurseForge
+upload as Beta, file id 9537213, "Uploaded."). `main` merged back into the branch. Waiting on Tyler:
+paste `docs/curseforge-description.md` into the CurseForge page (it now says the tooltip shows a
+percent; `docs/curseforge.md`). Next version: 0.9 (`docs/roadmap.md`).
 
 **2026-11-09, 0.8.2 build 8 tested:** passes (new deals show below the selected row with the mouse
 on it). Tyler's note: a player he knows says the Full scan "wasnt working" (FB-039); nothing in the

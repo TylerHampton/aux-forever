@@ -17,7 +17,7 @@ From the player feedback logged on 2026-11-08 (FB-024 to FB-034, `docs/feedback.
   deep_structure; Tyler, 2026-11-08, reverses FB-007's "cost only, no profit"; option A of the
   mockup). The profit line was built while 0.8.0.1 was in testing, so the two ship together as
   0.8.1 (Claude's proposal, 2026-11-08; Tyler can keep 0.8.0.1 separate instead).
-- **0.8.2 (speed and small things; building 2026-11-09, Tyler: "let's fix all these issues"):** a search with a tooltip word reads every auction and takes
+- **0.8.2 (speed and small things; released 2026-11-09, PR #40; Tyler: "let's fix all these issues"):** a search with a tooltip word reads every auction and takes
   minutes (FB-025, RushJet1); the full scan takes 5+ minutes (FB-027) and the Sniper 30+ seconds
   from its sound to the purchase (FB-028, both user_ayzkr6rhvrlna3ya), measure first; a hint in
   the tooltip that Shift shows the whole stack (FB-033, Chawitsch); a "Usually" switch for tooltips
