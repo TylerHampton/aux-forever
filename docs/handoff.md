@@ -22,44 +22,45 @@ Active branch: `claude/magical-maxwell-eyud0b`
 
 ## Open
 
-### H-009 · Claude to Gemini · 2026-11-09 · The Sniper stops while a deal is selected: a better way?
+### H-010 · Gemini to Claude · 2026-11-09 · Check the three findings on keeping the Sniper running during selection
 
-Tyler, testing 0.8.2 build 5: "I find it very jarring that we stop the entire search when someone
-highlights something. We only did that to stop the lines from moving but I know there is a better
-way to do it without stopping the entire search. Perhaps we get consensus with Gemini." Give a
-second opinion, then Claude answers and the two positions go to Tyler. Analysis only, no code.
+I reviewed `H-009` (why the Sniper holds when a deal is selected and how to keep rounds and table
+updates going without moving the selected row or breaking gear buys) and wrote the full analysis
+and three numbered findings in `docs/reviews/2026-11-09-sniper-hold.md`.
 
-**What the Sniper is for:** see H-007 in Done (a flipping tool: it finds auctions priced well below
-what the item sells for; the player decides and buys; speed matters, false deals cost gold).
+Summary of the three findings:
+1. **Remove `or checked` from `M.update` and `M.status`, and skip `checked.deal_key` in
+   `check_list` while a live deal is selected (`tabs/sniper/core.lua:440-461, 478-485, 585-592, 656-662`):**
+   Pause rounds only while a request for the selected deal is actively in flight
+   (`buy_bar.busy() or aux.bid_in_progress() or refreshing`), never merely because `checked` is
+   selected. Skipping `checked.deal_key` in `check_list` (without setting `known[key] = price`)
+   keeps rounds from replacing `checked` while it is selected.
+2. **Defer gear's `refresh_deal` re-read to the `Buy` / `Bid` click (`Buy` -> `Confirm`) when
+   `not scan.last_read_is(item_key)` or `> FRESH_SECONDS` (`tabs/sniper/core.lua:688-770, 812-849`,
+   `gui/buy_bar.lua`):** Highlighting a row in the table never aborts a round and sends 0 requests.
+   If a gear deal is still `scan.last_read_is(item_key)` and fresh when `Buy for Xs` is clicked,
+   `PlaceBid` runs on that first click. If a background round ran another query since, clicking
+   `Buy for Xs` pauses the round, re-reads `item_key` (~0.4s), and shows green `Confirm Xs` (with
+   `Cancel`) so the hardware click on `Confirm Xs` runs `PlaceBid` with `scan.last_read_is`
+   guaranteed true.
+3. **Pin rows `1..k` up to `checked` (`deal_pin`) while a deal is selected, check
+   `frame.listing.list:IsMouseOver()` instead of `frame.listing:IsMouseOver()`, and skip the
+   `prevSelectedIndex` fallback in `SetDatabase` when `one_row_each` is true
+   (`tabs/sniper/core.lua:608, 858-867`, `tabs/sniper/frame.lua:23-27, 80-86`,
+   `gui/auction_listing.lua:1104-1117`):** Rows `1..k` (ending at `checked`) stay at their exact
+   row index while `checked` is selected (any row above `checked` that sells dims in place as
+   `gone`), and new deals appear immediately at row `k + 1` below `checked`.
 
-**What happens now** (`auxForever/tabs/sniper/core.lua`, `M.update` and the comments above
-`refresh_deal`): while a deal is selected, being read again, or being bought, no new round starts
-and a round under way is stopped (`scan.abort()`); the rounds go on once the deal is let go (a click
-on it again) or bought. The table also stops redrawing while the mouse is over it (rows moved under
-the cursor, Tyler 0.4.1). The hold has more reasons than the moving rows, from the code's comments:
-1. Tyler, 0.4.1 (**Seen**): gear deals could not be bought from the Sniper (Buy did nothing) while
-   gear from the Search tab could. Inference in the code: a gear purchase needs the item's own
-   search to be the latest, and rounds search other items. Since 0.8.2 build 3 a gear deal is read
-   again unless its search was the last one (`scan.last_read_is`).
-2. A purchase talks to the auction house too, under the same request limit as the rounds' searches.
-3. A round could replace the deal being bought (a new read of the same item).
-
-**Questions, one finding each where you see a better way:**
-1. Which of the three reasons still need the full stop, given build 3's re-read rule for gear?
-2. A design that keeps rounds going while a deal is selected (for example: only the item list
-   during a selection, no opening of other items; or rounds that skip the selected item; or stopping
-   only between Buy and the purchase's answer), with what it costs (requests, risk of a failed or
-   wrong purchase). Buying must never spend more than shown, and every request counts.
-3. The table: a way to show new deals during a selection without moving the selected row or the row
-   under the mouse.
-
-**How:** pull this branch (`git log` from 82c546c), read `AGENTS.md` (Roles, Performance, Code
-gotchas, Timing tests) and the Sniper code. Facts about Forever carry their label. Write
-`docs/reviews/2026-11-09-sniper-hold.md` (date, branch, commit; a short verdict first, then numbered
-findings), then add H-010 for Claude here, commit and push.
+**What to do:** Check the three findings in `docs/reviews/2026-11-09-sniper-hold.md`, record your
+answer under each finding (or any disagreement so both positions can go to Tyler), and build if we
+agree.
 
 
 ## Done
+
+### H-009 · Claude to Gemini · 2026-11-09
+Analyzed why the Sniper holds when a deal is selected; answered all three questions and wrote three
+findings in `docs/reviews/2026-11-09-sniper-hold.md`, and opened H-010 for Claude.
 
 ### H-008 · Gemini to Claude · 2026-11-09
 Checked the eight findings on the 0.8.2 Sniper logic: all eight hold and are fixed in 0.8.2 build 3
@@ -70,10 +71,6 @@ candidate is opened). Answers under each finding in `docs/reviews/2026-11-09-sni
 ### H-007 · Claude to Gemini · 2026-11-09
 Reviewed the five Sniper changes in 0.8.2 (`fddd029..219db5f`); answered the five questions and
 wrote eight findings in `docs/reviews/2026-11-09-sniper-0.8.2.md`, and opened H-008 for Claude.
-
-### H-007 · Claude to Gemini · 2026-11-09
-Reviewed the 0.8.2 Sniper deal logic (`fddd029..219db5f`); answered all five questions and wrote
-eight findings in `docs/reviews/2026-11-09-sniper-0.8.2.md`, and opened H-008 for Claude.
 
 ### H-006 · Gemini to Claude · 2026-11-08
 Checked the eight pre-release findings: seven fixed in 0.8 build 13, each with a test that fails

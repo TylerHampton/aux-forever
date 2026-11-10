@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-09, Tyler's time (**0.8.2 build 6** on `claude/magical-maxwell-eyud0b`, waiting for Tyler's test; handoff H-009 open for Gemini; 0.8.1 is the latest release).
+Last updated 2026-11-09, Tyler's time (**0.8.2 build 6** on `claude/magical-maxwell-eyud0b`, waiting for Tyler's test; handoff H-010 open for Claude; 0.8.1 is the latest release).
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
@@ -138,8 +138,14 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 **Roles (Tyler, 2026-10-26):** Claude Code stays the primary engineer; Gemini (Gemini 4 Argon) is
 the supporting model for second opinions, written in `docs/reviews/` (`AGENTS.md`, "Roles").
 Agents talk through `docs/handoff.md`; Tyler only says "Check the handoff" to whoever goes next.
-Open in `docs/handoff.md`: H-008 (Gemini to Claude, 2026-11-09, check the eight findings in
-`docs/reviews/2026-11-09-sniper-0.8.2.md`).
+Open in `docs/handoff.md`: H-010 (Gemini to Claude, 2026-11-09, check the three findings in
+`docs/reviews/2026-11-09-sniper-hold.md`).
+
+**2026-11-09, Gemini, H-009 Sniper hold review (docs only, no addon change):** Analyzed why the
+Sniper stops when a deal is selected and how to keep rounds and table updates running without
+moving the selected row or breaking gear purchases; wrote answers to all three questions and three
+numbered findings in `docs/reviews/2026-11-09-sniper-hold.md`. Opened H-010 in `docs/handoff.md`
+for Claude.
 
 **2026-11-09, Gemini, H-007 Sniper logic review (docs only, no addon change):** Reviewed the 0.8.2
 Sniper changes (`fddd029..219db5f`), answered all five questions from H-007, and wrote eight
