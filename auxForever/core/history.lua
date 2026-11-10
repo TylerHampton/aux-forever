@@ -386,11 +386,8 @@ function M.latest(item_key)
 	return entry.latest, entry.age
 end
 
--- the usual price differs this much or more from the latest: tooltips add "usually ..."
-M.USUALLY_SHARE = .3
-function M.usually_differs(latest, usual)
-	return latest and usual and usual > 0 and abs(latest - usual) / usual >= USUALLY_SHARE or false
-end
+-- (0.8.2 build 4: the "usually" line under Value and its 30% rule are gone; the tooltip shows the
+-- usual price as a percent on the Value line)
 
 -- "today", "1 day ago", "9 days ago"
 function M.age_text(age)

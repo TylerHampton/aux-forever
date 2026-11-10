@@ -8,7 +8,16 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.2 build 4
+## Current build: 0.8.2 build 5
+
+Build 4 plus one consistency change (Tyler, 2026-11-09: wherever a price is compared with the usual
+price, the same percent in the Search tab's colors): the Sniper's Why column shows "30% of usual" or
+"70% of market" with the percent in the % Hist. Value colors (it was always green). The "usually"
+line was the only other place with its own wording; it went in build 4. Zip
+`auxForever-0.8.2-build5.zip`; `/reload` is enough. Test page build id `0-8-2-build-5`. Build 4's
+steps; step 5 (Sniper screenshot) also shows the Why column's colors.
+
+### 0.8.2 build 4
 
 Build 3 plus one tooltip change (Tyler, 2026-11-09, after deep_structure asked again about
 "usually"): the usual price is a percent on the Value line, "Value: 2s (67%)  seen today", instead

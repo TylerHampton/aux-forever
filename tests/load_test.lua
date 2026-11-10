@@ -5414,6 +5414,23 @@ try('0.8.2: a deal read again records no day price', function()
   h.data['951:0'] = nil
 end)
 
+-- 0.8.2 build 5 (Tyler: "clean, consistent"): the Sniper's Why column shows its percent in the colors
+-- of the Search tab's % Hist. Value column and the tooltip's "(67%)"
+try('0.8.2: the Sniper\'s percent in the Search colors', function()
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local gui = loadstring("select(2, ...) 'aux.test.b5'; return require 'aux.gui'")('auxForever', addon)
+  local why
+  for _, column in ipairs(sniper.columns) do if column.title == 'Why' then why = column end end
+  local shown
+  local cell = {text = {SetText = function(_, t) shown = t end}}
+  why.fill(cell, {deal_reason = 'usual', deal_percent = 30})
+  check('b5: 30% of usual in the Search tab\'s color for 30%', shown and shown:find(gui.percentage_historical(30), 1, true) == 1 and shown:find('of usual', 1, true) ~= nil)
+  why.fill(cell, {deal_reason = 'market', deal_percent = 70})
+  check('b5: 70% of market in the color for 70%', shown and shown:find(gui.percentage_historical(70), 1, true) == 1 and shown:find('of market', 1, true) ~= nil)
+  why.fill(cell, {deal_reason = 'vendor', deal_percent = 10})
+  check('b5: below vendor stays as it was', shown and shown:find('below vendor', 1, true) ~= nil)
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
 dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({

@@ -30,6 +30,8 @@ A change that comes from a player's feedback credits them by in-game name at the
 - The column next to the price is now "Compared to": the price the deal was compared with (the
   usual price, today's market or the vendor price), so the price, the percent and the profit add
   up.
+- The Why column's percent ("30% of usual") is in the same colors as the Search tab's % Hist.
+  Value column and the tooltip's percent, so one color means the same thing everywhere.
 - Clicking a deal found in the last 15 seconds shows the Buy button at once, without reading the
   item again first. Older deals are still read again, and so is gear when aux has searched another
   item since (buying gear needs its own search to be the latest). Buying still never spends more than the
