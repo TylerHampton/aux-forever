@@ -52,6 +52,17 @@ local function price_text(record, amount)
     return money.to_string(amount, true)
 end
 
+-- the price a deal was judged against: what a vendor pays, today's market, or the usual price (shown
+-- only when it rests on enough history, as before)
+function M.compared_price(record)
+    if record.deal_reason == 'vendor' then
+        return record.deal_vendor
+    elseif record.deal_reason == 'market' then
+        return record.deal_market
+    end
+    return record.deal_usual
+end
+
 M.columns = {
     {
         title = 'Found',
@@ -114,14 +125,17 @@ M.columns = {
         end,
     },
     {
-        title = 'Usual',
+        -- review H-008, finding 7: the price the deal was compared with (usual price, today's market or
+        -- vendor price, as the Why column says), so price, this, the percent and the profit add up
+        title = 'Compared to',
         width = .12,
         align = 'RIGHT',
         fill = function(cell, record)
-            cell.text:SetText(record.deal_usual and price_text(record, record.deal_usual) or dim(record, '?'))
+            local compared = compared_price(record)
+            cell.text:SetText(compared and price_text(record, compared) or dim(record, '?'))
         end,
         cmp = function(a, b, desc)
-            return sort_util.compare(a.deal_usual or 0, b.deal_usual or 0, desc)
+            return sort_util.compare(compared_price(a) or 0, compared_price(b) or 0, desc)
         end,
     },
     {
@@ -129,13 +143,16 @@ M.columns = {
         width = .13,
         align = 'CENTER',
         fill = function(cell, record)
-            local text = record.deal_reason == 'vendor' and 'below vendor' or (record.deal_percent or '?') .. '% of usual'
-            if record.deal_gone then
-                cell.text:SetText(aux.color.label.disabled(text))
-            elseif record.deal_reason == 'vendor' then
-                cell.text:SetText(aux.color.blue(text))
+            -- 0.8.2 (FB-036): 'market' when today's listings put the item below its usual price
+            local basis = record.deal_reason == 'market' and ' of market' or ' of usual'
+            if record.deal_reason == 'vendor' then
+                cell.text:SetText(record.deal_gone and aux.color.label.disabled('below vendor') or aux.color.blue('below vendor'))
+            elseif record.deal_gone or not record.deal_percent then
+                cell.text:SetText(aux.color.label.disabled((record.deal_percent or '?') .. '%' .. basis))
             else
-                cell.text:SetText(aux.color.green(text))
+                -- 0.8.2 build 5 (Tyler: "clean, consistent"): the percent in the colors of the Search
+                -- tab's % Hist. Value column and the tooltip's "(67%)"
+                cell.text:SetText(gui.percentage_historical(record.deal_percent) .. aux.color.label.enabled(basis))
             end
         end,
         cmp = function(a, b, desc)
@@ -162,6 +179,7 @@ M.columns = {
 listing = auction_listing.new(frame.listing.list, 19, columns)
 -- each deal on its own row (0.8, review H-004, finding 4): a gone deal never hides a live one
 listing.one_row_each = true
+listing.keep_selection_only = true
 listing:SetSort(-1)
 listing:Reset()
 listing:SetHandler('OnClick', function(row, button)

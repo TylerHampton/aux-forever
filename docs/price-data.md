@@ -60,7 +60,8 @@ after a logout and away from the auction house.
 - Post tab: the "% of usual" badge, and the starting price when an item has no listings
   (`tabs/post/core.lua`).
 - Sniper: the deal rule compares prices with the usual price, shown only with 3 or more days of
-  history (`tabs/sniper/core.lua`).
+  history (`tabs/sniper/core.lua`). Since 0.8.2 (FB-036) also with today's market, read from the
+  item's other listings (`market_now`): the lower of the two counts.
 - Search filters such as `pct` and `profit` (`util/filter.lua`), disenchant values
   (`core/disenchant.lua`).
 - Planned: recipe cost in the profession window (`docs/feedback.md`, FB-007).
@@ -122,8 +123,9 @@ numbers with two jobs:
   recipe cost line.
 - **Usual price** (`history.value`): the multi-day weighted median above. Used to find deals: the
   Sniper's rule, the search % column, the Post tab's % badge, the percentage and profit filters,
-  disenchant values. Tooltips show it as a gray "usually ..." line only when it differs from the
-  latest by 30% or more (`USUALLY_SHARE`).
+  disenchant values. Tooltips show it as a percent on the Value line, "Value: 2s (67%)", in the
+  Search tab's % of usual colors (0.8.2 build 4; before, a gray "usually ..." line when it
+  differed from the latest by 30% or more).
 - Build 3 test: a Full scan alone recorded Rough Dynamite at 30c, the same as its lowest listing
   (514 listed), so Full scan prices look right. Linen Cloth showed 32c while 296 were listed at
   23c: the average of the cheapest 20% reached up to 36c in a deep market. Build 4 changed the

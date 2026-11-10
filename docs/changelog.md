@@ -6,6 +6,79 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.8.2 (2026-11-09)
+
+### Sniper
+
+- Deals are checked against today's market. The Sniper compared prices only with an item's usual
+  price, an average of past days, which can lag far behind when prices change fast: an item listed
+  by hundreds at one price showed as "4% of usual", and a "deal" bought there could only be relisted
+  at a loss. The Sniper now also looks at what the item's other listings ask (it reads them anyway
+  before calling a deal, so this costs nothing). When that is lower than the usual
+  price, the deal is judged against it and the Why column says "% of market". A single cheap
+  auction on its own is still judged against the usual price (reported by Swiftwren).
+- The Sniper opens far fewer items per round. Before opening an item it now also compares with the
+  market from your last Full scan (if it was in the last 2 hours), worked out the same way with the
+  cheapest price left out, so a normal price is not opened at all (Swiftwren saw 1,792 possible
+  deals in one round, each one a request). A snipe that was already up during the Full scan is
+  still found.
+- Gear listed under several versions (same name, same stats): when one version looks like a deal,
+  the Sniper reads the others too, and their listings count. An Invoker's Cord at 12s next to 78
+  at 13s is not a deal, whether the 78 are the same version or another.
+- A price that 3 or more sellers ask counts as the market, and fewer than 3 units listed above the
+  cheapest price do not.
+- The column next to the price is now "Compared to": the price the deal was compared with (the
+  usual price, today's market or the vendor price), so the price, the percent and the profit add
+  up.
+- The Why column's percent ("30% of usual") is in the same colors as the Search tab's % of usual
+  column and the tooltip's percent, so one color means the same thing everywhere.
+- Clicking a deal found in the last 15 seconds shows the Buy button at once, without reading the
+  item again first. Older deals are still read again, and so is gear when aux has searched another
+  item since (buying gear needs its own search to be the latest). Buying still never spends more than the
+  price shown (reported by user_ayzkr6rhvrlna3ya).
+- Selecting a trade good or a deal that is gone no longer stops the Sniper: it keeps watching while
+  you decide. Selecting gear still pauses it until you buy it or click it again, because buying
+  gear needs its own search to be the latest one.
+- While a deal is selected, the table no longer moves it: your row and the rows above it stay where
+  they are, new deals appear just below it, and a deal above it that sells turns gray where it is.
+  The table also updates while the mouse rests on your selected row or on the buy bar (it waited
+  until the mouse left the whole table, so new deals stayed hidden while the sound played).
+- A selected trade good that sells out meanwhile says "Gone: sold or relisted" in the buy bar
+  right away, and Ignore item no longer selects the next deal by itself.
+
+### Full scan
+
+- The Full scan waits up to 10 minutes for the auction house to answer, instead of giving up after
+  2: a player saw the answer take more than 5 minutes since launch. The bar under the window shows
+  how long it has waited so far, and the chat line at the end says how long the auction house took to answer
+  and to send the list (reported by deep_structure and user_ayzkr6rhvrlna3ya).
+- The Sniper's rounds and the Auctions tab's price check no longer stop a Full scan that is
+  waiting for the auction house; they wait until it is done. The Full scan button can be clicked
+  while the Sniper runs (it was gray). A search you start yourself still
+  stops it, and the chat now says so. Before, the scan ended without a word and the next one was
+  15 minutes away.
+- When the auction house never answers, the chat says nothing was recorded, instead of "full scan
+  complete: 0 auctions recorded".
+
+### Search
+
+- Searching with a word from item tooltips, such as `armor/mail/chest/usable/strength`, is fast
+  again. aux read every auction of every item to check the word, which took minutes; it now checks
+  each item's own tooltip in the item list, gear with a random ending ("of the Bear") included, the
+  way Blizzard's own list shows it, with no request per item. Results show while the search runs
+  (suggested by RushJet1).
+- The "% Hist. Value" columns of the Search and Post tabs are now called "% of usual", as
+  everywhere else, and the sort arrow no longer sits on top of the title.
+
+### Tooltips
+
+- The usual price is now a percent on the Value line instead of a "usually" line under it:
+  "Value: 2s (67%)  seen today" means the latest price is 67% of the usual one, in the same colors
+  as the Search tab's % of usual column. It has its own switch: Settings, Tooltip lines, "% of
+  usual", or `/aux tooltip percent` (suggested by deep_structure).
+- The same "(67%)" in the profession window: pointing at the Materials line shows each material's
+  price and the made item's price with its share of the usual price.
+
 ## 0.8.1 (2026-11-09)
 
 ### Professions window

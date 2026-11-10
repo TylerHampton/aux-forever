@@ -130,17 +130,22 @@ For whoever fixes or builds from it:
 | [FB-021](#fb-021-a-typed-price-below-the-lowest-listing-cannot-be-posted-rough-stone-5c) | 2026-10-18 | sarrathsilentstrider | bug | Post | S2 | A typed price below the lowest listing cannot be posted (Rough Stone, 5c) | fixed 0.7.1.1 (released 2026-10-19) |
 | [FB-022](#fb-022-the-player-did-not-know-the-newest-listing-at-a-price-sells-first) | 2026-10-18 | sarrathsilentstrider | ux | Post | n/a | The player did not know the newest listing at a price sells first | new |
 | [FB-023](#fb-023-a-shopping-list-for-crafting-n-of-a-recipe) | 2026-10-20 | Kortan | request | Search | n/a | A shopping list for crafting N of a recipe | planned 0.9 |
-| [FB-024](#fb-024-an-exact-search-for-hillmans-cloak-finds-nothing-a-search-for-hillmans-finds-many) | 2026-11-08 | GregoryWW | bug | Search | S2 | An exact search for Hillman's Cloak finds nothing; a search for Hillman's finds many | fixed 0.8.1 (tested, not released) |
-| [FB-025](#fb-025-adding-a-tooltip-word-strength-turns-an-instant-search-into-a-2-minute-one) | 2026-11-08 | RushJet1 | bug | Performance | S2 | Adding a tooltip word (strength) turns an instant search into a 2 minute one | planned 0.8.2 |
-| [FB-026](#fb-026-show-whether-a-craft-makes-a-profit-or-a-loss) | 2026-11-08 | deep_structure | request | Recipe search | n/a | Show whether a craft makes a profit or a loss | built 0.8.1 (tested, not released) |
-| [FB-027](#fb-027-the-full-scan-takes-more-than-5-minutes-since-forever-launched) | 2026-11-08 | user_ayzkr6rhvrlna3ya | bug | Performance | S3 | The full scan takes more than 5 minutes since Forever launched | planned 0.8.2 |
-| [FB-028](#fb-028-the-sniper-takes-over-30-seconds-from-its-sound-to-the-purchase) | 2026-11-08 | user_ayzkr6rhvrlna3ya | bug | Sniper | S2 | The Sniper takes over 30 seconds from its sound to the purchase | planned 0.8.2 |
+| [FB-024](#fb-024-an-exact-search-for-hillmans-cloak-finds-nothing-a-search-for-hillmans-finds-many) | 2026-11-08 | GregoryWW | bug | Search | S2 | An exact search for Hillman's Cloak finds nothing; a search for Hillman's finds many | fixed 0.8.1 (released 2026-11-09) |
+| [FB-025](#fb-025-adding-a-tooltip-word-strength-turns-an-instant-search-into-a-2-minute-one) | 2026-11-08 | RushJet1 | bug | Performance | S2 | Adding a tooltip word (strength) turns an instant search into a 2 minute one | fixed 0.8.2 (released 2026-11-09) |
+| [FB-026](#fb-026-show-whether-a-craft-makes-a-profit-or-a-loss) | 2026-11-08 | deep_structure | request | Recipe search | n/a | Show whether a craft makes a profit or a loss | built 0.8.1 (released 2026-11-09) |
+| [FB-027](#fb-027-the-full-scan-takes-more-than-5-minutes-since-forever-launched) | 2026-11-08 | user_ayzkr6rhvrlna3ya | bug | Performance | S3 | The full scan takes more than 5 minutes since Forever launched | fixed 0.8.2 (released 2026-11-09) |
+| [FB-028](#fb-028-the-sniper-takes-over-30-seconds-from-its-sound-to-the-purchase) | 2026-11-08 | user_ayzkr6rhvrlna3ya | bug | Sniper | S2 | The Sniper takes over 30 seconds from its sound to the purchase | fixed 0.8.2 (released 2026-11-09) |
 | [FB-029](#fb-029-price-gear-with-a-random-ending-of-the-eagle-of-the-bear-separately) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Other | n/a | Price gear with a random ending ("of the Eagle", "of the Bear") separately | built 0.8 (released 2026-11-08) |
 | [FB-030](#fb-030-how-the--of-historical-value-works-keep-more-price-history) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | question | Other | n/a | How the % of historical value works; keep more price history | new |
 | [FB-031](#fb-031-posting-rules-based-on-historical-value-like-tsm) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Post | n/a | Posting rules based on historical value, like TSM | planned 0.9 |
 | [FB-032](#fb-032-start-a-full-scan-when-the-window-opens-if-the-15-minute-wait-is-over) | 2026-11-08 | Chawitsch | request | Settings | n/a | Start a full scan when the window opens, if the 15 minute wait is over | planned 0.9 (Tyler: option, off by default) |
-| [FB-033](#fb-033-tooltip-prices-for-the-whole-stack-not-one-item) | 2026-11-08 | Chawitsch | ux | Other | n/a | Tooltip prices for the whole stack, not one item | planned 0.8.2 |
-| [FB-034](#fb-034-opening-aux-moves-blizzards-professions-window-to-the-right) | 2026-11-08 | Chawitsch | bug | Window | S3 | Opening aux moves Blizzard's Professions window to the right | fixed 0.8.1 (tested, not released) |
+| [FB-033](#fb-033-tooltip-prices-for-the-whole-stack-not-one-item) | 2026-11-08 | Chawitsch | ux | Other | n/a | Tooltip prices for the whole stack, not one item | wont-fix (Tyler: no Shift instructions in tooltips; Shift already works) |
+| [FB-034](#fb-034-opening-aux-moves-blizzards-professions-window-to-the-right) | 2026-11-08 | Chawitsch | bug | Window | S3 | Opening aux moves Blizzard's Professions window to the right | fixed 0.8.1 (released 2026-11-09) |
+| [FB-035](#fb-035-a-setting-to-hide-the-usually-price-line-in-tooltips) | 2026-11-09 | deep_structure | request | Settings | n/a | A setting to hide the "usually" price line in tooltips | built 0.8.2 (released 2026-11-09) |
+| [FB-036](#fb-036-the-sniper-calls-a-flat-market-a-deal-at-4-of-the-usual-price) | 2026-11-09 | Swiftwren | bug | Sniper | S2 | The Sniper calls a flat market a deal at 4% of the usual price | fixed 0.8.2 (released 2026-11-09) |
+| [FB-037](#fb-037-i-cant-scan-today) | 2026-11-09 | deep_structure | bug | Full scan | S2 | "i cant scan today" | fixed 0.8.2 (released 2026-11-09) |
+| [FB-038](#fb-038-show-auxs-tooltip-lines-only-while-holding-a-key) | 2026-11-09 | blackmyin | request | Settings | n/a | Show aux's tooltip lines only while holding a key | wont-fix (Tyler: the tooltip line switches cover it) |
+| [FB-039](#fb-039-full-scan-not-working-for-a-player-tyler-knows) | 2026-11-09 | a player Tyler knows (name not given) | bug | Full scan | S2 | Full scan "wasnt working" | fixed 0.8.2 (released 2026-11-09) |
 
 ## Players
 
@@ -176,7 +181,11 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
 - **RushJet1**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-025.
   Writes search text by hand (`armor/mail/chest/usable/strength`).
 - **deep_structure**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for
-  FB-026.
+  FB-026 and FB-035, reported FB-037. Uses the Sniper and crafts.
+- **blackmyin**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-038.
+- **Swiftwren**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-036
+  (two comments, the second with an example: Invoker's Cord). Uses the Sniper, buys deals and
+  relists them (flipping); Full scans daily.
 - **user_ayzkr6rhvrlna3ya**: CurseForge commenter (a name CurseForge generated; in-game name
   unknown). Reported FB-027 and FB-028. Used aux for a couple of weeks before Forever launched.
   Uses the Sniper.
@@ -1357,7 +1366,7 @@ mockup before anything is built.
 - Type: bug
 - Area: Search
 - Severity: S2 (no results for an item that is for sale; searching without `/exact` works)
-- Status: fixed 0.8.1 (built in 0.8.0.1 build 1, commit 0d27989; tested by Tyler 2026-11-08: `hillman's cloak/exact` lists Hillman's Cloak, 415 for sale; not yet released)
+- Status: fixed 0.8.1 (built in 0.8.0.1 build 1, commit 0d27989; tested by Tyler 2026-11-08: `hillman's cloak/exact` lists Hillman's Cloak, 415 for sale; released 2026-11-09, PR #39)
 - Proposed: next patch (0.8.0.1)
 
 Said:
@@ -1407,7 +1416,7 @@ Ask Tyler: the in-game check is steps 1 and 2 of 0.8.0.1 build 1 (`TESTING.md`).
 - Area: Performance (Search)
 - Severity: S2 (works, but takes minutes; leaving the word out and reading tooltips by hand is the
   way around)
-- Status: planned 0.8.2 (Tyler, 2026-11-08: "go with your version plan"; moved from 0.8.1 when the profit line joined the bug fixes)
+- Status: fixed 0.8.2 (released 2026-11-09, PR #40; tested by Tyler in build 7: "That was LIGHTNING fast"; build 5 failed in game with gear with endings read one by one; build 6, commit 82c546c: their tooltips come from the item key, no request; not yet seen in game)
 - Proposed: 0.8.1 (speed)
 
 Said:
@@ -1444,7 +1453,7 @@ wants numbers before and after.
 - Type: request (a finding: the feature partly exists and was not found)
 - Area: Recipe search
 - Severity: n/a
-- Status: built 0.8.1 (0.8.1 build 1, commit 639b425; tested by Tyler 2026-11-08: Woolen Bag "Materials 12s 97c  Loss 8s 22c" with the hover's sum; not yet released)
+- Status: built 0.8.1 (0.8.1 build 1, commit 639b425; tested by Tyler 2026-11-08: Woolen Bag "Materials 12s 97c  Loss 8s 22c" with the hover's sum; released 2026-11-09, PR #39)
 - Proposed: 0.8.1 (a small change to an existing line)
 
 Said:
@@ -1490,7 +1499,7 @@ fit the 20-pixel gap above Blizzard's optional reagents). Claude recommends A. T
 - Type: bug
 - Area: Performance (Full scan)
 - Severity: S3 (it finishes; it is slow)
-- Status: planned 0.8.2 (Tyler, 2026-11-08: "go with your version plan"; moved from 0.8.1 when the profit line joined the bug fixes)
+- Status: fixed 0.8.2 (released 2026-11-09, PR #40; Tyler's build 7 test: 215090 auctions in 50.5s, 2.0s to send the list; commit 19921b1: the Full scan prints how long the answer and the list took; the cause, the server, is not aux's to fix; the numbers come from Tyler's test)
 - Proposed: 0.8.1 (speed), after measuring
 
 Said:
@@ -1529,7 +1538,7 @@ saying "waiting for the auction house"?
 - Type: bug
 - Area: Sniper (Performance)
 - Severity: S2 (the Sniper finds deals but is too slow to get them)
-- Status: planned 0.8.2 (Tyler, 2026-11-08: "go with your version plan"; moved from 0.8.1 when the profit line joined the bug fixes)
+- Status: fixed 0.8.2 (released 2026-11-09, PR #40; commit 8a4aa64: a deal read in the last 15 seconds goes straight to the buy bar; not yet seen in game)
 - Proposed: 0.8.1 (speed)
 
 Said:
@@ -1715,7 +1724,7 @@ Unknowns: as above.
 - Type: ux (the feature exists; the player did not find it)
 - Area: Other (tooltips)
 - Severity: n/a
-- Status: planned 0.8.2 (Tyler, 2026-11-08: "go with your version plan"; moved from 0.8.1 when the profit line joined the bug fixes)
+- Status: wont-fix (0.8.2 build 1 added "Shift for 20" on the Value line; Tyler, 2026-11-09, after testing: "I dont want to put shift instructions in the tooltip", removed in build 6. Holding Shift already shows a stack's prices; Chawitsch can be told so)
 - Proposed: next patch (a hint line), if Tyler wants one
 
 Said:
@@ -1749,7 +1758,7 @@ added?
 - Type: bug
 - Area: Window
 - Severity: S3 (cosmetic)
-- Status: fixed 0.8.1 (0.8.0.1 build 1 commit 0d27989, changed in 0.8.1 build 2 commit bc47ef5; tested by Tyler 2026-11-08 with his window at his own spot; not yet released)
+- Status: fixed 0.8.1 (0.8.0.1 build 1 commit 0d27989, changed in 0.8.1 build 2 commit bc47ef5; tested by Tyler 2026-11-08 with his window at his own spot; released 2026-11-09, PR #39)
 - Proposed: next patch, if the fix does not touch Blizzard's code in a risky way
 
 Said:
@@ -1800,6 +1809,238 @@ Unknowns: which addon (or game setting) keeps Tyler's window position; the fix d
 it.
 
 Ask Tyler: the in-game check is step 3 of 0.8.0.1 build 1 (`TESTING.md`).
+
+### FB-035: A setting to hide the "usually" price line in tooltips
+
+- Received: 2026-11-09 (posted about 6 hours before Tyler's screenshot)
+- From: deep_structure (1 request)
+- Where: CurseForge comment on the auxForever project page, a reply to their own FB-026 comment
+- Source: [source](feedback/sources/2026-11-09-deep_structure-curseforge.md)
+- Version: 0.8 or earlier (posted before 0.8.1 was released; the line exists since 0.5)
+- Type: request
+- Area: Settings (tooltips)
+- Severity: n/a
+- Status: built 0.8.2 (released 2026-11-09, PR #40; tested by Tyler in build 5: the % of usual switch turns the percent off; commit 153132a: Usually switch; build 4: the usual price is a percent on the Value line, switch "% of usual"; not yet seen in game)
+- Proposed: 0.8.2 (a small thing: one switch)
+
+Said:
+> also is it possible to remove the 'usually' price as an option?
+
+Steps / setup: none; a request.
+
+Tyler's notes: none yet.
+
+Recorder's notes (from the code):
+- Under Value, the item tooltip adds a gray line "usually 12s" (the multi-day usual price) when it
+  differs from Value by 30% or more (`core/tooltip.lua`, `history.usually_differs`,
+  `USUALLY_SHARE = .3`, since 0.5 build 3). It belongs to the Value line: the only way to hide it
+  today is to hide Value too ("Value" switch in Settings, Tooltip lines, or `/aux tooltip value`).
+- A fix fits the existing switches: a "Usually" row in Settings, Tooltip lines (kept per character,
+  like the others), and the same as a chat command (AGENTS.md: a setting with a chat command
+  behaves the same from both). Default on, so nothing changes for other players.
+- Inference: the reason is not given. It may be clutter, or two prices on one tooltip being
+  confusing (FB-030 asked how the % of the historical value works). Under the main rule, if the
+  line confuses, its wording is the addon's to fix too; the switch is what was asked.
+
+Unknowns: why the player wants it off. The switch works whatever the reason.
+
+Ask Tyler: is a switch the right answer, and does adding one row to Settings need a mockup (it
+copies the rows already there)?
+
+Second comment (deep_structure, 2026-11-09, before 0.8.2 was out,
+[source](feedback/sources/2026-11-09-blackmyin-deep_structure-curseforge.md)):
+> is it possible to have the 'usually' price on tooltip as an option? rather than by default
+
+Tyler, 2026-11-09: "I think just adding the option to toggle it solves both issues" (this and
+FB-038). Then, from a screenshot (Value 2s, "usually 3"), he chose a cleaner form: the usual price
+as a percent on the Value line, like the Search tab's % Hist. Value column: "Value: 2s (67%)  seen
+today". Built in 0.8.2 build 4: no extra line, the switch is "% of usual" (`/aux tooltip percent`),
+on, shown whenever a usual price exists.
+
+### FB-036: The Sniper calls a flat market a deal at 4% of the usual price
+
+- Received: 2026-11-09 (posted about 5 hours before Tyler's screenshot)
+- From: Swiftwren (1 report; deep_structure answered "nah", meaning no luck with the Sniper either)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-09-swiftwren-deep_structure-curseforge.md)
+- Version: 0.8 or 0.8.1 (posted a few hours after 0.8.1 came out)
+- Type: bug
+- Area: Sniper
+- Severity: S2 (the player loses money buying "deals" that are the normal price; the Sniper can be
+  ignored)
+- Status: fixed 0.8.2 (released 2026-11-09, PR #40; Tyler's build 5 test showed "% of market" deals; commits bde3033 and 4090883: deals judged against the lower of the usual price and today's market; build 2: the list check also uses today's Full scan and other versions of the name; build 3: Gemini's review H-008, eight findings fixed; not yet seen in game)
+- Proposed: 0.8.2
+
+Said:
+> Is anyone having luck with the Sniper? I'm finding it's offering me deals that are at 4% of the usual price and it's saying there are only  2 left. Then, when you look at the actual listings for that, there's hundreds (if not thousands) of entries within 1s of the price.
+
+> The result is that you buy a great deal, you go to relist the item, and there are 45 copies only 2c dearer than what you paid for it.
+
+Steps / setup: the Sniper running on the released game. A trade good (inference: "45 copies only
+2c dearer" is a commodity listing) shows as a deal at 4% of the usual price, with 2 for sale. The
+auction house has hundreds or thousands within 1s of that price. Bought and relisted: 45 listed
+just 2c above the price paid.
+
+Tyler's notes: none yet.
+
+Recorder's notes (from the code; the cause is an inference, not seen):
+- What a deal is (`judge` in `tabs/sniper/core.lua`): a price at or below the player's percent
+  of the usual price, the usual price resting on at least 3 days of complete looks. The usual price
+  is `history.value`: the weighted middle of up to 14 past days' prices, each day's weight halving
+  every 7 days, today not counted until the day ends (`core/history.lua`, `docs/price-data.md`).
+- Likely cause: prices fell after Forever launched, and the usual price follows them slowly. A
+  material that sold for 25 times more in the first days keeps a high usual price for a week or
+  more, so today's ordinary price is "4% of the usual". Every listing of it is then a "deal", and
+  the Sniper offers the cheapest. Nothing in the rule asks whether today's market agrees.
+- The "2 left": the Sniper's table shows how many are for sale at the cheapest price only (`count`
+  of the cheapest checked auction, `tabs/sniper/frame.lua`). The hundreds just above it are not
+  shown, so the row reads as a rare chance. The buy bar does offer only the units that are deals,
+  but on a flat market they all are.
+- aux already keeps today's market price (`history.latest`, Value in tooltips: the average of the
+  cheapest 20% of units in the latest complete look). Inference: judging against the lower of the
+  usual price and the latest price, or requiring the deal to be well below what is listed right
+  after it on the same item (the Sniper reads all of an item's auctions before calling a deal, so
+  that costs no extra request), would stop this. Which rule fits best is a decision for Tyler,
+  with numbers from the game.
+- Related: FB-030 (the usual price moving and how it works), FB-028 (Sniper speed).
+
+Unknowns: which item and the player's percent setting; how many days of history they had. A fix
+can work without them: the check against today's market applies whatever they were.
+
+Ask Tyler: can you find one such "deal" in your Sniper? A screenshot of the deal row and of a
+search for the same item (Full) shows whether the usual price is far above today's market.
+
+Second comment (Swiftwren, 2026-11-09, [source](feedback/sources/2026-11-09-swiftwren-curseforge-2.md)),
+on 0.8.1 or earlier:
+> Looking at my issue, Sniper is currently recommending I pick up Invoker's Cord. 1 for sale. Current price 12s. Usual price 32s.
+
+> But, when I search for Invokers Cord I see 1 for sale at 12s and 78 for 13s.  The  "Usual Price" might be a function of the ever changing market at the moment, but there needs to be something that factors in what's actually available. Otherwise it's a lot of manual effort.
+
+> For reference, Sniper currently thinks there are 1,792 possible deals.
+
+Recorder's notes on it:
+- This is the case 0.8.2 build 1 was built for: today's market from the other listings is 13s, so
+  12s is 92% of it and no deal. One gap (inference, not checked for this item): on Forever one gear
+  name can be listed under several versions (`docs/forever-auction-house.md`, gear versions). If the
+  12s Cord and the 78 at 13s are different versions, build 1 reads only the 12s version and still
+  calls it a deal. Build 2 counts the other versions' lowest prices from the item list as well.
+- "1,792 possible deals" is the round's count of items to open: judged on the item list against the
+  usual price alone, each costs a request before it is rejected. Build 2 also uses the price from
+  today's complete look (a Full scan today: the player says they scan) on the item list, so a flat
+  market is not opened at all. Tested by a player who Full scans daily, this should cut that count
+  to the real candidates.
+
+### FB-037: "i cant scan today"
+
+- Received: 2026-11-09 (posted about 5 hours before Tyler's screenshot)
+- From: deep_structure (1 report)
+- Where: CurseForge comment, a reply to Swiftwren's (FB-036)
+- Source: [source](feedback/sources/2026-11-09-swiftwren-deep_structure-curseforge.md)
+- Version: 0.8 or 0.8.1
+- Type: bug
+- Area: Full scan (or Search; not said)
+- Severity: S2 (provisional: a scan that does not work at all would be S1 for that player)
+- Status: fixed 0.8.2 (released 2026-11-09, PR #40; commit 19921b1: the Full scan waits up to 10 minutes and is no longer stopped by the Sniper or the Auctions tab; whether this was the player's problem is not known)
+- Proposed: 0.8.2, once Tyler can say whether it happens to him
+
+Said:
+> nah and i cant scan today either
+
+Steps / setup: none given. "Scan" most likely means the Full scan (players call it that; the
+button says "Full scan"), but it could be a search.
+
+Tyler's notes: none yet.
+
+Recorder's notes (from the code):
+- A Full scan asks the server for the whole auction house, and the game allows it once every 15
+  minutes. If the server does not answer within 2 minutes, aux prints "full scan: the auction house
+  did not respond. It can only be used once every 15 minutes." (`replicate` in `core/scan.lua`).
+  aux records the time of the request before the answer comes (`account_data.replicate_time`), so
+  a scan that got no answer still starts the 15 minutes in aux's own count. Inference, not checked:
+  if the server is slow or busy (FB-027: a full scan already took 5+ minutes for another player),
+  a player can get the "did not respond" message, then wait, and see it again.
+- Inference: "today" may point at the server rather than aux (launch traffic, maintenance). That
+  cannot be told from the comment.
+
+Swiftwren, the same day ([source](feedback/sources/2026-11-09-swiftwren-curseforge-2.md)):
+> @tyehampton I've been able to scan today. Sometimes, the auction house is very slow. i've found that affects ALL addons so I don't think it's yours.
+
+Recorder's note: a player's report (**Outside**) that the slowness is the server's, matching
+FB-027. Not a reason to drop the fixes: the 2-minute limit and the Sniper and Auctions tab
+stopping a waiting Full scan were aux's.
+
+Unknowns: which scan, what happened (a message, nothing, an error), and whether it worked before.
+A fix can work without them: make every way a scan can fail say why and what to do next, and check
+the 2-minute limit against how long Forever takes now.
+
+Ask Tyler: does your Full scan work today? If not, what does the chat or the status bar say?
+
+### FB-038: Show aux's tooltip lines only while holding a key
+
+- Received: 2026-11-09 (posted about 2 hours before Tyler's screenshot)
+- From: blackmyin (1 request)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-09-blackmyin-deep_structure-curseforge.md)
+- Version: 0.8.1 or earlier
+- Type: request
+- Area: Settings (tooltips)
+- Severity: n/a
+- Status: wont-fix (Tyler, 2026-11-09: "I think just adding the option to toggle it solves both
+  issues"; the tooltip line switches in Settings, with Usually added in 0.8.2, turn lines off)
+- Proposed: none
+
+Said:
+> Is it possible you could add an option to have all the tooltip text only show while holding a key like SHIFT or something?
+
+Steps / setup: none; a request.
+
+Tyler's notes: decided the toggles answer it, together with FB-035 (quote in Status).
+
+Recorder's notes:
+- What the switches do not give: a player who turns the lines off cannot call them up on demand.
+  Recorded so it can be revisited if more players ask.
+- If it is built later: Shift cannot be the key, since Shift already shows a stack's prices
+  (FB-033; and Blizzard compares items on Shift in some places). Alt or Ctrl would. **Code**
+  (`Gethe/wow-ui-source`, branch `forever`, `Blizzard_GameTooltip/Mainline/GameTooltip.lua`): the
+  tooltip redraws only when its owner has `UpdateTooltip` (bag buttons do) or a data update asks;
+  Blizzard notes that reading or rebuilding the tooltip from an addon can taint it, so aux would
+  not force a redraw. Pressing the key while already hovering might then not show the lines
+  everywhere. Not seen in game.
+
+Unknowns: none for the decision.
+
+### FB-039: Full scan not working for a player Tyler knows
+
+- Received: 2026-11-09
+- From: a player Tyler knows (name not given), through Tyler
+- Where: Tyler's general note on the 0.8.2 build 8 test page
+- Source: [source](feedback/sources/2026-11-09-tyler-test-page-full-scan.md)
+- Version: not said; players have 0.8.1 (the CurseForge release) unless Tyler gave them a test build
+- Type: bug
+- Area: Full scan
+- Severity: S2 (provisional, as FB-037)
+- Status: fixed 0.8.2 (released 2026-11-09, PR #40; likely the same as FB-037, fixed by commit 19921b1)
+- Proposed: release 0.8.2
+
+Tyler's summary:
+> A friend close to me also reported his full scan wasnt working. Did we push some sort of update that may have corrupted the data?
+
+Steps / setup: none given.
+
+Recorder's notes (from the code and git):
+- Released code: 0.8.1 (2026-11-09) changed no Full scan or price history code (`git diff v0.8
+  v0.8.1`: `aux-addon.lua`, `recipe.lua`, `filter.lua`, `info.lua`, the TOC). 0.8 (2026-11-08)
+  changed how gear prices are keyed (per ending) but not how the Full scan asks the server or waits.
+  A scan that does not finish writes no prices. So nothing found points at an update corrupting
+  data; that is an inference from the code, not seen on the player's computer.
+- In 0.8 and 0.8.1 the Full scan gave up after 2 minutes, and a Sniper round or the Auctions tab's
+  price check could stop it without a word (FB-037). The server was answering slowly that day
+  (FB-027; Swiftwren under FB-037: "Sometimes, the auction house is very slow"). Tyler's own Full
+  scan on 0.8.2 build 7 the same evening recorded 215090 auctions in 50.5s.
+
+Unknowns: the version, what he saw (a chat message, a gray button, an error), and whether the
+Sniper was running. The fix works without them: 0.8.2 waits up to 10 minutes, nothing but the
+player's own search stops a Full scan, and every way it ends says why in the chat.
 
 ## Before this log
 

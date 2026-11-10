@@ -163,7 +163,7 @@ do
     fast:SetScript('OnClick', function() set_full_search(false) end)
     fast:SetScript('OnEnter', function(self)
         tooltip(self, 'Fast', 'Lists each item once with its lowest price. Click an item to see its auctions.',
-            'Searches for one exact item, or using seller, time left, bid or tooltip text, read every auction anyway.')
+            'Searches for one exact item, or using seller, time left or bid, read every auction anyway.')
     end)
     fast:SetScript('OnLeave', function() GameTooltip:Hide() end)
     fast_button = fast

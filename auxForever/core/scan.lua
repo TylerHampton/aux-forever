@@ -13,6 +13,10 @@ local info = require 'aux.util.info'
 local history = require 'aux.core.history'
 
 M.REPLICATE_COOLDOWN = 15 * 60
+-- 0.8.2 (FB-037, FB-027): how long a Full scan waits for the server's first answer. It was 2 minutes;
+-- since Forever launched a player saw the list take more than 5 minutes to arrive, so the scan gave
+-- up before the server answered ("i cant scan today", deep_structure).
+M.REPLICATE_WAIT = 10 * 60
 
 local TIMEOUT = 20
 
@@ -59,6 +63,20 @@ function M.timing_report(t, total, stopped)
     return lines
 end
 
+-- 0.8.2 (FB-027): the chat line when a Full scan ends, with how long it took and how much of that was
+-- the auction house's answer, so slow scans can be measured in game without /aux debug. nil when
+-- the scan got no answer (it printed why already).
+function M.full_scan_summary(result, recorded)
+    local full = result and result.full
+    if not full or full.failed then
+        return
+    end
+    local total = (full.server or 0) + (full.arriving or 0) + (full.reading or 0) + (full.items or 0)
+    return format('Full scan complete: %d auctions recorded in %s (the auction house took %s to answer, %s to send the list; reading took %s).',
+        recorded or full.auctions or 0, format_seconds(total), format_seconds(full.server or 0), format_seconds(full.arriving or 0),
+        format_seconds((full.reading or 0) + (full.items or 0)))
+end
+
 function M.new_timing()
     return {t0 = GetTime(), items = 0, event = 0, cached = 0, timeout = 0, dropped = 0,
         browse = 0, answer = 0, throttle = 0, item_data = 0, slow = {}}
@@ -99,6 +117,21 @@ function M.is_scanning()
     return state ~= nil
 end
 
+-- 0.8.2 build 3 (review H-008, finding 2): code that wants every item's prices from a Full scan (the
+-- Sniper) registers f(at, key, flat): at is the same for every item of one scan, flat the unit prices
+-- and units as history.market_price takes them
+local view_handlers = {}
+function M.on_full_scan_view(f)
+    tinsert(view_handlers, f)
+end
+
+-- 0.8.2 (FB-037): a Full scan is running. Since launch the server can take minutes to answer one,
+-- so scans that start by themselves (Sniper rounds, the Auctions tab's price check) wait for it
+-- instead of stopping it.
+function M.is_full_scan()
+    return state ~= nil and state.params.get_all == true
+end
+
 function M.owner_auctions()
     local auctions = {}
     for i = 1, C_AuctionHouse.GetNumOwnedAuctions() do
@@ -125,6 +158,11 @@ end
 
 function M.start(params)
     if state then
+        -- 0.8.2 (FB-037): a Full scan stopped before it finished leaves its prices incomplete, and the
+        -- game still counts it; say so instead of losing it without a word
+        if state.params.get_all and not params.get_all then
+            aux.print('Full scan stopped by a new search before it finished, so its prices are incomplete. Run it again when the Full scan button lights up.')
+        end
         abort()
     end
     do (params.on_scan_start or pass)() end
@@ -170,13 +208,13 @@ end
 
 function complete()
     local on_complete = state.params.on_complete
-    local unread, quiet = state.unread, state.params.quiet
+    local unread, quiet, result = state.unread, state.params.quiet, state.result
     state = nil
     timing_finish()
     if unread and not quiet then
         aux.print(unread_text(unread))
     end
-    do (on_complete or pass)() end
+    do (on_complete or pass)(result) end
 end
 
 -- auxForever (0.7.1, FB-014): an item the search could not read (the auction house did not
@@ -352,9 +390,18 @@ end
 
 -- auxForever: the item list of a query, one entry per item with only itemKey, totalQuantity,
 -- minPrice and containsOwnerItem. Returns nil if the auction house did not answer.
+-- 0.8.2 build 3 (review H-008, finding 6): the item key of the last item search sent (nil after an
+-- item list). In 0.4.1 a gear deal could not be bought once other items had been searched after it
+-- (Seen); the Sniper reads a gear deal again first unless its own search was the last one.
+local last_read
+function M.last_read_is(item_key)
+    return same_item_key(last_read, item_key)
+end
+
 function browse_results(blizzard_query)
     local events = {'AUCTION_HOUSE_BROWSE_RESULTS_UPDATED', 'AUCTION_HOUSE_BROWSE_RESULTS_ADDED', 'AUCTION_HOUSE_BROWSE_FAILURE'}
     local query = browse_query(blizzard_query)
+    last_read = nil
     local answer = request(function() C_AuctionHouse.SendBrowseQuery(query) end, events)
     if not answer or answer == 'AUCTION_HOUSE_BROWSE_FAILURE' then
         return
@@ -411,6 +458,7 @@ function search(item_key)
         note_unread()
         return
     end
+    last_read = item_key
     wait_item(item_key.itemID)
 
     local records, complete, rows = {}, true
@@ -532,7 +580,9 @@ function scan_item_keys(item_keys)
         local t_item = GetTime()
         local item_id = item_keys[page + 1].itemID
         local records, complete = search(item_keys[page + 1])
-        if complete and records and #records > 0 then
+        -- params.no_view: a read that is not a look at the whole item (the Sniper reading one version
+        -- of a deal again before it is bought, review H-008) records no day price
+        if complete and records and #records > 0 and not state.params.no_view then
             local key = history.record_view_of(records, state.views, true)
             if key then
                 held[item_id] = held[item_id] or {}
@@ -580,11 +630,31 @@ function scan_item_list(results)
     local scan_state = state
     local open = state.params.open or empty
     local validator = get_query().validator
+    local tooltip_text = get_query().tooltip_text
     local pending = {}
+    local function read_full(item_key)
+        local records, complete = search(item_key)
+        record_view(records, complete, true)
+        for _, record in ipairs(records or empty) do
+            process_auction(record)
+            check_aborted(scan_state)
+        end
+        -- 0.8.2 build 6 (Tyler: "This isnt returning items"): the table shows what was found at once;
+        -- it was redrawn only every 100 items of the list, and a full read takes a request
+        do (state.params.on_page_scanned or pass)() end
+    end
     local function add(result)
         local record = info.browse_record(result)
         if not record then
             return false
+        end
+        -- 0.8.2 (FB-025): tooltip text is checked on the fast row's own tooltip. Gear with an
+        -- ending gets it from its item key (build 6, record_mt in util/info.lua); only when the game
+        -- gives no more than the name there are its auctions read (build 1 read all of them: a
+        -- request each, so chest armor, mostly with endings, stayed slow)
+        if tooltip_text and has_ending(record) and #record.tooltip <= 1 then
+            read_full(result.itemKey)
+            return true
         end
         record.validator = validator
         process_auction(record)
@@ -593,12 +663,7 @@ function scan_item_list(results)
     for i, result in ipairs(results) do
         if (result.totalQuantity or 0) > 0 then
             if open[item_key_string(result.itemKey)] then
-                local records, complete = search(result.itemKey)
-                record_view(records, complete, true)
-                for _, record in ipairs(records or empty) do
-                    process_auction(record)
-                    check_aborted(scan_state)
-                end
+                read_full(result.itemKey)
             elseif not add(result) then
                 info.request_item(result.itemKey.itemID)
                 tinsert(pending, result)
@@ -644,13 +709,29 @@ end
 function replicate()
     local scan_state = state
     local wait = listen({'REPLICATE_ITEM_LIST_UPDATE'})
+    local t_request = GetTime()
+    -- 0.8.2: what the Full scan's parts took, for its closing line (FB-027: measure before guessing)
+    local result = {full = {}}
+    state.result = result
     C_AuctionHouse.ReplicateItems()
     aux.account_data.replicate_time = time()
-    if not wait(120) then
-        aux.print('full scan: the auction house did not respond. It can only be used once every 15 minutes.')
+    -- the seconds waited so far, once a second, so a long wait does not look stuck
+    local shown
+    local answered = wait(REPLICATE_WAIT, function(elapsed)
+        local second = floor(elapsed)
+        if second ~= shown then
+            shown = second
+            do (state.params.on_wait or pass)(second) end
+        end
+    end)
+    if not answered then
+        result.full.failed = true
+        aux.print(format('Full scan: the auction house did not answer within %d minutes, so nothing was recorded. It may be busy. The Full scan button lights up again 15 minutes after this try.', REPLICATE_WAIT / 60))
         return
     end
+    result.full.server = GetTime() - t_request
     -- the list can arrive in several parts; wait until it stops growing
+    local t_arriving = GetTime()
     local count, t0 = C_AuctionHouse.GetNumReplicateItems(), GetTime()
     while GetTime() - t0 < 2 do
         aux.coro_wait()
@@ -658,6 +739,9 @@ function replicate()
             count, t0 = C_AuctionHouse.GetNumReplicateItems(), GetTime()
         end
     end
+    result.full.arriving = GetTime() - t_arriving
+    result.full.auctions = count
+    local t_reading = GetTime()
 
     -- auxForever (0.5): each item's prices are gathered while the list is read and recorded once at
     -- the end (core/history.lua); the gathered numbers are dropped after that
@@ -678,6 +762,7 @@ function replicate()
             aux.coro_wait()
         end
     end
+    result.full.reading = GetTime() - t_reading
     -- items the client had not cached yet
     local t1 = GetTime()
     while next(pending) and GetTime() - t1 < 30 do
@@ -693,13 +778,19 @@ function replicate()
             end
         end
     end
+    result.full.items = GetTime() - t1
     -- an item with auctions that never loaded was not seen completely: no market price for it
     for _, item_id in pairs(pending) do
         if item_id ~= true then
             collector.partial[item_id] = true
         end
     end
-    history.finish_collector(collector)
+    local at = GetTime()
+    history.finish_collector(collector, #view_handlers > 0 and function(key, flat)
+        for _, f in ipairs(view_handlers) do
+            f(at, key, flat)
+        end
+    end or nil)
     check_aborted(scan_state)
 end
 

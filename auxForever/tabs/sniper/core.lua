@@ -22,6 +22,11 @@ MIN_DAYS = 3 -- days of price history needed before a price can be a deal agains
 ROUND_PAUSE = 2.5 -- seconds between rounds: less garbage and fewer requests than 1s, deals still quick (Tyler)
 MAX_DEALS = 100
 ALERT_GAP = 10 -- seconds: at most one sound per this long, however many deals turn up
+-- 0.8.2 (FB-028): a deal read this many seconds ago or less goes straight to the buy bar when
+-- clicked, without reading its auctions again (one request less between the sound and the purchase;
+-- a player reported over 30 seconds). Buying still never spends more than shown: a trade good's
+-- price is confirmed only at or below it, and an item's auction has a fixed buyout.
+FRESH_SECONDS = 15
 
 running = false -- Start was pressed
 active = false -- a round is under way
@@ -30,10 +35,45 @@ last_count, last_seconds = nil, nil
 deals = {} -- one record per item: the cheapest checked auction, with deal_* fields
 
 local known = {} -- item key text -> the lowest price already judged
+-- 0.8.2 (FB-036): item key text -> {market, at}: today's market as last read (market_now), so the
+-- next rounds do not open an item again and again while its price only moves along a flat market
+local markets = {}
+MARKET_MEMORY = 15 * 60 -- seconds a read market is trusted for that
 local seen_items = {} -- during a round: item key text -> lowest price on the list
+-- 0.8.2 build 2 (FB-036, Swiftwren's Invoker's Cord): during a round, item ID -> the list's entry for
+-- a gear version (an item key with a suffix number), or a list of them when one ID has several.
+-- Versions of one name have the same stats (docs/forever-auction-house.md), so when one is opened as
+-- a possible deal, the others are read too and count toward today's market. One table every round.
+local versions = {}
+-- 0.8.2 build 3 (review H-008, finding 2): price key -> today's market from the last Full scan, the
+-- same rule as market_now with the cheapest price left out (rest_market), so the round's check on the
+-- item list need not open an item whose price is the normal one. It replaced price history's latest
+-- price, which counts the cheapest listing as the market for items with 40 units or fewer (a snipe
+-- already up during the Full scan was hidden all day) and was rewritten by the Sniper's own reads.
+local scan_markets = {}
+local scan_markets_at -- GetTime() of the Full scan they come from
+SCAN_MARKET_TRUST = 2 * 60 * 60 -- seconds a Full scan's markets are trusted for that
 local next_round_at
 local last_alert -- GetTime() of the last sound
 local checked -- the selected deal, as the buy bar shows it
+local show_deal -- the buy bar for a deal (below, with the buying)
+
+-- 0.8.2 build 7 (H-009 and H-010, Tyler: "I find it very jarring that we stop the entire search when
+-- someone highlights something"): only a live gear deal holds the rounds while it is selected. Its
+-- purchase is taken from the item's latest search (Tyler, 0.4.1: Buy did nothing after the rounds
+-- had searched other items), so no other search may run between its read and the click. Trade
+-- goods are bought by item ID and the buy bar asks the server for a price first (rounds searched
+-- other items while they were bought in 0.4.1, and that worked), and a gone deal cannot be bought:
+-- with those selected the rounds go on.
+local function holding()
+    return checked and not checked.commodity and not checked.deal_gone
+end
+
+-- the item key text of the selected deal while it can still be bought: the rounds do not open it
+-- again, which would put a new record in its place and drop the player's selection (H-010, finding 1)
+local function selected_live_key()
+    return checked and not checked.deal_gone and checked.deal_key
+end
 checking = nil -- during a round: {done, total} possible deals being opened
 deals_changed = false -- the table is redrawn soon (throttled) while a round finds deals
 
@@ -46,7 +86,12 @@ deals_changed = false -- the table is redrawn soon (throttled) while a round fin
 -- thin price history does not fake deals. Either way the profit per item (after the auction house
 -- cut when reselling) must be at least min_profit, which hides trivial finds.
 -- The usual price used here is never below the vendor price.
-function M.judge(unit_price, usual, vendor, days, percent, min_profit)
+-- 0.8.2 (FB-036, reported by Swiftwren): market is today's market for the item, from its listings
+-- just read (market_now; nil when they say nothing). The usual price is a slow average of past days,
+-- and after Forever launched prices fell faster than it follows: a material listed by hundreds at
+-- one price showed as "4% of usual", and a "deal" bought there could only be relisted at a loss.
+-- When today's market is lower, the deal is judged against it instead, and the reason is 'market'.
+function M.judge(unit_price, usual, vendor, days, percent, min_profit, market)
     vendor = vendor or 0
     if not unit_price or unit_price <= 0 then
         return
@@ -61,11 +106,81 @@ function M.judge(unit_price, usual, vendor, days, percent, min_profit)
     if not reference or (days or 0) < MIN_DAYS then
         return
     end
+    local reason = 'usual'
+    if market and market > 0 and max(market, vendor) < reference then
+        reference, reason = max(market, vendor), 'market'
+    end
     local profit = floor(reference * (1 - AUCTION_CUT)) - unit_price
     local pct = 100 * unit_price / reference
     if pct <= percent and profit >= min_profit then
-        return 'usual', profit, aux.round(pct)
+        return reason, profit, aux.round(pct)
     end
+end
+
+-- 0.8.2 (FB-036): today's market for one item, from its listings. The units at the cheapest price
+-- are the possible deal; the market is what the units above it ask: the middle price of their
+-- cheapest quarter (MARKET_NOW_SHARE). Hundreds listed just above the cheapest price make that the
+-- market; a few cheap units next to a normal market do not (price history's market price uses the
+-- cheapest 5%, where 2 cheap units in a small listing already set it).
+-- Review H-008 (Gemini, docs/reviews/2026-11-09-sniper-0.8.2.md):
+-- - finding 1: a price that 3 or more sellers ask is the market, whatever is listed above it. It
+--   was only checked when nothing was listed above, so 80 units from 6 sellers at 2s 10c next to one
+--   at 22s were a "deal".
+-- - finding 4: fewer than 3 units above the cheapest price are not a market. Two cheap listings 1c
+--   apart, nothing else, hid a deal that adding 100 units at the usual price showed.
+-- cheapest: the cheapest unit price; sellers: how many sellers ask it (0 when not known); others:
+-- {price, units} of the units above it, any order (sorted here); total: their units. nil when the
+-- listings say nothing more: one cheap auction alone is judged against the usual price, as before.
+MARKET_NOW_SHARE = .25
+MARKET_SELLERS = 3
+MARKET_MIN_UNITS = 3
+function M.rest_market(cheapest, sellers, others, total)
+    if sellers >= MARKET_SELLERS then
+        return cheapest
+    end
+    if total < MARKET_MIN_UNITS then
+        return
+    end
+    sort(others, function(a, b) return a.price < b.price end)
+    local middle = ceil(max(1, ceil(total * MARKET_NOW_SHARE)) / 2)
+    local seen = 0
+    for _, other in ipairs(others) do
+        seen = seen + other.units
+        if seen >= middle then
+            return other.price
+        end
+    end
+end
+
+-- today's market from records just read (one item, every version of its name read; the player's own
+-- left out). Costs no request: the Sniper reads a candidate's auctions anyway.
+function M.market_now(records)
+    local cheapest
+    for _, record in ipairs(records or empty) do
+        if not record.own and (record.buyout_price or 0) > 0 then
+            local unit = ceil(record.unit_buyout_price)
+            if not cheapest or unit < cheapest then
+                cheapest = unit
+            end
+        end
+    end
+    if not cheapest then
+        return
+    end
+    local others, total, sellers = {}, 0, 0
+    for _, record in ipairs(records) do
+        if not record.own and (record.buyout_price or 0) > 0 then
+            local unit = ceil(record.unit_buyout_price)
+            if unit > cheapest then
+                local units = history.record_units(record)
+                tinsert(others, {price = unit, units = units})
+                total = total + units
+            else
+                sellers = sellers + max(1, record.seller_count or 1)
+            end
+        end
+    end
+    return rest_market(cheapest, sellers, others, total)
 end
 
 -- usual price, vendor price, days of history; nil when the client has not loaded the item yet
@@ -122,7 +237,7 @@ local function settings()
     return aux.account_data.sniper_percent, aux.account_data.sniper_profit
 end
 
-function M.judge_record(record)
+function M.judge_record(record, market)
     local usual, vendor, days = item_facts(record.price_key or record.item_key, record.item_id)
     if usual == nil and vendor == nil then
         if not record.deal_key then
@@ -132,7 +247,9 @@ function M.judge_record(record)
         -- (without this, every deal could vanish from the table at once and come back later)
         usual, vendor, days = record.deal_history, record.deal_vendor, record.deal_days
     end
-    return judge(ceil(record.unit_buyout_price), usual, vendor, days, settings())
+    local percent, min_profit = settings()
+    -- a deal already found is judged again (shown_deals) with the market it was found with
+    return judge(ceil(record.unit_buyout_price), usual, vendor, days, percent, min_profit, market or record.deal_market)
 end
 
 local function find_deal(key)
@@ -170,13 +287,26 @@ end
 
 -- Open one item (inside the round) and keep its cheapest auction when it is a deal. price: its
 -- lowest price on the list, which counts as judged once the item is open.
-function check_item(item_key, key, price)
+function check_item(item_key, key, price, other_keys)
     local records = scan.read_item(item_key)
     if not records then
         known[key] = nil -- no answer: try again next round
         return
     end
     known[key] = price
+    -- review H-008, finding 3: the other versions of a gear name are read too, so their real buyouts
+    -- and amounts count toward today's market (the item list only knows each one's lowest price,
+    -- which may be a bid or the player's own). Only the version opened can be bought from this deal.
+    local listed = records
+    if other_keys then
+        listed = {}
+        for _, record in ipairs(records) do tinsert(listed, record) end
+        for _, other_key in ipairs(other_keys) do
+            for _, record in ipairs(scan.read_item(other_key) or empty) do
+                tinsert(listed, record)
+            end
+        end
+    end
     local cheapest
     local tiers = {}
     for _, record in ipairs(records) do
@@ -192,7 +322,9 @@ function check_item(item_key, key, price)
         set_gone(old)
         return
     end
-    local reason, profit, pct = judge_record(cheapest)
+    local market = market_now(listed)
+    markets[key] = market and {market = market, at = GetTime()} or nil
+    local reason, profit, pct = judge_record(cheapest, market)
     if not reason then
         -- the list showed a bid, or the cheap one sold meanwhile
         set_gone(old)
@@ -202,7 +334,7 @@ function check_item(item_key, key, price)
     -- only the units that are a deal can be bought here: the buy bar offered 20 Ironweb Spider Silk
     -- where 7 were below vendor price and the rest cost more (Tyler, 0.4.1)
     for i = #tiers, 1, -1 do
-        if not judge_record(tiers[i]) then
+        if not judge_record(tiers[i], market) then
             tremove(tiers, i)
         end
     end
@@ -215,36 +347,130 @@ function check_item(item_key, key, price)
     cheapest.deal_key = key
     cheapest.deal_item_key = item_key -- to read the item again when the deal is selected
     cheapest.deal_reason = reason
+    cheapest.deal_market = market
+    cheapest.deal_read_at = GetTime()
     cheapest.deal_profit = profit
     cheapest.deal_percent = pct
     cheapest.deal_usual = usual and max(usual, vendor or 0) or nil
     cheapest.deal_tiers = cheapest.commodity and tiers or nil
     local same = old and not old.deal_gone and ceil(old.unit_buyout_price) == ceil(cheapest.unit_buyout_price)
     cheapest.deal_found = same and old.deal_found or time()
+    -- a row kept in place while a deal is selected stays there with the new read (H-010, finding 3)
+    cheapest.row_pin = old and old.row_pin
     if old then
         tremove(deals, aux.key(deals, old))
     end
     tinsert(deals, cheapest)
-    while #deals > MAX_DEALS do
-        tremove(deals, 1)
-    end
+    trim_deals()
     deals_changed = true
     if not same then
         alert()
     end
 end
 
+-- at most MAX_DEALS, the oldest go first, but never the selected deal or a row kept in place above
+-- it (H-010, finding 3: one dropped from above moved the selected row up)
+function M.trim_deals()
+    local i = 1
+    while #deals > MAX_DEALS and deals[i] do
+        if deals[i] == checked or deals[i].row_pin then
+            i = i + 1
+        else
+            tremove(deals, i)
+        end
+    end
+end
+
 -- One round's item list: judge every item whose lowest price changed, then open the ones that
 -- look like a deal
+-- the Full scan's prices of one item -> its market by the Sniper's rule (rest_market, the cheapest
+-- price left out; how many sellers ask it is not kept by the scan, so that rule is not used here)
+scan.on_full_scan_view(function(at, key, flat)
+    if at ~= scan_markets_at then
+        aux.wipe(scan_markets)
+        scan_markets_at = at
+    end
+    local cheapest
+    for i = 1, #flat, 2 do
+        if not cheapest or flat[i] < cheapest then
+            cheapest = flat[i]
+        end
+    end
+    if not cheapest then
+        return
+    end
+    local others, total = {}, 0
+    for i = 1, #flat, 2 do
+        if flat[i] > cheapest then
+            tinsert(others, {price = flat[i], units = flat[i + 1]})
+            total = total + flat[i + 1]
+        end
+    end
+    scan_markets[key] = rest_market(cheapest, 0, others, total)
+end)
+
+-- today's market as far as the Sniper remembers it, for the round's check on the item list: the
+-- market read when the item was last opened (kept MARKET_MEMORY) and the last Full scan's market for
+-- its price key (kept SCAN_MARKET_TRUST). The lower counts. Review H-008, finding 5: a remembered
+-- market is dropped as soon as the list's lowest price is above it, since the units that made it are
+-- gone (a 55c snipe was refused against an 87c wall that had sold out).
+local function remembered_market(key, price_key, price)
+    local market
+    local memory = markets[key]
+    if memory then
+        if GetTime() - memory.at >= MARKET_MEMORY or price > memory.market then
+            markets[key] = nil
+        else
+            market = memory.market
+        end
+    end
+    local scanned = price_key and scan_markets[price_key]
+    if scanned and scan_markets_at and GetTime() - scan_markets_at < SCAN_MARKET_TRUST and price <= scanned then
+        market = market and min(market, scanned) or scanned
+    end
+    return market
+end
+
+-- the other versions on this round's list of a gear candidate's name (item keys; nil: none)
+local function other_versions(result, price_key)
+    local entry = versions[result.itemKey.itemID]
+    if type(entry) ~= 'table' or entry.itemKey then
+        return
+    end
+    local keys
+    for _, other in ipairs(entry) do
+        if other ~= result and info.item_key_price_key(other.itemKey) == price_key then
+            keys = keys or {}
+            tinsert(keys, other.itemKey)
+        end
+    end
+    return keys
+end
+
 function check_list(results, seen)
     local percent, min_profit = settings()
-    local candidates = {}
+    local candidates, candidate_keys = {}, {}
+    aux.wipe(versions)
     for i, result in ipairs(results) do
         local price = result.minPrice or 0
         if (result.totalQuantity or 0) > 0 and price > 0 then
             local key = scan.item_key_string(result.itemKey)
             seen[key] = price
-            if not aux.account_data.sniper_ignored[key] and known[key] ~= price then
+            -- gear versions by item ID (a number, no work for the rest; review H-008, finding 8)
+            if (result.itemKey.itemSuffix or 0) ~= 0 then
+                local id = result.itemKey.itemID
+                local entry = versions[id]
+                if not entry then
+                    versions[id] = result
+                elseif entry.itemKey then
+                    versions[id] = {entry, result}
+                else
+                    tinsert(entry, result)
+                end
+            end
+            -- the selected deal is not opened while it can be bought, and not marked judged: the
+            -- first round after it is let go opens it (H-010, finding 1)
+            if not aux.account_data.sniper_ignored[key] and known[key] ~= price and key ~= selected_live_key() then
                 -- 0.8: prices are kept per ending (info.price_key), the list's key is a version
                 local price_key = info.item_key_price_key(result.itemKey)
                 local usual, vendor, days
@@ -254,9 +480,14 @@ function check_list(results, seen)
                     -- stopped by a click on a deal left the rest marked judged, never opened, so
                     -- those deals were missed until their price changed (found with the slow test
                     -- auction house)
-                    if judge(price, usual, vendor, days, percent, min_profit) then
+                    local market = remembered_market(key, price_key, price)
+                    if judge(price, usual, vendor, days, percent, min_profit, market) then
                         tinsert(candidates, result)
-                    else
+                        candidate_keys[#candidates] = price_key
+                    elseif not (market and judge(price, usual, vendor, days, percent, min_profit)) then
+                        -- review H-008, finding 5: an item refused only because of a remembered
+                        -- market is judged again next round (that memory may be gone by then);
+                        -- one refused against the usual price waits for its price to change
                         known[key] = price
                     end
                 end
@@ -266,10 +497,15 @@ function check_list(results, seen)
             aux.coro_wait()
         end
     end
-    -- each one is a request: shown as "checking 12 possible deals (3 done)" while it runs
+    -- each one is a request (and one per other version of a gear name): shown as "checking 12
+    -- possible deals (3 done)" while it runs
     checking = {done = 0, total = #candidates}
-    for _, result in ipairs(candidates) do
-        check_item(result.itemKey, scan.item_key_string(result.itemKey), result.minPrice)
+    for i, result in ipairs(candidates) do
+        local key = scan.item_key_string(result.itemKey)
+        -- selected while the round opened the ones before it
+        if key ~= selected_live_key() then
+            check_item(result.itemKey, key, result.minPrice, other_versions(result, candidate_keys[i]))
+        end
         checking.done = checking.done + 1
     end
     checking = nil
@@ -277,11 +513,17 @@ end
 
 -- after a round: a deal whose item is gone from the list, or whose lowest price went up, sold
 local function mark_gone(seen)
+    local was_gone = checked and checked.deal_gone
     for _, deal in ipairs(deals) do
         local price = seen[deal.deal_key]
         if not price or price > ceil(deal.unit_buyout_price) then
             set_gone(deal)
         end
+    end
+    -- the rounds go on while a trade good is selected: when it sold meanwhile, the buy bar says so
+    -- at once instead of offering it (H-010, finding 1)
+    if checked and checked.deal_gone and not was_gone and not buy_bar.busy() and not aux.bid_in_progress() then
+        show_deal(checked)
     end
 end
 
@@ -339,6 +581,7 @@ end
 -- the settings changed: every item is judged again
 function M.settings_changed()
     aux.wipe(known)
+    aux.wipe(markets)
     update_deals()
 end
 
@@ -379,28 +622,52 @@ function M.shown_deals()
     return shown
 end
 
+-- Whether a redraw now would move the row under the mouse: rows moved under the cursor while Tyler
+-- tried to pick one (0.4.1), so the table waited while the mouse was over its rows. The rows only,
+-- not the buy bar under them (H-010, finding 3). While a deal is selected, it and the rows above it
+-- stay in place (pin_rows), so the mouse may rest there: Tyler, 0.8.2 build 7, "I can hear sounds
+-- like new entries should be popping up but they dont show up until I unselect" (the mouse stays on
+-- the row just clicked). A row below the selected one can still move, and waits.
+function mouse_on_moving_row()
+    if not frame.listing.list:IsMouseOver() then
+        return false
+    elseif not checked then
+        return true
+    end
+    for _, row in pairs(listing.rows) do
+        if row.record and row:IsVisible() and row:IsMouseOver() then
+            return not row.record.row_pin
+        end
+    end
+    return false -- the header or the empty space under the rows
+end
+
 -- every frame while the tab is shown
 function M.update()
     -- the Sniper owns the request limit while its tab is open: a search still running elsewhere stops
-    if running and (buy_bar.busy() or aux.bid_in_progress() or refreshing or checked) then
+    if running and (buy_bar.busy() or aux.bid_in_progress() or refreshing or holding()) then
         -- a purchase talks to the auction house too: the round stops, and the next one waits until
-        -- the purchase is done and no deal is selected (a round would also search other items and
-        -- could replace the deal being bought)
+        -- the purchase is done; a selected gear deal holds them too (holding, above)
         if active then
             scan.abort()
         end
         next_round_at = GetTime() + ROUND_PAUSE
     elseif running and not active and next_round_at and GetTime() >= next_round_at then
-        start_round()
+        if scan.is_full_scan() then
+            -- 0.8.2 (FB-037): a round would stop the Full scan; the next try is a pause later
+            next_round_at = GetTime() + ROUND_PAUSE
+        else
+            start_round()
+        end
     end
     if GetTime() >= (next_controls or 0) then
         next_controls = GetTime() + .2
         update_controls()
     end
     update_selection()
-    -- deals found during a round show up at once, at most twice a second, but not while the mouse is
-    -- over the table: rows moved under the cursor while Tyler tried to pick one (0.4.1)
-    if deals_changed and GetTime() >= (next_deals or 0) and not frame.listing:IsMouseOver() then
+    -- deals found during a round show up at once, at most twice a second, but never move the row
+    -- under the mouse (mouse_on_moving_row)
+    if deals_changed and GetTime() >= (next_deals or 0) and not mouse_on_moving_row() then
         next_deals = GetTime() + .5
         deals_changed = false
         update_deals()
@@ -416,6 +683,8 @@ function aux.event.CLOSE()
     running = false
     active = false
     next_round_at = nil
+    -- review H-008, finding 5: markets read are for this visit only
+    aux.wipe(markets)
 end
 
 function tab.OPEN()
@@ -450,8 +719,8 @@ function M.status()
         return 'Watching', 'waits while you buy'
     elseif refreshing then
         return 'Watching', 'checking the selected deal...'
-    elseif checked then
-        return 'Holding', 'while a deal is selected; click it again to go on'
+    elseif holding() then
+        return 'Holding', 'while this item is selected, so Buy works; click it again to go on'
     end
     local done = round > 0 and format('round %d, %s items in %.1fs', round, last_count or 0, last_seconds or 0) or 'first round'
     if checking and checking.total > 0 then
@@ -470,7 +739,8 @@ refreshing = nil -- the gear deal being read again before it can be bought
 -- from the Search tab and trade goods from the Sniper could. Likely cause: the rounds search other
 -- items between finding a deal and the click, and the auction house takes a purchase of an auction
 -- from the latest search of its item. So a selected gear deal is read again first (one request),
--- the rounds hold while a deal is selected, and the purchase itself stays on the player's click.
+-- the rounds hold while a gear deal is selected (holding, at the top), and the purchase itself stays
+-- on the player's click.
 
 local show_item_bar, show_commodity_bar
 
@@ -480,7 +750,10 @@ local show_item_bar, show_commodity_bar
 -- on deals found minutes earlier, Tyler, 0.4.1).
 local function refresh_deal(record)
     local item_key = record.deal_item_key or record.item_search_key
-    if not item_key then
+    -- review H-008, finding 6: gear only when nothing else was searched since (see scan.last_read_is)
+    local fresh = record.deal_read_at and GetTime() - record.deal_read_at <= FRESH_SECONDS
+        and (record.commodity or scan.last_read_is(item_key))
+    if not item_key or fresh then
         if record.commodity then show_commodity_bar(record) else show_item_bar(record) end
         return
     end
@@ -493,6 +766,7 @@ local function refresh_deal(record)
     scan.start{
         type = 'list',
         quiet = true,
+        no_view = true,
         queries = {{item_keys = {item_key}}},
         on_auction = function(auction)
             if not auction.own and auction.buyout_price > 0 then
@@ -504,8 +778,9 @@ local function refresh_deal(record)
             refreshing = nil
             if record.commodity then
                 local tiers = {}
+                local market = market_now(fresh)
                 for _, tier in ipairs(fresh) do
-                    if judge_record(tier) then
+                    if judge_record(tier, market) then
                         tinsert(tiers, tier)
                     end
                 end
@@ -549,7 +824,7 @@ local function refresh_deal(record)
     }
 end
 
-local function show_deal(record)
+function show_deal(record)
     if record.deal_gone then
         buy_bar.show_note(record.name, record.deal_bought and 'Bought' or 'Gone: sold or relisted')
     else
@@ -643,13 +918,36 @@ function M.click_deal(record)
     end
 end
 
+-- 0.8.2 build 7 (H-010, finding 3): the rounds go on while a deal is selected, so new deals and
+-- sold ones change the table. The selected row and every row above it keep their places (row_pin:
+-- 1, 2, ..., whatever the table is sorted by; a row above that sells dims where it is), and new
+-- deals go in below it. When it is let go, the table sorts as usual again.
+local function pin_rows(record)
+    for _, deal in ipairs(deals) do
+        deal.row_pin = nil
+    end
+    if not record then
+        return
+    end
+    for i, row in ipairs(listing.rowInfo or empty) do
+        local shown = row.children[1].record
+        shown.row_pin = i
+        if shown == record then
+            return
+        end
+    end
+end
+
 function update_selection()
     local selection = listing:GetSelection()
     if selection and selection.record ~= checked then
         checked = selection.record
+        pin_rows(checked)
         show_deal(checked)
     elseif not selection and checked then
         checked = nil
+        pin_rows()
+        deals_changed = true
         buy_bar.clear()
     end
 end
@@ -662,5 +960,5 @@ end
 
 -- /aux memory detail: what the Sniper keeps
 function M.memory_counts()
-    return count(known), count(seen_items), #deals
+    return count(known), count(seen_items), #deals, count(markets) + count(scan_markets)
 end

@@ -35,11 +35,11 @@ end
 
 -- /aux memory detail: how many entries aux's main stores hold, to find one that keeps growing
 function M.memory_detail()
-    local known, seen, deals = require('aux.tabs.sniper').memory_counts()
+    local known, seen, deals, markets = require('aux.tabs.sniper').memory_counts()
     local cached, today = require('aux.core.history').memory_counts()
     local searches, records = require('aux.tabs.search').memory_counts()
     return {
-        format('Sniper: %d items known, %d seen last round, %d deals', known, seen, deals),
+        format('Sniper: %d items known, %d seen last round, %d deals, %d markets read', known, seen, deals, markets),
         format('History: %d usual prices cached, %d items seen today', cached, today),
         format('Search: %d searches kept, %d result rows', searches, records),
         format('Post: listings kept for %d items', require('aux.tabs.post').memory_counts()),
@@ -114,6 +114,9 @@ function SlashCmdList.AUX(command)
     elseif arguments[1] == 'tooltip' and arguments[2] == 'value' then
 	    tooltip_settings.value = not tooltip_settings.value
         aux.print('tooltip value ' .. status(tooltip_settings.value))
+    elseif arguments[1] == 'tooltip' and (arguments[2] == 'percent' or arguments[2] == 'usually') then
+	    tooltip_settings.usually = not tooltip_settings.usually
+        aux.print('tooltip percent of usual ' .. status(tooltip_settings.usually))
     elseif arguments[1] == 'tooltip' and arguments[2] == 'daily' then
 	    tooltip_settings.daily = not tooltip_settings.daily
         aux.print('tooltip daily ' .. status(tooltip_settings.daily))
@@ -165,6 +168,7 @@ function SlashCmdList.AUX(command)
         aux.print('- undercut [' .. status(aux.account_data.post_undercut) .. ']')
         aux.print('- opacity [' .. aux.color.blue(floor(aux.account_data.background_opacity * 100 + .5) .. '%') .. ']')
 		aux.print('- tooltip value [' .. status(tooltip_settings.value) .. ']')
+		aux.print('- tooltip percent [' .. status(tooltip_settings.usually) .. ']')
 		aux.print('- tooltip daily [' .. status(tooltip_settings.daily) .. ']')
 		aux.print('- tooltip merchant buy [' .. status(tooltip_settings.merchant_buy) .. ']')
 		aux.print('- tooltip merchant sell [' .. status(tooltip_settings.merchant_sell) .. ']')

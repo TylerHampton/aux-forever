@@ -117,7 +117,14 @@ end
 local record_mt = {
     __index = function(record, key)
         -- the tooltip is only built when a filter actually needs it, which keeps scans fast
-        if key == 'tooltip' and record.link then
+        -- 0.8.2 build 6 (FB-025): a fast row of gear with an ending (an item key with a suffix
+        -- number) is built from its item key, so the ending's stats are in it: the item's own link
+        -- has none of them
+        if key == 'tooltip' and record.fast and record.browse_key and (record.browse_key.itemSuffix or 0) ~= 0 then
+            local tooltip = tooltip('item_key', record.browse_key, record.requirement)
+            rawset(record, 'tooltip', tooltip)
+            return tooltip
+        elseif key == 'tooltip' and record.link then
             local tooltip = tooltip('link', record.link)
             rawset(record, 'tooltip', tooltip)
             return tooltip
@@ -445,6 +452,13 @@ function M.tooltip(setter, arg1, arg2)
 	    AuxTooltip:SetInventoryItem(arg1, arg2)
     elseif setter == 'link' then
 	    AuxTooltip:SetHyperlink(arg1)
+    elseif setter == 'item_key' then
+        -- 0.8.2 build 6: an auction house item key (arg2: required level), as Blizzard's item list
+        -- shows a row with no link of its own, its ending's stats included (Code: Blizzard's
+        -- Blizzard_AuctionHouseSharedTemplates.lua, branch forever; aux's own row hover since 0.3)
+        if AuxTooltip.SetItemKey then
+            AuxTooltip:SetItemKey(arg1.itemID, arg1.itemLevel or 0, arg1.itemSuffix or 0, arg2 or 0)
+        end
     end
     local tooltip = {}
     for i = 1, AuxTooltip:NumLines() do

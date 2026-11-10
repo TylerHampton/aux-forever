@@ -282,7 +282,10 @@ do
     btn:SetScript('OnUpdate', function(self)
         if GetTime() < (next_check or 0) then return end
         next_check = GetTime() + .5
-        local now_ready = seconds_until_scan() == 0 and not scan.is_scanning()
+        -- 0.8.2 build 6 (Tyler: "I had to stop sniper for full scan to ungrey"): only another Full
+        -- scan keeps it gray. A search or a Sniper round under way is stopped by it (the Sniper then
+        -- waits for the Full scan, build 1); the button was gray whenever any scan ran.
+        local now_ready = seconds_until_scan() == 0 and not scan.is_full_scan()
         if now_ready == ready then return end
         ready = now_ready
         if ready then
@@ -319,6 +322,12 @@ do
                 status_bar:set_text('Full scan: waiting for the auction house...')
                 search.clear_selection()
             end,
+            -- 0.8.2 (FB-037): since launch the answer can take minutes; show how long so far
+            on_wait = function(seconds)
+                if seconds >= 5 then
+                    status_bar:set_text(format('Full scan: waiting for the auction house, %d:%02d so far. A search now would stop it.', floor(seconds / 60), seconds % 60))
+                end
+            end,
             on_auction = function(auction_record, total)
                 count = count + 1
                 status_bar:update_status(count / total, 0)
@@ -332,10 +341,14 @@ do
                 status_bar:update_status(1, 1)
                 status_bar:set_text()
             end,
-            on_complete = function()
+            on_complete = function(result)
                 status_bar:update_status(1, 1)
                 status_bar:set_text()
-                print('full scan complete: ' .. count .. ' auctions recorded')
+                -- 0.8.2: nothing more when the auction house never answered (the scan said why)
+                local line = scan.full_scan_summary(result, count)
+                if line then
+                    print(line)
+                end
             end,
         }
     end)
@@ -368,7 +381,8 @@ do
     local popup = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
     gui.set_panel_style(popup)
     popup:SetFrameStrata('DIALOG')
-    gui.set_size(popup, WIDTH, 292)
+    -- 322: the tooltip column's rows (Usually added in 0.8.2) plus the padding
+    gui.set_size(popup, WIDTH, 322)
     popup:SetPoint('TOPRIGHT', btn, 'BOTTOMRIGHT', 0, -4)
     popup:EnableMouse(true)
     popup:Hide()
@@ -518,6 +532,9 @@ do
     -- chat settings in this menu, FB-008). Kept per character, like the chat commands.
     local TOOLTIP_LINES = {
         {'value', 'Value', 'Price from your latest scan', 'The market price from your latest look at the item.'},
+        -- 0.8.2 (FB-035, suggested by deep_structure): the usual price could only go with Value. Since
+        -- build 4 a percent on the Value line (Tyler), so the saved key stays "usually"
+        {'usually', '% of usual', nil, "After Value: Value as a percent of the usual price over the last days, the same number and colors as the Search tab's % of usual column."},
         {'daily', 'Today', "Today's lowest, against the usual", "Today's lowest price, and how it compares with the usual price."},
         {'merchant_sell', 'Vendor sell price', nil, 'What a vendor pays you for it.'},
         {'merchant_buy', 'Vendor buy price', nil, 'What a vendor sells it for, once you have seen it at one.'},

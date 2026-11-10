@@ -346,6 +346,56 @@ return function(env)
   -- the Sniper: a round reads the item list, then opens each item that looks like a deal (one
   -- request each). Clicking a deal stops the round; the items it had not opened yet must be opened
   -- in a later round, or those deals are never found until their price changes.
+  -- 0.8.2 build 7 (H-010): the rounds go on while a trade good is selected. Buy clicked in the
+  -- middle of a round: the round stops before the price is asked, the purchase is the amount shown
+  -- at or below the price shown, and the rounds go on after it.
+  try('timing: Sniper buys a selected trade good while a round runs', function()
+    local server = new_server(env)
+    local sniper = module 'aux.tabs.sniper'
+    local bar = module 'aux.gui.buy_bar'
+    server.items[9101] = {name = 'Heavy Leather', commodity = true, vendor = 50, max_stack = 20}
+    server.listings[9101] = {{price = 20, quantity = 5}, {price = 60, quantity = 40}}
+    for i = 1, 3 do
+      server.items[9110 + i] = {name = 'Other ' .. i, commodity = true, vendor = 50, max_stack = 20}
+      server.listings[9110 + i] = {{price = 60, quantity = 5}}
+    end
+    server:install()
+    aux.account_data.sniper_profit = 1
+    sniper.clear_deals()
+    aux.set_tab(2) -- Search 1, Sniper 2
+    sniper.start()
+    local deal
+    check('sniper buy: the deal is found', server:wait(function()
+      for _, d in ipairs(sniper.deals) do if d.item_id == 9101 then deal = d end end
+      return deal ~= nil
+    end, 200))
+    deal.deal_read_at = G.GetTime()
+    sniper.listing:SetSelectedRecord(deal)
+    check('sniper buy: a round runs while it is selected', server:wait(function() return sniper.active end, 200))
+    server:ticks(3)
+    check('sniper buy: the bar offers the 5 below vendor price', bar.primary_label():find('^Buy 5 for') ~= nil)
+    check('sniper buy: the round still runs when Buy is clicked', sniper.active)
+    local before = #server.requests
+    bar.primary_click()
+    check('sniper buy: the price arrives', server:wait(function() return bar.primary_label():find('^Confirm') end, 30))
+    check('sniper buy: the round stopped for it', not sniper.active)
+    bar.primary_click()
+    check('sniper buy: the purchase arrives', server:wait(function() return #server.purchases > 0 end, 30))
+    check('sniper buy: 5 bought for 1s, no more than shown', #server.purchases == 1 and server.purchases[1].quantity == 5 and server.purchases[1].total == 100)
+    local between = {}
+    for i = before + 1, #server.requests do table.insert(between, server.requests[i]) end
+    check('sniper buy: nothing else was sent between the price and the purchase', table.concat(between, ', ') == 'quote 9101 5, confirm 9101 5')
+    local r = sniper.round
+    check('sniper buy: the rounds go on after it', server:wait(function() return sniper.round > r end, 300))
+    sniper.listing:SetSelectedRecord()
+    sniper.stop()
+    aux.account_data.sniper_profit = 500
+    sniper.clear_deals()
+    bar.clear()
+    aux.set_tab(1)
+    server:restore()
+  end)
+
   try('timing: Sniper items not yet opened when a round stops are opened later', function()
     local server = new_server(env)
     local sniper = module 'aux.tabs.sniper'

@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-08, Tyler's time (0.8 released, tag `v0.8`; **0.8.1 tested and ready** on `claude/magical-maxwell-eyud0b`, waiting for Tyler's "release").
+Last updated 2026-11-09, Tyler's time (**0.8.2 build 8** on `claude/magical-maxwell-eyud0b`, tested and passing, ready to release when Tyler says; nothing open in the handoff; 0.8.1 is the latest release).
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
@@ -30,6 +30,18 @@ its own first, revert this commit, release, then re-apply it. Version `forever-0
 `TESTING.md` (0.8.1 build 1, three steps); zip `auxForever-0.8.1-build1.zip`. Tyler had not started the
 0.8.0.1 page, so the test page now holds all seven steps under build id `0-8-1-build-1` (0.8.0.1's
 four, then the three profit steps).
+
+**2026-11-09, Claude, 0.8.1 released** (Tyler: "release 0.8.1"): changelog dated, PR #39 merged
+into `main` (squash, commit fddd029) after its tests passed, Release workflow run on `main` (tag
+`v0.8.1`, GitHub release, CurseForge upload as Beta, file id 9522779, "Uploaded."). Contents: exact cloak search (FB-024,
+GregoryWW), the Professions window no longer shifts and a window the player placed stays put
+(FB-034, Chawitsch), profit or loss on the Materials line (FB-026, deep_structure). `main` was
+merged back into `claude/magical-maxwell-eyud0b` after the squash merge (a force push to restart it
+was refused by the session's permission check), so the branch matches `main`. Next: 0.8.2, speed
+(`docs/roadmap.md`, "After 0.8"): measure first where the time goes in a tooltip-word search
+(FB-025), the full scan (FB-027) and the Sniper from its sound to the purchase (FB-028); plus the
+Shift hint in tooltips (FB-033). Replies for the players are not written yet; ask Tyler whether he
+wants them.
 
 **2026-11-08, Claude, 0.8.1 build 2:** Tyler's build 1 test (`TESTING.md`): the cloak search, the
 Blizzard UI step and the profit line work; the Professions step failed because Tyler keeps that
@@ -126,7 +138,137 @@ of outside events (Blizzard patches, players' messages) were left as their sourc
 **Roles (Tyler, 2026-10-26):** Claude Code stays the primary engineer; Gemini (Gemini 4 Argon) is
 the supporting model for second opinions, written in `docs/reviews/` (`AGENTS.md`, "Roles").
 Agents talk through `docs/handoff.md`; Tyler only says "Check the handoff" to whoever goes next.
-Nothing is open there (H-006 done, 2026-11-08).
+Open in `docs/handoff.md`: H-010 (Gemini to Claude, 2026-11-09, check the three findings in
+`docs/reviews/2026-11-09-sniper-hold.md`).
+
+**2026-11-09, Gemini, H-009 Sniper hold review (docs only, no addon change):** Analyzed why the
+Sniper stops when a deal is selected and how to keep rounds and table updates running without
+moving the selected row or breaking gear purchases; wrote answers to all three questions and three
+numbered findings in `docs/reviews/2026-11-09-sniper-hold.md`. Opened H-010 in `docs/handoff.md`
+for Claude.
+
+**2026-11-09, Gemini, H-007 Sniper logic review (docs only, no addon change):** Reviewed the 0.8.2
+Sniper changes (`fddd029..219db5f`), answered all five questions from H-007, and wrote eight
+numbered findings in `docs/reviews/2026-11-09-sniper-0.8.2.md` (with concrete listings and line
+numbers). Opened H-008 in `docs/handoff.md` for Claude to check the findings.
+
+**2026-11-09, 0.8.2 build 8 tested:** passes (new deals show below the selected row with the mouse
+on it). Tyler's note: a player he knows says the Full scan "wasnt working" (FB-039); nothing in the
+released 0.8 or 0.8.1 code points at corrupted data, and 0.8.2 holds the Full scan fixes (FB-037).
+Next: Tyler says whether 0.8.2 ships (pull request, merge, Release workflow, then he pastes the
+CurseForge description, `docs/curseforge.md`).
+
+**2026-11-09, Claude, 0.8.2 build 8:** Tyler tested build 7: all eight steps pass (results in
+`TESTING.md`, including the Full scan's chat line for FB-027: 215090 auctions in 50.5s, 2.0s to send
+the list). Tyler kept gear holding the rounds (option C, "keep it, or if you can think of a more
+elegant solution do it"; Claude found nothing simpler that keeps gear at select then Buy). One fix:
+new deals stayed hidden while the mouse rested on the selected row (`mouse_on_moving_row` in
+`tabs/sniper/core.lua`: the table now waits only for a row that a redraw would move). Next: Tyler
+tests build 8's one step; then 0.8.2 can be released when he says so (the CurseForge description
+needs pasting at release, `docs/curseforge.md`).
+
+**2026-11-09, Claude, 0.8.2 build 7:** H-010 (Gemini's review of the Sniper hold,
+`docs/reviews/2026-11-09-sniper-hold.md`, answers under each finding). Built: a selected trade good
+or gone deal no longer holds the rounds (`holding()` in `tabs/sniper/core.lua`), the rounds do not
+open the selected deal, a selected trade good that sells shows "Gone" at once, the selected row and
+the rows above it keep their places while new deals go in below (`row_pin`, sorted first in
+`gui/auction_listing.lua`), the table updates while the mouse is on the buy bar, Ignore item selects
+nothing else (`keep_selection_only`). Each with a test that fails without it, plus a slow-server
+test of buying a trade good mid-round. **Decided by Tyler in build 8: C.** Gear still holds the rounds while
+selected (option C). Gemini's option B removes that too, but most gear buys would then need Buy,
+a wait, then Confirm. Tyler picks C (as built) or B. Tyler is not testing now ("Im not testing
+anything"); build 6 was never tested, so build 7's page has build 6's five steps plus three Sniper
+steps. Zip `auxForever-0.8.2-build7.zip`, test page build id `0-8-2-build-7`.
+
+**2026-11-09, Claude, 0.8.2 build 6:** Tyler tested build 5 (results in `TESTING.md`). Fixed: the
+tooltip-word search (gear with an ending now checked on its item key's tooltip, `info.tooltip`
+'item_key', as Blizzard's list and aux's row hover do; the table redraws after each full read),
+the Full scan button gray while the Sniper ran, the sort arrow on two-line titles. Tyler: no
+"Shift for 20" (removed; FB-033 wont-fix), "% of usual" everywhere including the profession
+window's Materials hover (`share_of_usual` in `tabs/search/recipe.lua`). Open: H-009 for Gemini
+(Tyler: the Sniper stopping while a deal is selected is "very jarring"); the Full scan's closing
+chat line still has no screenshot (FB-027 numbers). Zip `auxForever-0.8.2-build6.zip`, test page
+build id `0-8-2-build-6`, five steps.
+
+**2026-11-09, Claude, 0.8.2 build 5:** Tyler: wherever a price is compared with the usual price, the
+same "(67%)" in the Search tab's colors, no "usually" wording ("This app needs to be clean,
+consistent"). Checked every place: the tooltip's Value (build 4) and Today lines, the Search %
+column and the Post tab already used `gui.percentage_historical`; the Sniper's Why column was
+always green and now uses it too. `history.usually_differs` removed (unused). The CurseForge
+description text (`docs/curseforge-description.md`) now says the tooltip shows a percent: Tyler
+pastes it by hand at release. Open: the names differ ("% Hist. Value" column, "% of usual" switch
+and Post badge, "usual price" in filters); ask Tyler whether to unify.
+
+**2026-11-09, Claude, 0.8.2 build 4:** two more CurseForge comments (FB-038 blackmyin: tooltip lines
+only while holding a key, wont-fix, Tyler: the switches cover it; FB-035 deep_structure again:
+"usually" as an option). Tyler chose to show the usual price as a percent on the Value line, "Value:
+2s (67%)  seen today", in the Search tab's % Hist. Value colors, always when a usual price exists;
+the "usually" line is gone, the switch is "% of usual" (`/aux tooltip percent`, `usually` still
+works; saved key unchanged). Zip `auxForever-0.8.2-build4.zip`, test page build id `0-8-2-build-4`.
+
+**2026-11-09, Claude, 0.8.2 build 3:** Tyler brought Gemini in as an analyst on the Sniper logic
+(H-007, tight scope, the Sniper's purpose explained). Gemini found eight issues
+(`docs/reviews/2026-11-09-sniper-0.8.2.md`); all hold and are fixed, each with a check that fails
+without it (d62bbd0, 8e1a7bb). The two biggest: the round's check used price history's latest
+price, which is the cheapest listing for items with 40 units or fewer and was rewritten by the
+Sniper's own reads (now the Full scan hands the Sniper markets by its own rule,
+`scan.on_full_scan_view`); and other gear versions were judged from the item list, where a lowest
+price can be a bid or the player's own (now read for real when a candidate is opened). Also: the
+3-seller rule was unreachable, 2 units could be a market, a remembered market outlived the wall,
+gear skipped its re-read after other searches (0.4.1 risk), and the price column did not match the
+percent. Zip `auxForever-0.8.2-build3.zip`, test page build id `0-8-2-build-3`, same steps.
+Handoff: nothing open.
+
+**2026-11-09, Claude, 0.8.2 build 2:** Forever was down, so build 1 was not tested. Swiftwren's
+second comment (FB-036: Invoker's Cord at 12s next to 78 at 13s, 1,792 possible deals in a round)
+showed two gaps: the round's list check opened every item cheap against the usual price (a request
+each), and one gear name can be listed under several versions, of which the Sniper read only the
+cheap one. The list check now also uses today's complete look (`history.latest`, age 0) and the
+other versions' lowest prices; an opened version counts them as supply (`market_now`). Trade-off,
+written in the code: an auction alone and listed since today's Full scan is that scan's price and
+no longer offered. Test `0.8.2: the Sniper's list check knows today's market`, checked to fail
+without it. Test page build id `0-8-2-build-2`, zip `auxForever-0.8.2-build2.zip`, same steps
+(step 5 now asks for the possible deals count).
+
+**2026-11-09, Claude, 0.8.2 build 1** (Tyler: "let's fix all these issues", no Gemini review asked):
+every open 0.8.2 item built, each with a test checked to fail without it (`docs/changelog.md`, 0.8.2):
+- FB-036 (Swiftwren): Sniper deals are judged against the lower of the usual price and today's
+  market, read from the item's other listings (`market_now`: middle of the cheapest quarter of the
+  units above the cheapest price, or that price when 3+ sellers ask it). Why column says "% of
+  market". The read market is kept 15 minutes so flat markets are not reopened every round.
+- FB-037 (deep_structure) and FB-027: the Full scan waits 10 minutes, not 2, shows how long so
+  far, and its closing line gives the answer and list times. Found while checking: the Sniper's
+  next round and the Auctions tab's price check stopped a waiting Full scan; they now wait for it.
+- FB-028: a Sniper deal read in the last 15 seconds goes straight to the buy bar.
+- FB-025 (RushJet1): tooltip words are checked on the item list; gear with an ending is read in full.
+- FB-035 (deep_structure): Usually switch in Settings and `/aux tooltip usually`, on by default,
+  filled in for older characters (`character_settings`). FB-033 (Chawitsch): "Shift for 20".
+Version `forever-0.8.2`, checklist in `TESTING.md` (6 steps), test page build id `0-8-2-build-1`,
+zip `auxForever-0.8.2-build1.zip`. Next: read the test page results. The Full scan's closing line
+in step 1 is the first real measure of FB-027 (record it in `docs/forever-auction-house.md`).
+
+**Back (Tyler, 2026-11-09):** new CurseForge feedback logged: FB-036 (Swiftwren: the Sniper
+offers "deals at 4% of the usual price" on items with hundreds listed at the same price; likely
+cause: the usual price lags after launch prices fell, and the Sniper never checks today's market)
+and FB-037 (deep_structure: "i cant scan today"; unknown which scan). Both proposed for 0.8.2.
+Open for Tyler: a screenshot of one such Sniper deal plus a Full search of the item, and whether
+his own Full scan works today.
+
+**Paused (Tyler, 2026-11-09):** "We start more work later on, this is enough effort for this
+week." Nothing is being built until Tyler resumes. Where things stand:
+- **Released:** 0.8 (2026-11-08) and 0.8.1 (2026-11-09, PR #39, CurseForge file 9522779).
+  Branch `claude/magical-maxwell-eyud0b` matches `main` plus docs (feedback FB-035, this file).
+- **Next version, 0.8.2** (`docs/roadmap.md`, "After 0.8"): FB-025 (a tooltip word such as
+  `/strength` makes a search read every item; plan: check tooltips from the quick list and open
+  only matches; to check first: gear with random endings, and whether the game gives an unloaded
+  item's tooltip at once), FB-027 and FB-028 (full scan and Sniper speed; measure first with timing
+  lines and a short test for Tyler), FB-033 (a Shift hint in tooltips), FB-035 (a "Usually" switch
+  under Tooltip lines plus its chat command, default on).
+- **Open for Tyler:** does the Usually switch need a mockup (Claude: no, it copies the rows
+  there); did he post the replies drafted for GregoryWW, Chawitsch, deep_structure and RushJet1
+  (texts in the chat of 2026-11-09, not kept in the repo).
+- **Start with:** pull, read this section and `git log`, check `docs/handoff.md`, then ask Tyler
+  the open questions and start 0.8.2 when he says so.
 
 **Resumed (Tyler, 2026-11-08):** Forever is out; Tyler has a level 20 character and said "go full
 auto mode". **0.8 build 14** (the release candidate: Gemini's H-006 findings in build 13, tested by

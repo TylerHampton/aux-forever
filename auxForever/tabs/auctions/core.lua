@@ -277,7 +277,8 @@ function on_update()
         refresh = false
         next_refresh = GetTime() + REFRESH_SECONDS
         scan_auctions()
-        if auto_check then
+        -- 0.8.2 (FB-037): the check waits while a Full scan runs (it would stop it)
+        if auto_check and not scan.is_full_scan() then
             auto_check = false
             -- like the Sniper, the tab in front gets the requests: a search left running elsewhere
             -- stops. A recent check is reused unless an auction (newly posted) was never checked.

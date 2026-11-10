@@ -205,6 +205,10 @@ Other mails **[Code]**: "Auction expired: X" (item back), "Auction canceled: X",
   (`IsThrottledMessageSystemReady`), 335 items in 3m 13s (0.4). **[Seen]**
 - Full scan (`ReplicateItems`) works: whole house in one go, one row per auction, buyout for the
   whole stack. **[Seen]** (0.5, prices per unit matched the lowest listing).
+- Full scan time since launch: one player saw more than 5 minutes before the list arrived
+  (user_ayzkr6rhvrlna3ya, FB-027, 2026-11-06). **[Outside]** (a player's report, not seen by us).
+  aux gave up after 2 minutes until 0.8.2, which waits up to 10 and prints how long the answer and
+  the list took at the end of each Full scan; Tyler's first such line settles it.
 - Full scan allowed once every 15 minutes per account. **[Outside]** (retail's rule, used by
   Auctionator and Arbitrage). aux waits 15 minutes itself, so the real limit on Forever has never
   been tried. **[Unknown]**; low priority.

@@ -8,7 +8,148 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.1 build 2
+## Current build: 0.8.2 build 8
+
+One fix from Tyler's build 7 test (results below): with a material selected, the deal sound played
+but new rows showed only after letting go. The table waited whenever the mouse was over its rows,
+and the mouse rests on the row just clicked. The selected row and the rows above it no longer move,
+so the table now updates while the mouse is on them; a row below still waits. Zip
+`auxForever-0.8.2-build8.zip`; `/reload` is enough. Test page build id `0-8-2-build-8`.
+
+- [ ] 1. Open the Sniper tab and click Start. Click a material deal (cloth, ore, herbs, leather)
+      and leave the mouse where it is, on that row. When the deal sound plays, the new row shows up
+      just below yours within a second, and your row does not move. If no sound plays within a few
+      minutes, mark Skip.
+
+Tested by Tyler 2026-11-09 (test page `0-8-2-build-8`): passes. Coarse Stone selected in row 1,
+Deathweed "just now" right below it, the status "Watching first round; checking 987 possible deals".
+General note: a player Tyler knows reported his Full scan "wasnt working" (FB-039).
+
+### 0.8.2 build 7
+
+Tested by Tyler 2026-11-09 (test page `0-8-2-build-7`): all eight steps pass. Full scan with the
+Sniper running: the button is not gray, the bar showed "waiting for the auction house, 0:13 so far",
+the Sniper waited ("first round") and went on by itself after the scan; the chat line (partly
+hidden behind aux) reads "215090 auctions recorded in 50.5s (the ... answer, 2.0s to send the list;
+reading took ...)" (FB-027). The tooltip-word search: "That was LIGHTNING fast", 36 chests. The sort
+arrow sits left of "% of usual". The Materials hover shows "(73%)" and "(56%)" in color. No Shift
+hint; with Shift "4s 80c (104%) for 20". Sniper: with Crippling Poison selected the status kept
+"Watching round 5, ... checking 542 possible deals"; a selected gear deal (Light Bow) shows
+"Holding while this item is selected, so Buy works; click it again to go on". Tyler on step 7:
+"when my row is frozen I can hear sounds like new entries should be popping up but they dont show
+up until I unselect the material I was holding" (fixed in build 8). Tyler kept gear holding the
+rounds (option C): "keep it, or if you can think of a more elegant solution do it".
+
+Build 6 (not tested yet) plus the Sniper no longer stopping while a deal is selected (Tyler,
+2026-11-09: "very jarring"; Gemini's review H-009, answered in H-010): trade goods and gone deals
+keep the rounds going, gear still pauses them, and the selected row stays in place while new deals
+come in below it. Zip `auxForever-0.8.2-build7.zip`; `/reload` is enough. Test page build id
+`0-8-2-build-7`. Steps 1 to 5 are build 6's.
+
+- [ ] 1. Open the Sniper tab and click Start. The Full scan button at the top right is not gray
+      (unless your last Full scan was less than 15 minutes ago: point the mouse at it to see when).
+      Click it and wait without searching. At the end the chat says "Full scan complete: ...
+      auctions recorded in ... (the auction house took ... to answer, ...)". Screenshot that line.
+- [ ] 2. Stop the Sniper. Search tab, Fast selected, search `usable/armor/cloth/chest/intellect`.
+      Rows appear while it runs, it ends in seconds, and the chests found say Intellect in their
+      tooltip (an "of the Owl" one too).
+- [ ] 3. In that table, click the "% of usual" column title (it was "% Hist. Value"). The gold arrow
+      sits left of the title, not on top of the "%".
+- [ ] 4. Open your Professions window, pick a recipe, and point the mouse at the line under its
+      reagents ("Materials ..."). Each material bought at the auction house and the "sells for" line
+      end with a percent in brackets, like "(67%)", in color.
+- [ ] 5. Point the mouse at a stack in your bags: the Value line has no "Shift for" any more. Hold
+      Shift: it shows the whole stack's price, "for 20".
+- [ ] 6. Open the Sniper tab and click Start. When a material deal shows up (cloth, ore, herbs,
+      leather), click it once. Next to Stop, the status keeps saying "Watching  round 12, ..." and
+      the round number goes up; it does not say "Holding". If no material deal shows up within a few
+      minutes, mark Skip.
+- [ ] 7. Leave that row selected and wait for another deal to show up (the sound plays). The new row
+      appears just below yours, and your row stays where it was. If none shows up within a few
+      minutes, mark Skip.
+- [ ] 8. Click a gear deal (armor or a weapon). The status says "Holding  while this item is
+      selected, so Buy works; click it again to go on". Click the same row again: the status goes
+      back to "Watching".
+
+### 0.8.2 build 6
+
+Fixes from Tyler's build 5 test (results below) and "% of usual" everywhere (Tyler, 2026-11-09,
+"especially in crafting menus"). Zip `auxForever-0.8.2-build6.zip`; `/reload` is enough. Test page
+build id `0-8-2-build-6`. Not tested on its own; its five steps passed as build 7's steps 1 to 5.
+
+### 0.8.2 build 5
+
+Tested by Tyler 2026-11-09 (test page `0-8-2-build-5`): the Full scan button stayed gray while the
+Sniper ran ("I had to stop sniper for full scan to ungrey", fixed in build 6; the scan's closing
+chat line was not in the screenshots). The tooltip-word search failed ("This isnt returning items
+and there is a weird visual bug on % Hist Value": gear with an ending was read one by one and the
+table was redrawn only every 100 items; the sort arrow sat on the "%"; both fixed in build 6). The
+tooltip reads "Value: 1s 8c (83%)  seen today" and with Shift "4s 80c (104%) for 20"; the % of usual
+switch turns the percent off (screenshots). Tyler: "I dont want to put shift instructions in the
+tooltip" (removed in build 6). The Sniper after a round: 21 deals, some "% of market", percents in the
+Search colors, "Compared to" filled (screenshot). Tyler on the Sniper stopping while a deal is
+selected: "I find it very jarring that we stop the entire search when someone highlights
+something" (handoff H-009 for Gemini).
+
+Build 4 plus one consistency change (Tyler, 2026-11-09: wherever a price is compared with the usual
+price, the same percent in the Search tab's colors): the Sniper's Why column shows "30% of usual" or
+"70% of market" with the percent in the % Hist. Value colors (it was always green). The "usually"
+line was the only other place with its own wording; it went in build 4. Zip
+`auxForever-0.8.2-build5.zip`; `/reload` is enough. Test page build id `0-8-2-build-5`. Build 4's
+steps; step 5 (Sniper screenshot) also shows the Why column's colors.
+
+### 0.8.2 build 4
+
+Build 3 plus one tooltip change (Tyler, 2026-11-09, after deep_structure asked again about
+"usually"): the usual price is a percent on the Value line, "Value: 2s (67%)  seen today", instead
+of a "usually 3s" line under it; the Settings switch is "% of usual". Zip
+`auxForever-0.8.2-build4.zip`; `/reload` is enough. Test page build id `0-8-2-build-4`. Build 3's
+six steps (below), with two changes:
+- Step 3 (Shift on a stack): the Value line reads like "Value: 2s (67%)  seen today  Shift for 20".
+- Step 4 (Settings): the new row under Value is called "% of usual". Click it off, point the mouse
+  at an item: the percent is gone. Click it on again.
+
+### 0.8.2 build 3
+
+Build 2 plus Gemini's review of the Sniper logic (H-008, eight findings, all fixed with a test each,
+`docs/reviews/2026-11-09-sniper-0.8.2.md`): the Sniper's check before opening an item uses the last
+Full scan's market by the Sniper's own rule (the cheapest price left out), other gear versions are
+read when one is opened, a price 3 sellers ask is the market, the column next to the price is
+"Compared to". Zip `auxForever-0.8.2-build3.zip`; `/reload` is enough. Test page build id
+`0-8-2-build-3`. The same six steps as build 2 (below); step 5 also checks the new column.
+
+### 0.8.2 build 2 (not tested; replaced by build 3)
+
+Fixes and small changes from player feedback (FB-025, FB-027, FB-028, FB-033, FB-035, FB-036,
+FB-037). Build 1 was never tested (the game was down); build 2 adds Swiftwren's second comment: the
+Sniper's list check uses today's Full scan and other versions of the same gear name, so far fewer
+items are opened per round (FB-036). Zip `auxForever-0.8.2-build2.zip`; `/reload` is enough. Test
+page build id `0-8-2-build-2`. The steps are the same as build 1's.
+
+- [ ] 1. Full scan with the Sniper running. Open the Sniper tab and click Start. Then click Full
+      scan at the top right (if it is grayed out, point the mouse at it: it says when it is
+      available), and wait without searching. The bar under the window says "Full scan:
+      waiting for the auction house, 0:05 so far..." if the answer takes more than 5 seconds. At
+      the end the chat says "Full scan complete: ... auctions recorded in ... (the auction house
+      took ... to answer, ... to send the list; reading took ...)". Screenshot that chat line.
+      (Before, the Sniper's next round stopped the Full scan after a few seconds.)
+- [ ] 2. Stop the Sniper. On the Search tab, with Fast selected (top right of the search bar),
+      search `armor/mail/chest/usable/strength`. The results come in seconds, not minutes, and the
+      chests in them say Strength in their tooltip.
+- [ ] 3. Hover a stack in your bags, for example 20 Linen Cloth. The Value line ends with "Shift
+      for 20". Hold Shift: the line shows the whole stack's price and ends with "for 20".
+- [ ] 4. Click the gear at the top right (Settings). Under Tooltip lines there is a new row,
+      Usually, under Value, and nothing is cut off at the bottom of the window.
+- [ ] 5. Right after the Full scan of step 1, Sniper tab, Start, and let it run about 2 minutes.
+      Screenshot the Sniper with its deals table and the line above it ("checking ... possible
+      deals" while a round runs). Expect far fewer possible deals than before and none like
+      Swiftwren's (an item listed by many at about the same price). The column after "Price each"
+      is called "Compared to" (build 3).
+- [ ] 6. Only if the Sniper finds a deal while you watch: when it appears (with the sound), click it
+      within 15 seconds. The Buy button appears at once, without a "Checking..." message first. Do
+      not buy. (A deal found longer ago is checked again first, as before.)
+
+### 0.8.1 build 2
 
 One fix from Tyler's build 1 test. Tyler keeps his Professions window where he dragged it; with
 aux open, build 1 pulled it to the far left, behind aux's window (the fix for FB-034 moved any

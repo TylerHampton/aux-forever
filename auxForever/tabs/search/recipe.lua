@@ -4,6 +4,7 @@ local aux = require 'aux'
 local info = require 'aux.util.info'
 local money = require 'aux.util.money'
 local history = require 'aux.core.history'
+local gui = require 'aux.gui'
 
 -- auxForever (0.4): recipe search. Forever has retail's profession window, which can tell an addon
 -- the materials of any recipe at the moment it is asked (C_TradeSkillUI.GetRecipeSchematic). A
@@ -227,6 +228,7 @@ function M.recipe_usual_cost(parts)
             row.cost, row.source = ceil(vendor) * part.count, 'vendor'
         elseif usual then
             row.cost, row.source, row.age = ceil(usual) * part.count, 'latest', age
+            row.latest = usual
         end
         if row.cost then
             total = total + row.cost
@@ -287,6 +289,21 @@ function M.recipe_cost_text(parts)
     return profit and (text .. GAP .. profit) or text
 end
 
+-- 0.8.2 build 6 (Tyler: "% of usual" everywhere, "especially in crafting menus"): " (67%)" after a
+-- latest price, the share of the usual price in the colors of the Search tab's % of usual column, as
+-- on the tooltip's Value line; '' without a usual price or when the "% of usual" switch is off
+function M.share_of_usual(latest, item_key)
+    local settings = aux.character_data and aux.character_data.tooltip
+    if not latest or (settings and settings.usually == false) then
+        return ''
+    end
+    local value = history.value(item_key)
+    if not value or value <= 0 then
+        return ''
+    end
+    return ' (' .. gui.percentage_historical(aux.round(latest / value * 100)) .. ')'
+end
+
 function M.recipe_cost_tooltip(tooltip, parts)
     local total, missing, rows = recipe_usual_cost(parts)
     tooltip:AddLine('Materials for 1 craft', 1, 1, 1)
@@ -301,7 +318,8 @@ function M.recipe_cost_tooltip(tooltip, parts)
         else
             local source = row.source == 'vendor' and 'vendor' or ('seen ' .. (history.age_text(row.age) or '?'))
             local dim = row.source == 'latest' and row.age and row.age >= history.OLD_DAYS
-            right = money.to_string(row.cost, true) .. '  ' .. (dim and aux.color.label.disabled or aux.color.label.enabled)(source)
+            local share = row.source == 'latest' and share_of_usual(row.latest, row.item_id .. ':0') or ''
+            right = money.to_string(row.cost, true) .. share .. '  ' .. (dim and aux.color.label.disabled or aux.color.label.enabled)(source)
         end
         -- white on both sides, like aux's tables: the game's default right color is gold, which
         -- colored every price (Tyler, build 2)
@@ -329,7 +347,8 @@ function M.recipe_cost_tooltip(tooltip, parts)
             return
         end
         local dim = age and age >= history.OLD_DAYS
-        tooltip:AddDoubleLine(name .. ' sells for', money.to_string(gross, true) .. '  ' .. (dim and aux.color.label.disabled or aux.color.label.enabled)('seen ' .. (history.age_text(age) or '?')), 1, 1, 1, 1, 1, 1)
+        local share = share_of_usual(gross / output.count, output.item_id .. ':0')
+        tooltip:AddDoubleLine(name .. ' sells for', money.to_string(gross, true) .. share .. '  ' .. (dim and aux.color.label.disabled or aux.color.label.enabled)('seen ' .. (history.age_text(age) or '?')), 1, 1, 1, 1, 1, 1)
         tooltip:AddDoubleLine('After the 5% auction house cut', money.to_string(net, true), r, g, b, 1, 1, 1)
         local label, amount = profit_parts(parts, total, missing)
         tooltip:AddDoubleLine(label, amount, 1, 1, 1, 1, 1, 1)

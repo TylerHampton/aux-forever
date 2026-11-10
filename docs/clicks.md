@@ -121,8 +121,9 @@ A strip under the window names what A, B, X and Y do on the control in focus.
 5. **Alt means four things**: use a bag item, recipe search, the opt-in buy/bid/cancel shortcuts,
    and favorites' alert and reordering. They do not collide (different places), so this is a
    naming problem more than a behavior problem.
-6. **The Sniper's left-click holds the rounds** until clicked again, unlike any other table
-   (already in the 0.5 notes as the Sniper rework).
+6. **The Sniper's left-click on gear holds the rounds** until clicked again, unlike any other table
+   (already in the 0.5 notes as the Sniper rework). Since 0.8.2 build 7 only a gear deal that can
+   still be bought holds them; trade goods and gone deals do not (H-010).
 7. **None of it is visible.** Under Tyler's rule (the problem is the addon, not the player), a
    click nobody can discover is a finding in itself.
 8. Unverified: Shift-click on an aux row with no chat box open goes to Blizzard, which may put it in

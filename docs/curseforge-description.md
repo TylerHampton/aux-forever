@@ -227,8 +227,8 @@ Simon's [aux page](https://www.curseforge.com/wow/addons/aux) describes every fi
   search): the middle price of the cheapest twentieth of what was listed, so one odd cheap auction
   does not set it. It shows when aux saw it ("seen today", "seen 3 days ago").
 - **The usual price** is a median of up to 14 days, recent days counting more. The Sniper and the
-  % columns compare against it, and tooltips show it as "usually ..." when it is far from the
-  latest price.
+  % columns compare against it, and tooltips show it as a percent after Value ("Value: 2s (67%)"),
+  in the same colors as the % columns.
 - **For addon authors:** other addons can read these prices through `AuxForeverAPI`
   (`GetLatestPrice`, `GetUsualPrice`); how to use it is in
   [docs/api.md](https://github.com/TylerHampton/aux-forever/blob/main/docs/api.md).

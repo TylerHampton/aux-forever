@@ -1348,7 +1348,9 @@ local function fake_ah(items)
   local pending = {}
   local by_id = {}
   for _, it in ipairs(items) do by_id[it.id] = it end
-  local function link(it) return '|cff1eff00|Hitem:' .. it.id .. '::::::' .. (it.suffix or 0) .. ':0|h[' .. it.name .. ']|h|r' end
+  -- it.full_name: gear with a random ending, listed under its full name ("Bear Chest of the Bear")
+  -- while the item's own name (GetItemInfo) is the plain one (0.8.2 test of FB-025)
+  local function link(it, full) return '|cff1eff00|Hitem:' .. it.id .. '::::::' .. (it.suffix or 0) .. ':0|h[' .. (full and it.full_name or it.name) .. ']|h|r' end
   local browses = 0
   set(C_AuctionHouse, 'SendBrowseQuery', function() browses = browses + 1; tinsert(pending, {'AUCTION_HOUSE_BROWSE_RESULTS_UPDATED'}) end)
   set(C_AuctionHouse, 'HasFullBrowseResults', function() return true end)
@@ -1359,7 +1361,7 @@ local function fake_ah(items)
     end
     return r
   end)
-  set(C_AuctionHouse, 'GetItemKeyInfo', function(key) local it = by_id[key.itemID]; return it and {itemID = it.id, itemName = it.name, quality = it.quality or 2, iconFileID = 1, isCommodity = it.commodity or false} end)
+  set(C_AuctionHouse, 'GetItemKeyInfo', function(key) local it = by_id[key.itemID]; return it and {itemID = it.id, itemName = it.full_name or it.name, quality = it.quality or 2, iconFileID = 1, isCommodity = it.commodity or false} end)
   set(C_AuctionHouse, 'GetItemKeyRequiredLevel', function(key) return by_id[key.itemID].req or 1 end)
   set(C_AuctionHouse, 'SendSearchQuery', function(key)
     local it = by_id[key.itemID]
@@ -1372,12 +1374,12 @@ local function fake_ah(items)
   set(C_AuctionHouse, 'GetNumCommoditySearchResults', function(id) return by_id[id].qty > 0 and #by_id[id].auctions or 0 end)
   set(C_AuctionHouse, 'GetItemSearchResultInfo', function(key, i)
     local it = by_id[key.itemID]; local a = it.auctions[i]
-    return {itemKey = key, itemLink = link(it), auctionID = it.id * 100 + i, quantity = a.qty or 1, buyoutAmount = a.buyout, minBid = a.bid or 0, bidAmount = 0,
-      owners = {a.own and 'player' or 'Seller'}, totalNumberOfOwners = 1, containsOwnerItem = a.own or false, timeLeft = 3}
+    return {itemKey = key, itemLink = link(it, true), auctionID = it.id * 100 + i, quantity = a.qty or 1, buyoutAmount = a.buyout, minBid = a.bid or 0, bidAmount = 0,
+      owners = {a.own and 'player' or 'Seller'}, totalNumberOfOwners = a.sellers or 1, containsOwnerItem = a.own or false, timeLeft = 3}
   end)
   set(C_AuctionHouse, 'GetCommoditySearchResultInfo', function(id, i)
     local a = by_id[id].auctions[i]
-    return {itemID = id, quantity = a.qty or 1, unitPrice = a.buyout, auctionID = id * 100 + i, owners = {'Seller'}, numOwnerItems = 0, timeLeftSeconds = 3600, totalNumberOfOwners = 1}
+    return {itemID = id, quantity = a.qty or 1, unitPrice = a.buyout, auctionID = id * 100 + i, owners = {'Seller'}, numOwnerItems = 0, timeLeftSeconds = 3600, totalNumberOfOwners = a.sellers or 1}
   end)
   set(G, 'GetItemInfo', function(x)
     local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
@@ -1411,8 +1413,9 @@ try('fast mode choice', function()
   check('time left search reads every auction', fast == false and why == 'time left')
   fast, why = search.fast_choice(filter.queries('robe/bid-price/1g'))
   check('bid search reads every auction', fast == false and why == 'bid')
+  -- 0.8.2 (FB-025): tooltip text is checked on the item list; only gear with an ending is read in full
   fast, why = search.fast_choice(filter.queries('robe/of the owl'))
-  check('tooltip text search reads every auction', fast == false and why == 'tooltip text')
+  check('tooltip text search is fast', fast == true and why == nil)
   fast, why = search.fast_choice(filter.queries('linen cloth/exact'))
   check('one exact item reads every auction', fast == false and why == nil)
   aux.account_data.full_search = true
@@ -1675,7 +1678,9 @@ try('sniper round', function()
   -- the kilt was only seen today: a usual price, but not one to show
   h.write_record('202:0', {day = h.today(), low = 1500, points = {}})
   local items = {
-    {id = 201, name = 'Kingsblood', commodity = true, min = 850, qty = 41, sell = 50, stack = 20, auctions = {{buyout = 850, qty = 12}, {buyout = 900, qty = 29}}},
+    -- 0.8.2 (FB-036): the normal market (300 at 23s) sits above the deal; 12 at 85c and 29 at 90c
+    -- alone would be a flat market, which is no longer a deal
+    {id = 201, name = 'Kingsblood', commodity = true, min = 850, qty = 341, sell = 50, stack = 20, auctions = {{buyout = 850, qty = 12}, {buyout = 900, qty = 29}, {buyout = 2300, qty = 300}}},
     {id = 202, name = 'Ritual Kilt', min = 1500, qty = 1, sell = 2200, auctions = {{buyout = 1500}}},
     {id = 203, name = 'Wool Cloth', commodity = true, min = 210, qty = 80, sell = 33, auctions = {{buyout = 210, qty = 80}}},
     {id = 204, name = 'Bid Only Robe', min = 1000, qty = 1, sell = 0, auctions = {{buyout = 0, bid = 1000}}},
@@ -2230,7 +2235,9 @@ try('sniper: only deal-priced units to buy, rounds wait while buying', function(
   for _, tier in ipairs(deal and deal.deal_tiers or {}) do units = units + tier.count end
   check('sniper: only the units below vendor price can be bought', deal and units == 7)
   -- selected later, after someone bought 4 of the 7: the deal is read again with today's counts
+  -- (0.8.2, FB-028: "later" is more than FRESH_SECONDS; a deal read just now is not read again)
   items[1].auctions[1].qty = 3
+  deal.deal_read_at = GetTime() - sniper.FRESH_SECONDS - 1
   sniper.listing:SetSelectedRecord(deal)
   run(10)
   units = 0
@@ -2247,6 +2254,204 @@ try('sniper: only deal-priced units to buy, rounds wait while buying', function(
   rawset(buy_bar, 'busy', real_busy)
   run(60)
   check('sniper: rounds go on after the purchase', sniper.round > r1)
+  sniper.stop()
+  aux.account_data.sniper_profit = 500
+  sniper.clear_deals()
+  aux.set_tab(1)
+  restore()
+end)
+
+-- 0.8.2 build 7 (H-009, H-010, Tyler: "very jarring that we stop the entire search when someone
+-- highlights something"): a selected trade good or gone deal no longer stops the rounds. The rounds
+-- do not open the selected deal again (it would be replaced and the selection dropped); a selected
+-- trade good that sells says so in the buy bar.
+try('H-010: rounds go on while a trade good or a gone deal is selected', function()
+  local aux_require = loadstring("select(2, ...) 'aux.test49h'; return require")('auxForever', addon)
+  local aux = aux_require 'aux'
+  local bar = aux_require 'aux.gui.buy_bar'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local items = {
+    {id = 711, name = 'Bolt of Woolen Cloth', commodity = true, stack = 20, min = 100, qty = 10, sell = 200, auctions = {{buyout = 100, qty = 10}}},
+    {id = 712, name = 'Massive Battle Axe', min = 2800, qty = 1, sell = 3036, auctions = {{buyout = 2800}}},
+  }
+  local run, restore = fake_ah(items)
+  local searched = {}
+  local real_send = C_AuctionHouse.SendSearchQuery
+  rawset(C_AuctionHouse, 'SendSearchQuery', function(key, ...) searched[key.itemID] = (searched[key.itemID] or 0) + 1; return real_send(key, ...) end)
+  aux.account_data.sniper_profit = 1
+  sniper.clear_deals()
+  aux.set_tab(2)
+  local r0 = sniper.round
+  sniper.start()
+  for _ = 1, 300 do run(1) if sniper.round > r0 then break end end
+  local function deal_of(id) for _, d in ipairs(sniper.deals) do if d.item_id == id then return d end end end
+  local cloth = deal_of(711)
+  check('H-010 1: the trade good deal is found', cloth ~= nil)
+  sniper.listing:SetSelectedRecord(cloth)
+  run(2)
+  local r1 = sniper.round
+  run(120)
+  check('H-010 1: rounds go on while a trade good is selected', sniper.round > r1)
+  check('H-010 1: the status does not say it holds', sniper.status() == 'Watching')
+  -- its price moves on the list (still a deal): the rounds leave it alone while it is selected
+  items[1].min, items[1].auctions[1].buyout = 99, 99
+  local opened = searched[711] or 0
+  local r2 = sniper.round
+  for _ = 1, 300 do run(1) if sniper.round > r2 + 1 then break end end
+  check('H-010 1: the selected deal is not opened again', (searched[711] or 0) == opened)
+  check('H-010 1: the selected deal stays the same row', deal_of(711) == cloth and sniper.listing:GetSelection() and sniper.listing:GetSelection().record == cloth)
+  -- let go: the next round opens it (it was not marked as judged)
+  sniper.click_deal(cloth)
+  local r3 = sniper.round
+  for _ = 1, 300 do run(1) if sniper.round > r3 + 1 then break end end
+  check('H-010 1: let go, the next round opens it', (searched[711] or 0) > opened and deal_of(711) ~= cloth and ceil(deal_of(711).unit_buyout_price) == 99)
+  -- selected, then sold out: the round marks it gone and the buy bar says so
+  cloth = deal_of(711)
+  cloth.deal_read_at = GetTime()
+  sniper.listing:SetSelectedRecord(cloth)
+  run(2)
+  items[1].qty = 0
+  local r4 = sniper.round
+  for _ = 1, 300 do run(1) if sniper.round > r4 then break end end
+  local _, line2 = bar.lines()
+  check('H-010 1: a selected trade good that sold shows as gone in the buy bar', cloth.deal_gone == true and line2 == 'Gone: sold or relisted')
+  local r5 = sniper.round
+  run(120)
+  check('H-010 1: rounds go on while a gone deal is selected', sniper.round > r5)
+  sniper.listing:SetSelectedRecord()
+  run(2)
+  -- a gear deal still holds them (Buy takes it from the item's latest search)
+  local axe = deal_of(712)
+  axe.deal_read_at = GetTime() - sniper.FRESH_SECONDS - 1
+  sniper.listing:SetSelectedRecord(axe)
+  run(20)
+  local r6 = sniper.round
+  run(120)
+  check('H-010 1: a selected gear deal still holds the rounds', sniper.round == r6 and sniper.status() == 'Holding')
+  sniper.listing:SetSelectedRecord()
+
+  sniper.stop()
+  rawset(C_AuctionHouse, 'SendSearchQuery', real_send)
+  aux.account_data.sniper_profit = 500
+  sniper.clear_deals()
+  aux.set_tab(1)
+  restore()
+end)
+
+-- H-010, finding 3: while a deal is selected the rounds go on, and the table does not move it: it and
+-- the rows above it keep their places (a row above that sells dims where it is), new deals go in
+-- below it, whatever column the table is sorted by. Ignoring the selected deal selects nothing else.
+try('H-010: the selected row keeps its place while deals come and go', function()
+  local aux_require = loadstring("select(2, ...) 'aux.test49p'; return require")('auxForever', addon)
+  local aux = aux_require 'aux'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local function cloth(id, name, price)
+    return {id = id, name = name, commodity = true, stack = 20, min = price, qty = 10, sell = 500, auctions = {{buyout = price, qty = 10}}}
+  end
+  local items = {cloth(721, 'Linen Cloth', 100), cloth(722, 'Wool Cloth', 300), cloth(723, 'Silk Cloth', 200), cloth(724, 'Mageweave Cloth', 150)}
+  items[4].qty = 0 -- listed later
+  local run, restore = fake_ah(items)
+  aux.account_data.sniper_profit = 1
+  sniper.clear_deals()
+  aux.set_tab(2)
+  local r0 = sniper.round
+  sniper.start()
+  for _ = 1, 300 do run(1) if sniper.round > r0 then break end end
+  for _, d in ipairs(sniper.deals) do d.deal_found = ({[721] = 300, [722] = 200, [723] = 100})[d.item_id] end
+  sniper.update_deals()
+  local function order()
+    local names = {}
+    for _, row in ipairs(sniper.listing.rowInfo) do tinsert(names, row.children[1].record.name) end
+    return table.concat(names, ', ')
+  end
+  check('H-010 3: newest first before', order() == 'Linen Cloth, Wool Cloth, Silk Cloth')
+  local wool = sniper.listing.rowInfo[2].children[1].record
+  wool.deal_read_at = GetTime()
+  sniper.listing:SetSelectedRecord(wool)
+  run(2)
+  -- a new deal turns up and the row above the selected one sells
+  items[4].qty = 10
+  items[1].qty = 0
+  local r1 = sniper.round
+  for _ = 1, 300 do run(1) if sniper.round > r1 then break end end
+  run(10)
+  check('H-010 3: the new deal goes in below the selected one, the sold one stays above', order() == 'Linen Cloth, Wool Cloth, Mageweave Cloth, Silk Cloth')
+  check('H-010 3: the row above sold and is dimmed in place', sniper.listing.rowInfo[1].children[1].record.deal_gone == true)
+  -- the sold one is listed again, cheaper: the new read takes its place, not a place below
+  items[1].qty, items[1].min, items[1].auctions[1].buyout = 10, 90, 90
+  local r2 = sniper.round
+  for _ = 1, 300 do run(1) if sniper.round > r2 then break end end
+  run(10)
+  local linen = sniper.listing.rowInfo[1].children[1].record
+  check('H-010 3: a row above read again keeps its place', order() == 'Linen Cloth, Wool Cloth, Mageweave Cloth, Silk Cloth' and not linen.deal_gone and ceil(linen.unit_buyout_price) == 90)
+  -- sorted by price, the selected row and the ones above still do not move
+  sniper.listing:SetSort(6)
+  check('H-010 3: sorting by another column keeps them too', order():find('^Linen Cloth, Wool Cloth, ') ~= nil)
+  sniper.listing:SetSort(-1)
+  -- Tyler, build 7: the deal sound played but the new row showed only after letting go (the mouse
+  -- rested on the row just clicked). The selected row and those above it do not move: the table
+  -- may change while the mouse is on them; a row below it still waits.
+  G.__geometry = {size = 29 + 19 * 5, edge = 100}
+  sniper.listing.__scripts.OnSizeChanged(sniper.listing)
+  G.__geometry = nil
+  local rows = sniper.listing.rows
+  for _, row in pairs(rows) do rawset(row, 'IsVisible', function() return true end) end
+  sniper.update_deals()
+  check('H-010 3: row 2 on screen is the selected one', rows[2] and rows[2].record == wool)
+  rawset(sniper.frame.listing.list, 'IsMouseOver', function() return true end)
+  rawset(rows[2], 'IsMouseOver', function() return true end)
+  sniper.deals_changed = true
+  run(10)
+  check('build 8: new deals show while the mouse rests on the selected row', sniper.deals_changed == false)
+  rawset(rows[2], 'IsMouseOver', nil)
+  rawset(rows[3], 'IsMouseOver', function() return true end)
+  sniper.deals_changed = true
+  run(10)
+  check('build 8: a row below the selected one does not move under the mouse', sniper.deals_changed == true)
+  rawset(rows[3], 'IsMouseOver', nil)
+  rawset(sniper.frame.listing.list, 'IsMouseOver', nil)
+  for _, row in pairs(rows) do rawset(row, 'IsVisible', nil) end
+  G.__geometry = {size = 0, edge = nil}
+  sniper.listing.__scripts.OnSizeChanged(sniper.listing)
+  G.__geometry = nil
+  run(10)
+  -- let go: the table sorts as usual again, newest first (found times set: both were found this second)
+  for _, d in ipairs(sniper.deals) do if d.item_id == 721 then d.deal_found = 500 elseif d.item_id == 724 then d.deal_found = 400 end end
+  sniper.click_deal(wool)
+  run(10)
+  check('H-010 3: let go, the table sorts as usual', order() == 'Linen Cloth, Mageweave Cloth, Wool Cloth, Silk Cloth')
+  -- ignoring the selected deal selects no other deal
+  local silk = sniper.listing.rowInfo[3].children[1].record
+  silk.deal_read_at = GetTime()
+  sniper.listing:SetSelectedRecord(silk)
+  run(2)
+  -- the rows on screen (the stubs have no window size and say no frame is visible; the next row
+  -- was taken from the screen)
+  G.__geometry = {size = 29 + 19 * 5, edge = 100}
+  sniper.listing.__scripts.OnSizeChanged(sniper.listing)
+  G.__geometry = nil
+  for _, row in pairs(sniper.listing.rows) do rawset(row, 'IsVisible', function() return true end) end
+  sniper.update_deals()
+  sniper.ignore(silk)
+  run(2)
+  for _, row in pairs(sniper.listing.rows) do rawset(row, 'IsVisible', nil) end
+  G.__geometry = {size = 0, edge = nil}
+  sniper.listing.__scripts.OnSizeChanged(sniper.listing)
+  G.__geometry = nil
+  check('H-010 3: ignoring the selected deal selects no other deal', sniper.listing:GetSelection() == nil)
+  aux.account_data.sniper_ignored['723:0:0:0:0'] = nil
+  for key, name in pairs(aux.account_data.sniper_ignored) do if name == 'Silk Cloth' then aux.account_data.sniper_ignored[key] = nil end end
+  -- at most MAX_DEALS: the oldest go, never a row kept in place
+  local real = {}
+  for i, d in ipairs(sniper.deals) do real[i] = d end
+  aux.wipe(sniper.deals)
+  for i = 1, sniper.MAX_DEALS + 1 do tinsert(sniper.deals, {deal_key = 'k' .. i}) end
+  sniper.deals[1].row_pin = 1
+  sniper.trim_deals()
+  check('H-010 3: trimming keeps a row kept in place', #sniper.deals == sniper.MAX_DEALS and sniper.deals[1].deal_key == 'k1' and sniper.deals[2].deal_key == 'k3')
+  aux.wipe(sniper.deals)
+  for i, d in ipairs(real) do sniper.deals[i] = d end
+
   sniper.stop()
   aux.account_data.sniper_profit = 500
   sniper.clear_deals()
@@ -2279,6 +2484,8 @@ try('sniper: a selected gear deal is checked again and the rounds hold', functio
   for _, d in ipairs(sniper.deals) do if d.item_id == 601 then axe = d end end
   check('sniper gear: the deal is found', axe ~= nil)
   local before = searched[601] or 0
+  -- 0.8.2 (FB-028): selected after FRESH_SECONDS, it is read again first
+  axe.deal_read_at = GetTime() - sniper.FRESH_SECONDS - 1
   sniper.listing:SetSelectedRecord(axe)
   run(3)
   check('sniper gear: selecting it reads its item again', (searched[601] or 0) > before)
@@ -2302,15 +2509,22 @@ try('sniper: a selected gear deal is checked again and the rounds hold', functio
   check('sniper gear: sold before the click shows as gone', bow and bow.deal_gone == true)
   sniper.listing:SetSelectedRecord()
 
-  -- the table waits while the mouse is over it
+  -- the table waits while the mouse is over its rows
   local before_records = sniper.listing.records
-  rawset(sniper.frame.listing, 'IsMouseOver', function() return true end)
+  rawset(sniper.frame.listing.list, 'IsMouseOver', function() return true end)
   sniper.deals_changed = true
   sniper.update(); run(2)
   check('sniper: the table does not change under the mouse', sniper.listing.records == before_records and sniper.deals_changed == true)
-  rawset(sniper.frame.listing, 'IsMouseOver', nil)
+  rawset(sniper.frame.listing.list, 'IsMouseOver', nil)
   run(10)
   check('sniper: the table catches up when the mouse leaves', sniper.deals_changed == false)
+  -- H-010, finding 3: the mouse on the buy bar under the rows (inside the tab's panel) does not
+  -- stop the table: on the way to Buy, new deals waited
+  rawset(sniper.frame.listing, 'IsMouseOver', function() return true end)
+  sniper.deals_changed = true
+  run(10)
+  check('H-010 3: the table changes while the mouse is on the buy bar', sniper.deals_changed == false)
+  rawset(sniper.frame.listing, 'IsMouseOver', nil)
 
   sniper.stop()
   rawset(C_AuctionHouse, 'SendSearchQuery', real_send)
@@ -3158,10 +3372,11 @@ try('0.5 build 3: latest price in tooltips', function()
     return table.concat(lines, '\n')
   end
   local banana = tip_lines(7501)
-  check('build 3: tooltip Value is the latest price', banana:find('Value: 0.39  seen today', 1, true) ~= nil)
-  check('build 3: a big gap adds "usually"', banana:find('usually 0.87', 1, true) ~= nil)
+  -- 0.8.2 build 4 (Tyler): the usual price is a percent on the Value line, no "usually" line
+  check('build 3: tooltip Value is the latest price', banana:find('Value: 0.39 (45%)  seen today', 1, true) ~= nil)
+  check('0.8.2: the usual price is a percent on the Value line, not a line of its own', banana:find('usually', 1, true) == nil)
   local steady = tip_lines(7502)
-  check('build 3: no "usually" when the two are close', steady:find('usually', 1, true) == nil)
+  check('build 3: no "usually" line when the two are close either', steady:find('usually', 1, true) == nil and steady:find('%)', 1, true) ~= nil)
   -- the recipe cost uses the latest price too
   local total = search.recipe_usual_cost({reagents = {{item_id = 7501, count = 2}}})
   check('build 3: the recipe cost uses the latest price', total == 78)
@@ -3376,10 +3591,10 @@ try('0.6: settings', function()
   local keys = {}
   for _, box in ipairs(a.tooltip_boxes) do keys[box.key] = true end
   local all = true
-  for _, k in ipairs{'value', 'daily', 'merchant_sell', 'merchant_buy', 'disenchant_value', 'disenchant_distribution', 'money_icons'} do
+  for _, k in ipairs{'value', 'usually', 'daily', 'merchant_sell', 'merchant_buy', 'disenchant_value', 'disenchant_distribution', 'money_icons'} do
     if not keys[k] then all = false end
   end
-  check('settings: every /aux tooltip line has a box', all and #a.tooltip_boxes == 7)
+  check('settings: every /aux tooltip line has a box', all and #a.tooltip_boxes == 8)
   local box = a.tooltip_boxes[1]
   local checked
   local own_set_checked = rawget(box, 'SetChecked')
@@ -4851,6 +5066,639 @@ try('0.8.1: profit or loss on the Materials line', function()
   all = table.concat(lines, '\n')
   check('fb026: the hover says how to learn a missing price', all:find('no price yet', 1, true) and all:find('Search for it at the auction house', 1, true) ~= nil)
   for _, key in ipairs{'7601:0', '7610:0', '7611:0'} do h.data[key] = nil end
+end)
+
+-- 0.8.2, FB-036 (reported by Swiftwren): the Sniper offered "deals at 4% of the usual price" on items
+-- listed by hundreds at that same price. The usual price is a slow average of past days; after
+-- launch prices fell faster. Today's market, read from the item's own listings, now counts too.
+try('0.8.2: the Sniper checks today\'s market', function()
+  local aux_require = loadstring("select(2, ...) 'aux.test.fb036'; return require")('auxForever', addon)
+  local aux = aux_require 'aux'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  -- the rule on its own: usual 22s, 3 days of history, 60%, profit at least 1c
+  local reason, profit, pct = sniper.judge(850, 2200, 0, 3, 60, 1, 900)
+  check('fb036: today\'s market just above the price: not a deal', reason == nil)
+  reason, profit, pct = sniper.judge(300, 2200, 0, 3, 60, 1, 1000)
+  check('fb036: well below today\'s market: a deal against the market', reason == 'market' and pct == 30 and profit == 950 - 300)
+  reason, profit, pct = sniper.judge(850, 2200, 0, 3, 60, 1, 5000)
+  check('fb036: a market above the usual price leaves the usual price', reason == 'usual' and pct == 39)
+  reason = sniper.judge(850, 2200, 0, 3, 60, 1, nil)
+  check('fb036: no market known: as before', reason == 'usual')
+  reason, profit = sniper.judge(50, 2200, 100, 3, 60, 1, 60)
+  check('fb036: below vendor price is still a deal whatever the market', reason == 'vendor' and profit == 50)
+  local function rec(price, units, extra)
+    local r = {buyout_price = price * units, unit_buyout_price = price, count = units, seller_count = 1}
+    for k, v in pairs(extra or {}) do r[k] = v end
+    return r
+  end
+  check('fb036: market: hundreds just above the cheapest price', sniper.market_now({rec(85, 2), rec(87, 45), rec(90, 300)}) == 87)
+  check('fb036: market: a few cheap units next to a normal market do not set it', sniper.market_now({rec(850, 12), rec(1000, 5), rec(2300, 100)}) == 2300)
+  check('fb036: market: one price asked by 3 sellers is the market', sniper.market_now({rec(210, 80, {seller_count = 3})}) == 210)
+  check('fb036: market: one price from one seller says nothing', sniper.market_now({rec(210, 80)}) == nil)
+  check('fb036: market: a lone auction says nothing', sniper.market_now({rec(500, 1)}) == nil)
+  check('fb036: market: the player\'s own listings do not count', sniper.market_now({rec(500, 1), rec(510, 50, {own = true})}) == nil)
+
+  -- a round: usual 22s for every item, 3 days of Full scans
+  local d = h.today()
+  for id = 601, 605 do
+    h.write_record(id .. ':0', {day = d, points = {{value = 2200, day = d - 1, units = 10}, {value = 2200, day = d - 2, units = 10}, {value = 2200, day = d - 3, units = 10}}})
+  end
+  local items = {
+    -- Swiftwren's case: 2 at 85c, hundreds within a few copper
+    {id = 601, name = 'Flat Herb', commodity = true, min = 85, qty = 347, sell = 1, auctions = {{buyout = 85, qty = 2}, {buyout = 87, qty = 45}, {buyout = 90, qty = 300}}},
+    -- the whole market at one price, many sellers
+    {id = 602, name = 'Flat Ore', commodity = true, min = 210, qty = 80, sell = 1, auctions = {{buyout = 210, qty = 80, sellers = 6}}},
+    -- one seller dumping, nothing else listed: still a deal against the usual price
+    {id = 603, name = 'Dumped Ore', commodity = true, min = 210, qty = 80, sell = 1, auctions = {{buyout = 210, qty = 80}}},
+    -- a lone piece of gear far below its usual price: the classic snipe
+    {id = 604, name = 'Lone Sword', min = 300, qty = 1, sell = 1, auctions = {{buyout = 300}}},
+    -- the market fell to 10s, and one is listed at 3s
+    {id = 605, name = 'Fallen Cloth', commodity = true, min = 300, qty = 205, sell = 1, auctions = {{buyout = 300, qty = 5}, {buyout = 1000, qty = 200}}},
+  }
+  local run, restore = fake_ah(items)
+  local opened = {}
+  local send = C_AuctionHouse.SendSearchQuery
+  rawset(C_AuctionHouse, 'SendSearchQuery', function(key, ...) opened[key.itemID] = (opened[key.itemID] or 0) + 1; return send(key, ...) end)
+  aux.account_data.sniper_percent, aux.account_data.sniper_profit = 60, 1
+  sniper.clear_deals()
+  sniper.settings_changed()
+  aux.set_tab(2)
+  local r0 = sniper.round
+  sniper.start()
+  for _ = 1, 200 do run(1); if sniper.round > r0 then break end end
+  local found = {}
+  for _, deal in ipairs(sniper.deals) do found[deal.name] = deal end
+  check('fb036: a flat market is not a deal (Swiftwren)', not found['Flat Herb'])
+  check('fb036: one price many sellers ask is not a deal', not found['Flat Ore'])
+  check('fb036: one seller dumping is still a deal', found['Dumped Ore'] and found['Dumped Ore'].deal_reason == 'usual')
+  check('fb036: a lone sword is still a deal', found['Lone Sword'] and found['Lone Sword'].deal_reason == 'usual')
+  check('fb036: below a fallen market it says so', found['Fallen Cloth'] and found['Fallen Cloth'].deal_reason == 'market' and found['Fallen Cloth'].deal_percent == 30
+    and #found['Fallen Cloth'].deal_tiers == 1)
+  -- a stricter setting judges a found deal again against the market it was found with: 30% of the
+  -- market is 14% of the usual price, so at 20% it would wrongly stay with the usual price alone
+  aux.account_data.sniper_percent = 20
+  local still
+  for _, deal in ipairs(sniper.shown_deals()) do if deal == found['Fallen Cloth'] then still = true end end
+  check('fb036: a stricter rule hides a market deal that no longer passes', not still)
+  aux.account_data.sniper_percent = 60
+  -- the next rounds do not open the flat market again while its price only moves a copper
+  local herb_opened = opened[601]
+  items[1].min, items[1].auctions[1].buyout = 86, 86
+  local r1 = sniper.round
+  for _ = 1, 200 do run(1); if sniper.round > r1 then break end end
+  check('fb036: a flat market whose price moves is not opened again', herb_opened == 1 and opened[601] == 1)
+  sniper.stop()
+  rawset(C_AuctionHouse, 'SendSearchQuery', send)
+  restore()
+  sniper.clear_deals()
+  sniper.settings_changed()
+  for id = 601, 605 do h.data[id .. ':0'] = nil end
+end)
+
+-- 0.8.2, FB-037 (reported by deep_structure: "i cant scan today") and FB-027: since launch the
+-- server can take more than 5 minutes to send a Full scan's list (user_ayzkr6rhvrlna3ya). aux gave
+-- up after 2 minutes. It now waits up to 10, shows how long so far, and says what each part took.
+try('0.8.2: a Full scan waits for a slow auction house', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.test.fb037'; return require 'aux.core.scan'")('auxForever', addon)
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  local list = {}
+  for i = 1, 30 do tinsert(list, {id = 9301, count = 2, buyout = 200 + i}) end
+  local asked = 0
+  set(C_AuctionHouse, 'ReplicateItems', function() asked = asked + 1 end)
+  set(C_AuctionHouse, 'GetNumReplicateItems', function() return #list end)
+  set(C_AuctionHouse, 'GetReplicateItemInfo', function(i) local x = list[i + 1]; return 'Item', 1, x.count, 1, true, 1, nil, 0, 0, x.buyout, 0, false, nil, 'Seller', nil, 0, x.id, true end)
+  set(C_AuctionHouse, 'GetReplicateItemLink', function() return '|cffffffff|Hitem:9301::::::0:0|h[Item]|h|r' end)
+  set(G, 'GetItemInfo', function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id ~= 9301 then return end
+    return 'Slow Herb', '|cffffffff|Hitem:9301::::::0:0|h[Slow Herb]|h|r', 1, 10, 1, 'Trade Goods', 'Herb', 20, '', 1, 1
+  end)
+  local texts, printed = {}, {}
+  set(a.status_bar.text, 'SetText', function(_, t) tinsert(texts, t or '') end)
+  set(DEFAULT_CHAT_FRAME, 'AddMessage', function(_, t) tinsert(printed, t) end)
+  local was_shown = a.frame.__shown
+  a.frame.__shown = true
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', '')) end
+  local function said(pattern)
+    for _, t in ipairs(printed) do if plain(t):find(pattern, 1, true) then return plain(t) end end
+  end
+
+  -- the answer comes after 4 minutes
+  a.account_data.replicate_time = 0
+  a.full_scan_button.__scripts.OnClick(a.full_scan_button)
+  for _ = 1, 2400 do tick() end
+  check('fb037: still waiting after 4 minutes', scan.is_scanning() and asked == 1)
+  local waiting = texts[#texts] or ''
+  check('fb037: the status bar shows how long so far', waiting:find('waiting for the auction house, 4:00 so far', 1, true) ~= nil or waiting:find('waiting for the auction house, 3:59 so far', 1, true) ~= nil)
+  fire('REPLICATE_ITEM_LIST_UPDATE')
+  for _ = 1, 100 do tick(); if not scan.is_scanning() then break end end
+  local line = said('Full scan complete')
+  check('fb037: an answer after 4 minutes is read (2 minutes gave up)', not scan.is_scanning() and line ~= nil and line:find('30 auctions recorded', 1, true) ~= nil)
+  check('fb027: the closing line says how long the auction house took', line and line:find('the auction house took 4m 0', 1, true) ~= nil)
+  check('fb037: no "did not answer" for a slow answer', said('did not answer') == nil)
+
+  -- no answer at all
+  printed = {}
+  a.account_data.replicate_time = 0
+  a.full_scan_button.__scripts.OnClick(a.full_scan_button)
+  for _ = 1, 6100 do tick(); if not scan.is_scanning() then break end end
+  check('fb037: after 10 minutes without an answer it stops', not scan.is_scanning())
+  check('fb037: and says nothing was recorded', said('did not answer within 10 minutes, so nothing was recorded') ~= nil)
+  check('fb037: no "complete" line when nothing came', said('Full scan complete') == nil and said('full scan complete') == nil)
+  check('fb037: the summary is empty for a failed scan', scan.full_scan_summary({full = {failed = true}}) == nil)
+
+  a.frame.__shown = was_shown
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  a.account_data.replicate_time = 0
+end)
+
+-- 0.8.2, FB-037: while a Full scan waits for the server (minutes since launch), the Sniper's next
+-- round and the Auctions tab's price check started scans of their own, which stopped it: nothing was
+-- recorded and the game still counted it. They now wait; a search the player starts says it stopped it.
+try('0.8.2: nothing stops a Full scan by itself', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.test.fb037b'; return require 'aux.core.scan'")('auxForever', addon)
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local auctions = loadstring("select(2, ...) 'aux.tabs.auctions'; return _M")('auxForever', addon)
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  set(C_AuctionHouse, 'ReplicateItems', function() end)
+  set(C_AuctionHouse, 'GetNumReplicateItems', function() return 0 end)
+  local printed = {}
+  set(DEFAULT_CHAT_FRAME, 'AddMessage', function(_, t) tinsert(printed, t) end)
+  local was_shown = a.frame.__shown
+  a.frame.__shown = true
+
+  -- the Sniper is running when the Full scan starts
+  a.set_tab(2)
+  sniper.start()
+  for _ = 1, 5 do tick() end
+  a.account_data.replicate_time = 0
+  a.full_scan_button.__scripts.OnClick(a.full_scan_button)
+  for _ = 1, 100 do tick() end
+  check('fb037: the Sniper does not stop a waiting Full scan', scan.is_full_scan())
+  sniper.stop()
+
+  -- the Auctions tab opens and would check prices
+  a.set_tab(4)
+  for _ = 1, 100 do tick() end
+  check('fb037: the Auctions tab\'s price check waits too', scan.is_full_scan() and auctions.checking == nil)
+
+  -- a search the player starts stops it, and says so
+  scan.start{type = 'list', queries = {{blizzard_query = {}}}, quiet = true}
+  local said
+  for _, t in ipairs(printed) do if t:find('Full scan stopped by a new search before it finished', 1, true) then said = true end end
+  check('fb037: a search stops it and says so', not scan.is_full_scan() and said)
+  scan.abort()
+  for _ = 1, 30 do tick() end
+
+  a.set_tab(1)
+  a.frame.__shown = was_shown
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  a.account_data.replicate_time = 0
+end)
+
+-- 0.8.2, FB-028 (reported by user_ayzkr6rhvrlna3ya): "over 30 seconds from sounding off to
+-- attempting the purchase". A deal clicked right after it was found is not read again first.
+try('0.8.2: a fresh Sniper deal goes straight to the buy bar', function()
+  local aux_require = loadstring("select(2, ...) 'aux.test.fb028'; return require")('auxForever', addon)
+  local aux = aux_require 'aux'
+  local bar = aux_require 'aux.gui.buy_bar'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  -- the axe after the ore, so the round's last search is the axe's (review H-008, finding 6)
+  local items = {
+    {id = 702, name = 'Quick Ore', commodity = true, min = 100, qty = 7, sell = 300, auctions = {{buyout = 100, qty = 7}}},
+    {id = 701, name = 'Quick Axe', min = 2800, qty = 1, sell = 3036, auctions = {{buyout = 2800}}},
+  }
+  local run, restore = fake_ah(items)
+  local searched = {}
+  local real_send = C_AuctionHouse.SendSearchQuery
+  rawset(C_AuctionHouse, 'SendSearchQuery', function(key, ...) searched[key.itemID] = (searched[key.itemID] or 0) + 1; return real_send(key, ...) end)
+  aux.account_data.sniper_profit = 1
+  sniper.clear_deals()
+  sniper.settings_changed()
+  aux.set_tab(2)
+  local r0 = sniper.round
+  sniper.start()
+  for _ = 1, 300 do run(1) if sniper.round > r0 then break end end
+  local axe, ore
+  for _, d in ipairs(sniper.deals) do if d.item_id == 701 then axe = d elseif d.item_id == 702 then ore = d end end
+  check('fb028: both deals found', axe ~= nil and ore ~= nil)
+  -- the table shows new deals at most twice a second
+  for _ = 1, 10 do tick() end
+  local in_table = 0
+  for _, r in ipairs(sniper.listing.records or {}) do if r == axe or r == ore then in_table = in_table + 1 end end
+  check('fb028: both deals in the table', in_table == 2)
+  local before = searched[701] or 0
+  sniper.listing:SetSelectedRecord(axe)
+  run(1)
+  local reading = sniper.refreshing
+  run(2)
+  check('fb028: gear clicked at once is not read again', reading == nil and (searched[701] or 0) == before)
+  check('fb028: and the buy bar offers it at once', bar.primary_label():find('^Buy for') ~= nil)
+  sniper.listing:SetSelectedRecord()
+  run(1)
+  before = searched[702] or 0
+  sniper.listing:SetSelectedRecord(ore)
+  run(1)
+  reading = sniper.refreshing
+  run(2)
+  check('fb028: a trade good clicked at once is not read again', reading == nil and (searched[702] or 0) == before)
+  check('fb028: and the buy bar offers it at once', bar.primary_label():find('^Buy') ~= nil)
+  sniper.listing:SetSelectedRecord()
+  run(1)
+  -- review H-008, finding 6: once another item was searched, a gear deal is read again first (0.4.1:
+  -- a gear purchase did nothing after other searches), however fresh
+  local scan = aux_require 'aux.core.scan'
+  local done
+  scan.start{type = 'list', quiet = true, no_view = true, queries = {{item_keys = {{itemID = 702, itemSuffix = 0, itemLevel = 0}}}}, on_complete = function() done = true end}
+  for _ = 1, 20 do run(1); if done then break end end
+  before = searched[701] or 0
+  sniper.listing:SetSelectedRecord(axe)
+  for _ = 1, 10 do run(1) end
+  check('fb028: gear clicked after another search is read again', done and (searched[701] or 0) > before)
+  check('h008 6: the last search is known', scan.last_read_is({itemID = 701, itemSuffix = 0, itemLevel = 0}))
+  done = false
+  scan.start{type = 'list', quiet = true, fast = true, queries = {{blizzard_query = {}}}, on_complete = function() done = true end}
+  for _ = 1, 20 do run(1); if done then break end end
+  check('h008 6: an item list in between clears it', done and not scan.last_read_is({itemID = 701, itemSuffix = 0, itemLevel = 0}))
+  sniper.listing:SetSelectedRecord()
+  sniper.stop()
+  run(5)
+  rawset(C_AuctionHouse, 'SendSearchQuery', real_send)
+  restore()
+  sniper.clear_deals()
+  bar.clear()
+end)
+
+-- 0.8.2, FB-025 (suggested by RushJet1): "armor/mail/chest/usable/strength" took 2 minutes, because
+-- tooltip text made the search read every auction of every item. The item list's own tooltips are
+-- checked instead; only gear with a random ending (stats in the ending) is read in full.
+try('0.8.2: tooltip text is checked on the item list', function()
+  local scan = loadstring("select(2, ...) 'aux.test.fb025'; return require 'aux.core.scan'")('auxForever', addon)
+  local filter_util = loadstring("select(2, ...) 'aux.test.fb025b'; return require 'aux.util.filter'")('auxForever', addon)
+  local items = {
+    {id = 811, name = 'Strong Chest', min = 1000, qty = 2, auctions = {{buyout = 1000}, {buyout = 1100}}},
+    {id = 812, name = 'Weak Chest', min = 900, qty = 1, auctions = {{buyout = 900}}},
+    {id = 813, name = 'Bear Chest', full_name = 'Bear Chest of the Bear', suffix = 77, min = 1500, qty = 1, auctions = {{buyout = 1500}}},
+    {id = 814, name = 'Owl Chest', full_name = 'Owl Chest of the Owl', suffix = 78, min = 1400, qty = 1, auctions = {{buyout = 1400}}},
+  }
+  local run, restore = fake_ah(items)
+  -- each tooltip as the game would build it from that link
+  local lines_of = {
+    ['Strong Chest'] = {'Strong Chest', '+5 Strength'},
+    ['Weak Chest'] = {'Weak Chest', '+5 Intellect'},
+    ['Bear Chest'] = {'Bear Chest', '<Random enchantment>'},
+    ['Bear Chest of the Bear'] = {'Bear Chest of the Bear', '+3 Strength', '+3 Stamina'},
+    ['Owl Chest'] = {'Owl Chest', '<Random enchantment>'},
+    ['Owl Chest of the Owl'] = {'Owl Chest of the Owl', '+3 Intellect', '+3 Spirit'},
+  }
+  local shown = {}
+  local old_lines = {}
+  for i = 1, 4 do old_lines[i] = {G['AuxTooltipTextLeft' .. i], G['AuxTooltipTextRight' .. i]} end
+  rawset(AuxTooltip, 'SetHyperlink', function(_, l) shown = lines_of[tostring(l):match('|h%[(.-)%]|h')] or {} end)
+  rawset(AuxTooltip, 'ClearLines', function() shown = {} end)
+  -- 0.8.2 build 6: a fast row of gear with an ending is built from its item key; the game gives the
+  -- Bear chest's stats there, and only the Owl chest's name (so that one falls back to a full read)
+  rawset(AuxTooltip, 'SetItemKey', function(_, id, level, suffix)
+    if suffix == 77 then shown = lines_of['Bear Chest of the Bear'] elseif suffix == 78 then shown = {'Owl Chest of the Owl'} end
+  end)
+  rawset(AuxTooltip, 'NumLines', function() return #shown end)
+  for i = 1, 4 do
+    G['AuxTooltipTextLeft' .. i] = {GetText = function() return shown[i] end}
+    G['AuxTooltipTextRight' .. i] = {GetText = function() end}
+  end
+  local searched = {}
+  local real_send = C_AuctionHouse.SendSearchQuery
+  rawset(C_AuctionHouse, 'SendSearchQuery', function(key, ...) searched[key.itemID] = (searched[key.itemID] or 0) + 1; return real_send(key, ...) end)
+  local found, done = {}, false
+  local queries = filter_util.queries('chest/strength')
+  check('fb025: the search is fast', queries and queries[1].tooltip_text == true and queries[1].full_reason == nil)
+  local redraws = 0
+  scan.start{type = 'list', queries = queries, fast = true, quiet = true,
+    on_auction = function(record) found[record.name] = (found[record.name] or 0) + 1 end,
+    on_page_scanned = function() redraws = redraws + 1 end,
+    on_complete = function() done = true end}
+  for _ = 1, 100 do run(1); if done then break end end
+  check('fb025: the search finished', done)
+  check('fb025: a plain item with the word in its tooltip is listed from the item list', found['Strong Chest'] == 1 and not searched[811])
+  check('fb025: a plain item without it is left out, unread', not found['Weak Chest'] and not searched[812])
+  check('fb025: gear with an ending is matched on its item key\'s tooltip, unread', found['Bear Chest of the Bear'] == 1 and not searched[813])
+  check('fb025: when the game gives only the name, it is read in full and left out', not found['Owl Chest of the Owl'] and searched[814] == 1)
+  -- 4 items on the list: redrawn once at its end, and once more right after the Owl chest's read
+  check('fb025: the table is redrawn right after a full read (Tyler: "This isnt returning items")', redraws == 2)
+  rawset(C_AuctionHouse, 'SendSearchQuery', real_send)
+  rawset(AuxTooltip, 'SetHyperlink', nil)
+  rawset(AuxTooltip, 'NumLines', nil)
+  rawset(AuxTooltip, 'ClearLines', nil)
+  rawset(AuxTooltip, 'SetItemKey', nil)
+  for i = 1, 4 do G['AuxTooltipTextLeft' .. i], G['AuxTooltipTextRight' .. i] = old_lines[i][1], old_lines[i][2] end
+  restore()
+end)
+
+-- 0.8.2, FB-035 (suggested by deep_structure): the "usually" line in tooltips gets a switch of its
+-- own (it could only go with Value). FB-033 (Chawitsch asked for stack prices, which Shift already
+-- shows): a stack's Value line says so ("Shift for 20").
+try('0.8.2: Usually switch and the Shift hint', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local tooltip = loadstring("select(2, ...) 'aux.core.tooltip'; return _M")('auxForever', addon)
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local today = h.today()
+  -- latest 39c, usual 87c: a big gap, so "usually" shows when on
+  h.write_record('7601:0', {day = today, low = 38, market = 39, units = 82, points = {{day = today - 2, value = 87}, {day = today - 3, value = 87}}})
+  local shift = false
+  local real_shift = G.IsShiftKeyDown
+  G.IsShiftKeyDown = function() return shift end
+  local function tip_lines(quantity)
+    local lines = {}
+    local tip = new_frame()
+    rawset(tip, 'AddLine', function(_, t) tinsert(lines, plain(t)) end)
+    rawset(AuxTooltip, 'NumLines', function() return 0 end)
+    tooltip.extend_tooltip(tip, '|cffffffff|Hitem:7601::::::0:0|h[X]|h|r', quantity or 1)
+    rawset(AuxTooltip, 'NumLines', nil)
+    return table.concat(lines, '\n')
+  end
+  local settings = a.character_data.tooltip
+  check('fb035: the switch is on by default', settings.usually == true)
+  -- build 4 (Tyler): "Value: 0.39 (45%)  seen today", 39c being 45% of the usual 87c
+  check('fb035: on, the percent of usual follows the price', tip_lines():find('Value: 0.39 (45%)  seen today', 1, true) ~= nil)
+  SlashCmdList.AUX('tooltip percent')
+  check('fb035: /aux tooltip percent turns it off', settings.usually == false and tip_lines():find('%', 1, true) == nil)
+  check('fb035: Value stays', tip_lines():find('Value: 0.39  seen today', 1, true) ~= nil)
+  SlashCmdList.AUX('tooltip usually')
+  check('fb035: /aux tooltip usually still works', settings.usually == true)
+  SlashCmdList.AUX('tooltip usually')
+  local box
+  for _, b in ipairs(a.tooltip_boxes) do if b.key == 'usually' then box = b end end
+  box.__scripts.OnClick(box)
+  check('fb035: the Settings switch turns it back on', settings.usually == true and tip_lines():find('(45%)', 1, true) ~= nil)
+  local frame_src = io.open('frame.lua'):read('*a')
+  check('fb035: the switch is called % of usual', frame_src:find("{'usually', '% of usual',", 1, true) ~= nil)
+  -- a character saved before 0.8.2 has tooltip settings without the new line: it is filled in, on,
+  -- and the player's own choices stay
+  local older = a.character_settings({tooltip = {value = false, merchant_sell = true, daily = true}, bid_auction_ids = {7}})
+  check('fb035: an older character gets the line on', older.tooltip.usually == true)
+  check('fb035: and keeps its own choices', older.tooltip.value == false and older.tooltip.daily == true and older.bid_auction_ids[1] == 7)
+  check('fb035: other missing lines get their defaults', older.tooltip.money_icons == false and older.tooltip.merchant_buy == false)
+  local fresh = a.character_settings({})
+  check('fb035: a new character gets every default', fresh.tooltip.value == true and fresh.tooltip.usually == true and fresh.tooltip.daily == false and type(fresh.bid_auction_ids) == 'table')
+
+  -- the Shift hint
+  local stack = tip_lines(20)
+  -- build 6 (Tyler): no Shift instructions in the tooltip
+  check('fb033: a stack shows no Shift hint', stack:find('Value: 0.39 (45%)  seen today', 1, true) ~= nil and stack:find('Shift', 1, true) == nil)
+  check('fb033: one item says nothing either', tip_lines(1):find('Shift', 1, true) == nil)
+  shift = true
+  stack = tip_lines(20)
+  check('fb033: with Shift held, the stack price', stack:find('Value: 7.80 (45%)  for 20  seen today', 1, true) ~= nil)
+  G.IsShiftKeyDown = real_shift
+  h.data['7601:0'] = nil
+end)
+
+-- 0.8.2 build 3, review H-008 (Gemini, docs/reviews/2026-11-09-sniper-0.8.2.md) of the Sniper's
+-- logic, with the reviewer's own listings. FB-036 (Swiftwren): an Invoker's Cord at 12s next to 78 at
+-- 13s, and 1,792 items opened in one round.
+try('0.8.2: Sniper review H-008', function()
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local aux = loadstring("select(2, ...) 'aux.test.h008'; return require 'aux'")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.test.h008b'; return require 'aux.core.scan'")('auxForever', addon)
+  local function rec(price, units, extra)
+    local r = {buyout_price = price, unit_buyout_price = price, count = 1, auction_count = units, seller_count = 1}
+    for k, v in pairs(extra or {}) do r[k] = v end
+    return r
+  end
+  -- finding 7: the column next to the price shows the price the deal was compared with
+  check('h008 7: a market deal shows the market', sniper.compared_price({deal_reason = 'market', deal_market = 1000, deal_usual = 2200}) == 1000)
+  check('h008 7: a usual deal shows the usual price', sniper.compared_price({deal_reason = 'usual', deal_market = 5000, deal_usual = 2200}) == 2200)
+  check('h008 7: a below vendor deal shows the vendor price', sniper.compared_price({deal_reason = 'vendor', deal_vendor = 300, deal_usual = 2200}) == 300)
+  check('h008 7: the column is called Compared to', sniper.columns[7] and sniper.columns[7].title == 'Compared to')
+  -- finding 1: a price 3 or more sellers ask is the market, whatever is listed above it
+  check('h008 1: 6 sellers at 2s 10c next to one at 22s is the market', sniper.market_now({rec(210, 80, {seller_count = 6}), rec(2200, 1)}) == 210)
+  check('h008 1: the wall left after the cheap unit is bought', sniper.market_now({rec(87, 200, {seller_count = 5}), rec(2200, 5)}) == 87)
+  -- finding 4: fewer than 3 units above the cheapest price are not a market
+  check('h008 4: two cheap units 1c apart, nothing else: no market', sniper.market_now({rec(209, 1), rec(210, 1)}) == nil)
+  check('h008 4: with 100 at 22s above them, 22s', sniper.market_now({rec(209, 1), rec(210, 1), rec(2200, 100)}) == 2200)
+  check('h008 4: 78 at 13s above one at 12s is still the market (Invoker\'s Cord)', sniper.market_now({rec(1200, 1), rec(1300, 78)}) == 1300)
+
+  -- item names and 3 days of usual price (32s) for the items below
+  local d = h.today()
+  local names = {[901] = "Invoker's Cord", [902] = 'Flat Belt', [903] = 'Lone Belt', [904] = 'Wall Herb'}
+  for id in pairs(names) do
+    h.write_record(id .. ':0', {day = d, points = {{value = 3200, day = d - 1, units = 10}, {value = 3200, day = d - 2, units = 10}, {value = 3200, day = d - 3, units = 10}}})
+  end
+  local real_info, real_key_info = G.GetItemInfo, C_AuctionHouse.GetItemKeyInfo
+  G.GetItemInfo = function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if names[id] then return names[id], '|cffffffff|Hitem:' .. id .. '::::::0:0|h[' .. names[id] .. ']|h|r', 2, 20, 15, 'Armor', 'Cloth', 1, 'INVTYPE_WAIST', 1, 1 end
+    return real_info(x)
+  end
+  rawset(C_AuctionHouse, 'GetItemKeyInfo', function(key) return names[key.itemID] and {itemID = key.itemID, itemName = names[key.itemID], quality = 2} or real_key_info(key) end)
+  aux.account_data.sniper_percent, aux.account_data.sniper_profit = 60, 1
+
+  -- finding 2: today's market on the item list comes from the last Full scan by the Sniper's own
+  -- rule (cheapest price left out), not from price history's latest price
+  local list = {}
+  for _ = 1, 78 do tinsert(list, {id = 902, buyout = 1300}) end
+  tinsert(list, {id = 902, buyout = 1250})
+  tinsert(list, {id = 903, buyout = 300}) -- a snipe already up during the scan
+  for _ = 1, 39 do tinsert(list, {id = 903, buyout = 3200}) end
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  set(C_AuctionHouse, 'ReplicateItems', function() end)
+  set(C_AuctionHouse, 'GetNumReplicateItems', function() return #list end)
+  set(C_AuctionHouse, 'GetReplicateItemInfo', function(i) local x = list[i + 1]; return names[x.id], 1, 1, 2, true, 20, nil, 0, 0, x.buyout, 0, false, nil, 'Seller', nil, 0, x.id, true end)
+  set(C_AuctionHouse, 'GetReplicateItemLink', function(i) local id = list[i + 1].id; return '|cffffffff|Hitem:' .. id .. '::::::0:0|h[' .. names[id] .. ']|h|r' end)
+  local done
+  scan.start{type = 'list', queries = {{blizzard_query = {}}}, get_all = true, quiet = true, on_complete = function() done = true end}
+  for _ = 1, 10 do tick() end
+  fire('REPLICATE_ITEM_LIST_UPDATE')
+  for _ = 1, 120 do tick(); if done then break end end
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  check('h008 2: the Full scan finished', done)
+  check('h008 2: price history counts the snipe as the market (why it is not used)', h.latest('903:0') == 300)
+
+  local real_check = sniper.check_item
+  local opened = {}
+  sniper.check_item = function(item_key, key, price, others) opened[key] = others or true end
+  local function result(id, suffix, qty, price) return {itemKey = {itemID = id, itemSuffix = suffix, itemLevel = 20}, totalQuantity = qty, minPrice = price} end
+  local function round(results, keep)
+    if not keep then sniper.settings_changed() end
+    opened = {}
+    sniper.check_list(results, {})
+  end
+  local flat, lone = result(902, 0, 79, 1250), result(903, 0, 40, 300)
+  local kflat, klone = scan.item_key_string(flat.itemKey), scan.item_key_string(lone.itemKey)
+  round({flat, lone})
+  check('h008 2: a price close to the Full scan\'s market is not opened', not opened[kflat])
+  check('h008 2: a snipe that was up during the Full scan is still opened', opened[klone] ~= nil)
+  -- the Sniper's own read of an item no longer hides it next round
+  h.write_record('903:0', {day = d, market = 300, units = 1, low = 300, points = h.data_points('903:0')})
+  round({lone})
+  check('h008 2: a deal read today is opened again next round', opened[klone] ~= nil)
+
+  -- finding 3: versions are read for real when a candidate is opened, not judged on the list
+  local a, b = result(901, 11, 1, 1000), result(901, 12, 1, 1100)
+  local ka, kb = scan.item_key_string(a.itemKey), scan.item_key_string(b.itemKey)
+  round({a, b})
+  check('h008 3: two cheap versions no longer block each other', opened[ka] and opened[kb])
+  check('h008 3: and each is opened with the other to read', type(opened[ka]) == 'table' and opened[ka][1].itemSuffix == 12)
+  sniper.check_item = real_check
+  -- check_item with fake reads: version 11 has 1 at 12s and 8 at 32s, version 12 has 78 at 13s
+  local scan_exports = loadstring("select(2, ...) 'aux.test.h008c'; return require 'aux.core.scan'")('auxForever', addon)
+  local real_read = scan_exports.read_item
+  local function item_rec(id, price, units)
+    return rec(price, units, {item_id = id, price_key = id .. ':0', item_key = id .. ':0', name = names[id], quality = 2, texture = 1,
+      link = '|cff1eff00|Hitem:' .. id .. '::::::0:0|h[' .. names[id] .. ']|h|r'})
+  end
+  local function cord(price, units) return item_rec(901, price, units) end
+  local reads = {}
+  rawset(scan_exports, 'read_item', function(key)
+    reads[#reads + 1] = key.itemSuffix
+    if key.itemSuffix == 11 then return {cord(1200, 1), cord(3200, 8)} end
+    if key.itemSuffix == 12 then return {cord(1300, 78)} end
+  end)
+  sniper.clear_deals()
+  sniper.check_item(a.itemKey, ka, 1200, {b.itemKey})
+  local deal
+  for _, x in ipairs(sniper.deals) do if x.deal_key == ka then deal = x end end
+  check('h008 3: the other version\'s 78 at 13s count, so 12s is no deal (Invoker\'s Cord)', deal == nil and reads[1] == 11 and reads[2] == 12)
+  rawset(scan_exports, 'read_item', function(key)
+    if key.itemSuffix == 11 then return {cord(600, 1), cord(3200, 8)} end
+    if key.itemSuffix == 12 then return {cord(1300, 78)} end
+  end)
+  sniper.check_item(a.itemKey, ka, 600, {b.itemKey})
+  for _, x in ipairs(sniper.deals) do if x.deal_key == ka then deal = x end end
+  check('h008 3: 6s next to 78 at 13s is a deal against that market', deal and deal.deal_reason == 'market' and deal.deal_market == 1300)
+
+  -- finding 5: a remembered market is dropped when the list shows the units that made it are gone,
+  -- and an item refused only because of it is judged again
+  rawset(scan_exports, 'read_item', function() return {item_rec(904, 85, 2), item_rec(904, 87, 45), item_rec(904, 2200, 100)} end)
+  local herb = result(904, 0, 147, 85)
+  local kherb = scan.item_key_string(herb.itemKey)
+  sniper.settings_changed()
+  sniper.check_item(herb.itemKey, kherb, 85)
+  sniper.check_item = function(item_key, key) opened[key] = true end
+  local function herb_round(price) herb.minPrice = price; round({herb}, true) end
+  herb_round(55)
+  check('h008 5: a 55c herb next to the 87c wall is not opened', not opened[kherb])
+  herb_round(2200)
+  herb_round(55)
+  check('h008 5: once the wall sold (lowest 22s), a 55c snipe is opened', opened[kherb])
+  sniper.settings_changed()
+  sniper.check_item = real_check
+  sniper.check_item(herb.itemKey, kherb, 85)
+  sniper.check_item = function(item_key, key) opened[key] = true end
+  herb_round(86)
+  local memory = sniper.MARKET_MEMORY
+  sniper.MARKET_MEMORY = 0
+  herb_round(86)
+  sniper.MARKET_MEMORY = memory
+  check('h008 5: refused only because of the remembered market, it is judged again when that is gone', opened[kherb])
+
+  sniper.check_item = real_check
+  rawset(scan_exports, 'read_item', real_read)
+  G.GetItemInfo = real_info
+  rawset(C_AuctionHouse, 'GetItemKeyInfo', real_key_info)
+  sniper.clear_deals()
+  sniper.settings_changed()
+  for id in pairs(names) do h.data[id .. ':0'] = nil end
+end)
+
+-- review H-008 (note under finding 2): reading one version of a Sniper deal again before buying it
+-- recorded that version alone as the item's day price; that read records none now
+try('0.8.2: a deal read again records no day price', function()
+  local scan = loadstring("select(2, ...) 'aux.test.h008d'; return require 'aux.core.scan'")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local items = {{id = 951, name = 'Reread Belt', min = 500, qty = 2, auctions = {{buyout = 500}, {buyout = 600}}}}
+  local run, restore = fake_ah(items)
+  h.data['951:0'] = nil
+  local done
+  scan.start{type = 'list', quiet = true, no_view = true, queries = {{item_keys = {{itemID = 951, itemSuffix = 0, itemLevel = 0}}}}, on_complete = function() done = true end}
+  for _ = 1, 40 do run(1); if done then break end end
+  local _, units = h.today_market('951:0')
+  check('h008: the re-read finished', done)
+  check('h008: and wrote no day price', units == nil)
+  done = false
+  scan.start{type = 'list', quiet = true, queries = {{item_keys = {{itemID = 951, itemSuffix = 0, itemLevel = 0}}}}, on_complete = function() done = true end}
+  for _ = 1, 40 do run(1); if done then break end end
+  _, units = h.today_market('951:0')
+  check('h008: a normal read still does', done and units == 2)
+  restore()
+  h.data['951:0'] = nil
+end)
+
+-- 0.8.2 build 5 (Tyler: "clean, consistent"): the Sniper's Why column shows its percent in the colors
+-- of the Search tab's % Hist. Value column and the tooltip's "(67%)"
+try('0.8.2: the Sniper\'s percent in the Search colors', function()
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local gui = loadstring("select(2, ...) 'aux.test.b5'; return require 'aux.gui'")('auxForever', addon)
+  local why
+  for _, column in ipairs(sniper.columns) do if column.title == 'Why' then why = column end end
+  local shown
+  local cell = {text = {SetText = function(_, t) shown = t end}}
+  why.fill(cell, {deal_reason = 'usual', deal_percent = 30})
+  check('b5: 30% of usual in the Search tab\'s color for 30%', shown and shown:find(gui.percentage_historical(30), 1, true) == 1 and shown:find('of usual', 1, true) ~= nil)
+  why.fill(cell, {deal_reason = 'market', deal_percent = 70})
+  check('b5: 70% of market in the color for 70%', shown and shown:find(gui.percentage_historical(70), 1, true) == 1 and shown:find('of market', 1, true) ~= nil)
+  why.fill(cell, {deal_reason = 'vendor', deal_percent = 10})
+  check('b5: below vendor stays as it was', shown and shown:find('below vendor', 1, true) ~= nil)
+end)
+
+-- 0.8.2 build 6, Tyler's build 5 test: the Full scan button was gray while the Sniper ran ("I had to
+-- stop sniper for full scan to ungrey"); and "% of usual" in the profession window's Materials hover
+try('0.8.2 build 6: Full scan button and % of usual in crafting', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.test.b6'; return require 'aux.core.scan'")('auxForever', addon)
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local btn = a.full_scan_button
+  local enabled
+  local real_enable, real_disable = rawget(btn, 'Enable'), rawget(btn, 'Disable')
+  rawset(btn, 'Enable', function() enabled = true end)
+  rawset(btn, 'Disable', function() enabled = false end)
+  local was_shown = a.frame.__shown
+  a.frame.__shown = true
+  a.account_data.replicate_time = 0
+  scan.start{type = 'list', quiet = true, queries = {{blizzard_query = {}}}}
+  for _ = 1, 8 do tick() end
+  check('b6: a search under way leaves Full scan clickable', scan.is_scanning() and enabled == true)
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  set(C_AuctionHouse, 'ReplicateItems', function() end)
+  set(C_AuctionHouse, 'GetNumReplicateItems', function() return 0 end)
+  scan.start{type = 'list', quiet = true, queries = {{blizzard_query = {}}}, get_all = true}
+  for _ = 1, 8 do tick() end
+  check('b6: a Full scan under way grays it', scan.is_full_scan() and enabled == false)
+  scan.abort()
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  rawset(btn, 'Enable', real_enable); rawset(btn, 'Disable', real_disable)
+  a.frame.__shown = was_shown
+  a.account_data.replicate_time = 0
+
+  -- crafting: each material's latest price and the made item's, with the share of the usual price
+  local d = h.today()
+  h.write_record('7701:0', {day = d, low = 38, market = 39, units = 82, points = {{day = d - 2, value = 87}, {day = d - 3, value = 87}}})
+  h.write_record('7702:0', {day = d, low = 200, market = 200, units = 10, points = {{day = d - 2, value = 400}, {day = d - 3, value = 400}}})
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local lines = {}
+  local tip = new_frame()
+  rawset(tip, 'AddLine', function(_, t) tinsert(lines, plain(t)) end)
+  rawset(tip, 'AddDoubleLine', function(_, l, r) tinsert(lines, plain(l) .. ' | ' .. plain(r)) end)
+  search.recipe_cost_tooltip(tip, {reagents = {{item_id = 7701, count = 2}}, output = {item_id = 7702, count = 1}})
+  local all = table.concat(lines, '\n')
+  check('b6: a material\'s price says its share of usual', all:find('78c (45%)  seen today', 1, true) ~= nil)
+  check('b6: the made item\'s price says its share of usual', all:find('2s (50%)  seen today', 1, true) ~= nil)
+  a.character_data.tooltip.usually = false
+  lines = {}
+  search.recipe_cost_tooltip(tip, {reagents = {{item_id = 7701, count = 2}}, output = {item_id = 7702, count = 1}})
+  check('b6: the % of usual switch turns it off there too', not table.concat(lines, '\n'):find('%)', 1, true))
+  a.character_data.tooltip.usually = true
+  h.data['7701:0'] = nil; h.data['7702:0'] = nil
 end)
 
 -- what players do while the auction house is still answering: a slow auction house that answers
