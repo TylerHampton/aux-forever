@@ -8,7 +8,33 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.2 build 7
+## Current build: 0.8.2 build 8
+
+One fix from Tyler's build 7 test (results below): with a material selected, the deal sound played
+but new rows showed only after letting go. The table waited whenever the mouse was over its rows,
+and the mouse rests on the row just clicked. The selected row and the rows above it no longer move,
+so the table now updates while the mouse is on them; a row below still waits. Zip
+`auxForever-0.8.2-build8.zip`; `/reload` is enough. Test page build id `0-8-2-build-8`.
+
+- [ ] 1. Open the Sniper tab and click Start. Click a material deal (cloth, ore, herbs, leather)
+      and leave the mouse where it is, on that row. When the deal sound plays, the new row shows up
+      just below yours within a second, and your row does not move. If no sound plays within a few
+      minutes, mark Skip.
+
+### 0.8.2 build 7
+
+Tested by Tyler 2026-11-09 (test page `0-8-2-build-7`): all eight steps pass. Full scan with the
+Sniper running: the button is not gray, the bar showed "waiting for the auction house, 0:13 so far",
+the Sniper waited ("first round") and went on by itself after the scan; the chat line (partly
+hidden behind aux) reads "215090 auctions recorded in 50.5s (the ... answer, 2.0s to send the list;
+reading took ...)" (FB-027). The tooltip-word search: "That was LIGHTNING fast", 36 chests. The sort
+arrow sits left of "% of usual". The Materials hover shows "(73%)" and "(56%)" in color. No Shift
+hint; with Shift "4s 80c (104%) for 20". Sniper: with Crippling Poison selected the status kept
+"Watching round 5, ... checking 542 possible deals"; a selected gear deal (Light Bow) shows
+"Holding while this item is selected, so Buy works; click it again to go on". Tyler on step 7:
+"when my row is frozen I can hear sounds like new entries should be popping up but they dont show
+up until I unselect the material I was holding" (fixed in build 8). Tyler kept gear holding the
+rounds (option C): "keep it, or if you can think of a more elegant solution do it".
 
 Build 6 (not tested yet) plus the Sniper no longer stopping while a deal is selected (Tyler,
 2026-11-09: "very jarring"; Gemini's review H-009, answered in H-010): trade goods and gone deals
@@ -45,7 +71,7 @@ come in below it. Zip `auxForever-0.8.2-build7.zip`; `/reload` is enough. Test p
 
 Fixes from Tyler's build 5 test (results below) and "% of usual" everywhere (Tyler, 2026-11-09,
 "especially in crafting menus"). Zip `auxForever-0.8.2-build6.zip`; `/reload` is enough. Test page
-build id `0-8-2-build-6`. Not tested; its five steps are build 7's steps 1 to 5.
+build id `0-8-2-build-6`. Not tested on its own; its five steps passed as build 7's steps 1 to 5.
 
 ### 0.8.2 build 5
 

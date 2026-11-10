@@ -151,6 +151,12 @@ is the cost:
 Both positions go to Tyler: option C (built: gear holds while selected, buying stays select + Buy)
 or option B (this finding: nothing holds, gear buys usually need Buy then Confirm).
 
+**Tyler's decision (2026-11-09):** option C, "keep it, or if you can think of a more elegant
+solution do it". Claude looked at one more: reading the gear deal again when the mouse reaches the
+buy bar, so rounds run until then. Not built: a click before that read ends is lost (the same extra
+click as option B), every pass of the mouse over the bar costs a request, and gamepad players have
+no mouse.
+
 ---
 
 ### Finding 3: Pin rows `1..k` up to `checked` (`deal_pin`) while a deal is selected, check `frame.listing.list:IsMouseOver()`, and do not reselect by row index in `SetDatabase` when `one_row_each` is true

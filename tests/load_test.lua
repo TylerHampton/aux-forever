@@ -2388,6 +2388,33 @@ try('H-010: the selected row keeps its place while deals come and go', function(
   sniper.listing:SetSort(6)
   check('H-010 3: sorting by another column keeps them too', order():find('^Linen Cloth, Wool Cloth, ') ~= nil)
   sniper.listing:SetSort(-1)
+  -- Tyler, build 7: the deal sound played but the new row showed only after letting go (the mouse
+  -- rested on the row just clicked). The selected row and those above it do not move: the table
+  -- may change while the mouse is on them; a row below it still waits.
+  G.__geometry = {size = 29 + 19 * 5, edge = 100}
+  sniper.listing.__scripts.OnSizeChanged(sniper.listing)
+  G.__geometry = nil
+  local rows = sniper.listing.rows
+  for _, row in pairs(rows) do rawset(row, 'IsVisible', function() return true end) end
+  sniper.update_deals()
+  check('H-010 3: row 2 on screen is the selected one', rows[2] and rows[2].record == wool)
+  rawset(sniper.frame.listing.list, 'IsMouseOver', function() return true end)
+  rawset(rows[2], 'IsMouseOver', function() return true end)
+  sniper.deals_changed = true
+  run(10)
+  check('build 8: new deals show while the mouse rests on the selected row', sniper.deals_changed == false)
+  rawset(rows[2], 'IsMouseOver', nil)
+  rawset(rows[3], 'IsMouseOver', function() return true end)
+  sniper.deals_changed = true
+  run(10)
+  check('build 8: a row below the selected one does not move under the mouse', sniper.deals_changed == true)
+  rawset(rows[3], 'IsMouseOver', nil)
+  rawset(sniper.frame.listing.list, 'IsMouseOver', nil)
+  for _, row in pairs(rows) do rawset(row, 'IsVisible', nil) end
+  G.__geometry = {size = 0, edge = nil}
+  sniper.listing.__scripts.OnSizeChanged(sniper.listing)
+  G.__geometry = nil
+  run(10)
   -- let go: the table sorts as usual again, newest first (found times set: both were found this second)
   for _, d in ipairs(sniper.deals) do if d.item_id == 721 then d.deal_found = 500 elseif d.item_id == 724 then d.deal_found = 400 end end
   sniper.click_deal(wool)

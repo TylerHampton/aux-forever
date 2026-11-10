@@ -41,8 +41,8 @@ A change that comes from a player's feedback credits them by in-game name at the
   gear needs its own search to be the latest one.
 - While a deal is selected, the table no longer moves it: your row and the rows above it stay where
   they are, new deals appear just below it, and a deal above it that sells turns gray where it is.
-  The table also updates while the mouse is on the buy bar (it waited until the mouse left the
-  whole tab).
+  The table also updates while the mouse rests on your selected row or on the buy bar (it waited
+  until the mouse left the whole table, so new deals stayed hidden while the sound played).
 - A selected trade good that sells out meanwhile says "Gone: sold or relisted" in the buy bar
   right away, and Ignore item no longer selects the next deal by itself.
 

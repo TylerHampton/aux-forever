@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-09, Tyler's time (**0.8.2 build 7** on `claude/magical-maxwell-eyud0b`, waiting for Tyler's test and one decision, below; nothing open in the handoff; 0.8.1 is the latest release).
+Last updated 2026-11-09, Tyler's time (**0.8.2 build 8** on `claude/magical-maxwell-eyud0b`, one step to test; nothing open in the handoff; 0.8.1 is the latest release).
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
@@ -152,6 +152,15 @@ Sniper changes (`fddd029..219db5f`), answered all five questions from H-007, and
 numbered findings in `docs/reviews/2026-11-09-sniper-0.8.2.md` (with concrete listings and line
 numbers). Opened H-008 in `docs/handoff.md` for Claude to check the findings.
 
+**2026-11-09, Claude, 0.8.2 build 8:** Tyler tested build 7: all eight steps pass (results in
+`TESTING.md`, including the Full scan's chat line for FB-027: 215090 auctions in 50.5s, 2.0s to send
+the list). Tyler kept gear holding the rounds (option C, "keep it, or if you can think of a more
+elegant solution do it"; Claude found nothing simpler that keeps gear at select then Buy). One fix:
+new deals stayed hidden while the mouse rested on the selected row (`mouse_on_moving_row` in
+`tabs/sniper/core.lua`: the table now waits only for a row that a redraw would move). Next: Tyler
+tests build 8's one step; then 0.8.2 can be released when he says so (the CurseForge description
+needs pasting at release, `docs/curseforge.md`).
+
 **2026-11-09, Claude, 0.8.2 build 7:** H-010 (Gemini's review of the Sniper hold,
 `docs/reviews/2026-11-09-sniper-hold.md`, answers under each finding). Built: a selected trade good
 or gone deal no longer holds the rounds (`holding()` in `tabs/sniper/core.lua`), the rounds do not
@@ -159,7 +168,7 @@ open the selected deal, a selected trade good that sells shows "Gone" at once, t
 the rows above it keep their places while new deals go in below (`row_pin`, sorted first in
 `gui/auction_listing.lua`), the table updates while the mouse is on the buy bar, Ignore item selects
 nothing else (`keep_selection_only`). Each with a test that fails without it, plus a slow-server
-test of buying a trade good mid-round. **Waiting for Tyler:** gear still holds the rounds while
+test of buying a trade good mid-round. **Decided by Tyler in build 8: C.** Gear still holds the rounds while
 selected (option C). Gemini's option B removes that too, but most gear buys would then need Buy,
 a wait, then Confirm. Tyler picks C (as built) or B. Tyler is not testing now ("Im not testing
 anything"); build 6 was never tested, so build 7's page has build 6's five steps plus three Sniper

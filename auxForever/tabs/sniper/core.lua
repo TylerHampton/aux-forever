@@ -622,6 +622,26 @@ function M.shown_deals()
     return shown
 end
 
+-- Whether a redraw now would move the row under the mouse: rows moved under the cursor while Tyler
+-- tried to pick one (0.4.1), so the table waited while the mouse was over its rows. The rows only,
+-- not the buy bar under them (H-010, finding 3). While a deal is selected, it and the rows above it
+-- stay in place (pin_rows), so the mouse may rest there: Tyler, 0.8.2 build 7, "I can hear sounds
+-- like new entries should be popping up but they dont show up until I unselect" (the mouse stays on
+-- the row just clicked). A row below the selected one can still move, and waits.
+function mouse_on_moving_row()
+    if not frame.listing.list:IsMouseOver() then
+        return false
+    elseif not checked then
+        return true
+    end
+    for _, row in pairs(listing.rows) do
+        if row.record and row:IsVisible() and row:IsMouseOver() then
+            return not row.record.row_pin
+        end
+    end
+    return false -- the header or the empty space under the rows
+end
+
 -- every frame while the tab is shown
 function M.update()
     -- the Sniper owns the request limit while its tab is open: a search still running elsewhere stops
@@ -645,10 +665,9 @@ function M.update()
         update_controls()
     end
     update_selection()
-    -- deals found during a round show up at once, at most twice a second, but not while the mouse is
-    -- over the table's rows: rows moved under the cursor while Tyler tried to pick one (0.4.1). The
-    -- rows only, not the buy bar under them (H-010, finding 3: on the way to Buy, the table froze).
-    if deals_changed and GetTime() >= (next_deals or 0) and not frame.listing.list:IsMouseOver() then
+    -- deals found during a round show up at once, at most twice a second, but never move the row
+    -- under the mouse (mouse_on_moving_row)
+    if deals_changed and GetTime() >= (next_deals or 0) and not mouse_on_moving_row() then
         next_deals = GetTime() + .5
         deals_changed = false
         update_deals()
