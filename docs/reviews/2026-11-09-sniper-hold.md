@@ -84,6 +84,28 @@ Today, two things make the table feel frozen or jumpy:
 - **Why it matters to a player:** Clicking a deal (or clicking a `gone` row, or selecting a row to click `Ignore item`) no longer aborts the current round or freezes the Sniper. Other candidates in the same round finish opening, and subsequent rounds keep finding deals.
 - **How sure:** Certain.
 
+**Claude's answer (2026-11-09, 0.8.2 build 7): partly built.** Checked in `tabs/sniper/core.lua`.
+- Built: a selected deal that can still be bought is not opened by the rounds (`selected_live_key`),
+  and not marked judged, so the first round after it is let go opens it. Skipped in two places: the
+  item list pass, as proposed, and again just before each candidate is opened, since the player can
+  select a deal while the round opens the ones before it (removing both fails two checks; removing
+  either one alone is caught by the other). Built: when a round marks the selected deal gone and
+  nothing is being bought, the buy bar says "Gone: sold or relisted" at once (`mark_gone`).
+- Built only in part: the hold. `or checked` became `holding()`: a selected trade good or gone
+  deal no longer holds the rounds, a selected live gear deal still does, and the status says
+  "Holding" only then. This is your option C. Removing the gear hold as well needs finding 2, and
+  without it the 0.4.1 failure comes back (a round's search between the gear deal's read and Buy).
+- Not added: a separate guard in `mark_gone` for a deal being bought. While anything is bought or
+  read again, `M.update` stops the round on the next frame and `refresh_deal` stops it before its
+  own search, so a round rarely ends then; if one does, the buy bar is left alone (the
+  `not buy_bar.busy()` check) and the purchase still only goes through at a server price at or below
+  the one shown.
+- Tests: `H-010: rounds go on while a trade good or a gone deal is selected` (load test) and
+  `timing: Sniper buys a selected trade good while a round runs` (slow auction house: Buy clicked
+  mid-round, the round stops before the price is asked, nothing else is sent between the price and
+  the purchase, 5 bought at the price shown, rounds go on after). Each checked to fail with the old
+  hold put back.
+
 ---
 
 ### Finding 2: Defer gear's `refresh_deal` re-read to the `Buy` / `Bid` click when `not scan.last_read_is(item_key)` (or `> FRESH_SECONDS`) so selecting a row never aborts an active round
@@ -106,6 +128,28 @@ Today, two things make the table feel frozen or jumpy:
   - Buying a gear deal never silently fails (`0.4.1` `[Seen]`), even if a background round ran while the player was looking at the deal.
   - Buying never spends more than the shown price.
 - **How sure:** High.
+
+**Claude's answer (2026-11-09): not built; a disagreement for Tyler.** The analysis is right: with
+the gear hold gone, a gear deal's read on selection no longer lasts until Buy. What I disagree with
+is the cost:
+- With rounds running, nearly every gear deal is stale by the time Buy is clicked: a new round
+  starts 2.5 seconds after the last one ends, and its item list clears `last_read`. So the "fresh,
+  one click" case would rarely apply, and most gear buys would become Buy, wait for the answer (a
+  second or more on Forever's server, `AGENTS.md`, Timing; the 0.4 second figure has no recorded
+  source here), then Confirm. Today it is select, then Buy. For a sniper the gear purchase is the
+  moment speed matters most.
+- It adds a confirm state with a time limit to the gear buy bar, the code that keeps the "never
+  spend more than shown" guarantee.
+- What it removes is the hold while a gear row is selected, which the player ends with one click
+  (or a purchase).
+- Kept for trade goods: a deal older than 15 seconds is still read again on selection (one request;
+  the round stops for it and the rounds go on after), because 4 of 5 trade good buys failed in
+  0.4.1 on old counts (Seen). Moving that read to Buy would add the same wait there.
+- Label: "PlaceBid must be called from a click" is aux's own code comment (`aux-addon.lua`), not
+  checked against Blizzard's code in this review; the 0.4.1 cause is an inference (Seen: Buy did
+  nothing; not seen: why).
+Both positions go to Tyler: option C (built: gear holds while selected, buying stays select + Buy)
+or option B (this finding: nothing holds, gear buys usually need Buy then Confirm).
 
 ---
 
@@ -139,3 +183,21 @@ Today, two things make the table feel frozen or jumpy:
      In `SetDatabase`, lines 1104-1117 (`if not self.selected and prevSelectedIndex then ...`) reselect whatever record sits at `prevSelectedIndex` (or `rows[1]`) when `prev_selected` is removed. In the Search tab, rows are auctions of the searched item; in the Sniper tab (`self.one_row_each == true`), every row is a different deal, so falling back to `prevSelectedIndex` when a deal is removed (e.g. `Ignore item`) automatically selects another deal and triggers `show_deal` on it. Guarding lines 1104-1117 with `if not self.one_row_each and not self.selected and prevSelectedIndex then` prevents an unselected or ignored deal from jumping the selection onto the next row.
 - **Why it matters to a player:** While a player has a deal selected and is moving to the buy bar, the selected row stays at its exact position on screen, new deals still appear right below it, and ignoring or finishing a deal never jumps the highlight onto a random other item.
 - **How sure:** Certain.
+
+**Claude's answer (2026-11-09, 0.8.2 build 7): built, with three changes.**
+- Hover: built as proposed (`frame.listing.list:IsMouseOver()`).
+- Pinning: built in the table's own sort (`row_pin` in `sort_helper`, `gui/auction_listing.lua`),
+  not in Found's comparator. The player can sort by any column; Found's comparator is then only a
+  tie-breaker and the pin would not hold (the test sorts by Price each). Two more ways the selected
+  row moved up, found while building: a pinned row above it read again by a round is a new record
+  (it now takes the old one's pin, `check_item`), and trimming to 100 deals dropped the oldest even
+  when pinned (`trim_deals` now skips the selected and pinned rows).
+- The `SetDatabase` fallback: not by `one_row_each`. The Auctions and Bids tabs are `one_row_each`
+  too, and they read their lists as new records every time, so this fallback by row position is
+  what keeps their selection across a refresh. The Sniper sets its own flag,
+  `keep_selection_only`.
+- Test: `H-010: the selected row keeps its place while deals come and go` (a new deal goes in
+  below the selected row, a sold row above dims in place, a row above read again keeps its place,
+  sorting by another column keeps them, letting go sorts as usual, Ignore selects nothing else,
+  trimming keeps pinned rows), plus the hover checks in the gear test. Each part checked to fail
+  without its change.

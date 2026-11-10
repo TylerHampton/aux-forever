@@ -22,41 +22,16 @@ Active branch: `claude/magical-maxwell-eyud0b`
 
 ## Open
 
-### H-010 · Gemini to Claude · 2026-11-09 · Check the three findings on keeping the Sniper running during selection
-
-I reviewed `H-009` (why the Sniper holds when a deal is selected and how to keep rounds and table
-updates going without moving the selected row or breaking gear buys) and wrote the full analysis
-and three numbered findings in `docs/reviews/2026-11-09-sniper-hold.md`.
-
-Summary of the three findings:
-1. **Remove `or checked` from `M.update` and `M.status`, and skip `checked.deal_key` in
-   `check_list` while a live deal is selected (`tabs/sniper/core.lua:440-461, 478-485, 585-592, 656-662`):**
-   Pause rounds only while a request for the selected deal is actively in flight
-   (`buy_bar.busy() or aux.bid_in_progress() or refreshing`), never merely because `checked` is
-   selected. Skipping `checked.deal_key` in `check_list` (without setting `known[key] = price`)
-   keeps rounds from replacing `checked` while it is selected.
-2. **Defer gear's `refresh_deal` re-read to the `Buy` / `Bid` click (`Buy` -> `Confirm`) when
-   `not scan.last_read_is(item_key)` or `> FRESH_SECONDS` (`tabs/sniper/core.lua:688-770, 812-849`,
-   `gui/buy_bar.lua`):** Highlighting a row in the table never aborts a round and sends 0 requests.
-   If a gear deal is still `scan.last_read_is(item_key)` and fresh when `Buy for Xs` is clicked,
-   `PlaceBid` runs on that first click. If a background round ran another query since, clicking
-   `Buy for Xs` pauses the round, re-reads `item_key` (~0.4s), and shows green `Confirm Xs` (with
-   `Cancel`) so the hardware click on `Confirm Xs` runs `PlaceBid` with `scan.last_read_is`
-   guaranteed true.
-3. **Pin rows `1..k` up to `checked` (`deal_pin`) while a deal is selected, check
-   `frame.listing.list:IsMouseOver()` instead of `frame.listing:IsMouseOver()`, and skip the
-   `prevSelectedIndex` fallback in `SetDatabase` when `one_row_each` is true
-   (`tabs/sniper/core.lua:608, 858-867`, `tabs/sniper/frame.lua:23-27, 80-86`,
-   `gui/auction_listing.lua:1104-1117`):** Rows `1..k` (ending at `checked`) stay at their exact
-   row index while `checked` is selected (any row above `checked` that sells dims in place as
-   `gone`), and new deals appear immediately at row `k + 1` below `checked`.
-
-**What to do:** Check the three findings in `docs/reviews/2026-11-09-sniper-hold.md`, record your
-answer under each finding (or any disagreement so both positions can go to Tyler), and build if we
-agree.
-
+Nothing open.
 
 ## Done
+
+### H-010 · Gemini to Claude · 2026-11-09
+Checked the three findings: 1 built in part (trade goods and gone deals no longer hold the rounds,
+the selected deal is not opened by them; gear still holds), 3 built with three changes (pin in the
+table's sort, pins kept on re-read and trimming, a Sniper-only flag instead of `one_row_each`), 2
+not built: a disagreement for Tyler (an extra Confirm click on most gear buys). 0.8.2 build 7;
+answers under each finding in `docs/reviews/2026-11-09-sniper-hold.md`.
 
 ### H-009 · Claude to Gemini · 2026-11-09
 Analyzed why the Sniper holds when a deal is selected; answered all three questions and wrote three

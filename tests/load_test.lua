@@ -2261,6 +2261,177 @@ try('sniper: only deal-priced units to buy, rounds wait while buying', function(
   restore()
 end)
 
+-- 0.8.2 build 7 (H-009, H-010, Tyler: "very jarring that we stop the entire search when someone
+-- highlights something"): a selected trade good or gone deal no longer stops the rounds. The rounds
+-- do not open the selected deal again (it would be replaced and the selection dropped); a selected
+-- trade good that sells says so in the buy bar.
+try('H-010: rounds go on while a trade good or a gone deal is selected', function()
+  local aux_require = loadstring("select(2, ...) 'aux.test49h'; return require")('auxForever', addon)
+  local aux = aux_require 'aux'
+  local bar = aux_require 'aux.gui.buy_bar'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local items = {
+    {id = 711, name = 'Bolt of Woolen Cloth', commodity = true, stack = 20, min = 100, qty = 10, sell = 200, auctions = {{buyout = 100, qty = 10}}},
+    {id = 712, name = 'Massive Battle Axe', min = 2800, qty = 1, sell = 3036, auctions = {{buyout = 2800}}},
+  }
+  local run, restore = fake_ah(items)
+  local searched = {}
+  local real_send = C_AuctionHouse.SendSearchQuery
+  rawset(C_AuctionHouse, 'SendSearchQuery', function(key, ...) searched[key.itemID] = (searched[key.itemID] or 0) + 1; return real_send(key, ...) end)
+  aux.account_data.sniper_profit = 1
+  sniper.clear_deals()
+  aux.set_tab(2)
+  local r0 = sniper.round
+  sniper.start()
+  for _ = 1, 300 do run(1) if sniper.round > r0 then break end end
+  local function deal_of(id) for _, d in ipairs(sniper.deals) do if d.item_id == id then return d end end end
+  local cloth = deal_of(711)
+  check('H-010 1: the trade good deal is found', cloth ~= nil)
+  sniper.listing:SetSelectedRecord(cloth)
+  run(2)
+  local r1 = sniper.round
+  run(120)
+  check('H-010 1: rounds go on while a trade good is selected', sniper.round > r1)
+  check('H-010 1: the status does not say it holds', sniper.status() == 'Watching')
+  -- its price moves on the list (still a deal): the rounds leave it alone while it is selected
+  items[1].min, items[1].auctions[1].buyout = 99, 99
+  local opened = searched[711] or 0
+  local r2 = sniper.round
+  for _ = 1, 300 do run(1) if sniper.round > r2 + 1 then break end end
+  check('H-010 1: the selected deal is not opened again', (searched[711] or 0) == opened)
+  check('H-010 1: the selected deal stays the same row', deal_of(711) == cloth and sniper.listing:GetSelection() and sniper.listing:GetSelection().record == cloth)
+  -- let go: the next round opens it (it was not marked as judged)
+  sniper.click_deal(cloth)
+  local r3 = sniper.round
+  for _ = 1, 300 do run(1) if sniper.round > r3 + 1 then break end end
+  check('H-010 1: let go, the next round opens it', (searched[711] or 0) > opened and deal_of(711) ~= cloth and ceil(deal_of(711).unit_buyout_price) == 99)
+  -- selected, then sold out: the round marks it gone and the buy bar says so
+  cloth = deal_of(711)
+  cloth.deal_read_at = GetTime()
+  sniper.listing:SetSelectedRecord(cloth)
+  run(2)
+  items[1].qty = 0
+  local r4 = sniper.round
+  for _ = 1, 300 do run(1) if sniper.round > r4 then break end end
+  local _, line2 = bar.lines()
+  check('H-010 1: a selected trade good that sold shows as gone in the buy bar', cloth.deal_gone == true and line2 == 'Gone: sold or relisted')
+  local r5 = sniper.round
+  run(120)
+  check('H-010 1: rounds go on while a gone deal is selected', sniper.round > r5)
+  sniper.listing:SetSelectedRecord()
+  run(2)
+  -- a gear deal still holds them (Buy takes it from the item's latest search)
+  local axe = deal_of(712)
+  axe.deal_read_at = GetTime() - sniper.FRESH_SECONDS - 1
+  sniper.listing:SetSelectedRecord(axe)
+  run(20)
+  local r6 = sniper.round
+  run(120)
+  check('H-010 1: a selected gear deal still holds the rounds', sniper.round == r6 and sniper.status() == 'Holding')
+  sniper.listing:SetSelectedRecord()
+
+  sniper.stop()
+  rawset(C_AuctionHouse, 'SendSearchQuery', real_send)
+  aux.account_data.sniper_profit = 500
+  sniper.clear_deals()
+  aux.set_tab(1)
+  restore()
+end)
+
+-- H-010, finding 3: while a deal is selected the rounds go on, and the table does not move it: it and
+-- the rows above it keep their places (a row above that sells dims where it is), new deals go in
+-- below it, whatever column the table is sorted by. Ignoring the selected deal selects nothing else.
+try('H-010: the selected row keeps its place while deals come and go', function()
+  local aux_require = loadstring("select(2, ...) 'aux.test49p'; return require")('auxForever', addon)
+  local aux = aux_require 'aux'
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local function cloth(id, name, price)
+    return {id = id, name = name, commodity = true, stack = 20, min = price, qty = 10, sell = 500, auctions = {{buyout = price, qty = 10}}}
+  end
+  local items = {cloth(721, 'Linen Cloth', 100), cloth(722, 'Wool Cloth', 300), cloth(723, 'Silk Cloth', 200), cloth(724, 'Mageweave Cloth', 150)}
+  items[4].qty = 0 -- listed later
+  local run, restore = fake_ah(items)
+  aux.account_data.sniper_profit = 1
+  sniper.clear_deals()
+  aux.set_tab(2)
+  local r0 = sniper.round
+  sniper.start()
+  for _ = 1, 300 do run(1) if sniper.round > r0 then break end end
+  for _, d in ipairs(sniper.deals) do d.deal_found = ({[721] = 300, [722] = 200, [723] = 100})[d.item_id] end
+  sniper.update_deals()
+  local function order()
+    local names = {}
+    for _, row in ipairs(sniper.listing.rowInfo) do tinsert(names, row.children[1].record.name) end
+    return table.concat(names, ', ')
+  end
+  check('H-010 3: newest first before', order() == 'Linen Cloth, Wool Cloth, Silk Cloth')
+  local wool = sniper.listing.rowInfo[2].children[1].record
+  wool.deal_read_at = GetTime()
+  sniper.listing:SetSelectedRecord(wool)
+  run(2)
+  -- a new deal turns up and the row above the selected one sells
+  items[4].qty = 10
+  items[1].qty = 0
+  local r1 = sniper.round
+  for _ = 1, 300 do run(1) if sniper.round > r1 then break end end
+  run(10)
+  check('H-010 3: the new deal goes in below the selected one, the sold one stays above', order() == 'Linen Cloth, Wool Cloth, Mageweave Cloth, Silk Cloth')
+  check('H-010 3: the row above sold and is dimmed in place', sniper.listing.rowInfo[1].children[1].record.deal_gone == true)
+  -- the sold one is listed again, cheaper: the new read takes its place, not a place below
+  items[1].qty, items[1].min, items[1].auctions[1].buyout = 10, 90, 90
+  local r2 = sniper.round
+  for _ = 1, 300 do run(1) if sniper.round > r2 then break end end
+  run(10)
+  local linen = sniper.listing.rowInfo[1].children[1].record
+  check('H-010 3: a row above read again keeps its place', order() == 'Linen Cloth, Wool Cloth, Mageweave Cloth, Silk Cloth' and not linen.deal_gone and ceil(linen.unit_buyout_price) == 90)
+  -- sorted by price, the selected row and the ones above still do not move
+  sniper.listing:SetSort(6)
+  check('H-010 3: sorting by another column keeps them too', order():find('^Linen Cloth, Wool Cloth, ') ~= nil)
+  sniper.listing:SetSort(-1)
+  -- let go: the table sorts as usual again, newest first (found times set: both were found this second)
+  for _, d in ipairs(sniper.deals) do if d.item_id == 721 then d.deal_found = 500 elseif d.item_id == 724 then d.deal_found = 400 end end
+  sniper.click_deal(wool)
+  run(10)
+  check('H-010 3: let go, the table sorts as usual', order() == 'Linen Cloth, Mageweave Cloth, Wool Cloth, Silk Cloth')
+  -- ignoring the selected deal selects no other deal
+  local silk = sniper.listing.rowInfo[3].children[1].record
+  silk.deal_read_at = GetTime()
+  sniper.listing:SetSelectedRecord(silk)
+  run(2)
+  -- the rows on screen (the stubs have no window size and say no frame is visible; the next row
+  -- was taken from the screen)
+  G.__geometry = {size = 29 + 19 * 5, edge = 100}
+  sniper.listing.__scripts.OnSizeChanged(sniper.listing)
+  G.__geometry = nil
+  for _, row in pairs(sniper.listing.rows) do rawset(row, 'IsVisible', function() return true end) end
+  sniper.update_deals()
+  sniper.ignore(silk)
+  run(2)
+  for _, row in pairs(sniper.listing.rows) do rawset(row, 'IsVisible', nil) end
+  G.__geometry = {size = 0, edge = nil}
+  sniper.listing.__scripts.OnSizeChanged(sniper.listing)
+  G.__geometry = nil
+  check('H-010 3: ignoring the selected deal selects no other deal', sniper.listing:GetSelection() == nil)
+  aux.account_data.sniper_ignored['723:0:0:0:0'] = nil
+  for key, name in pairs(aux.account_data.sniper_ignored) do if name == 'Silk Cloth' then aux.account_data.sniper_ignored[key] = nil end end
+  -- at most MAX_DEALS: the oldest go, never a row kept in place
+  local real = {}
+  for i, d in ipairs(sniper.deals) do real[i] = d end
+  aux.wipe(sniper.deals)
+  for i = 1, sniper.MAX_DEALS + 1 do tinsert(sniper.deals, {deal_key = 'k' .. i}) end
+  sniper.deals[1].row_pin = 1
+  sniper.trim_deals()
+  check('H-010 3: trimming keeps a row kept in place', #sniper.deals == sniper.MAX_DEALS and sniper.deals[1].deal_key == 'k1' and sniper.deals[2].deal_key == 'k3')
+  aux.wipe(sniper.deals)
+  for i, d in ipairs(real) do sniper.deals[i] = d end
+
+  sniper.stop()
+  aux.account_data.sniper_profit = 500
+  sniper.clear_deals()
+  aux.set_tab(1)
+  restore()
+end)
+
 -- Tyler, 0.4.1 build 4: gear deals could not be bought from the Sniper, and the table moved under the
 -- mouse. A selected gear deal is read again before it can be bought, and the rounds hold meanwhile.
 try('sniper: a selected gear deal is checked again and the rounds hold', function()
@@ -2311,15 +2482,22 @@ try('sniper: a selected gear deal is checked again and the rounds hold', functio
   check('sniper gear: sold before the click shows as gone', bow and bow.deal_gone == true)
   sniper.listing:SetSelectedRecord()
 
-  -- the table waits while the mouse is over it
+  -- the table waits while the mouse is over its rows
   local before_records = sniper.listing.records
-  rawset(sniper.frame.listing, 'IsMouseOver', function() return true end)
+  rawset(sniper.frame.listing.list, 'IsMouseOver', function() return true end)
   sniper.deals_changed = true
   sniper.update(); run(2)
   check('sniper: the table does not change under the mouse', sniper.listing.records == before_records and sniper.deals_changed == true)
-  rawset(sniper.frame.listing, 'IsMouseOver', nil)
+  rawset(sniper.frame.listing.list, 'IsMouseOver', nil)
   run(10)
   check('sniper: the table catches up when the mouse leaves', sniper.deals_changed == false)
+  -- H-010, finding 3: the mouse on the buy bar under the rows (inside the tab's panel) does not
+  -- stop the table: on the way to Buy, new deals waited
+  rawset(sniper.frame.listing, 'IsMouseOver', function() return true end)
+  sniper.deals_changed = true
+  run(10)
+  check('H-010 3: the table changes while the mouse is on the buy bar', sniper.deals_changed == false)
+  rawset(sniper.frame.listing, 'IsMouseOver', nil)
 
   sniper.stop()
   rawset(C_AuctionHouse, 'SendSearchQuery', real_send)

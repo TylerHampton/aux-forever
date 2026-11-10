@@ -56,6 +56,24 @@ SCAN_MARKET_TRUST = 2 * 60 * 60 -- seconds a Full scan's markets are trusted for
 local next_round_at
 local last_alert -- GetTime() of the last sound
 local checked -- the selected deal, as the buy bar shows it
+local show_deal -- the buy bar for a deal (below, with the buying)
+
+-- 0.8.2 build 7 (H-009 and H-010, Tyler: "I find it very jarring that we stop the entire search when
+-- someone highlights something"): only a live gear deal holds the rounds while it is selected. Its
+-- purchase is taken from the item's latest search (Tyler, 0.4.1: Buy did nothing after the rounds
+-- had searched other items), so no other search may run between its read and the click. Trade
+-- goods are bought by item ID and the buy bar asks the server for a price first (rounds searched
+-- other items while they were bought in 0.4.1, and that worked), and a gone deal cannot be bought:
+-- with those selected the rounds go on.
+local function holding()
+    return checked and not checked.commodity and not checked.deal_gone
+end
+
+-- the item key text of the selected deal while it can still be bought: the rounds do not open it
+-- again, which would put a new record in its place and drop the player's selection (H-010, finding 1)
+local function selected_live_key()
+    return checked and not checked.deal_gone and checked.deal_key
+end
 checking = nil -- during a round: {done, total} possible deals being opened
 deals_changed = false -- the table is redrawn soon (throttled) while a round finds deals
 
@@ -337,16 +355,29 @@ function check_item(item_key, key, price, other_keys)
     cheapest.deal_tiers = cheapest.commodity and tiers or nil
     local same = old and not old.deal_gone and ceil(old.unit_buyout_price) == ceil(cheapest.unit_buyout_price)
     cheapest.deal_found = same and old.deal_found or time()
+    -- a row kept in place while a deal is selected stays there with the new read (H-010, finding 3)
+    cheapest.row_pin = old and old.row_pin
     if old then
         tremove(deals, aux.key(deals, old))
     end
     tinsert(deals, cheapest)
-    while #deals > MAX_DEALS do
-        tremove(deals, 1)
-    end
+    trim_deals()
     deals_changed = true
     if not same then
         alert()
+    end
+end
+
+-- at most MAX_DEALS, the oldest go first, but never the selected deal or a row kept in place above
+-- it (H-010, finding 3: one dropped from above moved the selected row up)
+function M.trim_deals()
+    local i = 1
+    while #deals > MAX_DEALS and deals[i] do
+        if deals[i] == checked or deals[i].row_pin then
+            i = i + 1
+        else
+            tremove(deals, i)
+        end
     end
 end
 
@@ -437,7 +468,9 @@ function check_list(results, seen)
                     tinsert(entry, result)
                 end
             end
-            if not aux.account_data.sniper_ignored[key] and known[key] ~= price then
+            -- the selected deal is not opened while it can be bought, and not marked judged: the
+            -- first round after it is let go opens it (H-010, finding 1)
+            if not aux.account_data.sniper_ignored[key] and known[key] ~= price and key ~= selected_live_key() then
                 -- 0.8: prices are kept per ending (info.price_key), the list's key is a version
                 local price_key = info.item_key_price_key(result.itemKey)
                 local usual, vendor, days
@@ -468,7 +501,11 @@ function check_list(results, seen)
     -- possible deals (3 done)" while it runs
     checking = {done = 0, total = #candidates}
     for i, result in ipairs(candidates) do
-        check_item(result.itemKey, scan.item_key_string(result.itemKey), result.minPrice, other_versions(result, candidate_keys[i]))
+        local key = scan.item_key_string(result.itemKey)
+        -- selected while the round opened the ones before it
+        if key ~= selected_live_key() then
+            check_item(result.itemKey, key, result.minPrice, other_versions(result, candidate_keys[i]))
+        end
         checking.done = checking.done + 1
     end
     checking = nil
@@ -476,11 +513,17 @@ end
 
 -- after a round: a deal whose item is gone from the list, or whose lowest price went up, sold
 local function mark_gone(seen)
+    local was_gone = checked and checked.deal_gone
     for _, deal in ipairs(deals) do
         local price = seen[deal.deal_key]
         if not price or price > ceil(deal.unit_buyout_price) then
             set_gone(deal)
         end
+    end
+    -- the rounds go on while a trade good is selected: when it sold meanwhile, the buy bar says so
+    -- at once instead of offering it (H-010, finding 1)
+    if checked and checked.deal_gone and not was_gone and not buy_bar.busy() and not aux.bid_in_progress() then
+        show_deal(checked)
     end
 end
 
@@ -582,10 +625,9 @@ end
 -- every frame while the tab is shown
 function M.update()
     -- the Sniper owns the request limit while its tab is open: a search still running elsewhere stops
-    if running and (buy_bar.busy() or aux.bid_in_progress() or refreshing or checked) then
+    if running and (buy_bar.busy() or aux.bid_in_progress() or refreshing or holding()) then
         -- a purchase talks to the auction house too: the round stops, and the next one waits until
-        -- the purchase is done and no deal is selected (a round would also search other items and
-        -- could replace the deal being bought)
+        -- the purchase is done; a selected gear deal holds them too (holding, above)
         if active then
             scan.abort()
         end
@@ -604,8 +646,9 @@ function M.update()
     end
     update_selection()
     -- deals found during a round show up at once, at most twice a second, but not while the mouse is
-    -- over the table: rows moved under the cursor while Tyler tried to pick one (0.4.1)
-    if deals_changed and GetTime() >= (next_deals or 0) and not frame.listing:IsMouseOver() then
+    -- over the table's rows: rows moved under the cursor while Tyler tried to pick one (0.4.1). The
+    -- rows only, not the buy bar under them (H-010, finding 3: on the way to Buy, the table froze).
+    if deals_changed and GetTime() >= (next_deals or 0) and not frame.listing.list:IsMouseOver() then
         next_deals = GetTime() + .5
         deals_changed = false
         update_deals()
@@ -657,8 +700,8 @@ function M.status()
         return 'Watching', 'waits while you buy'
     elseif refreshing then
         return 'Watching', 'checking the selected deal...'
-    elseif checked then
-        return 'Holding', 'while a deal is selected; click it again to go on'
+    elseif holding() then
+        return 'Holding', 'while this item is selected, so Buy works; click it again to go on'
     end
     local done = round > 0 and format('round %d, %s items in %.1fs', round, last_count or 0, last_seconds or 0) or 'first round'
     if checking and checking.total > 0 then
@@ -677,7 +720,8 @@ refreshing = nil -- the gear deal being read again before it can be bought
 -- from the Search tab and trade goods from the Sniper could. Likely cause: the rounds search other
 -- items between finding a deal and the click, and the auction house takes a purchase of an auction
 -- from the latest search of its item. So a selected gear deal is read again first (one request),
--- the rounds hold while a deal is selected, and the purchase itself stays on the player's click.
+-- the rounds hold while a gear deal is selected (holding, at the top), and the purchase itself stays
+-- on the player's click.
 
 local show_item_bar, show_commodity_bar
 
@@ -761,7 +805,7 @@ local function refresh_deal(record)
     }
 end
 
-local function show_deal(record)
+function show_deal(record)
     if record.deal_gone then
         buy_bar.show_note(record.name, record.deal_bought and 'Bought' or 'Gone: sold or relisted')
     else
@@ -855,13 +899,36 @@ function M.click_deal(record)
     end
 end
 
+-- 0.8.2 build 7 (H-010, finding 3): the rounds go on while a deal is selected, so new deals and
+-- sold ones change the table. The selected row and every row above it keep their places (row_pin:
+-- 1, 2, ..., whatever the table is sorted by; a row above that sells dims where it is), and new
+-- deals go in below it. When it is let go, the table sorts as usual again.
+local function pin_rows(record)
+    for _, deal in ipairs(deals) do
+        deal.row_pin = nil
+    end
+    if not record then
+        return
+    end
+    for i, row in ipairs(listing.rowInfo or empty) do
+        local shown = row.children[1].record
+        shown.row_pin = i
+        if shown == record then
+            return
+        end
+    end
+end
+
 function update_selection()
     local selection = listing:GetSelection()
     if selection and selection.record ~= checked then
         checked = selection.record
+        pin_rows(checked)
         show_deal(checked)
     elseif not selection and checked then
         checked = nil
+        pin_rows()
+        deals_changed = true
         buy_bar.clear()
     end
 end

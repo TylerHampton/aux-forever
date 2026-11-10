@@ -8,11 +8,13 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.2 build 6
+## Current build: 0.8.2 build 7
 
-Fixes from Tyler's build 5 test (results below) and "% of usual" everywhere (Tyler, 2026-11-09,
-"especially in crafting menus"). Zip `auxForever-0.8.2-build6.zip`; `/reload` is enough. Test page
-build id `0-8-2-build-6`.
+Build 6 (not tested yet) plus the Sniper no longer stopping while a deal is selected (Tyler,
+2026-11-09: "very jarring"; Gemini's review H-009, answered in H-010): trade goods and gone deals
+keep the rounds going, gear still pauses them, and the selected row stays in place while new deals
+come in below it. Zip `auxForever-0.8.2-build7.zip`; `/reload` is enough. Test page build id
+`0-8-2-build-7`. Steps 1 to 5 are build 6's.
 
 - [ ] 1. Open the Sniper tab and click Start. The Full scan button at the top right is not gray
       (unless your last Full scan was less than 15 minutes ago: point the mouse at it to see when).
@@ -28,6 +30,22 @@ build id `0-8-2-build-6`.
       end with a percent in brackets, like "(67%)", in color.
 - [ ] 5. Point the mouse at a stack in your bags: the Value line has no "Shift for" any more. Hold
       Shift: it shows the whole stack's price, "for 20".
+- [ ] 6. Open the Sniper tab and click Start. When a material deal shows up (cloth, ore, herbs,
+      leather), click it once. Next to Stop, the status keeps saying "Watching  round 12, ..." and
+      the round number goes up; it does not say "Holding". If no material deal shows up within a few
+      minutes, mark Skip.
+- [ ] 7. Leave that row selected and wait for another deal to show up (the sound plays). The new row
+      appears just below yours, and your row stays where it was. If none shows up within a few
+      minutes, mark Skip.
+- [ ] 8. Click a gear deal (armor or a weapon). The status says "Holding  while this item is
+      selected, so Buy works; click it again to go on". Click the same row again: the status goes
+      back to "Watching".
+
+### 0.8.2 build 6
+
+Fixes from Tyler's build 5 test (results below) and "% of usual" everywhere (Tyler, 2026-11-09,
+"especially in crafting menus"). Zip `auxForever-0.8.2-build6.zip`; `/reload` is enough. Test page
+build id `0-8-2-build-6`. Not tested; its five steps are build 7's steps 1 to 5.
 
 ### 0.8.2 build 5
 

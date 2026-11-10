@@ -36,6 +36,15 @@ A change that comes from a player's feedback credits them by in-game name at the
   item again first. Older deals are still read again, and so is gear when aux has searched another
   item since (buying gear needs its own search to be the latest). Buying still never spends more than the
   price shown (reported by user_ayzkr6rhvrlna3ya).
+- Selecting a trade good or a deal that is gone no longer stops the Sniper: it keeps watching while
+  you decide. Selecting gear still pauses it until you buy it or click it again, because buying
+  gear needs its own search to be the latest one.
+- While a deal is selected, the table no longer moves it: your row and the rows above it stay where
+  they are, new deals appear just below it, and a deal above it that sells turns gray where it is.
+  The table also updates while the mouse is on the buy bar (it waited until the mouse left the
+  whole tab).
+- A selected trade good that sells out meanwhile says "Gone: sold or relisted" in the buy bar
+  right away, and Ignore item no longer selects the next deal by itself.
 
 ### Full scan
 

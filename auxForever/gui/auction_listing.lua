@@ -969,6 +969,19 @@ local methods = {
                     record_b = b.record
                 end
 
+                -- 0.8.2 build 7 (H-010, finding 3): rows a tab keeps in place (record.row_pin 1, 2, ...)
+                -- stay first in that order, whatever the sort (the Sniper while a deal is selected)
+                local pin_a, pin_b = record_a.row_pin, record_b.row_pin
+                if pin_a or pin_b then
+                    if not pin_b then
+                        return true
+                    elseif not pin_a then
+                        return false
+                    elseif pin_a ~= pin_b then
+                        return pin_a < pin_b
+                    end
+                end
+
                 for _, sort in pairs(self.sorts) do
                     local column = self.columns[sort.index]
                     local ordering
@@ -1101,7 +1114,11 @@ local methods = {
                 if self.selected then break end
             end
         end
-        if not self.selected and prevSelectedIndex then
+        -- keep_selection_only (the Sniper): every row is another item, so a deal that left the table
+        -- (ignored, replaced) leaves nothing selected; the next row was selected and offered to buy
+        -- (H-010, finding 3). The Auctions and Bids tabs read their lists anew, as new records, and
+        -- keep the selection by row position.
+        if not self.selected and prevSelectedIndex and not self.keep_selection_only then
             -- try to select the same row
             local row = self.rows[prevSelectedIndex]
             if row and row:IsVisible() and row.record then
