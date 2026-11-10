@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-09, Tyler's time (**0.8.2 build 8** on `claude/magical-maxwell-eyud0b`, one step to test; nothing open in the handoff; 0.8.1 is the latest release).
+Last updated 2026-11-09, Tyler's time (**0.8.2 build 8** on `claude/magical-maxwell-eyud0b`, tested and passing, ready to release when Tyler says; nothing open in the handoff; 0.8.1 is the latest release).
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
@@ -151,6 +151,12 @@ for Claude.
 Sniper changes (`fddd029..219db5f`), answered all five questions from H-007, and wrote eight
 numbered findings in `docs/reviews/2026-11-09-sniper-0.8.2.md` (with concrete listings and line
 numbers). Opened H-008 in `docs/handoff.md` for Claude to check the findings.
+
+**2026-11-09, 0.8.2 build 8 tested:** passes (new deals show below the selected row with the mouse
+on it). Tyler's note: a player he knows says the Full scan "wasnt working" (FB-039); nothing in the
+released 0.8 or 0.8.1 code points at corrupted data, and 0.8.2 holds the Full scan fixes (FB-037).
+Next: Tyler says whether 0.8.2 ships (pull request, merge, Release workflow, then he pastes the
+CurseForge description, `docs/curseforge.md`).
 
 **2026-11-09, Claude, 0.8.2 build 8:** Tyler tested build 7: all eight steps pass (results in
 `TESTING.md`, including the Full scan's chat line for FB-027: 215090 auctions in 50.5s, 2.0s to send

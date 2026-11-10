@@ -21,6 +21,10 @@ so the table now updates while the mouse is on them; a row below still waits. Zi
       just below yours within a second, and your row does not move. If no sound plays within a few
       minutes, mark Skip.
 
+Tested by Tyler 2026-11-09 (test page `0-8-2-build-8`): passes. Coarse Stone selected in row 1,
+Deathweed "just now" right below it, the status "Watching first round; checking 987 possible deals".
+General note: a player Tyler knows reported his Full scan "wasnt working" (FB-039).
+
 ### 0.8.2 build 7
 
 Tested by Tyler 2026-11-09 (test page `0-8-2-build-7`): all eight steps pass. Full scan with the

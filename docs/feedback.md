@@ -145,6 +145,7 @@ For whoever fixes or builds from it:
 | [FB-036](#fb-036-the-sniper-calls-a-flat-market-a-deal-at-4-of-the-usual-price) | 2026-11-09 | Swiftwren | bug | Sniper | S2 | The Sniper calls a flat market a deal at 4% of the usual price | in-progress 0.8.2 |
 | [FB-037](#fb-037-i-cant-scan-today) | 2026-11-09 | deep_structure | bug | Full scan | S2 | "i cant scan today" | in-progress 0.8.2 |
 | [FB-038](#fb-038-show-auxs-tooltip-lines-only-while-holding-a-key) | 2026-11-09 | blackmyin | request | Settings | n/a | Show aux's tooltip lines only while holding a key | wont-fix (Tyler: the tooltip line switches cover it) |
+| [FB-039](#fb-039-full-scan-not-working-for-a-player-tyler-knows) | 2026-11-09 | a player Tyler knows (name not given) | bug | Full scan | S2 | Full scan "wasnt working" | in-progress 0.8.2 (likely the same as FB-037) |
 
 ## Players
 
@@ -2018,3 +2019,37 @@ Feedback before 2026-10-07 was recorded in other files, not here:
 - Tyler's own in-game test results, build by build: `docs/status.md` and `docs/testing-history.md`.
 - Tyler's notes for the Sniper rework and the Auctions tab: `docs/roadmap.md`, 0.5.
 - Tyler's brother (Garsterson) found the gear posting error fixed in 0.1.1 (`docs/status.md`, Fixed in 0.1.1).
+
+### FB-039: Full scan not working for a player Tyler knows
+
+- Received: 2026-11-09
+- From: a player Tyler knows (name not given), through Tyler
+- Where: Tyler's general note on the 0.8.2 build 8 test page
+- Source: [source](feedback/sources/2026-11-09-tyler-test-page-full-scan.md)
+- Version: not said; players have 0.8.1 (the CurseForge release) unless Tyler gave them a test build
+- Type: bug
+- Area: Full scan
+- Severity: S2 (provisional, as FB-037)
+- Status: in-progress 0.8.2 (likely the same as FB-037: the fixes in commit 19921b1 are not released yet)
+- Proposed: release 0.8.2
+
+Tyler's summary:
+> A friend close to me also reported his full scan wasnt working. Did we push some sort of update that may have corrupted the data?
+
+Steps / setup: none given.
+
+Recorder's notes (from the code and git):
+- Released code: 0.8.1 (2026-11-09) changed no Full scan or price history code (`git diff v0.8
+  v0.8.1`: `aux-addon.lua`, `recipe.lua`, `filter.lua`, `info.lua`, the TOC). 0.8 (2026-11-08)
+  changed how gear prices are keyed (per ending) but not how the Full scan asks the server or waits.
+  A scan that does not finish writes no prices. So nothing found points at an update corrupting
+  data; that is an inference from the code, not seen on the player's computer.
+- In 0.8 and 0.8.1 the Full scan gave up after 2 minutes, and a Sniper round or the Auctions tab's
+  price check could stop it without a word (FB-037). The server was answering slowly that day
+  (FB-027; Swiftwren under FB-037: "Sometimes, the auction house is very slow"). Tyler's own Full
+  scan on 0.8.2 build 7 the same evening recorded 215090 auctions in 50.5s.
+
+Unknowns: the version, what he saw (a chat message, a gray button, an error), and whether the
+Sniper was running. The fix works without them: 0.8.2 waits up to 10 minutes, nothing but the
+player's own search stops a Full scan, and every way it ends says why in the chat.
+
