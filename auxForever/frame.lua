@@ -282,7 +282,10 @@ do
     btn:SetScript('OnUpdate', function(self)
         if GetTime() < (next_check or 0) then return end
         next_check = GetTime() + .5
-        local now_ready = seconds_until_scan() == 0 and not scan.is_scanning()
+        -- 0.8.2 build 6 (Tyler: "I had to stop sniper for full scan to ungrey"): only another Full
+        -- scan keeps it gray. A search or a Sniper round under way is stopped by it (the Sniper then
+        -- waits for the Full scan, build 1); the button was gray whenever any scan ran.
+        local now_ready = seconds_until_scan() == 0 and not scan.is_full_scan()
         if now_ready == ready then return end
         ready = now_ready
         if ready then
@@ -531,7 +534,7 @@ do
         {'value', 'Value', 'Price from your latest scan', 'The market price from your latest look at the item.'},
         -- 0.8.2 (FB-035, suggested by deep_structure): the usual price could only go with Value. Since
         -- build 4 a percent on the Value line (Tyler), so the saved key stays "usually"
-        {'usually', '% of usual', nil, "After Value, Value as a percent of the usual price over the last days, as in the Search tab's % Hist. Value column."},
+        {'usually', '% of usual', nil, "After Value: Value as a percent of the usual price over the last days, the same number and colors as the Search tab's % of usual column."},
         {'daily', 'Today', "Today's lowest, against the usual", "Today's lowest price, and how it compares with the usual price."},
         {'merchant_sell', 'Vendor sell price', nil, 'What a vendor pays you for it.'},
         {'merchant_buy', 'Vendor buy price', nil, 'What a vendor sells it for, once you have seen it at one.'},

@@ -333,7 +333,8 @@ M.search_columns = {
         end,
     },
     {
-        title = {'% Hist.\nValue (Bid)', '% Hist.\nValue'},
+        -- 0.8.2 build 6 (Tyler): "% of usual" everywhere (was "% Hist. Value")
+        title = {'% of usual\n(bid)', '% of\nusual'},
         width = .08,
         align = 'CENTER',
         toggle = 'percentage_for_bid',
@@ -919,11 +920,34 @@ local methods = {
 
         -- auxForever (0.6, the UI Kit): the sorted column's name is white with a gold arrow
         local last_sort = self.sorts[1]
+        -- 0.8.2 build 6 (Tyler's test): the width of a two-line title is its longest line; the font
+        -- string's own width came out narrower, and the arrow sat on the "%" of "% Hist. Value"
+        local function header_text_width(cell)
+            local font_string = cell:GetFontString()
+            local text = font_string:GetText() or ''
+            if not strfind(text, '\n', 1, true) then
+                return font_string:GetStringWidth() or 0
+            end
+            if not cell.measure then
+                cell.measure = cell:CreateFontString(nil, 'OVERLAY')
+                cell.measure:Hide()
+            end
+            local font, size, flags = font_string:GetFont()
+            if font and size and size > 0 then
+                cell.measure:SetFont(font, size, flags)
+            end
+            local widest = 0
+            for line in gmatch(text, '[^\n]+') do
+                cell.measure:SetText(line)
+                widest = max(widest, cell.measure:GetStringWidth() or 0)
+            end
+            return widest
+        end
         for i, cell in pairs(self.headCells) do
             local sorted = last_sort and last_sort.index == i
             cell:GetFontString():SetTextColor((sorted and aux.color.text.enabled or aux.color.header.text)())
             if sorted then
-                local width = cell:GetFontString():GetStringWidth() or 0
+                local width = header_text_width(cell)
                 cell.arrow:ClearAllPoints()
                 cell.arrow:SetPoint('RIGHT', cell, 'CENTER', -width / 2 - 3, 0)
                 cell.arrow:SetRotation(last_sort.descending and 0 or math.pi)

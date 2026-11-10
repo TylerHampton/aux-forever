@@ -639,15 +639,20 @@ function scan_item_list(results)
             process_auction(record)
             check_aborted(scan_state)
         end
+        -- 0.8.2 build 6 (Tyler: "This isnt returning items"): the table shows what was found at once;
+        -- it was redrawn only every 100 items of the list, and a full read takes a request
+        do (state.params.on_page_scanned or pass)() end
     end
     local function add(result)
         local record = info.browse_record(result)
         if not record then
             return false
         end
-        -- 0.8.2 (FB-025): tooltip text is checked on the fast row's own tooltip, except for gear
-        -- with a random ending, whose stats only its auctions' links carry
-        if tooltip_text and has_ending(record) then
+        -- 0.8.2 (FB-025): tooltip text is checked on the fast row's own tooltip. Gear with an
+        -- ending gets it from its item key (build 6, record_mt in util/info.lua); only when the game
+        -- gives no more than the name there are its auctions read (build 1 read all of them: a
+        -- request each, so chest armor, mostly with endings, stayed slow)
+        if tooltip_text and has_ending(record) and #record.tooltip <= 1 then
             read_full(result.itemKey)
             return true
         end

@@ -5155,6 +5155,12 @@ try('0.8.2: tooltip text is checked on the item list', function()
   local old_lines = {}
   for i = 1, 4 do old_lines[i] = {G['AuxTooltipTextLeft' .. i], G['AuxTooltipTextRight' .. i]} end
   rawset(AuxTooltip, 'SetHyperlink', function(_, l) shown = lines_of[tostring(l):match('|h%[(.-)%]|h')] or {} end)
+  rawset(AuxTooltip, 'ClearLines', function() shown = {} end)
+  -- 0.8.2 build 6: a fast row of gear with an ending is built from its item key; the game gives the
+  -- Bear chest's stats there, and only the Owl chest's name (so that one falls back to a full read)
+  rawset(AuxTooltip, 'SetItemKey', function(_, id, level, suffix)
+    if suffix == 77 then shown = lines_of['Bear Chest of the Bear'] elseif suffix == 78 then shown = {'Owl Chest of the Owl'} end
+  end)
   rawset(AuxTooltip, 'NumLines', function() return #shown end)
   for i = 1, 4 do
     G['AuxTooltipTextLeft' .. i] = {GetText = function() return shown[i] end}
@@ -5166,18 +5172,24 @@ try('0.8.2: tooltip text is checked on the item list', function()
   local found, done = {}, false
   local queries = filter_util.queries('chest/strength')
   check('fb025: the search is fast', queries and queries[1].tooltip_text == true and queries[1].full_reason == nil)
+  local redraws = 0
   scan.start{type = 'list', queries = queries, fast = true, quiet = true,
     on_auction = function(record) found[record.name] = (found[record.name] or 0) + 1 end,
+    on_page_scanned = function() redraws = redraws + 1 end,
     on_complete = function() done = true end}
   for _ = 1, 100 do run(1); if done then break end end
   check('fb025: the search finished', done)
   check('fb025: a plain item with the word in its tooltip is listed from the item list', found['Strong Chest'] == 1 and not searched[811])
   check('fb025: a plain item without it is left out, unread', not found['Weak Chest'] and not searched[812])
-  check('fb025: gear with an ending is read in full and matched on its own auctions', found['Bear Chest of the Bear'] == 1 and searched[813] == 1)
-  check('fb025: gear with another ending is read and left out', not found['Owl Chest of the Owl'] and searched[814] == 1)
+  check('fb025: gear with an ending is matched on its item key\'s tooltip, unread', found['Bear Chest of the Bear'] == 1 and not searched[813])
+  check('fb025: when the game gives only the name, it is read in full and left out', not found['Owl Chest of the Owl'] and searched[814] == 1)
+  -- 4 items on the list: redrawn once at its end, and once more right after the Owl chest's read
+  check('fb025: the table is redrawn right after a full read (Tyler: "This isnt returning items")', redraws == 2)
   rawset(C_AuctionHouse, 'SendSearchQuery', real_send)
   rawset(AuxTooltip, 'SetHyperlink', nil)
   rawset(AuxTooltip, 'NumLines', nil)
+  rawset(AuxTooltip, 'ClearLines', nil)
+  rawset(AuxTooltip, 'SetItemKey', nil)
   for i = 1, 4 do G['AuxTooltipTextLeft' .. i], G['AuxTooltipTextRight' .. i] = old_lines[i][1], old_lines[i][2] end
   restore()
 end)
@@ -5232,11 +5244,12 @@ try('0.8.2: Usually switch and the Shift hint', function()
 
   -- the Shift hint
   local stack = tip_lines(20)
-  check('fb033: a stack says Shift shows it', stack:find('Value: 0.39 (45%)  seen today  Shift for 20', 1, true) ~= nil)
-  check('fb033: one item says nothing', tip_lines(1):find('Shift for', 1, true) == nil)
+  -- build 6 (Tyler): no Shift instructions in the tooltip
+  check('fb033: a stack shows no Shift hint', stack:find('Value: 0.39 (45%)  seen today', 1, true) ~= nil and stack:find('Shift', 1, true) == nil)
+  check('fb033: one item says nothing either', tip_lines(1):find('Shift', 1, true) == nil)
   shift = true
   stack = tip_lines(20)
-  check('fb033: with Shift held, the stack price and no hint', stack:find('for 20', 1, true) ~= nil and stack:find('Shift for', 1, true) == nil)
+  check('fb033: with Shift held, the stack price', stack:find('Value: 7.80 (45%)  for 20  seen today', 1, true) ~= nil)
   G.IsShiftKeyDown = real_shift
   h.data['7601:0'] = nil
 end)
@@ -5429,6 +5442,58 @@ try('0.8.2: the Sniper\'s percent in the Search colors', function()
   check('b5: 70% of market in the color for 70%', shown and shown:find(gui.percentage_historical(70), 1, true) == 1 and shown:find('of market', 1, true) ~= nil)
   why.fill(cell, {deal_reason = 'vendor', deal_percent = 10})
   check('b5: below vendor stays as it was', shown and shown:find('below vendor', 1, true) ~= nil)
+end)
+
+-- 0.8.2 build 6, Tyler's build 5 test: the Full scan button was gray while the Sniper ran ("I had to
+-- stop sniper for full scan to ungrey"); and "% of usual" in the profession window's Materials hover
+try('0.8.2 build 6: Full scan button and % of usual in crafting', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.test.b6'; return require 'aux.core.scan'")('auxForever', addon)
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local btn = a.full_scan_button
+  local enabled
+  local real_enable, real_disable = rawget(btn, 'Enable'), rawget(btn, 'Disable')
+  rawset(btn, 'Enable', function() enabled = true end)
+  rawset(btn, 'Disable', function() enabled = false end)
+  local was_shown = a.frame.__shown
+  a.frame.__shown = true
+  a.account_data.replicate_time = 0
+  scan.start{type = 'list', quiet = true, queries = {{blizzard_query = {}}}}
+  for _ = 1, 8 do tick() end
+  check('b6: a search under way leaves Full scan clickable', scan.is_scanning() and enabled == true)
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  set(C_AuctionHouse, 'ReplicateItems', function() end)
+  set(C_AuctionHouse, 'GetNumReplicateItems', function() return 0 end)
+  scan.start{type = 'list', quiet = true, queries = {{blizzard_query = {}}}, get_all = true}
+  for _ = 1, 8 do tick() end
+  check('b6: a Full scan under way grays it', scan.is_full_scan() and enabled == false)
+  scan.abort()
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  rawset(btn, 'Enable', real_enable); rawset(btn, 'Disable', real_disable)
+  a.frame.__shown = was_shown
+  a.account_data.replicate_time = 0
+
+  -- crafting: each material's latest price and the made item's, with the share of the usual price
+  local d = h.today()
+  h.write_record('7701:0', {day = d, low = 38, market = 39, units = 82, points = {{day = d - 2, value = 87}, {day = d - 3, value = 87}}})
+  h.write_record('7702:0', {day = d, low = 200, market = 200, units = 10, points = {{day = d - 2, value = 400}, {day = d - 3, value = 400}}})
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local lines = {}
+  local tip = new_frame()
+  rawset(tip, 'AddLine', function(_, t) tinsert(lines, plain(t)) end)
+  rawset(tip, 'AddDoubleLine', function(_, l, r) tinsert(lines, plain(l) .. ' | ' .. plain(r)) end)
+  search.recipe_cost_tooltip(tip, {reagents = {{item_id = 7701, count = 2}}, output = {item_id = 7702, count = 1}})
+  local all = table.concat(lines, '\n')
+  check('b6: a material\'s price says its share of usual', all:find('78c (45%)  seen today', 1, true) ~= nil)
+  check('b6: the made item\'s price says its share of usual', all:find('2s (50%)  seen today', 1, true) ~= nil)
+  a.character_data.tooltip.usually = false
+  lines = {}
+  search.recipe_cost_tooltip(tip, {reagents = {{item_id = 7701, count = 2}}, output = {item_id = 7702, count = 1}})
+  check('b6: the % of usual switch turns it off there too', not table.concat(lines, '\n'):find('%)', 1, true))
+  a.character_data.tooltip.usually = true
+  h.data['7701:0'] = nil; h.data['7702:0'] = nil
 end)
 
 -- what players do while the auction house is still answering: a slow auction house that answers

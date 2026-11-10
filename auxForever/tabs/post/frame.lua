@@ -133,7 +133,7 @@ buyout_listing:SetColInfo{
     {name='For sale', width=.18, align='CENTER'},
     {name='Time Left', width=.17, align='CENTER'},
     {name='Auction Buyout (per item)', width=.45, align='RIGHT'},
-    {name='% Hist. Value', width=.2, align='CENTER'},
+    {name='% of usual', width=.2, align='CENTER'},
 }
 buyout_listing:SetSelection(function(data)
 	return selected_item and (data.record == get_buyout_selection() or data.record.historical_value and get_buyout_selection() and get_buyout_selection().historical_value)
@@ -654,7 +654,7 @@ function M.apply_bid_layout()
             {name='For sale', width=.2, align='CENTER'},
             {name='Time\nLeft', width=.15, align='CENTER'},
             {name='Auction Bid\n' .. (aux.account_data.post_bid == 'unit' and '(per item)' or '(per stack)'), width=.43, align='RIGHT'},
-            {name='% Hist.\nValue', width=.22, align='CENTER'},
+            {name='% of\nusual', width=.22, align='CENTER'},
         }
         -- side by side, each half of the space under the parameters
         frame.bid_listing:SetPoint('TOPRIGHT', frame.parameters, 'BOTTOM', -1.25, -2.5)
@@ -665,7 +665,7 @@ function M.apply_bid_layout()
             {name='For sale', width=.2, align='CENTER'},
             {name='Time\nLeft', width=.15, align='CENTER'},
             {name='Auction Buyout\n(per item)', width=.43, align='RIGHT'},
-            {name='% Hist.\nValue', width=.22, align='CENTER'},
+            {name='% of\nusual', width=.22, align='CENTER'},
         }
     else
         frame.bid_listing:Hide()
@@ -677,7 +677,7 @@ function M.apply_bid_layout()
             {name='For sale', width=.18, align='CENTER'},
             {name='Time Left', width=.17, align='CENTER'},
             {name='Auction Buyout (per item)', width=.45, align='RIGHT'},
-            {name='% Hist. Value', width=.2, align='CENTER'},
+            {name='% of usual', width=.2, align='CENTER'},
         }
     end
     -- the tables are filled again on the next update

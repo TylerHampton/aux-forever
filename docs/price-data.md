@@ -124,7 +124,7 @@ numbers with two jobs:
 - **Usual price** (`history.value`): the multi-day weighted median above. Used to find deals: the
   Sniper's rule, the search % column, the Post tab's % badge, the percentage and profit filters,
   disenchant values. Tooltips show it as a percent on the Value line, "Value: 2s (67%)", in the
-  Search tab's % Hist. Value colors (0.8.2 build 4; before, a gray "usually ..." line when it
+  Search tab's % of usual colors (0.8.2 build 4; before, a gray "usually ..." line when it
   differed from the latest by 30% or more).
 - Build 3 test: a Full scan alone recorded Rough Dynamite at 30c, the same as its lowest listing
   (514 listed), so Full scan prices look right. Linen Cloth showed 32c while 296 were listed at

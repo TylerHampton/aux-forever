@@ -90,7 +90,6 @@ end
 
 function extend_tooltip(tooltip, link, quantity, data)
     local item_id, suffix_id = info.parse_link(link)
-    local stack = quantity
     quantity = IsShiftKeyDown() and quantity or 1
     -- auxForever (0.5): with Shift held the prices are for the whole stack; say so ("for 3"). In build
     -- 1 a stack's Value read as a far too high price per item (Windows' screenshot keys hold Shift).
@@ -149,9 +148,6 @@ function extend_tooltip(tooltip, link, quantity, data)
             local function coins(amount)
                 return settings.money_icons and GetCoinTextureString(amount) or money.to_string2(amount)
             end
-            -- 0.8.2 (FB-033, Chawitsch asked for stack prices): a stack says Shift shows its prices
-            -- ("Shift for 20"), on the Value line rather than a line of its own
-            local hint = latest and stack > 1 and quantity == 1 and ('  ' .. aux.color.label.enabled('Shift for ' .. stack)) or ''
             -- 0.8.2 build 4 (FB-035, deep_structure; Tyler, 2026-11-09): the usual price shows as a percent
             -- on the Value line, "Value: 2s (67%)  seen today", as the Search tab's % Hist. Value column
             -- and in its colors, instead of a "usually 3s" line under it. Its switch is "% of usual".
@@ -159,7 +155,9 @@ function extend_tooltip(tooltip, link, quantity, data)
             if latest and settings.usually ~= false and value and value > 0 then
                 share = ' (' .. gui.percentage_historical(aux.round(latest / value * 100)) .. ')'
             end
-            tooltip:AddLine('Value: ' .. (latest and coins(latest * quantity) .. share .. per .. age_suffix(age) .. hint or UNKNOWN), aux.color.tooltip.value())
+            -- (0.8.2 build 6, Tyler: "I dont want to put shift instructions in the tooltip": the
+            -- "Shift for 20" hint of build 1 is gone; Shift still shows a stack's prices)
+            tooltip:AddLine('Value: ' .. (latest and coins(latest * quantity) .. share .. per .. age_suffix(age) or UNKNOWN), aux.color.tooltip.value())
         end
         if settings.daily  then
             local market_value = history.market_value(item_key)
