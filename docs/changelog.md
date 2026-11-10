@@ -30,8 +30,8 @@ A change that comes from a player's feedback credits them by in-game name at the
 - The column next to the price is now "Compared to": the price the deal was compared with (the
   usual price, today's market or the vendor price), so the price, the percent and the profit add
   up.
-- The Why column's percent ("30% of usual") is in the same colors as the Search tab's % Hist.
-  Value column and the tooltip's percent, so one color means the same thing everywhere.
+- The Why column's percent ("30% of usual") is in the same colors as the Search tab's % of usual
+  column and the tooltip's percent, so one color means the same thing everywhere.
 - Clicking a deal found in the last 15 seconds shows the Buy button at once, without reading the
   item again first. Older deals are still read again, and so is gear when aux has searched another
   item since (buying gear needs its own search to be the latest). Buying still never spends more than the
@@ -44,7 +44,8 @@ A change that comes from a player's feedback credits them by in-game name at the
   how long it has waited so far, and the chat line at the end says how long the auction house took to answer
   and to send the list (reported by deep_structure and user_ayzkr6rhvrlna3ya).
 - The Sniper's rounds and the Auctions tab's price check no longer stop a Full scan that is
-  waiting for the auction house; they wait until it is done. A search you start yourself still
+  waiting for the auction house; they wait until it is done. The Full scan button can be clicked
+  while the Sniper runs (it was gray). A search you start yourself still
   stops it, and the chat now says so. Before, the scan ended without a word and the next one was
   15 minutes away.
 - When the auction house never answers, the chat says nothing was recorded, instead of "full scan
@@ -54,18 +55,20 @@ A change that comes from a player's feedback credits them by in-game name at the
 
 - Searching with a word from item tooltips, such as `armor/mail/chest/usable/strength`, is fast
   again. aux read every auction of every item to check the word, which took minutes; it now checks
-  each item's own tooltip in the item list. Gear with a random ending ("of the Bear") is still read
-  in full, because its stats come from the ending (suggested by RushJet1).
+  each item's own tooltip in the item list, gear with a random ending ("of the Bear") included, the
+  way Blizzard's own list shows it, with no request per item. Results show while the search runs
+  (suggested by RushJet1).
+- The "% Hist. Value" columns of the Search and Post tabs are now called "% of usual", as
+  everywhere else, and the sort arrow no longer sits on top of the title.
 
 ### Tooltips
 
 - The usual price is now a percent on the Value line instead of a "usually" line under it:
   "Value: 2s (67%)  seen today" means the latest price is 67% of the usual one, in the same colors
-  as the Search tab's % Hist. Value column. It has its own switch: Settings, Tooltip lines, "% of
+  as the Search tab's % of usual column. It has its own switch: Settings, Tooltip lines, "% of
   usual", or `/aux tooltip percent` (suggested by deep_structure).
-- A stack in your bags says that Shift shows its prices: its Value line ends with "Shift for 20".
-  Holding Shift already showed the whole stack's prices, but nothing told you (Chawitsch asked for
-  stack prices).
+- The same "(67%)" in the profession window: pointing at the Materials line shows each material's
+  price and the made item's price with its share of the usual price.
 
 ## 0.8.1 (2026-11-09)
 

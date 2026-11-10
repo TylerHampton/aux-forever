@@ -139,7 +139,7 @@ For whoever fixes or builds from it:
 | [FB-030](#fb-030-how-the--of-historical-value-works-keep-more-price-history) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | question | Other | n/a | How the % of historical value works; keep more price history | new |
 | [FB-031](#fb-031-posting-rules-based-on-historical-value-like-tsm) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Post | n/a | Posting rules based on historical value, like TSM | planned 0.9 |
 | [FB-032](#fb-032-start-a-full-scan-when-the-window-opens-if-the-15-minute-wait-is-over) | 2026-11-08 | Chawitsch | request | Settings | n/a | Start a full scan when the window opens, if the 15 minute wait is over | planned 0.9 (Tyler: option, off by default) |
-| [FB-033](#fb-033-tooltip-prices-for-the-whole-stack-not-one-item) | 2026-11-08 | Chawitsch | ux | Other | n/a | Tooltip prices for the whole stack, not one item | in-progress 0.8.2 |
+| [FB-033](#fb-033-tooltip-prices-for-the-whole-stack-not-one-item) | 2026-11-08 | Chawitsch | ux | Other | n/a | Tooltip prices for the whole stack, not one item | wont-fix (Tyler: no Shift instructions in tooltips; Shift already works) |
 | [FB-034](#fb-034-opening-aux-moves-blizzards-professions-window-to-the-right) | 2026-11-08 | Chawitsch | bug | Window | S3 | Opening aux moves Blizzard's Professions window to the right | fixed 0.8.1 (released 2026-11-09) |
 | [FB-035](#fb-035-a-setting-to-hide-the-usually-price-line-in-tooltips) | 2026-11-09 | deep_structure | request | Settings | n/a | A setting to hide the "usually" price line in tooltips | in-progress 0.8.2 |
 | [FB-036](#fb-036-the-sniper-calls-a-flat-market-a-deal-at-4-of-the-usual-price) | 2026-11-09 | Swiftwren | bug | Sniper | S2 | The Sniper calls a flat market a deal at 4% of the usual price | in-progress 0.8.2 |
@@ -1415,7 +1415,7 @@ Ask Tyler: the in-game check is steps 1 and 2 of 0.8.0.1 build 1 (`TESTING.md`).
 - Area: Performance (Search)
 - Severity: S2 (works, but takes minutes; leaving the word out and reading tooltips by hand is the
   way around)
-- Status: in-progress 0.8.2 (`claude/magical-maxwell-eyud0b`, commit 8caf198: tooltip text checked on the item list, gear with an ending read in full; not yet seen in game)
+- Status: in-progress 0.8.2 (`claude/magical-maxwell-eyud0b`; build 5 failed in game with gear with endings read one by one; build 6, commit 82c546c: their tooltips come from the item key, no request; not yet seen in game)
 - Proposed: 0.8.1 (speed)
 
 Said:
@@ -1723,7 +1723,7 @@ Unknowns: as above.
 - Type: ux (the feature exists; the player did not find it)
 - Area: Other (tooltips)
 - Severity: n/a
-- Status: in-progress 0.8.2 (`claude/magical-maxwell-eyud0b`, commit 153132a: "Shift for 20" on a stack's Value line; not yet seen in game)
+- Status: wont-fix (0.8.2 build 1 added "Shift for 20" on the Value line; Tyler, 2026-11-09, after testing: "I dont want to put shift instructions in the tooltip", removed in build 6. Holding Shift already shows a stack's prices; Chawitsch can be told so)
 - Proposed: next patch (a hint line), if Tyler wants one
 
 Said:

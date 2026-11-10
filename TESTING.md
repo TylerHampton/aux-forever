@@ -8,7 +8,40 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.2 build 5
+## Current build: 0.8.2 build 6
+
+Fixes from Tyler's build 5 test (results below) and "% of usual" everywhere (Tyler, 2026-11-09,
+"especially in crafting menus"). Zip `auxForever-0.8.2-build6.zip`; `/reload` is enough. Test page
+build id `0-8-2-build-6`.
+
+- [ ] 1. Open the Sniper tab and click Start. The Full scan button at the top right is not gray
+      (unless your last Full scan was less than 15 minutes ago: point the mouse at it to see when).
+      Click it and wait without searching. At the end the chat says "Full scan complete: ...
+      auctions recorded in ... (the auction house took ... to answer, ...)". Screenshot that line.
+- [ ] 2. Stop the Sniper. Search tab, Fast selected, search `usable/armor/cloth/chest/intellect`.
+      Rows appear while it runs, it ends in seconds, and the chests found say Intellect in their
+      tooltip (an "of the Owl" one too).
+- [ ] 3. In that table, click the "% of usual" column title (it was "% Hist. Value"). The gold arrow
+      sits left of the title, not on top of the "%".
+- [ ] 4. Open your Professions window, pick a recipe, and point the mouse at the line under its
+      reagents ("Materials ..."). Each material bought at the auction house and the "sells for" line
+      end with a percent in brackets, like "(67%)", in color.
+- [ ] 5. Point the mouse at a stack in your bags: the Value line has no "Shift for" any more. Hold
+      Shift: it shows the whole stack's price, "for 20".
+
+### 0.8.2 build 5
+
+Tested by Tyler 2026-11-09 (test page `0-8-2-build-5`): the Full scan button stayed gray while the
+Sniper ran ("I had to stop sniper for full scan to ungrey", fixed in build 6; the scan's closing
+chat line was not in the screenshots). The tooltip-word search failed ("This isnt returning items
+and there is a weird visual bug on % Hist Value": gear with an ending was read one by one and the
+table was redrawn only every 100 items; the sort arrow sat on the "%"; both fixed in build 6). The
+tooltip reads "Value: 1s 8c (83%)  seen today" and with Shift "4s 80c (104%) for 20"; the % of usual
+switch turns the percent off (screenshots). Tyler: "I dont want to put shift instructions in the
+tooltip" (removed in build 6). The Sniper after a round: 21 deals, some "% of market", percents in the
+Search colors, "Compared to" filled (screenshot). Tyler on the Sniper stopping while a deal is
+selected: "I find it very jarring that we stop the entire search when someone highlights
+something" (handoff H-009 for Gemini).
 
 Build 4 plus one consistency change (Tyler, 2026-11-09: wherever a price is compared with the usual
 price, the same percent in the Search tab's colors): the Sniper's Why column shows "30% of usual" or

@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-09, Tyler's time (**0.8.2 build 5** on `claude/magical-maxwell-eyud0b`, waiting for Tyler's test once Forever is up; 0.8.1 is the latest release).
+Last updated 2026-11-09, Tyler's time (**0.8.2 build 6** on `claude/magical-maxwell-eyud0b`, waiting for Tyler's test; handoff H-009 open for Gemini; 0.8.1 is the latest release).
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
@@ -145,6 +145,16 @@ Open in `docs/handoff.md`: H-008 (Gemini to Claude, 2026-11-09, check the eight 
 Sniper changes (`fddd029..219db5f`), answered all five questions from H-007, and wrote eight
 numbered findings in `docs/reviews/2026-11-09-sniper-0.8.2.md` (with concrete listings and line
 numbers). Opened H-008 in `docs/handoff.md` for Claude to check the findings.
+
+**2026-11-09, Claude, 0.8.2 build 6:** Tyler tested build 5 (results in `TESTING.md`). Fixed: the
+tooltip-word search (gear with an ending now checked on its item key's tooltip, `info.tooltip`
+'item_key', as Blizzard's list and aux's row hover do; the table redraws after each full read),
+the Full scan button gray while the Sniper ran, the sort arrow on two-line titles. Tyler: no
+"Shift for 20" (removed; FB-033 wont-fix), "% of usual" everywhere including the profession
+window's Materials hover (`share_of_usual` in `tabs/search/recipe.lua`). Open: H-009 for Gemini
+(Tyler: the Sniper stopping while a deal is selected is "very jarring"); the Full scan's closing
+chat line still has no screenshot (FB-027 numbers). Zip `auxForever-0.8.2-build6.zip`, test page
+build id `0-8-2-build-6`, five steps.
 
 **2026-11-09, Claude, 0.8.2 build 5:** Tyler: wherever a price is compared with the usual price, the
 same "(67%)" in the Search tab's colors, no "usually" wording ("This app needs to be clean,
