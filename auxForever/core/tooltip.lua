@@ -152,11 +152,14 @@ function extend_tooltip(tooltip, link, quantity, data)
             -- 0.8.2 (FB-033, Chawitsch asked for stack prices): a stack says Shift shows its prices
             -- ("Shift for 20"), on the Value line rather than a line of its own
             local hint = latest and stack > 1 and quantity == 1 and ('  ' .. aux.color.label.enabled('Shift for ' .. stack)) or ''
-            tooltip:AddLine('Value: ' .. (latest and coins(latest * quantity) .. per .. age_suffix(age) .. hint or UNKNOWN), aux.color.tooltip.value())
-            -- 0.8.2 (FB-035, deep_structure): the "usually" line has a switch of its own
-            if settings.usually ~= false and history.usually_differs(latest, value) then
-                tooltip:AddLine('  ' .. aux.color.label.enabled('usually ') .. coins(value * quantity), aux.color.label.enabled())
+            -- 0.8.2 build 4 (FB-035, deep_structure; Tyler, 2026-11-09): the usual price shows as a percent
+            -- on the Value line, "Value: 2s (67%)  seen today", as the Search tab's % Hist. Value column
+            -- and in its colors, instead of a "usually 3s" line under it. Its switch is "% of usual".
+            local share = ''
+            if latest and settings.usually ~= false and value and value > 0 then
+                share = ' (' .. gui.percentage_historical(aux.round(latest / value * 100)) .. ')'
             end
+            tooltip:AddLine('Value: ' .. (latest and coins(latest * quantity) .. share .. per .. age_suffix(age) .. hint or UNKNOWN), aux.color.tooltip.value())
         end
         if settings.daily  then
             local market_value = history.market_value(item_key)

@@ -8,7 +8,18 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.2 build 3
+## Current build: 0.8.2 build 4
+
+Build 3 plus one tooltip change (Tyler, 2026-11-09, after deep_structure asked again about
+"usually"): the usual price is a percent on the Value line, "Value: 2s (67%)  seen today", instead
+of a "usually 3s" line under it; the Settings switch is "% of usual". Zip
+`auxForever-0.8.2-build4.zip`; `/reload` is enough. Test page build id `0-8-2-build-4`. Build 3's
+six steps (below), with two changes:
+- Step 3 (Shift on a stack): the Value line reads like "Value: 2s (67%)  seen today  Shift for 20".
+- Step 4 (Settings): the new row under Value is called "% of usual". Click it off, point the mouse
+  at an item: the percent is gone. Click it on again.
+
+### 0.8.2 build 3
 
 Build 2 plus Gemini's review of the Sniper logic (H-008, eight findings, all fixed with a test each,
 `docs/reviews/2026-11-09-sniper-0.8.2.md`): the Sniper's check before opening an item uses the last

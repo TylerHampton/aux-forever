@@ -1819,7 +1819,7 @@ Ask Tyler: the in-game check is step 3 of 0.8.0.1 build 1 (`TESTING.md`).
 - Type: request
 - Area: Settings (tooltips)
 - Severity: n/a
-- Status: in-progress 0.8.2 (`claude/magical-maxwell-eyud0b`, commit 153132a: Usually switch in Settings and /aux tooltip usually, on by default; not yet seen in game)
+- Status: in-progress 0.8.2 (`claude/magical-maxwell-eyud0b`, commit 153132a: Usually switch; build 4: the usual price is a percent on the Value line, switch "% of usual"; not yet seen in game)
 - Proposed: 0.8.2 (a small thing: one switch)
 
 Said:
@@ -1851,8 +1851,10 @@ Second comment (deep_structure, 2026-11-09, before 0.8.2 was out,
 > is it possible to have the 'usually' price on tooltip as an option? rather than by default
 
 Tyler, 2026-11-09: "I think just adding the option to toggle it solves both issues" (this and
-FB-038). 0.8.2 builds the switch, on by default. Open: whether it should start off, as the player
-asks ("rather than by default").
+FB-038). Then, from a screenshot (Value 2s, "usually 3"), he chose a cleaner form: the usual price
+as a percent on the Value line, like the Search tab's % Hist. Value column: "Value: 2s (67%)  seen
+today". Built in 0.8.2 build 4: no extra line, the switch is "% of usual" (`/aux tooltip percent`),
+on, shown whenever a usual price exists.
 
 ### FB-036: The Sniper calls a flat market a deal at 4% of the usual price
 

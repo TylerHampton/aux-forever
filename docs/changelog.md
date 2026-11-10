@@ -57,8 +57,10 @@ A change that comes from a player's feedback credits them by in-game name at the
 
 ### Tooltips
 
-- The gray "usually" price under Value has its own switch: Settings, Tooltip lines, Usually, or
-  `/aux tooltip usually`. It is on unless you turn it off (suggested by deep_structure).
+- The usual price is now a percent on the Value line instead of a "usually" line under it:
+  "Value: 2s (67%)  seen today" means the latest price is 67% of the usual one, in the same colors
+  as the Search tab's % Hist. Value column. It has its own switch: Settings, Tooltip lines, "% of
+  usual", or `/aux tooltip percent` (suggested by deep_structure).
 - A stack in your bags says that Shift shows its prices: its Value line ends with "Shift for 20".
   Holding Shift already showed the whole stack's prices, but nothing told you (Chawitsch asked for
   stack prices).

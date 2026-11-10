@@ -3167,10 +3167,11 @@ try('0.5 build 3: latest price in tooltips', function()
     return table.concat(lines, '\n')
   end
   local banana = tip_lines(7501)
-  check('build 3: tooltip Value is the latest price', banana:find('Value: 0.39  seen today', 1, true) ~= nil)
-  check('build 3: a big gap adds "usually"', banana:find('usually 0.87', 1, true) ~= nil)
+  -- 0.8.2 build 4 (Tyler): the usual price is a percent on the Value line, no "usually" line
+  check('build 3: tooltip Value is the latest price', banana:find('Value: 0.39 (45%)  seen today', 1, true) ~= nil)
+  check('0.8.2: the usual price is a percent on the Value line, not a line of its own', banana:find('usually', 1, true) == nil)
   local steady = tip_lines(7502)
-  check('build 3: no "usually" when the two are close', steady:find('usually', 1, true) == nil)
+  check('build 3: no "usually" line when the two are close either', steady:find('usually', 1, true) == nil and steady:find('%)', 1, true) ~= nil)
   -- the recipe cost uses the latest price too
   local total = search.recipe_usual_cost({reagents = {{item_id = 7501, count = 2}}})
   check('build 3: the recipe cost uses the latest price', total == 78)
@@ -5206,14 +5207,20 @@ try('0.8.2: Usually switch and the Shift hint', function()
   end
   local settings = a.character_data.tooltip
   check('fb035: the switch is on by default', settings.usually == true)
-  check('fb035: on, the line shows', tip_lines():find('usually 0.87', 1, true) ~= nil)
+  -- build 4 (Tyler): "Value: 0.39 (45%)  seen today", 39c being 45% of the usual 87c
+  check('fb035: on, the percent of usual follows the price', tip_lines():find('Value: 0.39 (45%)  seen today', 1, true) ~= nil)
+  SlashCmdList.AUX('tooltip percent')
+  check('fb035: /aux tooltip percent turns it off', settings.usually == false and tip_lines():find('%', 1, true) == nil)
+  check('fb035: Value stays', tip_lines():find('Value: 0.39  seen today', 1, true) ~= nil)
   SlashCmdList.AUX('tooltip usually')
-  check('fb035: /aux tooltip usually turns it off', settings.usually == false and tip_lines():find('usually', 1, true) == nil)
-  check('fb035: Value stays', tip_lines():find('Value: 0.39', 1, true) ~= nil)
+  check('fb035: /aux tooltip usually still works', settings.usually == true)
+  SlashCmdList.AUX('tooltip usually')
   local box
   for _, b in ipairs(a.tooltip_boxes) do if b.key == 'usually' then box = b end end
   box.__scripts.OnClick(box)
-  check('fb035: the Settings switch turns it back on', settings.usually == true and tip_lines():find('usually 0.87', 1, true) ~= nil)
+  check('fb035: the Settings switch turns it back on', settings.usually == true and tip_lines():find('(45%)', 1, true) ~= nil)
+  local frame_src = io.open('frame.lua'):read('*a')
+  check('fb035: the switch is called % of usual', frame_src:find("{'usually', '% of usual',", 1, true) ~= nil)
   -- a character saved before 0.8.2 has tooltip settings without the new line: it is filled in, on,
   -- and the player's own choices stay
   local older = a.character_settings({tooltip = {value = false, merchant_sell = true, daily = true}, bid_auction_ids = {7}})
@@ -5225,7 +5232,7 @@ try('0.8.2: Usually switch and the Shift hint', function()
 
   -- the Shift hint
   local stack = tip_lines(20)
-  check('fb033: a stack says Shift shows it', stack:find('Value: 0.39  seen today  Shift for 20', 1, true) ~= nil)
+  check('fb033: a stack says Shift shows it', stack:find('Value: 0.39 (45%)  seen today  Shift for 20', 1, true) ~= nil)
   check('fb033: one item says nothing', tip_lines(1):find('Shift for', 1, true) == nil)
   shift = true
   stack = tip_lines(20)

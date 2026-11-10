@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-09, Tyler's time (**0.8.2 build 3** on `claude/magical-maxwell-eyud0b`, waiting for Tyler's test once Forever is up; 0.8.1 is the latest release).
+Last updated 2026-11-09, Tyler's time (**0.8.2 build 4** on `claude/magical-maxwell-eyud0b`, waiting for Tyler's test once Forever is up; 0.8.1 is the latest release).
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
@@ -145,6 +145,13 @@ Open in `docs/handoff.md`: H-008 (Gemini to Claude, 2026-11-09, check the eight 
 Sniper changes (`fddd029..219db5f`), answered all five questions from H-007, and wrote eight
 numbered findings in `docs/reviews/2026-11-09-sniper-0.8.2.md` (with concrete listings and line
 numbers). Opened H-008 in `docs/handoff.md` for Claude to check the findings.
+
+**2026-11-09, Claude, 0.8.2 build 4:** two more CurseForge comments (FB-038 blackmyin: tooltip lines
+only while holding a key, wont-fix, Tyler: the switches cover it; FB-035 deep_structure again:
+"usually" as an option). Tyler chose to show the usual price as a percent on the Value line, "Value:
+2s (67%)  seen today", in the Search tab's % Hist. Value colors, always when a usual price exists;
+the "usually" line is gone, the switch is "% of usual" (`/aux tooltip percent`, `usually` still
+works; saved key unchanged). Zip `auxForever-0.8.2-build4.zip`, test page build id `0-8-2-build-4`.
 
 **2026-11-09, Claude, 0.8.2 build 3:** Tyler brought Gemini in as an analyst on the Sniper logic
 (H-007, tight scope, the Sniper's purpose explained). Gemini found eight issues

@@ -529,8 +529,9 @@ do
     -- chat settings in this menu, FB-008). Kept per character, like the chat commands.
     local TOOLTIP_LINES = {
         {'value', 'Value', 'Price from your latest scan', 'The market price from your latest look at the item.'},
-        -- 0.8.2 (FB-035, suggested by deep_structure): the "usually" line could only go with Value
-        {'usually', 'Usually', nil, 'Under Value, the usual price over the last days, when it differs from Value by 30% or more.'},
+        -- 0.8.2 (FB-035, suggested by deep_structure): the usual price could only go with Value. Since
+        -- build 4 a percent on the Value line (Tyler), so the saved key stays "usually"
+        {'usually', '% of usual', nil, "After Value, Value as a percent of the usual price over the last days, as in the Search tab's % Hist. Value column."},
         {'daily', 'Today', "Today's lowest, against the usual", "Today's lowest price, and how it compares with the usual price."},
         {'merchant_sell', 'Vendor sell price', nil, 'What a vendor pays you for it.'},
         {'merchant_buy', 'Vendor buy price', nil, 'What a vendor sells it for, once you have seen it at one.'},
