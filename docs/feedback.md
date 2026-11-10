@@ -144,6 +144,7 @@ For whoever fixes or builds from it:
 | [FB-035](#fb-035-a-setting-to-hide-the-usually-price-line-in-tooltips) | 2026-11-09 | deep_structure | request | Settings | n/a | A setting to hide the "usually" price line in tooltips | in-progress 0.8.2 |
 | [FB-036](#fb-036-the-sniper-calls-a-flat-market-a-deal-at-4-of-the-usual-price) | 2026-11-09 | Swiftwren | bug | Sniper | S2 | The Sniper calls a flat market a deal at 4% of the usual price | in-progress 0.8.2 |
 | [FB-037](#fb-037-i-cant-scan-today) | 2026-11-09 | deep_structure | bug | Full scan | S2 | "i cant scan today" | in-progress 0.8.2 |
+| [FB-038](#fb-038-show-auxs-tooltip-lines-only-while-holding-a-key) | 2026-11-09 | blackmyin | request | Settings | n/a | Show aux's tooltip lines only while holding a key | wont-fix (Tyler: the tooltip line switches cover it) |
 
 ## Players
 
@@ -180,6 +181,7 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
   Writes search text by hand (`armor/mail/chest/usable/strength`).
 - **deep_structure**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for
   FB-026 and FB-035, reported FB-037. Uses the Sniper and crafts.
+- **blackmyin**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-038.
 - **Swiftwren**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-036
   (two comments, the second with an example: Invoker's Cord). Uses the Sniper, buys deals and
   relists them (flipping); Full scans daily.
@@ -1844,6 +1846,14 @@ Unknowns: why the player wants it off. The switch works whatever the reason.
 Ask Tyler: is a switch the right answer, and does adding one row to Settings need a mockup (it
 copies the rows already there)?
 
+Second comment (deep_structure, 2026-11-09, before 0.8.2 was out,
+[source](feedback/sources/2026-11-09-blackmyin-deep_structure-curseforge.md)):
+> is it possible to have the 'usually' price on tooltip as an option? rather than by default
+
+Tyler, 2026-11-09: "I think just adding the option to toggle it solves both issues" (this and
+FB-038). 0.8.2 builds the switch, on by default. Open: whether it should start off, as the player
+asks ("rather than by default").
+
 ### FB-036: The Sniper calls a flat market a deal at 4% of the usual price
 
 - Received: 2026-11-09 (posted about 5 hours before Tyler's screenshot)
@@ -1961,6 +1971,40 @@ A fix can work without them: make every way a scan can fail say why and what to 
 the 2-minute limit against how long Forever takes now.
 
 Ask Tyler: does your Full scan work today? If not, what does the chat or the status bar say?
+
+### FB-038: Show aux's tooltip lines only while holding a key
+
+- Received: 2026-11-09 (posted about 2 hours before Tyler's screenshot)
+- From: blackmyin (1 request)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-09-blackmyin-deep_structure-curseforge.md)
+- Version: 0.8.1 or earlier
+- Type: request
+- Area: Settings (tooltips)
+- Severity: n/a
+- Status: wont-fix (Tyler, 2026-11-09: "I think just adding the option to toggle it solves both
+  issues"; the tooltip line switches in Settings, with Usually added in 0.8.2, turn lines off)
+- Proposed: none
+
+Said:
+> Is it possible you could add an option to have all the tooltip text only show while holding a key like SHIFT or something?
+
+Steps / setup: none; a request.
+
+Tyler's notes: decided the toggles answer it, together with FB-035 (quote in Status).
+
+Recorder's notes:
+- What the switches do not give: a player who turns the lines off cannot call them up on demand.
+  Recorded so it can be revisited if more players ask.
+- If it is built later: Shift cannot be the key, since Shift already shows a stack's prices
+  (FB-033; and Blizzard compares items on Shift in some places). Alt or Ctrl would. **Code**
+  (`Gethe/wow-ui-source`, branch `forever`, `Blizzard_GameTooltip/Mainline/GameTooltip.lua`): the
+  tooltip redraws only when its owner has `UpdateTooltip` (bag buttons do) or a data update asks;
+  Blizzard notes that reading or rebuilding the tooltip from an addon can taint it, so aux would
+  not force a redraw. Pressing the key while already hovering might then not show the lines
+  everywhere. Not seen in game.
+
+Unknowns: none for the decision.
 
 ## Before this log
 
