@@ -366,12 +366,14 @@ function M.missing_item_reason(item_key)
 end
 
 -- how many of the item are in the bags, postable or not
+-- 0.8.2.1 (outside review, R-11): from the slots' links alone (info.container_price_key). This runs
+-- on every bag change while a post waits for its answer, and read a hidden tooltip for every slot.
 function M.bag_count(item_key)
     local count = 0
     for slot in info.inventory() do
-        local item_info = info.container_item(unpack(slot))
-        if item_info and item_info.price_key == item_key then
-            count = count + (item_info.count or 1)
+        local key, held = info.container_price_key(unpack(slot))
+        if key == item_key then
+            count = count + (held or 1)
         end
     end
     return count
@@ -998,11 +1000,18 @@ function refresh_entries()
                 refresh = true
                 update_post_done()
 			end,
-			on_complete = function()
+			on_complete = function(result)
                 aux.status_bar:update_status(1, 1)
                 bid_records[item_key] = bid_records[item_key] or {}
                 buyout_records[item_key] = buyout_records[item_key] or {}
-                listings_ready[item_key] = true
+                -- 0.8.2.1 (outside review, R-02): a read that missed part of the listings (the item
+                -- list did not fully arrive, or an item could not be read) is like a stopped one: no
+                -- price is picked from it and nothing says "None for sale". Refresh reads again.
+                if scan.saw_everything(result) or listings_ready[item_key] then
+                    listings_ready[item_key] = true
+                else
+                    listings_stopped[item_key] = true
+                end
                 refresh = true
                 update_post_done()
             end,

@@ -268,6 +268,13 @@ local function request_quote()
             reset({'The auction house refused the purchase', 'Nothing was bought'}, aux.color.red)
         end
     end)
+    -- 0.8.2.1 (outside review, R-20): the game drops a request sent too soon after another one. The
+    -- price request then never got an answer, and the bar said so only after 10 seconds.
+    listen('AUCTION_HOUSE_THROTTLED_MESSAGE_DROPPED', function()
+        if state == QUOTING then
+            reset({'The auction house was busy', 'Nothing was bought. Press Buy again.'}, aux.color.red)
+        end
+    end)
     listen('COMMODITY_PURCHASE_SUCCEEDED', function()
         if state ~= BUYING then return end
         local bought, paid, on_success = current.quote_quantity, current.quote_total, current.on_success

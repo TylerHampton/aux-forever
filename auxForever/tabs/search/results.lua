@@ -217,9 +217,13 @@ function start_live_scan(query, search)
             end
             tinsert(new_records, auction_record)
         end,
-        on_complete = function()
+        on_complete = function(result)
             aux.status_bar:update_status(1, 1)
-            if #new_records > 2000 then
+            if result and (result.no_list or result.partial_list) then
+                -- 0.8.2.1 (outside review, R-02): a round that got no item list, or part of one,
+                -- keeps the table as it is (it emptied it, or dropped the items past the cut); the
+                -- next round reads again
+            elseif #new_records > 2000 then
                 aux.show_popup('AUX_SEARCH_TABLE_FULL')
             else
                 local selected = search.table.selected and search.table.selected.search_signature
@@ -498,7 +502,7 @@ function M.results_summary(search)
     elseif search.active then
         return text .. ', still searching'
     elseif search.complete and search.completed_at then
-        return text .. ', searched ' .. time_ago(search.completed_at)
+        return text .. ', searched ' .. time_ago(search.completed_at) .. (search.incomplete and aux.color.red(', some items missing: search again') or '')
     end
     return text
 end
@@ -531,9 +535,12 @@ end
 
 function start_search(queries, continuation)
     local current_query, current_page, total_queries, start_query, start_page
+    local alerted
 
     local search = current_search()
+    search.next_redraw, search.redraw_due = nil, nil
     search.complete = false
+    search.incomplete = nil
     update_done()
 
     total_queries = #queries
@@ -567,16 +574,27 @@ function start_search(queries, continuation)
             current_page = min(current_page, total_scan_pages)
             aux.status_bar:update_status(current_page / total_scan_pages, current_query / #queries)
         end,
+        -- 0.8.2.1 (outside review, R-12): the table is drawn again at most four times a second while
+        -- the search runs, and once when it ends. It was after every item read, and each time sorts
+        -- every row: a search of a few hundred items sorted up to 2,000 rows a few hundred times.
         on_page_scanned = function()
-            search.table:SetDatabase()
+            if GetTime() >= (search.next_redraw or 0) then
+                search.next_redraw = GetTime() + .25
+                search.redraw_due = nil
+                search.table:SetDatabase()
+            else
+                search.redraw_due = true
+            end
         end,
         on_start_query = function(query)
             current_query = current_query and current_query + 1 or start_query
             current_page = current_page and 0 or start_page - 1
         end,
         on_auction = function(auction_record)
-            if (search.alert_validator or pass)(auction_record) then
-                aux.show_popup('AUX_SCAN_ALERT') -- TODO retail improve this
+            -- once per search, as in Live mode (it was shown again for every matching auction)
+            if not alerted and (search.alert_validator or pass)(auction_record) then
+                alerted = true
+                aux.show_popup('AUX_SCAN_ALERT')
             end
             if #search.records < 2000 then
                 tinsert(search.records, auction_record)
@@ -585,10 +603,16 @@ function start_search(queries, continuation)
                 end
             end
         end,
-        on_complete = function()
+        on_complete = function(result)
             aux.status_bar:update_status(1, 1)
             search.complete = true
             search.completed_at = time()
+            -- 0.8.2.1 (outside review, R-02): said next to the results too, not only in chat
+            search.incomplete = result and (result.no_list or result.partial_list) and true or nil
+            if search.redraw_due then
+                search.redraw_due = nil
+                search.table:SetDatabase()
+            end
             update_done()
             remember_search_result(search.filter_string, search.records)
 
@@ -613,6 +637,10 @@ function start_search(queries, continuation)
         end,
         on_abort = function()
             aux.status_bar:update_status(1, 1)
+            if search.redraw_due then
+                search.redraw_due = nil
+                search.table:SetDatabase()
+            end
 
             if current_query then
                 search.continuation = { current_query, current_page + 1 }

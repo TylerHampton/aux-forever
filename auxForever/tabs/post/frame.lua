@@ -156,7 +156,7 @@ buyout_listing:SetHandler('OnLeave', hide_hint)
 -- text, and a note on how the price was chosen. Right, a receipt: total, the auction house cut,
 -- what you get, the vendor comparison (a red warning when a vendor pays more), the deposit, Post.
 -- The widgets keep the names the posting logic in core.lua uses.
-AUCTION_CUT = .05 -- the auction house keeps 5% of a sale
+AUCTION_CUT = aux.AUCTION_CUT -- the share of a sale the auction house keeps (aux-addon.lua)
 local LEFT_X = 12 -- the left column
 local COUNT_X, DURATION_X = 99, 72 -- where the Count field and the Duration buttons start
 local PRICE_X = 247 -- the middle column

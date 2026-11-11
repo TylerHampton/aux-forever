@@ -7,6 +7,7 @@
 
 return function(env)
   local G, check, try, addon, dir = env.G, env.check, env.try, env.addon, env.dir
+  local rawset = env.rawset -- a nil puts back what a swapped field held (load_test.lua)
   local new_server = dofile(dir .. 'slow_server.lua')
 
   local function module(name)
@@ -756,5 +757,246 @@ return function(env)
     G.InputUtil = nil
     aux_frame:Show()
     post_teardown(server, post)
+  end)
+
+  -- Outside review of 2026-11-10 (docs/reviews/2026-11-10-outside-review.md), 0.8.2.1.
+  -- R-01: a Sniper round the auction house does not answer saw nothing, and marked every deal gone.
+  -- R-02: a list that arrived only in part did the same to the deals past its end.
+  -- Gone deals stayed gone: an item is opened again only when its lowest price changes.
+  try('timing: R-01 R-02 a Sniper round without the whole item list keeps the deals', function()
+    local server = new_server(env)
+    local sniper = module 'aux.tabs.sniper'
+    for i = 1, 3 do
+      server.items[9200 + i] = {name = 'Quiet Thing ' .. i, commodity = false, vendor = 5000}
+      server.listings[9200 + i] = {{price = 1000, quantity = 1}}
+    end
+    server:install()
+    sniper.clear_deals()
+    sniper.settings_changed()
+    aux.set_tab(2) -- Search 1, Sniper 2
+    sniper.start()
+    check('R-01: the three deals are found', server:wait(function() return #sniper.deals >= 3 end, 300))
+    local function gone()
+      local n = 0
+      for _, d in ipairs(sniper.deals) do if d.deal_gone then n = n + 1 end end
+      return n
+    end
+    local r = sniper.round
+    check('R-01: a whole round ends with them still listed', server:wait(function() return sniper.round > r end, 300) and gone() == 0)
+    -- the auction house stops answering item lists; aux gives up on one after 20 seconds
+    local said = {}
+    rawset(G.DEFAULT_CHAT_FRAME, 'AddMessage', function(_, text) table.insert(said, tostring(text)) end)
+    server.browse_silent = true
+    server:ticks(330)
+    check('R-01: an unanswered round leaves every deal as it was', #sniper.deals >= 3 and gone() == 0)
+    check('R-01: and says nothing in chat (a quiet scan)', #said == 0)
+    rawset(G.DEFAULT_CHAT_FRAME, 'AddMessage', nil)
+    server.browse_silent = false
+    -- the list arrives one row at a time and the request for more is never answered
+    server.page_size, server.more_silent = 1, true
+    server:ticks(330)
+    check('R-02: a round with part of the list leaves the deals past its end alone', #sniper.deals >= 3 and gone() == 0)
+    -- a deal that really sold is still found gone by the next whole round
+    server.page_size, server.more_silent = nil, nil
+    server.listings[9202] = {}
+    check('R-01: a whole round still marks a sold deal gone', server:wait(function() return gone() == 1 end, 400))
+    sniper.stop()
+    sniper.clear_deals()
+    aux.set_tab(1)
+    server:restore()
+  end)
+
+  -- R-02 on the Post tab: gear is read by name, version by version. When the item list stops before
+  -- the versions of the selected name, the Post tab had nothing of that name, called its listings
+  -- ready and picked a price from elsewhere.
+  try('timing: R-02 the Post tab does not price gear from part of the item list', function()
+    local server = new_server(env)
+    local post = module 'aux.tabs.post'
+    server.items[4585] = {name = 'Cut Staff', commodity = false, vendor = 1487,
+      versions = {[201] = 'of the Bandit', [202] = 'of the Bear', [203] = 'of the Wolf'}}
+    server.listings[4585] = {
+      {price = 11500, quantity = 1, version = 201},
+      {price = 11000, quantity = 1, version = 202},
+      {price = 15000, quantity = 1, version = 203},
+    }
+    server.bag = {{id = 4585, count = 1, version = 203}}
+    server.page_size, server.more_silent = 2, true -- the Wolf's row is past the cut
+    server:install()
+    for _, box in ipairs{post.stack_size_input, post.stack_count_input} do
+      local n = 1
+      rawset(box, 'SetNumber', function(self, v) n = math.max(0, math.min(v, self.max_value or v)) end)
+      rawset(box, 'GetNumber', function() return n end)
+    end
+    rawset(post.duration_dropdown, 'GetIndex', function() return 2 end)
+    post.set_undercut_mode(false)
+    aux.set_tab(3)
+    server:ticks(2)
+    post.select_item('4585:of the wolf')
+    check('R-02 post: the Wolf staff is selected', post.selected_item and post.selected_item.key == '4585:of the wolf')
+    post.set_unit_buyout_price(0)
+    local function read_over()
+      post.validate_parameters()
+      return post.disabled_reason() ~= 'Reading the listings...'
+    end
+    check('R-02 post: the read ends', server:wait(read_over, 400))
+    server:ticks(3)
+    post.validate_parameters()
+    check('R-02 post: it says the read stopped, not that none are for sale', post.disabled_reason() == 'Reading stopped. Press Refresh, or type a price.')
+    check('R-02 post: no price was picked from the part that arrived', post.get_unit_buyout_price() == 0)
+    -- Refresh with the whole list: the Wolf listing is found and priced against
+    server.page_size, server.more_silent = nil, nil
+    post.refresh_button_click()
+    check('R-02 post: after Refresh the listings are in', server:wait(function()
+      post.validate_parameters()
+      return post.get_unit_buyout_price() == 15000
+    end, 300))
+    post_teardown(server, post)
+  end)
+
+  -- R-02 on the Search tab: the search says that items are missing (chat and the results line)
+  try('timing: R-02 a search with part of the item list says so', function()
+    local server = new_server(env)
+    local search = module 'aux.tabs.search'
+    local scan = module 'aux.core.scan'
+    for i = 1, 3 do
+      server.items[9300 + i] = {name = 'Partial Cloth ' .. i, commodity = true, vendor = 1}
+      server.listings[9300 + i] = {{price = 50, quantity = 10}}
+    end
+    server.page_size, server.more_silent = 2, true
+    server:install()
+    aux.set_tab(1)
+    search.frame:Show()
+    search.update_mode(search.NORMAL_MODE)
+    local said = {}
+    rawset(G.DEFAULT_CHAT_FRAME, 'AddMessage', function(_, text) table.insert(said, tostring(text)) end)
+    search.search_box:SetText('partial cloth')
+    search.execute(nil, false)
+    check('R-02 search: the search ends', server:wait(function() local s = search.current_search(); return s and s.complete end, 400))
+    local s = search.current_search()
+    check('R-02 search: it found the part that arrived', #s.records == 2)
+    check('R-02 search: the search is marked as missing items', s.incomplete == true)
+    local told
+    for _, line in ipairs(said) do if line:find(scan.PARTIAL_LIST_TEXT, 1, true) then told = true end end
+    check('R-02 search: chat says the list was cut', told)
+    check('R-02 search: the results line says so too', plain(search.results_summary(s) or ''):find('some items missing', 1, true) ~= nil)
+    rawset(G.DEFAULT_CHAT_FRAME, 'AddMessage', nil)
+    -- the same search with the whole list: nothing missing
+    server.page_size, server.more_silent = nil, nil
+    search.execute(nil, false)
+    check('R-02 search: searched again, the whole list arrives', server:wait(function() local t = search.current_search(); return t and t.complete and #t.records == 3 end, 400))
+    check('R-02 search: and nothing is said to be missing', not search.current_search().incomplete)
+    search.frame:Hide()
+    server:restore()
+  end)
+
+  -- R-02 on the Auctions tab: gear the price check found nothing for, because the item list was cut
+  -- before its versions, read "Only one listed"
+  try('timing: R-02 the Auctions check does not call an unread item the lowest', function()
+    local server = new_server(env)
+    local auctions = module 'aux.tabs.auctions'
+    server.items[4586] = {name = 'Check Staff', commodity = false, vendor = 1487,
+      versions = {[301] = 'of the Bandit', [302] = 'of the Bear', [303] = 'of the Wolf'}}
+    server.listings[4586] = {
+      {price = 11500, quantity = 1, version = 301},
+      {price = 11000, quantity = 1, version = 302},
+      {price = 9000, quantity = 1, version = 303},
+    }
+    server.page_size, server.more_silent = 2, true
+    server:install()
+    local mine = {item_id = 4586, price_key = '4586:of the wolf', item_search_key = server:key(4586, 303), sale_status = 0,
+      buyout_price = 15000, unit_buyout_price = 15000, count = 1, auction_id = 5, name = 'Check Staff of the Wolf'}
+    local real_records = auctions.listing.records
+    auctions.listing.records = {mine}
+    auctions.checks = {}
+    auctions.check_prices()
+    check('R-02 auctions: the check ends', server:wait(function() return not auctions.checking end, 400))
+    check('R-02 auctions: an item it could not read stays "Not checked"', auctions.auction_status(mine) == 'unchecked')
+    server.page_size, server.more_silent = nil, nil
+    auctions.check_prices()
+    check('R-02 auctions: checked again with the whole list', server:wait(function() return not auctions.checking end, 400))
+    local status, by = auctions.auction_status(mine)
+    check('R-02 auctions: the cheaper Wolf listing is found', status == 'undercut' and by == 6000)
+    auctions.listing.records = real_records
+    auctions.checks = {}
+    server:restore()
+  end)
+
+  -- R-14: a gear deal read again before buying. When its auction is gone and a cheaper one of the
+  -- item is there, the deal takes on that auction, price included: the button shows and sends what
+  -- that auction costs (the old, higher buyout was sent with the new auction's ID).
+  try('timing: R-14 a Sniper gear deal bought at the price of the auction found', function()
+    local server = new_server(env)
+    local sniper = module 'aux.tabs.sniper'
+    local bar = module 'aux.gui.buy_bar'
+    server.items[9401] = {name = 'Found Blade', commodity = false, vendor = 5000}
+    server.listings[9401] = {{price = 1000, quantity = 1}}
+    server:install()
+    aux.account_data.sniper_profit = 1
+    sniper.clear_deals()
+    sniper.settings_changed()
+    aux.set_tab(2) -- Search 1, Sniper 2
+    sniper.start()
+    local deal
+    check('R-14: the deal is found at 10s', server:wait(function()
+      for _, d in ipairs(sniper.deals) do if d.item_id == 9401 then deal = d end end
+      return deal ~= nil
+    end, 200) and deal.buyout_price == 1000)
+    sniper.stop()
+    server:ticks(20)
+    -- that auction sells and a cheaper one is posted before the player clicks the deal
+    server.listings[9401] = {{price = 900, quantity = 1}}
+    deal.deal_read_at = G.GetTime() - 100
+    sniper.listing:SetSelectedRecord(deal)
+    check('R-14: the deal is read again and offered', server:wait(function() return (bar.primary_label() or ''):find('^Buy for') ~= nil end, 100))
+    check('R-14: the button shows the price of the auction found, 9s', deal.buyout_price == 900 and plain(bar.primary_label()):find('9s', 1, true) ~= nil)
+    bar.primary_click()
+    check('R-14: the purchase arrives', server:wait(function() return #server.purchases > 0 end, 50))
+    check('R-14: 9s is what was sent, not the 10s first seen', #server.purchases == 1 and server.purchases[1].total == 900)
+    sniper.listing:SetSelectedRecord()
+    aux.account_data.sniper_profit = 500
+    sniper.clear_deals()
+    bar.clear()
+    aux.set_tab(1)
+    server:restore()
+  end)
+
+  -- R-12 and R-20: a full-mode search draws its table a few times a second, not after every item,
+  -- and an alert favorite brings up its popup once per search
+  try('timing: R-12 R-20 a search redraws now and then and alerts once', function()
+    local server = new_server(env)
+    local search = module 'aux.tabs.search'
+    for i = 1, 12 do
+      server.items[9500 + i] = {name = 'Redraw Cloth ' .. i, commodity = true, vendor = 1}
+      server.listings[9500 + i] = {{price = 50 + i, quantity = 10}}
+    end
+    server.delay, server.throttle = .1, 0 -- a fast auction house: an item read every frame or two
+    server:install()
+    local alert = {filter_string = 'redraw cloth', prettified = 'redraw cloth', alert = true}
+    tinsert(search.favorite_searches, 1, alert)
+    local alerts = 0
+    local real_show = G.StaticPopup_Show
+    G.StaticPopup_Show = function(name, ...) if name == 'AUX_SCAN_ALERT' then alerts = alerts + 1 end; return real_show(name, ...) end
+    aux.set_tab(1)
+    search.frame:Show()
+    search.update_mode(search.NORMAL_MODE)
+    local was_full = aux.account_data.full_search
+    search.set_full_search(true)
+    search.search_box:SetText('redraw cloth')
+    search.execute(nil, false)
+    local s = search.current_search()
+    local draws, real_set = 0, s.table.SetDatabase
+    rawset(s.table, 'SetDatabase', function(...) draws = draws + 1; return real_set(...) end)
+    check('R-12: the search ends with every item', server:wait(function() return s.complete end, 400) and #s.records == 12)
+    check('R-12: the table was drawn less often than once per item', draws >= 1 and draws <= 8)
+    local shown = 0
+    for _, row in ipairs(s.table.rowInfo) do shown = shown + #row.children end
+    check('R-12: and holds every row at the end', shown == 12)
+    check('R-20: an alert favorite brings up its popup once per search', alerts == 1)
+    rawset(s.table, 'SetDatabase', nil)
+    G.StaticPopup_Show = real_show
+    for i = #search.favorite_searches, 1, -1 do if search.favorite_searches[i] == alert then table.remove(search.favorite_searches, i) end end
+    search.set_full_search(was_full)
+    search.frame:Hide()
+    server:restore()
   end)
 end

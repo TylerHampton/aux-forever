@@ -365,9 +365,12 @@ function M.query(filter_string)
 
     if polish_notation_counter > 0 then
         local suggestions = {}
-        for key in ipairs(filters) do
+        -- 0.8.2.1 (outside review, R-16): pairs. The conditions are kept by name, so ipairs found
+        -- none and nothing was offered after "and/", "or/" or "not/" but those three words.
+        for key in pairs(filters) do
             tinsert(suggestions, strlower(key))
         end
+        sort(suggestions)
         tinsert(suggestions, 'and')
         tinsert(suggestions, 'or')
         tinsert(suggestions, 'not')

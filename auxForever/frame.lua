@@ -328,13 +328,17 @@ do
                     status_bar:set_text(format('Full scan: waiting for the auction house, %d:%02d so far. A search now would stop it.', floor(seconds / 60), seconds % 60))
                 end
             end,
-            on_auction = function(auction_record, total)
-                count = count + 1
-                status_bar:update_status(count / total, 0)
-                local percent = floor(count / total * 100)
-                if percent ~= shown_percent then
-                    shown_percent = percent
-                    status_bar:set_text(format('Full scan: reading auctions, %d%%', percent))
+            -- 0.8.2.1 (FB-027): how far the read is, once per pause of the scan (no auction record is
+            -- built for a Full scan any more, and the bar was redrawn for every auction)
+            on_progress = function(done, total)
+                count = done
+                if total > 0 then
+                    status_bar:update_status(done / total, 0)
+                    local percent = floor(done / total * 100)
+                    if percent ~= shown_percent then
+                        shown_percent = percent
+                        status_bar:set_text(format('Full scan: reading auctions, %d%%', percent))
+                    end
                 end
             end,
             on_abort = function()

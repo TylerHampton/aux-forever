@@ -155,7 +155,9 @@ function SlashCmdList.AUX(command)
         aux.print('For gear, buyers pick the listing themselves.')
         aux.print('Undercut mode [' .. status(aux.account_data.post_undercut) .. '] - /aux undercut on|off (it starts off each time the auction house opens)')
     elseif arguments[1] == 'clear' and arguments[2] == 'post' then
-        aux.faction_data.post = {}
+        -- emptied in place: the Post tab keeps this same table, so a new one left it reading the old
+        -- prices and writing new ones where they were never saved (outside review 2026-11-10, R-06)
+        aux.wipe(aux.faction_data.post)
         aux.print('Post data cleared.')
 	else
 		aux.print('Usage:')

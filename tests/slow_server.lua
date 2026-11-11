@@ -31,7 +31,7 @@ return function(env)
     money = 1000000,
   }
 
-  local saved, due, results, browse = {}, {}, {}, nil
+  local saved, due, results, browse, browse_rest = {}, {}, {}, nil, nil
   local auctions = {} -- [auction ID] = {id, listing}, as last shown in search results
   local quote
   local ready_at = 0
@@ -110,10 +110,23 @@ return function(env)
     }
   end
 
+  -- As in the game, an auction has an ID of its own, whatever row it shows in, and a row of
+  -- identical auctions carries on under a new ID once one of them is bought (the purchase clears
+  -- it). The ID used to be the row's place in the results, so another auction in the same place
+  -- passed for the same one (outside review 2026-11-10, R-14).
+  local function auction_id_of(l)
+    if not l.auction_id then
+      next_auction_id = next_auction_id + 1
+      l.auction_id = next_auction_id
+    end
+    return l.auction_id
+  end
+
   local function item_row(id, l, i)
-    auctions[id * 100 + i] = {id = id, listing = l}
+    local auction_id = auction_id_of(l)
+    auctions[auction_id] = {id = id, listing = l}
     return {
-      itemKey = server:key(id, l.version), itemLink = server:link(id, l.version), auctionID = id * 100 + i,
+      itemKey = server:key(id, l.version), itemLink = server:link(id, l.version), auctionID = auction_id,
       quantity = l.quantity, buyoutAmount = l.price, minBid = l.bid, bidAmount = nil,
       owners = {l.own and 'player' or 'Someone'}, totalNumberOfOwners = 1,
       containsOwnerItem = l.own or false, timeLeftSeconds = 40000,
@@ -230,7 +243,9 @@ return function(env)
     -- the item list of a search (browse)
     set(C, 'SendBrowseQuery', function(query)
       sent('browse ' .. (query.searchString or ''))
-      browse = nil
+      browse, browse_rest = nil, nil
+      -- browse_silent: the auction house never answers an item list (a busy server)
+      if server.browse_silent then return end
       later(function()
         browse = {}
         local text = string.lower(query.searchString or '')
@@ -251,12 +266,28 @@ return function(env)
           if a.itemKey.itemID ~= b.itemKey.itemID then return a.itemKey.itemID < b.itemKey.itemID end
           return a.itemKey.itemSuffix < b.itemKey.itemSuffix
         end)
+        -- page_size: the list arrives that many rows at a time, the rest when asked for more
+        if server.page_size and #browse > server.page_size then
+          browse_rest = {}
+          while #browse > server.page_size do table.insert(browse_rest, 1, table.remove(browse)) end
+        end
         env.fire('AUCTION_HOUSE_BROWSE_RESULTS_UPDATED')
       end)
     end)
-    set(C, 'HasFullBrowseResults', function() return browse ~= nil end)
+    set(C, 'HasFullBrowseResults', function() return browse ~= nil and not browse_rest end)
     set(C, 'GetBrowseResults', function() return browse or {} end)
-    set(C, 'RequestMoreBrowseResults', function() sent('more browse') end)
+    set(C, 'RequestMoreBrowseResults', function()
+      sent('more browse')
+      -- more_silent: a request for more of the list is never answered
+      if server.more_silent or not browse_rest then return end
+      later(function()
+        for _ = 1, server.page_size do
+          if browse_rest and browse_rest[1] then table.insert(browse, table.remove(browse_rest, 1)) end
+        end
+        if browse_rest and not browse_rest[1] then browse_rest = nil end
+        env.fire('AUCTION_HOUSE_BROWSE_RESULTS_ADDED')
+      end)
+    end)
 
     -- posting: the item leaves the bag and the listing appears when the server has answered
     local function finish_post(post)
@@ -340,6 +371,8 @@ return function(env)
           return
         end
         a.listing.quantity = a.listing.quantity - 1
+        a.listing.auction_id = nil -- what is left of the row goes on under a new ID
+        auctions[auction_id] = nil
         server.money = server.money - amount
         table.insert(server.purchases, {id = a.id, auction_id = auction_id, total = amount})
         env.fire('AUCTION_HOUSE_PURCHASE_COMPLETED', auction_id)
@@ -356,6 +389,7 @@ return function(env)
     if self.frame then self.frame:Hide(); self.frame:SetScript('OnUpdate', nil) end
     for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
     saved, due, results, browse, quote, auctions = {}, {}, {}, nil, nil, {}
+    browse_rest = nil
   end
 
   -- an answer the server still owes

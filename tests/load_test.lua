@@ -79,7 +79,10 @@ G.UIParent.__tracked = true -- the top of the frame tree: no parent
 G.UISpecialFrames = {}; G.StaticPopupDialogs = {}; G.SlashCmdList = {}; G.SOUNDKIT = {}
 local api = function(t) return setmetatable(t or {}, {__index=function() return function() return 0 end end}) end
 G.C_AuctionHouse = api{GetTimeLeftBandInfo=function(b) return 0, ({1800,7200,43200,86400})[b+1] end, IsThrottledMessageSystemReady=function() return true end, SupportsCopperValues=function() return true end, GetBrowseResults=function() return {} end}
-G.Enum = setmetatable({}, {__index=function(t,k) local e = setmetatable({}, {__index=function() return 1 end}); rawset(t,k,e); return e end})
+-- every enum member has a number of its own (outside review 2026-11-10, R-22): they all read 1, so
+-- ItemNotFound equaled ItemNotAvailable and a wrong member passed any comparison
+local enum_next = 100
+G.Enum = setmetatable({}, {__index=function(t,k) local e = setmetatable({}, {__index=function(e, m) enum_next = enum_next + 1; rawset(e, m, enum_next); return enum_next end}); rawset(t,k,e); return e end})
 for _, n in ipairs{'C_Item','C_Container','C_CurrencyInfo','C_Sound','C_AddOns','C_MerchantFrame','C_PlayerInfo','TooltipDataProcessor','ItemLocation','ChatFrameUtil'} do G[n] = api() end
 G.C_Container.GetContainerNumSlots = function() return 0 end
 G.C_Item.GetItemQualityColor = function() return 1, 1, 1, 'ffffffff' end -- r, g, b and the color code, as in the game
@@ -99,7 +102,31 @@ for i, q in ipairs{'Poor', 'Common', 'Uncommon', 'Rare', 'Epic'} do G['ITEM_QUAL
 G.ITEM_SPELL_CHARGES = '%d Charges'; G.AUCTION_DURATION_ONE = '2 Hours'; G.AUCTION_DURATION_TWO = '8 Hours'; G.AUCTION_DURATION_THREE = '24 Hours'
 setmetatable(G, {__index=function(_, k) if type(k)=='string' and (k:match('Button$') or k:match('ScrollBar$') or k:match('Text$') or k:match('Icon$') or k:match('Count$') or k:match('Text[LR]%a+%d+$')) then return new_frame(k) end end})
 
-local errors = 0
+-- A test that swaps a field for a fake ends with rawset(t, k, nil). The widgets keep many of
+-- their functions as plain fields (a table's GetSelection, a button's Enable, a dropdown's
+-- GetIndex), so that nil removed the real one for every later test: the Bids table lost
+-- GetSelection this way, which hid a real error (outside review 2026-11-10, R-21). In this file and
+-- in timing_test.lua, rawset remembers what a field held before its first swap, and a later nil
+-- puts that back.
+local real_rawset = rawset
+local swapped = setmetatable({}, {__mode = 'k'})
+local function rawset(t, k, v)
+  local kept = swapped[t]
+  if v == nil then
+    if kept and kept[k] then
+      real_rawset(t, k, kept[k][1])
+      kept[k] = nil
+    else
+      real_rawset(t, k, nil)
+    end
+    return t
+  end
+  if not kept then kept = {}; swapped[t] = kept end
+  if not kept[k] then kept[k] = {rawget(t, k)} end
+  return real_rawset(t, k, v)
+end
+
+local errors, checks = 0, 0
 local function try(label, f, ...)
   local ok, err = pcall(f, ...)
   if not ok then errors = errors + 1; print('ERROR', label, err) end
@@ -135,6 +162,7 @@ for i = 1, 5 do
 end
 -- Buy bar (gui/buy_bar.lua)
 local function check(label, ok)
+  checks = checks + 1
   if not ok then errors = errors + 1; print('FAIL', label) end
 end
 local function tick()
@@ -784,7 +812,9 @@ end)
 try('table columns', function()
   local require = loadstring("select(2, ...) 'aux.test13'; return require")('auxForever', addon)
   local al = require 'aux.gui.auction_listing'
-  for name, columns in pairs{search = al.search_columns, auctions = al.auctions_columns, bids = al.bids_columns} do
+  local auctions_tab = loadstring("select(2, ...) 'aux.tabs.auctions'; return _M")('auxForever', addon)
+  check('the unused auctions column list is gone (R-17)', al.auctions_columns == nil)
+  for name, columns in pairs{search = al.search_columns, auctions = auctions_tab.columns, bids = al.bids_columns} do
     -- Tyler, 0.7: Req, iLvl, Item, For sale (build 4: "Req first always"); the units for sale never
     -- next to a level
     check(name .. ': required level is the first column', columns[1].title == 'Req')
@@ -5701,11 +5731,402 @@ try('0.8.2 build 6: Full scan button and % of usual in crafting', function()
   h.data['7701:0'] = nil; h.data['7702:0'] = nil
 end)
 
+-- Outside review of 2026-11-10 (docs/reviews/2026-11-10-outside-review.md), 0.8.2.1
+try('outside review: R-03 R-04 R-06', function()
+  local function M(name) return loadstring("select(2, ...) '" .. name .. "'; return _M")('auxForever', addon) end
+  local a, sniper, h, scan = M 'aux', M 'aux.tabs.sniper', M 'aux.core.history', M 'aux.core.scan'
+
+  -- R-04: the Bids tab's buttons follow the selection, and a click with nothing selected does nothing
+  local bids = M 'aux.tabs.bids'
+  local bid = {item_id = 1, item_key = '1:0', price_key = '1:0', name = 'Bid Thing', search_signature = 'bid thing', sniping_signature = 'bid thing',
+    buyout_price = 1000, bid_price = 500, unit_buyout_price = 1000, unit_bid_price = 500, count = 1, auction_id = 77,
+    link = '|cffffffff|Hitem:1::::::0:0|h[Bid Thing]|h|r', requirement = 1, duration = 2, sale_status = 0}
+  bids.refresh, bids.next_refresh = false, GetTime() + 1000
+  bids.listing:SetDatabase({bid})
+  bids.listing:SetSelectedRecord(bid)
+  check('R-04: the Bids table has its own GetSelection again (R-21)', bids.listing:GetSelection() and bids.listing:GetSelection().record == bid)
+  bids.next_buttons = 0
+  bids.on_update()
+  check('R-04: a bid selected: Bid and Buyout can be pressed', bids.bid_button.aux_enabled == true and bids.buyout_button.aux_enabled == true)
+  bids.listing:SetSelectedRecord() -- the player clicks the row again to let go
+  bids.next_buttons = 0
+  bids.on_update()
+  check('R-04: nothing selected: neither can be pressed', bids.bid_button.aux_enabled == false and bids.buyout_button.aux_enabled == false)
+  local placed = 0
+  local real_place = rawget(C_AuctionHouse, 'PlaceBid')
+  rawset(C_AuctionHouse, 'PlaceBid', function() placed = placed + 1 end)
+  local ok1 = pcall(bids.bid_button.__scripts.OnClick, bids.bid_button)
+  local ok2 = pcall(bids.buyout_button.__scripts.OnClick, bids.buyout_button)
+  check('R-04: a click with nothing selected raises no error', ok1 and ok2)
+  check('R-04: and bids on nothing', placed == 0)
+  rawset(C_AuctionHouse, 'PlaceBid', real_place)
+  bids.listing:SetDatabase({})
+
+  -- R-06: /aux clear post empties the table the Post tab reads and writes
+  local post = M 'aux.tabs.post'
+  post.write_settings({duration = 2, start_price = 0, buyout_price = 4200, hidden = false}, '9966:0')
+  check('R-06: a price is remembered', post.read_settings('9966:0').buyout_price == 4200)
+  SlashCmdList.AUX('clear post')
+  check('R-06: clear post forgets it at once', post.read_settings('9966:0').buyout_price == 0)
+  post.write_settings({duration = 2, start_price = 0, buyout_price = 77, hidden = false}, '9966:0')
+  check('R-06: a price remembered afterwards is in the saved table', a.faction_data.post['9966:0'] ~= nil and post.data == a.faction_data.post)
+  a.faction_data.post['9966:0'] = nil
+
+  -- R-03: an item refused for too few days of history is judged again once a Full scan adds today
+  local d = h.today()
+  local real_info = G.GetItemInfo
+  G.GetItemInfo = function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id == 955 then return 'Third Day Herb', '|cffffffff|Hitem:955::::::0:0|h[Third Day Herb]|h|r', 2, 20, 15, 'Trade Goods', 'Herb', 20, '', 1, 1 end
+    return real_info(x)
+  end
+  local old_percent, old_profit = a.account_data.sniper_percent, a.account_data.sniper_profit
+  a.account_data.sniper_percent, a.account_data.sniper_profit = 60, 1
+  h.write_record('955:0', {day = d, points = {{value = 3200, day = d - 1, units = 10}, {value = 3200, day = d - 2, units = 10}}})
+  local opened = {}
+  local real_check = sniper.check_item
+  sniper.check_item = function(_, key) opened[key] = true end
+  local r = {itemKey = {itemID = 955, itemSuffix = 0, itemLevel = 20}, totalQuantity = 5, minPrice = 500}
+  local k = scan.item_key_string(r.itemKey)
+  sniper.settings_changed()
+  sniper.check_list({r}, {})
+  check('R-03: with 2 days of history the item is not opened', not opened[k])
+  -- today's Full scan: 40 listed at 32s and the cheap 5
+  local list = {}
+  for _ = 1, 40 do tinsert(list, 3200) end
+  for _ = 1, 5 do tinsert(list, 500) end
+  local saved = {}
+  local function set(t, key, v) tinsert(saved, {t, key, rawget(t, key)}); rawset(t, key, v) end
+  set(C_AuctionHouse, 'ReplicateItems', function() end)
+  set(C_AuctionHouse, 'GetNumReplicateItems', function() return #list end)
+  set(C_AuctionHouse, 'GetReplicateItemInfo', function(i) return 'Third Day Herb', 1, 1, 2, true, 20, nil, 0, 0, list[i + 1], 0, false, nil, 'Seller', nil, 0, 955, true end)
+  set(C_AuctionHouse, 'GetReplicateItemLink', function() return '|cffffffff|Hitem:955::::::0:0|h[Third Day Herb]|h|r' end)
+  local done
+  scan.start{type = 'list', queries = {{blizzard_query = {}}}, get_all = true, quiet = true, on_complete = function() done = true end}
+  for _ = 1, 10 do tick() end
+  fire('REPLICATE_ITEM_LIST_UPDATE')
+  for _ = 1, 120 do tick(); if done then break end end
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  check('R-03: the Full scan finished and today counts as a third day', done and select(2, h.value_and_complete_days('955:0')) == 3)
+  opened = {}
+  sniper.check_list({r}, {})
+  check('R-03: after the Full scan the same listing is judged again and opened', opened[k] == true)
+  -- midnight: the usual prices change, so everything is judged again on a new day
+  opened = {}
+  sniper.check_list({r}, {})
+  check('R-03: opened once (check_item is faked, so it stays a candidate)', opened[k] == true)
+  local far = {itemKey = {itemID = 955, itemSuffix = 0, itemLevel = 20}, totalQuantity = 5, minPrice = 3000}
+  sniper.forget_on_new_day(d)
+  sniper.check_list({far}, {})
+  opened = {}
+  sniper.check_list({far}, {})
+  local judged = 0
+  local real_facts = sniper.item_facts
+  sniper.item_facts = function(...) judged = judged + 1; return real_facts(...) end
+  sniper.check_list({far}, {})
+  check('R-03: a price already refused is not judged again the same day', judged == 0)
+  sniper.forget_on_new_day(d)
+  sniper.check_list({far}, {})
+  check('R-03: nor when the day is still the same', judged == 0)
+  sniper.forget_on_new_day(d + 1)
+  sniper.check_list({far}, {})
+  check('R-03: on a new day it is judged again', judged == 1)
+  sniper.item_facts = real_facts
+  sniper.check_item = real_check
+  sniper.settings_changed()
+  a.account_data.sniper_percent, a.account_data.sniper_profit = old_percent, old_profit
+  G.GetItemInfo = real_info
+  h.data['955:0'] = nil
+end)
+
+-- R-18: an event reaches every listener exactly once, also when a callback makes new listeners
+-- (which a callback that starts a scan does), and a thread started by a thread does not upset the
+-- frame's walk over the threads
+try('outside review: R-18 listeners and threads added during a walk', function()
+  local a = loadstring("select(2, ...) 'aux.test.r18'; return require 'aux'")('auxForever', addon)
+  local calls, ids, extra = {}, {}, {}
+  for i = 1, 12 do
+    calls[i] = 0
+    ids[i] = a.event_listener('AUX_TEST_R18', function()
+      calls[i] = calls[i] + 1
+      -- each callback makes many listeners, as a scan's requests do; the table grows while walked
+      for _ = 1, 40 do tinsert(extra, a.event_listener('AUX_TEST_R18_OTHER', function() end)) end
+    end)
+  end
+  local late = 0
+  local late_id
+  ids[13] = a.event_listener('AUX_TEST_R18', function()
+    if not late_id then late_id = a.event_listener('AUX_TEST_R18', function() late = late + 1 end) end
+  end)
+  for round = 1, 5 do
+    fire('AUX_TEST_R18')
+    local once = true
+    for i = 1, 12 do if calls[i] ~= round then once = false end end
+    check('R-18: every listener got event ' .. round .. ' exactly once', once)
+  end
+  check('R-18: a listener made during an event gets the later ones, not that one', late == 4)
+  -- a killed listener gets nothing more, at once
+  a.kill_listener(ids[1])
+  fire('AUX_TEST_R18')
+  check('R-18: a killed listener is not called', calls[1] == 5 and calls[2] == 6)
+  for _, id in ipairs(ids) do a.kill_listener(id) end
+  for _, id in ipairs(extra) do a.kill_listener(id) end
+  a.kill_listener(late_id)
+  tick()
+  -- threads: each of 20 threads starts 10 more while the frame runs them; all run to their end
+  local finished, before = 0, a.thread_count()
+  for _ = 1, 20 do
+    a.coro_thread(function()
+      a.coro_wait()
+      for _ = 1, 10 do
+        a.coro_thread(function() a.coro_wait(); a.coro_wait(); finished = finished + 1 end)
+      end
+      a.coro_wait()
+      finished = finished + 1
+    end)
+  end
+  for _ = 1, 8 do tick() end
+  check('R-18: threads started by threads all run to their end', finished == 220)
+  check('R-18: and none is left behind', a.thread_count() == before)
+end)
+
+-- R-07, R-08, R-09 (FB-027): the Full scan pauses by the clock, builds no auction record, and asks
+-- about listings that have not loaded a share at a time
+try('outside review: R-07 R-08 R-09 the Full scan', function()
+  local function M(name) return loadstring("select(2, ...) '" .. name .. "'; return _M")('auxForever', addon) end
+  local a, h, scan = M 'aux', M 'aux.core.history', M 'aux.core.scan'
+  local names = {[981] = 'Lean Herb', [982] = 'Lean Staff'}
+  local real_info = G.GetItemInfo
+  G.GetItemInfo = function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if names[id] then return names[id], '|cffffffff|Hitem:' .. id .. '::::::0:0|h[' .. names[id] .. ']|h|r', 2, 20, 15, 'Trade Goods', 'Herb', 20, '', 1, 1 end
+    return real_info(x)
+  end
+  -- stacks of a trade good, and a staff under two endings
+  local list = {}
+  for i = 1, 30 do tinsert(list, {id = 981, count = 1 + i % 5, buyout = (1 + i % 5) * (40 + i % 7), name = 'Lean Herb'}) end
+  for i = 1, 6 do tinsert(list, {id = 982, count = 1, buyout = 9000 + i * 100, name = 'Lean Staff of the Wolf'}) end
+  for i = 1, 4 do tinsert(list, {id = 982, count = 1, buyout = 5000 + i * 100, name = 'Lean Staff of the Bear'}) end
+  tinsert(list, {id = 981, count = 3, buyout = 0, name = 'Lean Herb'}) -- bid only: no price
+  local loaded = function() return true end
+  local asked = 0
+  local saved = {}
+  local function set(t, key, v) tinsert(saved, {t, key, rawget(t, key)}); rawset(t, key, v) end
+  set(C_AuctionHouse, 'ReplicateItems', function() end)
+  set(C_AuctionHouse, 'GetNumReplicateItems', function() return #list end)
+  set(C_AuctionHouse, 'GetReplicateItemInfo', function(i)
+    asked = asked + 1
+    local x = list[i + 1]
+    return x.name, 1, x.count, 2, true, 20, nil, 0, 0, x.buyout, 0, false, nil, 'Seller', nil, 0, x.id, loaded(i)
+  end)
+  set(C_AuctionHouse, 'GetReplicateItemLink', function(i) local x = list[i + 1]; return '|cffffffff|Hitem:' .. x.id .. '::::::0:0|h[' .. x.name .. ']|h|r' end)
+  local records_built = 0
+  set(C_PlayerInfo, 'CanUseItem', function() records_built = records_built + 1; return true end) -- asked once per auction record
+  local keys = {'981:0', '982:of the wolf', '982:of the bear'}
+  local function full_scan(params, ticks_after)
+    for _, key in ipairs(keys) do h.data[key] = nil end
+    local done, result, frames = false, nil, 0
+    params.type, params.queries, params.get_all, params.quiet = 'list', {{blizzard_query = {}}}, true, true
+    params.on_complete = function(r) done, result = true, r end
+    scan.start(params)
+    for _ = 1, 10 do tick() end
+    fire('REPLICATE_ITEM_LIST_UPDATE')
+    for _ = 1, ticks_after or 3000 do tick(); frames = frames + 1; if done then break end end
+    local lines = {}
+    for _, key in ipairs(keys) do tinsert(lines, key .. '=' .. tostring(h.data[key])) end
+    return table.concat(lines, ' '), result, frames, done
+  end
+  -- R-08: the lean read records the same prices as the read that builds records
+  local with_records = full_scan({on_auction = function() end})
+  check('R-08: the read with records builds one per auction', records_built == #list)
+  records_built = 0
+  local progress = {}
+  local lean, result = full_scan({on_progress = function(done, total) tinsert(progress, done .. '/' .. total) end})
+  check('R-08: the Full scan builds no auction record', records_built == 0)
+  check('R-08: and records the same prices, per ending', lean == with_records and h.data['982:of the wolf'] ~= nil and h.data['982:of the bear'] ~= nil)
+  check('R-08: it says how far it is and ends at all of them', progress[#progress] == #list .. '/' .. #list)
+  check('R-08: the result says how many were read', result and result.full and result.full.recorded == #list)
+
+  -- R-07: by the clock, a long list of cheap auctions takes few frames; without one, 100 a frame
+  local long = {}
+  for i = 1, 5000 do long[i] = {id = 981, count = 1, buyout = 40 + i % 9, name = 'Lean Herb'} end
+  local short = list
+  list = long
+  local _, _, frames_counted = full_scan({})
+  check('R-07: without the game\'s clock the read pauses every 100 auctions', frames_counted >= 50)
+  -- a clock where every look at it costs a twentieth of a millisecond: 8 ms are 1,600 auctions
+  local now = 0
+  G.debugprofilestop = function() now = now + .05; return now end
+  local _, _, frames_clocked, finished = full_scan({})
+  G.debugprofilestop = nil
+  -- both counts include the 2 seconds (20 frames) the scan waits for the list to stop growing
+  check('R-07: with the clock the same read takes a few frames', finished and frames_clocked <= 30 and frames_counted - frames_clocked >= 40)
+  check('R-07: coro_due is false without a clock until the count comes round', a.coro_due(7, 100) == false and a.coro_due(200, 100) == true)
+
+  -- R-09: listings that never load are asked about a share at a time, not all of them every frame
+  list = {}
+  for i = 1, 1000 do list[i] = {id = 981, count = 1, buyout = 50, name = 'Lean Herb'} end
+  loaded = function() return false end
+  local done
+  scan.start{type = 'list', queries = {{blizzard_query = {}}}, get_all = true, quiet = true, on_complete = function() done = true end}
+  for _ = 1, 10 do tick() end
+  fire('REPLICATE_ITEM_LIST_UPDATE')
+  for _ = 1, 60 do tick() end -- the list is read (all 1,000 not loaded); now they are waited for
+  local most = 0
+  for _ = 1, 20 do
+    asked = 0
+    tick()
+    if asked > most then most = asked end
+  end
+  check('R-09: at most 200 unloaded listings are asked about per frame', most > 0 and most <= 200)
+  -- they load: every one is still read, each once
+  loaded = function() return true end
+  for _ = 1, 400 do tick(); if done then break end end
+  check('R-09: once they load, the scan ends', done)
+  local _, units = h.today_market('981:0')
+  check('R-09: and all 1,000 are counted, none twice', units == 1000)
+  scan.abort()
+  list = short
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  for _, key in ipairs(keys) do h.data[key] = nil end
+  G.GetItemInfo = real_info
+end)
+
+-- The smaller findings of the outside review (R-11, R-13, R-15, R-16, R-20, R-22)
+try('outside review: smaller findings', function()
+  local function M(name) return loadstring("select(2, ...) '" .. name .. "'; return _M")('auxForever', addon) end
+  local a, money, f, sniper, post, h, scan = M 'aux', M 'aux.util.money', M 'aux.util.filter', M 'aux.tabs.sniper', M 'aux.tabs.post', M 'aux.core.history', M 'aux.core.scan'
+
+  -- R-22: enum members differ in the stubs
+  check('R-22: two enum members are two numbers', Enum.AuctionHouseError.ItemNotFound ~= Enum.AuctionHouseError.ItemNotAvailable)
+
+  -- R-15: a price box takes plain numbers and coins, nothing else the language calls a number
+  check('R-15: 1.5 is 1g 50s', money.from_string('1.5') == 15000)
+  check('R-15: 12 is 12g, .5 is 50s, 5. is 5g', money.from_string('12') == 120000 and money.from_string('.5') == 5000 and money.from_string('5.') == 50000)
+  check('R-15: coins still read', money.from_string('1g 20s 5c') == 12005 and money.from_string('7c') == 7)
+  check('R-15: inf, nan, hex and exponents are not prices', money.from_string('inf') == nil and money.from_string('nan') == nil and money.from_string('0x10') == nil and money.from_string('1e3') == nil)
+  check('R-15: a price is capped at the game\'s highest', money.from_string('99999999999999') == 99999999999)
+
+  -- R-16: after an operator the conditions are offered
+  local query, suggestions = f.query('cloth/and')
+  local offered = {}
+  for _, word in ipairs(suggestions or {}) do offered[word] = true end
+  check('R-16: after "and/" the conditions are offered', query == nil and offered['price'] and offered['seller'] and offered['and'])
+
+  -- R-20: one number for the cut
+  check('R-20: the cut is one number for every tab', a.AUCTION_CUT == .05 and sniper.AUCTION_CUT == a.AUCTION_CUT and post.AUCTION_CUT == a.AUCTION_CUT)
+
+  -- R-13: the item names are sorted only when they are out of order
+  local names = {'ab', 'abc', 'abd', 'longer name'}
+  check('R-13: a sorted name list is left alone', a.sort_item_names(names) == false)
+  tinsert(names, 'a')
+  check('R-13: a name added at the end is sorted in', a.sort_item_names(names) == true and names[1] == 'a' and names[5] == 'longer name')
+  -- an item the game loads that aux knows already starts no thread
+  a.account_data.items[424242] = 'known'
+  local threads_before = a.thread_count()
+  fire('GET_ITEM_INFO_RECEIVED', 424242, true)
+  check('R-13: a known item loading starts no thread', a.thread_count() == threads_before)
+  a.account_data.items[424242] = nil
+
+  -- R-11: counting an item in the bags reads no tooltip
+  local saved = {}
+  local function set(t, key, v) tinsert(saved, {t, key, rawget(t, key)}); rawset(t, key, v) end
+  local bag = {{id = 7801, count = 12, name = 'Count Herb'}, {id = 7802, count = 3, name = 'Other Herb'}, {id = 7801, count = 5, name = 'Count Herb'}, {id = 7803, count = 1, name = 'Count Staff of the Wolf'}}
+  local real_info = G.GetItemInfo
+  G.GetItemInfo = function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id == 7801 then return 'Count Herb', nil, 1, 5, 1, 'Trade Goods', 'Herb', 20, '', 1, 10 end
+    if id == 7802 then return 'Other Herb', nil, 1, 5, 1, 'Trade Goods', 'Herb', 20, '', 1, 10 end
+    if id == 7803 then return 'Count Staff', nil, 2, 20, 15, 'Weapon', 'Staves', 1, 'INVTYPE_2HWEAPON', 1, 100 end
+    return real_info(x)
+  end
+  set(C_Container, 'GetContainerNumSlots', function(b) return b == 0 and #bag or 0 end)
+  set(C_Container, 'GetContainerItemLink', function(b, slot) local x = b == 0 and bag[slot]; return x and '|cffffffff|Hitem:' .. x.id .. '::::::0:0|h[' .. x.name .. ']|h|r' end)
+  set(C_Container, 'GetContainerItemInfo', function(b, slot) local x = b == 0 and bag[slot]; return x and {stackCount = x.count, iconFileID = 1} end)
+  local tooltips = 0
+  set(AuxTooltip, 'SetBagItem', function() tooltips = tooltips + 1 end)
+  check('R-11: the bag count adds up the slots of the item', post.bag_count('7801:0') == 17)
+  check('R-11: gear is counted by its ending', post.bag_count('7803:of the wolf') == 1 and post.bag_count('7803:0') == 0)
+  check('R-11: and reads no tooltip for it', tooltips == 0)
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  saved = {}
+
+  -- R-20: an ignored gear name is ignored under every version the auction house keeps it by
+  local d = h.today()
+  G.GetItemInfo = function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id == 971 then return 'Ignore Staff', '|cffffffff|Hitem:971::::::0:0|h[Ignore Staff]|h|r', 2, 20, 15, 'Weapon', 'Staves', 1, 'INVTYPE_2HWEAPON', 1, 1 end
+    return real_info(x)
+  end
+  local real_key_info = C_AuctionHouse.GetItemKeyInfo
+  set(C_AuctionHouse, 'GetItemKeyInfo', function(key) return key.itemID == 971 and {itemID = 971, itemName = 'Ignore Staff of the Wolf', quality = 2} or real_key_info(key) end)
+  h.write_record('971:of the wolf', {day = d, points = {{value = 3200, day = d - 1, units = 10}, {value = 3200, day = d - 2, units = 10}, {value = 3200, day = d - 3, units = 10}}})
+  local old_percent, old_profit = a.account_data.sniper_percent, a.account_data.sniper_profit
+  a.account_data.sniper_percent, a.account_data.sniper_profit = 60, 1
+  local opened = {}
+  local real_check = sniper.check_item
+  sniper.check_item = function(_, key) opened[key] = true end
+  local function version(suffix) return {itemKey = {itemID = 971, itemSuffix = suffix, itemLevel = 20}, totalQuantity = 1, minPrice = 1000} end
+  local v1, v2 = version(11), version(12)
+  local k1, k2 = scan.item_key_string(v1.itemKey), scan.item_key_string(v2.itemKey)
+  sniper.settings_changed()
+  sniper.check_list({v1, v2}, {})
+  check('R-20: both versions of the staff are possible deals', opened[k1] and opened[k2])
+  local ignored_before = sniper.ignored_count()
+  sniper.ignore({deal_key = k1, price_key = '971:of the wolf', name = 'Ignore Staff of the Wolf'})
+  check('R-20: ignoring it adds one entry', sniper.ignored_count() == ignored_before + 1)
+  sniper.settings_changed()
+  opened = {}
+  sniper.check_list({v1, v2}, {})
+  check('R-20: an ignored gear name is ignored under its other version too', not opened[k1] and not opened[k2])
+  a.account_data.sniper_ignored['971:of the wolf'] = nil
+  sniper.check_item = real_check
+  sniper.settings_changed()
+  a.account_data.sniper_percent, a.account_data.sniper_profit = old_percent, old_profit
+  h.data['971:of the wolf'] = nil
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  G.GetItemInfo = real_info
+
+  -- R-20: removing a favorite removes the one asked about, also after the list changed meanwhile
+  local search = M 'aux.tabs.search'
+  local favorites = search.favorite_searches
+  local keep = {filter_string = 'keep me', prettified = 'keep me'}
+  local drop = {filter_string = 'drop me', prettified = 'drop me'}
+  tinsert(favorites, 1, keep); tinsert(favorites, 1, drop)
+  -- the question is open for "drop me" (row 1); meanwhile another favorite moves to the top
+  local moved = {filter_string = 'moved up', prettified = 'moved up'}
+  tinsert(favorites, 1, moved)
+  StaticPopupDialogs.AUX_REMOVE_FAVORITE_CONFIRMATION.OnAccept(nil, drop)
+  local left = {}
+  for _, entry in ipairs(favorites) do left[entry.filter_string] = true end
+  check('R-20: the favorite asked about is the one removed', not left['drop me'] and left['keep me'] and left['moved up'])
+  for i = #favorites, 1, -1 do if favorites[i] == keep or favorites[i] == moved then tremove(favorites, i) end end
+  search.update_search_listings()
+
+  -- R-20: a price request the game drops for being sent too soon is said at once
+  local bar = M 'aux.gui.buy_bar'
+  local calls = {}
+  set(C_AuctionHouse, 'StartCommoditiesPurchase', function() tinsert(calls, 'start') end)
+  set(C_AuctionHouse, 'CancelCommoditiesPurchase', function() tinsert(calls, 'cancel') end)
+  bar.show_commodity{item_id = 7811, name = 'Busy Herb', max_stack = 20, tiers = function() return {{count = 50, commodity_unit_price = 6}} end}
+  tick()
+  bar.primary_click()
+  check('R-20: the price is asked for', calls[1] == 'start' and bar.busy())
+  fire('AUCTION_HOUSE_THROTTLED_MESSAGE_DROPPED')
+  tick()
+  local line1, line2 = bar.lines()
+  check('R-20: a dropped price request is said at once, and Buy can be pressed again', not bar.busy() and tostring(line1):find('busy', 1, true) ~= nil and bar.primary_label():find('^Buy') ~= nil)
+  bar.clear()
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
 dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({
-  G = G, fire = fire, tick = tick, check = check, try = try, addon = addon,
+  G = G, fire = fire, tick = tick, check = check, try = try, addon = addon, rawset = rawset,
   dir = (arg and arg[0] or ''):gsub('[^/\\]*$', ''),
 })
 
+-- how many checks ran, so a block that silently stops running shows as a lower number
+print('checks: ' .. checks)
 print('done, errors: ' .. errors)

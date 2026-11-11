@@ -180,12 +180,17 @@ local function today_min_table()
 end
 
 function M.process_auction(auction_record)
-	local unit_buyout_price = ceil(auction_record.buyout_price / auction_record.count)
+	process_price(auction_record.price_key or auction_record.item_key, auction_record.buyout_price, auction_record.count)
+end
+
+-- the same from plain numbers: a price key, a buyout and how many it is for (0.8.2.1: the Full scan
+-- reads these without building an auction record)
+function M.process_price(key, buyout_price, count)
+	local unit_buyout_price = ceil(buyout_price / count)
 	if unit_buyout_price <= 0 then
 		return
 	end
 	local mins = today_min_table()
-	local key = auction_record.price_key or auction_record.item_key
 	local known = mins[key]
 	if known and unit_buyout_price >= known then
 		return
@@ -437,18 +442,22 @@ function M.new_collector()
 end
 
 function M.collect(collector, record)
-	local units = record_units(record)
 	local key = record.price_key or record.item_key
 	if (record.buyout_price or 0) <= 0 or not key then
 		return
 	end
+	collect_price(collector, key, ceil(record.buyout_price / max(1, record.count or 1)), record_units(record))
+end
+
+-- the same from plain numbers: a unit price and how many units are listed at it
+function M.collect_price(collector, key, unit_price, units)
 	local flat = collector.items[key]
 	if not flat then
 		flat = {}
 		collector.items[key] = flat
 		collector.count = collector.count + 1
 	end
-	tinsert(flat, ceil(record.buyout_price / max(1, record.count or 1)))
+	tinsert(flat, unit_price)
 	tinsert(flat, units)
 end
 
@@ -464,9 +473,9 @@ function M.finish_collector(collector, each)
 			record_view(key, flat)
 		end
 		done = done + 1
-		if done % 200 == 0 then
-			aux.coro_wait()
-		end
+		-- by the clock (0.8.2.1, R-07): 200 items a frame made single long frames at the end of a
+		-- Full scan
+		aux.coro_slice(done, 200)
 	end
 	collector.items, collector.count, collector.partial = {}, 0, {}
 end
