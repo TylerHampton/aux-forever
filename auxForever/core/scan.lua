@@ -52,6 +52,15 @@ function M.timing_report(t, total, stopped)
         format_seconds(t.browse), format_seconds(t.answer), format_seconds(t.throttle), format_seconds(t.item_data), format_seconds(other)))
     tinsert(lines, format('Answers: %d on time, %d after the 1s fallback, %d timed out (20s each), %d dropped and resent',
         t.event, t.cached, t.timeout, t.dropped))
+    -- 0.8.2.1 build 2 (outside review, R-05): the game has an event of its own for "results arrived"
+    -- (AUCTION_HOUSE_NEW_RESULTS_RECEIVED, made for addons: Code, Blizzard's documentation, build
+    -- 70888; not seen in game). aux does not act on it yet. Counted here so that one /aux debug
+    -- line says whether it also comes for the answers aux takes after its 1 second wait; if it
+    -- does, aux can wait for it instead of guessing.
+    if (t.requests or 0) > 0 then
+        tinsert(lines, format('The game announced %d of %d answers itself, %d of the %d taken after the 1s fallback',
+            t.signal or 0, t.requests, t.cached_signal or 0, t.cached))
+    end
     if #t.slow > 0 then
         sort(t.slow, function(a, b) return a.seconds > b.seconds end)
         local parts = {}
@@ -79,7 +88,7 @@ end
 
 function M.new_timing()
     return {t0 = GetTime(), items = 0, event = 0, cached = 0, timeout = 0, dropped = 0,
-        browse = 0, answer = 0, throttle = 0, item_data = 0, slow = {}}
+        browse = 0, answer = 0, throttle = 0, item_data = 0, slow = {}, requests = 0, signal = 0, cached_signal = 0}
 end
 
 local function timing_finish(stopped)
@@ -322,6 +331,14 @@ function request(send, events, match, cached)
             dropped = true
         end)
         state.listener_ids[drop_id] = true
+        -- only counted, and only while the timing log is on (see timing_report)
+        local signalled, signal_id
+        if timing then
+            signal_id = aux.event_listener('AUCTION_HOUSE_NEW_RESULTS_RECEIVED', function()
+                signalled = true
+            end)
+            state.listener_ids[signal_id] = true
+        end
         local wait = listen(events, match)
         send()
         local received = wait(TIMEOUT, function(elapsed)
@@ -329,13 +346,24 @@ function request(send, events, match, cached)
         end)
         aux.kill_listener(drop_id)
         state.listener_ids[drop_id] = nil
+        if signal_id then
+            aux.kill_listener(signal_id)
+            state.listener_ids[signal_id] = nil
+        end
         timing_add('answer', GetTime() - t_answer)
+        timing_add('requests')
+        if signalled then
+            timing_add('signal')
+        end
         if received then
             timing_add('event')
             return received
         elseif not dropped then
             local from_cache = cached and cached() or false
             timing_add(from_cache and 'cached' or 'timeout')
+            if from_cache and signalled then
+                timing_add('cached_signal')
+            end
             return from_cache
         end
         timing_add('dropped')

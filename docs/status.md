@@ -9,8 +9,9 @@ released, move its notes to `docs/status-history.md` (everything before 2026-11-
 
 **Released:** 0.8.2 (tag `v0.8.2` on `main`, GitHub release, CurseForge Beta file), 2026-11-09.
 
-**Being built:** 0.8.2.1 build 2 on branch `claude/festive-faraday-w1xbvz` (`main` plus this work).
-Not tested in game yet (build 1 was never tested either). No pull request yet.
+**Being built:** 0.8.2.1 build 3 on branch `claude/festive-faraday-w1xbvz` (`main` plus this work).
+Not tested in game yet (builds 1 and 2 were never tested either; build 3 is build 2 plus one
+line in the `/aux debug` log). No pull request yet.
 
 **What 0.8.2.1 is.** On 2026-11-10 Tyler asked Claude for a full review of the code as an outside
 expert, then to build the fixes ("I want you to write all the changes as well"), then said yes to
@@ -45,16 +46,19 @@ fail). What changed, by area:
 game), R-28 (structure, for a later version), the test file split (R-23), naming the release action
 by commit (R-25), and one part each of R-16 and R-20 (each would change something that works today).
 
-**Next step:** Tyler tests build 2 (nine steps, the last only with a gamepad: `TESTING.md`, test
-page build id `0-8-2-1-build-2`, zip `auxForever-0.8.2.1-build2.zip`, `/reload` is enough). Read the
+**Next step:** Tyler tests build 3 (ten steps, the last only with a gamepad: `TESTING.md`, test
+page build id `0-8-2-1-build-3`, zip `auxForever-0.8.2.1-build3.zip`, `/reload` is enough). Read the
 test page results first. Step 1 gives the Full scan's time in game: put that number into the
 0.8.2.1 changelog entry (it only says "faster" now) and, if the game stuttered, lower `SLICE_MS`.
 When it passes and Tyler says so: changelog date, pull request to `main`, merge, Release workflow.
 The CurseForge description does not change.
 
 **Open questions for Tyler:**
-1. R-05: one `/aux debug` line from a busy day, after searching an item searched a few minutes
-   earlier ("N after the 1s fallback" is the number that matters). On 2026-10-04 it was 0 of 336.
+1. R-05: step 4 of the build 3 checklist asks for the `/aux debug` lines of a search run twice.
+   The new line "The game announced N of M answers itself, J of the K taken after the 1s
+   fallback" says whether aux can wait for the game's own "results arrived" event (Code:
+   `AUCTION_HOUSE_NEW_RESULTS_RECEIVED`) instead of taking held results after 1 second. If J equals
+   K (and K is above 0), build that next. A line from a busy day is worth more than a quiet one.
 2. R-27: one sale and a screenshot of its "Auction successful" mail (experiment E1 in
    `docs/forever-auction-house.md`) settles the 5% cut that aux shows as fact. One auction left to
    expire (E4) settles the deposit tooltip's "kept if the auction expires".

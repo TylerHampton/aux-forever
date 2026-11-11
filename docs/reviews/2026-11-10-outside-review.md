@@ -9,7 +9,7 @@ to check, with where it is, why it matters to a player, how sure I am, a propose
 Answer each finding under it (fixed with its commit, not reproduced, or not worth its cost and why).
 
 **Answered on 2026-11-10:** Tyler then asked the reviewer to build the fixes in the same session.
-They are 0.8.2.1 builds 1 and 2; the answer under each finding says what was done. After build 2
+They are 0.8.2.1 builds 1 to 3; the answer under each finding says what was done. After build 2
 (Tyler said yes to R-10 and R-19 and asked for everything that could be done without him): 21
 fixed, 4 in part (R-16, R-20, R-23, R-25), 3 not built (R-05 and R-27 wait for Tyler in the game,
 R-28 is for a later version). Build 2 also holds a second pass over the files this review only
@@ -169,7 +169,7 @@ protective, or cleanup.
   an event; take held results after 1 second only when they were confirmed within the last minute,
   otherwise wait several seconds more before using them.
 
-**Answer (Claude, 2026-11-10, 0.8.2.1 build 1):** Not changed: measure first, as the finding says. One more data point from the old notes: on 2026-10-04 Tyler's `/aux debug` line for 335 items read "336 answers on time, none after the 1s fallback" (`docs/status-history.md`), so before launch this path was not taken at all. A line from a busy day since launch is question 2 for Tyler in `docs/status.md`.
+**Answer (Claude, 2026-11-10, 0.8.2.1 build 3):** Not changed in behavior; a way to settle it was added. Blizzard's code has an event made for addons that says results arrived, `AUCTION_HOUSE_NEW_RESULTS_RECEIVED` (Code, build 70888; never used by aux). If it comes for every answer, aux can wait for it and drop the 1 second guess. Whether it does on Forever is Unknown, and acting on it untested would risk the search path that works today, so for now it is only counted: with `/aux debug` on, a search prints "The game announced N of M answers itself, J of the K taken after the 1s fallback". Step 4 of the build 3 checklist asks Tyler for that line. If J equals K, the next build waits for the event. From the old notes: on 2026-10-04 a 335-item search had no fallback answers at all, so before launch the path was not taken.
 
 ### R-06 (P2) `/aux clear post` clears nothing for the session and loses later settings
 
@@ -353,7 +353,7 @@ protective, or cleanup.
   handler; not checked on Forever), and take them again when combat ends if aux is still open.
   Try it with the taint log on, as `docs/gamepad.md` describes.
 
-**Answer (Claude, 2026-11-10, 0.8.2.1 build 2):** Fixed. Tyler said yes (2026-11-10). `gamepad.lua` hands the buttons back in `PLAYER_REGEN_DISABLED` and takes them again in `PLAYER_REGEN_ENABLED` if aux is still open; opened during a fight, aux takes them once it is over. The binding call is only made when `InCombatLockdown()` says the game is not locked yet, so if Forever locks before that event (the claim that it does not is Outside) nothing is called and the old behavior stays. Test `outside review: R-19 the gamepad in combat` plays both cases. Not seen in game: step 9 of the build 2 checklist, with the taint log on.
+**Answer (Claude, 2026-11-10, 0.8.2.1 build 2):** Fixed. Tyler said yes (2026-11-10). `gamepad.lua` hands the buttons back in `PLAYER_REGEN_DISABLED` and takes them again in `PLAYER_REGEN_ENABLED` if aux is still open; opened during a fight, aux takes them once it is over. The binding call is only made when `InCombatLockdown()` says the game is not locked yet, so if Forever locks before that event (the claim that it does not is Outside) nothing is called and the old behavior stays. Test `outside review: R-19 the gamepad in combat` plays both cases. Not seen in game: the gamepad step of the build 3 checklist, with the taint log on.
 
 ### R-20 (P3) Short list
 

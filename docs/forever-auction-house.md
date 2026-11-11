@@ -209,6 +209,17 @@ Other mails **[Code]**: "Auction expired: X" (item back), "Auction canceled: X",
 - Browse first (`SendBrowseQuery`): one row per item, with its lowest price and total quantity.
   Then one search per item (`SendSearchQuery`), at most 100 per minute (Blizzard's documentation).
   **[Code]**
+- The game has an event made for addons that says results have arrived:
+  `AUCTION_HOUSE_NEW_RESULTS_RECEIVED`, with the item key of a search, or nothing for an item list
+  ("This signal is not used in the base UI but is included for AddOn ease-of-use", Blizzard's
+  documentation, build 70888). Blizzard's own trade goods list also treats
+  `COMMODITY_SEARCH_RESULTS_RECEIVED` as "results loaded", next to the updated event. **[Code]**
+  Whether these come for every answer on Forever, also when the results did not change:
+  **[Unknown]**. aux waits for the updated events and, after 1 second without one, takes results
+  the game already holds (`request` in `core/scan.lua`), which cannot tell an unchanged answer
+  from no answer yet. Since 0.8.2.1 `/aux debug` counts the event ("The game announced N of M
+  answers itself, J of the K taken after the 1s fallback"). If J equals K on a real search, aux
+  can wait for the event instead (outside review, R-05).
 - Measured: the whole house's item list, 7,718 items in 8.5 seconds over 16 requests
   (2026-10-04); item searches about one every 0.4 seconds because of the game's request limit
   (`IsThrottledMessageSystemReady`), 335 items in 3m 13s (0.4). **[Seen]**

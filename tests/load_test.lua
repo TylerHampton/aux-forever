@@ -1342,6 +1342,12 @@ try('search timing log', function()
   check('how answers came', lines[3] == 'Answers: 380 on time, 18 after the 1s fallback, 2 timed out (20s each), 3 dropped and resent')
   check('slowest items first', lines[4] == 'Slowest: Ritual Sandals 21.0s, Seer\'s Pants 2.0s')
   check('stopped searches say so', scan.timing_report(scan.new_timing(), 1, true)[1]:find('(stopped)', 1, true) ~= nil)
+  -- R-05: how many answers the game announced with its own event, to decide whether aux can rely on it
+  local t2 = scan.new_timing()
+  t2.requests, t2.signal, t2.cached, t2.cached_signal = 400, 390, 18, 16
+  local announced
+  for _, line in ipairs(scan.timing_report(t2, 10)) do if line:find('The game announced', 1, true) then announced = line end end
+  check('the timing log says how many answers the game announced itself', announced == 'The game announced 390 of 400 answers itself, 16 of the 18 taken after the 1s fallback')
   local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
   local before = a.account_data.debug_timing
   SlashCmdList.AUX('debug')
