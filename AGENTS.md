@@ -382,7 +382,8 @@ as interactive HTML pages; an HTML file Tyler can open in a browser works the sa
 
 ## Where to find more
 
-- `docs/status.md`: current state, decisions, open items. Keep it up to date.
+- `docs/status.md`: current state, the next step, open questions. Keep it up to date and short;
+  notes of released versions move to `docs/status-history.md` (everything before 2026-11-10).
 - `docs/feedback.md`: every piece of player feedback, one numbered entry each (FB-001, ...),
   with the player's exact words and its status. Check it before planning a version; update an
   entry's status when you fix or build it.

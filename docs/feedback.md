@@ -1499,7 +1499,7 @@ fit the 20-pixel gap above Blizzard's optional reagents). Claude recommends A. T
 - Type: bug
 - Area: Performance (Full scan)
 - Severity: S3 (it finishes; it is slow)
-- Status: fixed 0.8.2 (released 2026-11-09, PR #40; Tyler's build 7 test: 215090 auctions in 50.5s, 2.0s to send the list; commit 19921b1: the Full scan prints how long the answer and the list took; the cause, the server, is not aux's to fix; the numbers come from Tyler's test)
+- Status: fixed 0.8.2 (released 2026-11-09, PR #40; Tyler's build 7 test: 215090 auctions in 50.5s, 2.0s to send the list; commit 19921b1: the Full scan prints how long the answer and the list took; the cause, the server, is not aux's to fix; the numbers come from Tyler's test). 0.8.2.1 (not released yet, outside review R-07 to R-09): aux's own part, reading the list (about 48 of those 50.5 seconds), no longer runs at 100 auctions per frame; the wait for the server is unchanged
 - Proposed: 0.8.1 (speed), after measuring
 
 Said:

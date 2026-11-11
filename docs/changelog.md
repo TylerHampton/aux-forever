@@ -6,6 +6,84 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.8.2.1 (not released yet)
+
+Fixes and speed from a full review of the code (2026-11-10,
+`docs/reviews/2026-11-10-outside-review.md`). Nothing to do when updating; `/reload` is enough.
+
+### Sniper
+
+- One round the auction house did not answer no longer empties your deals. Such a round had seen
+  nothing, so every deal was marked "Gone: sold or relisted", and they stayed that way while still
+  for sale. The same happened to part of the deals when only part of the item list arrived. A round
+  now only says what is gone when it got the whole list, and a round nobody answered no longer
+  puts a line about a search in your chat.
+- After a Full scan, and on a new day, the Sniper looks at everything again. It only looked at an
+  item again when its price changed, so on the third day of scans (the day deals against the usual
+  price start) nothing already listed became a deal after your Full scan, until you touched a
+  Sniper setting.
+- When a gear deal is read again before you buy and its auction is gone but a cheaper one of the
+  item is there, the Buy button now shows and pays that auction's own price. It showed the first
+  price and sent it with the new auction.
+- Ignore item ignores gear by its name with the ending. The auction house keeps one name under
+  several versions with the same stats, and the other versions of an ignored item kept showing.
+
+### Full scan
+
+- Reading the auctions is faster. aux read 100 auctions per frame however little of the frame
+  that took, so the scan was as slow as your frame rate allowed (215,090 auctions in about 48
+  seconds). It now uses a set share of each frame, no longer builds a full record for every
+  auction only to throw it away, and updates the bar once per frame instead of once per auction
+  (reported by user_ayzkr6rhvrlna3ya).
+- Auctions whose items the game has not loaded yet are asked about a share at a time. All of them
+  were asked about again every frame for up to 30 seconds.
+
+### Search
+
+- When only part of the item list arrives from a slow auction house, the search says so, in chat
+  and next to the results ("some items missing: search again"). It used to show what arrived as if
+  it were everything. Live mode keeps its table through such a round instead of emptying it.
+- A Full search draws its table at most four times a second while it runs, not after every item
+  read, so long searches cost less.
+- A favorite with an alert brings up its popup once per search, not once for every auction that
+  matches.
+- After typing `and/`, `or/` or `not/` in the search bar, the conditions (price, seller, ...) are
+  offered again.
+- Removing a favorite removes the one you were asked about, also when the list changed while the
+  question was open.
+
+### Post
+
+- Gear is not priced from part of its listings. When the item list was cut before the versions of
+  your item's name, the Post tab called the listings ready and picked a price from somewhere else,
+  or said "None for sale". It now says "Reading stopped. Press Refresh, or type a price." The same
+  goes for an item the auction house could not be read for.
+- The price boxes take numbers and coins only. Words the game's language reads as numbers were
+  taken: `inf` gave an endless price. A price is also capped at the game's highest.
+- `/aux clear post` now clears the remembered prices and durations at once. It cleared nothing
+  until the next login, and what was remembered after it was lost.
+- Counting an item in your bags while a post is under way no longer reads every bag slot's
+  tooltip.
+
+### Auctions and Bids
+
+- The Auctions tab's price check does not call an item "Lowest" or "Only one listed" when it
+  could not read that item's listings; it stays "Not checked" and is checked again next time.
+- On the Bids tab, Bid and Buyout fade when no bid is selected. They stayed lit from the last
+  selection, and a click (or the gamepad's Y) raised an error.
+
+### Buying
+
+- When the game drops a trade good's price request for being sent too soon after another request,
+  the buy bar says "The auction house was busy" at once. It said "No answer" after 10 seconds.
+
+### Under the hood
+
+- Events reach every part of aux exactly once. When one part started a search while an event was
+  being handed out, another part could miss that event and wait out a timeout.
+- The list of item names for autocompletion is sorted at login only when a name was added.
+- The auction house cut (5%) is one number for the whole addon.
+
 ## 0.8.2 (2026-11-09)
 
 ### Sniper

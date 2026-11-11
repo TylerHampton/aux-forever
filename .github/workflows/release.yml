@@ -22,6 +22,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # a manual run publishes the branch it is started on: only main is released
+      - name: Only from main
+        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
+        run: |
+          echo "The Release workflow was started on $GITHUB_REF. Start it on main."
+          exit 1
+
       - name: Find the version
         run: |
           version=$(sed -n 's/^## Version: forever-//p' auxForever/auxForever.toc | tr -d '\r')

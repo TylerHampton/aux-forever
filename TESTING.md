@@ -8,7 +8,34 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.2 build 8
+## Current build: 0.8.2.1 build 1
+
+Fixes and speed from the outside review of 2026-11-10 (`docs/reviews/2026-11-10-outside-review.md`).
+Most of it only shows when the auction house is slow or fails to answer, which the automated tests
+play out with the slow test auction house; these six steps check that nothing broke and that the
+Full scan got faster. Zip `auxForever-0.8.2.1-build1.zip`; `/reload` is enough (no new files).
+Test page build id `0-8-2-1-build-1`.
+
+- [ ] 1. Click Full scan at the top right of aux and wait without searching. At the end the chat
+      says "Full scan complete: ... auctions recorded in ... (the auction house took ... to answer,
+      ... to send the list; reading took ...)". Screenshot that line. Last time it read 215090
+      auctions in 50.5s. Also say in the note whether the game felt smooth while it read.
+- [ ] 2. Open the Sniper tab and click Start. Wait until the status next to the button says
+      "round 2". Deals show in the table as before, and they are not all gray ("Gone").
+- [ ] 3. Stop the Sniper. Search tab, click Full (next to Fast), search `linen`. Rows appear while
+      it runs. When it ends, the status bar turns gold and the line next to the sub tabs ends with
+      "searched just now", with no red "some items missing".
+- [ ] 4. Post tab: click a trade good in the bag list (cloth, ore, herbs), wait for the price,
+      set the quantity to 1 and click Post. Under Duration it says "Posted 1 × " and the item's
+      name, in green.
+- [ ] 5. Post tab, an item selected: click the price box, type `inf` and press Enter. The Post
+      button fades and the line next to it says "Type a price to post." Then type the price you
+      want back, or click another item.
+- [ ] 6. Open the Bids tab and click no row. The Bid and Buyout buttons at the bottom are faded and
+      clicking them does nothing (no BugSack error). If you have a bid there: click its row (the
+      buttons light up), then click the same row again to let go (they fade again).
+
+## 0.8.2 build 8
 
 One fix from Tyler's build 7 test (results below): with a material selected, the deal sound played
 but new rows showed only after letting go. The table waited whenever the mouse was over its rows,
