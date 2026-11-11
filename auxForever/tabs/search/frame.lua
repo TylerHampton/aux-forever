@@ -204,8 +204,7 @@ do
     local function search_cursor_item()
         local type, item_id = GetCursorInfo()
         if type == 'item' then
-            set_filter(strlower(info.item(item_id).name) .. '/exact')
-            execute(nil, false)
+            search_item(item_id)
             ClearCursor()
         end
     end
@@ -492,8 +491,7 @@ for _ = 1, 5 do
 			    end
 		    end
 	    elseif button == 'RightButton' then
-		    set_filter(strlower(info.item(row.record.item_id).name) .. '/exact')
-		    execute(nil, false)
+		    search_item(row.record.item_id)
 	    end
     end)
     table:SetHandler('OnSelectionChanged', function(rt, datum)

@@ -37,12 +37,21 @@ function tab.CLOSE()
     update_done()
 end
 
-function tab.USE_ITEM(item_id)
-	local item_info = info.item(item_id)
-	if item_info then
-		set_filter(strlower(item_info.name) .. '/exact')
-		execute(nil, false)
+-- An exact search for an item by its ID: what a right-click on a row does in every tab. Returns
+-- false when the game does not know the item (it has dropped the item's data): nothing happens
+-- then, where the right-click raised an error (second pass of the outside review, 0.8.2.1).
+function M.search_item(item_id)
+	local item_info = item_id and info.item(item_id)
+	if not item_info then
+		return false
 	end
+	set_filter(strlower(item_info.name) .. '/exact')
+	execute(nil, false)
+	return true
+end
+
+function tab.USE_ITEM(item_id)
+	search_item(item_id)
 end
 
 function set_subtab(tab)

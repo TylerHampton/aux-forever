@@ -6259,6 +6259,67 @@ try('outside review: R-19 the gamepad in combat', function()
   aux_frame:Show()
 end)
 
+-- Second pass of the outside review: the search bar's completion looks through the item names
+-- itself; it used to get a list of all of them, built anew at every key press
+try('second pass: search bar completion', function()
+  local function M(name) return loadstring("select(2, ...) '" .. name .. "'; return _M")('auxForever', addon) end
+  local a, search, f = M 'aux', M 'aux.tabs.search', M 'aux.util.filter'
+  local saved_names = a.account_data.auctionable_items
+  a.account_data.auctionable_items = {'rare thing', 'linen cloth', 'light leather', 'andorian blade'}
+  local box = search.search_box
+  local function typed(text)
+    box:SetText(text)
+    box.__scripts.OnChar(box)
+    return box:GetText()
+  end
+  check('completion: the first word completes to an item name', typed('li') == 'linen cloth/exact')
+  check('completion: any letter case', typed('LiG') == 'light leather/exact')
+  check('completion: words of the search language come before item names', typed('an') == 'and')
+  check('completion: a longer start reaches the item', typed('ando') == 'andorian blade/exact')
+  check('completion: after a name, exact is offered', typed('linen cloth/ex') == 'linen cloth/exact')
+  check('completion: later words are never item names', typed('linen cloth/lig') == 'linen cloth/lig')
+  check('completion: nothing fits, the text stays', typed('zzz') == 'zzz')
+  check('completion: a second search after ; completes like the first', typed('linen cloth/exact;ra') ~= nil)
+  -- the cost: no list of every item name is built for a key press
+  local _, with_items = f.query(nil)
+  local _, without = f.query(nil, true)
+  check('completion: the suggestions it asks for hold no item names', #with_items - #without == 4)
+  a.account_data.auctionable_items = saved_names
+  box:SetText('')
+end)
+
+-- Second pass of the outside review: an item the game has dropped the data of raises no error
+try('second pass: items the game does not know', function()
+  local function M(name) return loadstring("select(2, ...) '" .. name .. "'; return _M")('auxForever', addon) end
+  local a, search, f, auctions = M 'aux', M 'aux.tabs.search', M 'aux.util.filter', M 'aux.tabs.auctions'
+  -- a right-click search for an item nobody knows does nothing
+  local before = search.search_box:GetText()
+  local ok, found = pcall(search.search_item, 98765432)
+  check('unknown item: a right-click search raises no error and searches nothing', ok and found == false and search.search_box:GetText() == before)
+  -- the conditions that read the item's own data match nothing for it
+  local record = {item_id = 98765432, buyout_price = 5, bid_price = 5, count = 1, unit_buyout_price = 5}
+  for _, name in ipairs{'vendor-profit', 'bid-vendor-profit'} do
+    local ok2, result = pcall(f.filters[name].validator(100), record)
+    check('unknown item: ' .. name .. ' matches nothing and raises no error', ok2 and not result)
+  end
+  local ok3, result3 = pcall(f.filters['item'].validator('some name'), record)
+  check('unknown item: the item condition matches nothing and raises no error', ok3 and not result3)
+  -- a known item still searches
+  local real_info = G.GetItemInfo
+  G.GetItemInfo = function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id == 7821 then return 'Known Herb', nil, 1, 5, 1, 'Trade Goods', 'Herb', 20, '', 1, 10 end
+    return real_info(x)
+  end
+  local real_execute = search.execute
+  local ran
+  search.execute = function() ran = search.search_box:GetText() end
+  check('known item: a right-click search searches its exact name', search.search_item(7821) == true and ran == 'known herb/exact')
+  search.execute = real_execute
+  G.GetItemInfo = real_info
+  search.search_box:SetText(before or '')
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
 dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({

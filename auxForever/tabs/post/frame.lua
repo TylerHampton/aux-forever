@@ -63,9 +63,10 @@ do
 	        if button == 'LeftButton' then
 	            update_item(self.item_record)
 	        elseif button == 'RightButton' then
+	            -- the ID is read first: leaving the Post tab clears the selection
+	            local item_id = self.item_record.item_id
 	            aux.set_tab(1)
-	            search_tab.set_filter(strlower(info.item(self.item_record.item_id).name) .. '/exact')
-	            search_tab.execute(nil, false)
+	            search_tab.search_item(item_id)
 	        end
 	    end,
 	    function(item_record)

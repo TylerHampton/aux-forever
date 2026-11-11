@@ -854,6 +854,11 @@ local function refresh_deal(record)
                             record[field] = found[field]
                         end
                         info.signatures(record)
+                        -- the profit and the percent shown belong to the new price
+                        local reason, profit, pct = judge_record(record)
+                        if reason then
+                            record.deal_reason, record.deal_profit, record.deal_percent = reason, profit, pct
+                        end
                         deals_changed = true
                     end
                     if checked == record then
