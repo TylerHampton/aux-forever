@@ -745,12 +745,28 @@ local function key_of(entry)
     return _G[entry[2]] or entry[3]
 end
 
+-- 0.8.2.1 (outside review 2026-11-10, R-19; Tyler, 2026-11-10: yes): when a fight starts while aux
+-- holds the pad buttons, they go back to the game for the fight and come back to aux after it, if
+-- aux is still open. They stayed with aux for the whole fight, since bindings cannot change in
+-- combat. The event PLAYER_REGEN_DISABLED comes as a fight starts; on the modern client bindings
+-- can still be changed while it is handled (Outside: known from retail addons, not seen on
+-- Forever). aux only tries when the game says it is not locked yet (InCombatLockdown), so if that
+-- does not hold on Forever nothing is called and it behaves as before.
+local rebind_after_combat
+
 function M.gamepad_bind()
-    if bound or not gamepad_enabled() or InCombatLockdown() then return end
+    if bound or not gamepad_enabled() then return end
+    if InCombatLockdown() then
+        -- opened during a fight: aux takes the buttons once it is over
+        rebind_after_combat = true
+        owner:RegisterEvent('PLAYER_REGEN_ENABLED')
+        return
+    end
     for _, entry in ipairs(KEYS) do
         SetOverrideBindingClick(owner, true, key_of(entry), 'auxForeverPad' .. entry[1])
     end
     bound = true
+    owner:RegisterEvent('PLAYER_REGEN_DISABLED')
 end
 
 function M.gamepad_unbind()
@@ -763,14 +779,39 @@ function M.gamepad_unbind()
     end
     ClearOverrideBindings(owner)
     bound = false
+    owner:UnregisterEvent('PLAYER_REGEN_DISABLED')
 end
 
+function M.gamepad_bound() return bound and true or false end
+
 owner:SetScript('OnEvent', function(self, event)
-    if event == 'PLAYER_REGEN_ENABLED' then
+    if event == 'PLAYER_REGEN_DISABLED' then
+        -- a fight starts: the game gets its buttons back while that is still allowed
+        if bound and not InCombatLockdown() then
+            set_focus(nil)
+            gamepad_unbind()
+            rebind_after_combat = true
+            self:RegisterEvent('PLAYER_REGEN_ENABLED')
+            update_hints()
+        end
+    elseif event == 'PLAYER_REGEN_ENABLED' then
         self:UnregisterEvent('PLAYER_REGEN_ENABLED')
-        if unbind_after_combat and not (frame:IsShown() and not blizzard_frame_shown()) then
+        local open = frame:IsShown() and not blizzard_frame_shown()
+        if unbind_after_combat and not open then
             unbind_after_combat = false
             gamepad_unbind()
+        end
+        unbind_after_combat = false
+        if rebind_after_combat then
+            rebind_after_combat = false
+            if open and not bound then
+                gamepad_bind()
+                if bound then
+                    set_focus(first_stop())
+                    if not hints then create_hints() end
+                end
+                update_hints()
+            end
         end
     end
 end)
@@ -791,6 +832,7 @@ frame:HookScript('OnShow', function()
 end)
 frame:HookScript('OnHide', function()
     unbind_after_combat = false
+    rebind_after_combat = false
     set_focus(nil)
     gamepad_unbind()
     update_hints()

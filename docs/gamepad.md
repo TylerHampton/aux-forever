@@ -35,9 +35,14 @@ shown, and aux takes it again once it is hidden.
   aux shows, and clears them when aux closes. Tested: these win over Blizzard's navigation, which
   still drives the invisible Blizzard auction house window, and stay won. A press through such a
   binding is a hardware event, so buying, bidding, posting and cancelling work from it.
-- **Combat.** Bindings cannot change in combat. aux does not take the buttons when it opens in
-  combat, and if it closes in combat it gives them back once combat ends
-  (`PLAYER_REGEN_ENABLED`).
+- **Combat.** Bindings cannot change in combat. Since 0.8.2.1 aux gives the pad buttons back to
+  the game when a fight starts (the event `PLAYER_REGEN_DISABLED`; on the modern client bindings can
+  still be changed while that event is handled: Outside, known from retail addons, not seen on
+  Forever) and takes them again after the fight if it is still open. aux only tries when
+  `InCombatLockdown()` says the game is not locked yet, so if that does not hold on Forever no
+  binding call is made and the old behavior stays: aux does not take the buttons when it opens in
+  combat (it takes them once the fight is over), and if it closes in combat it gives them back once
+  combat ends. To check in game: with the taint log on, start a fight with aux open in gamepad mode.
 - **Finding controls.** On each press, aux walks its window's visible frames: buttons, text boxes,
   and frames with a mouse-down or mouse-up script (the Post tab's bag list rows). It does not look
   inside a found control (a row's icon is part of the row), except inside text boxes (the Post

@@ -20,7 +20,7 @@ function M.memory_report()
     for _ in pairs(aux.faction_data and aux.faction_data.history or empty) do
         items = items + 1
     end
-    local text = format('auxForever uses %.1f MB of memory; price history for %d items', kilobytes / 1024, items)
+    local text = format('auxForever uses %.1f MB of memory; price history for %d items (prices not seen for %d days are forgotten)', kilobytes / 1024, items, require('aux.core.history').FORGET_DAYS)
     local known, _, left, done = info.item_list_progress()
     text = text .. format('; item list %d items', known) .. (done and '' or format(', still checking (%d numbers left)', left))
     -- The game's number includes garbage (tables no longer used, such as each Sniper round's item

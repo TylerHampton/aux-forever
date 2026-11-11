@@ -39,6 +39,68 @@ function aux.event.PLAYER_LOGIN()
 	data = aux.faction_data.history
 	aux.faction_data.price_keys_since = aux.faction_data.price_keys_since or today()
 	price_keys_since = aux.faction_data.price_keys_since
+	aux.coro_thread(forget_old_prices)
+end
+
+-- 0.8.2.1 (outside review 2026-11-10, R-10; Tyler, 2026-11-10: "Yes"): prices of items aux has not
+-- seen at the auction house for FORGET_DAYS days are forgotten. Every item ever seen kept its line
+-- forever, and since 0.8 each gear ending is an item of its own; all of it loads at every login.
+-- Once a day at most, at login, in a thread that pauses by the clock. "Seen" is the day of a line's
+-- newest price, not the day it was last read (a tooltip or a Sniper round reads a line and moves
+-- its day on without having seen the item).
+M.FORGET_DAYS = 90
+
+-- the day number a saved line's newest price is from, without unpacking the line; nil if unreadable
+function M.last_seen_day(str)
+	local day = tonumber(strmatch(str, '^(%d+)#'))
+	if not day then
+		return
+	end
+	if day > 1e7 then
+		-- a 0.4 line: when its day ended (a timestamp), today's lowest, then the past lows with
+		-- the time each day ended
+		local next_push, daily_min, point_time = strmatch(str, '^(%d+)#(%d*)#%d*@?(%d*)')
+		local seen = daily_min ~= '' and tonumber(next_push) or tonumber(point_time)
+		return seen and day_of_time(seen - 43200) or nil
+	end
+	local low, market, point_day = strmatch(str, '^%d+#(%d*)#(%d*)#%d*#(%d*)')
+	if not low then
+		return
+	end
+	if low ~= '' or market ~= '' then
+		return day
+	end
+	return tonumber(point_day)
+end
+
+-- must run inside a coroutine (it pauses). now: today's day number (given by tests). Returns how
+-- many lines were forgotten, or nil when it already ran today.
+function M.forget_old_prices(now)
+	now = now or today()
+	if not data or aux.faction_data.history_trimmed == now then
+		return
+	end
+	aux.faction_data.history_trimmed = now
+	-- the keys first, in one go: the walk below pauses, and a table must not gain keys (a scan
+	-- recording a new item) while it is walked
+	local keys, n = {}, 0
+	for key in pairs(data) do
+		n = n + 1
+		keys[n] = key
+	end
+	local forgotten = 0
+	for i = 1, n do
+		local key = keys[i]
+		local str = data[key]
+		local seen = type(str) == 'string' and last_seen_day(str)
+		if seen and now - seen > FORGET_DAYS then
+			data[key] = nil
+			value_cache[key] = nil
+			forgotten = forgotten + 1
+		end
+		aux.coro_slice(i, 500)
+	end
+	return forgotten
 end
 
 -- the price history is read once the saved variables load (PLAYER_LOGIN); before that every price is unknown

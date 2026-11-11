@@ -6171,6 +6171,94 @@ try('outside review: smaller findings', function()
   for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
 end)
 
+-- R-10 (Tyler, 2026-11-10: yes): prices not seen for 90 days are forgotten, once a day at login
+try('outside review: R-10 old prices are forgotten', function()
+  local function M(name) return loadstring("select(2, ...) '" .. name .. "'; return _M")('auxForever', addon) end
+  local a, h = M 'aux', M 'aux.core.history'
+  local d = h.today()
+  local function line(record) h.write_record('x', record); local str = h.data['x']; h.data['x'] = nil; return str end
+  h.data['9801:0'] = line({day = d - 100, low = 50, points = {{day = d - 101, value = 60, units = 5}}}) -- last seen 100 days ago
+  h.data['9802:0'] = line({day = d - 10, low = 50, points = {}})                                       -- seen 10 days ago
+  h.data['9803:0'] = line({day = d, low = 50, points = {{day = d - 200, value = 60}}})                 -- seen today, old past days
+  h.data['9804:of the wolf'] = line({day = d, points = {{day = d - 95, value = 60, units = 3}}})       -- read today, last seen 95 days ago
+  h.data['9805:0'] = line({day = d - 90, market = 70, units = 4, points = {}})                         -- exactly 90 days: kept
+  local day_seconds = 24 * 60 * 60
+  h.data['9806:0'] = (time() - 100 * day_seconds) .. '#45#' .. '40@' .. (time() - 101 * day_seconds)   -- a 0.4 line, 100 days old
+  h.data['9807:0'] = (time() - 5 * day_seconds) .. '#45#'                                              -- a 0.4 line, 5 days old
+  check('R-10: the day a line was last seen is its newest price\'s day', h.last_seen_day(h.data['9801:0']) == d - 100 and h.last_seen_day(h.data['9804:of the wolf']) == d - 95 and h.last_seen_day(h.data['9803:0']) == d)
+  a.faction_data.history_trimmed = nil
+  local forgotten
+  a.coro_thread(function() forgotten = h.forget_old_prices() end)
+  for _ = 1, 20 do tick() end
+  check('R-10: prices last seen more than 90 days ago are forgotten', h.data['9801:0'] == nil and h.data['9804:of the wolf'] == nil and h.data['9806:0'] == nil)
+  check('R-10: newer ones are kept, also at exactly 90 days and with old past days', h.data['9802:0'] ~= nil and h.data['9803:0'] ~= nil and h.data['9805:0'] ~= nil and h.data['9807:0'] ~= nil)
+  check('R-10: it says how many it forgot', forgotten == 3)
+  check('R-10: a forgotten item has no price any more', h.value('9801:0') == nil and h.latest('9801:0') == nil)
+  -- once a day: a second run the same day does nothing
+  h.data['9808:0'] = line({day = d - 300, low = 5, points = {}})
+  local again = 'not run'
+  a.coro_thread(function() again = h.forget_old_prices() end)
+  for _ = 1, 5 do tick() end
+  check('R-10: it runs once a day', again == nil and h.data['9808:0'] ~= nil)
+  for _, key in ipairs{'9802:0', '9803:0', '9805:0', '9807:0', '9808:0'} do h.data[key] = nil end
+end)
+
+-- R-19 (Tyler, 2026-11-10: yes): the pad buttons go back to the game when a fight starts and come
+-- back to aux after it
+try('outside review: R-19 the gamepad in combat', function()
+  local aux_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local bindings, combat, gamepad_ui, cleared_in_lockdown = {}, false, true, 0
+  local real = {G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown}
+  G.SetOverrideBindingClick = function(_, _, key, button) bindings[key] = button end
+  -- as the game: changing bindings during the lockdown is refused (counted here)
+  G.ClearOverrideBindings = function() if combat then cleared_in_lockdown = cleared_in_lockdown + 1 else bindings = {} end end
+  G.InCombatLockdown = function() return combat end
+  G.InputUtil = {IsGamepadUIEnabled = function() return gamepad_ui end}
+  local aux_frame = aux_env.frame
+  local function count() local n = 0 for _ in pairs(bindings) do n = n + 1 end return n end
+  local function event(name)
+    for _, f in ipairs(frames) do
+      if f.__events[name] and f.__scripts.OnEvent then f.__scripts.OnEvent(f, name) end
+    end
+  end
+  aux_frame:Hide(); aux_frame:Show()
+  check('R-19: aux open in gamepad mode holds the pad buttons', count() == 10 and aux_env.gamepad_bound())
+  -- a fight starts: the event comes first, the lockdown after it
+  event('PLAYER_REGEN_DISABLED')
+  combat = true
+  check('R-19: when a fight starts the buttons go back to the game', count() == 0 and not aux_env.gamepad_bound())
+  check('R-19: and the gold focus frame is gone', aux_env.gamepad_focused() == nil)
+  combat = false
+  event('PLAYER_REGEN_ENABLED')
+  check('R-19: after the fight aux, still open, takes them again', count() == 10 and aux_env.gamepad_bound())
+  -- closed during the fight: nothing comes back to aux afterwards
+  event('PLAYER_REGEN_DISABLED')
+  combat = true
+  aux_frame:Hide()
+  combat = false
+  event('PLAYER_REGEN_ENABLED')
+  check('R-19: closed during the fight, aux does not take them afterwards', count() == 0 and not aux_env.gamepad_bound())
+  -- opened during a fight: aux waits for its end
+  combat = true
+  aux_frame:Show()
+  check('R-19: opened during a fight, aux leaves the buttons alone', count() == 0)
+  combat = false
+  event('PLAYER_REGEN_ENABLED')
+  check('R-19: and takes them once the fight is over', count() == 10)
+  -- if the lockdown is already on when the event comes (not as on retail), nothing is called
+  combat = true
+  event('PLAYER_REGEN_DISABLED')
+  check('R-19: already locked when the event comes: no binding call is made', cleared_in_lockdown == 0 and count() == 10)
+  aux_frame:Hide()
+  check('R-19: then closing in the fight waits for its end, as before', count() == 10 and cleared_in_lockdown == 0)
+  combat = false
+  event('PLAYER_REGEN_ENABLED')
+  check('R-19: and gives them back after it', count() == 0)
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = real[1], real[2], real[3]
+  G.InputUtil = nil
+  aux_frame:Show()
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
 dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({
