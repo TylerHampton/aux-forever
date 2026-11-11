@@ -4,6 +4,7 @@
 -- walk through a commodity purchase.
 local G = _G
 local frames = {}
+local REAL_EVENTS -- set below, once tests/forever_api.lua is read
 local NUMERIC = { GetRight=1, GetLeft=1, GetTop=1, GetBottom=1, GetWidth=1, GetHeight=1, GetNumber=1, GetScale=1, GetEffectiveScale=1, GetAlpha=1, GetID=1, GetNumPoints=1, GetVerticalScroll=1, GetHorizontalScroll=1, GetCursorPosition=1, GetStringWidth=1, GetTextWidth=1, GetFrameLevel=1, GetValue=1, GetEffectiveAlpha=1, GetStringHeight=1 }
 local function new_frame(name)
   local f = { __scripts = {}, __events = {}, __name = name, __shown = true, __text = '' }
@@ -29,7 +30,11 @@ local function new_frame(name)
       local before = self.__scripts[s]
       self.__scripts[s] = before and function(...) before(...); return fn(...) end or fn
     end end
-    if k == 'RegisterEvent' then return function(self, e) self.__events[e] = true end end
+    if k == 'RegisterEvent' then return function(self, e)
+      -- an event Forever does not have is an error (R-22); the tests' own events start with AUX_TEST
+      if REAL_EVENTS and not REAL_EVENTS[e] and not tostring(e):match('^AUX_TEST') then error('RegisterEvent: ' .. tostring(e) .. ' is not an event of Forever (tests/forever_api.lua)', 2) end
+      self.__events[e] = true
+    end end
     if k == 'UnregisterEvent' then return function(self, e) self.__events[e] = nil end end
     if k == 'Show' then return function(self) self.__shown = true; if self.__scripts.OnShow then self.__scripts.OnShow(self) end end end
     if k == 'Hide' then return function(self) self.__shown = false; if self.__scripts.OnHide then self.__scripts.OnHide(self) end end end
@@ -77,13 +82,52 @@ end
 for _, n in ipairs{'UIParent','GameTooltip','ItemRefTooltip','DEFAULT_CHAT_FRAME','UIErrorsFrame','AuctionHouseFrame'} do G[n] = new_frame(n) end
 G.UIParent.__tracked = true -- the top of the frame tree: no parent
 G.UISpecialFrames = {}; G.StaticPopupDialogs = {}; G.SlashCmdList = {}; G.SOUNDKIT = {}
-local api = function(t) return setmetatable(t or {}, {__index=function() return function() return 0 end end}) end
-G.C_AuctionHouse = api{GetTimeLeftBandInfo=function(b) return 0, ({1800,7200,43200,86400})[b+1] end, IsThrottledMessageSystemReady=function() return true end, SupportsCopperValues=function() return true end, GetBrowseResults=function() return {} end}
--- every enum member has a number of its own (outside review 2026-11-10, R-22): they all read 1, so
--- ItemNotFound equaled ItemNotAvailable and a wrong member passed any comparison
-local enum_next = 100
-G.Enum = setmetatable({}, {__index=function(t,k) local e = setmetatable({}, {__index=function(e, m) enum_next = enum_next + 1; rawset(e, m, enum_next); return enum_next end}); rawset(t,k,e); return e end})
-for _, n in ipairs{'C_Item','C_Container','C_CurrencyInfo','C_Sound','C_AddOns','C_MerchantFrame','C_PlayerInfo','TooltipDataProcessor','ItemLocation','ChatFrameUtil'} do G[n] = api() end
+-- Forever's real game functions, events and enum values (outside review 2026-11-10, R-22), made
+-- from Blizzard's generated documentation by tests/tools/make_forever_api.lua. The stubs answered
+-- any function name and any enum member, so a misspelled one passed every test and was only found
+-- in game. Now a C_ function, an event or an enum member Forever does not have is an error here.
+-- Functions Blizzard's interface code writes in Lua (ItemLocation, TooltipDataProcessor, frames
+-- such as AuctionHouseFrame) are not in that documentation and stay unchecked.
+local FOREVER = dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'forever_api.lua')
+local REAL_FUNCTIONS = {}
+REAL_EVENTS = {}
+for namespace, names in pairs(FOREVER.functions) do
+  REAL_FUNCTIONS[namespace] = {}
+  for _, name in ipairs(names) do REAL_FUNCTIONS[namespace][name] = true end
+end
+for _, name in ipairs(FOREVER.events) do REAL_EVENTS[name] = true end
+local strict_namespaces = {} -- the stub table of a namespace -> its name
+local function real_function(namespace, name)
+  local real = REAL_FUNCTIONS[namespace]
+  if not real then
+    error(namespace .. ' is not in tests/forever_api.lua: run tests/tools/make_forever_api.lua again', 3)
+  elseif not real[name] then
+    error(namespace .. '.' .. tostring(name) .. ' is not a function of Forever (tests/forever_api.lua)', 3)
+  end
+end
+local api = function(t, namespace)
+  t = t or {}
+  if namespace then
+    for name in pairs(t) do real_function(namespace, name) end
+    strict_namespaces[t] = namespace
+  end
+  return setmetatable(t, {__index=function(_, name)
+    if namespace then real_function(namespace, name) end
+    return function() return 0 end
+  end})
+end
+G.C_AuctionHouse = api({GetTimeLeftBandInfo=function(b) return 0, ({1800,7200,43200,86400})[b+1] end, IsThrottledMessageSystemReady=function() return true end, SupportsCopperValues=function() return true end, GetBrowseResults=function() return {} end}, 'C_AuctionHouse')
+-- enums hold the game's own values; one the game does not have is an error
+G.Enum = setmetatable({}, {__index=function(t, k)
+  local real = FOREVER.enums[k]
+  if not real then error('Enum.' .. tostring(k) .. ' is not in tests/forever_api.lua: run tests/tools/make_forever_api.lua again (or it is not an Enum of Forever)', 2) end
+  local e = setmetatable({}, {__index=function(_, m) error('Enum.' .. k .. '.' .. tostring(m) .. ' is not a member on Forever (tests/forever_api.lua)', 2) end})
+  for member, value in pairs(real) do rawset(e, member, value) end
+  rawset(t, k, e)
+  return e
+end})
+for _, n in ipairs{'C_Item','C_Container','C_CurrencyInfo','C_Sound','C_AddOns','C_MerchantFrame','C_PlayerInfo'} do G[n] = api(nil, n) end
+for _, n in ipairs{'TooltipDataProcessor','ItemLocation','ChatFrameUtil'} do G[n] = api() end
 G.C_Container.GetContainerNumSlots = function() return 0 end
 G.C_Item.GetItemQualityColor = function() return 1, 1, 1, 'ffffffff' end -- r, g, b and the color code, as in the game
 G.ITEM_QUALITY_COLORS = setmetatable({}, {__index=function() return {r=1,g=1,b=1} end})
@@ -111,6 +155,8 @@ setmetatable(G, {__index=function(_, k) if type(k)=='string' and (k:match('Butto
 local real_rawset = rawset
 local swapped = setmetatable({}, {__mode = 'k'})
 local function rawset(t, k, v)
+  -- a test that fakes a game function must name one Forever has
+  if strict_namespaces[t] and v ~= nil then real_function(strict_namespaces[t], k) end
   local kept = swapped[t]
   if v == nil then
     if kept and kept[k] then
@@ -5998,7 +6044,12 @@ try('outside review: smaller findings', function()
   local a, money, f, sniper, post, h, scan = M 'aux', M 'aux.util.money', M 'aux.util.filter', M 'aux.tabs.sniper', M 'aux.tabs.post', M 'aux.core.history', M 'aux.core.scan'
 
   -- R-22: enum members differ in the stubs
-  check('R-22: two enum members are two numbers', Enum.AuctionHouseError.ItemNotFound ~= Enum.AuctionHouseError.ItemNotAvailable)
+  check('R-22: enum members have the game\'s own values', Enum.AuctionHouseError.ItemNotFound == 4 and Enum.AuctionHouseError.ItemNotFound ~= Enum.AuctionHouseError.ItemNotAvailable)
+  check('R-22: a function Forever does not have is an error in the tests', not pcall(function() return C_AuctionHouse.NoSuchFunction() end))
+  check('R-22: so is faking one', not pcall(rawset, C_AuctionHouse, 'NoSuchFunction', function() end))
+  check('R-22: so is an enum member Forever does not have', not pcall(function() return Enum.AuctionHouseError.NoSuchMember end))
+  check('R-22: and an event Forever does not have', not pcall(function() return a.event_listener('NO_SUCH_EVENT_AT_ALL', function() end) end))
+  check('R-22: the clock the Full scan paces itself by is a function of Forever', (function() for _, name in ipairs(FOREVER.globals) do if name == 'debugprofilestop' then return true end end end)())
 
   -- R-15: a price box takes plain numbers and coins, nothing else the language calls a number
   check('R-15: 1.5 is 1g 50s', money.from_string('1.5') == 15000)
