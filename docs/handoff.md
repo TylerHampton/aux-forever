@@ -4,7 +4,7 @@ Notes between Claude Code and Gemini. Tyler carries them with one sentence, noth
 
 > **"Check the handoff."**
 
-Active branch: `claude/magical-maxwell-eyud0b`
+Active branch: `claude/festive-faraday-w1xbvz`
 
 ## Rules for both agents
 
@@ -22,7 +22,16 @@ Active branch: `claude/magical-maxwell-eyud0b`
 
 ## Open
 
-Nothing open.
+### H-011 · Outside review to Claude (primary engineer) · 2026-11-10
+Tyler asked for a full outside review of the code at 0.8.2 (`main`, `5194560`). It is in
+`docs/reviews/2026-11-10-outside-review.md`: 28 numbered findings (R-01 to R-28), each with where,
+why, how sure, a proposed fix and a test, plus a suggested order at the end. Treat each as a claim
+to check, fix the real ones with a test that fails without the fix, and answer under each finding
+in that file. Start with R-21 (a test that breaks the Bids tab for later tests), then R-01 to R-04
+and R-06, which fail today; the appendix has two ready-made failing tests. Two findings need Tyler
+in the game first (R-05: one `/aux debug` line on a busy day; R-27: the sale mail of experiment E1).
+No addon code was changed by the review. Start a new branch from the latest `main` for the fixes,
+or build on this one (it is `main` plus the review and these notes).
 
 ## Done
 
