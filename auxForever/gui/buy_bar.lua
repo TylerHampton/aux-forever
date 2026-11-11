@@ -32,6 +32,13 @@ local IDLE, QUOTING, QUOTED, BUYING = aux.enum(4)
 local mode = NONE
 local state = IDLE
 local current
+-- 0.8.2.1 (found by the random player of tests/fuzz_test.lua): what the buttons show right now. The
+-- bar's texts are drawn ten times a second, and a click acted on the selection as it was at the
+-- click: for up to a tenth of a second after the selection (or a price) changed, Buy could show
+-- one price and buy at another. A click now only does what its button shows; when the two differ,
+-- the bar is drawn again and nothing is sent.
+local shown = {}
+local update -- draws the bar (defined below, with the shared part)
 local listener_ids = {}
 local t0
 local message, message_color, message_until
@@ -39,6 +46,10 @@ local message, message_color, message_until
 local bar, icon, name_label, sub_label, chips, other_input, line1, line2, cancel_button, bid_button, primary_button
 
 -- helpers
+
+local function wipe_shown()
+    for k in pairs(shown) do shown[k] = nil end
+end
 
 local function kill_listeners()
     for _, id in ipairs(listener_ids) do
@@ -210,6 +221,7 @@ local function update_commodity()
         end
         primary_button:SetText(can_buy and ('Buy ' .. n .. ' for ' .. plain_money(total)) or 'Buy')
         style_button(primary_button, ACCENT, ACCENT_TEXT, can_buy)
+        shown.item_id, shown.quantity, shown.total, shown.quote, shown.record = current.item_id, n, total, nil, nil
     elseif state == QUOTING then
         set_lines('Asking the auction house for the price...', 'Nothing is bought yet')
         primary_button:SetText('Getting price...')
@@ -218,6 +230,7 @@ local function update_commodity()
         set_lines('Server price: ' .. money.to_string(current.quote_total, true) .. ' for ' .. current.quote_quantity, 'Nothing is bought until you confirm', aux.color.green)
         primary_button:SetText('Confirm ' .. plain_money(current.quote_total))
         style_button(primary_button, CONFIRM, CONFIRM_TEXT, current.quote_total <= GetMoney())
+        shown.item_id, shown.quote, shown.record = current.item_id, current.quote_total, nil
     elseif state == BUYING then
         set_lines('Buying...', 'Waiting for the auction house')
         primary_button:SetText('Buying...')
@@ -255,6 +268,8 @@ local function request_quote()
         end
         current.quote_total = quote_total
         state = QUOTED
+        -- drawn at once: Confirm shows this price before it can be pressed
+        update()
     end)
     listen('COMMODITY_PRICE_UNAVAILABLE', function()
         reset({'That price is no longer available', 'Nothing was bought. Listings refreshed.'}, aux.color.red)
@@ -324,6 +339,7 @@ local function update_item()
 
     local can_buy = can_buy_item()
     primary_button:SetText(record.buyout_price > 0 and ('Buy for ' .. plain_money(record.buyout_price)) or 'Buy')
+    shown.record, shown.buyout, shown.bid, shown.item_id, shown.quote = record, record.buyout_price, record.bid_price, nil, nil
     style_button(primary_button, ACCENT, ACCENT_TEXT, can_buy)
     fit_width(primary_button, 130)
 
@@ -373,7 +389,7 @@ local function fit_lines()
     end
 end
 
-local function update()
+function update()
     if mode == NONE then return end
     if mode == COMMODITY then
         update_commodity()
@@ -415,6 +431,7 @@ function M.show_commodity(params)
     other_input.overlay:SetText(other_input.formatter(other_input:GetText()))
     anchor_lines(other_input, 14)
     show_common(params)
+    update()
 end
 
 -- params: record, name, texture, quality, own, busy(), on_buy(), on_bid()
@@ -430,6 +447,7 @@ function M.show_item(params)
     other_input:Hide()
     anchor_lines(icon:GetParent(), 170)
     show_common(params)
+    update()
 end
 
 function M.show_message(text1, text2, color)
@@ -440,6 +458,7 @@ function M.clear()
     reset()
     mode = NONE
     current = nil
+    wipe_shown()
     for _, chip in ipairs(chips) do chip:Hide() end
     for _, widget in ipairs{icon:GetParent(), icon, name_label, sub_label, other_input, cancel_button, bid_button, primary_button} do
         widget:Hide()
@@ -465,23 +484,33 @@ function M.busy()
     return state ~= IDLE
 end
 
+-- whether the button shows what a click would do now (see `shown`, at the top)
+local function shows_quantity()
+    local n = quantity()
+    return shown.item_id == current.item_id and shown.quantity == n and shown.total == (estimate(n))
+end
+
 function M.primary_click()
     if mode == COMMODITY then
         if state == IDLE then
-            request_quote()
-        elseif state == QUOTED and current.quote_total <= GetMoney() then
+            if shows_quantity() then
+                request_quote()
+            end
+        elseif state == QUOTED and current.quote_total <= GetMoney()
+                and shown.item_id == current.item_id and shown.quote == current.quote_total then
             state = BUYING
             t0 = GetTime()
             C_AuctionHouse.ConfirmCommoditiesPurchase(current.item_id, current.quote_quantity)
         end
-    elseif mode == ITEM and can_buy_item() then
+    elseif mode == ITEM and can_buy_item() and shown.record == current.record and shown.buyout == current.record.buyout_price then
         current.on_buy()
     end
     update()
 end
 
 function M.bid_click()
-    if mode == ITEM and can_bid_item() and not current.busy() and current.record.bid_price <= GetMoney() then
+    if mode == ITEM and can_bid_item() and not current.busy() and current.record.bid_price <= GetMoney()
+            and shown.record == current.record and shown.bid == current.record.bid_price then
         current.on_bid()
     end
     update()
@@ -673,6 +702,8 @@ function M.create(parent)
     gui.set_size(bid_button, 90, 42)
     bid_button:SetScript('OnClick', function() bid_click() end)
     bid_button:Hide()
+    -- for tests: what the Bid button shows when a bid is sent
+    M.bid_button = bid_button
 
     line1 = gui.label(bar, gui.font_size.medium)
     line1:SetJustifyH('LEFT')

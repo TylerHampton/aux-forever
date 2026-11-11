@@ -999,4 +999,26 @@ return function(env)
     search.frame:Hide()
     server:restore()
   end)
+
+  -- Found by the random player (tests/fuzz_test.lua): leaving the Post tab while a gear item's
+  -- listings are still being read. The read went on and used the selection, which the tab clears
+  -- when it closes: an error at every answer, and "The search stopped because of an error".
+  try('timing: leaving the Post tab while gear listings are read', function()
+    local server = new_server(env)
+    local post = module 'aux.tabs.post'
+    server.items[4590] = {name = 'Leave Staff', commodity = false, vendor = 1487, versions = {[401] = 'of the Bandit', [402] = 'of the Wolf'}}
+    server.listings[4590] = {{price = 11500, quantity = 1, version = 401}, {price = 15000, quantity = 1, version = 402}}
+    server.bag = {{id = 4590, count = 1, version = 402}}
+    server:install()
+    aux.set_tab(3)
+    server:ticks(2)
+    post.select_item('4590:of the wolf')
+    check('leave post: the staff is selected and its listings are on their way', post.selected_item ~= nil and server:pending() > 0)
+    local errors_before = env.errors()
+    aux.set_tab(1) -- the player goes to another tab before the answer
+    server:ticks(80)
+    check('leave post: the read ends without an error', env.errors() == errors_before)
+    aux.set_tab(1)
+    server:restore()
+  end)
 end

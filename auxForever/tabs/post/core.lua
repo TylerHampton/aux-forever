@@ -158,6 +158,8 @@ function tab.OPEN()
     update_inventory_records(true)
     refresh = true
     update_post_done()
+    -- the Post button shows at once whether it can be pressed (nothing is selected yet)
+    validate_parameters()
 end
 
 function tab.CLOSE()
@@ -434,6 +436,14 @@ end
 -- Forever: commodities are posted as one listing of (stack size x stack count) units at a unit price;
 -- other items are posted as one auction per item.
 function post_auction()
+    -- 0.8.2.1 (found by the random player of tests/fuzz_test.lua): a click posts only when Post may
+    -- be pressed right now. The button is faded five times a second, so for a moment it could
+    -- still be lit after the selection was gone (leaving the tab clears it): an error, or a post
+    -- the tab would have refused.
+    if not selected_item or disabled_reason() then
+        validate_parameters()
+        return
+    end
     local item_key = selected_item.key
 
     local stack_size = stack_size_input:GetNumber()
@@ -913,6 +923,10 @@ end
 function refresh_entries()
 	if selected_item then
         local item_key = selected_item.key
+        -- kept for the read below: leaving the Post tab clears selected_item while a gear item's
+        -- listings are still on their way, and the read then raised an error at each answer (found
+        -- by the random player of tests/fuzz_test.lua, 0.8.2.1)
+        local item_id = selected_item.item_id
 		set_bid_selection()
         set_buyout_selection()
         auto_price_key = item_key
@@ -964,7 +978,7 @@ function refresh_entries()
 			-- post took quite a long time"). A version whose name has not loaded yet is read.
 			skip_key = not by_key and function(result)
 			    local key_of_result = info.item_key_price_key(result.itemKey)
-			    if not key_of_result or key_of_result == item_key or result.itemKey.itemID ~= selected_item.item_id then
+			    if not key_of_result or key_of_result == item_key or result.itemKey.itemID ~= item_id then
 			        return false
 			    end
 			    -- a version with only your own listing is not suggested back to you (review H-004, note 8)
@@ -981,7 +995,7 @@ function refresh_entries()
                     record_auction(auction_record)
 				-- the cheapest other ending, to suggest a price when nobody sells this one (Tyler,
 				-- build 5: "we need to give them a price to post at anyway")
-				elseif auction_record.item_id == selected_item.item_id and not auction_record.own and (auction_record.unit_buyout_price or 0) > 0 then
+				elseif auction_record.item_id == item_id and not auction_record.own and (auction_record.unit_buyout_price or 0) > 0 then
 				    local unit = ceil(auction_record.unit_buyout_price)
 				    if not other_endings_lowest or unit < other_endings_lowest then
 				        other_endings_lowest = unit

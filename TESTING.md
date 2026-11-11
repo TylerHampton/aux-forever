@@ -8,16 +8,16 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.2.1 build 3
+## Current build: 0.8.2.1 build 4
 
 Fixes and speed from the outside review of 2026-11-10 (`docs/reviews/2026-11-10-outside-review.md`).
-Builds 1 and 2 were never tested (build 3 only adds a line to the `/aux debug` log), so this
-build's page holds build 1's six steps plus four more (the timing log, the search bar, forgetting
-old prices, the gamepad in a fight). Most of what changed only shows when
-the auction house is slow or fails to answer, which the automated tests play out with the slow
-test auction house; these steps check that nothing broke and that the Full scan got faster. Zip
-`auxForever-0.8.2.1-build3.zip`; `/reload` is enough (no new files). Test page build id
-`0-8-2-1-build-3`.
+Builds 1 to 3 were never tested, so this build's page holds all their steps. Build 4 adds three
+fixes found by a new automated test that plays aux at random (leaving the Post tab during a gear
+read, a click on Post past the fade, the buy button acting on a newer price than it showed) and
+step 11. Most of what changed only shows when the auction house is slow or fails to answer, which
+the automated tests play out with the slow test auction house; these steps check that nothing
+broke and that the Full scan got faster. Zip `auxForever-0.8.2.1-build4.zip`; `/reload` is enough
+(no new files). Test page build id `0-8-2-1-build-4`.
 
 - [ ] 1. Click Full scan at the top right of aux and wait without searching. At the end the chat
       says "Full scan complete: ... auctions recorded in ... (the auction house took ... to answer,
@@ -51,6 +51,9 @@ test auction house; these steps check that nothing broke and that the Full scan 
       (`/console taintLog 1`), open aux in gamepad mode, and get into a fight (a duel next to the
       auctioneer will do). During the fight the pad buttons do what they do without aux; after it
       the gold frame is back in aux and the buttons work in aux again. No "blocked" message.
+- [ ] 11. Post tab: click a piece of gear in the bag list (a weapon or armor you can sell), and
+      right away click the Search tab at the top. Wait five seconds, then click the Post tab again.
+      No BugSack error at any point, and the Post tab opens with its bag list as usual.
 
 ## 0.8.2 build 8
 

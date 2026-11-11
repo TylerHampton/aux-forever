@@ -59,7 +59,18 @@ local function new_frame(name)
     if k == 'SetTextColor' then return function(self, ...) self.__text_color = {...} end end
     if k == 'SetColorTexture' then return function(self, ...) self.__texture_color = {...} end end
     if k == 'SetVertexColor' then return function(self, ...) self.__vertex_color = {...} end end
-    if k == 'IsEnabled' then return function() return true end end
+    -- a button knows whether it is enabled, as in the game (it always answered true, so a test or
+    -- the gamepad's press could go through a faded button; AGENTS.md, Tests)
+    if k == 'Enable' then return function(self) self.__enabled = true end end
+    if k == 'Disable' then return function(self) self.__enabled = false end end
+    if k == 'SetEnabled' then return function(self, on) self.__enabled = on and true or false end end
+    if k == 'IsEnabled' then return function(self) return self.__enabled ~= false end end
+    -- a slider's range is two numbers (the gamepad scrolls lists with it)
+    if k == 'GetMinMaxValues' then return function() return 0, 100 end end
+    -- Click presses the button as the game does: its OnClick runs, unless it is faded
+    if k == 'Click' then return function(self, button)
+      if self.__enabled ~= false and self.__scripts.OnClick then self.__scripts.OnClick(self, button or 'LeftButton') end
+    end end
     if k == 'GetChecked' or k == 'IsMouseOver' or k == 'HasFocus' or k == 'IsForbidden' then return function() return false end end
     if NUMERIC[k] then return function()
       if G.__geometry and (k == 'GetHeight' or k == 'GetWidth') then return G.__geometry.size end
@@ -141,6 +152,7 @@ G.strmatch = string.match; G.strfind = string.find; G.strsub = string.sub; G.str
 G.hooksecurefunc = function() end; G.FauxScrollFrame_Update = function() end; G.FauxScrollFrame_GetOffset = function() return 0 end; G.FauxScrollFrame_SetOffset=function() end; G.FauxScrollFrame_OnVerticalScroll=function() end
 G.IsShiftKeyDown = function() return false end; G.IsAltKeyDown = G.IsShiftKeyDown; G.IsControlKeyDown = G.IsShiftKeyDown
 G.PlaySound = function() end; G.ClearCursor = function() end; G.StaticPopup_Show = function() end; G.StaticPopup_Hide = function() end
+G.GameTooltip_SetDefaultAnchor = function() end; G.GameTooltip_ShowCompareItem = function() end
 for _, s in ipairs{'LIGHTYELLOW_FONT_COLOR_CODE','FONT_COLOR_CODE_CLOSE','GRAY_FONT_COLOR_CODE','HOURS','ITEM_SPELL_CHARGES'} do G[s] = s end
 for i, q in ipairs{'Poor', 'Common', 'Uncommon', 'Rare', 'Epic'} do G['ITEM_QUALITY' .. (i - 1) .. '_DESC'] = q end
 G.ITEM_SPELL_CHARGES = '%d Charges'; G.AUCTION_DURATION_ONE = '2 Hours'; G.AUCTION_DURATION_TWO = '8 Hours'; G.AUCTION_DURATION_THREE = '24 Hours'
@@ -3997,6 +4009,8 @@ try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
   for i, b in ipairs(quick) do
     rawset(b, 'Click', function() pressed[i] = (pressed[i] or 0) + 1 end)
     rawset(b, 'IsVisible', function() return true end)
+    -- lit, as when there is something to buy, post or cancel (a stub button now knows when it is faded)
+    rawset(b, 'IsEnabled', function() return true end)
   end
   for i = 1, 5 do
     aux_env.set_tab(i)
@@ -4015,7 +4029,7 @@ try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
   pad('Y')
   check('gamepad nav: Y does nothing while a popup is open', pressed[3] == 1)
   cover:Hide()
-  for _, b in ipairs(quick) do rawset(b, 'Click', nil); rawset(b, 'IsVisible', nil) end
+  for _, b in ipairs(quick) do rawset(b, 'Click', nil); rawset(b, 'IsVisible', nil); rawset(b, 'IsEnabled', nil) end
   aux_env.set_tab(1)
 
   aux_env.gamepad_set_focus(b1)
@@ -6326,12 +6340,122 @@ try('second pass: items the game does not know', function()
   search.search_box:SetText(before or '')
 end)
 
+-- Found by the random player (tests/fuzz_test.lua): the buy bar draws its texts ten times a second,
+-- and a click acted on the selection as it was at the click. For a moment after the selection or a
+-- price changed, Buy showed one price and bought at another.
+try('second pass: a click on the buy bar does only what its button shows', function()
+  local function M(name) return loadstring("select(2, ...) '" .. name .. "'; return _M")('auxForever', addon) end
+  local bar, money = M 'aux.gui.buy_bar', M 'aux.util.money'
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local bought = {}
+  local function item(price)
+    local record = {buyout_price = price, bid_price = price, auction_count = 1}
+    return {record = record, name = 'Shown Blade', busy = function() return false end,
+      on_buy = function() tinsert(bought, record.buyout_price) end, on_bid = function() end}
+  end
+  -- another row is selected: the button shows its price at once, with no wait for the next draw
+  local a, b = item(1000), item(5000)
+  bar.show_item(a)
+  tick()
+  bar.show_item(b)
+  check('shown: a new selection shows its own price at once', plain(bar.primary_label()) == 'Buy for ' .. plain(money.to_string(5000, true)))
+  bar.primary_click()
+  check('shown: and a click buys it at that price', #bought == 1 and bought[1] == 5000)
+  -- the selected auction's price changes under the button (a deal re-priced, a table refresh)
+  b.record.buyout_price = 7000
+  bar.primary_click()
+  check('shown: a click while the button still shows the old price buys nothing', #bought == 1)
+  check('shown: and the button shows the new price', plain(bar.primary_label()) == 'Buy for ' .. plain(money.to_string(7000, true)))
+  bar.primary_click()
+  check('shown: the next click buys at the price now shown', #bought == 2 and bought[2] == 7000)
+
+  -- trade goods: the amount on the button is what the price is asked for
+  local calls = {}
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  set(C_AuctionHouse, 'StartCommoditiesPurchase', function(id, n) tinsert(calls, 'start ' .. n) end)
+  set(C_AuctionHouse, 'ConfirmCommoditiesPurchase', function(id, n) tinsert(calls, 'confirm ' .. n) end)
+  set(C_AuctionHouse, 'CancelCommoditiesPurchase', function() end)
+  set(C_AuctionHouse, 'GetQuoteDurationRemaining', function() return 30 end)
+  local tiers = {{count = 100, commodity_unit_price = 6}}
+  bar.show_commodity{item_id = 7831, name = 'Shown Herb', max_stack = 20, tiers = function() return tiers end}
+  check('shown: a trade good shows what 20 cost at once', plain(bar.primary_label()) == 'Buy 20 for ' .. plain(money.to_string(120, true)))
+  -- the listings change before the bar is drawn again: the cheap ones are gone
+  tiers[1].commodity_unit_price = 9
+  bar.primary_click()
+  check('shown: a click on a cost that no longer holds asks for nothing', #calls == 0)
+  check('shown: and the button shows the new cost', plain(bar.primary_label()) == 'Buy 20 for ' .. plain(money.to_string(180, true)))
+  bar.primary_click()
+  check('shown: the next click asks for the price', calls[1] == 'start 20')
+  fire('COMMODITY_PRICE_UPDATED', 9, 180)
+  check('shown: Confirm shows the server price as soon as it arrives', plain(bar.primary_label()) == 'Confirm ' .. plain(money.to_string(180, true)))
+  -- the server sends a lower price while Confirm is up: shown at once, then confirmed
+  fire('COMMODITY_PRICE_UPDATED', 8, 160)
+  check('shown: a changed server price is shown before it can be confirmed', plain(bar.primary_label()) == 'Confirm ' .. plain(money.to_string(160, true)))
+  bar.primary_click()
+  check('shown: Confirm confirms', calls[2] == 'confirm 20')
+  bar.clear()
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+end)
+
+-- found by the random player (tests/fuzz_test.lua): a click on Post that reaches the code while
+-- the button should be faded (it is faded five times a second, so it can lag a moment)
+try('second pass: Post posts only when the button may be pressed', function()
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  local bag = {{id = 7001}}
+  local function link(id) return '|cffffffff|Hitem:' .. id .. '::::::0:0|h[Sword]|h|r' end
+  set(C_Container, 'GetContainerNumSlots', function(b) return b == 0 and #bag or 0 end)
+  set(C_Container, 'GetContainerItemLink', function(b, i) return bag[i] and link(bag[i].id) end)
+  set(C_Container, 'GetContainerItemInfo', function(b, i) local it = bag[i]; return it and {stackCount = 1, isLocked = false, iconFileID = 1, hasLoot = false} end)
+  set(G, 'GetItemInfo', function(x) local id = tonumber(tostring(x):match('item:(%d+)') or x); if id == 7001 then return 'Sword', link(7001), 2, 20, 1, 'Weapon', 'Sword', 1, 'INVTYPE_WEAPON', 1, 100 end end)
+  set(C_Container, 'GetContainerItemDurability', function() end)
+  for _, k in ipairs{'ITEM_BIND_ON_PICKUP', 'ITEM_BIND_QUEST', 'ITEM_SOULBOUND'} do set(G, k, k) end
+  set(AuxTooltip, 'NumLines', function() return 0 end)
+  set(ItemLocation, 'CreateFromBagAndSlot', function(_, b, i) return {IsValid = function() return true end, bag = b, slot = i} end)
+  set(C_AuctionHouse, 'IsSellItemValid', function() return true end)
+  local posts = 0
+  set(C_AuctionHouse, 'PostItem', function() posts = posts + 1 return false end)
+  set(post.stack_count_input, 'GetNumber', function() return 1 end)
+  set(post.duration_dropdown, 'GetIndex', function() return 2 end)
+  post.frame:Show()
+  for _ = 1, 200 do tick() end
+
+  -- nothing is selected (the tab was left and opened again): no error, nothing sent
+  post.selected_item = nil
+  local ok, err = pcall(post.post_auction)
+  check('post click: with nothing selected a click does nothing (' .. tostring(err) .. ')', ok and posts == 0)
+
+  -- the button would be faded: a starting bid above the buyout
+  post.selected_item = {key = '7001:0', item_id = 7001, name = 'Sword', quality = 2, count = 1, max_stack = 1}
+  post.set_unit_start_price(9500)
+  post.set_unit_buyout_price(9000)
+  check('post click: the tab has a reason to fade Post', post.disabled_reason() ~= nil)
+  post.post_auction()
+  check('post click: a click past a faded Post sends nothing', posts == 0)
+
+  -- the same item with prices the tab accepts is posted
+  post.set_unit_start_price(5000)
+  check('post click: no reason left', post.disabled_reason() == nil)
+  post.post_auction()
+  check('post click: and a click the tab allows posts', posts == 1)
+  for _ = 1, 70 do tick() end
+  post.selected_item = nil
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
-dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({
+local test_env = {
   G = G, fire = fire, tick = tick, check = check, try = try, addon = addon, rawset = rawset,
   dir = (arg and arg[0] or ''):gsub('[^/\\]*$', ''),
-})
+  errors = function() return errors end,
+}
+dofile(test_env.dir .. 'timing_test.lua')(test_env)
+
+-- a player doing random things against the slow auction house (tests/fuzz_test.lua)
+dofile(test_env.dir .. 'fuzz_test.lua')(test_env)
 
 -- how many checks ran, so a block that silently stops running shows as a lower number
 print('checks: ' .. checks)

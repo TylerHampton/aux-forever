@@ -219,7 +219,11 @@ local function scroll_bar_of(row)
     for _, child in ipairs{list:GetChildren()} do
         if child:IsObjectType('ScrollFrame') then
             local name = child:GetName()
-            return child.ScrollBar or (name and _G[name .. 'ScrollBar'])
+            local bar = child.ScrollBar
+            if type(bar) ~= 'table' then
+                bar = name and _G[name .. 'ScrollBar']
+            end
+            return type(bar) == 'table' and bar or nil
         end
     end
 end

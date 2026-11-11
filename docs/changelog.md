@@ -76,6 +76,12 @@ Fixes and speed from a full review of the code (2026-11-10,
   until the next login, and what was remembered after it was lost.
 - Counting an item in your bags while a post is under way no longer reads every bag slot's
   tooltip.
+- Leaving the Post tab while the listings of a piece of gear were still being read no longer
+  raises an error at each answer that arrives.
+- A click on Post posts only when the button may be pressed at that moment. The button is faded a
+  few times a second, so for an instant a click could still get through: with nothing selected
+  it raised an error, and with a starting bid above the buyout it sent a post the tab would
+  have refused.
 
 ### Auctions and Bids
 
@@ -90,6 +96,10 @@ Fixes and speed from a full review of the code (2026-11-10,
 
 - When the game drops a trade good's price request for being sent too soon after another request,
   the buy bar says "The auction house was busy" at once. It said "No answer" after 10 seconds.
+- The buy button does only what it shows. It was redrawn a few times a second, so right after
+  you selected another auction, or after the price of the selected one changed, it could show
+  the old price for an instant while a click acted on the new one. A new selection now shows at
+  once, and a click does nothing unless the button shows what would be bought.
 
 ### Gamepad
 
@@ -103,6 +113,10 @@ Fixes and speed from a full review of the code (2026-11-10,
   being handed out, another part could miss that event and wait out a timeout.
 - The list of item names for autocompletion is sorted at login only when a name was added.
 - The auction house cut (5%) is one number for the whole addon.
+- A new automated test plays aux like a player clicking at random (searching, buying, sniping,
+  posting, cancelling, with and without a gamepad) against a slow test auction house, and checks
+  after every click that nothing was bought or posted that the screen did not show. It found the
+  three fixes above about leaving the Post tab, the Post click and the buy button.
 
 ## 0.8.2 (2026-11-09)
 

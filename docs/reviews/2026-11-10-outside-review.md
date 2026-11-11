@@ -9,11 +9,12 @@ to check, with where it is, why it matters to a player, how sure I am, a propose
 Answer each finding under it (fixed with its commit, not reproduced, or not worth its cost and why).
 
 **Answered on 2026-11-10:** Tyler then asked the reviewer to build the fixes in the same session.
-They are 0.8.2.1 builds 1 to 3; the answer under each finding says what was done. After build 2
+They are 0.8.2.1 builds 1 to 4; the answer under each finding says what was done. After build 2
 (Tyler said yes to R-10 and R-19 and asked for everything that could be done without him): 21
 fixed, 4 in part (R-16, R-20, R-23, R-25), 3 not built (R-05 and R-27 wait for Tyler in the game,
 R-28 is for a later version). Build 2 also holds a second pass over the files this review only
-skimmed; see "Second pass" at the end.
+skimmed; see "Second pass" at the end. Build 4 (2026-11-11) adds three fixes found by a random
+player in the tests (S-05 to S-07, same section).
 
 ## Verdict
 
@@ -538,6 +539,33 @@ the rest of `tabs/auctions/frame.lua`. Still only skimmed: `tabs/search/builder.
 - **S-04 "The money is in your mailbox."** for a sold auction stated what
   `docs/forever-auction-house.md` calls Unknown (how long the money takes, experiment E1). It now
   reads "Sold. The money comes by mail."
+
+Found by the random player (2026-11-11, build 4). `tests/fuzz_test.lua` plays every tab at random
+against the slow auction house (400 sessions of 250 steps for this pass: about 1,900 purchases,
+880 posts, 420 cancels) and checks after each step that there was no Lua error and that what
+reached the server is what the button showed. Each fix has a plain test of its own that fails
+without it:
+
+- **S-05 Leaving the Post tab while a gear item's listings were being read raised an error at
+  each answer.** The read's two callbacks used `selected_item.item_id`, and leaving the tab clears
+  `selected_item`. They now use a value taken when the read starts (`timing: leaving the Post tab
+  while gear listings are read`).
+- **S-06 The buy bar's click could act on something newer than its label.** The bar was drawn
+  five times a second, the click read the selection and price of that instant. After another row
+  was selected, or the selected record's price changed (a Sniper deal re-priced by R-14, a table
+  refresh), a click in the gap bought at a price the button did not show yet; for a trade good,
+  it asked for a quote on a cost other than the one shown. Not a way to pay more than a server
+  quote allows, but against "never spend more than the player saw". The bar now remembers what
+  it drew, draws at once on a new selection and on the server's price, and a click that does not
+  match what is drawn only redraws (`second pass: a click on the buy bar does only what its
+  button shows`).
+- **S-07 A click on Post that got past the fade.** Post is faded five times a second.
+  `post_auction` with no selection raised an error (after leaving and reopening the tab), and with
+  a starting bid above the buyout it sent the post. It now asks `disabled_reason()` itself, and
+  the tab sets the button when it opens (`second pass: Post posts only when the button may be
+  pressed`).
+- One more change came from the stubs, not from a defect a player could meet: the gamepad's
+  `scroll_bar_of` now returns a scroll bar only when it is a table. In the game it always is.
 
 Seen and left alone:
 

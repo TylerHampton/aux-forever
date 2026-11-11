@@ -174,6 +174,17 @@ cd .. && lua5.1 tests/lint_globals.lua  # must end with: lint: 0 unknown names
   is on its way, and check what reached the server (`server.posts`, `server.purchases`), not only
   what the screen says. Click buttons only when the addon would have them enabled
   (`click_post` there): calling `OnClick` straight past a faded button hid FB-021.
+- The random player (0.8.2.1, `tests/fuzz_test.lua`, run at the end of `load_test.lua`): a player
+  who does random things in every tab (shop, snipe, sell, manage; every third run with a gamepad)
+  against the slow auction house. After each step it checks that there was no Lua error and that
+  what reached the server is what the button showed; at the end, that nothing is left running. It
+  runs 6 short sessions by default. After a change to buying, posting, scans or the gamepad, run
+  many: `AUX_FUZZ_SEEDS=400 AUX_FUZZ_STEPS=250 lua5.1 ../tests/load_test.lua` (a few minutes). A
+  failure names its seed; `AUX_FUZZ_SEED=<n>` plays that one again and prints its steps. What it
+  finds becomes a fix plus a plain test of its own, as for any bug.
+- Stub buttons know whether they are enabled (`Enable`, `Disable`, `SetEnabled`, `IsEnabled`) and
+  `button:Click()` runs `OnClick` only when they are, as in the game. Click with `Click()` in new
+  tests. A slider's `GetMinMaxValues` returns 0, 100.
 - Harness limits: `GetChecked`, `HasFocus` and `IsMouseOver` always return false; `SetShown` does
   nothing; `Get*` methods return fresh stub frames (but frames made with `CreateFrame` know their
   parent, children, type and frame strata, since 0.8); `SetText` does not fire `OnTextChanged`, so
@@ -307,6 +318,11 @@ aux runs inside the game; every frame it spends time in costs the player frame r
   `char`, `focus_gain`, `focus_loss`. Right click clears it.
 - The modern client takes edit box focus away on any mouse press. Dropdown options therefore act
   on `OnMouseDown`, and the menu stays open while hovered (`gui/core.lua`).
+- A button's label and what its click does must come from the same moment (0.8.2.1). A button
+  redrawn by a timer can show an older price or selection than the one its click reads; the buy
+  bar keeps what it last drew (`shown` in `gui/buy_bar.lua`) and a click that does not match it
+  only redraws. A click handler also checks its own condition again (`post_auction` asks
+  `disabled_reason()`), since a button faded by a timer can be lit a moment too long.
 - Never hide and re-show a button every frame: the game drops clicks on it (this broke Cancel on
   the buy bar). Show or hide only when the state changes.
 - Rounded styling: `gui.set_frame_style` replaces `SetBackdropColor`/`SetBackdropBorderColor` on

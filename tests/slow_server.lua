@@ -280,8 +280,9 @@ return function(env)
       sent('more browse')
       -- more_silent: a request for more of the list is never answered
       if server.more_silent or not browse_rest then return end
+      local page = server.page_size or 500
       later(function()
-        for _ = 1, server.page_size do
+        for _ = 1, page do
           if browse_rest and browse_rest[1] then table.insert(browse, table.remove(browse_rest, 1)) end
         end
         if browse_rest and not browse_rest[1] then browse_rest = nil end
@@ -292,7 +293,8 @@ return function(env)
     -- posting: the item leaves the bag and the listing appears when the server has answered
     local function finish_post(post)
       take_from_bag(post.id, post.quantity, post.version)
-      add_listing(post.id, post.unit_price or post.buyout, post.quantity, true, post.bid, post.version)
+      -- gear posted with a starting bid only has no buyout: price 0, as the game lists it
+      add_listing(post.id, post.unit_price or post.buyout or 0, post.quantity, true, post.bid, post.version)
       env.fire('AUCTION_HOUSE_AUCTION_CREATED', next_auction_id)
       next_auction_id = next_auction_id + 1
       env.fire('BAG_UPDATE', 0)
@@ -340,6 +342,9 @@ return function(env)
     set(C, 'ConfirmCommoditiesPurchase', function(id, quantity)
       sent('confirm ' .. id .. ' ' .. quantity)
       local q = quote
+      -- what this confirmation will cost if it goes through (for tests that compare it with what the
+      -- button showed when it was pressed)
+      server.last_confirm_total = q and q.id == id and q.quantity == quantity and q.total or nil
       quote = nil
       later(function()
         if not q or q.id ~= id or q.quantity ~= quantity then
@@ -376,6 +381,55 @@ return function(env)
         server.money = server.money - amount
         table.insert(server.purchases, {id = a.id, auction_id = auction_id, total = amount})
         env.fire('AUCTION_HOUSE_PURCHASE_COMPLETED', auction_id)
+      end)
+    end)
+
+    -- your own auctions (the Auctions tab): every listing of yours is one auction. Asked for with
+    -- QueryOwnedAuctions and answered later; a cancel is answered later too and takes the auction
+    -- off the house. server.cancels records the auction IDs the addon asked to cancel.
+    local owned = {}
+    server.cancels = server.cancels or {}
+    set(C, 'QueryOwnedAuctions', function()
+      sent('owned')
+      later(function()
+        owned = {}
+        for id, list in pairs(server.listings) do
+          for _, l in ipairs(list) do
+            if l.own and l.quantity > 0 then
+              local auction_id = auction_id_of(l)
+              auctions[auction_id] = {id = id, listing = l}
+              table.insert(owned, {
+                auctionID = auction_id, itemKey = server:key(id, l.version),
+                -- as seen on Forever: no link for trade goods, gear has one
+                itemLink = not server.items[id].commodity and server:link(id, l.version) or nil,
+                status = G.Enum.AuctionStatus.Active, quantity = l.quantity, timeLeftSeconds = 40000,
+                buyoutAmount = l.price > 0 and l.price or nil, bidAmount = nil, bidder = nil,
+              })
+            end
+          end
+        end
+        table.sort(owned, function(a, b) return a.auctionID < b.auctionID end)
+        env.fire('OWNED_AUCTIONS_UPDATED')
+      end)
+    end)
+    set(C, 'GetNumOwnedAuctions', function() return #owned end)
+    set(C, 'GetOwnedAuctionInfo', function(i) return owned[i] end)
+    set(C, 'CanCancelAuction', function(auction_id)
+      local a = auctions[auction_id]
+      return a ~= nil and a.listing.own == true and a.listing.quantity > 0
+    end)
+    set(C, 'GetCancelCost', function() return 0 end)
+    set(C, 'CancelAuction', function(auction_id)
+      sent('cancel ' .. auction_id)
+      table.insert(server.cancels, auction_id)
+      later(function()
+        local a = auctions[auction_id]
+        if not a or not a.listing.own or a.listing.quantity <= 0 then
+          env.fire('AUCTION_HOUSE_SHOW_ERROR', G.Enum.AuctionHouseError.ItemNotFound)
+          return
+        end
+        a.listing.quantity = 0
+        env.fire('AUCTION_CANCELED', auction_id)
       end)
     end)
 
