@@ -139,6 +139,7 @@ cd auxForever
 lua5.1 ../tests/load_test.lua      # must end with: done, errors: 0
 lua5.1 ../tests/load_test.lua classic   # the same in the Classic look (0.6)
 for f in $(find . -name '*.lua'); do luac5.1 -p "$f"; done   # syntax check
+cd .. && lua5.1 tests/lint_globals.lua  # must end with: lint: 0 unknown names
 ```
 
 - Setup on Ubuntu/Debian (also a Jules setup script): `sudo apt-get update && sudo apt-get install -y lua5.1 zip`
@@ -146,7 +147,19 @@ for f in $(find . -name '*.lua'); do luac5.1 -p "$f"; done   # syntax check
   and attaches the installable addon to the run. If Lua is not installed locally, push and read the
   result there.
 - Add a test for each bug fixed and each feature. Check that it fails without the change
-  (break the code on purpose, run, restore).
+  (break the code on purpose, run, restore). The run prints `checks: N` before its last line: a
+  number that drops means a block of tests stopped running.
+- The stubs know Forever's real game functions (2026-11-10, outside review R-22): a `C_` function,
+  an event or an `Enum` member that Forever does not have is an error in the tests, and enums hold
+  the game's own values. The list is `tests/forever_api.lua`, made from Blizzard's generated
+  documentation by `tests/tools/make_forever_api.lua` (how to run it is at its top). Run it again
+  after a Blizzard patch, or when the addon starts using a new `C_` namespace or `Enum`.
+- `tests/lint_globals.lua` lists every name the addon reads that nothing defines, which is how a
+  misspelled name shows in this module system (it is silently nil). A game global the addon newly
+  reads goes into `tests/known_globals.lua` once it is checked to exist on Forever.
+- A test that swaps a field for a fake (`rawset(t, k, fake)`) ends with `rawset(t, k, nil)`: in
+  the test files that puts back what the field held before, so the real function is there again
+  for later tests (R-21).
 - The harness uses Forever's real auction house categories (`tests/forever_categories.lua`: Weapons,
   One-Handed, Daggers and so on, with the filters each one sends), made from Blizzard's code by
   `tests/tools/make_forever_categories.lua` (how to run it is at its top). After a Blizzard patch
@@ -261,8 +274,11 @@ aux runs inside the game; every frame it spends time in costs the player frame r
   all game long, even with the auction house closed. Use events, or a timestamp check inside a
   tab's own `on_update` (which only runs while the tab is shown).
 - No work that grows with the square of anything per frame or per event.
-- Long loops (thousands of items: the Sniper, fast lists, full scans) yield with `aux.coro_wait()`
-  every few hundred items so the game does not stutter.
+- Long loops (thousands of items: the Sniper, fast lists, full scans) pause so the game does not
+  stutter: `aux.coro_slice(i, every)` (0.8.2.1) pauses when the thread has used its share of the
+  frame (`SLICE_MS` in `control.lua`, by the game's clock `debugprofilestop`), or every `every` items
+  when there is no clock. Not a fixed count: 100 auctions a frame made the Full scan as slow as the
+  frame rate.
 - Prefer one request over many: the item list (one request per 500 items) over one search per
   item, and read single items only when needed.
 - Tests guard the rules above (`per-frame work` in `tests/load_test.lua`); add one when you add an
@@ -277,6 +293,11 @@ aux runs inside the game; every frame it spends time in costs the player frame r
   directly there, not `aux.color` (the global `aux` is the saved variables table).
 - Lua 5.1 only (WoW): no `goto`, no `//`, no integer types. Use WoW globals such as `tinsert`,
   `strlower`, `format`.
+- A scan hands `on_complete` a result (0.8.2.1): `no_list` (the auction house did not send the item
+  list), `partial_list` (only part of it arrived), `unread` (items that could not be read), `full`
+  (a Full scan's timings). Code that draws a conclusion from what a scan did not find ("gone",
+  "none for sale", "lowest") asks `scan.saw_everything(result)` first. A Full scan started without
+  `on_auction` builds no auction records; `on_progress(done, total)` says how far it is.
 - Never wrap code that waits (`aux.coro_wait`, any scan request) in `pcall`: Lua 5.1 cannot yield
   inside a `pcall`, so it fails at once. The test harness only notices if the stubbed answer
   arrives on a later tick, as in the game.

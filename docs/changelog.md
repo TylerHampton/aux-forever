@@ -11,6 +11,13 @@ A change that comes from a player's feedback credits them by in-game name at the
 Fixes and speed from a full review of the code (2026-11-10,
 `docs/reviews/2026-11-10-outside-review.md`). Nothing to do when updating; `/reload` is enough.
 
+### Prices
+
+- aux forgets the prices of items it has not seen at the auction house for 90 days. It kept every
+  item it ever saw, forever, and since 0.8 every gear ending is an item of its own; all of it is
+  loaded each time you log in. An item's prices come back the next time a search or Full scan sees
+  it. `/aux memory` says how many items it keeps.
+
 ### Sniper
 
 - One round the auction house did not answer no longer empties your deals. Such a round had seen
@@ -47,6 +54,11 @@ Fixes and speed from a full review of the code (2026-11-10,
   read, so long searches cost less.
 - A favorite with an alert brings up its popup once per search, not once for every auction that
   matches.
+- Typing in the search bar no longer hitches. At every key press aux built a list of every item
+  name it knows to find a completion; it now looks through the names directly.
+- A right-click search on an item the game has no data for at that moment does nothing instead of
+  raising an error, in every tab. The same goes for the conditions `item`, `vendor-profit` and
+  `bid-vendor-profit`.
 - After typing `and/`, `or/` or `not/` in the search bar, the conditions (price, seller, ...) are
   offered again.
 - Removing a favorite removes the one you were asked about, also when the list changed while the
@@ -69,6 +81,8 @@ Fixes and speed from a full review of the code (2026-11-10,
 
 - The Auctions tab's price check does not call an item "Lowest" or "Only one listed" when it
   could not read that item's listings; it stays "Not checked" and is checked again next time.
+- A sold auction reads "Sold. The money comes by mail." It said the money was in your mailbox,
+  which aux cannot know: after a sale the game first sends a notice, the money later.
 - On the Bids tab, Bid and Buyout fade when no bid is selected. They stayed lit from the last
   selection, and a click (or the gamepad's Y) raised an error.
 
@@ -76,6 +90,12 @@ Fixes and speed from a full review of the code (2026-11-10,
 
 - When the game drops a trade good's price request for being sent too soon after another request,
   the buy bar says "The auction house was busy" at once. It said "No answer" after 10 seconds.
+
+### Gamepad
+
+- When a fight starts while aux is open, the pad buttons go back to the game for the fight and
+  come back to aux after it, if aux is still open. They stayed with aux for the whole fight. Opened
+  during a fight, aux takes them once it is over.
 
 ### Under the hood
 

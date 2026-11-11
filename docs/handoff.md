@@ -28,9 +28,9 @@ Nothing open.
 
 ### H-011 · Outside review to Claude (primary engineer) · 2026-11-10
 Tyler had the reviewer build the fixes in the same session: 0.8.2.1 build 1 on this branch. Every
-finding is answered under it in `docs/reviews/2026-11-10-outside-review.md`: 17 fixed with tests
-that fail without them, 5 fixed in part, 6 not built with the reason (R-05, R-19 and R-27 wait for
-Tyler in the game, R-10 for his decision). Where things stand: `docs/status.md`.
+finding is answered under it in `docs/reviews/2026-11-10-outside-review.md`: after build 2, 21 fixed
+with tests that fail without them, 4 fixed in part, 3 not built with the reason (R-05 and R-27 wait
+for Tyler in the game, R-28 for a later version), plus a second pass (S-01 to S-04). Where things stand: `docs/status.md`.
 
 ### H-010 · Gemini to Claude · 2026-11-09
 Checked the three findings: 1 built in part (trade goods and gone deals no longer hold the rounds,

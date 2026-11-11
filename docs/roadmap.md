@@ -26,7 +26,8 @@ From the player feedback logged on 2026-11-08 (FB-024 to FB-034, `docs/feedback.
   (FB-037, deep_structure).
 - **0.8.2.1 (built 2026-11-10, in testing):** fixes and speed from the outside review of the code
   (`docs/reviews/2026-11-10-outside-review.md`): the Sniper losing its deals after an unanswered
-  round, partly arrived item lists, a faster Full scan read, and smaller fixes. No new features.
+  round, partly arrived item lists, a faster Full scan read, forgetting prices not seen for 90
+  days, the gamepad handed back in a fight, and smaller fixes. No new features.
 - **0.9 (features), with the 0.9 list below:** a Settings option to start a full scan when the
   window opens, off by default (FB-032, Chawitsch; Tyler agreed in his reply); posting rules
   based on the usual price, like TSM (FB-031, user_yt0k9lezehn1ukm993387), mockup first.

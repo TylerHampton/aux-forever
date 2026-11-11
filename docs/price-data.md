@@ -33,6 +33,10 @@ after a logout and away from the auction house.
   (`today_min`) and the usual prices worked out so far (`value_cache`). `/aux memory detail` counts
   them.
 
+Since 0.8.2.1 a line whose newest price is more than 90 days old is removed, once a day at login
+(`history.forget_old_prices`, `FORGET_DAYS`; Tyler, 2026-11-10). "Newest price" is the day aux last
+saw the item at the auction house, not the day the line was last read.
+
 ## How a price gets in
 
 - Every auction any scan sees goes through `history.process_auction` (`auxForever/core/history.lua`,

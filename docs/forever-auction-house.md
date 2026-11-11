@@ -46,6 +46,11 @@ date and who saw it.
 5. Our own observations: Tyler's in-game tests, recorded in `docs/status.md`,
    `docs/testing-history.md` and the test pages.
 
+6. Checked again on 2026-11-10 against build 70888 of source 1 (and build 70532 of source 2, the
+   lists of global functions, frames and text): every `C_` function, event and `Enum` member
+   auxForever uses is in Blizzard's generated documentation for Forever, with the values the tests
+   now use (`tests/forever_api.lua`); so is the timing function `debugprofilestop`. **[Code]**
+
 ## 1. Which auction houses there are
 
 - Each faction has its own auction house; the neutral auctioneers (Gadgetzan, Booty Bay,
@@ -160,6 +165,10 @@ search and buy, which work in game **[Seen]**.
   completes it (`COMMODITY_PURCHASE_SUCCEEDED` or `_FAILED`). The quote expires
   (`GetQuoteDurationRemaining`). Units are taken cheapest first and your own units are skipped
   (`quantity - numOwnerItems`). **[Code]** aux's buy bar (Buy, then Confirm) works **[Seen]**.
+- Blizzard's own buy window accepts a server price up to 5% above the price it showed, and shows
+  the increase (`MAXIMUM_PREVIEW_PRICE_DIFFERENTIAL = 1.05` in
+  `Blizzard_AuctionHouseBuyDialog.lua`, build 70888). **[Code]** aux is stricter: it confirms only a
+  server price at or below what it showed.
 - A purchase on a quote that went stale ended with "Internal auction error" (0.4.1 tests, Sniper
   trade goods 4 of 5 times on deals found minutes earlier). **[Seen]**
 - Whether the confirm step may run without a click: **[Unknown]**. aux always asks for the click,

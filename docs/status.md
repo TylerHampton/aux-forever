@@ -9,14 +9,16 @@ released, move its notes to `docs/status-history.md` (everything before 2026-11-
 
 **Released:** 0.8.2 (tag `v0.8.2` on `main`, GitHub release, CurseForge Beta file), 2026-11-09.
 
-**Being built:** 0.8.2.1 build 1 on branch `claude/festive-faraday-w1xbvz` (`main` plus this work).
-Not tested in game yet. No pull request yet.
+**Being built:** 0.8.2.1 build 2 on branch `claude/festive-faraday-w1xbvz` (`main` plus this work).
+Not tested in game yet (build 1 was never tested either). No pull request yet.
 
 **What 0.8.2.1 is.** On 2026-11-10 Tyler asked Claude for a full review of the code as an outside
-expert, then to build the fixes too ("I want you to write all the changes as well"). The review is
-`docs/reviews/2026-11-10-outside-review.md`: 28 findings (R-01 to R-28), each now answered under
-it. Built, each with a test that fails without it (every fix was broken on purpose once to see its
-test fail):
+expert, then to build the fixes ("I want you to write all the changes as well"), then said yes to
+the two open questions and left Claude to "fix everything you can". The review is
+`docs/reviews/2026-11-10-outside-review.md`: 28 findings (R-01 to R-28), each answered under it,
+plus a second pass over the files it had only skimmed (S-01 to S-04). 21 fixed, 4 in part, 3 not
+built. Every fix has a test that fails without it (each was broken on purpose once to see its test
+fail). What changed, by area:
 - Sniper: a round without the whole item list no longer marks deals gone (R-01, R-02); items are
   judged again after a Full scan and on a new day (R-03); a re-read gear deal takes the price of the
   auction found (R-14); Ignore item works by name (R-20).
@@ -25,38 +27,38 @@ test fail):
 - Full scan speed (FB-027): pauses by the clock (`aux.coro_due`, `SLICE_MS = 8` in `control.lua`),
   no auction record per listing (`info.replicate_reader`), unloaded listings a share at a time
   (R-07 to R-09). In the test harness 200,000 auctions went from 2,052 frames to 145. The clock is
-  the game's `debugprofilestop` (Outside: present on the modern client; not seen on Forever); when
-  it is missing aux falls back to the old counts, so nothing breaks, it just is not faster.
+  the game's `debugprofilestop`, which is in Blizzard's documentation for Forever (Code, build
+  70888); without it aux falls back to the old counts.
+- Prices not seen for 90 days are forgotten, once a day at login (R-10, Tyler: yes).
+- Gamepad: the buttons go back to the game when a fight starts and come back after it (R-19,
+  Tyler: yes). Not seen in game; it only acts when the game says it is not locked yet.
 - Bids buttons (R-04), `/aux clear post` (R-06), price boxes (R-15), events and threads (R-18),
-  lighter bag count (R-11), fewer table redraws (R-12), login work (R-13), the short list of R-20.
-- Tests: swapped fields are restored (R-21), enum members differ (R-22, part), the run prints its
-  check count (1188; R-23, part), the slow auction house can cut or withhold an item list and
-  gives each auction its own ID.
+  lighter bag count (R-11), fewer table redraws (R-12), login work (R-13), the short list of R-20,
+  search bar typing (S-01), right-click searches on unknown items (S-02).
+- Tests: swapped fields are restored (R-21); game functions, events and enums are checked against
+  Forever's real list, `tests/forever_api.lua` (R-22); `tests/lint_globals.lua` finds misspelled
+  names (R-24); the run prints its check count (1,223); the slow auction house can cut or withhold
+  an item list and gives each auction its own ID. Blizzard's code is reachable from a cloud
+  session: clone `Gethe/wow-ui-source`, branch `forever`, with `--filter=blob:none --no-checkout`.
 
-**Not built, and why** (answers in the review file): R-05 (measure first), R-10 (deletes saved
-prices: Tyler decides), R-19 (gamepad in combat: needs an in-game try with the taint log), the
-strict list of game functions for the tests (R-22: needs Blizzard's generated documentation), the
-test file split (R-23), a check for misspelled names (R-24), R-27 (needs a sale in game), R-28
-(structure, for a later version), and one part of R-16 and of R-20 (each would change something
-that works today).
+**Not built, and why** (answers in the review file): R-05 (measure first), R-27 (needs a sale in
+game), R-28 (structure, for a later version), the test file split (R-23), naming the release action
+by commit (R-25), and one part each of R-16 and R-20 (each would change something that works today).
 
-**Next step:** Tyler tests build 1 (six steps: `TESTING.md`, test page build id `0-8-2-1-build-1`,
-zip `auxForever-0.8.2.1-build1.zip`, `/reload` is enough). Read the test page results first. Step 1
-gives the Full scan's time in game: put that number into the 0.8.2.1 changelog entry (it only says
-"faster" now) and, if the game stuttered, lower `SLICE_MS`. When it passes and Tyler says so:
-changelog date, pull request to `main`, merge, Release workflow. The CurseForge description does
-not change.
+**Next step:** Tyler tests build 2 (nine steps, the last only with a gamepad: `TESTING.md`, test
+page build id `0-8-2-1-build-2`, zip `auxForever-0.8.2.1-build2.zip`, `/reload` is enough). Read the
+test page results first. Step 1 gives the Full scan's time in game: put that number into the
+0.8.2.1 changelog entry (it only says "faster" now) and, if the game stuttered, lower `SLICE_MS`.
+When it passes and Tyler says so: changelog date, pull request to `main`, merge, Release workflow.
+The CurseForge description does not change.
 
 **Open questions for Tyler:**
-1. R-10: may aux forget prices of items it has not seen for a long time (the review suggests 90
-   days)? It keeps every item forever now, and since 0.8 every gear ending is its own entry.
-2. R-05: one `/aux debug` line from a busy day, after searching an item searched a few minutes
+1. R-05: one `/aux debug` line from a busy day, after searching an item searched a few minutes
    earlier ("N after the 1s fallback" is the number that matters). On 2026-10-04 it was 0 of 336.
-3. R-27: one sale and a screenshot of its "Auction successful" mail (experiment E1 in
-   `docs/forever-auction-house.md`) settles the 5% cut that aux shows as fact.
-4. R-19: does he want the gamepad handed back to the game when a fight starts? It needs a careful
-   in-game try.
-5. From before the review: replies to the players of the 2026-11-08 feedback batch are not written;
+2. R-27: one sale and a screenshot of its "Auction successful" mail (experiment E1 in
+   `docs/forever-auction-house.md`) settles the 5% cut that aux shows as fact. One auction left to
+   expire (E4) settles the deposit tooltip's "kept if the auction expires".
+3. From before the review: replies to the players of the 2026-11-08 feedback batch are not written;
    does he want them? FB-039 (a player's Full scan "wasnt working") has no details yet.
 
 **Roles (Tyler, 2026-10-26):** Claude Code is the primary engineer; Gemini (Gemini 4 Argon) gives

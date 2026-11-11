@@ -8,13 +8,15 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.2.1 build 1
+## Current build: 0.8.2.1 build 2
 
 Fixes and speed from the outside review of 2026-11-10 (`docs/reviews/2026-11-10-outside-review.md`).
-Most of it only shows when the auction house is slow or fails to answer, which the automated tests
-play out with the slow test auction house; these six steps check that nothing broke and that the
-Full scan got faster. Zip `auxForever-0.8.2.1-build1.zip`; `/reload` is enough (no new files).
-Test page build id `0-8-2-1-build-1`.
+Build 1 was never tested, so this build's page holds its six steps plus three for build 2 (the
+search bar, forgetting old prices, the gamepad in a fight). Most of what changed only shows when
+the auction house is slow or fails to answer, which the automated tests play out with the slow
+test auction house; these steps check that nothing broke and that the Full scan got faster. Zip
+`auxForever-0.8.2.1-build2.zip`; `/reload` is enough (no new files). Test page build id
+`0-8-2-1-build-2`.
 
 - [ ] 1. Click Full scan at the top right of aux and wait without searching. At the end the chat
       says "Full scan complete: ... auctions recorded in ... (the auction house took ... to answer,
@@ -34,6 +36,16 @@ Test page build id `0-8-2-1-build-1`.
 - [ ] 6. Open the Bids tab and click no row. The Bid and Buyout buttons at the bottom are faded and
       clicking them does nothing (no BugSack error). If you have a bid there: click its row (the
       buttons light up), then click the same row again to let go (they fade again).
+- [ ] 7. Search tab: click the search bar and slowly type `line`. After the first letters the bar
+      fills in an item name for you, for example "linen cloth/exact", as it did before, and typing
+      does not stutter.
+- [ ] 8. Type `/aux memory` in chat. The line ends with "price history for ... items (prices not
+      seen for 90 days are forgotten)". Then hover an item you scanned in the last days, anywhere:
+      its tooltip still has its Value line.
+- [ ] 9. Only if you play with a gamepad; otherwise Skip. Turn on the taint log
+      (`/console taintLog 1`), open aux in gamepad mode, and get into a fight (a duel next to the
+      auctioneer will do). During the fight the pad buttons do what they do without aux; after it
+      the gold frame is back in aux and the buttons work in aux again. No "blocked" message.
 
 ## 0.8.2 build 8
 

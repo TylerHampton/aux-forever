@@ -9,8 +9,11 @@ to check, with where it is, why it matters to a player, how sure I am, a propose
 Answer each finding under it (fixed with its commit, not reproduced, or not worth its cost and why).
 
 **Answered on 2026-11-10:** Tyler then asked the reviewer to build the fixes in the same session.
-They are 0.8.2.1 build 1 (commit `e937586` and the docs commit after it); the answer under each
-finding says what was done. 17 fixed, 5 in part, 6 not built.
+They are 0.8.2.1 builds 1 and 2; the answer under each finding says what was done. After build 2
+(Tyler said yes to R-10 and R-19 and asked for everything that could be done without him): 21
+fixed, 4 in part (R-16, R-20, R-23, R-25), 3 not built (R-05 and R-27 wait for Tyler in the game,
+R-28 is for a later version). Build 2 also holds a second pass over the files this review only
+skimmed; see "Second pass" at the end.
 
 ## Verdict
 
@@ -251,7 +254,7 @@ protective, or cleanup.
   as a start; the usual price already ignores what is older than 14 points). Say in the changelog
   that old prices are forgotten after that long.
 
-**Answer (Claude, 2026-11-10, 0.8.2.1 build 1):** Not built. Forgetting saved prices cannot be undone for a player, so this is Tyler's decision (question 1 in `docs/status.md`): whether, and after how many days.
+**Answer (Claude, 2026-11-10, 0.8.2.1 build 2):** Fixed. Tyler said yes to 90 days (2026-11-10). `history.forget_old_prices` runs once a day at login in a thread that pauses by the clock, and removes a line whose newest price is more than `FORGET_DAYS` (90) days old. The day is read from the saved line without unpacking it (`history.last_seen_day`): the day of its newest price, not the day it was last read, since a tooltip or a Sniper round reads a line and moves its day on without having seen the item. A line it cannot read is kept. `/aux memory` says so. Test `outside review: R-10 old prices are forgotten`.
 
 ### R-11 (P3) Post tab: every look through the bags builds a hidden tooltip per slot
 
@@ -350,7 +353,7 @@ protective, or cleanup.
   handler; not checked on Forever), and take them again when combat ends if aux is still open.
   Try it with the taint log on, as `docs/gamepad.md` describes.
 
-**Answer (Claude, 2026-11-10, 0.8.2.1 build 1):** Not built. It rests on an Outside fact (protected calls still allowed in `PLAYER_REGEN_DISABLED`) and changes key bindings, the area where a mistake froze the game on 2026-10-13. It needs a try in game with the taint log, which this session cannot do. Question 4 for Tyler in `docs/status.md`.
+**Answer (Claude, 2026-11-10, 0.8.2.1 build 2):** Fixed. Tyler said yes (2026-11-10). `gamepad.lua` hands the buttons back in `PLAYER_REGEN_DISABLED` and takes them again in `PLAYER_REGEN_ENABLED` if aux is still open; opened during a fight, aux takes them once it is over. The binding call is only made when `InCombatLockdown()` says the game is not locked yet, so if Forever locks before that event (the claim that it does not is Outside) nothing is called and the old behavior stays. Test `outside review: R-19 the gamepad in combat` plays both cases. Not seen in game: step 9 of the build 2 checklist, with the taint log on.
 
 ### R-20 (P3) Short list
 
@@ -402,7 +405,7 @@ protective, or cleanup.
   to a name that is not in the list, and gives each enum member its real, distinct value. Tests that
   need a function to answer still set it themselves.
 
-**Answer (Claude, 2026-11-10, 0.8.2.1 build 1):** Fixed in part. Every enum member now has a number of its own, and all tests pass with it. The strict list of real function names is not built: it needs Blizzard's generated documentation (`Gethe/wow-ui-source`, branch `forever`), which this session's repository access does not include. Worth doing next with that repository attached.
+**Answer (Claude, 2026-11-10, 0.8.2.1 build 2):** Fixed. Blizzard's code turned out to be reachable from this session after all (anonymous read of the public repository). `tests/tools/make_forever_api.lua` writes `tests/forever_api.lua` from the generated documentation (branch `forever`, build 70888): the functions of every `C_` namespace the addon names, every event, and the members and values of every `Enum` the addon names. In the harness a `C_` function, an event or an enum member Forever does not have is an error, also when a test fakes one, and enums hold the game's values. Every function, event and enum the addon uses is in the list; the 1,188 checks of the time passed unchanged. Not checked by it: functions Blizzard's interface code writes in Lua (`ItemLocation`, `TooltipDataProcessor`, frames), which that documentation does not hold; the ones the addon uses were looked up by hand on 2026-11-10 (`tests/known_globals.lua` names the sources).
 
 ### R-23 (P3) One test file of 5,700 lines with shared state
 
@@ -424,7 +427,7 @@ protective, or cleanup.
   module and nothing in the game's globals, is recorded and fails the run unless the name is on a
   short allow list (optional game functions such as `GetUIPanel`).
 
-**Answer (Claude, 2026-11-10, 0.8.2.1 build 1):** Not built. Worth trying after R-22, with the same care for names that are optional on purpose.
+**Answer (Claude, 2026-11-10, 0.8.2.1 build 2):** Fixed, by another route than proposed. A switch at run time would have drowned in names that are nil on purpose (`next_refresh or 0`). `tests/lint_globals.lua` reads each file's compiled code (`luac -l`) and lists every name that is read but that neither the file's module nor the game defines; `tests/known_globals.lua` holds the game globals the addon reads, each looked up for Forever. The current code has none unknown (one unused leftover, `editBoxWidth`, was removed). CI runs it. Shown to work by misspelling a name on purpose.
 
 ### R-25 (P3) Release workflow
 
@@ -513,6 +516,41 @@ protective, or cleanup.
    sale mail of experiment E1 (R-27).
 4. Before 0.9: R-22 (strict stubs), R-10 (trimming), R-26 (docs), then the small ones as they are
    touched.
+
+## Second pass (2026-11-10, with the fixes): the files this review only skimmed
+
+Read in full for build 2: `tabs/post/frame.lua`, `tabs/sniper/frame.lua`, `tabs/search/frame.lua`,
+`tabs/search/core.lua`, `tabs/search/quick.lua`, `tabs/search/filter.lua`, `gui/item_listing.lua`,
+the rest of `tabs/auctions/frame.lua`. Still only skimmed: `tabs/search/builder.lua`,
+`gui/listing.lua`, `color.lua`, `core/disenchant.lua`. Found and fixed in build 2, each with a test:
+
+- **S-01 Typing in the search bar was slow.** For the first word of a search,
+  `completion.complete_filter` got a list of every item name with "/exact" added, built anew at
+  every key press, and compared each in upper case: about 28 ms per key with 25,000 names in the
+  harness. It now looks through the names itself: about 3 ms. Same completions as before
+  (`second pass: search bar completion`).
+- **S-02 A right-click search raised an error for an item the game had dropped the data of**
+  (`info.item(...).name` in five tabs), and so did the conditions `item`, `vendor-profit` and
+  `bid-vendor-profit`. All right-click searches now go through `search.search_item`, which does
+  nothing for such an item (`second pass: items the game does not know`).
+- **S-03 A Sniper deal re-priced by R-14 kept its old profit and percent.** They are worked out
+  again from the new price.
+- **S-04 "The money is in your mailbox."** for a sold auction stated what
+  `docs/forever-auction-house.md` calls Unknown (how long the money takes, experiment E1). It now
+  reads "Sold. The money comes by mail."
+
+Seen and left alone:
+
+- The deposit tooltip on the Post tab says the deposit "is kept if the auction expires". On Forever
+  that is Outside (experiment E4). The cancel half of the sentence is Code. Left for Tyler: a label
+  in a tooltip reads oddly, and E4 is one expired auction away from settling it.
+- A right-click on a result row searches the item's own name, so for gear every ending; the Post
+  tab's right-click on a price searches the full name with its ending. Both are deliberate as far
+  as the comments say, but they differ.
+- The count boxes on the Post tab snap an emptied box back to 1 at once, so "Choose how many to
+  post." can never show. Harmless.
+- Blizzard's own buy window accepts a server price up to 5% above the one it showed (Code, now in
+  the facts file). aux stays stricter.
 
 ## Appendix: two experiments that are ready-made failing tests
 
