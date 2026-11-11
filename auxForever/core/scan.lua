@@ -238,7 +238,7 @@ function complete()
     do (on_complete or pass)(result) end
 end
 
-M.PARTIAL_LIST_TEXT = 'The auction house sent only part of the item list (it was slow to answer), so some items are missing. Search again to see them all.'
+M.PARTIAL_LIST_TEXT = 'The auction house sent only part of the item list (it was slow to answer), so some items are missing. Search again (on the Post tab: Refresh) to read them all.'
 
 -- whether a finished scan saw everything it asked for (result: what on_complete is handed)
 function M.saw_everything(result)

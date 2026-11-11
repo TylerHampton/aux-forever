@@ -234,7 +234,10 @@ function start_live_scan(query, search)
                 end
             end
             search.live_round = (search.live_round or 0) + 1
-            search.completed_at = time()
+            -- "updated just now" only for a round that brought the list
+            if not (result and (result.no_list or result.partial_list)) then
+                search.completed_at = time()
+            end
             search.live_next = GetTime() + LIVE_INTERVAL
             update_live_button(true)
         end,
