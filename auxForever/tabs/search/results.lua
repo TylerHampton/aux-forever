@@ -18,6 +18,20 @@ StaticPopupDialogs.AUX_SCAN_ALERT = {
     preferredIndex = STATICPOPUP_NUMDIALOGS,
 }
 
+-- 1234567 as "1,234,567"
+local function thousands(n)
+    local text = tostring(n)
+    while true do
+        local done
+        text, done = gsub(text, '^(%d+)(%d%d%d)', '%1,%2')
+        if done == 0 then return text end
+    end
+end
+
+-- how many auctions a search keeps for its table. More than this and every redraw (sorting and
+-- grouping them) costs the player frame rate; the rest is still read for prices.
+M.TABLE_LIMIT = 2000
+
 NORMAL_MODE, LIVE_MODE = {}, {}
 
 mode = nil
@@ -223,9 +237,15 @@ function start_live_scan(query, search)
                 -- 0.8.2.1 (outside review, R-02): a round that got no item list, or part of one,
                 -- keeps the table as it is (it emptied it, or dropped the items past the cut); the
                 -- next round reads again
-            elseif #new_records > 2000 then
-                aux.show_popup('AUX_SEARCH_TABLE_FULL')
+            elseif #new_records > TABLE_LIMIT then
+                -- the table keeps what it has; said next to the results and once in chat, without
+                -- the popup that came up again at every round (build 5)
+                if not search.live_too_many then
+                    aux.print(format('Live: this search finds more than %s auctions, too many to keep updated. Narrow the search.', thousands(TABLE_LIMIT)))
+                end
+                search.live_too_many = true
             else
+                search.live_too_many = nil
                 local selected = search.table.selected and search.table.selected.search_signature
                 search.records = new_records
                 search.table:SetDatabase(search.records)
@@ -431,15 +451,6 @@ end
 -- auxForever: "Search Results 37" on the sub tab, and next to the sub tabs what the results hold:
 -- "37 items, 403 for sale, searched 2m ago" for a search over many items, or for one item
 -- "11 price levels, 6,180 for sale". The first number is the one on the sub tab.
-local function thousands(n)
-    local text = tostring(n)
-    while true do
-        local done
-        text, done = gsub(text, '^(%d+)(%d%d%d)', '%1,%2')
-        if done == 0 then return text end
-    end
-end
-
 -- the rows the table shows for these records: one per price (0.8, review H-004, finding 7)
 function count_price_levels(records)
     local seen, n = {}, 0
@@ -490,6 +501,11 @@ function M.results_summary(search)
         text = thousands(levels) .. (levels == 1 and ' price level, ' or ' price levels, ')
     end
     text = text .. thousands(units) .. ' for sale'
+    if search.not_shown then
+        text = text .. aux.color.red(', table full: ' .. thousands(search.not_shown) .. ' more not shown')
+    elseif search.live_too_many then
+        text = text .. aux.color.red(', too many for Live: narrow the search')
+    end
     if search.fast then
         text = text .. ', fast'
     elseif search.full_reason then
@@ -544,6 +560,7 @@ function start_search(queries, continuation)
     search.next_redraw, search.redraw_due = nil, nil
     search.complete = false
     search.incomplete = nil
+    search.not_shown = nil
     update_done()
 
     total_queries = #queries
@@ -599,11 +616,13 @@ function start_search(queries, continuation)
                 alerted = true
                 aux.show_popup('AUX_SCAN_ALERT')
             end
-            if #search.records < 2000 then
+            -- 0.8.2.1 build 5 (Tyler, build 4 test, on the "Table full!" popup of a Full search for
+            -- linen: "I had to close this error"): past the table's limit nothing pops up; the line
+            -- next to the results says how much is not shown, and chat says it once at the end
+            if #search.records < TABLE_LIMIT then
                 tinsert(search.records, auction_record)
-                if #search.records == 2000 then
-                    aux.show_popup('AUX_SEARCH_TABLE_FULL')
-                end
+            else
+                search.not_shown = (search.not_shown or 0) + (auction_record.count or 1) * (auction_record.auction_count or 1)
             end
         end,
         on_complete = function(result)
@@ -612,6 +631,10 @@ function start_search(queries, continuation)
             search.completed_at = time()
             -- 0.8.2.1 (outside review, R-02): said next to the results too, not only in chat
             search.incomplete = result and (result.no_list or result.partial_list) and true or nil
+            if search.not_shown then
+                aux.print(format('The results table is full (%s auctions). %s more for sale were read for prices but are not shown: narrow the search to see them.',
+                    thousands(TABLE_LIMIT), thousands(search.not_shown)))
+            end
             if search.redraw_due then
                 search.redraw_due = nil
                 search.table:SetDatabase()

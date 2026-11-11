@@ -8,16 +8,61 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.2.1 build 4
+## Current build: 0.8.2.1 build 5
 
-Fixes and speed from the outside review of 2026-11-10 (`docs/reviews/2026-11-10-outside-review.md`).
-Builds 1 to 3 were never tested, so this build's page holds all their steps. Build 4 adds three
-fixes found by a new automated test that plays aux at random (leaving the Post tab during a gear
-read, a click on Post past the fade, the buy button acting on a newer price than it showed) and
-step 11. Most of what changed only shows when the auction house is slow or fails to answer, which
-the automated tests play out with the slow test auction house; these steps check that nothing
-broke and that the Full scan got faster. Zip `auxForever-0.8.2.1-build4.zip`; `/reload` is enough
-(no new files). Test page build id `0-8-2-1-build-4`.
+One fix from Tyler's build 4 test (results below): a Full search for `linen` brought up "Table
+full!", a popup to close, at every search. The popup is gone; the line next to the results and one
+chat line say how much is not shown. Two questions come with it. Zip
+`auxForever-0.8.2.1-build5.zip`; `/reload` is enough (no new files). Test page build id
+`0-8-2-1-build-5`.
+
+- [ ] 1. Search tab: click Full (next to Fast) and search `linen`. No popup comes up. When the
+      search ends, the line next to the sub tabs has a red part that reads "table full:" followed
+      by a number and "more not shown", and the chat says "The results table is full (2,000
+      auctions)." Screenshot the aux window with the chat.
+- [ ] 2. A question. Click the search bar and slowly type `line`. When the bar has filled in
+      "linen cloth/exact", press Tab once, then type a slash (/). Write what the bar reads now,
+      what happened when you pressed Tab, and what you wanted Tab to do (FB-040).
+- [ ] 3. A question; no need to scan again if you remember. While the Full scan's bar said
+      "reading auctions", did the game stay smooth or stutter?
+
+## 0.8.2.1 build 4
+
+Tested by Tyler on 2026-11-11 (test page build id `0-8-2-1-build-4`). He marked one step Pass and
+skipped three; the rest are read from his screenshots.
+
+- Step 1, Full scan: "Full scan complete: 220508 auctions recorded in 48.5s (the auction house
+  took 30.3s to answer, 2.0s to send the list; reading took 16.2s)". About the same total as
+  0.8.2 (215090 in 50.5s): most of it is the wait for the auction house. No word on how the game
+  felt; asked in build 5.
+- Step 2, Sniper: passes. Round 1 read 17627 items in 66.6s, round 2 in 54.9s; "88 to buy, 1 gone",
+  rows green, not gray.
+- Step 3, Full search `linen`: the search ran and ended ("20 items, 41,962 for sale, searched just
+  now", gold bar, no "some items missing"), but a popup came up each time: "Table full! Further
+  results from this search will still be processed but no longer displayed in the table." Tyler:
+  "I had to close this error". The debug log of step 4 says 36 items were read; the table shows
+  20. Old behavior (the table keeps 2,000 auctions), not from this build; fixed in part in build
+  5, the rest proposed (review file, S-08).
+- Step 4, `/aux debug`: "Search timing: 24.0s for 36 items, 0.67s each", "Waiting: item list 0.2s,
+  server answers 6.0s, throttle 17.8s, item data 0.0s, other 0.0s", "Answers: 37 on time, 0 after
+  the 1s fallback, 0 timed out (20s each), 0 dropped and resent", "The game announced 37 of 37
+  answers itself, 0 of the 0 taken after the 1s fallback". The second search: 23.8s, the same
+  counts. So R-05 has nothing to gain and is closed.
+- Step 5, post one trade good: "Posted 1 × Linen Cloth" in green. Passes.
+- Step 6, `inf` in the price box: Post faded, "Type a price to post." Passes. The receipt on the
+  right still read "Starting bids, 1 item 51c" for a trade good (review file, S-09, not fixed).
+- Step 7, Bids buttons: skipped.
+- Step 8, typing in the search bar: Pass. Note: "Why dont we have tab completes working here? Is
+  this something you can log as feedback and provide opus the correct way to do it?" Logged as
+  FB-040.
+- Step 9, `/aux memory`: "auxForever uses 61.0 MB of memory; price history for 28069 items (prices
+  not seen for 90 days are forgotten); item list 16004 items. After a cleanup: 46.5 MB; the rest
+  was garbage the game frees over time". The line is as expected. Tyler: "Not sure what was
+  supposed to happen here": the step did not say that the line itself was the whole check.
+- Step 10, gamepad in a fight: skipped. Step 11, leaving the Post tab: skipped. Both stay covered
+  only by the automated tests.
+
+The steps as they were:
 
 - [ ] 1. Click Full scan at the top right of aux and wait without searching. At the end the chat
       says "Full scan complete: ... auctions recorded in ... (the auction house took ... to answer,

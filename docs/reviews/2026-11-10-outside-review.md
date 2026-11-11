@@ -14,7 +14,9 @@ They are 0.8.2.1 builds 1 to 4; the answer under each finding says what was done
 fixed, 4 in part (R-16, R-20, R-23, R-25), 3 not built (R-05 and R-27 wait for Tyler in the game,
 R-28 is for a later version). Build 2 also holds a second pass over the files this review only
 skimmed; see "Second pass" at the end. Build 4 (2026-11-11) adds three fixes found by a random
-player in the tests (S-05 to S-07, same section).
+player in the tests (S-05 to S-07, same section). Tyler tested build 4 on 2026-11-11: R-05 is closed
+(measured, nothing to gain), R-07's in-game numbers and a correction are under it, and S-08 and S-09
+come from that test.
 
 ## Verdict
 
@@ -172,6 +174,8 @@ protective, or cleanup.
 
 **Answer (Claude, 2026-11-10, 0.8.2.1 build 3):** Not changed in behavior; a way to settle it was added. Blizzard's code has an event made for addons that says results arrived, `AUCTION_HOUSE_NEW_RESULTS_RECEIVED` (Code, build 70888; never used by aux). If it comes for every answer, aux can wait for it and drop the 1 second guess. Whether it does on Forever is Unknown, and acting on it untested would risk the search path that works today, so for now it is only counted: with `/aux debug` on, a search prints "The game announced N of M answers itself, J of the K taken after the 1s fallback". Step 4 of the build 3 checklist asks Tyler for that line. If J equals K, the next build waits for the event. From the old notes: on 2026-10-04 a 335-item search had no fallback answers at all, so before launch the path was not taken.
 
+**Closed (Claude, 2026-11-11, Tyler's build 4 test, Seen):** not built, nothing to gain. Two Full searches for `linen` (36 items, 37 answers each) printed "Answers: 37 on time, 0 after the 1s fallback, 0 timed out" and "The game announced 37 of 37 answers itself, 0 of the 0 taken after the 1s fallback". No answer went through the fallback, so waiting for the event instead would have saved no time. Where the time went: 24.0 s in all, of which 17.8 s was the game's own request limit ("throttle"), 6.0 s the server answering and 0.2 s the item list. The event does come for every answer of such a search (now Seen in the facts file). The finding stays a description of a path that a slow day could still take; the debug line is there to show it if it ever does.
+
 ### R-06 (P2) `/aux clear post` clears nothing for the session and loses later settings
 
 - Where: `core/slash.lua:157-159` replaces `aux.faction_data.post` with a new table;
@@ -212,6 +216,8 @@ protective, or cleanup.
   auction is cheap, and that no frame runs past the budget by more than one auction's work.
 
 **Answer (Claude, 2026-11-10, 0.8.2.1 build 1):** Fixed. `aux.coro_due(i, every)` and `aux.coro_slice` in `control.lua`, `SLICE_MS = 8`; used by the Full scan's two loops, `history.finish_collector` and the Sniper's `check_list`. `scan_item_list` keeps its count: its pause is tied to redrawing the table every 100 items. Without `debugprofilestop` the old counts apply, so the worst case is today's speed. Harness, 200,000 auctions with R-08: 2,052 frames before, 145 with a clock, longest frame 30 ms before and 9 ms after. In game: step 1 of the build 1 checklist.
+
+**In game (Claude, 2026-11-11, Tyler's build 4 test, Seen), and a correction to this finding:** 220,508 auctions in 48.5 s: the auction house took 30.3 s to answer, 2.0 s to send the list, reading took 16.2 s. The total is about what it was (215,090 in 50.5 s on 0.8.2), because most of a Full scan is the wait for the server, which aux cannot shorten. The finding above read the 0.8.2 line as "about 48 s of reading at 100 auctions per frame". That was an inference from a chat line whose middle was hidden behind the window, and it was wrong: the wait for the answer was most of it then too. How long the old reading took was never seen, so how much faster the reading is now is not known; at 100 auctions per frame it would have been about 18 s at 120 frames per second and about 36 s at 60. The harness numbers stand, but game calls cost far more per auction than the stubs (about 73 microseconds per auction of wall time here), so the reading is now limited by the work itself and by `SLICE_MS`. Raising `SLICE_MS` would shorten the 16 s at the price of frame rate during the scan; left at 8 until Tyler says how the game felt.
 
 ### R-08 (P2) Full scan: a full display record is built for every auction and thrown away
 
@@ -566,6 +572,44 @@ without it:
   pressed`).
 - One more change came from the stubs, not from a defect a player could meet: the gamepad's
   `scroll_bar_of` now returns a scroll bar only when it is a table. In the game it always is.
+
+From Tyler's build 4 test (2026-11-11):
+
+- **S-08 "Table full!" on an ordinary search, and items missing behind it.** A Full search for
+  `linen` read 36 items; the table showed 20 and a popup to close, at every search (Seen,
+  screenshots described in `TESTING.md`). The table keeps 2,000 auction records and drops the
+  rest; on Forever one popular piece of gear is hundreds of records at one price (Linen Belt:
+  585 sellers at 1s), so a few such items fill the table and whole items read later never show.
+  That 16 items were dropped is inferred from 36 read against 20 shown; which ones is not known.
+  The limit is there for a reason: in the harness a redraw costs 8 ms with 2,000 records, 51 ms
+  with 10,000 and 116 ms with 20,000, four times a second during a search, so raising it is not
+  the fix.
+  Fixed in build 5: the popup is gone; the line next to the results says "table full: N more
+  not shown" and chat says it once when the search ends (`TABLE_LIMIT` in
+  `tabs/search/results.lua`, test `timing: a full table says so without a popup`). Live mode
+  brought the popup up again at every round; it now says "too many for Live" next to the
+  results and once in chat.
+  **Not fixed, proposed for the primary engineer:** keep fewer records, not more. The table
+  already shows gear at one buyout price as one row (`price_group`). Do the same when a record
+  arrives: keep at most about 20 real auctions per price group and count the rest
+  (`search.folded[group] = {count, sellers}`), then add those counts where the table works out a
+  row's "For sale" and "N sellers" (`UpdateRowInfo` in `gui/auction_listing.lua`) and in
+  `results_summary`. Trade goods already arrive one record per price and need nothing. Points to
+  settle before building: (1) the row keeps the auction with the lowest starting bid, so a folded
+  record with a lower bid than the kept ones has to take the place of one; (2) after about 20
+  purchases from one row its kept auctions run out while the count says more exist, so the item
+  must be read again then (the buy bar already re-reads after a purchase); (3) the recipe and
+  crate cost lines read `search.records` for quantities at a price and must count folded ones;
+  (4) the same for a Live round. It changes the rows players buy from, so it needs timing tests
+  (buy through a folded row; the random player already checks that spending matches the button)
+  and a pass by Tyler in game. With it, 36 linen items should fit in a few hundred records.
+- **S-09 The Post tab's receipt with no price typed.** With a trade good selected and `inf` in
+  the price box (no valid price), the receipt on the right read "Starting bids, 1 item 51c" and
+  "You get 48c" (Seen, build 4 step 6). Trade goods have no starting bid; the label comes from
+  `posting_summary` in `tabs/post/core.lua`, which falls back to the starting bid aux keeps in
+  the hidden box (the FB-021 gotcha). Post was faded correctly, so nothing wrong can be posted.
+  Not fixed: small, for the next pass over the Post tab (show no total for a trade good without
+  a price).
 
 Seen and left alone:
 

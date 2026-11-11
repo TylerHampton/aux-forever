@@ -889,6 +889,50 @@ return function(env)
     server:restore()
   end)
 
+  -- Tyler, build 4 test: a Full search for linen brought up "Table full!", a popup to close ("I had
+  -- to close this error"), at every search. The limit stays (a bigger table costs frame rate at
+  -- every redraw); it is said next to the results and once in chat, with how much is not shown.
+  try('timing: a full table says so without a popup', function()
+    local server = new_server(env)
+    local search = module 'aux.tabs.search'
+    server.items[9400] = {name = 'Crowded Cloth', commodity = true, vendor = 1}
+    server.listings[9400] = {}
+    for i = 1, 6 do table.insert(server.listings[9400], {price = 49 + i, quantity = 10}) end
+    server:install()
+    local set_limit = loadstring("select(2, ...) 'aux.tabs.search'; M.TABLE_LIMIT = (select(3, ...))")
+    set_limit('auxForever', addon, 4)
+    local popups, said = 0, {}
+    rawset(G, 'StaticPopup_Show', function() popups = popups + 1 end)
+    rawset(G.DEFAULT_CHAT_FRAME, 'AddMessage', function(_, text) table.insert(said, plain(tostring(text))) end)
+    aux.set_tab(1)
+    search.frame:Show()
+    search.update_mode(search.NORMAL_MODE)
+    local was_full = aux.account_data.full_search
+    aux.account_data.full_search = true -- Full mode: every listing, not one row per item
+    search.search_box:SetText('crowded cloth')
+    search.execute(nil, false)
+    check('table full: the search ends', server:wait(function() local s = search.current_search(); return s and s.complete end, 400))
+    local s = search.current_search()
+    check('table full: the table holds its limit (' .. #s.records .. ')', #s.records == 4)
+    check('table full: what is not shown is counted in units for sale (' .. tostring(s.not_shown) .. ')', s.not_shown == 20)
+    check('table full: no popup to close', popups == 0)
+    check('table full: the results line says how much is not shown', plain(search.results_summary(s) or ''):find('table full: 20 more not shown', 1, true) ~= nil)
+    local told = 0
+    for _, line in ipairs(said) do if line:find('The results table is full (4 auctions). 20 more for sale', 1, true) then told = told + 1 end end
+    check('table full: chat says it once (' .. told .. ')', told == 1)
+    -- with room for everything, nothing is said
+    set_limit('auxForever', addon, 2000)
+    search.execute(nil, false)
+    check('table full: searched again with room, everything shows', server:wait(function() local t = search.current_search(); return t and t.complete and #t.records == 6 end, 400))
+    check('table full: and the note is gone', not search.current_search().not_shown
+      and not plain(search.results_summary(search.current_search()) or ''):find('table full', 1, true))
+    aux.account_data.full_search = was_full
+    rawset(G, 'StaticPopup_Show', nil)
+    rawset(G.DEFAULT_CHAT_FRAME, 'AddMessage', nil)
+    search.frame:Hide()
+    server:restore()
+  end)
+
   -- R-02 on the Auctions tab: gear the price check found nothing for, because the item list was cut
   -- before its versions, read "Only one listed"
   try('timing: R-02 the Auctions check does not call an unread item the lowest', function()

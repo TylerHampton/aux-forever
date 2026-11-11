@@ -6,15 +6,6 @@ local gui = require 'aux.gui'
 
 local tab = aux.tab 'Search'
 
-StaticPopupDialogs.AUX_SEARCH_TABLE_FULL = {
-    text = 'Table full!\nFurther results from this search will still be processed but no longer displayed in the table.',
-    button1 = 'Ok',
-    showAlert = 1,
-    timeout = 0,
-    hideOnEscape = 1,
-    preferredIndex = STATICPOPUP_NUMDIALOGS,
-}
-
 RESULTS, SAVED, FILTER = aux.enum(3)
 
 function aux.event.AUX_LOADED()

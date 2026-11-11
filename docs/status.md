@@ -9,9 +9,25 @@ released, move its notes to `docs/status-history.md` (everything before 2026-11-
 
 **Released:** 0.8.2 (tag `v0.8.2` on `main`, GitHub release, CurseForge Beta file), 2026-11-09.
 
-**Being built:** 0.8.2.1 build 4 on branch `claude/festive-faraday-w1xbvz` (`main` plus this work).
-Not tested in game yet (builds 1 to 3 were never tested either; build 4 holds everything). No pull
-request yet.
+**Being built:** 0.8.2.1 build 5 on branch `claude/festive-faraday-w1xbvz` (`main` plus this work).
+Tyler tested build 4 on 2026-11-11: what he ran works (Full scan, Sniper, Full search, posting, the
+price box, the search bar, `/aux memory`); he skipped the Bids buttons, the gamepad fight and
+leaving the Post tab. Results in `TESTING.md`, "0.8.2.1 build 4". Build 5 is one fix from that test
+(the "Table full!" popup). No pull request yet.
+
+**What the build 4 test showed:**
+- Full scan: 220,508 auctions in 48.5 s (30.3 s waiting for the auction house, 2.0 s the list,
+  16.2 s reading). The total did not change much; the review's estimate that reading was most of
+  the 50 s was wrong (corrected under R-07 in the review file, in the changelog and in FB-027).
+- R-05 is closed: no answer went through the 1 second fallback, so there is nothing to gain.
+- "Table full!" on a Full search for `linen`, with 16 of 36 items not shown (inferred). Build 5
+  replaces the popup with a line next to the results and one chat line. The real fix (keep fewer
+  records per price so every item fits) is written up for the primary engineer in the review
+  file, S-08; it changes the rows players buy from, so it waits for Tyler's yes.
+- FB-040: Tab does not complete in the search bar for Tyler. Logged with a proposed way to build
+  it; one question to Tyler is open (what Tab did).
+- S-09: the Post tab's receipt shows a starting bid for a trade good when no price is typed. Not
+  fixed.
 
 **What 0.8.2.1 is.** On 2026-11-10 Tyler asked Claude for a full review of the code as an outside
 expert, then to build the fixes ("I want you to write all the changes as well"), then said yes to
@@ -46,7 +62,7 @@ fail). What changed, by area:
   buttons now know whether they are enabled, and `Click()` respects it (`AGENTS.md`, Tests).
 - Tests: swapped fields are restored (R-21); game functions, events and enums are checked against
   Forever's real list, `tests/forever_api.lua` (R-22); `tests/lint_globals.lua` finds misspelled
-  names (R-24); the run prints its check count (1,303); the slow auction house can cut or withhold
+  names (R-24); the run prints its check count (1,311); the slow auction house can cut or withhold
   an item list and gives each auction its own ID. Blizzard's code is reachable from a cloud
   session: clone `Gethe/wow-ui-source`, branch `forever`, with `--filter=blob:none --no-checkout`.
 
@@ -54,19 +70,15 @@ fail). What changed, by area:
 game), R-28 (structure, for a later version), the test file split (R-23), naming the release action
 by commit (R-25), and one part each of R-16 and R-20 (each would change something that works today).
 
-**Next step:** Tyler tests build 4 (eleven steps, step 10 only with a gamepad: `TESTING.md`, test
-page build id `0-8-2-1-build-4`, zip `auxForever-0.8.2.1-build4.zip`, `/reload` is enough). Read the
-test page results first. Step 1 gives the Full scan's time in game: put that number into the
-0.8.2.1 changelog entry (it only says "faster" now) and, if the game stuttered, lower `SLICE_MS`.
-When it passes and Tyler says so: changelog date, pull request to `main`, merge, Release workflow.
+**Next step:** Tyler tests build 5 (three steps, two of them questions: `TESTING.md`, test
+page build id `0-8-2-1-build-5`, zip `auxForever-0.8.2.1-build5.zip`, `/reload` is enough). Read the
+test page results first. When it passes and Tyler says so: changelog date, pull request to `main`, merge, Release workflow.
 The CurseForge description does not change.
 
 **Open questions for Tyler:**
-1. R-05: step 4 of the build 4 checklist asks for the `/aux debug` lines of a search run twice.
-   The new line "The game announced N of M answers itself, J of the K taken after the 1s
-   fallback" says whether aux can wait for the game's own "results arrived" event (Code:
-   `AUCTION_HOUSE_NEW_RESULTS_RECEIVED`) instead of taking held results after 1 second. If J equals
-   K (and K is above 0), build that next. A line from a busy day is worth more than a quiet one.
+1. S-08: may the primary engineer build the real fix for the full table (fewer records per price,
+   so a search like `linen` shows every item)? And the two questions of build 5: what Tab did
+   (FB-040), and how the game felt while the Full scan read (decides whether `SLICE_MS` stays 8).
 2. R-27: one sale and a screenshot of its "Auction successful" mail (experiment E1 in
    `docs/forever-auction-house.md`) settles the 5% cut that aux shows as fact. One auction left to
    expire (E4) settles the deposit tooltip's "kept if the auction expires".

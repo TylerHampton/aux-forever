@@ -37,11 +37,13 @@ Fixes and speed from a full review of the code (2026-11-10,
 
 ### Full scan
 
-- Reading the auctions is faster. aux read 100 auctions per frame however little of the frame
-  that took, so the scan was as slow as your frame rate allowed (215,090 auctions in about 48
-  seconds). It now uses a set share of each frame, no longer builds a full record for every
-  auction only to throw it away, and updates the bar once per frame instead of once per auction
-  (reported by user_ayzkr6rhvrlna3ya).
+- Reading the auctions no longer depends on your frame rate. aux read 100 auctions per frame
+  however little of the frame that took, so on a slow frame rate the reading took longer. It now
+  uses a set share of each frame, no longer builds a full record for every auction only to throw
+  it away, and updates the bar once per frame instead of once per auction. Most of a Full scan is
+  still the wait for the auction house to answer, which aux cannot shorten: in our test, 220,508
+  auctions took 48.5 seconds, of which 30.3 were that wait and 16.2 the reading (reported by
+  user_ayzkr6rhvrlna3ya).
 - Auctions whose items the game has not loaded yet are asked about a share at a time. All of them
   were asked about again every frame for up to 30 seconds.
 
@@ -50,6 +52,9 @@ Fixes and speed from a full review of the code (2026-11-10,
 - When only part of the item list arrives from a slow auction house, the search says so, in chat
   and next to the results ("some items missing: search again"). It used to show what arrived as if
   it were everything. Live mode keeps its table through such a round instead of emptying it.
+- "Table full!" no longer pops up. A search that finds more auctions than the table holds (2,000)
+  says so next to the results, with how many more are for sale but not shown, and once in chat
+  when it ends. The popup had to be closed at every such search, and in Live mode at every round.
 - A Full search draws its table at most four times a second while it runs, not after every item
   read, so long searches cost less.
 - A favorite with an alert brings up its popup once per search, not once for every auction that

@@ -1499,7 +1499,7 @@ fit the 20-pixel gap above Blizzard's optional reagents). Claude recommends A. T
 - Type: bug
 - Area: Performance (Full scan)
 - Severity: S3 (it finishes; it is slow)
-- Status: fixed 0.8.2 (released 2026-11-09, PR #40; Tyler's build 7 test: 215090 auctions in 50.5s, 2.0s to send the list; commit 19921b1: the Full scan prints how long the answer and the list took; the cause, the server, is not aux's to fix; the numbers come from Tyler's test). 0.8.2.1 (not released yet, outside review R-07 to R-09): aux's own part, reading the list (about 48 of those 50.5 seconds), no longer runs at 100 auctions per frame; the wait for the server is unchanged
+- Status: fixed 0.8.2 (released 2026-11-09, PR #40; Tyler's build 7 test: 215090 auctions in 50.5s, 2.0s to send the list; commit 19921b1: the Full scan prints how long the answer and the list took; the cause, the server, is not aux's to fix; the numbers come from Tyler's test). 0.8.2.1 (not released yet, outside review R-07 to R-09): aux's own part, reading the list, no longer runs at 100 auctions per frame; the wait for the server is unchanged. Tyler's build 4 test, 2026-11-11: 220,508 auctions in 48.5s, of which 30.3s was the auction house answering, 2.0s the list and 16.2s the reading, so the total is about what it was and the reading is a third of it (an earlier note here took the reading for about 48s; that was a wrong inference from a partly hidden chat line)
 - Proposed: 0.8.1 (speed), after measuring
 
 Said:
@@ -2041,6 +2041,77 @@ Recorder's notes (from the code and git):
 Unknowns: the version, what he saw (a chat message, a gray button, an error), and whether the
 Sniper was running. The fix works without them: 0.8.2 waits up to 10 minutes, nothing but the
 player's own search stops a Full scan, and every way it ends says why in the chat.
+
+### FB-040: Tab does not complete in the search bar
+
+- Received: 2026-11-11
+- From: Tyler (testing 0.8.2.1 build 4)
+- Where: Tyler's note on a step of the 0.8.2.1 build 4 test page
+- Source: [source](feedback/sources/2026-11-11-tyler-test-page-tab-complete.md)
+- Version: 0.8.2.1 build 4
+- Type: bug or ux (not known which until Tyler says what Tab did)
+- Area: Search bar (autocompletion)
+- Severity: S3 (provisional: searching works without it)
+- Status: open (logged 2026-11-11 at Tyler's request, with a proposed way to build it; one
+  question to Tyler is open, see Unknowns)
+- Proposed: 0.8.2.x if it is a bug (Tab does nothing), else the next minor version
+
+Said:
+> Why dont we have tab completes working here? Is this something you can log as feedback and provide opus the correct way to do it?
+
+Steps / setup: Search tab, click the search bar, type `line` slowly. The bar fills in
+"linen cloth/exact" with the added part highlighted. Then, presumably, Tab.
+
+Tyler's notes: none beyond the quote. He marked the step itself (typing is smooth, the name is
+filled in) as Pass.
+
+Recorder's notes (from the code; nothing here was seen in game):
+- What exists: while typing, `completion.complete_filter` (`util/completion.lua`) writes the first
+  matching item name or filter word into the bar and highlights the added part. Tab is handled in
+  `tabs/search/frame.lua`: `OnTabPressed` calls `self:HighlightText(0, 0)`, which is meant to
+  accept the suggestion by taking the highlight away. The same line carries a TODO from the
+  original aux ("more edit features"). The CurseForge page promises it: "Tab accepts an
+  autocompletion." (`docs/curseforge-description.md`).
+- So by the code Tab should accept. Why it did not for Tyler is not known. Possible causes, each an
+  inference to check, none confirmed: (a) the handler runs but leaves the cursor where it was
+  instead of at the end, so the next key does not continue the name; (b) Tab never reaches the
+  bar on Forever's client (a key binding or the window takes it first); (c) it works as built,
+  but only removes a highlight, which looks like nothing happened, and nothing on screen says
+  that Tab accepts or shows what else matches.
+- By the feedback rules this is a finding about the addon whichever it is: the owner of the
+  project could not tell that Tab accepts a completion.
+
+Proposed way to build it (for the primary engineer):
+1. Find out first. Ask Tyler what Tab did (the question below). If the handler's part is in doubt,
+   add one line to the `/aux debug` log in the handler ("Tab in the search bar") and ask for one
+   press, as was done for R-05.
+2. Accept means three things, in this order, in one function used by Tab (and, if wanted, the
+   Right arrow at the end of the text): keep the whole text, take the highlight away, and put the
+   cursor at the end (`self:SetCursorPosition(strlen(self:GetText()))`), so the next key adds to
+   the name instead of replacing the highlighted part. Then run the bar's `change` so the Filter
+   Builder stays in sync (`loading` and `syncing` in `tabs/search/filter.lua`).
+3. If Tab does not reach the bar: do not rebind keys globally. Look at how Blizzard's own edit
+   boxes on Forever take Tab (`Gethe/wow-ui-source`, branch `forever`, chat edit box and the
+   auction house search box) before guessing, and never touch the gamepad's bindings
+   (`docs/gamepad.md`).
+4. Make it visible. A short gray hint at the right end of the bar while a suggestion is
+   highlighted ("Tab to accept") costs one label and answers "I did not know". Visual change:
+   mockup for Tyler first, as the project rules ask.
+5. Not part of this entry unless Tyler asks: stepping through several matches with repeated Tab
+   presses, or a list of matches under the bar. Both are features (next minor version), and a
+   list is a new widget that needs a mockup. Today only the first match is offered (shortest name
+   first).
+6. Tests: the harness does not fire `OnTabPressed` by itself and `SetText` does not fire
+   `OnTextChanged`. Call the bar's `OnTabPressed` script directly after `char`, and check the
+   text, that the highlight was cleared, and that the cursor was set to the end (record
+   `HighlightText` and `SetCursorPosition` calls on the stub). One check that fails without the
+   cursor line. In game: one step for Tyler, "type `line`, press Tab, type `/`": the bar reads
+   "linen cloth/exact/".
+
+Unknowns:
+- What happened when Tyler pressed Tab: nothing visible, the filled-in text went away, or the
+  cursor left the bar? Asked on 2026-11-11.
+- What he expects Tab to do: accept the filled-in name, or step through several names.
 
 ## Before this log
 

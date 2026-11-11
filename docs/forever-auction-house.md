@@ -214,12 +214,15 @@ Other mails **[Code]**: "Auction expired: X" (item back), "Auction canceled: X",
   ("This signal is not used in the base UI but is included for AddOn ease-of-use", Blizzard's
   documentation, build 70888). Blizzard's own trade goods list also treats
   `COMMODITY_SEARCH_RESULTS_RECEIVED` as "results loaded", next to the updated event. **[Code]**
-  Whether these come for every answer on Forever, also when the results did not change:
-  **[Unknown]**. aux waits for the updated events and, after 1 second without one, takes results
+  On Forever the event came for every answer of two Full searches for `linen` (37 of 37 each,
+  2026-11-11, `/aux debug`). **[Seen]** Whether it also comes when the results did not change
+  since the last request: **[Unknown]**. aux waits for the updated events and, after 1 second without one, takes results
   the game already holds (`request` in `core/scan.lua`), which cannot tell an unchanged answer
   from no answer yet. Since 0.8.2.1 `/aux debug` counts the event ("The game announced N of M
-  answers itself, J of the K taken after the 1s fallback"). If J equals K on a real search, aux
-  can wait for the event instead (outside review, R-05).
+  answers itself, J of the K taken after the 1s fallback"). In Tyler's test no answer needed the
+  fallback (K was 0), so nothing was changed (outside review, R-05, closed).
+- Where a Full search's time goes: `linen`, 36 items, 24.0 s in all: 17.8 s waiting for the game's
+  request limit, 6.0 s for the server's answers, 0.2 s for the item list (2026-11-11). **[Seen]**
 - Measured: the whole house's item list, 7,718 items in 8.5 seconds over 16 requests
   (2026-10-04); item searches about one every 0.4 seconds because of the game's request limit
   (`IsThrottledMessageSystemReady`), 335 items in 3m 13s (0.4). **[Seen]**
@@ -228,7 +231,9 @@ Other mails **[Code]**: "Auction expired: X" (item back), "Auction canceled: X",
 - Full scan time since launch: one player saw more than 5 minutes before the list arrived
   (user_ayzkr6rhvrlna3ya, FB-027, 2026-11-06). **[Outside]** (a player's report, not seen by us).
   aux gave up after 2 minutes until 0.8.2, which waits up to 10 and prints how long the answer and
-  the list took at the end of each Full scan; Tyler's first such line settles it.
+  the list took at the end of each Full scan. Tyler's line of 2026-11-11 (0.8.2.1 build 4):
+  220,508 auctions in 48.5 s, of which the auction house took 30.3 s to answer, 2.0 s to send the
+  list, and aux 16.2 s to read it. **[Seen]** Most of a Full scan is the wait for the server.
 - Full scan allowed once every 15 minutes per account. **[Outside]** (retail's rule, used by
   Auctionator and Arbitrage). aux waits 15 minutes itself, so the real limit on Forever has never
   been tried. **[Unknown]**; low priority.
