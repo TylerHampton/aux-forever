@@ -21,6 +21,10 @@ jobs:
         run: |
           for f in $(find auxForever tests -name '*.lua'); do luac5.1 -p "$f"; done
 
+      # a name that is read but defined nowhere is most likely misspelled (tests/lint_globals.lua)
+      - name: Unknown names
+        run: lua5.1 tests/lint_globals.lua
+
       - name: Load test
         working-directory: auxForever
         run: |

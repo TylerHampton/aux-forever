@@ -29,7 +29,6 @@ StaticPopupDialogs.AUX_RENAME_FAVORITE = {
     button2 = 'Cancel',
 	maxLetters = 50,
     hasEditBox = 1,
-    editBoxWidth = editBoxWidth ,
     timeout = 0,
     hideOnEscape = 1,
     preferredIndex = STATICPOPUP_NUMDIALOGS,
