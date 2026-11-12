@@ -20,7 +20,7 @@ return function(env)
     delay = 1,       -- seconds before an answer arrives
     throttle = .3,   -- seconds the throttle stays busy after a request
     items = {},      -- [item_id] = {name, commodity, quality, vendor, max_stack, level, versions}
-    listings = {},   -- [item_id] = {{price, quantity, own, bid, version}, ...}; price per unit
+    listings = {},   -- [item_id] = {{price, quantity, own, bid, version, owner}, ...}; price per unit
     bag = {},        -- {{id, count, locked, version}, ...}: bag 0, one slot each
     -- gear versions (0.8): an item's versions = {[suffix number] = 'of the Wolf'}; a listing or a
     -- bag slot with a version is that version of the item. As seen on Forever (2026-10-20), the
@@ -128,7 +128,7 @@ return function(env)
     return {
       itemKey = server:key(id, l.version), itemLink = server:link(id, l.version), auctionID = auction_id,
       quantity = l.quantity, buyoutAmount = l.price, minBid = l.bid, bidAmount = nil,
-      owners = {l.own and 'player' or 'Someone'}, totalNumberOfOwners = 1,
+      owners = {l.own and 'player' or l.owner or 'Someone'}, totalNumberOfOwners = 1,
       containsOwnerItem = l.own or false, timeLeftSeconds = 40000,
     }
   end
@@ -237,7 +237,9 @@ return function(env)
     set(C, 'HasFullItemSearchResults', function(key) return results[result_key(key)] ~= nil end)
     set(C, 'GetItemSearchResultsQuantity', function(key) return #(results[result_key(key)] or {}) end)
     set(C, 'GetNumItemSearchResults', function(key) return #(results[result_key(key)] or {}) end)
-    set(C, 'GetItemSearchResultInfo', function(key, i) local l = (results[result_key(key)] or {})[i]; return l and item_row(key.itemID, l, i) end)
+    -- a listing bought out after the answer arrived is no longer a row (it used to come back with
+    -- quantity 0 under a new auction ID, S-08)
+    set(C, 'GetItemSearchResultInfo', function(key, i) local l = (results[result_key(key)] or {})[i]; return l and l.quantity > 0 and item_row(key.itemID, l, i) or nil end)
     set(C, 'RequestMoreItemSearchResults', function() sent('more') end)
 
     -- the item list of a search (browse)

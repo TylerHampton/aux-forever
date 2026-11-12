@@ -237,13 +237,24 @@ end
 
 -- each bundle priced from a crate search's results: {name, count, have, need, cost, short} (short:
 -- how many are missing from the auction house), and the index of the cheapest complete bundle
-function M.crate_live_costs(parts, records)
+-- folded: the auctions the search counted without keeping (S-08, tabs/search/results.lua); they are
+-- listed too, at their row's price
+function M.crate_live_costs(parts, records, folded)
     local listings = {}
     for _, record in ipairs(records or empty) do
         if not record.own and (record.buyout_price or 0) > 0 and record.name then
             local key = strlower(record.name)
             listings[key] = listings[key] or {}
             tinsert(listings[key], {unit = record.unit_buyout_price, units = history.record_units(record)})
+        end
+    end
+    for _, entries in pairs(folded or empty) do
+        for _, entry in pairs(entries) do
+            if entry.name and (entry.unit_price or 0) > 0 then
+                local key = strlower(entry.name)
+                listings[key] = listings[key] or {}
+                tinsert(listings[key], {unit = entry.unit_price, units = entry.units})
+            end
         end
     end
     local rows, cheapest = {}, nil
@@ -268,7 +279,7 @@ end
 local GAP = '   '
 function M.crate_summary(search)
     local parts = search.recipe
-    local rows, cheapest = crate_live_costs(parts, search.records)
+    local rows, cheapest = crate_live_costs(parts, search.records, search.folded)
     local text = aux.color.accent.background('Crate') .. '  ' .. (parts.name or '?') .. GAP
     local function bundle_text(row)
         local s = row.count .. ' ' .. row.name

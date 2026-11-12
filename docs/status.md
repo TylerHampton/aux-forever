@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-11, Tyler's time.
+Last updated 2026-11-11, Tyler's time (build 6).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-10 is there).
@@ -9,11 +9,12 @@ released, move its notes to `docs/status-history.md` (everything before 2026-11-
 
 **Released:** 0.8.2 (tag `v0.8.2` on `main`, GitHub release, CurseForge Beta file), 2026-11-09.
 
-**Being built:** 0.8.2.1 build 5 on branch `claude/festive-faraday-w1xbvz` (`main` plus this work).
+**Being built:** 0.8.2.1 build 6 on branch `claude/festive-faraday-w1xbvz` (`main` plus this work).
 Tyler tested build 4 on 2026-11-11: what he ran works (Full scan, Sniper, Full search, posting, the
 price box, the search bar, `/aux memory`); he skipped the Bids buttons, the gamepad fight and
-leaving the Post tab. Results in `TESTING.md`, "0.8.2.1 build 4". Build 5 is one fix from that test
-(the "Table full!" popup). No pull request yet.
+leaving the Post tab. Results in `TESTING.md`, "0.8.2.1 build 4". Build 5 (no "Table full!" popup)
+was not tested; build 6 holds it plus S-08, the real fix for the full table (built 2026-11-11 with
+Tyler's yes, not yet seen in game). No pull request yet.
 
 **What the build 4 test showed:**
 - Full scan: 220,508 auctions in 48.5 s (30.3 s waiting for the auction house, 2.0 s the list,
@@ -21,9 +22,9 @@ leaving the Post tab. Results in `TESTING.md`, "0.8.2.1 build 4". Build 5 is one
   the 50 s was wrong (corrected under R-07 in the review file, in the changelog and in FB-027).
 - R-05 is closed: no answer went through the 1 second fallback, so there is nothing to gain.
 - "Table full!" on a Full search for `linen`, with 16 of 36 items not shown (inferred). Build 5
-  replaces the popup with a line next to the results and one chat line. The real fix (keep fewer
-  records per price so every item fits) is written up for the primary engineer in the review
-  file, S-08; it changes the rows players buy from, so it waits for Tyler's yes.
+  replaces the popup with a line next to the results and one chat line. Build 6 is the real fix
+  (S-08): a price row keeps 20 real auctions and counts the rest, and is read again when it runs
+  low, so every item fits. How it was built and tested: under S-08 in the review file.
 - FB-040: Tab does not complete in the search bar for Tyler. Logged with a proposed way to build
   it; one question to Tyler is open (what Tab did).
 - S-09: the Post tab's receipt shows a starting bid for a trade good when no price is typed. Not
@@ -70,18 +71,18 @@ fail). What changed, by area:
 game), R-28 (structure, for a later version), the test file split (R-23), naming the release action
 by commit (R-25), and one part each of R-16 and R-20 (each would change something that works today).
 
-**Next step:** Tyler tests build 5 (three steps, two of them questions: `TESTING.md`, test
-page build id `0-8-2-1-build-5`, zip `auxForever-0.8.2.1-build5.zip`, `/reload` is enough). Read the
-test page results first. When it passes and Tyler says so: changelog date, pull request to `main`, merge, Release workflow.
-The CurseForge description does not change.
+**Next step:** Tyler tests build 6 (six steps; step 3 buys 17 of a cheap piece of gear from one
+row, about 17s; steps 5 and 6 are build 5's questions: `TESTING.md`, test page build id
+`0-8-2-1-build-6`, zip `auxForever-0.8.2.1-build6.zip`, `/reload` is enough). Read the test page
+results first. When it passes and Tyler says so: changelog date, pull request to `main`, merge,
+Release workflow. The CurseForge description does not change.
 
-**To build next (Tyler, 2026-11-11: "yes"):** the real fix for the full search table, S-08 in
-`docs/reviews/2026-11-10-outside-review.md` ("Second pass"): keep about 20 real auctions per price
-group and count the rest, so a search like `linen` shows every item it read. The four points to
-settle and the tests it needs are listed there. It changes the rows players buy from: timing tests
-for buying through such a row, a long run of the random player, and a build for Tyler with a step
-that buys from a row of many sellers. It can go into 0.8.2.1 as the next build or wait for the
-build 5 answers; nothing else depends on it.
+**S-08 in short (build 6):** `collect` in `tabs/search/results.lua` keeps `FOLD_KEEP = 20` auctions
+per price row and counts the rest; `REFILL_AT = 5` reads the row's item again. Tests: one in
+`load_test.lua` and six timing tests ("S-08" in their checks), each part broken once on purpose; the
+random player has a row of 12 sellers with 3 kept. What to watch in Tyler's test: that "For sale"
+follows the purchases and that no purchase costs more than the button (the harness says yes; the
+game's own order of answers is not known, Unknown).
 
 **Open questions for Tyler:**
 1. The two questions of build 5: what Tab did (FB-040), and how the game felt while the Full scan

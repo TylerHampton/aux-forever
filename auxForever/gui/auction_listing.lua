@@ -700,6 +700,7 @@ local methods = {
                     named[record.owner] = true
                     sellers = sellers + 1
                 end
+                child.sellers = sellers
                 if sellers > 1 then child.record.group_sellers = sellers end
                 -- the same price as the previous row (identical, or another seller or time left), so
                 -- it adds to that row's count. Forever: one record can stand for a bucket of identical
@@ -710,15 +711,42 @@ local methods = {
             elseif not self.rowInfo.single_item and not self.one_row_each and prevRecord and group(record) == group(prevRecord) then
                 -- it's the same base item as the previous row so insert a new auction
                 start_row(record)
-                tinsert(self.rowInfo[#self.rowInfo].children, { count = record.auction_count or 1, record = record })
+                tinsert(self.rowInfo[#self.rowInfo].children, { count = record.auction_count or 1, record = record, named = named, sellers = sellers })
                 if self.expanded[self.rowInfo[#self.rowInfo].expandKey] then
                     self.rowInfo.numDisplayRows = self.rowInfo.numDisplayRows + 1
                 end
             else
                 -- it's a different base item from the previous row
                 start_row(record)
-                tinsert(self.rowInfo, { item_key = record.item_key, expandKey = group(record), children = {{ count = record.auction_count or 1, record = record }} })
+                tinsert(self.rowInfo, { item_key = record.item_key, expandKey = group(record), children = {{ count = record.auction_count or 1, record = record, named = named, sellers = sellers }} })
                 self.rowInfo.numDisplayRows = self.rowInfo.numDisplayRows + 1
+            end
+        end
+
+        -- 0.8.2.1 build 6 (outside review S-08, Tyler, 2026-11-11: "yes"): a search keeps about 20
+        -- real auctions per price row and counts the rest (folded, from tabs/search/results.lua).
+        -- They add to the row's "For sale" and "N sellers" here, so the row says what is listed.
+        local folded = self.folded
+        if folded and next(folded) then
+            for _, row in ipairs(self.rowInfo) do
+                for _, child in ipairs(row.children) do
+                    local entries = folded[child.record.price_group]
+                    if entries then
+                        local sellers = child.sellers or 1
+                        for _, entry in pairs(entries) do
+                            child.count = child.count + entry.auctions
+                            sellers = sellers + entry.unnamed
+                            for owner in pairs(entry.named) do
+                                if not child.named[owner] then
+                                    child.named[owner] = true
+                                    sellers = sellers + 1
+                                end
+                            end
+                        end
+                        child.record.group_sellers = sellers > 1 and sellers or nil
+                        child.record.group_count = child.count
+                    end
+                end
             end
         end
 
@@ -929,9 +957,14 @@ local methods = {
         self:SetSelectedRecord()
     end,
 
-    SetDatabase = function(self, database)
+    -- folded: what a search counted without keeping (S-08); given with the records, cleared by
+    -- records given without it, kept by a call with no records
+    SetDatabase = function(self, database, folded)
         if database and database ~= self.records then
             self.records = database
+        end
+        if database then
+            self.folded = folded
         end
 
         local prevSelectedIndex

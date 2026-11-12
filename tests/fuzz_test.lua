@@ -29,7 +29,8 @@ return function(env)
 
   local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
 
-  local SEARCHES = {'rough stone', 'rough stone/exact', 'stone', 'fuzz blade/exact', 'blade', 'staff', 'fuzz', 'light feather/exact', 'feather/price/1s', 'nothing at all'}
+  local SEARCHES = {'rough stone', 'rough stone/exact', 'stone', 'fuzz blade/exact', 'blade', 'staff', 'fuzz', 'light feather/exact', 'feather/price/1s', 'nothing at all',
+    'fuzz belt/exact', 'belt'}
 
   local function run(seed, steps, loud)
     -- a small generator of its own: math.random differs between machines
@@ -49,6 +50,14 @@ return function(env)
     server.listings[2836] = {{price = 1, quantity = 3}, {price = 12, quantity = 60}}
     server.listings[7101] = {{price = 900, quantity = 2}, {price = 20000, quantity = 1}, {price = 25000, quantity = 3}}
     server.listings[7102] = {{price = 11000, quantity = 1, version = 11}, {price = 9000, quantity = 1, version = 12}, {price = 14000, quantity = 2, version = 13}}
+    -- S-08: a piece of gear from many sellers at one price. The search keeps 3 auctions of a row and
+    -- counts the rest (FOLD_KEEP is 20 in the game), and reads a row again after one purchase.
+    server.items[7103] = {name = 'Fuzz Belt', commodity = false, vendor = 100}
+    server.listings[7103] = {{price = 700, quantity = 1, bid = 300, owner = 'Bidder'}}
+    for i = 1, 12 do table.insert(server.listings[7103], {price = 500, quantity = 1, owner = 'Belt' .. (i % 9)}) end
+    local set_search = loadstring("select(2, ...) 'aux.tabs.search'; local k, v = select(3, ...); M[k] = v")
+    set_search('auxForever', addon, 'FOLD_KEEP', 3)
+    set_search('auxForever', addon, 'REFILL_AT', 3) -- one purchase from the row reads it again
     server.bag = {{id = 2835, count = 20}, {id = 7101, count = 2}, {id = 7102, count = 1, version = 11}, {id = 2836, count = 7}}
     server.money = 5000000
     server:install()
@@ -253,7 +262,7 @@ return function(env)
         if rnd(3) == 1 then server.page_size, server.more_silent = 1, rnd(2) == 1 else server.page_size, server.more_silent = nil, nil end
       end,
       function()
-        local ids = {2835, 2836, 7101}
+        local ids = {2835, 2836, 7101, 7103}
         local id = ids[rnd(#ids)]
         local list = server.listings[id]
         local what = rnd(3)
@@ -447,6 +456,8 @@ return function(env)
     post.set_undercut_mode(false)
     aux.account_data.sniper_profit, aux.account_data.sniper_percent = old_profit, old_percent
     search.set_full_search(old_full)
+    set_search('auxForever', addon, 'FOLD_KEEP', 20)
+    set_search('auxForever', addon, 'REFILL_AT', 5)
     sniper.clear_deals()
     sniper.settings_changed()
     bar.clear()

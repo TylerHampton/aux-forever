@@ -16,7 +16,7 @@ R-28 is for a later version). Build 2 also holds a second pass over the files th
 skimmed; see "Second pass" at the end. Build 4 (2026-11-11) adds three fixes found by a random
 player in the tests (S-05 to S-07, same section). Tyler tested build 4 on 2026-11-11: R-05 is closed
 (measured, nothing to gain), R-07's in-game numbers and a correction are under it, and S-08 and S-09
-come from that test.
+come from that test. S-08 is built in build 6 (2026-11-11), with Tyler's yes.
 
 ## Verdict
 
@@ -604,6 +604,34 @@ From Tyler's build 4 test (2026-11-11):
   (4) the same for a Live round. It changes the rows players buy from, so it needs timing tests
   (buy through a folded row; the random player already checks that spending matches the button)
   and a pass by Tyler in game. With it, 36 linen items should fit in a few hundred records.
+  **Built in build 6 (2026-11-11), not yet seen in game.** `collect` in `tabs/search/results.lua`
+  keeps `FOLD_KEEP = 20` auctions per price row (`kept[row]`) and counts the rest
+  (`folded[row][item key]`: auctions, units, sellers by name with their count, and the auction IDs
+  counted); `UpdateRowInfo` adds them to the row's count, "N sellers" and the buy bar's "N for sale
+  at this price". Never folded: trade goods, fast rows, auctions without a buyout, the player's own,
+  ones the player bid on. The four points:
+  (1) a counted auction with a lower starting bid than the highest kept one takes its place;
+  (2) when a row is down to fewer than `REFILL_AT = 5` kept auctions while more are counted, its item
+  is read again (`refill`, with the search's own validator, `no_view`) and replaces the item's rows
+  and counts (`replace_key`). The read waits for a search under way and for a trade good's quote,
+  not for gear purchases (a player buying one after another always has one on its way, and the row
+  ran out first in the test). It runs only while that search is on screen (a read left waiting
+  started after the player went to the Sniper, between its reads: caught by the R-14 timing test).
+  If the row is bought empty before the read is back, nothing else is selected meanwhile (the next
+  row is another price) and the row is selected again when it is. A purchase answered after the
+  read takes its auction off what was read, by auction ID;
+  (3) `recipe_costs` and `remember_search_result` use only the cheapest price, which folding does
+  not change; `crate_live_costs` adds the counted auctions as listed;
+  (4) a Live round fills a collection of its own and takes it over, and does not take a counted
+  auction for a new one (`folded_seen`), so the alert does not come up for it.
+  Tests: `S-08: a row of many sellers keeps a few auctions and counts the rest` (load_test) and six
+  timing tests (`timing: buying through a row of many sellers` and the five after it), each part
+  broken on purpose once to see its test fail (12 breaks). The random player has a gear item of 12
+  sellers at one price with 3 kept per row and a re-read after one purchase; the long run (400
+  sessions of 250 steps, 1,934 purchases, about 9 re-reads) is clean. Two test weaknesses fixed on the way: the slow auction
+  house handed back a sold-out listing under a new auction ID, and the R-14 test's wait was met by
+  the buy bar's leftover button text. In the harness 600 auctions of three such items fit a table
+  of 50.
 - **S-09 The Post tab's receipt with no price typed.** With a trade good selected and `inf` in
   the price box (no valid price), the receipt on the right read "Starting bids, 1 item 51c" and
   "You get 48c" (Seen, build 4 step 6). Trade goods have no starting bid; the label comes from

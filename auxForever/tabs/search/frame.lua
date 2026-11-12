@@ -265,8 +265,7 @@ do
     btn:SetPoint('LEFT', aux.status_bar, 'RIGHT', 5, 0)
     btn:SetText('Clear')
     btn:SetScript('OnClick', function()
-        while tremove(current_search().records) do end
-        current_search().table:SetDatabase()
+        clear_results(current_search())
         current_search().complete = false
         update_done()
     end)

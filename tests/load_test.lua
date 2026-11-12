@@ -6445,6 +6445,86 @@ try('second pass: Post posts only when the button may be pressed', function()
   for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
 end)
 
+-- 0.8.2.1 build 6 (outside review S-08, Tyler, 2026-11-11: "yes"): a Full search for linen filled
+-- the table with a few pieces of gear of hundreds of sellers each (Linen Belt: 585 at 1s), and 16
+-- of its 36 items did not show. A search keeps FOLD_KEEP auctions per price row and counts the rest.
+try('S-08: a row of many sellers keeps a few auctions and counts the rest', function()
+  local function M(name) return loadstring("select(2, ...) '" .. name .. "'; return _M")('auxForever', addon) end
+  local info, search, al = M 'aux.util.info', M 'aux.tabs.search', M 'aux.gui.auction_listing'
+  local function plain(x) return ((x or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local real_get_info = G.GetItemInfo
+  local names = {[4571] = 'Linen Belt', [4572] = 'Linen Boots', [4573] = 'Linen Cloak'}
+  G.GetItemInfo = function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)') or '')
+    if names[id] then
+      return names[id], type(x) == 'string' and x or nil, 2, 10, 5, 'Armor', 'Cloth', 1, 'INVTYPE_WAIST', 1, 50
+    end
+    return real_get_info(x)
+  end
+  local id = 0
+  local function row(item, seller, buyout, bid, quantity)
+    id = id + 1
+    return info.item_search_record({itemKey = {itemID = item, itemSuffix = 0}, itemLink = '|cff1eff00|Hitem:' .. item .. '::::::::10:::::|h[' .. names[item] .. ']|h|r',
+      auctionID = 50000 + id, quantity = quantity or 1, buyoutAmount = buyout, minBid = bid or 0, owners = {seller}, totalNumberOfOwners = 1, timeLeft = 2})
+  end
+  local keep = search.FOLD_KEEP
+  check('S-08: about 20 auctions are kept per row', keep == 20)
+  local c = search.new_collection()
+  -- 60 sellers of the belt at 1s; the last one has the lowest starting bid
+  for i = 1, 59 do search.collect(c, row(4571, 'Seller' .. i, 100, 90)) end
+  local low = row(4571, 'Seller60', 100, 50)
+  search.collect(c, low)
+  -- the same seller twice counts once (Seller2 is one of the kept auctions)
+  search.collect(c, row(4571, 'Seller2', 100, 90))
+  check('S-08: the row keeps ' .. keep .. ' real auctions (' .. #c.records .. ')', #c.records == keep)
+  local kept_low = false
+  for _, r in ipairs(c.records) do if r == low then kept_low = true end end
+  check('S-08: a later auction with a lower starting bid takes the place of a kept one', kept_low)
+  local t = search.current_search().table
+  t:SetDatabase(c.records, c.folded)
+  local child = t.rowInfo[1] and t.rowInfo[1].children[1]
+  check('S-08: one row', #t.rowInfo == 1 and #t.rowInfo[1].children == 1)
+  check('S-08: the row counts every auction for sale (' .. tostring(child and child.count) .. ')', child and child.count == 61)
+  check('S-08: and each seller once (' .. plain(child and al.seller_text(child.record)) .. ')', child and plain(al.seller_text(child.record)) == '60 sellers')
+  check('S-08: the buy bar says how many at that price', child and child.record.group_count == 61)
+  check('S-08: the row offers the lowest starting bid', child and child.record == low)
+  check('S-08: the units for sale add up', t.rowInfo[1].totalUnits == 61)
+  -- the line next to the results counts them too
+  local s = search.current_search()
+  local real = {s.records, s.kept, s.folded, s.folded_seen, s.not_shown, s.complete}
+  s.records, s.kept, s.folded, s.folded_seen = c.records, c.kept, c.folded, c.folded_seen
+  check('S-08: the results line counts the folded auctions (' .. plain(search.results_summary(s)) .. ')', plain(search.results_summary(s) or ''):find('61 for sale', 1, true) ~= nil)
+  -- the crate cost line counts them as listed
+  local crate_rows = search.crate_live_costs({bundles = {{name = 'Linen Belt', count = 40}}}, c.records, c.folded)
+  check('S-08: the crate line counts folded auctions as listed', crate_rows[1] and not crate_rows[1].short and crate_rows[1].cost == 4000)
+  crate_rows = search.crate_live_costs({bundles = {{name = 'Linen Belt', count = 40}}}, c.records)
+  check('S-08: (without them it would be short)', crate_rows[1] and crate_rows[1].short == 20)
+  -- an own auction, an auction without buyout and other prices each keep their own rows
+  local c2 = search.new_collection()
+  for i = 1, 30 do search.collect(c2, row(4572, 'B' .. i, 300)) end
+  for i = 1, 30 do search.collect(c2, row(4572, 'B' .. i, 400)) end
+  local no_buyout = row(4572, 'Bidder', 0, 200)
+  search.collect(c2, no_buyout)
+  check('S-08: each price row keeps its own auctions (' .. #c2.records .. ')', #c2.records == 2 * keep + 1)
+  -- many items in a small table: every item shows (the linen search)
+  local set_limit = loadstring("select(2, ...) 'aux.tabs.search'; M.TABLE_LIMIT = (select(3, ...))")
+  set_limit('auxForever', addon, 50)
+  local c3 = search.new_collection()
+  for _, item in ipairs{4571, 4572, 4573} do
+    for i = 1, 200 do search.collect(c3, row(item, 'S' .. i, 100)) end
+  end
+  local items = {}
+  for _, r in ipairs(c3.records) do items[r.item_id] = true end
+  check('S-08: 600 auctions of three items fit a table of 50, every item shows', items[4571] and items[4572] and items[4573] and not c3.not_shown)
+  set_limit('auxForever', addon, 2000)
+  -- Clear empties the counts too
+  search.clear_results(s)
+  check('S-08: Clear empties the counts', not next(s.folded) and not next(s.kept) and #s.records == 0)
+  s.records, s.kept, s.folded, s.folded_seen, s.not_shown, s.complete = real[1], real[2], real[3], real[4], real[5], real[6]
+  t:SetDatabase(s.records, s.folded)
+  G.GetItemInfo = real_get_info
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
 local test_env = {

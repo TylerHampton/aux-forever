@@ -253,7 +253,10 @@ Load order is the TOC (`auxForever/auxForever.toc`).
   auctions at one buyout price are one row whatever the seller and time left (`price_group` in
   `UpdateRowInfo`, Tyler: "Why are we separating these lines?"); the row keeps one real auction
   (the one bought), `one_row_each` tables (Auctions) keep every auction apart.
-  `gui/buy_bar.lua`: buying under the search results.
+  Since 0.8.2.1 build 6 (S-08) a search keeps at most `FOLD_KEEP` (20) auctions per price row and
+  counts the rest (`collect` in `tabs/search/results.lua`: `search.kept`, `search.folded`); the
+  table adds the counts to the row (`SetDatabase(records, folded)`), and a row running low reads
+  its item again (`refill`). `gui/buy_bar.lua`: buying under the search results.
 - `tabs/search/`: `core.lua` (sub tabs), `results.lua` (searches, history arrows), `saved.lua`
   (favorites and recent), `quick.lua` (quick search menu), `filter.lua` (Filter Builder logic:
   condition tree, search text, "In words"), `frame.lua` (Search tab widgets),
@@ -342,6 +345,12 @@ aux runs inside the game; every frame it spends time in costs the player frame r
   listing at a price sells first. That belief has no recorded source (Unknown, experiment E6 in
   `docs/forever-auction-house.md`); do not tell players it as fact. Undercut mode (goblin switch)
   goes one step below. Undercut mode always starts off.
+- Search results are a collection (`new_collection`): add an auction with `collect`, never with
+  `tinsert(search.records, ...)` (gear would skip the fold and fill the table again, S-08), take
+  one out with `remove_record` (it keeps `kept` right and reads the row again when it runs low),
+  and give the table the counts with the records: `search.table:SetDatabase(search.records,
+  search.folded)`. Anything that adds up units at a price from `search.records` must add
+  `search.folded` too (`folded_units`, `crate_live_costs`). Trade goods are never folded.
 - Tables sort by column number (`listing:SetSort(2, 8)`; the last number is the main sort). Adding
   a column shifts the numbers after it: update every `SetSort` of that table (0.7, a test checks
   the main sort of each tab).

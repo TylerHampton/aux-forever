@@ -52,9 +52,18 @@ Fixes and speed from a full review of the code (2026-11-10,
 - When only part of the item list arrives from a slow auction house, the search says so, in chat
   and next to the results ("some items missing: search again"). It used to show what arrived as if
   it were everything. Live mode keeps its table through such a round instead of emptying it.
-- "Table full!" no longer pops up. A search that finds more auctions than the table holds (2,000)
-  says so next to the results, with how many more are for sale but not shown, and once in chat
-  when it ends. The popup had to be closed at every such search, and in Live mode at every round.
+- A search for something like `linen` shows every item it finds. On Forever one popular piece of
+  gear can be hundreds of auctions at one price (Linen Belt: 585 sellers at 1s), and a few such
+  items filled the table's 2,000 places, so items read later never showed (a Full search for
+  `linen` showed 20 of its 36 items). A row now keeps 20 of its auctions and counts the rest: "For
+  sale", "N sellers" and the line next to the results still count every one, and Buy buys one of
+  the kept auctions at the price on the button. When a row is down to its last few, aux reads that
+  item again, so you can keep buying from it. Live mode does the same, so such a search is no
+  longer "too many for Live".
+- "Table full!" no longer pops up. A search that still finds more than the table holds (2,000
+  rows) says so next to the results, with how many more are for sale but not shown, and once in
+  chat when it ends. The popup had to be closed at every such search, and in Live mode at every
+  round.
 - A Full search draws its table at most four times a second while it runs, not after every item
   read, so long searches cost less.
 - A favorite with an alert brings up its popup once per search, not once for every auction that

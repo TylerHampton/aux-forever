@@ -8,23 +8,44 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.2.1 build 5
+## Current build: 0.8.2.1 build 6
 
-One fix from Tyler's build 4 test (results below): a Full search for `linen` brought up "Table
-full!", a popup to close, at every search. The popup is gone; the line next to the results and one
-chat line say how much is not shown. Two questions come with it. Zip
-`auxForever-0.8.2.1-build5.zip`; `/reload` is enough (no new files). Test page build id
-`0-8-2-1-build-5`.
+Build 5 (the "Table full!" popup) was not tested on its own; build 6 holds it, its two questions,
+and the real fix for the full table (review S-08, Tyler said yes on 2026-11-11): a price row of
+many sellers keeps 20 of its auctions and counts the rest, so a search like `linen` shows every
+item. It changes the rows you buy from, so step 3 buys from one. Zip
+`auxForever-0.8.2.1-build6.zip`; `/reload` is enough (no new files). Test page build id
+`0-8-2-1-build-6`.
 
-- [ ] 1. Search tab: click Full (next to Fast) and search `linen`. No popup comes up. When the
-      search ends, the line next to the sub tabs has a red part that reads "table full:" followed
-      by a number and "more not shown", and the chat says "The results table is full (2,000
-      auctions)." Screenshot the aux window with the chat.
-- [ ] 2. A question. Click the search bar and slowly type `line`. When the bar has filled in
-      "linen cloth/exact", press Tab once, then type a slash (/). Write what the bar reads now,
-      what happened when you pressed Tab, and what you wanted Tab to do (FB-040).
-- [ ] 3. A question; no need to scan again if you remember. While the Full scan's bar said
-      "reading auctions", did the game stay smooth or stutter?
+- [ ] 1. Search tab: click Full (next to Fast), type `linen` and press Enter. Wait until the line
+      next to the sub tabs ends in "searched just now". No popup comes up, and that line has no red
+      "table full" part. Its first number is how many items were found (build 4 showed 20 of the
+      36 it read). Screenshot the aux window.
+- [ ] 2. In those results, find a gear line whose Seller column says many sellers, for example
+      "585 sellers" next to Linen Belt (if the item is folded up, click it to see its prices). Its
+      "For sale" number should be well above 20. Screenshot that line.
+- [ ] 3. Buying from a row of many sellers. This spends a little gold: 17 of a cheap piece of gear,
+      about 17s for Linen Belt at 1s. Search `linen belt/exact` (or another cheap item from step 2),
+      click its line with the most sellers and write down its "For sale" number. Then press Buy 17
+      times, each time waiting for the button to light up again. Each time the button should say
+      the same price, that line should stay selected, and "For sale" should go down by one. Around
+      the 16th, aux reads the item again by itself; the line may flicker, keep going. In the note:
+      the "For sale" number before and after, and whether any purchase cost more than the button
+      said. Screenshot at the end.
+- [ ] 4. With `linen belt/exact` still in the search bar, click Live. Wait until it has counted
+      down twice ("Live 5s" to 0). The line next to the sub tabs does not say "too many for Live",
+      and the Linen Belt line still shows its full "For sale" number. Click Live again to stop it.
+- [ ] 5. A question (from build 5). Click the search bar and slowly type `line`. When the bar has
+      filled in "linen cloth/exact", press Tab once, then type a slash (/). Write what the bar reads
+      now, what happened when you pressed Tab, and what you wanted Tab to do (FB-040).
+- [ ] 6. A question (from build 5); no need to scan again if you remember. While the Full scan's
+      bar said "reading auctions", did the game stay smooth or stutter?
+
+## 0.8.2.1 build 5
+
+Not tested on its own: its fix and its two questions are part of build 6. Its steps were a Full
+search for `linen` without the "Table full!" popup, and the two questions now in build 6 steps 5
+and 6.
 
 ## 0.8.2.1 build 4
 
