@@ -589,7 +589,8 @@ From Tyler's build 4 test (2026-11-11):
   `tabs/search/results.lua`, test `timing: a full table says so without a popup`). Live mode
   brought the popup up again at every round; it now says "too many for Live" next to the
   results and once in chat.
-  **Not fixed, proposed for the primary engineer:** keep fewer records, not more. The table
+  **Not fixed, to be built by the primary engineer (Tyler, 2026-11-11: "yes", asked whether it should
+  be built, with a careful in-game test of buying from those rows):** keep fewer records, not more. The table
   already shows gear at one buyout price as one row (`price_group`). Do the same when a record
   arrives: keep at most about 20 real auctions per price group and count the rest
   (`search.folded[group] = {count, sellers}`), then add those counts where the table works out a

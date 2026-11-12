@@ -75,10 +75,17 @@ page build id `0-8-2-1-build-5`, zip `auxForever-0.8.2.1-build5.zip`, `/reload` 
 test page results first. When it passes and Tyler says so: changelog date, pull request to `main`, merge, Release workflow.
 The CurseForge description does not change.
 
+**To build next (Tyler, 2026-11-11: "yes"):** the real fix for the full search table, S-08 in
+`docs/reviews/2026-11-10-outside-review.md` ("Second pass"): keep about 20 real auctions per price
+group and count the rest, so a search like `linen` shows every item it read. The four points to
+settle and the tests it needs are listed there. It changes the rows players buy from: timing tests
+for buying through such a row, a long run of the random player, and a build for Tyler with a step
+that buys from a row of many sellers. It can go into 0.8.2.1 as the next build or wait for the
+build 5 answers; nothing else depends on it.
+
 **Open questions for Tyler:**
-1. S-08: may the primary engineer build the real fix for the full table (fewer records per price,
-   so a search like `linen` shows every item)? And the two questions of build 5: what Tab did
-   (FB-040), and how the game felt while the Full scan read (decides whether `SLICE_MS` stays 8).
+1. The two questions of build 5: what Tab did (FB-040), and how the game felt while the Full scan
+   read (decides whether `SLICE_MS` stays 8).
 2. R-27: one sale and a screenshot of its "Auction successful" mail (experiment E1 in
    `docs/forever-auction-house.md`) settles the 5% cut that aux shows as fact. One auction left to
    expire (E4) settles the deposit tooltip's "kept if the auction expires".
