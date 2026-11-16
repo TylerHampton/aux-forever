@@ -70,7 +70,9 @@ New feature, so it belongs in the next minor version (0.9); Tyler decides which 
 ## Open decisions
 
 1. Weapons: the comparisons above are the starting point; open whether they need refining.
-2. Where the default weights come from.
+2. Where the default weights come from: decided 2026-11-16 (Ben), Icy Veins' WoW Forever stat
+   pages, one per spec, collected in `docs/stat-priorities.md`. They give an order, not numbers
+   per point; how the order becomes weights is still open.
 3. One slot per search, or also all slots at once (about 15 requests in a row)?
 4. GearQuest (an addon some players have) already scores gear. Reading its scores when it is
    installed would need a way it offers to other addons; not checked.
