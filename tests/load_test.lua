@@ -5815,6 +5815,10 @@ try('upgrades: stat priorities and ranked weights', function()
   local tank = weights.weights(weights.spec('WARRIOR', 'protection_survival'))
   check('weights: avoidance counts dodge, parry and block', tank.ITEM_MOD_DODGE_RATING_SHORT == 2 and tank.ITEM_MOD_PARRY_RATING_SHORT == 2 and tank.ITEM_MOD_BLOCK_RATING_SHORT == 2)
   check('weights: an unknown spec id', weights.spec('SHAMAN', 'tank') == nil)
+  -- Forever's names (E10, seen in game): Hit (Spell), Spell Damage, Mana Per 5 Sec. count too
+  local shadow = weights.weights(weights.spec('PRIEST', 'shadow'))
+  check('weights: Forever\'s other names count', shadow.ITEM_MOD_HIT_SPELL_RATING_SHORT == 5 and shadow.ITEM_MOD_SPELL_DAMAGE_DONE_SHORT == 4 and shadow.ITEM_MOD_SPELL_PENETRATION_SHORT == 2)
+  check('weights: and MP5 under both names', weights.weights(weights.spec('PRIEST', 'holy')).ITEM_MOD_POWER_REGEN0_SHORT == 4)
 end)
 
 -- what players do while the auction house is still answering: a slow auction house that answers

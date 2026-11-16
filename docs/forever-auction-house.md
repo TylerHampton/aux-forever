@@ -289,7 +289,14 @@ page once carried them as build id `ah-facts-1`.
   lines, so `GetNumTalentTabs` gave 0 or is missing on Forever **[Seen]**. Whether another function
   (`GetSpecialization`) answers **[Unknown]**; the Upgrades tab can do without it (the player picks
   the spec once, saved per character).
-- **E10 Stat names.** Which names `GetItemStats` uses on Forever, above all for its stats Classic
-  lacks (Hit as a percent, Expertise, Haste, Spell Pierce, Healing Power, Weapon Skill). The
-  Upgrades tab's weights (`core/weights.lua`) use Retail's names until then **[Outside]**; a wrong
-  name makes that stat count 0. Command in `TESTING.md`.
+- **E10 Stat names.** Result 2026-11-16 (Ben), first part: the stat names the game knows, the
+  global strings `ITEM_MOD_*_SHORT`, printed in game **[Seen]**. Forever's client has the modern
+  list, Retail's stats included (Versatility, Mastery, Leech), and more than one name for several
+  stats: Hit, Hit (Melee), Hit (Spell), Hit (Ranged); Critical Strike with the same three; Spell
+  Power and Spell Damage; "Mana Regeneration per 5 sec" and "Mana Per 5 Sec." (`POWER_REGEN0`);
+  Expertise, Haste, Spell Piercing (`SPELL_PENETRATION`), Spell Healing, Defense, Dodge, Parry,
+  Block, Bonus Armor, the weapon skills ("Daggers Skill") and school damage ("Fire Damage").
+  `core/weights.lua` lists every name of a stat. Still open **[Unknown]**: which names a real
+  item's stats use, so an item giving one stat under two names is not counted twice. To check: the
+  first stats command (step 1 in `TESTING.md`, "Upgrades experiments") on an item with Hit, Crit,
+  Spell Damage or MP5.

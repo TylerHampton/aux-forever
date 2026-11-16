@@ -9,11 +9,13 @@ select(2, ...) 'aux.core.weights'
 -- n - 1, down to 1 for the last. A stat not in the list is worth 0. Only the order within one spec
 -- matters, since a spec is only compared with itself.
 --
--- A weight is keyed by the names GetItemStats gives stats (core/stats.lua). Those names are Retail's
--- (Outside); which of them Forever uses, and its names for Hit, Expertise, Haste and the rest, is
--- experiment E10 (docs/forever-auction-house.md). A wrong name only means that stat counts 0.
+-- A weight is keyed by the names GetItemStats gives stats (core/stats.lua). The game knows these
+-- names on Forever (E10, the global strings ITEM_MOD_*_SHORT printed in game, Ben 2026-11-16, Seen):
+-- for several stats it has more than one (Hit, Hit (Melee), Hit (Spell), Hit (Ranged)), so each of
+-- our stats lists every one of them. Which one a real item's stats use is not seen yet (E10, second
+-- part); until then, an item giving one stat under two names would count it twice.
 
--- our stat names -> the game's stat names (Retail's, Outside, until E10)
+-- our stat names -> the game's stat names
 M.STATS = {
     strength = {'ITEM_MOD_STRENGTH_SHORT'},
     agility = {'ITEM_MOD_AGILITY_SHORT'},
@@ -22,22 +24,27 @@ M.STATS = {
     spirit = {'ITEM_MOD_SPIRIT_SHORT'},
     -- "Weapon Damage" in the hunter, Subtlety and Retribution pages too: the stats give DPS only
     weapon_dps = {'ITEM_MOD_DAMAGE_PER_SECOND_SHORT'},
-    attack_power = {'ITEM_MOD_ATTACK_POWER_SHORT'},
-    spell_power = {'ITEM_MOD_SPELL_POWER_SHORT'},
+    attack_power = {'ITEM_MOD_ATTACK_POWER_SHORT', 'ITEM_MOD_MELEE_ATTACK_POWER_SHORT', 'ITEM_MOD_RANGED_ATTACK_POWER_SHORT'},
+    -- "Spell Power" and "Spell Damage" (the guides use both words)
+    spell_power = {'ITEM_MOD_SPELL_POWER_SHORT', 'ITEM_MOD_SPELL_DAMAGE_DONE_SHORT'},
     healing = {'ITEM_MOD_SPELL_HEALING_DONE_SHORT'},
-    hit = {'ITEM_MOD_HIT_RATING_SHORT'},
-    crit = {'ITEM_MOD_CRIT_RATING_SHORT'},
+    hit = {'ITEM_MOD_HIT_RATING_SHORT', 'ITEM_MOD_HIT_MELEE_RATING_SHORT', 'ITEM_MOD_HIT_SPELL_RATING_SHORT', 'ITEM_MOD_HIT_RANGED_RATING_SHORT'},
+    crit = {'ITEM_MOD_CRIT_RATING_SHORT', 'ITEM_MOD_CRIT_MELEE_RATING_SHORT', 'ITEM_MOD_CRIT_SPELL_RATING_SHORT', 'ITEM_MOD_CRIT_RANGED_RATING_SHORT'},
     haste = {'ITEM_MOD_HASTE_RATING_SHORT'},
     expertise = {'ITEM_MOD_EXPERTISE_RATING_SHORT'},
+    -- "Spell Piercing" in game
     spell_pierce = {'ITEM_MOD_SPELL_PENETRATION_SHORT'},
-    mp5 = {'ITEM_MOD_MANA_REGENERATION_SHORT'},
-    armor = {'RESISTANCE0_NAME'},
+    -- "Mana Regeneration per 5 sec" and "Mana Per 5 Sec."
+    mp5 = {'ITEM_MOD_MANA_REGENERATION_SHORT', 'ITEM_MOD_POWER_REGEN0_SHORT'},
+    -- base armor (RESISTANCE0_NAME, Retail's name; not in the printed list, which held only
+    -- ITEM_MOD_ names) and "Bonus Armor"
+    armor = {'RESISTANCE0_NAME', 'ITEM_MOD_EXTRA_ARMOR_SHORT'},
     defense = {'ITEM_MOD_DEFENSE_SKILL_RATING_SHORT'},
     dodge = {'ITEM_MOD_DODGE_RATING_SHORT'},
     -- "Avoidance": dodge, parry and block
     avoidance = {'ITEM_MOD_DODGE_RATING_SHORT', 'ITEM_MOD_PARRY_RATING_SHORT', 'ITEM_MOD_BLOCK_RATING_SHORT'},
-    -- Subtlety's Weapon Skill: Forever's name not known yet (E10)
-    weapon_skill = {},
+    -- Subtlety's Weapon Skill: the melee weapon skills ("Daggers Skill", "Swords Skill", ...)
+    weapon_skill = {'ITEM_MOD_DAGGERS_SHORT', 'ITEM_MOD_SWORDS_SHORT', 'ITEM_MOD_MACES_SHORT', 'ITEM_MOD_AXES_SHORT', 'ITEM_MOD_FIST_WEAPONS_SHORT'},
 }
 
 local function spec(id, name, priority, page)

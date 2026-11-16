@@ -34,7 +34,9 @@ from an action only available to the Blizzard UI"), so aux will not use it; 3 pr
       It prints your class, then one line per talent tree. Screenshot it and say how many points
       you have in each tree, so we can match the numbers.
 
-- [ ] 4. **The game's stat names (E10).** Paste:
+- [x] 4. **The game's stat names (E10).** Done 2026-11-16: three screenshots of the list. The
+      second half (an item with Hit, Crit, Spell Damage or MP5) is still to do.
+      Command was: Paste:
       `/run for k,v in pairs(_G) do if type(k)=="string" and k:find("^ITEM_MOD_.*_SHORT$") then print(k,v) end end`
       It prints a long list, one stat per line, like `ITEM_MOD_STRENGTH_SHORT Strength`. Scroll the
       chat and screenshot all of it. Then do step 1 again on an item with Hit, Crit, Expertise or
