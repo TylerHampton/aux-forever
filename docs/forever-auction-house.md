@@ -296,7 +296,9 @@ page once carried them as build id `ah-facts-1`.
   Power and Spell Damage; "Mana Regeneration per 5 sec" and "Mana Per 5 Sec." (`POWER_REGEN0`);
   Expertise, Haste, Spell Piercing (`SPELL_PENETRATION`), Spell Healing, Defense, Dodge, Parry,
   Block, Bonus Armor, the weapon skills ("Daggers Skill") and school damage ("Fire Damage").
-  `core/weights.lua` lists every name of a stat. Still open **[Unknown]**: which names a real
-  item's stats use, so an item giving one stat under two names is not counted twice. To check: the
-  first stats command (step 1 in `TESTING.md`, "Upgrades experiments") on an item with Hit, Crit,
-  Spell Damage or MP5.
+  `core/weights.lua` lists every name of a stat. Second part, 2026-11-16 (Ben): Brutal War Axe of
+  the Sorcerer gave `ITEM_MOD_INTELLECT_SHORT` 8, `ITEM_MOD_SPELL_POWER_SHORT` 22,
+  `ITEM_MOD_DAMAGE_PER_SECOND_SHORT` 15.14 and `ITEM_MOD_STAMINA_SHORT` 6 **[Seen]**: spell power
+  under one name only (not also `SPELL_DAMAGE_DONE`), weapon DPS as a decimal, and a random
+  ending's stats (the Sorcerer's) included. Still open **[Unknown]**: the names an item with Hit,
+  Crit or MP5 uses, so such a stat is not counted twice.

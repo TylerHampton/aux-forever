@@ -12,8 +12,9 @@ select(2, ...) 'aux.core.weights'
 -- A weight is keyed by the names GetItemStats gives stats (core/stats.lua). The game knows these
 -- names on Forever (E10, the global strings ITEM_MOD_*_SHORT printed in game, Ben 2026-11-16, Seen):
 -- for several stats it has more than one (Hit, Hit (Melee), Hit (Spell), Hit (Ranged)), so each of
--- our stats lists every one of them. Which one a real item's stats use is not seen yet (E10, second
--- part); until then, an item giving one stat under two names would count it twice.
+-- our stats lists every one of them. A real item gave Spell Power under ITEM_MOD_SPELL_POWER_SHORT
+-- only (Brutal War Axe of the Sorcerer, Seen); the names for Hit, Crit and MP5 on an item are not
+-- seen yet, and an item giving one of them under two names would count it twice.
 
 -- our stat names -> the game's stat names
 M.STATS = {

@@ -35,7 +35,8 @@ from an action only available to the Blizzard UI"), so aux will not use it; 3 pr
       you have in each tree, so we can match the numbers.
 
 - [x] 4. **The game's stat names (E10).** Done 2026-11-16: three screenshots of the list. The
-      second half (an item with Hit, Crit, Spell Damage or MP5) is still to do.
+      second half: Brutal War Axe of the Sorcerer showed Intellect, Spell Power (one name), DPS and
+      Stamina. An item with Hit, Crit or MP5 is still to check.
       Command was: Paste:
       `/run for k,v in pairs(_G) do if type(k)=="string" and k:find("^ITEM_MOD_.*_SHORT$") then print(k,v) end end`
       It prints a long list, one stat per line, like `ITEM_MOD_STRENGTH_SHORT Strength`. Scroll the
