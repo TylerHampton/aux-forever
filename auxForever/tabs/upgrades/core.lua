@@ -78,6 +78,43 @@ end
 M.saved = saved
 
 function M.current_spec() return weights.spec(class(), saved().spec) end
+
+-- The player's own weights for a spec (the weights editor, tabs/upgrades/weights.lua): stat name ->
+-- number, kept per character and spec in character_data.upgrades.weights. Only numbers that differ
+-- from the guide's are kept, so a later change to the guide's order still reaches the rest.
+function M.overrides(spec_id)
+    local u = saved()
+    u.weights = u.weights or {}
+    return u.weights[spec_id] or {}
+end
+
+-- sets one weight (nil: back to the guide's), then scores the last search again
+function M.set_weight(spec_id, stat, value)
+    local spec = weights.spec(class(), spec_id)
+    if not spec or not weights.STATS[stat] then return end
+    local u = saved()
+    u.weights = u.weights or {}
+    local own = u.weights[spec_id] or {}
+    local default = weights.default_ranks(spec)[stat] or 0
+    if value == nil or value == default or value < 0 then
+        own[stat] = nil
+    else
+        own[stat] = value
+    end
+    u.weights[spec_id] = next(own) and own or nil
+    rescore()
+end
+
+function M.reset_weights(spec_id)
+    local u = saved()
+    if u.weights then u.weights[spec_id] = nil end
+    rescore()
+end
+
+-- the weights in use for a spec, by the game's stat names
+function M.spec_weights(spec)
+    return weights.weights(spec, overrides(spec.id))
+end
 function M.current_slot() return SLOTS[saved().slot] end
 function M.max_level() return min(60, UnitLevel('player') + EXTRA_LEVELS[saved().extra]) end
 
@@ -110,6 +147,12 @@ local function equip_location(item_id)
     return type(location) == 'string' and location ~= '' and location or nil
 end
 
+-- score points gained for each gold of the price; nil without a buyout price
+function M.per_gold(gain, price)
+    if not gain or not price or price <= 0 then return end
+    return gain / (price / 10000)
+end
+
 local function set_of(list)
     local set = {}
     for _, v in ipairs(list) do set[v] = true end
@@ -130,6 +173,7 @@ local function score(record, slot_set, w, counts, list)
     if not c.ready then counts.worn_loading = true end
     if c.gain > 0 then
         c.changes = stats.changes(item_stats, c.worn_link and stats.link_stats(c.worn_link), w)
+        c.per_gold = per_gold(c.gain, record.unit_buyout_price)
         record.upgrade = c
         tinsert(list, record)
     end
@@ -145,7 +189,7 @@ local RETRY_SECONDS, WAIT_SECONDS = .5, 5
 function M.rescore()
     local spec, slot = current_spec(), current_slot()
     if not spec or #found == 0 then changed(); return end
-    local w, slot_set = weights.weights(spec), set_of(slot.locations)
+    local w, slot_set = spec_weights(spec), set_of(slot.locations)
     local records = found
     generation = generation + 1
     local mine = generation
@@ -230,7 +274,7 @@ function M.state() return state end
 function M.worn()
     local spec, slot = current_spec(), current_slot()
     if not spec then return end
-    return stats.worn_score(slot.locations[1], weights.weights(spec))
+    return stats.worn_score(slot.locations[1], spec_weights(spec))
 end
 
 function tab.OPEN()

@@ -5901,6 +5901,7 @@ try('upgrades tab: search, score and list upgrades', function()
   local text = up.changes_text(u and u.changes)
   check('upgrades tab: the changes, DPS first', text:find('+3.1 DPS', 1, true) and text:find('+4 Strength', 1, true) and text:find('-8 Stamina', 1, true))
   check('upgrades tab: the gain as a percent', up.gain_text({percent = 16.84, gain = 2}) == '+16.8%' and up.gain_text({gain = 12}) == '+12.0')
+  check('upgrades tab: gain per gold of the price (3g)', u and math.abs(u.per_gold - u.gain / 3) < 1e-9)
   for _ = 1, 60 do tick() end
   local state = up.state()
   check('upgrades tab: counts what it looked at, and what did not load', state.considered == 2 and state.unloaded == 1)
@@ -5921,6 +5922,70 @@ try('upgrades tab: search, score and list upgrades', function()
   G.GetInventoryItemLink, C_Item.GetItemStats, C_Item.GetItemInfoInstant = saved.GetInventoryItemLink, saved.GetItemStats, saved.GetItemInfoInstant
   aux_env.character_data.upgrades = saved_upgrades
   aux_env.set_tab(1)
+end)
+
+-- The weights editor (Settings / Upgrade weights) and the Per gold column (Ben, 2026-11-16)
+try('upgrades tab: weights editor and gain per gold', function()
+  local aux_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local require = loadstring("select(2, ...) 'aux.test.upgrades_weights'; return require")('auxForever', addon)
+  local up = require 'aux.tabs.upgrades'
+  local weights = require 'aux.core.weights'
+  local saved_upgrades = aux_env.character_data.upgrades
+  aux_env.character_data.upgrades = {spec = 'enhancement', slot = 15}
+  local enh = weights.spec('SHAMAN', 'enhancement')
+
+  -- the player's numbers over the guide's
+  local r = weights.ranks(enh, {hit = 9, spell_power = 0, agility = 1.5, nonsense = 4})
+  check('weights: own numbers replace the guide\'s', r.hit == 9 and r.weapon_dps == 6)
+  check('weights: 0 leaves a stat out, a new stat can be added', r.spell_power == nil and r.agility == 1.5 and r.nonsense == nil)
+  check('weights: and reach the game\'s names', weights.weights(enh, {hit = 9}).ITEM_MOD_HIT_SPELL_RATING_SHORT == 9)
+  check('weights: every stat is in the editor\'s list', #weights.STAT_ORDER == 20)
+  local named = true
+  for _, name in ipairs(weights.STAT_ORDER) do named = named and weights.STATS[name] ~= nil and weights.STAT_NAMES[name] ~= nil end
+  check('weights: each one known and named', named)
+
+  -- kept per character and spec; only numbers that differ from the guide's
+  up.set_weight('enhancement', 'hit', 9)
+  up.set_weight('enhancement', 'strength', 3) -- the guide's number: nothing kept
+  check('weights: an own number is kept for this character', aux_env.character_data.upgrades.weights.enhancement.hit == 9 and aux_env.character_data.upgrades.weights.enhancement.strength == nil)
+  check('weights: the tab scores with it', up.spec_weights(enh).ITEM_MOD_HIT_MELEE_RATING_SHORT == 9)
+  check('weights: other specs keep the guide\'s', up.overrides('elemental').hit == nil)
+  up.set_weight('enhancement', 'hit', nil)
+  check('weights: an empty box brings back the guide\'s', aux_env.character_data.upgrades.weights.enhancement == nil)
+  up.set_weight('enhancement', 'agility', 2)
+  up.reset_weights('enhancement')
+  check('weights: Reset brings back all of the guide\'s', up.overrides('enhancement').agility == nil)
+
+  -- what can be typed
+  check('weights: a number, a decimal, empty, or rejected', up.parse_weight(' 2 ') == 2 and up.parse_weight('2.5') == 2.5 and up.parse_weight('') == nil and up.parse_weight('abc') == false and up.parse_weight('-1') == false)
+
+  -- the editor: opens on the tab's spec, a box commits when it loses focus
+  up.open_weights()
+  check('weights editor: opens in the dialog layer', up.weights_popup.__shown and up.weights_popup:GetFrameStrata() == 'DIALOG')
+  local hit_box
+  for _, box in ipairs(up.weight_boxes) do if box.stat == 'hit' then hit_box = box end end
+  check('weights editor: shows the guide\'s number', hit_box and hit_box:GetText() == '5')
+  hit_box:SetText('7')
+  hit_box.focus_loss(hit_box)
+  check('weights editor: a typed number is kept', up.overrides('enhancement').hit == 7)
+  hit_box:SetText('lots')
+  hit_box.focus_loss(hit_box)
+  check('weights editor: text that is not a number changes nothing', up.overrides('enhancement').hit == 7 and hit_box:GetText() == '7')
+  up.reset_button.__scripts.OnClick(up.reset_button)
+  check('weights editor: Reset to defaults', up.overrides('enhancement').hit == nil and hit_box:GetText() == '5')
+  up.weights_popup:Hide()
+
+  -- Settings has a way in
+  aux_env.weights_edit_button.__scripts.OnClick(aux_env.weights_edit_button)
+  check('weights editor: opened from Settings', up.weights_popup.__shown)
+  up.weights_popup:Hide()
+
+  -- gain per gold
+  check('per gold: points for each gold of the price', up.per_gold(12, 30000) == 4 and up.per_gold(5, 0) == nil and up.per_gold(nil, 100) == nil)
+  check('per gold: shown with sensible decimals', up.per_gold_text(42.4) == '42' and up.per_gold_text(4) == '4.0' and up.per_gold_text(.126) == '0.13' and up.per_gold_text(nil) == '?')
+  check('per gold: a column after Gain, and Gain still sorts the table', up.columns[up.PER_GOLD_COLUMN].title == 'Per gold' and up.columns[up.GAIN_COLUMN].title == 'Gain' and up.listing.sorts[1].index == up.GAIN_COLUMN and up.listing.sorts[1].descending)
+
+  aux_env.character_data.upgrades = saved_upgrades
 end)
 
 -- what players do while the auction house is still answering: a slow auction house that answers

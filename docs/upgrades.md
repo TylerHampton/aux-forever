@@ -51,8 +51,14 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
 3. Stat reading and scoring, with tests: built 2026-11-16, `core/stats.lua` (`key_stats`,
    `link_stats`, `score`, `worn_score`, `compare`, `changes`), test `upgrades: stats, scores and
    the worn item`. Not used by any screen yet.
-4. Weights: default data with sources (built, `core/weights.lua`), the Settings section (not
-   built yet: the weights are the guides' order, not editable). The
+4. Weights: default data with sources (built, `core/weights.lua`), the Settings section (built
+   2026-11-16, `tabs/upgrades/weights.lua`): a window of its own, "Settings / Upgrade weights" as in
+   the mockup, opened from Settings (Upgrades, Stat weights, Edit) and from the tab's "Change
+   weights" button. One box per stat for the chosen spec; the player's numbers show in gold and are
+   kept per character and spec (`character_data.upgrades.weights`), only where they differ from the
+   guide's; an empty box or Reset brings back the guide's; 0 leaves a stat out.
+   Also 2026-11-16 (Ben): a "Per gold" column, score points gained per gold of the price
+   (`per_gold` in `tabs/upgrades/core.lua`), after Gain; the table still sorts by Gain. The
    game's stat names are Retail's until experiment E10 confirms Forever's.
 5. The tab: controls, search, results table, renumbering. Built 2026-11-16 (`tabs/upgrades/`),
    with tests; not tried in game yet (`TESTING.md`, "Upgrades tab, first build"). One change from

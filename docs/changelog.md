@@ -19,6 +19,11 @@ A change that comes from a player's feedback credits them by in-game name at the
   list counts more per point; Hit and Crit are counted per percent, like any other point, so they
   may be undervalued.
 - Click a row to see that item's auctions on the Search tab and buy it there.
+- A Per gold column: how many score points you gain for each gold the item costs, so a cheap small
+  upgrade and an expensive big one can be compared.
+- Change the stat weights yourself: Settings, Upgrades, Stat weights, Edit (or Change weights on
+  the tab). One number per stat for each spec, kept for each character; your numbers show in gold,
+  and Reset to defaults brings back the guide's.
 - Post, Auctions and Bids moved one place to the right. With a gamepad, Y presses Search on the
   Upgrades tab.
 

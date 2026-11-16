@@ -513,7 +513,7 @@ do
 
     -- left column: Posting. It moves up when no reload is waiting (see refresh).
     local posting = CreateFrame('Frame', nil, popup)
-    gui.set_size(posting, COLUMN, 100)
+    gui.set_size(posting, COLUMN, 104)
     section(posting, 0, 0, 'POSTING')
     local length_row = row(posting, 0, -16, 30, 'Default duration',
         nil, {'How long new auctions last unless you pick another length on the Post tab.', '/aux post duration'})
@@ -524,6 +524,20 @@ do
         for i = 1, 3 do length_buttons[i] = by_code[i] end
     end
     M.auction_length_buttons = length_buttons
+
+    -- the Upgrades tab's stat weights, edited in a window of their own (tabs/upgrades/weights.lua)
+    section(posting, 0, -54, 'UPGRADES')
+    local weights_row = row(posting, 0, -70, 30, 'Stat weights',
+        nil, {'How much each stat counts for each spec when the Upgrades tab looks for better gear. Kept for this character.'})
+    local weights_edit = gui.button(weights_row, gui.font_size.small)
+    gui.set_size(weights_edit, 64, 24)
+    weights_edit:SetPoint('RIGHT', 0, 0)
+    weights_edit:SetText('Edit')
+    weights_edit:SetScript('OnClick', function()
+        popup:Hide()
+        require('aux.tabs.upgrades').open_weights()
+    end)
+    M.weights_edit_button = weights_edit
     -- Bid prices (/aux post bid) was here in build 3 and taken out in build 4: on Forever only gear
     -- can have bids, few sellers set one, and gear is one item per auction, so "per stack" means
     -- nothing (Tyler: "does the stack option even make any sense?"). The chat command stays.

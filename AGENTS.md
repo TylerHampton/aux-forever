@@ -246,8 +246,9 @@ Load order is the TOC (`auxForever/auxForever.toc`).
   rule `judge`, checking a candidate's real auctions, buying), `frame.lua` (controls and table).
 - `tabs/upgrades/` (in progress, `docs/upgrades.md`): the Upgrades tab. `core.lua` (slots and their
   searches, the fast search, scoring with `core/stats.lua` and `core/weights.lua`, choices saved per
-  character in `character_data.upgrades`), `frame.lua` (spec, slot grid, level, worn item, table).
-  A row opens that exact item on the Search tab, which buys it.
+  character in `character_data.upgrades`, the player's own weights), `frame.lua` (spec, slot grid,
+  level, worn item, table with Gain and Per gold), `weights.lua` (the weights editor, also opened
+  from Settings). A row opens that exact item on the Search tab, which buys it.
 - `tabs/post/`: posting (auto price, undercut mode, deposit, "You get"). Since 0.6 the top panel is
   three columns (`frame.lua`, option A of the mockup): setup, price (with `price_layout`, checked
   by a test at the smallest window), and a receipt with the red vendor warning (`vendor_warning`,

@@ -127,8 +127,15 @@ function M.spec(class, id)
     end
 end
 
--- ranked weights by our stat names: n for the first of n, down to 1
-function M.ranks(s)
+-- the order the weights editor lists the stats in (tabs/upgrades/weights.lua)
+M.STAT_ORDER = {
+    'weapon_dps', 'strength', 'agility', 'attack_power', 'stamina', 'intellect', 'spirit',
+    'spell_power', 'healing', 'hit', 'crit', 'haste', 'expertise', 'spell_pierce', 'mp5', 'armor',
+    'defense', 'dodge', 'avoidance', 'weapon_skill',
+}
+
+-- the guide's ranked weights by our stat names: n for the first of n, down to 1
+function M.default_ranks(s)
     local ranks, n = {}, #s.priority
     for i, name in ipairs(s.priority) do
         ranks[name] = n - i + 1
@@ -136,10 +143,22 @@ function M.ranks(s)
     return ranks
 end
 
+-- the weights in use by our stat names: the guide's, with the player's own numbers over them
+-- (overrides: stat name -> number, from the weights editor; 0 turns a stat off)
+function M.ranks(s, overrides)
+    local ranks = default_ranks(s)
+    for name, value in pairs(overrides or {}) do
+        if STATS[name] and type(value) == 'number' then
+            ranks[name] = value > 0 and value or nil
+        end
+    end
+    return ranks
+end
+
 -- a spec's weights by the game's stat names, for stats.score
-function M.weights(s)
+function M.weights(s, overrides)
     local weights = {}
-    for name, rank in pairs(ranks(s)) do
+    for name, rank in pairs(ranks(s, overrides)) do
         for _, key in ipairs(STATS[name] or {}) do
             weights[key] = max(weights[key] or 0, rank)
         end

@@ -103,11 +103,18 @@ worn_score:SetPoint('RIGHT', worn_box, 'RIGHT', -8, 0)
 
 -- the weights in use
 local weights_label = gui.label(left, gui.font_size.small)
-weights_label:SetPoint('BOTTOMLEFT', 10, 10)
+weights_label:SetPoint('BOTTOMLEFT', 10, 38)
 weights_label:SetWidth(LEFT_WIDTH - 20)
 weights_label:SetWordWrap(true)
 weights_label:SetJustifyH('LEFT')
 gui.text_color(weights_label, aux.color.label.enabled)
+
+-- opens the weights editor (tabs/upgrades/weights.lua), also reached from Settings
+M.weights_button = gui.button(left, gui.font_size.small)
+weights_button:SetPoint('BOTTOMLEFT', 10, 10)
+weights_button:SetSize(LEFT_WIDTH - 20, 22)
+weights_button:SetText('Change weights')
+weights_button:SetScript('OnClick', function() open_weights() end)
 
 -- above the table: which slot, and what the search found
 local title = gui.label(frame, gui.font_size.large)
@@ -145,12 +152,20 @@ function M.gain_text(upgrade)
     return format('+%.1f', upgrade.gain)
 end
 
+-- gain per gold: whole numbers from 10 up, one decimal from 1, two below; "?" without a price
+function M.per_gold_text(value)
+    if not value then return '?' end
+    if value >= 10 then return format('%d', floor(value + .5)) end
+    if value >= 1 then return format('%.1f', value) end
+    return format('%.2f', value)
+end
+
 M.columns = {
     auction_listing.requirement_column(),
     auction_listing.item_level_column(),
     {
         title = 'Item',
-        width = .25,
+        width = .24,
         init = auction_listing.item_column_init,
         fill = auction_listing.item_column_fill,
         cmp = function(a, b, desc) return sort_util.compare(a.name, b.name, desc) end,
@@ -172,8 +187,17 @@ M.columns = {
         end,
     },
     {
+        -- score points gained for each gold of the price: cheap small upgrades and dear big ones on
+        -- one scale (Ben, 2026-11-16)
+        title = 'Per gold',
+        width = .08,
+        align = 'CENTER',
+        fill = function(cell, record) cell.text:SetText(per_gold_text(record.upgrade.per_gold)) end,
+        cmp = function(a, b, desc) return sort_util.compare(a.upgrade.per_gold or 0, b.upgrade.per_gold or 0, desc) end,
+    },
+    {
         title = 'Changes',
-        width = .29,
+        width = .22,
         align = 'LEFT',
         fill = function(cell, record) cell.text:SetText(changes_text(record.upgrade.changes)) end,
         cmp = function(a, b, desc) return sort_util.compare(a.upgrade.gain, b.upgrade.gain, desc) end,
@@ -193,8 +217,9 @@ M.columns = {
         cmp = function(a, b, desc) return sort_util.compare(a.unit_buyout_price, b.unit_buyout_price, desc) end,
     },
 }
--- Gain is column 5 (AGENTS.md: adding a column shifts these numbers)
+-- Gain is column 5, Per gold 6 (AGENTS.md: adding a column shifts these numbers)
 M.GAIN_COLUMN = 5
+M.PER_GOLD_COLUMN = 6
 
 M.listing = auction_listing.new(frame.listing, 19, columns)
 listing.one_row_each = true
@@ -222,11 +247,21 @@ end
 
 local function weights_text(spec)
     local parts = {}
-    local ranks = weights.ranks(spec)
-    for _, name in ipairs(spec.priority) do
-        tinsert(parts, (weights.STAT_NAMES[name] or name) .. ' ' .. ranks[name])
+    local ranks, own = weights.ranks(spec, overrides(spec.id)), overrides(spec.id)
+    local listed = {}
+    for _, name in ipairs(spec.priority) do listed[name] = true end
+    for _, name in ipairs(weights.STAT_ORDER) do
+        if ranks[name] and (listed[name] or own[name]) then
+            tinsert(parts, {name = name, value = ranks[name]})
+        end
     end
-    return 'Weights: ' .. table.concat(parts, ', ') .. '. From Icy Veins (WoW Forever), ' .. spec.name .. '. Points per stat; the order matters, not the size.'
+    sort(parts, function(a, b) return a.value > b.value or a.value == b.value and a.name < b.name end)
+    for i, part in ipairs(parts) do
+        local text = (weights.STAT_NAMES[part.name] or part.name) .. ' ' .. format('%g', part.value)
+        parts[i] = own[part.name] and aux.color.accent.text(text) or text
+    end
+    local source = next(own) and 'Your own numbers in gold; the rest from Icy Veins (WoW Forever), ' or 'From Icy Veins (WoW Forever), '
+    return 'Weights: ' .. table.concat(parts, ', ') .. '. ' .. source .. spec.name .. '.'
 end
 
 local function status_text(s, slot)

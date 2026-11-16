@@ -35,6 +35,17 @@ New files: **full game restart** (not `/reload`). Open the auction house and aux
       "usable" filter also hides items above your level.
 - [ ] 8. `/reload`, open Upgrades again: your spec, slot and level choice are still selected.
 - [ ] 9. With a gamepad: on the Upgrades tab, Y starts the search (the hint strip says "Y Search").
+- [ ] 10. After a search, look at the **Per gold** column, right of Gain. For a row costing 3g with
+      a Score 12 higher than yours, it says 4.0 (12 points / 3 gold). Click the "Per gold" title:
+      the cheapest gain per gold comes first, click again for the best first.
+- [ ] 11. Click **Change weights** at the bottom left. A window "SETTINGS / UPGRADE WEIGHTS" opens
+      with your spec and one box per stat (20 boxes, two columns). Take a screenshot.
+- [ ] 12. In the Hit box type `9`, then click anywhere outside the box. The 9 turns gold, and the
+      "Weights:" line on the tab shows "Hit 9" in gold. Search again: the scores change.
+- [ ] 13. Press **Reset to defaults**: Hit goes back to its number from the guide (5 for
+      Enhancement), not gold. Close the window.
+- [ ] 14. Open Settings (the gear at the top right). Under POSTING there is UPGRADES, "Stat weights"
+      with an Edit button. Edit opens the same window.
 
 ## Upgrades experiments (branch `search-upgrade-support`, before any code)
 

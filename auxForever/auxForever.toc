@@ -52,6 +52,7 @@ tabs\sniper\frame.lua
 
 tabs\upgrades\core.lua
 tabs\upgrades\frame.lua
+tabs\upgrades\weights.lua
 
 tabs\post\core.lua
 tabs\post\frame.lua
