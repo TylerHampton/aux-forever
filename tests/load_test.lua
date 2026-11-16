@@ -87,7 +87,7 @@ G.ITEM_QUALITY_COLORS = setmetatable({}, {__index=function() return {r=1,g=1,b=1
 -- Forever's real category tree (Weapons, One-Handed, Daggers, ...), made from Blizzard's code by
 -- tests/tools/make_forever_categories.lua. An empty list here hid FB-010 (slots under weapons).
 G.AuctionCategories = dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'forever_categories.lua')
-G.GetRealmName = function() return 'R' end; G.UnitName = function() return 'P' end; G.UnitFactionGroup = function() return 'Horde' end; G.UnitGUID = function() return 'g' end; G.UnitLevel = function() return 60 end
+G.GetRealmName = function() return 'R' end; G.UnitName = function() return 'P' end; G.UnitFactionGroup = function() return 'Horde' end; G.UnitGUID = function() return 'g' end; G.UnitLevel = function() return 60 end; G.UnitClass = function() return 'Shaman', 'SHAMAN', 7 end; G.GetInventoryItemLink = function() end
 G.GetMoney = function() return 100000 end; G.GetItemInfo = function() end
 local clock = 0; G.GetTime = function() return clock end; G.time = os.time; G.date = os.date
 G.strmatch = string.match; G.strfind = string.find; G.strsub = string.sub; G.strlower = string.lower; G.strupper=string.upper; G.strlen=string.len; G.format=string.format; G.gsub=string.gsub; G.tinsert=table.insert; G.tremove=table.remove; G.sort=table.sort; G.floor=math.floor; G.ceil=math.ceil; G.max=math.max; G.min=math.min; G.abs=math.abs; G.mod=math.fmod; G.sin=math.sin
@@ -426,7 +426,7 @@ try('undercut mode', function()
   -- Tyler (2026-10-17, FB-018): once a player picks Undercut it stays for every post until the
   -- auction house closes, through other tabs and other items
   post.set_undercut_mode(true)
-  aux.set_tab(1); aux.set_tab(3); aux.set_tab(4); aux.set_tab(3)
+  aux.set_tab(1); aux.set_tab(4); aux.set_tab(5); aux.set_tab(4)
   check('undercut mode stays on through other tabs until the auction house closes', aux.account_data.post_undercut == true)
   fire('AUCTION_HOUSE_SHOW')
 
@@ -716,7 +716,7 @@ try('post auto price', function()
   check('loading the item again starts at the lowest again', post.get_unit_buyout_price() == 240)
 
   -- the status bar is gold once the listings are in, and back to normal on leaving the tab
-  aux.set_tab(3) -- Search, Sniper, Post
+  aux.set_tab(4) -- Search, Sniper, Upgrades, Post
   post.update_item(item)
   check('post: gold once the listings are in', aux.status_bar.done == true)
   local plain = function(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
@@ -726,7 +726,7 @@ try('post auto price', function()
   C_AuctionHouse.CalculateCommodityDeposit = stub_deposit
   check('deposit shown as money going out', plain(post.deposit.__text):find('^%-') ~= nil and plain(post.deposit_label.__text):find('^Deposit') ~= nil)
   check('you get shown in green', post.net_summary.__text:upper():find(pick('4DCC66', '6FD39A'), 1, true) ~= nil)
-  aux.set_tab(4)
+  aux.set_tab(5)
   check('post: leaving the tab ends gold', aux.status_bar.done == false)
   post.selected_item = nil
   rawset(scan_exports, 'start', real_start)
@@ -2050,7 +2050,7 @@ try('auctions tab: undercut check', function()
   local real_sold = Enum.AuctionStatus
   rawset(Enum, 'AuctionStatus', {Active = 0, Sold = 1})
 
-  aux.set_tab(4) -- Search, Sniper, Post, Auctions
+  aux.set_tab(5) -- Search, Sniper, Upgrades, Post, Auctions
   check('auctions: fourth tab', auctions.frame.__shown)
   run(60)
   local by_id = {}
@@ -2077,12 +2077,12 @@ try('auctions tab: undercut check', function()
   check('auctions: tied and lowest auctions are left alone', #cancels == 1)
 
   -- opening the tab again soon does not read the prices again
-  aux.set_tab(1); aux.set_tab(4)
+  aux.set_tab(1); aux.set_tab(5)
   run(20)
   check('auctions: no new check within two minutes', searches == 3)
   -- an auction posted since then is checked when the tab opens, without waiting two minutes
   tinsert(owned, {auctionID = 9005, itemKey = {itemID = 104, itemSuffix = 0, itemLevel = 0}, itemLink = link(104, 'Native Robe'), status = 0, quantity = 1, timeLeft = 3, buyoutAmount = 3500})
-  aux.set_tab(1); aux.set_tab(4)
+  aux.set_tab(1); aux.set_tab(5)
   run(40)
   check('auctions: a newly posted auction is checked at once', searches == 7)
   aux.set_tab(1)
@@ -2116,7 +2116,7 @@ try('auctions tab: every auction on its own row, cancels the auction house confi
   local real_status = Enum.AuctionStatus
   rawset(Enum, 'AuctionStatus', {Active = 0, Sold = 1})
 
-  aux.set_tab(4)
+  aux.set_tab(5)
   run(60)
   local listing = auctions.listing
   check('auctions: five auctions, five rows', #listing.records == 5 and listing.rowInfo.numDisplayRows == 5)
@@ -3125,7 +3125,7 @@ try('clicks 0.5', function()
   local button = 'RightButton'
   set(G, 'GetMouseButtonClicked', function() return button end)
   local used
-  aux.set_tab(3) -- Post
+  aux.set_tab(4) -- Post
   local post_tab = aux.get_tab()
   local real_post_use = post_tab.USE_ITEM
   post_tab.USE_ITEM = function(id, suffix) used = id .. ':' .. suffix end
@@ -3138,7 +3138,7 @@ try('clicks 0.5', function()
   button = 'RightButton'
   post_tab.USE_ITEM = real_post_use
   -- on the Auctions tab a right-click searches it
-  aux.set_tab(4) -- Auctions
+  aux.set_tab(5) -- Auctions
   executed = 0
   shortcut.on_post_item(location)
   check('FB-002: right-click a bag item on another tab searches it', aux.get_tab().name == 'Search' and executed == 1)
@@ -3171,7 +3171,7 @@ try('clicks 0.5', function()
   post.buyout_listing.handlers.OnClick(post.buyout_listing, data, nil, 'LeftButton')
   check('clicks: clicking the chosen price again lets go of it', post.get_buyout_selection() == nil)
   post.buyout_listing.handlers.OnClick(post.buyout_listing, data, nil, 'LeftButton')
-  aux.set_tab(3) -- Post
+  aux.set_tab(4) -- Post
   executed = 0
   post.buyout_listing.handlers.OnClick(post.buyout_listing, data, nil, 'RightButton')
   check('clicks: right-click a price row searches the item', aux.get_tab().name == 'Search' and search.search_box:GetText() == 'linen cloth/exact')
@@ -3285,7 +3285,7 @@ try('0.5 build 1 fixes', function()
 
   -- right-click a Post price row raised "attempt to index global 'selected_item'": leaving the Post
   -- tab clears it before the name was read
-  aux.set_tab(3)
+  aux.set_tab(4)
   post.selected_item = {key = '7101:0', item_id = 7101, name = 'Linen Cloth', quality = 1, count = 20, max_stack = 20, commodity = true}
   local ok, err = pcall(post.buyout_listing.handlers.OnClick, post.buyout_listing, {record = {unit_price = 12, count = 5}}, nil, 'RightButton')
   check('build 1: right-click a Post price row works from the Post tab', ok and aux.get_tab().name == 'Search' and search.search_box:GetText() == 'linen cloth/exact')
@@ -3401,7 +3401,7 @@ try('0.5 build 3 results', function()
   local link = '|cffffffff|Hitem:7101::::::0:0|h[Linen Cloth]|h|r'
   set(C_Item, 'GetItemLink', function() return link end)
   set(G, 'GetItemInfo', function(x) local id = tonumber(tostring(x):match('item:(%d+)') or x); if id == 7101 then return 'Linen Cloth', link, 1, 5, 1, 'Trade Goods', 'Cloth', 20, '', 1, 10 end end)
-  aux.set_tab(3)
+  aux.set_tab(4)
   shortcut.on_post_item({IsValid = function() return true end})
   check('build 3: the right-clicked item is taken back from Blizzard\'s Sell tab (unlocked)', cleared == 1)
 
@@ -3903,11 +3903,12 @@ try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
   pad('X')
   check('gamepad nav: X on a text box clears it, as a right-click does', box:GetText() == '')
 
-  -- Y: the tab's main action (Search 1: Buy, Sniper 2: Start, Post 3: Post)
+  -- Y: the tab's main action (Search 1: Buy, Sniper 2: Start, Upgrades 3: Search, Post 4: Post)
   local pressed = {}
   local quick = {
     require('aux.gui.buy_bar').primary_button,
     require('aux.tabs.sniper').run_button,
+    require('aux.tabs.upgrades').search_button,
     require('aux.tabs.post').post_button,
     require('aux.tabs.auctions').cancel_button,
     require('aux.tabs.bids').buyout_button,
@@ -3916,22 +3917,23 @@ try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
     rawset(b, 'Click', function() pressed[i] = (pressed[i] or 0) + 1 end)
     rawset(b, 'IsVisible', function() return true end)
   end
-  for i = 1, 5 do
+  for i = 1, 6 do
     aux_env.set_tab(i)
     pad('Y')
   end
-  check('gamepad nav: Y buys on Search, starts the Sniper, posts on Post', pressed[1] == 1 and pressed[2] == 1 and pressed[3] == 1)
-  check('gamepad nav: Y cancels on Auctions and buys out on Bids', pressed[4] == 1 and pressed[5] == 1)
-  aux_env.set_tab(3)
-  rawset(quick[3], 'IsVisible', function() return false end)
+  check('gamepad nav: Y buys on Search, starts the Sniper, posts on Post', pressed[1] == 1 and pressed[2] == 1 and pressed[4] == 1)
+  check('gamepad nav: Y searches on Upgrades', pressed[3] == 1)
+  check('gamepad nav: Y cancels on Auctions and buys out on Bids', pressed[5] == 1 and pressed[6] == 1)
+  aux_env.set_tab(4)
+  rawset(quick[4], 'IsVisible', function() return false end)
   pad('Y')
-  check('gamepad nav: Y does nothing when the action is not shown (no item picked)', pressed[3] == 1)
-  rawset(quick[3], 'IsVisible', function() return true end)
+  check('gamepad nav: Y does nothing when the action is not shown (no item picked)', pressed[4] == 1)
+  rawset(quick[4], 'IsVisible', function() return true end)
   local cover = CreateFrame('Frame', nil, layout)
   cover:SetFrameStrata('DIALOG')
   place(CreateFrame('Button', nil, cover), 2000, 300)
   pad('Y')
-  check('gamepad nav: Y does nothing while a popup is open', pressed[3] == 1)
+  check('gamepad nav: Y does nothing while a popup is open', pressed[4] == 1)
   cover:Hide()
   for _, b in ipairs(quick) do rawset(b, 'Click', nil); rawset(b, 'IsVisible', nil) end
   aux_env.set_tab(1)
@@ -4068,7 +4070,7 @@ try('gamepad: button hints', function()
     return f
   end
   local aux_frame = aux_env.frame
-  aux_env.set_tab(4)
+  aux_env.set_tab(5)
   aux_frame:Hide(); aux_frame:Show()
   local hints = aux_env.gamepad_hints()
   local function label(key) local item = hints.items[key] return item.label.__shown and item.label:GetText() or nil end
@@ -5243,7 +5245,7 @@ try('0.8.2: nothing stops a Full scan by itself', function()
   sniper.stop()
 
   -- the Auctions tab opens and would check prices
-  a.set_tab(4)
+  a.set_tab(5)
   for _ = 1, 100 do tick() end
   check('fb037: the Auctions tab\'s price check waits too', scan.is_full_scan() and auctions.checking == nil)
 
@@ -5819,6 +5821,106 @@ try('upgrades: stat priorities and ranked weights', function()
   local shadow = weights.weights(weights.spec('PRIEST', 'shadow'))
   check('weights: Forever\'s other names count', shadow.ITEM_MOD_HIT_SPELL_RATING_SHORT == 5 and shadow.ITEM_MOD_SPELL_DAMAGE_DONE_SHORT == 4 and shadow.ITEM_MOD_SPELL_PENETRATION_SHORT == 2)
   check('weights: and MP5 under both names', weights.weights(weights.spec('PRIEST', 'holy')).ITEM_MOD_POWER_REGEN0_SHORT == 4)
+end)
+
+-- The Upgrades tab (tab 3, docs/upgrades.md): pick a spec and a slot, search the slot's gear the
+-- character can use, list what beats the worn item by the spec's ranked weights
+try('upgrades tab: search, score and list upgrades', function()
+  local aux_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local require = loadstring("select(2, ...) 'aux.test.upgrades_tab'; return require")('auxForever', addon)
+  local up = require 'aux.tabs.upgrades'
+  local up_env = loadstring("select(2, ...) 'aux.tabs.upgrades'; return _M")('auxForever', addon)
+  local filter_util = require 'aux.util.filter'
+  local scan_exports = require 'aux.core.scan'
+
+  check('upgrades tab: tab 3, between Sniper and Post', aux_env.tab_info[2].name == 'Sniper' and aux_env.tab_info[3].name == 'Upgrades' and aux_env.tab_info[4].name == 'Post' and #aux_env.tab_info == 6)
+
+  -- every slot's search text is valid in aux's search language, with a category and "usable"
+  local bad = {}
+  for _, slot in ipairs(up.SLOTS) do
+    local queries = filter_util.queries(up_env.filter_string(slot, 42))
+    local ok = queries and #queries == #slot.searches
+    for _, q in ipairs(queries or {}) do
+      local b = q.blizzard_query
+      ok = ok and b and b.class and b.subclass and b.usable and b.max_level == 42 and b.min_level == 1
+    end
+    if not ok then tinsert(bad, slot.name) end
+  end
+  check('upgrades tab: every slot searches valid categories: ' .. table.concat(bad, ', '), #bad == 0 and #up.SLOTS == 16)
+  local head = filter_util.queries(up_env.filter_string(up.SLOTS[1], 60))
+  check('upgrades tab: armor slots search each armor type with its slot', #head == 4 and head[1].blizzard_query.slot ~= nil)
+
+  -- choices are saved for this character; the spec starts on the class's first
+  local saved_upgrades = aux_env.character_data.upgrades
+  aux_env.character_data.upgrades = {spec = 'not a spec', slot = 99}
+  check('upgrades tab: a missing or old choice falls back to the first spec and slot', up_env.current_spec().id == 'elemental' and up_env.current_slot().name == 'Head')
+
+  aux_env.set_tab(3)
+  up.set_spec('enhancement')
+  up.set_slot(15) -- Two-Hand
+  check('upgrades tab: the choices are kept', aux_env.character_data.upgrades.spec == 'enhancement' and aux_env.character_data.upgrades.slot == 15)
+  check('upgrades tab: the spec dropdown shows it', up.spec_dropdown:GetIndex() == 2)
+
+  -- the game: worn two-hander, items' equip locations and stats
+  local saved = {GetInventoryItemLink = G.GetInventoryItemLink, GetItemStats = C_Item.GetItemStats, GetItemInfoInstant = C_Item.GetItemInfoInstant}
+  local tip = {SetItemKey = rawget(AuxTooltip, 'SetItemKey'), GetItem = rawget(AuxTooltip, 'GetItem')}
+  local item_stats = {
+    worn = {ITEM_MOD_STRENGTH_SHORT = 15, ITEM_MOD_STAMINA_SHORT = 8, ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 28.9},
+    better = {ITEM_MOD_STRENGTH_SHORT = 19, ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 32},
+    worse = {ITEM_MOD_STRENGTH_SHORT = 5, ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 20},
+    dagger = {ITEM_MOD_AGILITY_SHORT = 30, ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 40},
+  }
+  local location = {[101] = 'INVTYPE_2HWEAPON', [102] = 'INVTYPE_2HWEAPON', [103] = 'INVTYPE_WEAPON', [104] = 'INVTYPE_2HWEAPON'}
+  local link_of = {[101] = 'better', [102] = 'worse', [103] = 'dagger'}
+  G.GetInventoryItemLink = function(_, slot) return slot == 16 and 'worn' or nil end
+  C_Item.GetItemStats = function(link) return item_stats[link] end
+  C_Item.GetItemInfoInstant = function(id) return id, '', '', location[id] end
+  local shown_key
+  rawset(AuxTooltip, 'SetItemKey', function(_, id) shown_key = id end)
+  rawset(AuxTooltip, 'GetItem', function() return 'x', link_of[shown_key] end)
+
+  -- the game's stat labels (global strings, seen in game E10)
+  local labels = {ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 'damage per second', ITEM_MOD_STRENGTH_SHORT = 'Strength', ITEM_MOD_STAMINA_SHORT = 'Stamina'}
+  for k, v in pairs(labels) do rawset(G, k, v) end
+  local params
+  local real_start = scan_exports.start
+  rawset(scan_exports, 'start', function(p) params = p end)
+  up.search()
+  check('upgrades tab: a fast search of two-handers you can use', params and params.fast and #params.queries == 1 and params.queries[1].blizzard_query.usable)
+  local function row(id, name, price) return {item_id = id, name = name, browse_key = {itemID = id, itemLevel = 40, itemSuffix = 0}, unit_buyout_price = price, buyout_price = price, auction_count = 1, requirement = 40, search_signature = 'up' .. id, sale_status = 0} end
+  params.on_auction(row(101, 'Better Axe', 30000))
+  params.on_auction(row(102, 'Worse Axe', 10000))
+  params.on_auction(row(103, 'Dagger', 5000))
+  params.on_auction(row(104, 'Unloaded Maul', 9000))
+  params.on_complete()
+  for _ = 1, 3 do tick() end
+  local results = up.results()
+  check('upgrades tab: only what beats the worn item is listed', #results == 1 and results[1].name == 'Better Axe')
+  local u = results[1] and results[1].upgrade
+  check('upgrades tab: with its score and gain', u and math.abs(u.score - (19 * 3 + 32 * 6)) < 1e-9 and u.percent and u.percent > 0)
+  local text = up.changes_text(u and u.changes)
+  check('upgrades tab: the changes, DPS first', text:find('+3.1 DPS', 1, true) and text:find('+4 Strength', 1, true) and text:find('-8 Stamina', 1, true))
+  check('upgrades tab: the gain as a percent', up.gain_text({percent = 16.84, gain = 2}) == '+16.8%' and up.gain_text({gain = 12}) == '+12.0')
+  for _ = 1, 60 do tick() end
+  local state = up.state()
+  check('upgrades tab: counts what it looked at, and what did not load', state.considered == 2 and state.unloaded == 1)
+
+  -- a new spec scores the same list again, without a new search
+  params = nil
+  up.set_spec('elemental')
+  for _ = 1, 3 do tick() end
+  check('upgrades tab: another spec rescores without searching', params == nil and #up.results() == 0)
+
+  -- a row opens that exact item on the Search tab
+  up.open_in_search({name = 'Better Axe of the Bear'})
+  check('upgrades tab: a row opens the item on the Search tab', aux_env.tabs._selected == 1 and params and params.queries[1].blizzard_query.name ~= nil)
+
+  rawset(scan_exports, 'start', real_start)
+  for k in pairs(labels) do rawset(G, k, nil) end
+  rawset(AuxTooltip, 'SetItemKey', tip.SetItemKey); rawset(AuxTooltip, 'GetItem', tip.GetItem)
+  G.GetInventoryItemLink, C_Item.GetItemStats, C_Item.GetItemInfoInstant = saved.GetInventoryItemLink, saved.GetItemStats, saved.GetItemInfoInstant
+  aux_env.character_data.upgrades = saved_upgrades
+  aux_env.set_tab(1)
 end)
 
 -- what players do while the auction house is still answering: a slow auction house that answers

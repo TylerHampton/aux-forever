@@ -48,6 +48,16 @@ M.STATS = {
     weapon_skill = {'ITEM_MOD_DAGGERS_SHORT', 'ITEM_MOD_SWORDS_SHORT', 'ITEM_MOD_MACES_SHORT', 'ITEM_MOD_AXES_SHORT', 'ITEM_MOD_FIST_WEAPONS_SHORT'},
 }
 
+-- our stat names as the Upgrades tab shows them
+M.STAT_NAMES = {
+    strength = 'Strength', agility = 'Agility', stamina = 'Stamina', intellect = 'Intellect',
+    spirit = 'Spirit', weapon_dps = 'Weapon DPS', attack_power = 'Attack Power',
+    spell_power = 'Spell Power', healing = 'Healing Power', hit = 'Hit', crit = 'Crit',
+    haste = 'Haste', expertise = 'Expertise', spell_pierce = 'Spell Pierce', mp5 = 'MP5',
+    armor = 'Armor', defense = 'Defense', dodge = 'Dodge', avoidance = 'Avoidance',
+    weapon_skill = 'Weapon Skill',
+}
+
 local function spec(id, name, priority, page)
     return {id = id, name = name, priority = priority, page = page}
 end

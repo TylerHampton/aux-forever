@@ -8,6 +8,34 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
+## Upgrades tab, first build (branch `search-upgrade-support`)
+
+New files: **full game restart** (not `/reload`). Open the auction house and aux.
+
+- [ ] 1. Look at the tabs at the top of aux. They read Search, Sniper, Upgrades, Post, Auctions,
+      Bids. Click **Upgrades**. On the left: Spec, a grid of 16 slot buttons, Required level,
+      a gold Search button, a "WEARING NOW" box and a "Weights:" line at the bottom. Take a
+      screenshot.
+- [ ] 2. In the Spec box, click and pick your spec (for a Shaman: Enhancement). The "Weights:" line
+      at the bottom changes to that spec's stats, for Enhancement "Weapon DPS 6, Hit 5, Expertise
+      4, Strength 3, Intellect 2, Spell Power 1".
+- [ ] 3. Click the **Two-Hand** slot button (or the slot of the weapon you use). It turns gold, and
+      "WEARING NOW" shows your weapon's name and "Score" with a number.
+- [ ] 4. Press **Search**. The bar at the bottom of aux moves, then the table fills with items that
+      beat your weapon, best gain first. The line above the table says, for example, "6 upgrades
+      among 214 Two-Hand items you can use, searched at 14:32". Take a screenshot.
+- [ ] 5. Point the mouse at a row's icon, without clicking. Its tooltip shows, with your weapon's
+      tooltip next to it. Check that the row's Changes column matches the difference (for example
+      "+3.1 DPS, +4 Strength").
+- [ ] 6. Click a row. aux switches to the Search tab and shows that exact item's auctions, ready to
+      buy as usual. Do not buy unless you want it.
+- [ ] 7. Back on Upgrades, click **Ring** and press Search. "WEARING NOW" shows the weaker of your
+      two rings. Then pick "Up to my level + 2" under Required level and search again: say whether
+      rows with a higher level (orange or red Req) appear. This tells us whether the auction house's
+      "usable" filter also hides items above your level.
+- [ ] 8. `/reload`, open Upgrades again: your spec, slot and level choice are still selected.
+- [ ] 9. With a gamepad: on the Upgrades tab, Y starts the search (the hint strip says "Y Search").
+
 ## Upgrades experiments (branch `search-upgrade-support`, before any code)
 
 Two short checks that decide how the Upgrades tab reads item stats and your spec

@@ -51,9 +51,16 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
 3. Stat reading and scoring, with tests: built 2026-11-16, `core/stats.lua` (`key_stats`,
    `link_stats`, `score`, `worn_score`, `compare`, `changes`), test `upgrades: stats, scores and
    the worn item`. Not used by any screen yet.
-4. Weights: default data with sources (built, `core/weights.lua`), the Settings section. The
+4. Weights: default data with sources (built, `core/weights.lua`), the Settings section (not
+   built yet: the weights are the guides' order, not editable). The
    game's stat names are Retail's until experiment E10 confirms Forever's.
-5. The tab: controls, search, results table, renumbering.
+5. The tab: controls, search, results table, renumbering. Built 2026-11-16 (`tabs/upgrades/`),
+   with tests; not tried in game yet (`TESTING.md`, "Upgrades tab, first build"). One change from
+   the mockup: a row opens that exact item on the Search tab, which shows its auctions and buys it
+   with the Search tab's buy bar and its never-more-than-shown check, instead of a buy bar on the
+   Upgrades tab. A buy bar on the tab itself can follow if this feels clumsy in game.
+   Open: whether the auction house's "usable" filter also hides items above the player's level
+   (then "Up to my level + 2" finds nothing extra; `TESTING.md` step 7).
 6. Gamepad (Y runs Search), docs, `TESTING.md` steps, changelog.
 
 New feature, so it belongs in the next minor version (0.9); Tyler decides which release it joins.

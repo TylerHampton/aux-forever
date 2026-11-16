@@ -6,6 +6,22 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## Not released yet
+
+### Upgrades tab (new)
+
+- A new tab after Sniper finds gear upgrades. Pick your spec and a slot (Head, Ring, Two-Hand and
+  so on) and press Search: aux looks at that slot's gear you can use, scores each item by your
+  spec's stat priority, and lists the ones that beat what you wear, with the gain and the stats that
+  change. Rings and trinkets are compared with the weaker of the two you wear, a two-hander with
+  both hands. Your spec, slot and level choice are remembered for each character.
+- The stat priorities come from Icy Veins' WoW Forever guides, one per spec. A stat higher in the
+  list counts more per point; Hit and Crit are counted per percent, like any other point, so they
+  may be undervalued.
+- Click a row to see that item's auctions on the Search tab and buy it there.
+- Post, Auctions and Bids moved one place to the right. With a gamepad, Y presses Search on the
+  Upgrades tab.
+
 ## 0.8.2 (2026-11-09)
 
 ### Sniper

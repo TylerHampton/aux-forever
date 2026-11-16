@@ -50,6 +50,9 @@ tabs\search\crate.lua
 tabs\sniper\core.lua
 tabs\sniper\frame.lua
 
+tabs\upgrades\core.lua
+tabs\upgrades\frame.lua
+
 tabs\post\core.lua
 tabs\post\frame.lua
 

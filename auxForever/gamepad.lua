@@ -20,9 +20,10 @@ local gui = require 'aux.gui'
 --          Sniper deal it then moves the focus to the buy bar's Buy button once it shows
 --   B      closes what is open: a dropdown, a text box, a popup (Settings, quick searches), then aux
 --   X      right-clicks the control (search from a bag item, remove a favorite, clear a text box)
---   Y      the tab's main action: Buy (then Confirm) on Search, Start or Stop on Sniper, Post on Post,
+--   Y      the tab's main action: Buy (then Confirm) on Search, Start or Stop on Sniper, Search on
+--          Upgrades, Post on Post,
 --          Cancel the selected auction on Auctions, Buyout the selected bid on Bids
---   LB/RB  step through the top bar: the five tabs (switched at once), then Settings, Full scan
+--   LB/RB  step through the top bar: the six tabs (switched at once), then Settings, Full scan
 --          and Blizzard UI (A presses them)
 -- Nothing runs every frame: the controls are found when a button is pressed.
 
@@ -294,12 +295,13 @@ local function press_right(f)
     if up then up(f, 'RightButton') end
 end
 
--- Y: the main action of the tab that is open, by tab number (Search 1, Sniper 2, Post 3, Auctions 4,
--- Bids 5). The buy
+-- Y: the main action of the tab that is open, by tab number (Search 1, Sniper 2, Upgrades 3, Post 4,
+-- Auctions 5, Bids 6). The buy
 -- bar's button is Buy, then Confirm once the price is known, so Y twice buys.
 local QUICK_ACTIONS = {
     function() return require('aux.gui.buy_bar').primary_button end,
     function() return require('aux.tabs.sniper').run_button end,
+    function() return require('aux.tabs.upgrades').search_button end,
     function() return require('aux.tabs.post').post_button end,
     function() return require('aux.tabs.auctions').cancel_button end,
     function() return require('aux.tabs.bids').buyout_button end,
@@ -682,7 +684,7 @@ end
 
 -- Y's name: the tab's action. On Search the buy bar's button says Buy, then Confirm once the price
 -- is known; on Sniper, Start or Stop.
-local Y_NAMES = {'Buy', 'Start', 'Post', 'Cancel', 'Buyout'}
+local Y_NAMES = {'Buy', 'Start', 'Search', 'Post', 'Cancel', 'Buyout'}
 local function y_label()
     local button = quick_button()
     if not button then return end

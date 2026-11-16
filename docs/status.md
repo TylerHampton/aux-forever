@@ -9,8 +9,11 @@ works, also a results row's icon link; `C_TooltipInfo.GetItemKey` is blocked for
 talent trees, the player picks the spec). Mockup approved (Ben). Built: `core/stats.lua` (stats,
 scores, worn item), with tests, not used by a screen yet; new file, so a full game restart. Stat
 priorities of all 27 specs from Icy Veins' Forever pages (`docs/stat-priorities.md`), turned into
-ranked weights (option A, Ben) in `core/weights.lua`, tested. Next: E10 in game (the game's stat
-names, `TESTING.md`), then the Settings section and the tab.
+ranked weights (option A, Ben) in `core/weights.lua`, tested. E10 seen (stat names; Spell Power
+under one name on a real item). The tab is built (`tabs/upgrades/`, tab 3; Post, Auctions and Bids
+are now 4, 5 and 6), with tests, not tried in game: `TESTING.md`, "Upgrades tab, first build". A
+row opens the item on the Search tab to buy it. Next: Ben's in-game test, then the Settings section
+for editing weights.
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.

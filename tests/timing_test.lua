@@ -49,7 +49,7 @@ return function(env)
     end
     rawset(post.duration_dropdown, 'GetIndex', function() return 2 end)
     post.set_undercut_mode(opts.undercut or false)
-    aux.set_tab(3) -- Search 1, Sniper 2, Post 3
+    aux.set_tab(4) -- Search 1, Sniper 2, Upgrades 3, Post 4
     return post
   end
 
@@ -334,7 +334,7 @@ return function(env)
     aux.set_tab(1)
     server:ticks(700) -- 70 seconds on another tab
     server.delay = 1
-    aux.set_tab(3)
+    aux.set_tab(4)
     post.select_item('2835:0')
     server:wait(listings_in(post), 50)
     server:ticks(3)
@@ -457,7 +457,7 @@ return function(env)
     check('closed mid-post: the post still went through', #server.posts == 1 and server:bag_count(2835) == 15)
     env.fire('AUCTION_HOUSE_SHOW')
     server:ticks(2)
-    aux.set_tab(3)
+    aux.set_tab(4)
     post.select_item('2835:0')
     server:wait(listings_in(post), 50)
     server:ticks(3)
@@ -543,7 +543,7 @@ return function(env)
     end
     rawset(post.duration_dropdown, 'GetIndex', function() return 2 end)
     post.set_undercut_mode(false)
-    aux.set_tab(3)
+    aux.set_tab(4)
     server:ticks(2)
     post.select_item('4575:of the bandit')
     check('gear: the Bandit staff is its own item in the bag list', post.selected_item and post.selected_item.key == '4575:of the bandit')
@@ -731,7 +731,7 @@ return function(env)
     G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = function() end, function() end, function() return false end
     G.InputUtil = {IsGamepadUIEnabled = function() return true end}
     aux_frame:Hide(); aux_frame:Show()
-    aux.set_tab(3)
+    aux.set_tab(4)
     -- as in the game: Post is faded while the addon has a reason (the harness's IsEnabled is always true)
     rawset(post.post_button, 'IsVisible', function() return true end)
     rawset(post.post_button, 'IsEnabled', function() return post.selected_item ~= nil and not post.disabled_reason() end)
