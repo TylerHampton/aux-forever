@@ -5988,6 +5988,27 @@ try('upgrades tab: weights editor and gain per gold', function()
   aux_env.character_data.upgrades = saved_upgrades
 end)
 
+-- Attack Power counts for the physical specs whose list does not name it (Ben, 2026-11-16): worth
+-- what the stats that give it are worth per point given, by each guide's conversion
+try('weights: attack power from each guide\'s conversion', function()
+  local require = loadstring("select(2, ...) 'aux.test.weights_ap'; return require")('auxForever', addon)
+  local weights = require 'aux.core.weights'
+  local function ap(class, id, own) return weights.ranks(weights.spec(class, id), own).attack_power end
+  check('ap: Enhancement, Strength 3 gives 2 Attack Power each: 1.5', ap('SHAMAN', 'enhancement') == 1.5)
+  check('ap: and it reaches the game\'s names', weights.weights(weights.spec('SHAMAN', 'enhancement')).ITEM_MOD_ATTACK_POWER_SHORT == 1.5 and weights.weights(weights.spec('SHAMAN', 'enhancement')).ITEM_MOD_MELEE_ATTACK_POWER_SHORT == 1.5)
+  check('ap: Arms and Fury, Strength 1: 0.5', ap('WARRIOR', 'arms') == .5 and ap('WARRIOR', 'fury') == .5)
+  check('ap: Agility gives Warriors none, Protection goes by Strength 2: 1', ap('WARRIOR', 'protection') == 1)
+  check('ap: Rogues, 1 per Agility: Agility\'s weight', ap('ROGUE', 'assassination') == 3 and ap('ROGUE', 'combat') == 3 and ap('ROGUE', 'subtlety') == 1)
+  check('ap: Feral, the most of Strength and Agility in Cat Form', ap('DRUID', 'feral') == 2)
+  check('ap: Retribution 1, Protection Paladin 1 per Strength', ap('PALADIN', 'retribution') == 1 and ap('PALADIN', 'protection') == 1)
+  check('ap: hunters keep the guide\'s own Attack Power', ap('HUNTER', 'beast_mastery') == 1 and ap('HUNTER', 'survival') == 1)
+  check('ap: casters and healers get none', ap('SHAMAN', 'elemental') == nil and ap('PRIEST', 'holy') == nil and ap('MAGE', 'fire') == nil)
+  check('ap: a spec without Strength or Agility in its list gets none', ap('PALADIN', 'retribution_shock') == nil and ap('DRUID', 'feral_tank') == nil)
+  check('ap: it follows the player\'s Strength', ap('SHAMAN', 'enhancement', {strength = 6}) == 3)
+  check('ap: unless they set it themselves', ap('SHAMAN', 'enhancement', {strength = 6, attack_power = 4}) == 4 and ap('SHAMAN', 'enhancement', {attack_power = 0}) == nil)
+  check('ap: a score counts it', require('aux.core.stats').score({ITEM_MOD_ATTACK_POWER_SHORT = 20}, weights.weights(weights.spec('SHAMAN', 'enhancement'))) == 30)
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
 dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({

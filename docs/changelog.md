@@ -18,6 +18,8 @@ A change that comes from a player's feedback credits them by in-game name at the
 - The stat priorities come from Icy Veins' WoW Forever guides, one per spec. A stat higher in the
   list counts more per point; Hit and Crit are counted per percent, like any other point, so they
   may be undervalued.
+- Attack Power counts for physical specs, worth what the Strength or Agility that gives it is
+  worth (from each guide: a Warrior's Strength gives 2 Attack Power, a Rogue's Agility 1).
 - Click a row to see that item's auctions on the Search tab and buy it there.
 - A Per gold column: how many score points you gain for each gold the item costs, so a cheap small
   upgrade and an expensive big one can be compared.

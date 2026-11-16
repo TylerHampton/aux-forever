@@ -250,6 +250,7 @@ local function weights_text(spec)
     local ranks, own = weights.ranks(spec, overrides(spec.id)), overrides(spec.id)
     local listed = {}
     for _, name in ipairs(spec.priority) do listed[name] = true end
+    listed.attack_power = listed.attack_power or spec.ap ~= nil
     for _, name in ipairs(weights.STAT_ORDER) do
         if ranks[name] and (listed[name] or own[name]) then
             tinsert(parts, {name = name, value = ranks[name]})

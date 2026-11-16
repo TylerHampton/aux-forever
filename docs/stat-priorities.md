@@ -100,6 +100,25 @@ each heading below. Last updated as shown on each page, with its author.
   Agility, Strength, Stamina.
 - **Protection, survival** (same page): Stamina, Armor, Agility, Avoidance, Defense.
 
+## Attack Power conversions
+
+Attack Power counts for the physical specs whose list does not name it (Ben, 2026-11-16). Each
+guide's stats section says how much Attack Power a point of Strength or Agility gives (read
+2026-11-16, **[Outside]**):
+
+- Warrior (Arms, Fury, Protection): 2 per Strength; Agility gives Warriors none.
+- Paladin: Retribution 2 per Strength; the Protection page says 1 per Strength.
+- Shaman, Enhancement: 2 per Strength (and 1 per Intellect with the Mental Dexterity talent, not
+  counted).
+- Druid, Feral: 2 per Strength; 1 per Agility in Cat Form.
+- Rogue: 1 per Agility, 1 per Strength.
+- Hunter: the list names Attack Power already (Survival's page: 2 ranged and 1 melee per Agility).
+
+`core/weights.lua` gives Attack Power the weight of the stat that gives it divided by how much it
+gives, the most of them: Enhancement Strength 3 / 2 = 1.5, Arms Strength 1 / 2 = 0.5,
+Assassination Agility 3 / 1 = 3. A stat that also gives crit (Agility) makes this a little high.
+It follows the player's own Strength or Agility in the editor unless they set Attack Power.
+
 ## Not in these lists
 
 The pages give an order, not numbers per point, except a few conversions (Enhancement: 1 Strength

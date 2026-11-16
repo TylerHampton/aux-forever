@@ -57,7 +57,9 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
    weights" button. One box per stat for the chosen spec; the player's numbers show in gold and are
    kept per character and spec (`character_data.upgrades.weights`), only where they differ from the
    guide's; an empty box or Reset brings back the guide's; 0 leaves a stat out.
-   Also 2026-11-16 (Ben): a "Per gold" column, score points gained per gold of the price
+   Also 2026-11-16 (Ben): Attack Power counts for the physical specs whose list does not name it,
+   from each guide's Strength and Agility conversion (`docs/stat-priorities.md`, "Attack Power
+   conversions"). Also 2026-11-16 (Ben): a "Per gold" column, score points gained per gold of the price
    (`per_gold` in `tabs/upgrades/core.lua`), after Gain; the table still sorts by Gain. The
    game's stat names are Retail's until experiment E10 confirms Forever's.
 5. The tab: controls, search, results table, renumbering. Built 2026-11-16 (`tabs/upgrades/`),

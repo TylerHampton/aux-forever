@@ -44,6 +44,9 @@ New files: **full game restart** (not `/reload`). Open the auction house and aux
       "Weights:" line on the tab shows "Hit 9" in gold. Search again: the scores change.
 - [ ] 13. Press **Reset to defaults**: Hit goes back to its number from the guide (5 for
       Enhancement), not gold. Close the window.
+- [ ] 15. As Enhancement, the "Weights:" line includes "Attack Power 1.5", and in Change weights
+      the Attack Power box shows 1.5 (not gold). Type 6 in the Strength box and click outside it:
+      Attack Power shows 3.
 - [ ] 14. Open Settings (the gear at the top right). Under POSTING there is UPGRADES, "Stat weights"
       with an Edit button. Edit opens the same window.
 
