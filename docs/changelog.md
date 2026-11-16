@@ -6,6 +6,14 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## Not released yet
+
+### Gamepad
+
+- On a row of the search results (and the Sniper, Auctions and Bids tables), the item's tooltip now
+  shows beside aux's window instead of over the rows, and for gear the item you wear in that slot
+  shows right under it, with the stat changes, so you can compare without the mouse.
+
 ## 0.8.2 (2026-11-09)
 
 ### Sniper

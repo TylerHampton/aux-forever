@@ -8,6 +8,25 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
+## Gamepad item compare (branch `gamepad-item-compare-support`, not in a build yet)
+
+Turn on gamepad mode. `/reload` is enough after updating (no new files).
+
+- [ ] 1. Search tab, Fast selected, search `usable/weapons` (or any gear you can equip). Press the
+      D-pad down until the gold frame is on a row of the results. The item's tooltip shows to the
+      right of aux's window, at its top edge, not over the rows.
+- [ ] 2. On a row of gear for a slot where you wear something (a two-handed axe when you hold a
+      weapon, a chest piece), the tooltip of what you wear shows right under the first one, with
+      "If you replace this item, the following stat changes will occur". Take a screenshot.
+- [ ] 3. Move to a ring, a trinket or a one-handed weapon row: both worn items show, one under the
+      other.
+- [ ] 4. Keep pressing down past the last row shown, so the list scrolls. The tooltips change to
+      each new row and stay to the right of the window.
+- [ ] 5. Drag aux's window to the right edge of the screen and repeat step 1: the tooltip shows to
+      the left of the window instead.
+- [ ] 6. Press D-pad right or left to leave the list (or B to close aux): both tooltips go away.
+      Then use the mouse on a row's icon: its tooltip still shows next to the mouse as before.
+
 ## Current build: 0.8.2 build 8
 
 One fix from Tyler's build 7 test (results below): with a material selected, the deal sound played

@@ -2,6 +2,15 @@
 
 Last updated 2026-11-09, Tyler's time (**0.8.2 build 8** on `claude/magical-maxwell-eyud0b`, tested and passing, ready to release when Tyler says; nothing open in the handoff; 0.8.1 is the latest release).
 
+**2026-11-16, Claude, gamepad item compare** (branch `gamepad-item-compare-support`, from `main`
+after 0.8.2): with the gamepad on a results row, the item's tooltip shows right of aux's window and
+the worn item's comparison stacks under it (`show_row_tooltip` in `gamepad.lua`,
+`rt:ItemTooltip` in `gui/auction_listing.lua`; test `gamepad: a result row shows its item beside
+aux, the worn item under it`, checked to fail without the change). Not tested in game yet: steps in
+`TESTING.md` ("Gamepad item compare"). Open: whether Blizzard places the comparison again on Forever
+after aux moves it (the hook is on Retail's `TooltipComparisonManager.AnchorShoppingTooltips`,
+Outside). No version number change; Tyler decides which release it joins.
+
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
 Two fixes, each with a test that fails without it:

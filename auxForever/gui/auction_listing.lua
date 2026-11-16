@@ -696,17 +696,23 @@ local methods = {
         local row = self:GetParent().row
         if row.record then
 	        GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-            local key = row.record.browse_key
-            if key and GameTooltip.SetItemKey then
-                -- auxForever: a fast mode row has no link of its own; this shows its suffix too
-                GameTooltip:SetItemKey(key.itemID, key.itemLevel or 0, key.itemSuffix or 0, row.record.requirement or 0)
-            else
-                GameTooltip:SetHyperlink(row.record.link)
-            end
-            GameTooltip_ShowCompareItem()
-            gui.add_click_hint(GameTooltip, rt:ClickHint(row))
+            rt:ItemTooltip(row)
             GameTooltip:Show()
+            GameTooltip_ShowCompareItem()
         end
+    end,
+
+    -- auxForever: the row's item and its click hint in GameTooltip, which the caller owns, places
+    -- and shows (the icon hover above, the gamepad focus in gamepad.lua)
+    ItemTooltip = function(self, row)
+        local key = row.record.browse_key
+        if key and GameTooltip.SetItemKey then
+            -- auxForever: a fast mode row has no link of its own; this shows its suffix too
+            GameTooltip:SetItemKey(key.itemID, key.itemLevel or 0, key.itemSuffix or 0, row.record.requirement or 0)
+        else
+            GameTooltip:SetHyperlink(row.record.link)
+        end
+        gui.add_click_hint(GameTooltip, self:ClickHint(row))
     end,
 
     -- auxForever (0.5, docs/clicks.md): the clicks of a row, for the gray line at the bottom of its

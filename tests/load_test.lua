@@ -3949,6 +3949,104 @@ try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
   aux_frame:Show()
 end)
 
+-- Gamepad focus on a result row: the item's tooltip beside aux's window, the item worn in that slot
+-- under it (Blizzard's comparison, moved from beside to under), so they compare top to bottom
+try('gamepad: a result row shows its item beside aux, the worn item under it', function()
+  local aux_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local require = loadstring("select(2, ...) 'aux.test.gamepad_compare'; return require")('auxForever', addon)
+  local auction_listing = require 'aux.gui.auction_listing'
+  local aux_frame = aux_env.frame
+  local saved = {}
+  for _, n in ipairs{'GameTooltip', 'ShoppingTooltip1', 'ShoppingTooltip2', 'GameTooltip_ShowCompareItem', 'TooltipComparisonManager', 'hooksecurefunc'} do saved[n] = G[n] end
+
+  -- tooltips that remember their owner, points and item
+  local function tooltip(name)
+    local t = new_frame(name)
+    t.__points = {}
+    rawset(t, 'SetOwner', function(self, owner, anchor) self.__owner, self.__anchor, self.__points = owner, anchor, {} end)
+    rawset(t, 'GetOwner', function(self) return self.__owner end)
+    rawset(t, 'ClearAllPoints', function(self) self.__points = {} end)
+    rawset(t, 'SetPoint', function(self, ...) tinsert(self.__points, {...}) end)
+    rawset(t, 'SetHyperlink', function(self, link) self.__item = link end)
+    rawset(t, 'GetWidth', function() return 300 end)
+    rawset(t, 'GetEffectiveScale', function() return 1 end)
+    t:Hide()
+    return t
+  end
+  G.GameTooltip, G.ShoppingTooltip1, G.ShoppingTooltip2 = tooltip('GameTooltip'), tooltip('ShoppingTooltip1'), tooltip('ShoppingTooltip2')
+  -- Blizzard's comparison: shows what is worn (two items, as for a ring) and places it beside
+  local worn = 2
+  G.TooltipComparisonManager = {AnchorShoppingTooltips = function()
+    ShoppingTooltip1:ClearAllPoints(); ShoppingTooltip1:SetPoint('TOPRIGHT', GameTooltip, 'TOPLEFT', 0, -10)
+    ShoppingTooltip2:ClearAllPoints(); ShoppingTooltip2:SetPoint('TOPRIGHT', ShoppingTooltip1, 'TOPLEFT', 0, 0)
+  end}
+  G.hooksecurefunc = function(t, name, fn)
+    local before = t[name]
+    t[name] = function(...) local r = before(...); fn(...); return r end
+  end
+  G.GameTooltip_ShowCompareItem = function(tip)
+    if worn >= 1 then ShoppingTooltip1:SetOwner(tip, 'ANCHOR_NONE'); ShoppingTooltip1:Show() end
+    if worn >= 2 then ShoppingTooltip2:SetOwner(tip, 'ANCHOR_NONE'); ShoppingTooltip2:Show() end
+    if worn >= 1 then TooltipComparisonManager:AnchorShoppingTooltips(true, worn >= 2) end
+  end
+
+  -- the window's right edge at 500 on a 1920 wide screen
+  rawset(aux_frame, 'GetRight', function() return 500 end)
+  rawset(aux_frame, 'GetEffectiveScale', function() return 1 end)
+  rawset(UIParent, 'GetRight', function() return 1920 end)
+  rawset(UIParent, 'GetEffectiveScale', function() return 1 end)
+
+  G.__geometry = {size = 29 + 19 * 3, edge = 100}
+  local rt = auction_listing.new(new_frame(), 19, auction_listing.search_columns)
+  rt.__scripts.OnSizeChanged(rt)
+  G.__geometry = nil
+  local row = rt.rows[1]
+  row.record = {link = 'item:4575', item_id = 4575}
+  local other = CreateFrame('Button', nil, aux_frame)
+  local function point(t, i) local p = t.__points[i or 1] return p and table.concat({tostring(p[1]), p[2] == aux_frame and 'aux' or tostring(p[2] and p[2].__name), tostring(p[3])}, ' ') end
+
+  aux_env.gamepad_set_focus(row)
+  check('gamepad compare: the row shows its item', GameTooltip.__shown and GameTooltip.__item == 'item:4575' and GameTooltip:GetOwner() == aux_frame)
+  check('gamepad compare: the item is right of the window', point(GameTooltip) == 'TOPLEFT aux TOPRIGHT' and #GameTooltip.__points == 1)
+  check('gamepad compare: the worn item is under it', point(ShoppingTooltip1) == 'TOPLEFT GameTooltip BOTTOMLEFT' and #ShoppingTooltip1.__points == 1)
+  check('gamepad compare: a second worn item (rings) under that', point(ShoppingTooltip2) == 'TOPLEFT ShoppingTooltip1 BOTTOMLEFT')
+  check('gamepad compare: the row is highlighted as under the mouse', row.hover.__shown)
+
+  -- Blizzard places the comparison again (its item data arrives late): it goes back under
+  TooltipComparisonManager:AnchorShoppingTooltips(true, true)
+  check('gamepad compare: placed again by Blizzard, it stays under', point(ShoppingTooltip1) == 'TOPLEFT GameTooltip BOTTOMLEFT' and point(ShoppingTooltip2) == 'TOPLEFT ShoppingTooltip1 BOTTOMLEFT')
+
+  -- moving on hides the comparison with the tooltip
+  aux_env.gamepad_set_focus(other)
+  check('gamepad compare: moving off the row hides both', not GameTooltip.__shown and not ShoppingTooltip1.__shown and not ShoppingTooltip2.__shown and not row.hover.__shown)
+
+  -- the mouse keeps Blizzard's own placement
+  ShoppingTooltip1:Show(); ShoppingTooltip2:Show()
+  GameTooltip:SetOwner(row, 'ANCHOR_RIGHT'); GameTooltip:Show()
+  TooltipComparisonManager:AnchorShoppingTooltips(true, true)
+  check('gamepad compare: a mouse hover keeps Blizzard placing it', point(ShoppingTooltip1) == 'TOPRIGHT GameTooltip TOPLEFT')
+  GameTooltip:Hide(); ShoppingTooltip1:Hide(); ShoppingTooltip2:Hide()
+
+  -- no room on the right: left of the window
+  rawset(aux_frame, 'GetRight', function() return 1800 end)
+  worn = 0
+  aux_env.gamepad_set_focus(row)
+  check('gamepad compare: no room on the right, the item is left of the window', point(GameTooltip) == 'TOPRIGHT aux TOPLEFT')
+  check('gamepad compare: nothing worn, no comparison', not ShoppingTooltip1.__shown)
+
+  -- a list scrolled past its last record: the empty row shows nothing
+  row.record = nil
+  aux_env.gamepad_set_focus(other)
+  aux_env.gamepad_set_focus(row)
+  check('gamepad compare: an empty row shows no item', not GameTooltip.__shown)
+
+  aux_env.gamepad_set_focus(nil)
+  rawset(aux_frame, 'GetRight', nil); rawset(aux_frame, 'GetEffectiveScale', nil)
+  rawset(UIParent, 'GetRight', nil); rawset(UIParent, 'GetEffectiveScale', nil)
+  other:Hide()
+  for n, v in pairs(saved) do G[n] = v end
+end)
+
 -- aux's popups in gamepad mode: shown in a dialog of aux's own the pad can reach (a Blizzard popup
 -- shown from aux's code registers with Blizzard's gamepad navigation, which taints it)
 try('gamepad: aux popups open in a dialog of aux own', function()
