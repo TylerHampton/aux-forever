@@ -2,6 +2,11 @@
 
 Last updated 2026-11-09, Tyler's time (**0.8.2 build 8** on `claude/magical-maxwell-eyud0b`, tested and passing, ready to release when Tyler says; nothing open in the handoff; 0.8.1 is the latest release).
 
+**2026-11-16, Claude, Upgrades tab plan** (branch `search-upgrade-support`, from `main` after
+0.8.2): a new tab after Sniper that finds gear upgrades by spec stat weights. Plan, open decisions
+and mockup link in `docs/upgrades.md`; nothing built. Next: experiments E8 (item stats) and E9
+(talents) in game (`TESTING.md`, "Upgrades experiments"), then mockup approval.
+
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
 Two fixes, each with a test that fails without it:

@@ -278,3 +278,11 @@ page once carried them as build id `ah-facts-1`.
   after a post, aux picks the next item and reads it; picking another item before that answer came
   back read the late, empty answer as the new item's and said "None for sale". Same test in game:
   post an item, and right away pick a different one in the bag list.
+- **E8 Item stats (Upgrades tab, `docs/upgrades.md`).** Can aux read a listed gear version's stats
+  without showing a tooltip, and the stats of its random ending? Two ways to try: the item's link
+  with `C_Item.GetItemStats` (or the old `GetItemStats`), and the tooltip data of an item key with
+  `C_TooltipInfo.GetItemKey`. Both are Retail and Classic functions **[Outside]**; on Forever
+  **[Unknown]**. What is Seen: a tooltip shown with `SetItemKey` shows the ending's stats (Ben,
+  2026-11-16, Greater Scythe of Arcane Protection in aux's results). Commands in `TESTING.md`.
+- **E9 Talents.** Does `GetTalentTabInfo` say how many points the player has in each tree, so the
+  Upgrades tab can start on their spec? **[Unknown]**. Command in `TESTING.md`.
