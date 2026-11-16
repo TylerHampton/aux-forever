@@ -14,18 +14,22 @@ Two short checks that decide how the Upgrades tab reads item stats and your spec
 (`docs/upgrades.md`; E8 and E9 in `docs/forever-auction-house.md`). Paste each command into the chat
 box and press Enter, then screenshot what the chat prints.
 
-- [ ] 1. **Stats from an item link.** Paste this, press Enter, then within 4 seconds point the mouse
+Results 2026-11-16 (Ben): 1 worked; 2 was blocked by the game ("ForceTaint_Strong has been blocked
+from an action only available to the Blizzard UI"), so aux will not use it; 3 printed "Shaman SHAMAN
+7" and no trees.
+
+- [x] 1. **Stats from an item link.** Paste this, press Enter, then within 4 seconds point the mouse
       at an item with an ending, such as "of the Bear" (in your bags, on your character, or a row's
       icon in aux's results):
       `/run C_Timer.After(4,function() local n,l=GameTooltip:GetItem() print(n,l) local f=C_Item and C_Item.GetItemStats or GetItemStats local s=l and f and f(l) for k,v in pairs(s or {}) do print(k,v) end print(s and "end" or "no stats") end)`
       It prints the item's name and link, then one line per stat (like `ITEM_MOD_STRENGTH_SHORT 4`)
       and "end", or "no stats". Do it once for an item in your bags and once for a row's icon in
       aux's search results.
-- [ ] 2. **Stats without a tooltip.** With the auction house open, paste this twice (the first time
+- [x] 2. **Stats without a tooltip.** With the auction house open, paste this twice (the first time
       the game may still be loading the item):
       `/run local d=C_TooltipInfo and C_TooltipInfo.GetItemKey and C_TooltipInfo.GetItemKey(14131,19,14320) print(d and #d.lines or "none") for _,x in ipairs(d and d.lines or {}) do print(x.leftText,x.rightText) end`
       It prints a number and the lines of Ritual Belt of Arcane Protection's tooltip, or "none".
-- [ ] 3. **Your talents.** Paste:
+- [x] 3. **Your talents.** Paste:
       `/run print(UnitClass("player")) for i=1,(GetNumTalentTabs and GetNumTalentTabs() or 0) do print(i,GetTalentTabInfo(i)) end`
       It prints your class, then one line per talent tree. Screenshot it and say how many points
       you have in each tree, so we can match the numbers.

@@ -7,9 +7,9 @@ examples, not game data.
 
 ## What the player gets
 
-A tab after Sniper, **Upgrades**. The player picks a spec (their class and their biggest talent
-tree to start with), a slot (Head ... Ranged) and how far above their level to look, and presses
-Search. aux reads what they wear in that slot, searches the auction house for gear of that slot
+A tab after Sniper, **Upgrades**. The player picks a spec (their class's specs; the choice is
+saved per character, since Forever does not report talent trees, E9), a slot (Head ... Ranged)
+and how far above their level to look, and presses Search. aux reads what they wear in that slot, searches the auction house for gear of that slot
 they can use, scores every item with the spec's stat weights and lists the ones that beat what
 they wear: the score, the gain over the worn item, the stats that change, and the price, best gain
 first. Rings, trinkets and one-handed weapons compare with the weaker of the two worn. Buying works
@@ -32,7 +32,11 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
   slot's category and the usable filter. One row per version ("of the Bear", "of the Eagle"). No
   search per item.
 - **Stats:** read once per version and kept by price key (`info.price_key`): versions of one name
-  have the same stats (`docs/forever-auction-house.md`, Seen). How to read them is experiment E8.
+  have the same stats (`docs/forever-auction-house.md`, Seen). E8: `C_Item.GetItemStats(link)` works
+  on a link (Seen); `C_TooltipInfo.GetItemKey` is blocked for addons (Seen), never call it. A listed
+  version has an item key, not a link: the plan is a hidden tooltip of aux's own, `SetItemKey`,
+  then `GetItem()` for the link, if that link carries the ending's stats (still to check).
+  Fallback: read the stat lines of that hidden tooltip (English client only).
 - **Scoring:** sum of stat times weight, plus weapon DPS times its weight. Plain Lua in its own
   file (`core/stats.lua`), so tests check it without the game.
 - **Speed:** stat reads spread over frames with `aux.coro_wait()` every few hundred items.
@@ -42,7 +46,8 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
 
 ## Steps
 
-1. Experiments E8 and E9 in game (`TESTING.md`, "Upgrades experiments").
+1. Experiments E8 and E9 in game (`TESTING.md`, "Upgrades experiments"): done 2026-11-16, one
+   check left (E8, the link of a row's icon).
 2. Mockup approved (the link above).
 3. Stat reading and scoring, with tests.
 4. Weights: default data with sources, the Settings section.
