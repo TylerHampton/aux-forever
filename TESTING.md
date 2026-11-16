@@ -34,6 +34,12 @@ from an action only available to the Blizzard UI"), so aux will not use it; 3 pr
       It prints your class, then one line per talent tree. Screenshot it and say how many points
       you have in each tree, so we can match the numbers.
 
+- [ ] 4. **The game's stat names (E10).** Paste:
+      `/run for k,v in pairs(_G) do if type(k)=="string" and k:find("^ITEM_MOD_.*_SHORT$") then print(k,v) end end`
+      It prints a long list, one stat per line, like `ITEM_MOD_STRENGTH_SHORT Strength`. Scroll the
+      chat and screenshot all of it. Then do step 1 again on an item with Hit, Crit, Expertise or
+      Haste, so we see the name that item uses.
+
 ## Current build: 0.8.2 build 8
 
 One fix from Tyler's build 7 test (results below): with a material selected, the deal sound played

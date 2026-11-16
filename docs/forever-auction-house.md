@@ -289,3 +289,7 @@ page once carried them as build id `ah-facts-1`.
   lines, so `GetNumTalentTabs` gave 0 or is missing on Forever **[Seen]**. Whether another function
   (`GetSpecialization`) answers **[Unknown]**; the Upgrades tab can do without it (the player picks
   the spec once, saved per character).
+- **E10 Stat names.** Which names `GetItemStats` uses on Forever, above all for its stats Classic
+  lacks (Hit as a percent, Expertise, Haste, Spell Pierce, Healing Power, Weapon Skill). The
+  Upgrades tab's weights (`core/weights.lua`) use Retail's names until then **[Outside]**; a wrong
+  name makes that stat count 0. Command in `TESTING.md`.

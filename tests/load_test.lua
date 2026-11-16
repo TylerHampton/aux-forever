@@ -5783,6 +5783,40 @@ try('upgrades: stats, scores and the worn item', function()
   for _, n in ipairs{'SetOwner', 'ClearLines', 'SetItemKey', 'GetItem', 'Hide'} do if tip[n] == nil then rawset(AuxTooltip, n, nil) end end
 end)
 
+-- Upgrades tab: each spec's stat priority (Icy Veins, WoW Forever; docs/stat-priorities.md) as
+-- ranked weights (option A, Ben 2026-11-16): first of n is worth n per point, the last 1
+try('upgrades: stat priorities and ranked weights', function()
+  local require = loadstring("select(2, ...) 'aux.test.weights'; return require")('auxForever', addon)
+  local weights, stats = require 'aux.core.weights', require 'aux.core.stats'
+  local classes = {'DRUID', 'HUNTER', 'MAGE', 'PALADIN', 'PRIEST', 'ROGUE', 'SHAMAN', 'WARLOCK', 'WARRIOR'}
+  local count, unknown, ids_ok = 0, {}, true
+  for _, class in ipairs(classes) do
+    local seen = {}
+    for _, s in ipairs(weights.specs(class)) do
+      count = count + 1
+      if seen[s.id] then ids_ok = false end
+      seen[s.id] = true
+      for _, name in ipairs(s.priority) do
+        if not weights.STATS[name] then tinsert(unknown, class .. '/' .. s.id .. ':' .. name) end
+      end
+    end
+  end
+  check('weights: every class has its specs (27 pages, 30 lists)', count == 30)
+  check('weights: spec ids are unique within a class', ids_ok)
+  check('weights: every stat in a priority has game names: ' .. table.concat(unknown, ', '), #unknown == 0)
+  check('weights: no specs for an unknown class', #weights.specs('MONK') == 0 and #weights.specs(nil) == 0)
+
+  local enh = weights.spec('SHAMAN', 'enhancement')
+  local r = weights.ranks(enh)
+  check('weights: ranked, first of 6 is 6, last is 1', r.weapon_dps == 6 and r.hit == 5 and r.spell_power == 1 and r.agility == nil)
+  local w = weights.weights(enh)
+  check('weights: by the game\'s stat names', w.ITEM_MOD_DAMAGE_PER_SECOND_SHORT == 6 and w.ITEM_MOD_STRENGTH_SHORT == 3 and w.ITEM_MOD_AGILITY_SHORT == nil)
+  check('weights: a score with them', stats.score({ITEM_MOD_STRENGTH_SHORT = 10, ITEM_MOD_AGILITY_SHORT = 10, ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 2}, w) == 10 * 3 + 2 * 6)
+  local tank = weights.weights(weights.spec('WARRIOR', 'protection_survival'))
+  check('weights: avoidance counts dodge, parry and block', tank.ITEM_MOD_DODGE_RATING_SHORT == 2 and tank.ITEM_MOD_PARRY_RATING_SHORT == 2 and tank.ITEM_MOD_BLOCK_RATING_SHORT == 2)
+  check('weights: an unknown spec id', weights.spec('SHAMAN', 'tank') == nil)
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
 dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({

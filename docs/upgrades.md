@@ -51,7 +51,8 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
 3. Stat reading and scoring, with tests: built 2026-11-16, `core/stats.lua` (`key_stats`,
    `link_stats`, `score`, `worn_score`, `compare`, `changes`), test `upgrades: stats, scores and
    the worn item`. Not used by any screen yet.
-4. Weights: default data with sources, the Settings section.
+4. Weights: default data with sources (built, `core/weights.lua`), the Settings section. The
+   game's stat names are Retail's until experiment E10 confirms Forever's.
 5. The tab: controls, search, results table, renumbering.
 6. Gamepad (Y runs Search), docs, `TESTING.md` steps, changelog.
 
@@ -72,7 +73,11 @@ New feature, so it belongs in the next minor version (0.9); Tyler decides which 
 1. Weapons: the comparisons above are the starting point; open whether they need refining.
 2. Where the default weights come from: decided 2026-11-16 (Ben), Icy Veins' WoW Forever stat
    pages, one per spec, collected in `docs/stat-priorities.md`. They give an order, not numbers
-   per point; how the order becomes weights is still open.
+   per point. Decided 2026-11-16 (Ben), option A: ranked weights. In a list of n stats the first
+   is worth n per point, the next n - 1, down to 1; a stat not listed is 0. Known weakness: a 1%
+   stat (Hit, Crit) counts like one point of Strength, so % stats are undervalued; players can
+   change any weight in Settings. Built: `core/weights.lua`, test `upgrades: stat priorities and
+   ranked weights`. Caps are not counted yet.
 3. One slot per search, or also all slots at once (about 15 requests in a row)?
 4. GearQuest (an addon some players have) already scores gear. Reading its scores when it is
    installed would need a way it offers to other addons; not checked.

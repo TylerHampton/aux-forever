@@ -7,8 +7,10 @@ Last updated 2026-11-09, Tyler's time (**0.8.2 build 8** on `claude/magical-maxw
 and mockup link in `docs/upgrades.md`; nothing built. Experiments done (E8: `GetItemStats` on a link
 works, also a results row's icon link; `C_TooltipInfo.GetItemKey` is blocked for addons. E9: no
 talent trees, the player picks the spec). Mockup approved (Ben). Built: `core/stats.lua` (stats,
-scores, worn item), with tests, not used by a screen yet; new file, so a full game restart. Next:
-default weights (decision 2 in `docs/upgrades.md`), then the tab.
+scores, worn item), with tests, not used by a screen yet; new file, so a full game restart. Stat
+priorities of all 27 specs from Icy Veins' Forever pages (`docs/stat-priorities.md`), turned into
+ranked weights (option A, Ben) in `core/weights.lua`, tested. Next: E10 in game (the game's stat
+names, `TESTING.md`), then the Settings section and the tab.
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.

@@ -222,7 +222,8 @@ Load order is the TOC (`auxForever/auxForever.toc`).
   global other addons may call (prices by item link or ID; `docs/api.md`). Its names and meanings
   are a promise: add functions, never change or remove one. `core/stats.lua` (Upgrades tab, in
   progress, `docs/upgrades.md`): gear stats by `GetItemStats` (a listed version's through
-  `AuxTooltip`'s link), scores by stat weights, and what an item would replace.
+  `AuxTooltip`'s link), scores by stat weights, and what an item would replace. `core/weights.lua`: each spec's stat
+  priority (Icy Veins, WoW Forever, `docs/stat-priorities.md`) as ranked weights.
 - `util/filter.lua`: aux's search language: parsing, the post filters and their validators.
 - `gui/auction_listing.lua`: the result tables (columns Req, iLvl, Item, For sale, ...; Tyler,
   0.7: Req always first, and the units for sale never sit next to another column of plain numbers). Since 0.7
