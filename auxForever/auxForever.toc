@@ -21,6 +21,7 @@ core\cache.lua
 util\info.lua
 core\history.lua
 core\api.lua
+core\stats.lua
 core\disenchant.lua
 util\filter.lua
 util\completion.lua

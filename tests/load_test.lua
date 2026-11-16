@@ -5701,6 +5701,88 @@ try('0.8.2 build 6: Full scan button and % of usual in crafting', function()
   h.data['7701:0'] = nil; h.data['7702:0'] = nil
 end)
 
+-- Upgrades tab (docs/upgrades.md): item stats by GetItemStats, scores by stat weights, and what an
+-- item would replace. Stats of an auction house row come through aux's hidden tooltip (SetItemKey,
+-- then its link); C_TooltipInfo.GetItemKey is blocked for addons in game (E8) and never called.
+try('upgrades: stats, scores and the worn item', function()
+  local stats = loadstring("select(2, ...) 'aux.test.upgrades'; return require")('auxForever', addon) 'aux.core.stats'
+  local saved = {}
+  for _, n in ipairs{'GetItemStats', 'GetInventoryItemLink', 'GetItemInfo', 'C_TooltipInfo'} do saved[n] = G[n] end
+  local saved_c = C_Item.GetItemStats
+  local tip = {}
+  for _, n in ipairs{'SetOwner', 'ClearLines', 'SetItemKey', 'GetItem', 'Hide'} do tip[n] = rawget(AuxTooltip, n) end
+
+  -- items: link -> stats and equip location
+  local items = {
+    worn_axe = {{ITEM_MOD_STRENGTH_SHORT = 15, ITEM_MOD_STAMINA_SHORT = 8, ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 28.9}, 'INVTYPE_2HWEAPON'},
+    ring_a = {{ITEM_MOD_STRENGTH_SHORT = 5}, 'INVTYPE_FINGER'},
+    ring_b = {{ITEM_MOD_STAMINA_SHORT = 4}, 'INVTYPE_FINGER'},
+    sword = {{ITEM_MOD_STRENGTH_SHORT = 3, ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 20}, 'INVTYPE_WEAPON'},
+    dagger = {{ITEM_MOD_AGILITY_SHORT = 2, ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 15}, 'INVTYPE_WEAPON'},
+    shield = {{ITEM_MOD_STAMINA_SHORT = 10, RESISTANCE0_NAME = 900}, 'INVTYPE_SHIELD'},
+    bear_belt = {{ITEM_MOD_STRENGTH_SHORT = 6, ITEM_MOD_STAMINA_SHORT = 6}, 'INVTYPE_WAIST'},
+  }
+  local reads = 0
+  C_Item.GetItemStats = function(link) reads = reads + 1; return items[link] and items[link][1] end
+  G.GetItemInfo = function(link) if items[link] then return link, link, 2, 40, 35, '', '', 1, items[link][2] end end
+  local worn = {}
+  G.GetInventoryItemLink = function(unit, slot) return unit == 'player' and worn[slot] or nil end
+  G.C_TooltipInfo = setmetatable({}, {__index = function() error('C_TooltipInfo is blocked for addons in game') end})
+
+  local weights = {ITEM_MOD_STRENGTH_SHORT = 1, ITEM_MOD_STAMINA_SHORT = .3, ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 3}
+
+  -- scores
+  check('upgrades: a score is each stat times its weight', math.abs(stats.score(items.worn_axe[1], weights) - (15 + 8 * .3 + 28.9 * 3)) < 1e-9)
+  check('upgrades: a stat the weights do not name counts 0', stats.score({ITEM_MOD_SPIRIT_SHORT = 20}, weights) == 0)
+  check('upgrades: no stats, score 0', stats.score(nil, weights) == 0)
+
+  -- a listed version: the hidden tooltip's link, read once per version
+  local shown = {}
+  rawset(AuxTooltip, 'SetItemKey', function(_, id, level, suffix) shown = {id, level, suffix} end)
+  rawset(AuxTooltip, 'GetItem', function() if shown[3] == 14320 then return 'Ritual Belt', 'bear_belt' end end)
+  local key = {itemID = 14131, itemLevel = 19, itemSuffix = 14320}
+  local s = stats.key_stats(key)
+  check('upgrades: a listed version\'s stats come from its link', s and s.ITEM_MOD_STRENGTH_SHORT == 6 and shown[1] == 14131 and shown[2] == 19)
+  local before = reads
+  shown = {}
+  check('upgrades: read once per version', stats.key_stats(key) == s and reads == before and shown[1] == nil)
+  check('upgrades: a version not loaded yet gives nil', stats.key_stats{itemID = 14131, itemLevel = 19, itemSuffix = 999} == nil)
+  rawset(AuxTooltip, 'GetItem', function() return 'Ritual Belt', 'bear_belt' end)
+  check('upgrades: and is asked again later', stats.key_stats{itemID = 14131, itemLevel = 19, itemSuffix = 999} ~= nil)
+
+  -- what an item would replace
+  worn[16] = 'worn_axe'
+  local c = stats.compare(items.sword[1], 'INVTYPE_2HWEAPON', weights)
+  check('upgrades: a two-hander is compared with the worn two-hander', c.worn == stats.score(items.worn_axe[1], weights) and c.worn_link == 'worn_axe' and c.ready)
+  check('upgrades: gain and percent', math.abs(c.gain - (c.score - c.worn)) < 1e-9 and math.abs(c.percent - c.gain / c.worn * 100) < 1e-9)
+  worn[16], worn[17] = 'sword', 'shield'
+  c = stats.compare(items.worn_axe[1], 'INVTYPE_2HWEAPON', weights)
+  check('upgrades: a two-hander replaces both hands', math.abs(c.worn - (stats.score(items.sword[1], weights) + stats.score(items.shield[1], weights))) < 1e-9 and c.worn_link == nil)
+  c = stats.compare(items.dagger[1], 'INVTYPE_WEAPON', weights)
+  check('upgrades: a one-hander is not compared with a shield', c.worn_link == 'sword')
+  worn[17] = 'dagger'
+  c = stats.compare(items.sword[1], 'INVTYPE_WEAPON', weights)
+  check('upgrades: with two weapons, a one-hander replaces the weaker', c.worn_link == 'dagger')
+  worn[11], worn[12] = 'ring_a', 'ring_b'
+  c = stats.compare({ITEM_MOD_STRENGTH_SHORT = 2}, 'INVTYPE_FINGER', weights)
+  check('upgrades: a ring replaces the weaker ring', c.worn_link == 'ring_b' and math.abs(c.worn - 1.2) < 1e-9)
+  c = stats.compare(items.bear_belt[1], 'INVTYPE_WAIST', weights)
+  check('upgrades: an empty slot scores 0, and the gain has no percent', c.worn == 0 and c.percent == nil and c.gain > 0)
+  worn[6] = 'not_loaded'
+  check('upgrades: a worn item not loaded yet is flagged', stats.compare(items.bear_belt[1], 'INVTYPE_WAIST', weights).ready == false)
+  check('upgrades: not gear, nothing to compare', stats.compare({}, 'INVTYPE_BAG', weights) == nil)
+
+  -- the stats that change, biggest weighted change first
+  local list = stats.changes(items.bear_belt[1], {ITEM_MOD_STRENGTH_SHORT = 2, ITEM_MOD_AGILITY_SHORT = 3}, weights)
+  check('upgrades: changes, biggest first', #list == 3 and list[1].name == 'ITEM_MOD_STRENGTH_SHORT' and list[1].diff == 4 and list[2].name == 'ITEM_MOD_STAMINA_SHORT')
+  check('upgrades: a stat lost shows as minus', list[3].name == 'ITEM_MOD_AGILITY_SHORT' and list[3].diff == -3)
+
+  C_Item.GetItemStats = saved_c
+  for n, v in pairs(saved) do G[n] = v end
+  for n, v in pairs(tip) do rawset(AuxTooltip, n, v) end
+  for _, n in ipairs{'SetOwner', 'ClearLines', 'SetItemKey', 'GetItem', 'Hide'} do if tip[n] == nil then rawset(AuxTooltip, n, nil) end end
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
 dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({

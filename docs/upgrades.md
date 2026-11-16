@@ -47,18 +47,29 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
 ## Steps
 
 1. Experiments E8 and E9 in game (`TESTING.md`, "Upgrades experiments"): done 2026-11-16.
-2. Mockup approved (the link above).
-3. Stat reading and scoring, with tests.
+2. Mockup approved (the link above): approved by Ben, 2026-11-16.
+3. Stat reading and scoring, with tests: built 2026-11-16, `core/stats.lua` (`key_stats`,
+   `link_stats`, `score`, `worn_score`, `compare`, `changes`), test `upgrades: stats, scores and
+   the worn item`. Not used by any screen yet.
 4. Weights: default data with sources, the Settings section.
 5. The tab: controls, search, results table, renumbering.
 6. Gamepad (Y runs Search), docs, `TESTING.md` steps, changelog.
 
 New feature, so it belongs in the next minor version (0.9); Tyler decides which release it joins.
 
+## What an item is compared with (`worn_score`)
+
+- Rings and trinkets: the weaker of the two worn.
+- A two-hander: both hands together (main hand plus off hand).
+- A one-handed weapon: the main hand, or the weaker hand when the off hand holds a weapon too
+  (never a shield or a held item).
+- A main hand or one-hander while a two-hander is worn: the two-hander alone. Leaving the off hand
+  empty is not counted; refine later if it misleads.
+- An empty slot scores 0, so anything with a weighted stat is an upgrade there.
+
 ## Open decisions
 
-1. Weapons: compare like with like first (a two-hander with a two-hander), or also a two-hander
-   with main hand plus off hand?
+1. Weapons: the comparisons above are the starting point; open whether they need refining.
 2. Where the default weights come from.
 3. One slot per search, or also all slots at once (about 15 requests in a row)?
 4. GearQuest (an addon some players have) already scores gear. Reading its scores when it is
