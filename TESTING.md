@@ -14,7 +14,7 @@ Two short checks that decide how the Upgrades tab reads item stats and your spec
 (`docs/upgrades.md`; E8 and E9 in `docs/forever-auction-house.md`). Paste each command into the chat
 box and press Enter, then screenshot what the chat prints.
 
-Results 2026-11-16 (Ben): 1 worked; 2 was blocked by the game ("ForceTaint_Strong has been blocked
+Results 2026-11-16 (Ben): 1 worked, on a bag item and on a row's icon in aux's results; 2 was blocked by the game ("ForceTaint_Strong has been blocked
 from an action only available to the Blizzard UI"), so aux will not use it; 3 printed "Shaman SHAMAN
 7" and no trees.
 

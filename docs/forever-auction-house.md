@@ -283,8 +283,8 @@ page once carried them as build id `ah-facts-1`.
   - `C_TooltipInfo.GetItemKey` is blocked: run from chat, the game showed "*** ForceTaint_Strong ***
     has been blocked from an action only available to the Blizzard UI" **[Seen]**. Addon code is
     tainted the same way, so aux must not call it (it would show the same popup, with aux's name).
-  - Still open: whether the link of a row's icon in aux's results (a tooltip set with `SetItemKey`)
-    gives that ending's stats **[Unknown]**.
+  - The link of a row's icon in aux's results (a tooltip set with `SetItemKey`, then
+    `GameTooltip:GetItem()`) gives stats with `GetItemStats` too (Ben, 2026-11-16) **[Seen]**.
 - **E9 Talents.** Result 2026-11-16 (Ben): the command printed "Shaman SHAMAN 7" and no talent tree
   lines, so `GetNumTalentTabs` gave 0 or is missing on Forever **[Seen]**. Whether another function
   (`GetSpecialization`) answers **[Unknown]**; the Upgrades tab can do without it (the player picks

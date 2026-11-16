@@ -35,8 +35,8 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
   have the same stats (`docs/forever-auction-house.md`, Seen). E8: `C_Item.GetItemStats(link)` works
   on a link (Seen); `C_TooltipInfo.GetItemKey` is blocked for addons (Seen), never call it. A listed
   version has an item key, not a link: the plan is a hidden tooltip of aux's own, `SetItemKey`,
-  then `GetItem()` for the link, if that link carries the ending's stats (still to check).
-  Fallback: read the stat lines of that hidden tooltip (English client only).
+  then `GetItem()` for the link, then `GetItemStats`: this works on a row's icon in aux's results
+  (Seen, 2026-11-16). Fallback if a case fails: the hidden tooltip's stat lines (English only).
 - **Scoring:** sum of stat times weight, plus weapon DPS times its weight. Plain Lua in its own
   file (`core/stats.lua`), so tests check it without the game.
 - **Speed:** stat reads spread over frames with `aux.coro_wait()` every few hundred items.
@@ -46,8 +46,7 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
 
 ## Steps
 
-1. Experiments E8 and E9 in game (`TESTING.md`, "Upgrades experiments"): done 2026-11-16, one
-   check left (E8, the link of a row's icon).
+1. Experiments E8 and E9 in game (`TESTING.md`, "Upgrades experiments"): done 2026-11-16.
 2. Mockup approved (the link above).
 3. Stat reading and scoring, with tests.
 4. Weights: default data with sources, the Settings section.
