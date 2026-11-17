@@ -90,9 +90,9 @@ search and buy, which work in game **[Seen]**.
   typed 10s 50c there and clicked Create Auction; afterwards his auction list showed only the Merc
   Sword aux had posted at 11s, and two Merc Swords were still in his bags (2026-10-19, 0.7.1.1
   build 2, step 8, screenshots) **[Seen]**. Inference: the 10s 50c post did not go through; no
-  error text was captured. Every gear listing Blizzard's window showed was whole silver. Until a
-  refused post is seen with its error text, aux keeps gear in whole silver; a typed copper amount
-  shows rounded down in the box after Enter.
+  error text was captured. Every gear listing Blizzard's window showed was whole silver. aux kept
+  gear in whole silver until 0.8.2.1 build 6; since build 7 it posts the copper price typed (below,
+  FB-044).
 - Two players report that Blizzard's window now posts copper prices on items that are not trade
   goods: sarrathsilentstrider posted "a level 3 white axe on the AH for 1s 89c" through "the default
   Blizz AH ... w/o issue" ("we can sell items by the copper now"), and user_mezgz2zh1g3sbu1v names
@@ -182,15 +182,21 @@ search and buy, which work in game **[Seen]**.
   (`COMMODITY_PRICE_UPDATED` or `COMMODITY_PRICE_UNAVAILABLE`); `ConfirmCommoditiesPurchase`
   completes it (`COMMODITY_PURCHASE_SUCCEEDED` or `_FAILED`). The quote expires
   (`GetQuoteDurationRemaining`). Units are taken cheapest first and your own units are skipped
-  (`quantity - numOwnerItems`). **[Code]** aux's buy bar (Buy, then Confirm) works **[Seen]**.
+  (`quantity - numOwnerItems`). **[Code]** aux's buy bar (Buy, then Confirm) works **[Seen]**
+  (until 0.8.2.1 build 6; since build 7 one click, below).
 - Blizzard's own buy window accepts a server price up to 5% above the price it showed, and shows
   the increase (`MAXIMUM_PREVIEW_PRICE_DIFFERENTIAL = 1.05` in
   `Blizzard_AuctionHouseBuyDialog.lua`, build 70888). **[Code]** aux is stricter: it confirms only a
   server price at or below what it showed.
 - A purchase on a quote that went stale ended with "Internal auction error" (0.4.1 tests, Sniper
   trade goods 4 of 5 times on deals found minutes earlier). **[Seen]**
-- Whether the confirm step may run without a click: **[Unknown]**. aux always asks for the click,
-  so this does not matter today.
+- Whether the confirm step may run without a click: `StartCommoditiesPurchase` and `PlaceBid` are
+  marked `HasRestrictions` in Blizzard's generated documentation and `ConfirmCommoditiesPurchase`
+  is not (`AuctionHouseDocumentation.lua`, branch `forever`, build 70938) **[Code]**; the wiki says
+  the start needs a hardware event (a click or key) and lists no restriction on the confirm
+  ([warcraft.wiki.gg](https://warcraft.wiki.gg/wiki/API_C_AuctionHouse.StartCommoditiesPurchase))
+  **[Outside]**. Since 0.8.2.1 build 7 aux confirms by itself when the price arrives at or below
+  the one shown, so Buy is one click (Tyler, 2026-11-16). Not yet seen in game: build 7's test.
 - After buying, the item arrives by mail; the game reports a delivery delay for purchased and for
   cancelled items (`AUCTION_HOUSE_ITEM_DELIVERY_DELAY_UPDATE`). **[Code]** The delays:
   **[Unknown]**.

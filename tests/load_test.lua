@@ -258,18 +258,28 @@ try('buy bar', function()
   check('starts at one stack: Buy 20', bar.primary_label():find('^Buy 20 for') ~= nil)
 
   -- 20 units, cheapest first: 6 x 6c + 14 x 7c = 1s 34c
+  -- 0.8.2.1 build 7 (Tyler: players did not like the Confirm click): one click buys. The click asks
+  -- for the server's price; a price at or below the one on the button is confirmed when it arrives
   bar.primary_click()
   check('quote requested for 20', calls[1] == 'start 123 20')
+  bar.primary_click() -- a second click while the price is on its way sends nothing
+  check('nothing confirmed before the price arrives', #calls == 1)
   fire('COMMODITY_PRICE_UPDATED', 7, 134)
   tick()
-  check('confirm shows the price', bar.primary_label():find('^Confirm') ~= nil)
-  check('nothing confirmed before the click', #calls == 1)
-  bar.primary_click()
-  check('confirmed after the click', calls[2] == 'confirm 123 20')
+  check('the price shown is confirmed with no second click', calls[2] == 'confirm 123 20' and #calls == 2)
+  check('the button says it is buying', bar.primary_label():find('^Buying') ~= nil)
   fire('COMMODITY_PURCHASE_SUCCEEDED')
   tick()
   check('success reported for 20', bought == 20)
   check('back to Buy', bar.primary_label():find('^Buy') ~= nil)
+
+  -- a server price below the one shown is bought too, at the server's price
+  calls = {}
+  bar.primary_click()
+  fire('COMMODITY_PRICE_UPDATED', 6, 120)
+  check('a lower price is bought at once', calls[2] == 'confirm 123 20')
+  fire('COMMODITY_PURCHASE_SUCCEEDED')
+  tick()
 
   -- a server price above the estimate is cancelled, never confirmed, and the listings re-read
   calls = {}
@@ -281,37 +291,36 @@ try('buy bar', function()
   check('higher price refreshes listings', refreshed)
   check('higher price returns to Buy', bar.primary_label():find('^Buy') ~= nil)
 
-  -- the Cancel button next to Confirm cancels the quote and buys nothing
+  -- a server price the player cannot pay is not confirmed
+  calls = {}
+  bar.primary_click()
+  rawset(G, 'GetMoney', function() return 100 end)
+  fire('COMMODITY_PRICE_UPDATED', 6, 120)
+  tick()
+  rawset(G, 'GetMoney', nil)
+  check('a price above the money is not confirmed', calls[2] == 'cancel' and #calls == 2)
+
+  -- no Cancel button any more: nothing waits for the player between the price and the purchase
   local cancel_button
   for _, f in ipairs(frames) do if f.__text == 'Cancel' and not cancel_button then cancel_button = f end end -- the buy bar's is created first
   calls = {}
-  -- the colors the Buy button is painted in (0.8, Tyler: it stayed Confirm green after Cancel)
-  local painted
-  rawset(bar.primary_button, 'SetBackdropBorderColor', function(_, r, g, b) painted = r .. ',' .. g .. ',' .. b end)
   bar.primary_click()
+  tick()
+  check('no Cancel button while the price is asked for', cancel_button and not cancel_button.__shown)
+  -- Escape in the quantity box still cancels while the price is on its way
+  bar.other_input.escape()
+  check('Escape cancels the price request', calls[2] == 'cancel')
   fire('COMMODITY_PRICE_UPDATED', 6, 120)
+  check('and a price arriving after it buys nothing', #calls == 2)
   tick()
-  local confirm_paint = painted
-  check('Cancel button exists and is shown with a quote', cancel_button and cancel_button.__shown)
-  -- the bar redraws every frame; hiding the button between mouse press and release loses the click
-  local hides = 0
-  rawset(cancel_button, 'Hide', function(self) hides = hides + 1; self.__shown = false end)
-  tick(); tick()
-  rawset(cancel_button, 'Hide', nil)
-  check('Cancel button is not hidden while the quote is shown', hides == 0 and cancel_button.__shown)
-  cancel_button.__scripts.OnClick(cancel_button, 'LeftButton')
-  tick()
-  check('Cancel button cancels the quote', calls[2] == 'cancel' and #calls == 2)
-  check('Cancel button returns to Buy', bar.primary_label():find('^Buy') ~= nil)
-  check('after Cancel the Buy button loses the Confirm color', confirm_paint and painted ~= confirm_paint)
-  rawset(bar.primary_button, 'SetBackdropBorderColor', nil)
 
-  -- selecting something else while a price is shown cancels it
+  -- selecting something else while the price is on its way cancels it
   calls = {}
   bar.primary_click()
-  fire('COMMODITY_PRICE_UPDATED', 6, 120)
   bar.clear()
-  check('clearing the bar cancels the quote', calls[2] == 'cancel')
+  check('clearing the bar cancels the price request', calls[2] == 'cancel')
+  fire('COMMODITY_PRICE_UPDATED', 6, 120)
+  check('and nothing is confirmed after it', #calls == 2)
 
   -- items: one per click at the price on the button; never your own
   local buys = 0
@@ -523,9 +532,12 @@ try('undercut mode', function()
   check('own listing is never undercut', post.undercut({unit_price = 88, own = true}, 1) == 88)
 
   post_env.selected_item = {commodity = false, key = '15248:0'}
-  check('gear: undercut goes 1 silver below', post.undercut({unit_price = 21000}, 1) == 20900)
-  check('gear: never below 1 silver', post.undercut({unit_price = 100}, 1) == 100)
-  check('gear: prices round down to whole silver', post.round_price(20947) == 20900 and post.round_price(40) == 100)
+  -- 0.8.2.1 build 7 (FB-044, reported by sarrathsilentstrider and user_mezgz2zh1g3sbu1v): gear takes
+  -- copper prices, as Blizzard's Sell window allows (a white axe at 1s 89c)
+  check('gear: undercut goes 1 copper below', post.undercut({unit_price = 21000}, 1) == 20999)
+  check('gear: never below 1 copper', post.undercut({unit_price = 1}, 1) == 1)
+  check('gear: a copper price stays as typed (1s 89c)', post.round_price(189) == 189 and post.round_price(20947) == 20947)
+  check('gear: posted at 1s 89c, as typed', select(2, post.item_post_prices(0, 189)) == 189)
   post.set_undercut_mode(false)
   check('gear: default matches the cheapest price', post.undercut({unit_price = 21000}, 1) == 21000)
 
@@ -735,7 +747,7 @@ try('post panel', function()
   post.set_undercut_mode(true)
   check('undercut note for trade goods', plain(post.price_note_text()):find('^1 copper below') ~= nil)
   post.selected_item.commodity = false
-  check('undercut note for gear', plain(post.price_note_text()):find('^1 silver below') ~= nil and plain(post.price_note_text()):find('whole silver') ~= nil)
+  check('undercut note for gear: 1 copper, no whole silver', plain(post.price_note_text()):find('^1 copper below') ~= nil and plain(post.price_note_text()):find('whole silver') == nil)
   post.set_undercut_mode(false)
   post.set_buyout_selection({unit_price = 69, own = true})
   check('own listing note', plain(post.price_note_text()):find('your own listing') ~= nil)
@@ -1843,8 +1855,7 @@ try('sniper round', function()
   bar.primary_click()
   fire('COMMODITY_PRICE_UPDATED', 900, 17400)
   tick()
-  check('sniper: the server price is confirmed only after a click', bar.primary_label():find('^Confirm') ~= nil)
-  bar.primary_click()
+  check('sniper: one click buys, at a server price no higher than shown (build 7)', bar.primary_label():find('^Buying') ~= nil)
   fire('COMMODITY_PURCHASE_SUCCEEDED')
   tick()
   check('sniper: once its price is bought up the deal shows as bought', found.Kingsblood.deal_bought == true and found.Kingsblood.deal_gone == true)
@@ -3103,8 +3114,25 @@ try('FB-003: posts always say what happened', function()
 
   -- locked (on the cursor, in a trade)
   bag = {{id = 7001, locked = true}}
+  local cleared = 0
+  rawset(G, 'AuctionHouseFrame', {ClearPostItem = function() cleared = cleared + 1 end})
   post.post_auction()
-  check('FB-003: a locked item says so', message():find('mouse pointer', 1, true) and posts == 0)
+  check('FB-003: a locked item says so', message():find('holding this item', 1, true) and posts == 0)
+  -- 0.8.2.1 build 7 (FB-046, reported by karrier_user_slouyac50poxg707: "when it is not"): the
+  -- message names every reason in chat, and Blizzard's hidden Sell tab lets go of the item first
+  check('FB-046: chat names the other reasons', printed[#printed] and printed[#printed]:find('still be on its way', 1, true) ~= nil)
+  check('FB-046: Blizzard\'s Sell tab is emptied before giving up', cleared == 1)
+  -- the item was locked only by Blizzard's Sell tab: emptying it lets the post go through
+  rawset(G, 'AuctionHouseFrame', {ClearPostItem = function() cleared = cleared + 1; bag[1].locked = nil end})
+  post.post_auction()
+  check('FB-046: an item held by Blizzard\'s Sell tab is posted', posts == 1)
+  rawset(G, 'AuctionHouseFrame', nil)
+  -- that post is never answered here: let it time out before the next check
+  for _ = 1, 1200 do if post.posting == nil then break end tick() end
+  check('FB-046: (the post ended before the next check)', post.posting == nil)
+  posts = 0
+  bag = {{id = 7001}}
+  select_sword() -- a finished post moves the tab on; the next check starts from the sword again
 
   -- the auction house never answers
   bag = {{id = 7001}}
@@ -3688,7 +3716,7 @@ try('0.6: settings', function()
   for _, k in ipairs{'value', 'usually', 'daily', 'merchant_sell', 'merchant_buy', 'disenchant_value', 'disenchant_distribution', 'money_icons'} do
     if not keys[k] then all = false end
   end
-  check('settings: every /aux tooltip line has a box', all and #a.tooltip_boxes == 8)
+  check('settings: every /aux tooltip line has a box', all and #a.tooltip_boxes == 9)
   local box = a.tooltip_boxes[1]
   local checked
   local own_set_checked = rawget(box, 'SetChecked')
@@ -4218,8 +4246,8 @@ try('gamepad: button hints', function()
   aux_env.set_tab(1)
   buy:SetText('Buy 5 for 1g'); aux_env.update_hints()
   check('hints: Y Buy on Search', label('Y') == 'Buy')
-  buy:SetText('Confirm 1g'); aux_env.update_hints()
-  check('hints: Y Confirm once the price is known', label('Y') == 'Confirm')
+  buy:SetText('Buying...'); aux_env.update_hints()
+  check('hints: Y stays Buy while buying (no Confirm step since build 7)', label('Y') == 'Buy')
   rawset(buy, 'IsVisible', nil); rawset(buy, 'IsEnabled', nil)
 
   controller = 'xbox'; aux_env.update_hints()
@@ -4555,7 +4583,8 @@ try('0.8: Waylaid Crates in the tooltip and the search', function()
   local function data() reads = reads + 1; return {lines = crate_lines} end
   tooltip.extend_tooltip(tip, '|cffffffff|Hitem:248698::::::0:0|h[Waylaid Crate: Journeyman Textiles]|h|r', 1, data())
   local all = table.concat(lines, '\n')
-  check('crate tooltip: says what it shows', all:find('Cheapest way to fill it', 1, true) and all:find('Latest prices, less what is in your bags', 1, true))
+  -- 0.8.2.1 build 7 (FB-042): the line "Latest prices, less what is in your bags" is gone
+  check('crate tooltip: says what it shows, without the extra line', all:find('Cheapest way to fill it', 1, true) and not all:find('Latest prices', 1, true))
   check('crate tooltip: a bundle partly in the bags, priced for the rest', all:find('20 Wool Cloth (12 in bags) | 2s 56c', 1, true) ~= nil)
   check('crate tooltip: the others', all:find('40 Silk Cloth | 5s 60c', 1, true) and all:find('20 Medium Leather | no price yet', 1, true))
   local gold = {aux.color.accent.background()}
@@ -4568,6 +4597,23 @@ try('0.8: Waylaid Crates in the tooltip and the search', function()
   lines = {}
   tooltip.extend_tooltip(tip, '|cffffffff|Hitem:4575::::::0:0|h[Medicine Staff]|h|r', 1, {lines = {{leftText = 'Medicine Staff'}, {leftText = '+4 Agility'}}})
   check('crate tooltip: other items get no crate lines', not table.concat(lines, '\n'):find('Cheapest way', 1, true))
+  -- 0.8.2.1 build 7 (FB-041, suggested by user_tdsvrjvpe8rufw54): a switch turns the crate lines off,
+  -- in Settings and with /aux tooltip crate, the same from both
+  local tooltip_settings = aux.character_data.tooltip
+  check('crate switch: on by default', tooltip_settings.crate == true)
+  SlashCmdList.AUX('tooltip crate')
+  check('crate switch: /aux tooltip crate turns it off', tooltip_settings.crate == false)
+  lines = {}
+  tooltip.extend_tooltip(tip, '|cffffffff|Hitem:248698::::::0:0|h[Waylaid Crate: Journeyman Textiles]|h|r', 1, data())
+  check('crate switch: off, a crate gets no crate lines', not table.concat(lines, '\n'):find('Cheapest way', 1, true))
+  SlashCmdList.AUX('tooltip crate')
+  lines = {}
+  tooltip.extend_tooltip(tip, '|cffffffff|Hitem:248698::::::0:0|h[Waylaid Crate: Journeyman Textiles]|h|r', 1, data())
+  check('crate switch: on again, the lines are back', tooltip_settings.crate == true and table.concat(lines, '\n'):find('Cheapest way', 1, true) ~= nil)
+  local frame_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local crate_box
+  for _, box in ipairs(frame_env.tooltip_boxes or {}) do if box.key == 'crate' then crate_box = box end end
+  check('crate switch: Settings has a box for it', crate_box ~= nil)
   -- the font strings, when the game hands no tooltip data
   local named = new_frame()
   rawset(named, 'GetName', function() return 'AuxCrateTip' end)
@@ -6387,13 +6433,12 @@ try('second pass: a click on the buy bar does only what its button shows', funct
   check('shown: and the button shows the new cost', plain(bar.primary_label()) == 'Buy 20 for ' .. plain(money.to_string(180, true)))
   bar.primary_click()
   check('shown: the next click asks for the price', calls[1] == 'start 20')
+  -- build 7: the price shown on the button when it was pressed is the most that is paid
   fire('COMMODITY_PRICE_UPDATED', 9, 180)
-  check('shown: Confirm shows the server price as soon as it arrives', plain(bar.primary_label()) == 'Confirm ' .. plain(money.to_string(180, true)))
-  -- the server sends a lower price while Confirm is up: shown at once, then confirmed
+  check('shown: the price on the button is bought when it arrives', calls[2] == 'confirm 20')
+  -- a second price for the same request changes nothing: one purchase
   fire('COMMODITY_PRICE_UPDATED', 8, 160)
-  check('shown: a changed server price is shown before it can be confirmed', plain(bar.primary_label()) == 'Confirm ' .. plain(money.to_string(160, true)))
-  bar.primary_click()
-  check('shown: Confirm confirms', calls[2] == 'confirm 20')
+  check('shown: a second price for it buys nothing more', #calls == 2)
   bar.clear()
   for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
 end)
@@ -6523,6 +6568,35 @@ try('S-08: a row of many sellers keeps a few auctions and counts the rest', func
   s.records, s.kept, s.folded, s.folded_seen, s.not_shown, s.complete = real[1], real[2], real[3], real[4], real[5], real[6]
   t:SetDatabase(s.records, s.folded)
   G.GetItemInfo = real_get_info
+end)
+
+-- 0.8.2.1 build 7 (FB-045, reported by karrier_user_slouyac50poxg707: "of shadow protection" and "of
+-- healing" without their stat): a fast row's tooltip takes a real link of one of its item key's
+-- auctions when the game has one, as Blizzard's item display does, and the item key otherwise
+try('FB-045: a fast row shows a real auction of its item key first', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local t = search.current_search().table
+  local calls = {}
+  rawset(GameTooltip, 'SetHyperlink', function(_, link) tinsert(calls, 'link ' .. link) end)
+  rawset(GameTooltip, 'SetItemKey', function(_, id, level, suffix) tinsert(calls, 'key ' .. id .. ':' .. suffix) end)
+  local sample
+  rawset(C_AuctionHouse, 'GetItemKeySampleLink', function() return sample end)
+  local key = {itemID = 4570, itemLevel = 20, itemSuffix = 0, battlePetSpeciesID = 0}
+  local row = {rt = t, record = {fast = true, browse_key = key, link = 'base', name = 'Merc Sword', item_key = '4570:0'}}
+  local icon = {GetParent = function() return {row = row} end}
+  local ok = pcall(t.OnIconEnter, icon)
+  check('FB-045: no sample link, the item key as before', ok and calls[1] == 'key 4570:0')
+  calls = {}
+  sample = '|cff1eff00|Hitem:4570::::::::20:::1:12701|h[Merc Sword of Healing]|h|r'
+  pcall(t.OnIconEnter, icon)
+  check('FB-045: with a sample link, the real link', calls[1] == 'link ' .. sample)
+  calls = {}
+  row.record = {link = 'own', name = 'Merc Sword', item_key = '4570:0'}
+  pcall(t.OnIconEnter, icon)
+  check('FB-045: a full row keeps its own link', calls[1] == 'link own')
+  rawset(GameTooltip, 'SetHyperlink', nil)
+  rawset(GameTooltip, 'SetItemKey', nil)
+  rawset(C_AuctionHouse, 'GetItemKeySampleLink', nil)
 end)
 
 -- what players do while the auction house is still answering: a slow auction house that answers

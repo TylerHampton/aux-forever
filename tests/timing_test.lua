@@ -170,8 +170,9 @@ return function(env)
     post_teardown(server, post)
   end)
 
-  -- buying a trade good from the buy bar: the price is asked first, then confirmed, each answered
-  -- a second later. What the server charged is checked, not only what the bar says.
+  -- buying a trade good from the buy bar: the price is asked first, then confirmed by itself when
+  -- it is no higher than the button showed (one click since 0.8.2.1 build 7), each answered a
+  -- second later. What the server charged is checked, not only what the bar says.
   local function buy_setup(server)
     local bar = module 'aux.gui.buy_bar'
     server.items[2589] = {name = 'Linen Cloth', commodity = true, max_stack = 200}
@@ -200,9 +201,8 @@ return function(env)
     bar.primary_click()
     bar.primary_click() -- a second click while the price is asked does nothing
     check('buy: one price request', #server.requests == 1)
-    check('buy: the price arrives', server:wait(function() return bar.primary_label():find('^Confirm') end, 30))
-    bar.primary_click()
-    bar.primary_click() -- a double click on Confirm buys once
+    check('buy: the price arrives and is confirmed with no second click', server:wait(function() return bar.primary_label():find('^Buying') end, 30))
+    bar.primary_click() -- clicks while buying buy nothing more
     check('buy: the purchase arrives', server:wait(function() return bought() end, 30))
     check('buy: bought once, 20 for 1s 34c', #server.purchases == 1 and server.purchases[1].quantity == 20 and server.purchases[1].total == 134)
     server:restore()
@@ -228,9 +228,8 @@ return function(env)
     local server = new_server(env)
     local bar, bought = buy_setup(server)
     bar.primary_click()
-    server:wait(function() return bar.primary_label():find('^Confirm') end, 30)
-    server.delay = 12
-    bar.primary_click()
+    server.delay = 12 -- the price comes back in a second; the purchase, sent then, takes 12
+    server:wait(function() return bar.primary_label():find('^Buying') end, 30)
     server:ticks(110) -- 11 seconds: the bar has stopped waiting, the server has not answered yet
     local l1, l2 = bar.lines()
     check('late buy: does not say nothing was bought', not plain(l2):find('Nothing was bought', 1, true))
@@ -378,9 +377,8 @@ return function(env)
     check('sniper buy: the round still runs when Buy is clicked', sniper.active)
     local before = #server.requests
     bar.primary_click()
-    check('sniper buy: the price arrives', server:wait(function() return bar.primary_label():find('^Confirm') end, 30))
+    check('sniper buy: the price arrives and is bought with the one click', server:wait(function() return bar.primary_label():find('^Buying') end, 30))
     check('sniper buy: the round stopped for it', not sniper.active)
-    bar.primary_click()
     check('sniper buy: the purchase arrives', server:wait(function() return #server.purchases > 0 end, 30))
     check('sniper buy: 5 bought for 1s, no more than shown', #server.purchases == 1 and server.purchases[1].quantity == 5 and server.purchases[1].total == 100)
     local between = {}
@@ -478,8 +476,7 @@ return function(env)
     server = new_server(env)
     bar, bought = buy_setup(server)
     bar.primary_click()
-    check('closed mid-quote: a new price arrives after opening again', server:wait(function() return bar.primary_label():find('^Confirm') end, 30))
-    bar.primary_click()
+    check('closed mid-quote: a new price arrives after opening again', server:wait(function() return bar.primary_label():find('^Buying') end, 30))
     check('closed mid-quote: and the purchase goes through', server:wait(function() return bought() end, 30))
     server:restore()
     bar.clear()
@@ -504,6 +501,26 @@ return function(env)
     server:ticks(20)
     local sent = server.posts[1]
     check('buyout only: posted with no bid at 1g 90s', sent and sent.bid == nil and sent.buyout == 19000)
+    post_teardown(server, post)
+  end)
+
+  -- 0.8.2.1 build 7 (FB-044, reported by sarrathsilentstrider: "I was not able to sell a level 3
+  -- white axe on the AH for 1s 89c"): gear is posted at the copper price typed, and undercut mode
+  -- goes 1 copper below a gear listing
+  try('timing: gear is posted at a copper price', function()
+    local server = new_server(env)
+    local post = post_setup(server)
+    post.select_item('7001:0')
+    check('copper gear: the listings arrive', server:wait(function() return aux.status_bar.done and post.selected_item and post.selected_item.key == '7001:0' end, 80))
+    server:ticks(3)
+    type_into(post.unit_start_price_input, '')
+    type_into(post.unit_buyout_price_input, '1s 89c')
+    post.validate_parameters()
+    check('copper gear: Post is ready', post.disabled_reason() == nil)
+    click_post(post)
+    server:ticks(20)
+    local sent = server.posts[1]
+    check('copper gear: posted at 1s 89c, not 1s (' .. tostring(sent and sent.buyout) .. ')', sent and sent.buyout == 189)
     post_teardown(server, post)
   end)
 

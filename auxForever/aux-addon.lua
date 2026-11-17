@@ -93,6 +93,7 @@ end
 TOOLTIP_DEFAULTS = {
     value = true,
     usually = true,
+    crate = true, -- 0.8.2.1 build 7 (FB-041): the Waylaid Crate lines, now with a switch
     merchant_sell = true,
     merchant_buy = false,
     daily = false,

@@ -49,6 +49,10 @@ Fixes and speed from a full review of the code (2026-11-10,
 
 ### Search
 
+- Pointing at a row of Fast search results shows a real auction of that item in the tooltip when
+  the game has one, as Blizzard's window does, so the stats of endings such as "of Healing" and
+  "of Shadow Protection" should show; not yet seen in game (reported by
+  karrier_user_slouyac50poxg707).
 - When only part of the item list arrives from a slow auction house, the search says so, in chat
   and next to the results ("some items missing: search again"). It used to show what arrived as if
   it were everything. Live mode keeps its table through such a round instead of emptying it.
@@ -78,8 +82,25 @@ Fixes and speed from a full review of the code (2026-11-10,
 - Removing a favorite removes the one you were asked about, also when the list changed while the
   question was open.
 
+### Tooltips
+
+- The Waylaid Crate lines in tooltips have a switch: "Waylaid Crates" in Settings, or
+  `/aux tooltip crate`. They were always shown. The line "Latest prices, less what is in your
+  bags" under "Cheapest way to fill it" is gone; each bundle still says how many you have (suggested
+  by user_tdsvrjvpe8rufw54).
+
 ### Post
 
+- Gear and every other item can be priced in copper, as in Blizzard's own Sell window (a white
+  axe at 1s 89c). aux rounded everything that is not a trade good down to whole silver, so such a
+  price could only be posted through Blizzard's window. Undercut mode now goes 1 copper below the
+  lowest listing for gear too (reported by sarrathsilentstrider and user_mezgz2zh1g3sbu1v).
+- "Not posted: the item is on your mouse pointer, or in a trade or the mail" came up when it was
+  not. The game also holds an item while it sits in Blizzard's own Sell tab (open but hidden under
+  aux; a bag addon can put it there) or while a post from a moment ago is still on its way. aux
+  now empties Blizzard's Sell tab itself and posts, and when the item is still held it says "Not
+  posted: the game is holding this item. Try again in a moment.", with the possible reasons in
+  chat (reported by karrier_user_slouyac50poxg707).
 - Gear is not priced from part of its listings. When the item list was cut before the versions of
   your item's name, the Post tab called the listings ready and picked a price from somewhere else,
   or said "None for sale". It now says "Reading stopped. Press Refresh, or type a price." The same
@@ -108,6 +129,11 @@ Fixes and speed from a full review of the code (2026-11-10,
 
 ### Buying
 
+- Trade goods are bought with one click on Buy. aux asks the auction house for the price and buys
+  at once if it is no higher than the price on the button; if it went up, nothing is bought and the
+  listings are read again, as before. The second click on Confirm added no safety (that check is
+  what keeps you from paying more than you saw) and players did not like it. Gear was already
+  bought with one click. On a gamepad, one press of Y buys.
 - When the game drops a trade good's price request for being sent too soon after another request,
   the buy bar says "The auction house was busy" at once. It said "No answer" after 10 seconds.
 - The buy button does only what it shows. It was redrawn a few times a second, so right after

@@ -338,7 +338,7 @@ aux runs inside the game; every frame it spends time in costs the player frame r
   below the shown price. Keep that guarantee.
 - Posting: an item auction's buyout must be above its starting bid, or the server answers
   "Internal auction error"; an equal bid is dropped (`item_post_prices` in `tabs/post/core.lua`).
-  Gear is priced in whole silver; commodities may use copper. The auction house cut is the
+  Every item takes copper prices since 0.8.2.1 build 7 (FB-044; gear was whole silver before). The auction house cut is the
   constant `AUCTION_CUT = .05` (Outside, not yet seen on an invoice). Deposits come from the game
   (`CalculateItemDeposit`).
 - The Post tab matches the lowest price by default, on the belief that on Forever the newest

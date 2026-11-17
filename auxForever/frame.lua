@@ -386,7 +386,7 @@ do
     gui.set_panel_style(popup)
     popup:SetFrameStrata('DIALOG')
     -- 322: the tooltip column's rows (Usually added in 0.8.2) plus the padding
-    gui.set_size(popup, WIDTH, 322)
+    gui.set_size(popup, WIDTH, 358) -- 322 until the crate switch (build 7)
     popup:SetPoint('TOPRIGHT', btn, 'BOTTOMRIGHT', 0, -4)
     popup:EnableMouse(true)
     popup:Hide()
@@ -544,6 +544,8 @@ do
         {'merchant_buy', 'Vendor buy price', nil, 'What a vendor sells it for, once you have seen it at one.'},
         {'disenchant_value', 'Disenchant value', nil, 'What its disenchant materials are worth.'},
         {'disenchant_distribution', 'Disenchants into', nil, 'Which materials it can give, and how likely each is.'},
+        -- 0.8.2.1 build 7 (FB-041, suggested by user_tdsvrjvpe8rufw54): the crate lines had no switch
+        {'crate', 'Waylaid Crates', 'Cheapest way to fill one', 'Under a Waylaid Crate: what each bundle it asks for costs, the cheapest in gold, and how many you already have.'},
         {'money_icons', 'Coin icons', 'Gold, silver and copper coins', 'Show prices in tooltips with gold, silver and copper coins instead of text.'},
     }
     local tooltip_title = section(popup, RIGHT_X, -34, 'TOOLTIP LINES')

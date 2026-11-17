@@ -117,6 +117,9 @@ function SlashCmdList.AUX(command)
     elseif arguments[1] == 'tooltip' and (arguments[2] == 'percent' or arguments[2] == 'usually') then
 	    tooltip_settings.usually = not tooltip_settings.usually
         aux.print('tooltip percent of usual ' .. status(tooltip_settings.usually))
+    elseif arguments[1] == 'tooltip' and arguments[2] == 'crate' then
+	    tooltip_settings.crate = not tooltip_settings.crate
+        aux.print('tooltip crate ' .. status(tooltip_settings.crate))
     elseif arguments[1] == 'tooltip' and arguments[2] == 'daily' then
 	    tooltip_settings.daily = not tooltip_settings.daily
         aux.print('tooltip daily ' .. status(tooltip_settings.daily))
@@ -172,6 +175,7 @@ function SlashCmdList.AUX(command)
 		aux.print('- tooltip value [' .. status(tooltip_settings.value) .. ']')
 		aux.print('- tooltip percent [' .. status(tooltip_settings.usually) .. ']')
 		aux.print('- tooltip daily [' .. status(tooltip_settings.daily) .. ']')
+		aux.print('- tooltip crate [' .. status(tooltip_settings.crate) .. ']')
 		aux.print('- tooltip merchant buy [' .. status(tooltip_settings.merchant_buy) .. ']')
 		aux.print('- tooltip merchant sell [' .. status(tooltip_settings.merchant_sell) .. ']')
 		aux.print('- tooltip disenchant value [' .. status(tooltip_settings.disenchant_value) .. ']')

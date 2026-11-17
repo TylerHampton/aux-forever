@@ -8,14 +8,13 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.2.1 build 6
+## Current build: 0.8.2.1 build 7
 
-Build 5 (the "Table full!" popup) was not tested on its own; build 6 holds it, its two questions,
-and the real fix for the full table (review S-08, Tyler said yes on 2026-11-11): a price row of
-many sellers keeps 20 of its auctions and counts the rest, so a search like `linen` shows every
-item. It changes the rows you buy from, so step 3 buys from one. Zip
-`auxForever-0.8.2.1-build6.zip`; `/reload` is enough (no new files). Test page build id
-`0-8-2-1-build-6`.
+Build 6 (a price row of many sellers keeps 20 auctions and counts the rest, review S-08) was not
+tested on its own; build 7 holds it and the fixes from the 2026-11-16 feedback: one click buys a
+trade good (no Confirm), gear takes copper prices, the "on your mouse pointer" message, the crate
+tooltip switch, and Fast row tooltips. Zip `auxForever-0.8.2.1-build7.zip`; `/reload` is enough
+(no new files). Test page build id `0-8-2-1-build-7`. Steps 1 to 6 are build 6's.
 
 - [ ] 1. Search tab: click Full (next to Fast), type `linen` and press Enter. Wait until the line
       next to the sub tabs ends in "searched just now". No popup comes up, and that line has no red
@@ -40,6 +39,30 @@ item. It changes the rows you buy from, so step 3 buys from one. Zip
       now, what happened when you pressed Tab, and what you wanted Tab to do (FB-040).
 - [ ] 6. A question (from build 5); no need to scan again if you remember. While the Full scan's
       bar said "reading auctions", did the game stay smooth or stutter?
+- [ ] 7. Buying with one click. Search `linen cloth/exact`, click the cheapest row, and click Buy
+      once with 1 picked (the "1" button). The button says "Buying...", then the bar says "Bought
+      1 × Linen Cloth for" and a price. There is no Confirm button. The price it says is the one
+      the Buy button showed, or lower.
+- [ ] 8. Copper on gear (FB-044). Post tab: pick a cheap white or green item from your bags (not a
+      trade good), type `1s 89c` as the buyout and leave the starting bid empty, then Post. It
+      says "Posted". Then the Auctions tab lists it at 1s 89c. If it says "Not posted", copy the
+      whole message.
+- [ ] 9. Undercut on gear. Still on the Post tab, pick a piece of gear that someone else sells,
+      and click the goblin (undercut) switch: the line under the price reads "1 copper below the
+      lowest listing". Screenshot the Post tab.
+- [ ] 10. The stat of an ending (FB-045). Search `of healing` with Fast picked. Point the mouse at
+      the icon of a row, without clicking: does the tooltip show the healing line? Then click
+      Full, search again and point at a row the same way. Write which showed it (Fast, Full,
+      both, neither). The same with `of shadow protection` if you have time.
+- [ ] 11. Crate lines switch (FB-041), only if you have a Waylaid Crate. Point at the crate in your
+      bags: under the game's text, "Cheapest way to fill it" and the bundles, with no "Latest
+      prices" line under it. Open Settings (the gear in aux's top bar): "Waylaid Crates" in the
+      tooltip column. Turn it off and point at the crate again: aux's lines are gone. Turn it
+      back on.
+
+## 0.8.2.1 build 6
+
+Not tested on its own: its steps are build 7's steps 1 to 6.
 
 ## 0.8.2.1 build 5
 
@@ -800,7 +823,7 @@ automated tests (run on every push) and by the build steps of the version, which
 changed.
 
 - [ ] 1. Log in and talk to an auctioneer: aux opens, no BugSack error.
-- [ ] 2. Search `linen cloth` and buy 1 with the buy bar (Buy, then Confirm): it is bought.
+- [ ] 2. Search `linen cloth` and buy 1 with the buy bar (one click on Buy since 0.8.2.1): it is bought.
 - [ ] 3. Post tab: post one item at the price aux picks: it says "Posted".
 - [ ] 4. Auctions tab: that item is listed with a status.
 - [ ] 5. Sniper tab: Start, wait for one round, Stop.

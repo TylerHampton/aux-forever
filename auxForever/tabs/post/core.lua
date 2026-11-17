@@ -338,7 +338,9 @@ end
 
 local NOT_POSTED = {
     gone = 'Not posted: the item is no longer in your bags.',
-    locked = 'Not posted: the item is on your mouse pointer, or in a trade or the mail.',
+    -- 0.8.2.1 build 7 (FB-046, karrier_user_slouyac50poxg707: "when it is not"): the game locks an
+    -- item for more reasons than these three, so the message names the others it can be
+    locked = 'Not posted: the game is holding this item. Try again in a moment.',
     damaged = 'Not posted: this item must be repaired first.',
     invalid = 'Not posted: the auction house does not accept this item.',
     refused = 'Not posted: the auction house refused it.',
@@ -347,6 +349,14 @@ local NOT_POSTED = {
     unchanged = 'Not posted, as far as aux can tell: the item is still in your bags.',
 }
 M.NOT_POSTED = NOT_POSTED
+M.LOCKED_DETAIL = 'The item may be on your mouse pointer, in a trade or the mail, or a post from a moment ago may still be on its way.'
+
+-- empties Blizzard's own Sell tab, which locks the item it holds, while aux covers it
+function M.release_blizzard_post_item()
+    if AuctionHouseFrame and AuctionHouseFrame.ClearPostItem and not aux.blizzard_frame_shown() then
+        AuctionHouseFrame:ClearPostItem()
+    end
+end
 
 -- why no bag slot with the item can be posted (find_item_location found none)
 function M.missing_item_reason(item_key)
@@ -451,8 +461,21 @@ function post_auction()
     local duration = duration_dropdown:GetIndex()
 
     local location = find_item_location(item_key)
+    if not location and missing_item_reason(item_key) == 'locked' then
+        -- 0.8.2.1 build 7 (FB-046): Blizzard's Sell tab, open but invisible under aux, locks the
+        -- item it holds. aux empties it after a bag right-click, but a bag addon can hand it the
+        -- item another way (the player uses Bagnon). Let it go, unless the player has Blizzard's
+        -- window up, and look again.
+        release_blizzard_post_item()
+        location = find_item_location(item_key)
+    end
     if not location then
-        show_post_message(NOT_POSTED[missing_item_reason(item_key)])
+        local reason = missing_item_reason(item_key)
+        show_post_message(NOT_POSTED[reason])
+        if reason == 'locked' then
+            -- the reasons in chat: the Post tab's message has room for two short lines
+            aux.print(LOCKED_DETAIL)
+        end
         return
     end
 
@@ -553,9 +576,6 @@ function M.price_note_text()
     elseif aux.account_data.post_undercut then
         local step = price_step() == 1 and '1 copper' or '1 silver'
         note = aux.color.gold(step .. ' below the lowest listing (') .. money.to_string(selection.unit_price, true) .. aux.color.gold(')')
-        if price_step() > 1 then
-            note = note .. aux.color.gold('. Gear is priced in whole silver')
-        end
     else
         note = aux.color.label.enabled('Same as the lowest listing')
     end
@@ -752,11 +772,15 @@ function deposit_amount()
     return 0
 end
 
--- Forever: gear and other items that are not trade goods are priced in whole silver (no gear
--- listing ever shows copper); trade goods ("commodities") can use copper when the auction house
--- supports copper values. Prices are rounded down, so the price shown is the price posted.
+-- Prices are whole copper when the auction house supports copper values (Forever does), for every
+-- item. Until 0.8.2.1 build 7 gear was kept in whole silver, because every gear listing seen was
+-- and Tyler's 10s 50c post in Blizzard's window did not go through (2026-10-19). Players then
+-- posted gear at copper prices in Blizzard's window (FB-044, sarrathsilentstrider: a white axe at
+-- 1s 89c), and Blizzard's Sell window shows the copper box for gear and does not round it (Code,
+-- branch forever): aux does not refuse what Blizzard's window allows. If the server ever refuses,
+-- the post says so. Prices are rounded down, so the price shown is the price posted.
 function M.price_step()
-    if selected_item and selected_item.commodity and C_AuctionHouse.SupportsCopperValues() then
+    if C_AuctionHouse.SupportsCopperValues() then
         return 1
     end
     return 100
@@ -774,7 +798,7 @@ function M.undercut(record, stack_size, bid)
     if record.historical_value or record.other_ending or record.own or not aux.account_data.post_undercut then
         return record.unit_price
     else
-        -- one step below: 1 copper for trade goods, 1 silver for gear
+        -- one step below: 1 copper (1 silver only where copper values are not supported)
         local step = price_step()
         return max(step, round_price(record.unit_price) - step)
     end

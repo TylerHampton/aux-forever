@@ -554,7 +554,15 @@ local methods = {
         if row.record then
 	        GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
             local key = row.record.browse_key
-            if key and GameTooltip.SetItemKey then
+            -- 0.8.2.1 build 7 (FB-045, karrier_user_slouyac50poxg707: "of shadow protection" and
+            -- "of healing" without their stat): a fast row has no link of its own. As Blizzard's
+            -- item display does (Code, Blizzard_AuctionHouseSharedTemplates.lua, branch forever), a
+            -- real link of one of the item key's auctions comes first when the game has one, then
+            -- the item key, which shows the suffix of most endings
+            local sample = key and C_AuctionHouse.GetItemKeySampleLink and C_AuctionHouse.GetItemKeySampleLink(key)
+            if type(sample) == 'string' and sample ~= '' then
+                GameTooltip:SetHyperlink(sample)
+            elseif key and GameTooltip.SetItemKey then
                 -- auxForever: a fast mode row has no link of its own; this shows its suffix too
                 GameTooltip:SetItemKey(key.itemID, key.itemLevel or 0, key.itemSuffix or 0, row.record.requirement or 0)
             else

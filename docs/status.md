@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-16, Tyler's time (build 6; feedback batch FB-041 to FB-047 logged).
+Last updated 2026-11-16, Tyler's time (build 7).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-10 is there).
@@ -9,7 +9,13 @@ released, move its notes to `docs/status-history.md` (everything before 2026-11-
 
 **Released:** 0.8.2 (tag `v0.8.2` on `main`, GitHub release, CurseForge Beta file), 2026-11-09.
 
-**Being built:** 0.8.2.1 build 6 on branch `claude/festive-faraday-w1xbvz` (`main` plus this work).
+**Being built:** 0.8.2.1 build 7 on branch `claude/festive-faraday-w1xbvz` (`main` plus this work).
+Build 7 = build 6 (S-08, untested) plus the 2026-11-16 feedback fixes (Tyler: "let's do the build"):
+one click buys a trade good, no Confirm (FB-048, Tyler's decision after the safety question below);
+every item takes copper prices (FB-044); the "on your mouse pointer" message and Blizzard's hidden
+Sell tab (FB-046); a switch for the crate tooltip lines and the extra line gone (FB-041, part of
+FB-042); Fast row tooltips take a sample link first (FB-045, cause not confirmed). Each with a test
+broken once on purpose; 400 random-player sessions clean.
 Tyler tested build 4 on 2026-11-11: what he ran works (Full scan, Sniper, Full search, posting, the
 price box, the search bar, `/aux memory`); he skipped the Bids buttons, the gamepad fight and
 leaving the Post tab. Results in `TESTING.md`, "0.8.2.1 build 4". Build 5 (no "Table full!" popup)
@@ -71,11 +77,17 @@ fail). What changed, by area:
 game), R-28 (structure, for a later version), the test file split (R-23), naming the release action
 by commit (R-25), and one part each of R-16 and R-20 (each would change something that works today).
 
-**Next step:** Tyler tests build 6 (six steps; step 3 buys 17 of a cheap piece of gear from one
-row, about 17s; steps 5 and 6 are build 5's questions: `TESTING.md`, test page build id
-`0-8-2-1-build-6`, zip `auxForever-0.8.2.1-build6.zip`, `/reload` is enough). Read the test page
-results first. When it passes and Tyler says so: changelog date, pull request to `main`, merge,
-Release workflow. The CurseForge description does not change.
+**Next step:** Tyler tests build 7 (eleven steps: 1 to 6 are build 6's, 7 to 11 the new fixes;
+`TESTING.md`, test page build id `0-8-2-1-build-7`, zip `auxForever-0.8.2.1-build7.zip`, `/reload`
+is enough). Read the test page results first. When it passes and Tyler says so: changelog date,
+pull request to `main`, merge, Release workflow. The CurseForge description changed (trade goods
+are bought with one click): Tyler pastes `docs/curseforge-description.md` after the release.
+
+**Why Confirm could go (FB-048):** the safety is a check aux makes before paying (a server price
+above the button's is cancelled), not the second click; the second click could only confirm a
+price at or below what the player had already clicked. The game needs a click to ask for the
+price, not to confirm it (Code, Outside: `docs/forever-auction-house.md`, section 6). Not yet seen
+in game.
 
 **S-08 in short (build 6):** `collect` in `tabs/search/results.lua` keeps `FOLD_KEEP = 20` auctions
 per price row and counts the rest; `REFILL_AT = 5` reads the row's item again. Tests: one in
@@ -84,7 +96,8 @@ random player has a row of 12 sellers with 3 kept. What to watch in Tyler's test
 follows the purchases and that no purchase costs more than the button (the harness says yes; the
 game's own order of answers is not known, Unknown).
 
-**Feedback of 2026-11-16 (CurseForge, logged in `docs/feedback.md`, nothing built yet):**
+**Feedback of 2026-11-16 (CurseForge, logged in `docs/feedback.md`; FB-041, 044, 045, 046 and 048
+built in build 7, the notes below are from before):**
 - FB-044 (bug, S2, 2 players): aux rounds gear to whole silver; two players say Blizzard's window
   now posts copper on gear (Outside; Tyler's own try on 2026-10-19 failed). Experiment E8 in
   `docs/forever-auction-house.md`. If copper works, the recommended fix is copper for every item,
@@ -101,9 +114,8 @@ game's own order of answers is not known, Unknown).
 - FB-047: praise.
 
 **Open questions for Tyler:**
-0. From the 2026-11-16 feedback: run E8 (copper on one cheap gear item in Blizzard's window); for
-   FB-045, point the mouse at an "of healing" row in Fast and in Full search; FB-046, whether he
-   has Bagnon; FB-042, what a crate's turn-in pays (a screenshot).
+0. From the 2026-11-16 feedback: FB-046, whether he has Bagnon; FB-042, what a crate's turn-in
+   pays (a screenshot). E8 and FB-045's question are build 7 steps 8 and 10.
 1. The two questions of build 5: what Tab did (FB-040), and how the game felt while the Full scan
    read (decides whether `SLICE_MS` stays 8).
 2. R-27: one sale and a screenshot of its "Auction successful" mail (experiment E1 in

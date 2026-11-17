@@ -158,7 +158,8 @@ function M.add_crate_lines(tooltip, bundles, money_icons)
     local rows, cheapest = crate_costs(bundles)
     tooltip:AddLine(' ')
     tooltip:AddLine('Cheapest way to fill it', 1, 1, 1)
-    tooltip:AddLine('Latest prices, less what is in your bags', aux.color.label.enabled())
+    -- 0.8.2.1 build 7 (FB-042, user_tdsvrjvpe8rufw54: "unnecessary text"): the line "Latest
+    -- prices, less what is in your bags" is gone; the rows say "in bags" where it applies
     for i, row in ipairs(rows) do
         local left = row.count .. ' ' .. row.name
         local right

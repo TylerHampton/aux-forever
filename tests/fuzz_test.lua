@@ -110,24 +110,36 @@ return function(env)
     end
 
     -- Every purchase the addon sends is compared with what its button shows at that moment,
-    -- whoever pressed it (the mouse, Alt-click, the gamepad): the two calls that spend money are
-    -- watched on their way to the auction house.
+    -- whoever pressed it (the mouse, Alt-click, the gamepad): the calls that spend money are
+    -- watched on their way to the auction house. Since 0.8.2.1 build 7 a trade good is bought with
+    -- one click: the click starts the purchase (the button shows its price then) and the confirm
+    -- follows by itself when the server's price arrives, so the confirm is checked against what the
+    -- button showed when the purchase was started, for the same item and quantity.
     local C = G.C_AuctionHouse
-    local real_confirm, real_bid = C.ConfirmCommoditiesPurchase, C.PlaceBid
-    rawset(C, 'ConfirmCommoditiesPurchase', function(id, quantity)
+    local real_start, real_confirm, real_bid = C.StartCommoditiesPurchase, C.ConfirmCommoditiesPurchase, C.PlaceBid
+    local started
+    rawset(C, 'StartCommoditiesPurchase', function(id, quantity)
       local label = bar.primary_label() or ''
-      local shown = money_in(label)
+      started = {id = id, quantity = quantity, shown = money_in(label), label = label}
+      if not started.shown then
+        check('fuzz ' .. seed .. ': a purchase was started from a button that showed no price: "' .. plain(label) .. '"', false)
+      end
+      real_start(id, quantity)
+    end)
+    rawset(C, 'ConfirmCommoditiesPurchase', function(id, quantity)
+      local start = started
+      started = nil
       real_confirm(id, quantity)
       local cost = server.last_confirm_total
-      if not shown then
-        check('fuzz ' .. seed .. ': a purchase was confirmed from a button that showed no price: "' .. plain(label) .. '"', false)
+      if not (start and start.shown and start.id == id and start.quantity == quantity) then
+        check('fuzz ' .. seed .. ': a purchase was confirmed that no button had started for that item and quantity', false)
       else
-        shown_spend = shown_spend + shown
-        if cost and cost > shown then
-          check('fuzz ' .. seed .. ': a purchase of ' .. cost .. ' was confirmed from a button showing ' .. shown, false)
+        shown_spend = shown_spend + start.shown
+        if cost and cost > start.shown then
+          check('fuzz ' .. seed .. ': a purchase of ' .. cost .. ' was confirmed from a button showing ' .. start.shown, false)
         end
       end
-      say('confirmed with "' .. plain(label) .. '"')
+      say('confirmed, started with "' .. plain(start and start.label or '') .. '"')
     end)
     rawset(C, 'PlaceBid', function(auction_id, amount)
       local buy, bid = money_in(bar.primary_label() or ''), money_in(bar.bid_button:GetText() or '')
@@ -441,6 +453,7 @@ return function(env)
     check('fuzz ' .. seed .. ': no listeners are left behind (' .. aux.listener_count() .. ' now, ' .. listeners_before .. ' before)', aux.listener_count() <= listeners_before)
 
     -- back to how the other tests left things
+    rawset(C, 'StartCommoditiesPurchase', nil)
     rawset(C, 'ConfirmCommoditiesPurchase', nil)
     rawset(C, 'PlaceBid', nil)
     if pad_mode then

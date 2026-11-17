@@ -300,7 +300,7 @@ end
 
 -- Y: the main action of the tab that is open, by tab number (Search 1, Sniper 2, Post 3, Auctions 4,
 -- Bids 5). The buy
--- bar's button is Buy, then Confirm once the price is known, so Y twice buys.
+-- bar's button is Buy; since 0.8.2.1 build 7 one press buys (no Confirm step).
 local QUICK_ACTIONS = {
     function() return require('aux.gui.buy_bar').primary_button end,
     function() return require('aux.tabs.sniper').run_button end,
@@ -684,14 +684,13 @@ local function quick_button()
     end
 end
 
--- Y's name: the tab's action. On Search the buy bar's button says Buy, then Confirm once the price
--- is known; on Sniper, Start or Stop.
+-- Y's name: the tab's action. On Search Buy (one press buys since 0.8.2.1 build 7); on Sniper,
+-- Start or Stop.
 local Y_NAMES = {'Buy', 'Start', 'Post', 'Cancel', 'Buyout'}
 local function y_label()
     local button = quick_button()
     if not button then return end
     local text = button:GetText() or ''
-    if tabs._selected == 1 and text:find('^Confirm') then return 'Confirm' end
     if tabs._selected == 2 and text:find('^Stop') then return 'Stop' end
     return Y_NAMES[tabs._selected]
 end

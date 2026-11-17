@@ -389,7 +389,7 @@ do
         GameTooltip:AddLine('Match lowest or undercut?')
         -- the newest listing selling first is not confirmed on Forever (E6 in docs/forever-auction-house.md)
         GameTooltip:AddLine('Matching the lowest price keeps prices from sliding. On the modern auction house the newest listing at a price is said to sell first, so matching may sell as fast as going below it. Not yet confirmed on Forever.', 1, 1, 1, true)
-        GameTooltip:AddLine('Undercut goes one step below: 1 copper for trade goods, 1 silver for gear. It stays on until the auction house closes, and starts off each time it opens.', 1, 1, 1, true)
+        GameTooltip:AddLine('Undercut goes 1 copper below the lowest listing. It stays on until the auction house closes, and starts off each time it opens.', 1, 1, 1, true)
         GameTooltip:AddLine('/aux undercut for more', .6, .6, .6)
         GameTooltip:Show()
     end)
