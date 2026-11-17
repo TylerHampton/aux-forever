@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-11, Tyler's time (build 6).
+Last updated 2026-11-16, Tyler's time (build 6; feedback batch FB-041 to FB-047 logged).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-10 is there).
@@ -84,7 +84,26 @@ random player has a row of 12 sellers with 3 kept. What to watch in Tyler's test
 follows the purchases and that no purchase costs more than the button (the harness says yes; the
 game's own order of answers is not known, Unknown).
 
+**Feedback of 2026-11-16 (CurseForge, logged in `docs/feedback.md`, nothing built yet):**
+- FB-044 (bug, S2, 2 players): aux rounds gear to whole silver; two players say Blizzard's window
+  now posts copper on gear (Outside; Tyler's own try on 2026-10-19 failed). Experiment E8 in
+  `docs/forever-auction-house.md`. If copper works, the recommended fix is copper for every item,
+  not the player's "only when a listing has copper" idea (that would still refuse what Blizzard
+  allows).
+- FB-046 (bug, S2): "Not posted: the item is on your mouse pointer..." when it is not, with Bagnon.
+  Likely causes in the entry (Blizzard's hidden Sell tab keeping the item locked; a post still on
+  its way); fixable without knowing which.
+- FB-041 (request): a switch for the crate tooltip lines, like the other tooltip lines. Small.
+- FB-042, FB-043 (requests): crate cost with rewards (favor, reputation, silver) and a crate list;
+  0.9 with writs, need what a crate pays.
+- FB-045 (bug, S3): the stat of "of Healing" and "of Shadow Protection" missing in search; where
+  it is missing is not known.
+- FB-047: praise.
+
 **Open questions for Tyler:**
+0. From the 2026-11-16 feedback: run E8 (copper on one cheap gear item in Blizzard's window); for
+   FB-045, point the mouse at an "of healing" row in Fast and in Full search; FB-046, whether he
+   has Bagnon; FB-042, what a crate's turn-in pays (a screenshot).
 1. The two questions of build 5: what Tab did (FB-040), and how the game felt while the Full scan
    read (decides whether `SLICE_MS` stays 8).
 2. R-27: one sale and a screenshot of its "Auction successful" mail (experiment E1 in

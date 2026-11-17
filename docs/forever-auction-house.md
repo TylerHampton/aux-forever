@@ -93,6 +93,12 @@ search and buy, which work in game **[Seen]**.
   error text was captured. Every gear listing Blizzard's window showed was whole silver. Until a
   refused post is seen with its error text, aux keeps gear in whole silver; a typed copper amount
   shows rounded down in the box after Enter.
+- Two players report that Blizzard's window now posts copper prices on items that are not trade
+  goods: sarrathsilentstrider posted "a level 3 white axe on the AH for 1s 89c" through "the default
+  Blizz AH ... w/o issue" ("we can sell items by the copper now"), and user_mezgz2zh1g3sbu1v names
+  Small Red Pouch (CurseForge comments, 2026-11-13 to 2026-11-16, FB-044) **[Outside]**. This
+  contradicts Tyler's 10s 50c test of 2026-10-19 above; sarrathsilentstrider's "now" suggests a
+  change on Blizzard's side since. Not seen by Tyler yet: experiment E8.
 - An item can also be marked as listed by another character on your account
   (`containsAccountItem`); Blizzard shows such rows as your own. **[Code]**
 
@@ -303,3 +309,8 @@ page once carried them as build id `ah-facts-1`.
   after a post, aux picks the next item and reads it; picking another item before that answer came
   back read the late, empty answer as the new item's and said "None for sale". Same test in game:
   post an item, and right away pick a different one in the bag list.
+- **E8 Copper prices on gear (FB-044).** In Blizzard's own Sell tab (click "Blizzard UI" in aux's
+  top bar), put in a cheap white or green item, type a price with copper (for example 1s 89c) and
+  click Create Auction. Then open Blizzard's Auctions tab: is the item listed at 1s 89c, and is it
+  gone from the bags? A screenshot of the listing settles whether aux may post copper on gear. If
+  the game refuses, copy the error text.
