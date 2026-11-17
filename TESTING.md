@@ -86,6 +86,12 @@ restart**. Have a few gold on you, and pick a cheap row to buy.
       Point the mouse at the row's name: a tooltip explains it. Take a screenshot.
 - [ ] 26. Press **Clear**: it says "0 endings" and the button fades. Close Settings, search
       Two-Hand again: the "Reading the stats of each ending" step is back.
+- [ ] 27. (Lower edge, added 2026-11-17.) Endings are now read only for items at least three
+      quarters of your level (at level 60: level 45 and up; at level 20: 15 and up). Lower items
+      are still listed, scored without their ending. On a character of level 20 or higher, press
+      **Clear** in Settings, then on Upgrades, Two-Hand, press **Search**. When it is done, the
+      line above the table ends with, for example, "(14 below level 45 scored without their
+      ending's stats)", the level being three quarters of yours. Take a screenshot of that line.
 
 ## Upgrades experiments (branch `search-upgrade-support`, before any code)
 

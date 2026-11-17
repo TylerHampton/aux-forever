@@ -82,6 +82,13 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
    each one exactly, at one request per version the first time. An ending that could not be read is scored
    without it and the status line counts it. Cost: a Two-Hand search at level 15 found about 20
    ending names, so about 20 more requests the first time.
+   2026-11-17 (Ben): a lower edge for those reads. The search has no lower level (1 up to the
+   player's), so at 60 a slot's first search would read every ending from level 1 up. Endings are
+   now read only for items whose required level is at least 75% of the player's (Ben: "within a %
+   of levels, like 25%", instead of a fixed 10 levels; at 60 that is 45 up, at 20 it is 15 up).
+   Items below are still listed and scored, on their plain stats or an ending saved earlier, and
+   the status line counts them ("14 below level 45 scored without their ending's stats"). Rare
+   miss: a low item whose ending would beat what is worn is scored too low.
    2026-11-17 (Ben): buy on the tab itself, with mouse and gamepad. Built: the Search tab's buy
    bar sits under the table while the tab is open (as on the Sniper). A click selects a row; its
    version's auctions are read (one request, `read_row` in `tabs/upgrades/core.lua`) and the

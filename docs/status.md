@@ -32,6 +32,11 @@ gives the ending's stats). Next: Ben's in-game test of steps 1 to 23.
 Later the same day: the ending stats are saved for the account (`account_data.ending_stats`), read
 again after a game patch (build number) or 30 days, with a Clear button in Settings, Upgrades,
 "Saved item stats". Tested with breaks for each rule. Steps 24 to 26. Next: steps 1 to 26.
+Later still (Ben): a lower edge for the ending reads. The search still covers level 1 up, but
+endings are read only for items whose required level is at least 75% of the player's
+(`ENDING_SHARE_BELOW = .25`, `ending_floor` in `tabs/upgrades/core.lua`; at 60 that is 45 up).
+Lower items are scored on their plain stats (or a saved ending) and counted in the status line.
+Test in `tests/timing_test.lua`, checked to fail without it. Step 27. Next: steps 1 to 27.
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.

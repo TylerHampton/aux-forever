@@ -466,7 +466,7 @@ return function(env)
   try('timing: Upgrades tab scores each ending with its own stats', function()
     local server = new_server(env)
     local up = module 'aux.tabs.upgrades'
-    server.items[7101] = {name = 'Birchwood Maul', commodity = false, versions = {[11] = 'of the Bear', [12] = 'of the Owl', [13] = 'of the Bear'}}
+    server.items[7101] = {name = 'Birchwood Maul', commodity = false, requirement = 50, versions = {[11] = 'of the Bear', [12] = 'of the Owl', [13] = 'of the Bear'}}
     server.listings[7101] = {
       {price = 900, quantity = 1, version = 11}, {price = 950, quantity = 2, version = 12}, {price = 990, quantity = 1, version = 13},
     }
@@ -544,6 +544,35 @@ return function(env)
     settings.endings_clear_button.__scripts.OnClick(settings.endings_clear_button)
     check('endings: Clear empties them', up.saved_stats_count() == 0 and settings.endings_row.hint:GetText() == '0 endings')
     check('endings: and the next search reads them again', reads_on_search() == 2)
+
+    -- the lower edge (Ben, 2026-11-17): at level 60, endings of items under level 45 (25% below)
+    -- are not read; the item is still listed and scored on its plain stats, and counted
+    check('endings: the lower edge at level 60 is 45', up.ending_floor() == 45)
+    up.set_spec('enhancement')
+    server:ticks(5)
+    server.items[7102] = {name = 'Oak Club', commodity = false, requirement = 44, versions = {[21] = 'of the Bear', [22] = 'of the Owl'}}
+    server.listings[7102] = {{price = 500, quantity = 1, version = 21}, {price = 600, quantity = 1, version = 22}}
+    local from = #server.requests
+    up.search()
+    server:wait(function() return #up.results() == 5 and not up.state().scoring and not up.state().endings end, 200)
+    local low_reads, low = 0, 0
+    for i = from + 1, #server.requests do if server.requests[i]:find('^search 7102') then low_reads = low_reads + 1 end end
+    for _, r in ipairs(up.results()) do
+      if r.item_id == 7102 then low = low + 1; check('endings: a low item is scored on its plain stats', r.below_floor and not r.base_only and r.upgrade.score == base) end
+    end
+    check('endings: the endings of a level 44 item are not read', low_reads == 0)
+    check('endings: but both its versions are listed', low == 2)
+    check('endings: and counted for the status line', up.state().below_floor == 2 and up.state().floor == 45 and not up.state().base_only)
+    server.items[7102].requirement = 45
+    check('endings: an item at the edge is read', reads_on_search() == 0 and (function()
+      local n = 0
+      for _, r in ipairs(up.results()) do if r.item_id == 7102 and not r.below_floor then n = n + 1 end end
+      return n == 2
+    end)())
+    check('endings: at level 20 the edge is 15', (function()
+      local real = G.UnitLevel; G.UnitLevel = function() return 20 end
+      local f = up.ending_floor(); G.UnitLevel = real; return f == 15
+    end)())
     G.GetBuildInfo = real_build
 
     aux.set_tab(1)

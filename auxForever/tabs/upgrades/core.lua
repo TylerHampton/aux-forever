@@ -223,6 +223,24 @@ local function has_ending(record)
     return record.browse_key and (record.browse_key.itemSuffix or 0) ~= 0
 end
 
+-- The lower edge for reading endings (Ben, 2026-11-17). The search has no lower level (required
+-- level 1 up to the player's), so at level 60 the first search of a slot would read an auction of
+-- every ending from level 1 up: hundreds of requests, mostly for gear far below the player's.
+-- Endings of items whose required level is more than ENDING_SHARE_BELOW (25%) under the player's
+-- are not read (Ben: a share, not a fixed number of levels): at 60 endings are read from level 45
+-- up, at 20 from 15 up. Those items are still listed and scored, on their plain stats (or an
+-- ending's stats saved earlier), and the status line counts them. Nothing is hidden; only the
+-- extra requests are skipped.
+M.ENDING_SHARE_BELOW = .25
+
+function M.ending_floor()
+    return max(1, floor((UnitLevel('player') or 1) * (1 - ENDING_SHARE_BELOW)))
+end
+
+local function below_floor(record)
+    return type(record.requirement) == 'number' and record.requirement < ending_floor()
+end
+
 local function ending_key(record)
     return record.item_id .. ':' .. (record.browse_key.itemLevel or 0) .. ':' .. strlower(record.name or '')
 end
@@ -232,15 +250,14 @@ local function version_id(key)
 end
 
 -- the stats to score a record with; nil while the game has not loaded it. An ending whose auction
--- could not be read is scored without it (record.base_only), and the status line says so.
+-- could not be read is scored without it (record.base_only), and so is one below the lower edge
+-- (record.below_floor); the status line counts both.
 function M.record_stats(record)
     if has_ending(record) then
         local own = saved_stats(ending_key(record))
-        if own then
-            record.base_only = nil
-            return own
-        end
-        record.base_only = true
+        record.base_only, record.below_floor = nil, nil
+        if own then return own end
+        if below_floor(record) then record.below_floor = true else record.base_only = true end
     end
     return stats.key_stats(record.browse_key)
 end
@@ -253,7 +270,8 @@ local function read_endings(records, done)
     for _, record in ipairs(records) do
         local location = equip_location(record.item_id)
         local name = has_ending(record) and ending_key(record)
-        if name and (not location or slot_set[location]) and not saved_stats(name) and not names[name] then
+        if name and (not location or slot_set[location]) and not below_floor(record)
+            and not saved_stats(name) and not names[name] then
             names[name] = true
             wanted[version_id(record.browse_key)] = name
             tinsert(keys, record.browse_key)
@@ -303,6 +321,7 @@ local function score(record, slot_set, w, counts, list)
     if not item_stats then return false end
     counts.considered = counts.considered + 1
     if record.base_only then counts.base_only = (counts.base_only or 0) + 1 end
+    if record.below_floor then counts.below_floor = (counts.below_floor or 0) + 1 end
     local c = stats.compare(item_stats, location, w)
     if not c then return true end
     if not c.ready then counts.worn_loading = true end
@@ -337,7 +356,8 @@ function M.rescore()
             shown = list
             state.scoring = not done and #pending > 0
             state.considered, state.unloaded, state.worn_loading = counts.considered, #pending, counts.worn_loading
-            state.base_only = counts.base_only
+            state.base_only, state.below_floor = counts.base_only, counts.below_floor
+            state.floor = ending_floor()
             changed()
         end
         for i, record in ipairs(records) do

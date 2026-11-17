@@ -294,6 +294,9 @@ local function status_text(s, slot)
     if (s.base_only or 0) > 0 then
         text = text .. format(' (%d scored without their ending\'s stats: search again)', s.base_only)
     end
+    if (s.below_floor or 0) > 0 then
+        text = text .. format(' (%d below level %d scored without their ending\'s stats)', s.below_floor, s.floor or 1)
+    end
     if s.worn_loading then
         text = text .. ' (what you wear was still loading: search again)'
     end

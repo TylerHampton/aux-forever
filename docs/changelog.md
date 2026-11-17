@@ -26,6 +26,10 @@ A change that comes from a player's feedback credits them by in-game name at the
   them; the line above the table shows "Reading the stats of each ending (5 of 20)". What it reads
   is saved, so later searches, even after logging out, do not read it again. It is read again after
   a game patch and after 30 days, and Settings, Upgrades, "Saved item stats" has a Clear button.
+  Endings are read only for items at least three quarters of your level (at 60: level 45 and up),
+  so a high-level character's first search does not read hundreds of auctions for old gear. Lower
+  items are still listed and scored, without their ending, and the line above the table counts
+  them.
 - Buy right on the Upgrades tab: click a row and the buy bar under the table reads that item's
   auctions and shows Buy with today's cheapest price (it can differ from the row's price, which was
   the lowest when you searched; the row then shows the new price). Nothing is bought until you
