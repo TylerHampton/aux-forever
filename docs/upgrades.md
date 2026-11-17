@@ -100,6 +100,10 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
    Result the same day (Ben, E11): 11,354 names saved; Chest, Back and Wrist then read only 21
    themselves, each seen by the scan but given no stats by the game at that moment. So names that
    come back empty are tried again every second, 5 times, after the first pass.
+   2026-11-17 (Ben): the tab says a Full scan first is highly recommended. On the status line
+   above the table (the left panel has no room at the smallest window), only when no Full scan
+   was started in the last 24 hours: a gold tip before a search, and "A Full scan first skips this
+   step" while it reads endings (`status_text` in `tabs/upgrades/frame.lua`).
    2026-11-17 (Ben): buy on the tab itself, with mouse and gamepad. Built: the Search tab's buy
    bar sits under the table while the tab is open (as on the Sniper). A click selects a row; its
    version's auctions are read (one request, `read_row` in `tabs/upgrades/core.lua`) and the

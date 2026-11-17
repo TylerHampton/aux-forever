@@ -280,12 +280,28 @@ local function weights_text(spec)
     return 'Weights: ' .. table.concat(parts, ', ') .. '. ' .. source .. spec.name .. '.'
 end
 
-local function status_text(s, slot)
+-- Full scan tip (Ben, 2026-11-17: "running a full scan prior to looking for upgrades is highly
+-- recommended"). A Full scan saves the stats of every ending (core.lua), so a search here skips
+-- most of its reading step (E11: 21 reads instead of 100+). Shown before a search and while the
+-- tab reads endings, only when no Full scan was started in the last day. On the status line, not
+-- the left panel: the left panel has no room left at the smallest window.
+M.FULL_SCAN_TIP_AGE = 24 * 3600
+function M.full_scan_recent()
+    return time() - (aux.account_data.replicate_time or 0) < FULL_SCAN_TIP_AGE
+end
+local TIP = 'Tip: run a Full scan first (top right), then searches here are much faster'
+
+function M.status_text(s, slot)
     if s.searching then return 'Searching ' .. slot.name .. '...' end
-    if s.endings then return format('Reading the stats of each ending (%d of %d)...', s.endings.done, s.endings.total) end
+    if s.endings then
+        local text = format('Reading the stats of each ending (%d of %d)...', s.endings.done, s.endings.total)
+        return full_scan_recent() and text or text .. ' A Full scan first skips this step'
+    end
     if s.scoring then return 'Scoring...' end
     if s.stopped then return 'Stopped before the end: search again' end
-    if not s.searched_at then return 'Pick a slot and press Search' end
+    if not s.searched_at then
+        return full_scan_recent() and 'Pick a slot and press Search' or aux.color.accent.text(TIP)
+    end
     local text = format('%d upgrade%s among %d %s item%s you can use, searched at %s',
         #results(), #results() == 1 and '' or 's', s.considered or 0, slot.name, (s.considered or 0) == 1 and '' or 's', date('%H:%M', s.searched_at))
     if (s.unloaded or 0) > 0 then

@@ -35,6 +35,8 @@ A change that comes from a player's feedback credits them by in-game name at the
   has each listing's link) and reads them after "Full scan complete", a few at a time, so the scan
   is no slower. After a Full scan, the Upgrades tab can skip its own reading step. Endings the
   game had not loaded yet are tried again for a few seconds.
+- The Upgrades tab recommends a Full scan first when none ran in the last day: a gold tip above
+  the table before you search, and a note while it reads endings.
 - Buy right on the Upgrades tab: click a row and the buy bar under the table reads that item's
   auctions and shows Buy with today's cheapest price (it can differ from the row's price, which was
   the lowest when you searched; the row then shows the new price). Nothing is bought until you

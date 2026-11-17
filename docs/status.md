@@ -45,6 +45,8 @@ listings' links (no extra request; after the scan, 50 a frame; `on_full_scan_rec
 Result (Ben, E11): the scan saved 11,354 names, Chest, Back and Wrist read only 21 themselves,
 item levels match; the 21 got no stats from the game at that moment. Now retried every second,
 5 times (`FULL_SCAN_RETRIES`), test in `tests/load_test.lua`. Step 30. Next: steps 1 to 30.
+Also (Ben): a Full scan tip on the Upgrades status line when none ran in the last 24 hours,
+tested. Step 31. Next: steps 1 to 31.
 Note: under LuaJIT (this Mac has no lua5.1) "sniper memory: no growth" failed once and passed on
 three reruns; GitHub Actions runs real Lua 5.1.
 

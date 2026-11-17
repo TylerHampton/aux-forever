@@ -6004,6 +6004,24 @@ try('upgrades tab: search, score and list upgrades', function()
 end)
 
 -- The weights editor (Settings / Upgrade weights) and the Per gold column (Ben, 2026-11-16)
+-- Ben, 2026-11-17: the tab says a Full scan first is highly recommended, until one ran in the last day
+try('upgrades tab: recommends a Full scan', function()
+  local f = loadstring("select(2, ...) 'aux.tabs.upgrades'; return _M")('auxForever', addon)
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local plain = function(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', '')) end
+  local slot = {name = 'Chest'}
+  local was = a.account_data.replicate_time
+  a.account_data.replicate_time = 0
+  check('full scan tip: before a search, with no Full scan', plain(f.status_text({}, slot)):find('run a Full scan first', 1, true) ~= nil)
+  check('full scan tip: while reading endings', plain(f.status_text({endings = {done = 3, total = 20}}, slot)) == 'Reading the stats of each ending (3 of 20)... A Full scan first skips this step')
+  a.account_data.replicate_time = time() - 3600
+  check('full scan tip: gone after a Full scan this hour', f.status_text({}, slot) == 'Pick a slot and press Search')
+  check('full scan tip: and while reading', f.status_text({endings = {done = 3, total = 20}}, slot) == 'Reading the stats of each ending (3 of 20)...')
+  a.account_data.replicate_time = time() - f.FULL_SCAN_TIP_AGE - 1
+  check('full scan tip: back a day later', plain(f.status_text({}, slot)):find('run a Full scan first', 1, true) ~= nil)
+  a.account_data.replicate_time = was
+end)
+
 try('upgrades tab: weights editor and gain per gold', function()
   local aux_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
   local require = loadstring("select(2, ...) 'aux.test.upgrades_weights'; return require")('auxForever', addon)

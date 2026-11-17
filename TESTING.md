@@ -105,6 +105,12 @@ restart**. Have a few gold on you, and pick a cheap row to buy.
       on Upgrades search **Chest**, **Back** and **Wrist** as last time. Write down the numbers on
       each "Reading the stats of each ending" line, or "none" if it does not appear (last time
       there were 21 in all).
+- [ ] 31. (Full scan tip, added 2026-11-17.) This one only works when you have not run a Full scan
+      in the last 24 hours, so do it before step 30 or on another day. Open Upgrades before
+      searching. The line at the top right of the table reads, in gold, "Tip: run a Full scan
+      first (top right), then searches here are much faster". Press **Search**: while it reads
+      endings the line ends with "A Full scan first skips this step". Take a screenshot of each.
+      After a Full scan, neither appears; the line reads "Pick a slot and press Search".
 
 ## Upgrades experiments (branch `search-upgrade-support`, before any code)
 
