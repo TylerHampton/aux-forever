@@ -98,7 +98,9 @@ search and buy, which work in game **[Seen]**.
   Blizz AH ... w/o issue" ("we can sell items by the copper now"), and user_mezgz2zh1g3sbu1v names
   Small Red Pouch (CurseForge comments, 2026-11-13 to 2026-11-16, FB-044) **[Outside]**. This
   contradicts Tyler's 10s 50c test of 2026-10-19 above; sarrathsilentstrider's "now" suggests a
-  change on Blizzard's side since. Not seen by Tyler yet: experiment E8.
+  change on Blizzard's side since. Seen by Tyler on 2026-11-16 (0.8.2.1 build 7, step 8): aux
+  posted Rough Bronze Leggings at 5s 69c and the Auctions tab listed it at 5s 69c; other players'
+  gear listings at 5s 67c, 5s 71c **[Seen]**. Gear takes copper prices on Forever now.
 - Blizzard's Sell window treats gear and trade goods alike: it shows the copper box whenever
   `SupportsCopperValues()` is true and does not round a typed gear price to silver (only its
   default price is silver-aligned) (`Blizzard_AuctionHouseSellFrame.lua`,
@@ -196,7 +198,8 @@ search and buy, which work in game **[Seen]**.
   the start needs a hardware event (a click or key) and lists no restriction on the confirm
   ([warcraft.wiki.gg](https://warcraft.wiki.gg/wiki/API_C_AuctionHouse.StartCommoditiesPurchase))
   **[Outside]**. Since 0.8.2.1 build 7 aux confirms by itself when the price arrives at or below
-  the one shown, so Buy is one click (Tyler, 2026-11-16). Not yet seen in game: build 7's test.
+  the one shown, so Buy is one click (Tyler, 2026-11-16). Seen 2026-11-16 (build 7, step 7):
+  one click on "Buy 1 for 19c" bought 1 Linen Cloth for 18c **[Seen]**.
 - After buying, the item arrives by mail; the game reports a delivery delay for purchased and for
   cancelled items (`AUCTION_HOUSE_ITEM_DELIVERY_DELAY_UPDATE`). **[Code]** The delays:
   **[Unknown]**.
@@ -327,8 +330,4 @@ page once carried them as build id `ah-facts-1`.
   after a post, aux picks the next item and reads it; picking another item before that answer came
   back read the late, empty answer as the new item's and said "None for sale". Same test in game:
   post an item, and right away pick a different one in the bag list.
-- **E8 Copper prices on gear (FB-044).** In Blizzard's own Sell tab (click "Blizzard UI" in aux's
-  top bar), put in a cheap white or green item, type a price with copper (for example 1s 89c) and
-  click Create Auction. Then open Blizzard's Auctions tab: is the item listed at 1s 89c, and is it
-  gone from the bags? A screenshot of the listing settles whether aux may post copper on gear. If
-  the game refuses, copy the error text.
+- **E8 Copper prices on gear (FB-044).** Settled 2026-11-16: gear takes copper prices (section 2).

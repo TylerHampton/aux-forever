@@ -146,15 +146,15 @@ For whoever fixes or builds from it:
 | [FB-037](#fb-037-i-cant-scan-today) | 2026-11-09 | deep_structure | bug | Full scan | S2 | "i cant scan today" | fixed 0.8.2 (released 2026-11-09) |
 | [FB-038](#fb-038-show-auxs-tooltip-lines-only-while-holding-a-key) | 2026-11-09 | blackmyin | request | Settings | n/a | Show aux's tooltip lines only while holding a key | wont-fix (Tyler: the tooltip line switches cover it) |
 | [FB-039](#fb-039-full-scan-not-working-for-a-player-tyler-knows) | 2026-11-09 | a player Tyler knows (name not given) | bug | Full scan | S2 | Full scan "wasnt working" | fixed 0.8.2 (released 2026-11-09) |
-| [FB-040](#fb-040-tab-does-not-complete-in-the-search-bar) | 2026-11-11 | Tyler | bug | Search | S3 | Tab does not complete in the search bar | open (one question to Tyler) |
+| [FB-040](#fb-040-tab-does-not-complete-in-the-search-bar) | 2026-11-11 | Tyler | bug | Search | S3 | Tab does not complete in the search bar | wont-fix (works as built, seen 2026-11-16) |
 | [FB-041](#fb-041-a-switch-to-turn-off-the-crate-lines-in-tooltips) | 2026-11-16 | user_tdsvrjvpe8rufw54 | request | Settings | n/a | A switch to turn off the crate lines in tooltips | built 0.8.2.1 build 7 |
 | [FB-042](#fb-042-crate-tooltip-full-cost-less-the-quest-reward-favor-and-reputation-per-gold) | 2026-11-16 | user_tdsvrjvpe8rufw54 | request | Other | n/a | Crate tooltip: full cost less the quest reward, favor and reputation per gold | new |
 | [FB-043](#fb-043-a-window-listing-every-crate-and-writ-by-favor-and-reputation-per-gold) | 2026-11-16 | user_tdsvrjvpe8rufw54 | request | Other | n/a | A window listing every crate and writ by favor and reputation per gold | new |
-| [FB-044](#fb-044-gear-can-be-priced-in-copper-but-aux-rounds-it-to-whole-silver) | 2026-11-16 | sarrathsilentstrider, user_mezgz2zh1g3sbu1v | bug | Post | S2 | Gear can be priced in copper, but aux rounds it to whole silver | fixed 0.8.2.1 build 7 |
-| [FB-045](#fb-045-some-gear-endings-of-shadow-protection-of-healing-do-not-show-their-stat-in-search) | 2026-11-16 | karrier_user_slouyac50poxg707 | bug | Search | S3 | Some gear endings (of Shadow Protection, of Healing) do not show their stat in search | in-progress 0.8.2.1 build 7 |
+| [FB-044](#fb-044-gear-can-be-priced-in-copper-but-aux-rounds-it-to-whole-silver) | 2026-11-16 | sarrathsilentstrider, user_mezgz2zh1g3sbu1v | bug | Post | S2 | Gear can be priced in copper, but aux rounds it to whole silver | fixed 0.8.2.1 build 7 (seen in game) |
+| [FB-045](#fb-045-some-gear-endings-of-shadow-protection-of-healing-do-not-show-their-stat-in-search) | 2026-11-16 | karrier_user_slouyac50poxg707 | bug | Search | S3 | Some gear endings (of Shadow Protection, of Healing) do not show their stat in search | fixed 0.8.2.1 build 7 (provisional) |
 | [FB-046](#fb-046-posting-says-the-item-is-on-the-mouse-in-the-mail-or-a-trade-when-it-is-not) | 2026-11-16 | karrier_user_slouyac50poxg707 | bug | Post | S2 | Posting says the item is on the mouse, in the mail or a trade when it is not | fixed 0.8.2.1 build 7 |
 | [FB-047](#fb-047-praise-great-addon) | 2026-11-16 | selubangerz | praise | Overall | n/a | Praise: "Great addon" | new |
-| [FB-048](#fb-048-players-do-not-like-the-confirm-click-when-buying-trade-goods) | 2026-11-16 | players, through Tyler | ux | Buy bar | n/a | Players do not like the Confirm click when buying trade goods | built 0.8.2.1 build 7 |
+| [FB-048](#fb-048-players-do-not-like-the-confirm-click-when-buying-trade-goods) | 2026-11-16 | players, through Tyler | ux | Buy bar | n/a | Players do not like the Confirm click when buying trade goods | built 0.8.2.1 build 7 (seen in game) |
 
 ## Players
 
@@ -2069,8 +2069,7 @@ player's own search stops a Full scan, and every way it ends says why in the cha
 - Type: bug or ux (not known which until Tyler says what Tab did)
 - Area: Search bar (autocompletion)
 - Severity: S3 (provisional: searching works without it)
-- Status: open (logged 2026-11-11 at Tyler's request, with a proposed way to build it; one
-  question to Tyler is open, see Unknowns)
+- Status: wont-fix: works as built (Tyler, 2026-11-16, build 7 step 5: "it filled in the vanished part when I pressed tab"; the bar read "linen bag/exact" with the cursor at the end)
 - Proposed: 0.8.2.x if it is a bug (Tab does nothing), else the next minor version
 
 Said:
@@ -2260,7 +2259,7 @@ Unknowns: as FB-042.
   does not decide")
 - Area: Post
 - Severity: S2 (the item can be posted at the price wanted only through Blizzard's window)
-- Status: fixed 0.8.2.1 build 7 (every item takes copper; not released, waiting for Tyler's test)
+- Status: fixed 0.8.2.1 build 7, seen in game 2026-11-16 (gear posted at 5s 69c; not released)
 - Proposed: next patch (0.8.2.1 or 0.8.2.2) once Tyler has seen it in game (experiment E8)
 
 Said (sarrathsilentstrider, about 3 days before):
@@ -2319,7 +2318,7 @@ Ask Tyler: run E8 (one cheap item, about a minute).
 - Area: Search
 - Severity: S3 (provisional: the item can still be found and bought; the player may not see what
   the ending gives)
-- Status: in-progress 0.8.2.1 build 7 (Fast row tooltips take a sample link first, as Blizzard does; whether that is the cause is not known yet)
+- Status: fixed 0.8.2.1 build 7 (provisional): the healing line shows in Fast and Full (seen 2026-11-16); whether it was missing for these items before is not known, "of shadow protection" not tried
 - Proposed: next patch once it is known where the stat is missing
 
 Said:
@@ -2433,7 +2432,7 @@ additions are great!" and "your work is amazing regardless!"); kept in their sou
 - Type: ux
 - Area: Buy bar
 - Severity: n/a
-- Status: built 0.8.2.1 build 7 (one click buys; not released, waiting for Tyler's test)
+- Status: built 0.8.2.1 build 7, seen in game 2026-11-16 (one click bought 1 Linen Cloth for 18c; not released)
 - Proposed: 0.8.2.1 (Tyler's decision)
 
 Tyler's summary:

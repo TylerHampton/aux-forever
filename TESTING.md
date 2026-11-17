@@ -60,6 +60,34 @@ tooltip switch, and Fast row tooltips. Zip `auxForever-0.8.2.1-build7.zip`; `/re
       tooltip column. Turn it off and point at the crate again: aux's lines are gone. Turn it
       back on.
 
+### Results (Tyler, 2026-11-16, test page `0-8-2-1-build-7`)
+
+Read from his screenshots and notes; no step was marked Pass or Fail.
+- 1, Full search `linen`: passes. "37 items, 36,739 for sale, searched just now", no "table full"
+  (build 4 showed 20 of 36). Linen Belt: 550 for sale, 548 sellers, 1s.
+- 2, a line of many sellers: passes. Tyler: "I dont know if this worked, I couldnt even unfurl linen
+  belt but I could linen bag". As built: all 550 Linen Belts are at one price, so they are one line
+  with nothing to open; Linen Bag has many prices and opens.
+- 3, buying 17 from one line: not done. Still needed before the release (the main check of S-08).
+- 4, Live: passes. "1 price level, 550 for sale, live: updated just now", no "too many for Live".
+  It said 438 sellers where the Full search said 548 for the same 550: the seller count is an
+  upper bound when the game gives a count instead of names (since 0.8, not new; status file).
+- 5, Tab: "it filled in the vanished part when I pressed tab"; the bar read "linen bag/exact" with
+  the cursor at the end. Tab accepts as built (FB-040).
+- 6, Full scan: "smooth". `SLICE_MS` stays 8.
+- 7, one click buys: passes. "Bought 1 × Linen Cloth for 18c" with the button showing "Buy 1 for
+  19c", and chat "You won an auction for Linen Cloth (x1)". First time seen: Forever accepts the
+  confirm sent from the price event, and the server's price can be lower than the button's.
+- 8, copper on gear: passes. Rough Bronze Leggings posted at 5s 69c ("Posted 1 × Rough Bronze
+  Leggings"), listed at 5s 69c in the Auctions tab; other players' gear listings show copper too.
+- 9, undercut on gear: passes. "1 copper below the lowest listing (5s 50c)", 5s 49c posted, the
+  Auctions tab says "Lowest".
+- 10, stat of an ending: the healing line shows in Fast and in Full (Mercurial Greaves of Healing,
+  Simple Blouse of Healing). Whether it was missing before for these items is not known; "of
+  shadow protection" was not tried.
+- 11, crate lines: "Cheapest way to fill it" and the bundles, no "Latest prices" line. The switch
+  turned off was not shown.
+
 ## 0.8.2.1 build 6
 
 Not tested on its own: its steps are build 7's steps 1 to 6.

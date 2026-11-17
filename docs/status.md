@@ -77,11 +77,17 @@ fail). What changed, by area:
 game), R-28 (structure, for a later version), the test file split (R-23), naming the release action
 by commit (R-25), and one part each of R-16 and R-20 (each would change something that works today).
 
-**Next step:** Tyler tests build 7 (eleven steps: 1 to 6 are build 6's, 7 to 11 the new fixes;
-`TESTING.md`, test page build id `0-8-2-1-build-7`, zip `auxForever-0.8.2.1-build7.zip`, `/reload`
-is enough). Read the test page results first. When it passes and Tyler says so: changelog date,
-pull request to `main`, merge, Release workflow. The CurseForge description changed (trade goods
-are bought with one click): Tyler pastes `docs/curseforge-description.md` after the release.
+**Tested:** build 7 by Tyler on 2026-11-16 (results in `TESTING.md`, "0.8.2.1 build 7"). Seen in
+game for the first time: one click buys a trade good (18c on a 19c button), gear posts at copper
+prices (5s 69c) and undercut goes 1 copper below, a Full search for `linen` shows all 37 items, Live
+keeps a row of 550, the healing line shows in Fast and Full tooltips, the crate tooltip has no
+"Latest prices" line. Tab accepts a suggestion (FB-040 closed); the Full scan felt smooth
+(`SLICE_MS` stays 8).
+
+**Next step:** step 3, the one step not done: buy 17 Linen Belts one after another from the line
+of many sellers (the main check of S-08: the row reads its item again around the 16th). If it
+passes and Tyler says so: changelog date, pull request to `main`, merge, Release workflow, then
+Tyler pastes `docs/curseforge-description.md` (one-click buying).
 
 **Why Confirm could go (FB-048):** the safety is a check aux makes before paying (a server price
 above the button's is cancelled), not the second click; the second click could only confirm a
@@ -112,6 +118,12 @@ built in build 7, the notes below are from before):**
 - FB-045 (bug, S3): the stat of "of Healing" and "of Shadow Protection" missing in search; where
   it is missing is not known.
 - FB-047: praise.
+
+**Noted for later (not a regression):** "N sellers" is an upper bound. When one auction house row
+holds several sellers the game gives a count, not names, so a seller listed under two time lefts is
+counted twice; build 7's test showed 548 sellers in Full and 438 in Live for the same 550 Linen
+Belts. Since 0.8 (one row per price). A fix would need the names of every seller in a row, which
+the game may not give (not checked).
 
 **Open questions for Tyler:**
 0. From the 2026-11-16 feedback: FB-046, whether he has Bagnon; FB-042, what a crate's turn-in
