@@ -67,6 +67,14 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
    the mockup: a row opens that exact item on the Search tab, which shows its auctions and buys it
    with the Search tab's buy bar and its never-more-than-shown check, instead of a buy bar on the
    Upgrades tab. A buy bar on the tab itself can follow if this feels clumsy in game.
+   2026-11-17 (Ben, screenshot): every "of the ..." version scored as the plain item, since the
+   link `SetItemKey` gives has no ending (E8 in `docs/forever-auction-house.md`). Fixed: after the
+   item list, one auction of each ending name of the slot is read (one request per name, one scan;
+   `read_endings` in `tabs/upgrades/core.lua`) and its link's stats score every version of that
+   name (Ben: the lowest values of a grouping are acceptable; one case Seen of two versions of one
+   name with the same stats). Kept for the session. An ending that could not be read is scored
+   without it and the status line counts it. Cost: a Two-Hand search at level 15 found about 20
+   ending names, so about 20 more requests the first time.
    2026-11-17 (Ben): buy on the tab itself, with mouse and gamepad. Built: the Search tab's buy
    bar sits under the table while the tab is open (as on the Sniper). A click selects a row; its
    version's auctions are read (one request, `read_row` in `tabs/upgrades/core.lua`) and the

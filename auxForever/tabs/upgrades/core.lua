@@ -160,15 +160,100 @@ local function set_of(list)
     return set
 end
 
+-- Endings (Ben, 2026-11-17: every "of the ..." version scored the same). A row of the item list has
+-- an item key, no link; the link aux's tooltip gives for a key has no ending (seen in game: Birchwood
+-- Maul of the Owl, of Healing, of Magic ... all scored as the plain maul), so GetItemStats left the
+-- ending's stats out. A real auction's link carries the ending (Seen: docs/forever-auction-house.md,
+-- "A gear link's ending", and E10's Brutal War Axe of the Sorcerer). So after the item list, one
+-- auction of each ending name is read (one request per name, all in one scan) and its link's stats
+-- stand for every version of that name (one case Seen: two versions of one name had the same
+-- stats). Kept for the session, so a new spec or the next search does not read them again.
+local ending_stats = {} -- ending name key -> the stats of a real auction's link
+
+local function has_ending(record)
+    return record.browse_key and (record.browse_key.itemSuffix or 0) ~= 0
+end
+
+local function ending_key(record)
+    return record.item_id .. ':' .. (record.browse_key.itemLevel or 0) .. ':' .. strlower(record.name or '')
+end
+
+local function version_id(key)
+    return key.itemID .. ':' .. (key.itemLevel or 0) .. ':' .. (key.itemSuffix or 0)
+end
+
+-- the stats to score a record with; nil while the game has not loaded it. An ending whose auction
+-- could not be read is scored without it (record.base_only), and the status line says so.
+function M.record_stats(record)
+    if has_ending(record) then
+        local own = ending_stats[ending_key(record)]
+        if own then
+            record.base_only = nil
+            return own
+        end
+        record.base_only = true
+    end
+    return stats.key_stats(record.browse_key)
+end
+
+-- Reads one auction of each ending name of the slot not read yet, then calls done. A newer search
+-- ends it (scan.start stops a running scan).
+local function read_endings(records, done)
+    local slot_set, keys, names, wanted = {}, {}, {}, {}
+    for _, location in ipairs(current_slot().locations) do slot_set[location] = true end
+    for _, record in ipairs(records) do
+        local location = equip_location(record.item_id)
+        local name = has_ending(record) and ending_key(record)
+        if name and (not location or slot_set[location]) and not ending_stats[name] and not names[name] then
+            names[name] = true
+            wanted[version_id(record.browse_key)] = name
+            tinsert(keys, record.browse_key)
+        end
+    end
+    if #keys == 0 then return done() end
+    state.endings = {total = #keys, done = 0}
+    changed()
+    scan.start{
+        type = 'list',
+        quiet = true,
+        no_view = true, -- one version of each item, not a look at the whole item (scan.lua)
+        queries = {{item_keys = keys}},
+        on_page_loaded = function(page)
+            if found ~= records then return end
+            state.endings.done = page
+            changed()
+        end,
+        on_auction = function(auction)
+            local key = auction.item_search_key
+            local name = key and wanted[version_id(key)]
+            if name and not ending_stats[name] then
+                ending_stats[name] = stats.link_stats(auction.link)
+            end
+        end,
+        on_complete = function()
+            if found ~= records then return end
+            state.endings = nil
+            done()
+        end,
+        on_abort = function()
+            if found ~= records then return end
+            state.endings = nil
+            state.stopped = true
+            changed()
+        end,
+    }
+end
+
 -- Scores one record: false while the game has not loaded it (ask again), true when done. An item
 -- of the slot that beats what is worn gets record.upgrade and goes on the list.
 local function score(record, slot_set, w, counts, list)
     local location = equip_location(record.item_id)
     if not location then return false end
     if not slot_set[location] then return true end
-    local item_stats = stats.key_stats(record.browse_key)
+    local item_stats = record_stats(record)
     if not item_stats then return false end
     counts.considered = counts.considered + 1
+    if record.base_only then counts.base_only = (counts.base_only or 0) + 1 end
     local c = stats.compare(item_stats, location, w)
     if not c then return true end
     if not c.ready then counts.worn_loading = true end
@@ -203,6 +288,7 @@ function M.rescore()
             shown = list
             state.scoring = not done and #pending > 0
             state.considered, state.unloaded, state.worn_loading = counts.considered, #pending, counts.worn_loading
+            state.base_only = counts.base_only
             changed()
         end
         for i, record in ipairs(records) do
@@ -256,7 +342,7 @@ function M.search()
             if found ~= records then return end
             state.searching = false
             state.searched_at = time()
-            rescore()
+            read_endings(records, rescore)
         end,
         on_abort = function()
             aux.status_bar:update_status(1, 1)

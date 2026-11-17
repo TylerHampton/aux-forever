@@ -282,6 +282,7 @@ end
 
 local function status_text(s, slot)
     if s.searching then return 'Searching ' .. slot.name .. '...' end
+    if s.endings then return format('Reading the stats of each ending (%d of %d)...', s.endings.done, s.endings.total) end
     if s.scoring then return 'Scoring...' end
     if s.stopped then return 'Stopped before the end: search again' end
     if not s.searched_at then return 'Pick a slot and press Search' end
@@ -289,6 +290,9 @@ local function status_text(s, slot)
         #results(), #results() == 1 and '' or 's', s.considered or 0, slot.name, (s.considered or 0) == 1 and '' or 's', date('%H:%M', s.searched_at))
     if (s.unloaded or 0) > 0 then
         text = text .. format(' (%d not loaded yet: search again)', s.unloaded)
+    end
+    if (s.base_only or 0) > 0 then
+        text = text .. format(' (%d scored without their ending\'s stats: search again)', s.base_only)
     end
     if s.worn_loading then
         text = text .. ' (what you wear was still loading: search again)'

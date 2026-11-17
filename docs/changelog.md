@@ -20,6 +20,10 @@ A change that comes from a player's feedback credits them by in-game name at the
   may be undervalued.
 - Attack Power counts for physical specs, worth what the Strength or Agility that gives it is
   worth (from each guide: a Warrior's Strength gives 2 Attack Power, a Rogue's Agility 1).
+- Random endings ("of the Bear", "of the Owl", ...) count: each ending's stats are read from one
+  of its auctions after the search (the item list alone gives only the plain item's stats, so
+  every ending scored the same). The first search of a slot takes a little longer while it reads
+  them; the line above the table shows "Reading the stats of each ending (5 of 20)".
 - Buy right on the Upgrades tab: click a row and the buy bar under the table reads that item's
   auctions and shows Buy with today's cheapest price (it can differ from the row's price, which was
   the lowest when you searched; the row then shows the new price). Nothing is bought until you

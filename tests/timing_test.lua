@@ -460,6 +460,66 @@ return function(env)
     aux_frame:Show()
   end)
 
+  -- Endings (Ben, 2026-11-17): every "of the ..." version scored as the plain item, because the
+  -- link aux's tooltip gives for an item key has no ending. A real auction's link has it, so one
+  -- auction of each ending is read after the item list.
+  try('timing: Upgrades tab scores each ending with its own stats', function()
+    local server = new_server(env)
+    local up = module 'aux.tabs.upgrades'
+    server.items[7101] = {name = 'Birchwood Maul', commodity = false, versions = {[11] = 'of the Bear', [12] = 'of the Owl', [13] = 'of the Bear'}}
+    server.listings[7101] = {
+      {price = 900, quantity = 1, version = 11}, {price = 950, quantity = 2, version = 12}, {price = 990, quantity = 1, version = 13},
+    }
+    server:install()
+    local saved = {G.GetInventoryItemLink, G.C_Item.GetItemStats, G.C_Item.GetItemInfoInstant, rawget(G.AuxTooltip, 'SetItemKey'), rawget(G.AuxTooltip, 'GetItem')}
+    G.GetInventoryItemLink = function() end
+    -- the game: the tooltip's link for a key is the plain maul; an auction's link names its ending
+    G.C_Item.GetItemStats = function(link)
+      local s = {ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 3}
+      if link:find('of the Bear', 1, true) then s.ITEM_MOD_STRENGTH_SHORT = 5; s.ITEM_MOD_STAMINA_SHORT = 5 end
+      if link:find('of the Owl', 1, true) then s.ITEM_MOD_INTELLECT_SHORT = 5; s.ITEM_MOD_SPIRIT_SHORT = 5 end
+      return s
+    end
+    G.C_Item.GetItemInfoInstant = function(id) return id, '', '', 'INVTYPE_2HWEAPON' end
+    rawset(G.AuxTooltip, 'SetItemKey', function() end)
+    rawset(G.AuxTooltip, 'GetItem', function() return 'x', 'plain maul' end)
+    local saved_choice = aux.character_data.upgrades
+    aux.character_data.upgrades = {spec = 'enhancement', slot = 15} -- Two-Hand; Strength 3, Intellect 2
+    aux.set_tab(3)
+
+    local before = #server.requests
+    up.search()
+    local done = server:wait(function() return #up.results() == 3 and not up.state().scoring and not up.state().endings end, 200)
+    check('endings: the search ends with all three listed', done)
+    local by_suffix = {}
+    for _, r in ipairs(up.results()) do by_suffix[r.browse_key.itemSuffix] = r end
+    local bear, owl, bear2 = by_suffix[11], by_suffix[12], by_suffix[13]
+    local base = 3 * 6 -- the plain maul: 3 DPS at Weapon DPS 6
+    check('endings: the Bear counts its Strength', bear and bear.upgrade.score > base and not bear.base_only)
+    check('endings: the Owl counts its Intellect, less than the Bear\'s Strength for Enhancement', owl and owl.upgrade.score > base and owl.upgrade.score < bear.upgrade.score)
+    check('endings: a second version of the Bear uses the same stats', bear2 and bear2.upgrade.score == bear.upgrade.score)
+    local searches = 0
+    for i = before + 1, #server.requests do if server.requests[i]:find('^search 7101') then searches = searches + 1 end end
+    check('endings: one read per ending name, not per version', searches == 2)
+    check('endings: the Changes column shows the ending', up.changes_text(bear.upgrade.changes):lower():find('strength', 1, true) ~= nil)
+
+    -- a new spec, or the next search, does not read them again
+    before = #server.requests
+    up.set_spec('elemental')
+    server:ticks(5)
+    up.search()
+    server:wait(function() return #up.results() > 0 and not up.state().scoring and not up.state().endings end, 200)
+    searches = 0
+    for i = before + 1, #server.requests do if server.requests[i]:find('^search') then searches = searches + 1 end end
+    check('endings: read once a session', searches == 0)
+
+    aux.set_tab(1)
+    G.GetInventoryItemLink, G.C_Item.GetItemStats, G.C_Item.GetItemInfoInstant = saved[1], saved[2], saved[3]
+    rawset(G.AuxTooltip, 'SetItemKey', saved[4]); rawset(G.AuxTooltip, 'GetItem', saved[5])
+    aux.character_data.upgrades = saved_choice
+    server:restore()
+  end)
+
   -- leaving the Post tab while a post waits for its answer, and the answer never comes: the Post
   -- tab must not stay on "Posting..." when the player comes back
   try('timing: leaving the Post tab during a post that is never answered', function()

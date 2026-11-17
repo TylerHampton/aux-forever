@@ -23,6 +23,13 @@ inside a press). Tests in `tests/timing_test.lua` (slow auction house), checked 
 the change. No new file. Not tried in game: `TESTING.md`, steps 16 to 21. Next: Ben's in-game
 test of steps 1 to 21.
 
+**2026-11-17, Claude, endings on the Upgrades tab.** Ben's screenshot: every "of the ..." version
+scored the same, because the link aux's tooltip gives for an item key has no ending. Now one
+auction of each ending name is read after the item list and its link's stats are used (cached for
+the session). Test in `tests/timing_test.lua`, checked to fail without the fix. No new file. Not
+tried in game: `TESTING.md`, steps 22 and 23 (step 22 also confirms that a real auction's link
+gives the ending's stats). Next: Ben's in-game test of steps 1 to 23.
+
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
 Two fixes, each with a test that fails without it:

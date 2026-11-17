@@ -71,6 +71,16 @@ restart**. Have a few gold on you, and pick a cheap row to buy.
 - [ ] 21. With a gamepad: move the gold frame to the Search button on the left. The hint says
       "Y Search", and Y searches.
 
+### Endings count (added 2026-11-17)
+
+- [ ] 22. On Upgrades, Two-Hand, press **Search**. While it works, the line above the table reads
+      "Reading the stats of each ending (3 of 20)..." with the numbers going up. Then the table
+      fills. Birchwood Maul of the Owl, of Healing and of Magic now show different Scores, and
+      their Changes column names the ending's stats (for example "+3 Strength" on an "of the Bear").
+      Take a screenshot like your last one.
+- [ ] 23. Press **Search** again. This time there is no "Reading the stats" step: they are kept
+      until you log out.
+
 ## Upgrades experiments (branch `search-upgrade-support`, before any code)
 
 Two short checks that decide how the Upgrades tab reads item stats and your spec

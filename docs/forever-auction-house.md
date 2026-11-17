@@ -285,6 +285,14 @@ page once carried them as build id `ah-facts-1`.
     tainted the same way, so aux must not call it (it would show the same popup, with aux's name).
   - The link of a row's icon in aux's results (a tooltip set with `SetItemKey`, then
     `GameTooltip:GetItem()`) gives stats with `GetItemStats` too (Ben, 2026-11-16) **[Seen]**.
+  - But that link has no ending: on the Upgrades tab every version of Birchwood Maul (of Defense,
+    of Fire Protection, of the Owl, of Healing, ...) and of Spiked Club scored exactly the same,
+    "+2.8 DPS, -1 Strength" against the worn weapon (Ben, 2026-11-17, screenshot) **[Seen]**. So a
+    key's stats from `SetItemKey` are the plain item's. Whether the tooltip itself shows the
+    ending's stat lines **[Unknown]**. A real auction's link (an item search result's `itemLink`)
+    carries the ending (see "A gear link's ending" above, **[Seen]**); that its `GetItemStats`
+    includes the ending's stats is **[Inference]** from E10's Brutal War Axe of the Sorcerer, to be
+    confirmed by `TESTING.md` step 22.
 - **E9 Talents.** Result 2026-11-16 (Ben): the command printed "Shaman SHAMAN 7" and no talent tree
   lines, so `GetNumTalentTabs` gave 0 or is missing on Forever **[Seen]**. Whether another function
   (`GetSpecialization`) answers **[Unknown]**; the Upgrades tab can do without it (the player picks
