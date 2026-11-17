@@ -487,6 +487,10 @@ return function(env)
     aux.character_data.upgrades = {spec = 'enhancement', slot = 15} -- Two-Hand; Strength 3, Intellect 2
     aux.set_tab(3)
 
+    local build = '70862'
+    local real_build = rawget(G, 'GetBuildInfo')
+    G.GetBuildInfo = function() return '1.60.1', build end
+    up.clear_saved_stats()
     local before = #server.requests
     up.search()
     local done = server:wait(function() return #up.results() == 3 and not up.state().scoring and not up.state().endings end, 200)
@@ -511,7 +515,36 @@ return function(env)
     server:wait(function() return #up.results() > 0 and not up.state().scoring and not up.state().endings end, 200)
     searches = 0
     for i = before + 1, #server.requests do if server.requests[i]:find('^search') then searches = searches + 1 end end
-    check('endings: read once a session', searches == 0)
+    check('endings: read once, then kept', searches == 0)
+
+    -- saved for the account (Ben, 2026-11-17), only the numbers, with when they were read
+    local saved = aux.account_data.ending_stats
+    local entry = saved.entries and saved.entries['7101:0:birchwood maul of the bear']
+    check('endings: saved in the account data, by item, item level and name', entry and entry.stats.ITEM_MOD_STRENGTH_SHORT == 5 and type(entry.at) == 'number' and saved.build == '70862')
+    check('endings: two names saved', up.saved_stats_count() == 2)
+
+    local function reads_on_search()
+      local from = #server.requests
+      up.search()
+      server:wait(function() return #up.results() > 0 and not up.state().scoring and not up.state().endings end, 200)
+      local n = 0
+      for i = from + 1, #server.requests do if server.requests[i]:find('^search 7101') then n = n + 1 end end
+      return n
+    end
+    -- 30 days later, an entry is read again
+    entry.at = entry.at - up.MAX_AGE - 1
+    check('endings: one read 30 days ago is read again, the other kept', reads_on_search() == 1)
+    -- a patch (another build) reads them all again
+    build = '71000'
+    check('endings: after a patch all are read again', reads_on_search() == 2 and saved.build == '71000')
+    -- Settings: the count, and Clear
+    local settings = module 'aux'
+    settings.refresh_settings()
+    check('endings: Settings shows how many are saved', settings.endings_row.hint:GetText() == '2 endings')
+    settings.endings_clear_button.__scripts.OnClick(settings.endings_clear_button)
+    check('endings: Clear empties them', up.saved_stats_count() == 0 and settings.endings_row.hint:GetText() == '0 endings')
+    check('endings: and the next search reads them again', reads_on_search() == 2)
+    G.GetBuildInfo = real_build
 
     aux.set_tab(1)
     G.GetInventoryItemLink, G.C_Item.GetItemStats, G.C_Item.GetItemInfoInstant = saved[1], saved[2], saved[3]

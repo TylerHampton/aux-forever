@@ -78,8 +78,14 @@ restart**. Have a few gold on you, and pick a cheap row to buy.
       fills. Birchwood Maul of the Owl, of Healing and of Magic now show different Scores, and
       their Changes column names the ending's stats (for example "+3 Strength" on an "of the Bear").
       Take a screenshot like your last one.
-- [ ] 23. Press **Search** again. This time there is no "Reading the stats" step: they are kept
-      until you log out.
+- [ ] 23. Press **Search** again. This time there is no "Reading the stats" step.
+- [ ] 24. Type `/reload`, open aux, Upgrades, Two-Hand, and press **Search**. Still no "Reading the
+      stats" step: they were saved.
+- [ ] 25. Open Settings (the gear at the top right). Under UPGRADES, below "Stat weights", a row
+      "Saved item stats" says how many are saved, for example "20 endings", with a **Clear** button.
+      Point the mouse at the row's name: a tooltip explains it. Take a screenshot.
+- [ ] 26. Press **Clear**: it says "0 endings" and the button fades. Close Settings, search
+      Two-Hand again: the "Reading the stats of each ending" step is back.
 
 ## Upgrades experiments (branch `search-upgrade-support`, before any code)
 

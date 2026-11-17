@@ -72,7 +72,10 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
    item list, one auction of each ending name of the slot is read (one request per name, one scan;
    `read_endings` in `tabs/upgrades/core.lua`) and its link's stats score every version of that
    name (Ben: the lowest values of a grouping are acceptable; one case Seen of two versions of one
-   name with the same stats). Kept for the session. An ending that could not be read is scored
+   name with the same stats). Saved for the account (`account_data.ending_stats`, Ben: "so they
+   don't have to be looked up"), and read again after a game patch (another build number from
+   `GetBuildInfo`), 30 days after each was read (a server-side fix that keeps the build), or when
+   the player presses Clear in Settings, Upgrades, "Saved item stats". An ending that could not be read is scored
    without it and the status line counts it. Cost: a Two-Hand search at level 15 found about 20
    ending names, so about 20 more requests the first time.
    2026-11-17 (Ben): buy on the tab itself, with mouse and gamepad. Built: the Search tab's buy

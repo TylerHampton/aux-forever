@@ -23,7 +23,9 @@ A change that comes from a player's feedback credits them by in-game name at the
 - Random endings ("of the Bear", "of the Owl", ...) count: each ending's stats are read from one
   of its auctions after the search (the item list alone gives only the plain item's stats, so
   every ending scored the same). The first search of a slot takes a little longer while it reads
-  them; the line above the table shows "Reading the stats of each ending (5 of 20)".
+  them; the line above the table shows "Reading the stats of each ending (5 of 20)". What it reads
+  is saved, so later searches, even after logging out, do not read it again. It is read again after
+  a game patch and after 30 days, and Settings, Upgrades, "Saved item stats" has a Clear button.
 - Buy right on the Upgrades tab: click a row and the buy bar under the table reads that item's
   auctions and shows Buy with today's cheapest price (it can differ from the row's price, which was
   the lowest when you searched; the row then shows the new price). Nothing is bought until you

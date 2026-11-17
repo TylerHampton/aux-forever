@@ -29,6 +29,9 @@ auction of each ending name is read after the item list and its link's stats are
 the session). Test in `tests/timing_test.lua`, checked to fail without the fix. No new file. Not
 tried in game: `TESTING.md`, steps 22 and 23 (step 22 also confirms that a real auction's link
 gives the ending's stats). Next: Ben's in-game test of steps 1 to 23.
+Later the same day: the ending stats are saved for the account (`account_data.ending_stats`), read
+again after a game patch (build number) or 30 days, with a Clear button in Settings, Upgrades,
+"Saved item stats". Tested with breaks for each rule. Steps 24 to 26. Next: steps 1 to 26.
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.

@@ -513,7 +513,7 @@ do
 
     -- left column: Posting. It moves up when no reload is waiting (see refresh).
     local posting = CreateFrame('Frame', nil, popup)
-    gui.set_size(posting, COLUMN, 104)
+    gui.set_size(posting, COLUMN, 134)
     section(posting, 0, 0, 'POSTING')
     local length_row = row(posting, 0, -16, 30, 'Default duration',
         nil, {'How long new auctions last unless you pick another length on the Post tab.', '/aux post duration'})
@@ -538,6 +538,19 @@ do
         require('aux.tabs.upgrades').open_weights()
     end)
     M.weights_edit_button = weights_edit
+    -- the stats of random endings the Upgrades tab has read from auctions, kept so they are not
+    -- read again; Clear makes the next search read them anew (Ben, 2026-11-17)
+    local endings_row = row(posting, 0, -100, 30, 'Saved item stats', '',
+        {'The stats of "of the Bear" and other endings, read from auctions by the Upgrades tab and kept so they are not read again. They are read anew after a game patch and after 30 days. Clear reads them anew at the next search.'})
+    local endings_clear = gui.button(endings_row, gui.font_size.small)
+    gui.set_size(endings_clear, 64, 24)
+    endings_clear:SetPoint('RIGHT', 0, 0)
+    endings_clear:SetText('Clear')
+    endings_clear:SetScript('OnClick', function()
+        require('aux.tabs.upgrades').clear_saved_stats()
+        refresh_settings()
+    end)
+    M.endings_clear_button, M.endings_row = endings_clear, endings_row
     -- Bid prices (/aux post bid) was here in build 3 and taken out in build 4: on Forever only gear
     -- can have bids, few sellers set one, and gear is one item per auction, so "per stack" means
     -- nothing (Tyler: "does the stack option even make any sense?"). The chat command stays.
@@ -607,6 +620,9 @@ do
         if pending then reload_button:Show() else reload_button:Hide() end
         posting:ClearAllPoints()
         posting:SetPoint('TOPLEFT', LEFT_X, pending and -176 or -148)
+        local saved_endings = require('aux.tabs.upgrades').saved_stats_count()
+        endings_row.hint:SetText(saved_endings == 1 and '1 ending' or saved_endings .. ' endings')
+        if saved_endings > 0 then endings_clear:Enable() else endings_clear:Disable() end
         for _, switch in ipairs(tooltip_switches) do
             switch:SetChecked(character_data.tooltip[switch.key] and true or false)
         end

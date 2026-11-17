@@ -167,8 +167,57 @@ end
 -- "A gear link's ending", and E10's Brutal War Axe of the Sorcerer). So after the item list, one
 -- auction of each ending name is read (one request per name, all in one scan) and its link's stats
 -- stand for every version of that name (one case Seen: two versions of one name had the same
--- stats). Kept for the session, so a new spec or the next search does not read them again.
-local ending_stats = {} -- ending name key -> the stats of a real auction's link
+-- stats).
+--
+-- Saved (Ben, 2026-11-17: "so they don't have to be looked up"), for the account, in
+-- account_data.ending_stats: an ending's stats on one item at one item level do not change, so one
+-- read lasts. Blizzard may change item stats, so they are read again
+--   - all of them when the game's build changes (a patch: GetBuildInfo),
+--   - each one 30 days after it was read (a server-side fix that keeps the build),
+--   - all of them when the player presses Clear in Settings (Upgrades, Saved item stats).
+-- Only stats that were read are saved; an ending that could not be read is tried at the next search.
+local STORE_FORMAT = 1 -- raise it when what is saved changes: the old entries are dropped
+M.MAX_AGE = 30 * 24 * 3600
+
+local function game_build()
+    return GetBuildInfo and tostring(select(2, GetBuildInfo()) or '') or ''
+end
+
+-- the saved entries, emptied when the format or the game's build changed: key -> {at = time, stats}
+local function store()
+    local saved = aux.account_data.ending_stats
+    if saved.format ~= STORE_FORMAT or saved.build ~= game_build() or type(saved.entries) ~= 'table' then
+        saved.format, saved.build, saved.entries = STORE_FORMAT, game_build(), {}
+    end
+    return saved.entries
+end
+
+local function saved_stats(key)
+    local entry = store()[key]
+    if entry and type(entry.stats) == 'table' and time() - (entry.at or 0) < MAX_AGE then
+        return entry.stats
+    end
+end
+
+local function save_stats(key, item_stats)
+    if type(item_stats) ~= 'table' then return end
+    local copy = {}
+    for name, value in pairs(item_stats) do
+        if type(value) == 'number' then copy[name] = value end
+    end
+    store()[key] = {at = time(), stats = copy}
+end
+
+-- Settings: how many endings are saved, and Clear
+function M.saved_stats_count()
+    local n = 0
+    for _ in pairs(store()) do n = n + 1 end
+    return n
+end
+
+function M.clear_saved_stats()
+    aux.wipe(store())
+end
 
 local function has_ending(record)
     return record.browse_key and (record.browse_key.itemSuffix or 0) ~= 0
@@ -186,7 +235,7 @@ end
 -- could not be read is scored without it (record.base_only), and the status line says so.
 function M.record_stats(record)
     if has_ending(record) then
-        local own = ending_stats[ending_key(record)]
+        local own = saved_stats(ending_key(record))
         if own then
             record.base_only = nil
             return own
@@ -204,7 +253,7 @@ local function read_endings(records, done)
     for _, record in ipairs(records) do
         local location = equip_location(record.item_id)
         local name = has_ending(record) and ending_key(record)
-        if name and (not location or slot_set[location]) and not ending_stats[name] and not names[name] then
+        if name and (not location or slot_set[location]) and not saved_stats(name) and not names[name] then
             names[name] = true
             wanted[version_id(record.browse_key)] = name
             tinsert(keys, record.browse_key)
@@ -226,8 +275,8 @@ local function read_endings(records, done)
         on_auction = function(auction)
             local key = auction.item_search_key
             local name = key and wanted[version_id(key)]
-            if name and not ending_stats[name] then
-                ending_stats[name] = stats.link_stats(auction.link)
+            if name and not saved_stats(name) then
+                save_stats(name, stats.link_stats(auction.link))
             end
         end,
         on_complete = function()

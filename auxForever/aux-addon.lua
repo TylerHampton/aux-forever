@@ -117,6 +117,8 @@ function event.AUX_LOADED()
         unused_item_ids = {},
         auctionable_items = {},
         merchant_buy = {},
+        -- the Upgrades tab's stats of random endings, read from auctions (tabs/upgrades/core.lua)
+        ending_stats = {},
     })
     do
         local key = format('%s|%s', GetRealmName(), UnitName'player')
