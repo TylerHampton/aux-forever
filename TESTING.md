@@ -8,7 +8,7 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.2.1 build 7
+## Current build: 0.8.2.1 build 7 (released as 0.8.2.1 on 2026-11-16, with the crate heading renamed)
 
 Build 6 (a price row of many sellers keeps 20 auctions and counts the rest, review S-08) was not
 tested on its own; build 7 holds it and the fixes from the 2026-11-16 feedback: one click buys a
@@ -68,7 +68,9 @@ Read from his screenshots and notes; no step was marked Pass or Fail.
 - 2, a line of many sellers: passes. Tyler: "I dont know if this worked, I couldnt even unfurl linen
   belt but I could linen bag". As built: all 550 Linen Belts are at one price, so they are one line
   with nothing to open; Linen Bag has many prices and opens.
-- 3, buying 17 from one line: not done. Still needed before the release (the main check of S-08).
+- 3, buying 17 from one line: not done. Tyler, 2026-11-16: "Just save the test for a later date :)
+  and we will monitor feedback." Released without it; a cheaper way to run it (a hidden command
+  that keeps 3 auctions per line, so 3 purchases reach the re-read) is in `docs/status.md`.
 - 4, Live: passes. "1 price level, 550 for sale, live: updated just now", no "too many for Live".
   It said 438 sellers where the Full search said 548 for the same 550: the seller count is an
   upper bound when the game gives a count instead of names (since 0.8, not new; status file).
@@ -85,8 +87,9 @@ Read from his screenshots and notes; no step was marked Pass or Fail.
 - 10, stat of an ending: the healing line shows in Fast and in Full (Mercurial Greaves of Healing,
   Simple Blouse of Healing). Whether it was missing before for these items is not known; "of
   shadow protection" was not tried.
-- 11, crate lines: "Cheapest way to fill it" and the bundles, no "Latest prices" line. The switch
-  turned off was not shown.
+- 11, crate lines: "Cheapest way to fill it" and the bundles, no "Latest prices" line. The switch:
+  Tyler, afterwards: "yes that toggle switch works for the text". The heading was then renamed
+  "Cheapest fill price" for the release (Tyler: "I dont want to test that").
 
 ## 0.8.2.1 build 6
 

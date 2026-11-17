@@ -4584,7 +4584,7 @@ try('0.8: Waylaid Crates in the tooltip and the search', function()
   tooltip.extend_tooltip(tip, '|cffffffff|Hitem:248698::::::0:0|h[Waylaid Crate: Journeyman Textiles]|h|r', 1, data())
   local all = table.concat(lines, '\n')
   -- 0.8.2.1 build 7 (FB-042): the line "Latest prices, less what is in your bags" is gone
-  check('crate tooltip: says what it shows, without the extra line', all:find('Cheapest way to fill it', 1, true) and not all:find('Latest prices', 1, true))
+  check('crate tooltip: says what it shows, without the extra line', all:find('Cheapest fill price', 1, true) and not all:find('Latest prices', 1, true) and not all:find('Cheapest way', 1, true))
   check('crate tooltip: a bundle partly in the bags, priced for the rest', all:find('20 Wool Cloth (12 in bags) | 2s 56c', 1, true) ~= nil)
   check('crate tooltip: the others', all:find('40 Silk Cloth | 5s 60c', 1, true) and all:find('20 Medium Leather | no price yet', 1, true))
   local gold = {aux.color.accent.background()}
@@ -4596,7 +4596,7 @@ try('0.8: Waylaid Crates in the tooltip and the search', function()
   check('crate tooltip: a bundle already in the bags says so', table.concat(lines, '\n'):find('20 Wool Cloth | in your bags', 1, true) ~= nil)
   lines = {}
   tooltip.extend_tooltip(tip, '|cffffffff|Hitem:4575::::::0:0|h[Medicine Staff]|h|r', 1, {lines = {{leftText = 'Medicine Staff'}, {leftText = '+4 Agility'}}})
-  check('crate tooltip: other items get no crate lines', not table.concat(lines, '\n'):find('Cheapest way', 1, true))
+  check('crate tooltip: other items get no crate lines', not table.concat(lines, '\n'):find('Cheapest fill', 1, true))
   -- 0.8.2.1 build 7 (FB-041, suggested by user_tdsvrjvpe8rufw54): a switch turns the crate lines off,
   -- in Settings and with /aux tooltip crate, the same from both
   local tooltip_settings = aux.character_data.tooltip
@@ -4605,11 +4605,11 @@ try('0.8: Waylaid Crates in the tooltip and the search', function()
   check('crate switch: /aux tooltip crate turns it off', tooltip_settings.crate == false)
   lines = {}
   tooltip.extend_tooltip(tip, '|cffffffff|Hitem:248698::::::0:0|h[Waylaid Crate: Journeyman Textiles]|h|r', 1, data())
-  check('crate switch: off, a crate gets no crate lines', not table.concat(lines, '\n'):find('Cheapest way', 1, true))
+  check('crate switch: off, a crate gets no crate lines', not table.concat(lines, '\n'):find('Cheapest fill', 1, true))
   SlashCmdList.AUX('tooltip crate')
   lines = {}
   tooltip.extend_tooltip(tip, '|cffffffff|Hitem:248698::::::0:0|h[Waylaid Crate: Journeyman Textiles]|h|r', 1, data())
-  check('crate switch: on again, the lines are back', tooltip_settings.crate == true and table.concat(lines, '\n'):find('Cheapest way', 1, true) ~= nil)
+  check('crate switch: on again, the lines are back', tooltip_settings.crate == true and table.concat(lines, '\n'):find('Cheapest fill', 1, true) ~= nil)
   local frame_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
   local crate_box
   for _, box in ipairs(frame_env.tooltip_boxes or {}) do if box.key == 'crate' then crate_box = box end end

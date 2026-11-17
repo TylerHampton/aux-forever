@@ -1,140 +1,50 @@
 # Status
 
-Last updated 2026-11-16, Tyler's time (build 7).
+Last updated 2026-11-16, Tyler's time (0.8.2.1 released).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-10 is there).
 
 ## Start here (next session)
 
-**Released:** 0.8.2 (tag `v0.8.2` on `main`, GitHub release, CurseForge Beta file), 2026-11-09.
+**Released:** 0.8.2.1 on 2026-11-16 (pull request to `main`, Release workflow: tag `v0.8.2.1`,
+GitHub release, CurseForge Beta file). What it holds: `docs/changelog.md`, "0.8.2.1". How it was
+built and tested, build by build: `docs/status-history.md` (top) and `TESTING.md`.
 
-**Being built:** 0.8.2.1 build 7 on branch `claude/festive-faraday-w1xbvz` (`main` plus this work).
-Build 7 = build 6 (S-08, untested) plus the 2026-11-16 feedback fixes (Tyler: "let's do the build"):
-one click buys a trade good, no Confirm (FB-048, Tyler's decision after the safety question below);
-every item takes copper prices (FB-044); the "on your mouse pointer" message and Blizzard's hidden
-Sell tab (FB-046); a switch for the crate tooltip lines and the extra line gone (FB-041, part of
-FB-042); Fast row tooltips take a sample link first (FB-045, cause not confirmed). Each with a test
-broken once on purpose; 400 random-player sessions clean.
-Tyler tested build 4 on 2026-11-11: what he ran works (Full scan, Sniper, Full search, posting, the
-price box, the search bar, `/aux memory`); he skipped the Bids buttons, the gamepad fight and
-leaving the Post tab. Results in `TESTING.md`, "0.8.2.1 build 4". Build 5 (no "Table full!" popup)
-was not tested; build 6 holds it plus S-08, the real fix for the full table (built 2026-11-11 with
-Tyler's yes, not yet seen in game). No pull request yet.
+**Tyler, after the release:** paste `docs/curseforge-description.md` into the CurseForge page (it
+now says a trade good is bought with one click).
 
-**What the build 4 test showed:**
-- Full scan: 220,508 auctions in 48.5 s (30.3 s waiting for the auction house, 2.0 s the list,
-  16.2 s reading). The total did not change much; the review's estimate that reading was most of
-  the 50 s was wrong (corrected under R-07 in the review file, in the changelog and in FB-027).
-- R-05 is closed: no answer went through the 1 second fallback, so there is nothing to gain.
-- "Table full!" on a Full search for `linen`, with 16 of 36 items not shown (inferred). Build 5
-  replaces the popup with a line next to the results and one chat line. Build 6 is the real fix
-  (S-08): a price row keeps 20 real auctions and counts the rest, and is read again when it runs
-  low, so every item fits. How it was built and tested: under S-08 in the review file.
-- FB-040: Tab does not complete in the search bar for Tyler. Logged with a proposed way to build
-  it; one question to Tyler is open (what Tab did).
-- S-09: the Post tab's receipt shows a starting bid for a trade good when no price is typed. Not
-  fixed.
+**Nothing is being built.** The next version is not chosen; candidates below and in
+`docs/roadmap.md` (0.9: shopping lists and writs, an automatic Full scan option, posting rules).
 
-**What 0.8.2.1 is.** On 2026-11-10 Tyler asked Claude for a full review of the code as an outside
-expert, then to build the fixes ("I want you to write all the changes as well"), then said yes to
-the two open questions and left Claude to "fix everything you can". The review is
-`docs/reviews/2026-11-10-outside-review.md`: 28 findings (R-01 to R-28), each answered under it,
-plus a second pass over the files it had only skimmed (S-01 to S-04) and three fixes found by a
-random player in the tests (S-05 to S-07, build 4, 2026-11-11). 21 fixed, 4 in part, 3 not
-built. Every fix has a test that fails without it (each was broken on purpose once to see its test
-fail). What changed, by area:
-- Sniper: a round without the whole item list no longer marks deals gone (R-01, R-02); items are
-  judged again after a Full scan and on a new day (R-03); a re-read gear deal takes the price of the
-  auction found (R-14); Ignore item works by name (R-20).
-- A partly arrived item list is noticed and handled in Search, Live, Post and the Auctions check
-  (R-02; `core/scan.lua` hands `on_complete` a result with `no_list`, `partial_list`, `unread`).
-- Full scan speed (FB-027): pauses by the clock (`aux.coro_due`, `SLICE_MS = 8` in `control.lua`),
-  no auction record per listing (`info.replicate_reader`), unloaded listings a share at a time
-  (R-07 to R-09). In the test harness 200,000 auctions went from 2,052 frames to 145. The clock is
-  the game's `debugprofilestop`, which is in Blizzard's documentation for Forever (Code, build
-  70888); without it aux falls back to the old counts.
-- Prices not seen for 90 days are forgotten, once a day at login (R-10, Tyler: yes).
-- Gamepad: the buttons go back to the game when a fight starts and come back after it (R-19,
-  Tyler: yes). Not seen in game; it only acts when the game says it is not locked yet.
-- Bids buttons (R-04), `/aux clear post` (R-06), price boxes (R-15), events and threads (R-18),
-  lighter bag count (R-11), fewer table redraws (R-12), login work (R-13), the short list of R-20,
-  search bar typing (S-01), right-click searches on unknown items (S-02).
-- Build 4, found by the random player: leaving the Post tab while gear listings are read raised
-  an error (S-05); the buy bar's click could act on a newer selection or price than its label
-  (S-06, the bar now remembers what it drew: `shown` in `gui/buy_bar.lua`); a click on Post past
-  the fade (S-07, `post_auction` asks `disabled_reason()` itself).
-- The random player: `tests/fuzz_test.lua`, run at the end of `load_test.lua` (6 short sessions by
-  default; `AUX_FUZZ_SEEDS=400 AUX_FUZZ_STEPS=250` for a long run, clean on 2026-11-11). Stub
-  buttons now know whether they are enabled, and `Click()` respects it (`AGENTS.md`, Tests).
-- Tests: swapped fields are restored (R-21); game functions, events and enums are checked against
-  Forever's real list, `tests/forever_api.lua` (R-22); `tests/lint_globals.lua` finds misspelled
-  names (R-24); the run prints its check count (1,311); the slow auction house can cut or withhold
-  an item list and gives each auction its own ID. Blizzard's code is reachable from a cloud
-  session: clone `Gethe/wow-ui-source`, branch `forever`, with `--filter=blob:none --no-checkout`.
+**Saved for later (Tyler, 2026-11-16: "Just save the test for a later date :) and we will monitor
+feedback"):** the in-game check of buying through a row of many sellers (S-08; build 7 step 3,
+17 purchases of Linen Belt was too costly). A cheaper way when it is run: a hidden test command
+that sets `FOLD_KEEP` to 3 and `REFILL_AT` to 2, so 3 purchases at 1s reach the re-read. If it
+fails the worst case is the display (a row gone early, a count off by one until the next search),
+not money: each purchase pays the real auction's own price.
 
-**Not built, and why** (answers in the review file): R-05 (measure first), R-27 (needs a sale in
-game), R-28 (structure, for a later version), the test file split (R-23), naming the release action
-by commit (R-25), and one part each of R-16 and R-20 (each would change something that works today).
+**Watch in player feedback:** one-click buying (FB-048) and copper on gear (FB-044), both seen
+working by Tyler; the locked-item message with bag addons (FB-046, not seen in game); "of Shadow
+Protection" tooltips (FB-045, not tried).
 
-**Tested:** build 7 by Tyler on 2026-11-16 (results in `TESTING.md`, "0.8.2.1 build 7"). Seen in
-game for the first time: one click buys a trade good (18c on a 19c button), gear posts at copper
-prices (5s 69c) and undercut goes 1 copper below, a Full search for `linen` shows all 37 items, Live
-keeps a row of 550, the healing line shows in Fast and Full tooltips, the crate tooltip has no
-"Latest prices" line. Tab accepts a suggestion (FB-040 closed); the Full scan felt smooth
-(`SLICE_MS` stays 8).
-
-**Next step:** step 3, the one step not done: buy 17 Linen Belts one after another from the line
-of many sellers (the main check of S-08: the row reads its item again around the 16th). If it
-passes and Tyler says so: changelog date, pull request to `main`, merge, Release workflow, then
-Tyler pastes `docs/curseforge-description.md` (one-click buying).
-
-**Why Confirm could go (FB-048):** the safety is a check aux makes before paying (a server price
-above the button's is cancelled), not the second click; the second click could only confirm a
-price at or below what the player had already clicked. The game needs a click to ask for the
-price, not to confirm it (Code, Outside: `docs/forever-auction-house.md`, section 6). Not yet seen
-in game.
-
-**S-08 in short (build 6):** `collect` in `tabs/search/results.lua` keeps `FOLD_KEEP = 20` auctions
-per price row and counts the rest; `REFILL_AT = 5` reads the row's item again. Tests: one in
-`load_test.lua` and six timing tests ("S-08" in their checks), each part broken once on purpose; the
-random player has a row of 12 sellers with 3 kept. What to watch in Tyler's test: that "For sale"
-follows the purchases and that no purchase costs more than the button (the harness says yes; the
-game's own order of answers is not known, Unknown).
-
-**Feedback of 2026-11-16 (CurseForge, logged in `docs/feedback.md`; FB-041, 044, 045, 046 and 048
-built in build 7, the notes below are from before):**
-- FB-044 (bug, S2, 2 players): aux rounds gear to whole silver; two players say Blizzard's window
-  now posts copper on gear (Outside; Tyler's own try on 2026-10-19 failed). Experiment E8 in
-  `docs/forever-auction-house.md`. If copper works, the recommended fix is copper for every item,
-  not the player's "only when a listing has copper" idea (that would still refuse what Blizzard
-  allows).
-- FB-046 (bug, S2): "Not posted: the item is on your mouse pointer..." when it is not, with Bagnon.
-  Likely causes in the entry (Blizzard's hidden Sell tab keeping the item locked; a post still on
-  its way); fixable without knowing which.
-- FB-041 (request): a switch for the crate tooltip lines, like the other tooltip lines. Small.
-- FB-042, FB-043 (requests): crate cost with rewards (favor, reputation, silver) and a crate list;
-  0.9 with writs, need what a crate pays.
-- FB-045 (bug, S3): the stat of "of Healing" and "of Shadow Protection" missing in search; where
-  it is missing is not known.
-- FB-047: praise.
-
-**Noted for later (not a regression):** "N sellers" is an upper bound. When one auction house row
-holds several sellers the game gives a count, not names, so a seller listed under two time lefts is
-counted twice; build 7's test showed 548 sellers in Full and 438 in Live for the same 550 Linen
-Belts. Since 0.8 (one row per price). A fix would need the names of every seller in a row, which
-the game may not give (not checked).
+**Open items (not built):**
+- "N sellers" is an upper bound: when one auction house row holds several sellers the game gives a
+  count, not names, so a seller in two rows counts twice (548 in Full, 438 in Live for the same
+  550 Linen Belts in build 7's test). Since 0.8. A fix needs every seller's name, which the game
+  may not give (not checked).
+- S-09: the Post tab's receipt shows a starting bid for a trade good when no price is typed.
+- FB-042, FB-043: crate cost with Merchant's Favor and reward silver, and a list of every crate and
+  writ; 0.9 with writs. Crates pay Favor and silver, writs reputation (Outside, guides).
+- Not built from the outside review: R-27 (needs a sale in game), R-28 (structure), R-23, R-25, and
+  one part each of R-16 and R-20 (review file).
 
 **Open questions for Tyler:**
-0. From the 2026-11-16 feedback: FB-046, whether he has Bagnon; FB-042, what a crate's turn-in
-   pays (a screenshot). E8 and FB-045's question are build 7 steps 8 and 10.
-1. The two questions of build 5: what Tab did (FB-040), and how the game felt while the Full scan
-   read (decides whether `SLICE_MS` stays 8).
-2. R-27: one sale and a screenshot of its "Auction successful" mail (experiment E1 in
-   `docs/forever-auction-house.md`) settles the 5% cut that aux shows as fact. One auction left to
-   expire (E4) settles the deposit tooltip's "kept if the auction expires".
-3. From before the review: replies to the players of the 2026-11-08 feedback batch are not written;
-   does he want them? FB-039 (a player's Full scan "wasnt working") has no details yet.
+1. FB-046: does he use Bagnon? FB-042: a screenshot of a Waylaid Crate's turn-in reward.
+2. R-27: one sale and a screenshot of its "Auction successful" mail (experiment E1) settles the 5%
+   cut aux shows as fact; one auction left to expire (E4) settles "kept if the auction expires".
+3. Replies to the players of the 2026-11-08 and 2026-11-16 feedback batches are not written; does
+   he want them?
 
 **Roles (Tyler, 2026-10-26):** Claude Code is the primary engineer; Gemini (Gemini 4 Argon) gives
 second opinions in `docs/reviews/` (`AGENTS.md`, "Roles"). Agents talk through `docs/handoff.md`;

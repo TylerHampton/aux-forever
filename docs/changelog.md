@@ -6,7 +6,7 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
-## 0.8.2.1 (not released yet)
+## 0.8.2.1 (2026-11-16)
 
 Fixes and speed from a full review of the code (2026-11-10,
 `docs/reviews/2026-11-10-outside-review.md`). Nothing to do when updating; `/reload` is enough.
@@ -85,9 +85,9 @@ Fixes and speed from a full review of the code (2026-11-10,
 ### Tooltips
 
 - The Waylaid Crate lines in tooltips have a switch: "Waylaid Crates" in Settings, or
-  `/aux tooltip crate`. They were always shown. The line "Latest prices, less what is in your
-  bags" under "Cheapest way to fill it" is gone; each bundle still says how many you have (suggested
-  by user_tdsvrjvpe8rufw54).
+  `/aux tooltip crate`. They were always shown. Their heading reads "Cheapest fill price" (it was
+  "Cheapest way to fill it"), and the line "Latest prices, less what is in your bags" under it is
+  gone; each bundle still says how many you have (suggested by user_tdsvrjvpe8rufw54).
 
 ### Post
 
