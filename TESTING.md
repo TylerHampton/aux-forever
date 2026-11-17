@@ -100,6 +100,11 @@ restart**. Have a few gold on you, and pick a cheap row to buy.
 - [ ] 29. Close Settings, go to Upgrades, Two-Hand, and press **Search**. Tell me whether the
       "Reading the stats of each ending (3 of 20)..." line appears. If it does not appear, the Full
       scan saved them. If it does, write down its numbers (for example "3 of 20").
+- [ ] 30. (Retry, added 2026-11-17.) Press **Clear** under "Saved item stats", run a **Full scan**
+      once the button lights up, wait for "Full scan complete" plus 10 seconds, and `/reload`. Then
+      on Upgrades search **Chest**, **Back** and **Wrist** as last time. Write down the numbers on
+      each "Reading the stats of each ending" line, or "none" if it does not appear (last time
+      there were 21 in all).
 
 ## Upgrades experiments (branch `search-upgrade-support`, before any code)
 

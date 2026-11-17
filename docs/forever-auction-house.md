@@ -324,4 +324,5 @@ page once carried them as build id `ah-facts-1`.
   same item level, so the two item levels match. The 21 names had a market price for that day,
   which only a complete look such as the Full scan writes, so the scan saw those listings, but no
   stats were saved for them. **[Inference]**: `GetItemStats` gave nothing for those links at that
-  moment (the game had not loaded them yet), and aux does not try again.
+  moment (the game had not loaded them yet), and aux does not try again. Since the same day aux
+  tries those names again every second, 5 times (`TESTING.md` step 30).

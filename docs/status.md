@@ -42,6 +42,9 @@ listings' links (no extra request; after the scan, 50 a frame; `on_full_scan_rec
 `on_full_scan_end` in `core/scan.lua`, used in `tabs/upgrades/core.lua`). Test in
 `tests/load_test.lua`, checked to fail without it. Two Unknowns (E11 in
 `docs/forever-auction-house.md`), checked by steps 28 and 29. Next: steps 1 to 29.
+Result (Ben, E11): the scan saved 11,354 names, Chest, Back and Wrist read only 21 themselves,
+item levels match; the 21 got no stats from the game at that moment. Now retried every second,
+5 times (`FULL_SCAN_RETRIES`), test in `tests/load_test.lua`. Step 30. Next: steps 1 to 30.
 Note: under LuaJIT (this Mac has no lua5.1) "sniper memory: no growth" failed once and passed on
 three reruns; GitHub Actions runs real Lua 5.1.
 

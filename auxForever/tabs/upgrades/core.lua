@@ -258,6 +258,7 @@ end
 -- item level. That the two match, and that a Full scan link carries the ending's stats, is not yet
 -- seen in game (TESTING.md, step 28): if not, the tab reads them itself, as before.
 M.FULL_SCAN_PER_FRAME = 50
+M.FULL_SCAN_RETRIES, M.FULL_SCAN_RETRY_SECONDS = 5, 1
 local scan_links = {}
 
 local function full_scan_key(record)
@@ -276,11 +277,30 @@ scan.on_full_scan_end(function()
     scan_links = {}
     if not next(links) then return end
     aux.coro_thread(function()
-        local n = 0
-        for key, link in pairs(links) do
-            save_stats(key, stats.read_link_stats(link))
-            n = n + 1
-            if n % FULL_SCAN_PER_FRAME == 0 then aux.coro_wait() end
+        -- one pass over the names; a name the game gave no stats for is kept for the next pass
+        local function pass(list)
+            local missed, n = {}, 0
+            for key, link in pairs(list) do
+                local item_stats = stats.read_link_stats(link)
+                if item_stats then
+                    save_stats(key, item_stats)
+                else
+                    missed[key] = link
+                    GetItemInfo(link) -- asks the game to load it [Outside: how the modern client loads items]
+                end
+                n = n + 1
+                if n % FULL_SCAN_PER_FRAME == 0 then aux.coro_wait() end
+            end
+            return missed
+        end
+        -- Ben's first Full scan (2026-11-17, E11): 21 of 11,375 names got no stats on the first
+        -- pass, then cost a request each on the tab. They are tried again every second, 5 times.
+        local missed = pass(links)
+        for _ = 1, FULL_SCAN_RETRIES do
+            if not next(missed) then return end
+            local t0 = GetTime()
+            while GetTime() - t0 < FULL_SCAN_RETRY_SECONDS do aux.coro_wait() end
+            missed = pass(missed)
         end
     end)
 end)

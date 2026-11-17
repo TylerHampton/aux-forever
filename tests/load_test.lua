@@ -2928,6 +2928,7 @@ try('upgrades: a Full scan saves the stats of every ending', function()
   local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
   local endings = {'of the Bear', 'of the Owl'}
   for i = 1, 118 do tinsert(endings, 'of Test ' .. i) end
+  tinsert(endings, 'of Never') -- the game never gives its stats
   local list = {}
   for i, ending in ipairs(endings) do
     tinsert(list, {id = 7201, name = 'Oak Club ' .. ending, buyout = 1000 + i})
@@ -2946,10 +2947,13 @@ try('upgrades: a Full scan saves the stats of every ending', function()
     if id == 7201 then return 'Oak Club', '|cff1eff00|Hitem:7201::::::::20:::::|h[Oak Club]|h|r', 2, 20, 15, 'Weapon', 'Two-Handed Maces', 1, 'INVTYPE_2HWEAPON', 1, 1 end
     if id == 9101 then return 'Peacebloom', '|cffffffff|Hitem:9101::::::0:0|h[Peacebloom]|h|r', 1, 1, 1, 'Trade Goods', 'Herb', 20, '', 1, 1 end
   end)
-  local reads = 0
+  local reads, owl_reads, never_reads = 0, 0, 0
   set(C_Item, 'GetItemStats', function(link)
     reads = reads + 1
     if link:find('of the Bear', 1, true) then return {ITEM_MOD_STRENGTH_SHORT = 5} end
+    -- E11: the game gives nothing for some links at first (not loaded yet)
+    if link:find('of the Owl', 1, true) then owl_reads = owl_reads + 1; if owl_reads <= 2 then return nil end end
+    if link:find('of Never', 1, true) then never_reads = never_reads + 1; return nil end
     if link:find('Peacebloom', 1, true) then return {} end
     return {ITEM_MOD_STAMINA_SHORT = 1}
   end)
@@ -2965,9 +2969,13 @@ try('upgrades: a Full scan saves the stats of every ending', function()
   check('upgrades full scan: the scan finishes', full_scan())
   local right_after = up.saved_stats_count()
   for _ = 1, 10 do tick() end
-  check('upgrades full scan: a few names a frame, not all at once', right_after < 120)
-  check('upgrades full scan: every ending name saved, the herb not', up.saved_stats_count() == 120)
-  check('upgrades full scan: one read per name, not per listing', reads == 120)
+  check('upgrades full scan: a few names a frame, not all at once', right_after < 121)
+  check('upgrades full scan: one read per name, not per listing', reads == 121)
+  check('upgrades full scan: a name with no stats yet is not saved empty', up.saved_stats_count() == 119 and owl_reads == 1)
+  for _ = 1, 80 do tick() end
+  check('upgrades full scan: it is tried again and saved once the game has it', up.saved_stats_count() == 120 and owl_reads == 3)
+  check('upgrades full scan: every ending name saved, the herb not', a.account_data.ending_stats.entries['7201:20:oak club of the owl'] ~= nil and a.account_data.ending_stats.entries['9101:0:peacebloom'] == nil)
+  check('upgrades full scan: one that never loads is tried 5 more times, then left to the tab', never_reads == 6 and up.saved_stats_count() == 120)
   local entries = a.account_data.ending_stats.entries
   local bear = entries['7201:20:oak club of the bear']
   check('upgrades full scan: by item, item level and name', bear and bear.stats.ITEM_MOD_STRENGTH_SHORT == 5)
