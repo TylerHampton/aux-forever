@@ -139,6 +139,7 @@ cd auxForever
 lua5.1 ../tests/load_test.lua      # must end with: done, errors: 0
 lua5.1 ../tests/load_test.lua classic   # the same in the Classic look (0.6)
 for f in $(find . -name '*.lua'); do luac5.1 -p "$f"; done   # syntax check
+cd .. && lua5.1 tests/lint_globals.lua  # must end with: lint: 0 unknown names
 ```
 
 - Setup on Ubuntu/Debian (also a Jules setup script): `sudo apt-get update && sudo apt-get install -y lua5.1 zip`
@@ -146,7 +147,19 @@ for f in $(find . -name '*.lua'); do luac5.1 -p "$f"; done   # syntax check
   and attaches the installable addon to the run. If Lua is not installed locally, push and read the
   result there.
 - Add a test for each bug fixed and each feature. Check that it fails without the change
-  (break the code on purpose, run, restore).
+  (break the code on purpose, run, restore). The run prints `checks: N` before its last line: a
+  number that drops means a block of tests stopped running.
+- The stubs know Forever's real game functions (2026-11-10, outside review R-22): a `C_` function,
+  an event or an `Enum` member that Forever does not have is an error in the tests, and enums hold
+  the game's own values. The list is `tests/forever_api.lua`, made from Blizzard's generated
+  documentation by `tests/tools/make_forever_api.lua` (how to run it is at its top). Run it again
+  after a Blizzard patch, or when the addon starts using a new `C_` namespace or `Enum`.
+- `tests/lint_globals.lua` lists every name the addon reads that nothing defines, which is how a
+  misspelled name shows in this module system (it is silently nil). A game global the addon newly
+  reads goes into `tests/known_globals.lua` once it is checked to exist on Forever.
+- A test that swaps a field for a fake (`rawset(t, k, fake)`) ends with `rawset(t, k, nil)`: in
+  the test files that puts back what the field held before, so the real function is there again
+  for later tests (R-21).
 - The harness uses Forever's real auction house categories (`tests/forever_categories.lua`: Weapons,
   One-Handed, Daggers and so on, with the filters each one sends), made from Blizzard's code by
   `tests/tools/make_forever_categories.lua` (how to run it is at its top). After a Blizzard patch
@@ -161,6 +174,17 @@ for f in $(find . -name '*.lua'); do luac5.1 -p "$f"; done   # syntax check
   is on its way, and check what reached the server (`server.posts`, `server.purchases`), not only
   what the screen says. Click buttons only when the addon would have them enabled
   (`click_post` there): calling `OnClick` straight past a faded button hid FB-021.
+- The random player (0.8.2.1, `tests/fuzz_test.lua`, run at the end of `load_test.lua`): a player
+  who does random things in every tab (shop, snipe, sell, manage; every third run with a gamepad)
+  against the slow auction house. After each step it checks that there was no Lua error and that
+  what reached the server is what the button showed; at the end, that nothing is left running. It
+  runs 6 short sessions by default. After a change to buying, posting, scans or the gamepad, run
+  many: `AUX_FUZZ_SEEDS=400 AUX_FUZZ_STEPS=250 lua5.1 ../tests/load_test.lua` (a few minutes). A
+  failure names its seed; `AUX_FUZZ_SEED=<n>` plays that one again and prints its steps. What it
+  finds becomes a fix plus a plain test of its own, as for any bug.
+- Stub buttons know whether they are enabled (`Enable`, `Disable`, `SetEnabled`, `IsEnabled`) and
+  `button:Click()` runs `OnClick` only when they are, as in the game. Click with `Click()` in new
+  tests. A slider's `GetMinMaxValues` returns 0, 100.
 - Harness limits: `GetChecked`, `HasFocus` and `IsMouseOver` always return false; `SetShown` does
   nothing; `Get*` methods return fresh stub frames (but frames made with `CreateFrame` know their
   parent, children, type and frame strata, since 0.8); `SetText` does not fire `OnTextChanged`, so
@@ -229,7 +253,10 @@ Load order is the TOC (`auxForever/auxForever.toc`).
   auctions at one buyout price are one row whatever the seller and time left (`price_group` in
   `UpdateRowInfo`, Tyler: "Why are we separating these lines?"); the row keeps one real auction
   (the one bought), `one_row_each` tables (Auctions) keep every auction apart.
-  `gui/buy_bar.lua`: buying under the search results.
+  Since 0.8.2.1 build 6 (S-08) a search keeps at most `FOLD_KEEP` (20) auctions per price row and
+  counts the rest (`collect` in `tabs/search/results.lua`: `search.kept`, `search.folded`); the
+  table adds the counts to the row (`SetDatabase(records, folded)`), and a row running low reads
+  its item again (`refill`). `gui/buy_bar.lua`: buying under the search results.
 - `tabs/search/`: `core.lua` (sub tabs), `results.lua` (searches, history arrows), `saved.lua`
   (favorites and recent), `quick.lua` (quick search menu), `filter.lua` (Filter Builder logic:
   condition tree, search text, "In words"), `frame.lua` (Search tab widgets),
@@ -261,8 +288,11 @@ aux runs inside the game; every frame it spends time in costs the player frame r
   all game long, even with the auction house closed. Use events, or a timestamp check inside a
   tab's own `on_update` (which only runs while the tab is shown).
 - No work that grows with the square of anything per frame or per event.
-- Long loops (thousands of items: the Sniper, fast lists, full scans) yield with `aux.coro_wait()`
-  every few hundred items so the game does not stutter.
+- Long loops (thousands of items: the Sniper, fast lists, full scans) pause so the game does not
+  stutter: `aux.coro_slice(i, every)` (0.8.2.1) pauses when the thread has used its share of the
+  frame (`SLICE_MS` in `control.lua`, by the game's clock `debugprofilestop`), or every `every` items
+  when there is no clock. Not a fixed count: 100 auctions a frame made the Full scan as slow as the
+  frame rate.
 - Prefer one request over many: the item list (one request per 500 items) over one search per
   item, and read single items only when needed.
 - Tests guard the rules above (`per-frame work` in `tests/load_test.lua`); add one when you add an
@@ -277,6 +307,11 @@ aux runs inside the game; every frame it spends time in costs the player frame r
   directly there, not `aux.color` (the global `aux` is the saved variables table).
 - Lua 5.1 only (WoW): no `goto`, no `//`, no integer types. Use WoW globals such as `tinsert`,
   `strlower`, `format`.
+- A scan hands `on_complete` a result (0.8.2.1): `no_list` (the auction house did not send the item
+  list), `partial_list` (only part of it arrived), `unread` (items that could not be read), `full`
+  (a Full scan's timings). Code that draws a conclusion from what a scan did not find ("gone",
+  "none for sale", "lowest") asks `scan.saw_everything(result)` first. A Full scan started without
+  `on_auction` builds no auction records; `on_progress(done, total)` says how far it is.
 - Never wrap code that waits (`aux.coro_wait`, any scan request) in `pcall`: Lua 5.1 cannot yield
   inside a `pcall`, so it fails at once. The test harness only notices if the stubbed answer
   arrives on a later tick, as in the game.
@@ -286,6 +321,11 @@ aux runs inside the game; every frame it spends time in costs the player frame r
   `char`, `focus_gain`, `focus_loss`. Right click clears it.
 - The modern client takes edit box focus away on any mouse press. Dropdown options therefore act
   on `OnMouseDown`, and the menu stays open while hovered (`gui/core.lua`).
+- A button's label and what its click does must come from the same moment (0.8.2.1). A button
+  redrawn by a timer can show an older price or selection than the one its click reads; the buy
+  bar keeps what it last drew (`shown` in `gui/buy_bar.lua`) and a click that does not match it
+  only redraws. A click handler also checks its own condition again (`post_auction` asks
+  `disabled_reason()`), since a button faded by a timer can be lit a moment too long.
 - Never hide and re-show a button every frame: the game drops clicks on it (this broke Cancel on
   the buy bar). Show or hide only when the state changes.
 - Rounded styling: `gui.set_frame_style` replaces `SetBackdropColor`/`SetBackdropBorderColor` on
@@ -298,13 +338,19 @@ aux runs inside the game; every frame it spends time in costs the player frame r
   below the shown price. Keep that guarantee.
 - Posting: an item auction's buyout must be above its starting bid, or the server answers
   "Internal auction error"; an equal bid is dropped (`item_post_prices` in `tabs/post/core.lua`).
-  Gear is priced in whole silver; commodities may use copper. The auction house cut is the
+  Every item takes copper prices since 0.8.2.1 build 7 (FB-044; gear was whole silver before). The auction house cut is the
   constant `AUCTION_CUT = .05` (Outside, not yet seen on an invoice). Deposits come from the game
   (`CalculateItemDeposit`).
 - The Post tab matches the lowest price by default, on the belief that on Forever the newest
   listing at a price sells first. That belief has no recorded source (Unknown, experiment E6 in
   `docs/forever-auction-house.md`); do not tell players it as fact. Undercut mode (goblin switch)
   goes one step below. Undercut mode always starts off.
+- Search results are a collection (`new_collection`): add an auction with `collect`, never with
+  `tinsert(search.records, ...)` (gear would skip the fold and fill the table again, S-08), take
+  one out with `remove_record` (it keeps `kept` right and reads the row again when it runs low),
+  and give the table the counts with the records: `search.table:SetDatabase(search.records,
+  search.folded)`. Anything that adds up units at a price from `search.records` must add
+  `search.folded` too (`folded_units`, `crate_live_costs`). Trade goods are never folded.
 - Tables sort by column number (`listing:SetSort(2, 8)`; the last number is the main sort). Adding
   a column shifts the numbers after it: update every `SetSort` of that table (0.7, a test checks
   the main sort of each tab).
@@ -382,7 +428,8 @@ as interactive HTML pages; an HTML file Tyler can open in a browser works the sa
 
 ## Where to find more
 
-- `docs/status.md`: current state, decisions, open items. Keep it up to date.
+- `docs/status.md`: current state, the next step, open questions. Keep it up to date and short;
+  notes of released versions move to `docs/status-history.md` (everything before 2026-11-10).
 - `docs/feedback.md`: every piece of player feedback, one numbered entry each (FB-001, ...),
   with the player's exact words and its status. Check it before planning a version; update an
   entry's status when you fix or build it.

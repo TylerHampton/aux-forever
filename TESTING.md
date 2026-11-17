@@ -8,7 +8,174 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.2 build 8
+## Current build: 0.8.2.1 build 7 (released as 0.8.2.1 on 2026-11-16, with the crate heading renamed)
+
+Build 6 (a price row of many sellers keeps 20 auctions and counts the rest, review S-08) was not
+tested on its own; build 7 holds it and the fixes from the 2026-11-16 feedback: one click buys a
+trade good (no Confirm), gear takes copper prices, the "on your mouse pointer" message, the crate
+tooltip switch, and Fast row tooltips. Zip `auxForever-0.8.2.1-build7.zip`; `/reload` is enough
+(no new files). Test page build id `0-8-2-1-build-7`. Steps 1 to 6 are build 6's.
+
+- [ ] 1. Search tab: click Full (next to Fast), type `linen` and press Enter. Wait until the line
+      next to the sub tabs ends in "searched just now". No popup comes up, and that line has no red
+      "table full" part. Its first number is how many items were found (build 4 showed 20 of the
+      36 it read). Screenshot the aux window.
+- [ ] 2. In those results, find a gear line whose Seller column says many sellers, for example
+      "585 sellers" next to Linen Belt (if the item is folded up, click it to see its prices). Its
+      "For sale" number should be well above 20. Screenshot that line.
+- [ ] 3. Buying from a row of many sellers. This spends a little gold: 17 of a cheap piece of gear,
+      about 17s for Linen Belt at 1s. Search `linen belt/exact` (or another cheap item from step 2),
+      click its line with the most sellers and write down its "For sale" number. Then press Buy 17
+      times, each time waiting for the button to light up again. Each time the button should say
+      the same price, that line should stay selected, and "For sale" should go down by one. Around
+      the 16th, aux reads the item again by itself; the line may flicker, keep going. In the note:
+      the "For sale" number before and after, and whether any purchase cost more than the button
+      said. Screenshot at the end.
+- [ ] 4. With `linen belt/exact` still in the search bar, click Live. Wait until it has counted
+      down twice ("Live 5s" to 0). The line next to the sub tabs does not say "too many for Live",
+      and the Linen Belt line still shows its full "For sale" number. Click Live again to stop it.
+- [ ] 5. A question (from build 5). Click the search bar and slowly type `line`. When the bar has
+      filled in "linen cloth/exact", press Tab once, then type a slash (/). Write what the bar reads
+      now, what happened when you pressed Tab, and what you wanted Tab to do (FB-040).
+- [ ] 6. A question (from build 5); no need to scan again if you remember. While the Full scan's
+      bar said "reading auctions", did the game stay smooth or stutter?
+- [ ] 7. Buying with one click. Search `linen cloth/exact`, click the cheapest row, and click Buy
+      once with 1 picked (the "1" button). The button says "Buying...", then the bar says "Bought
+      1 × Linen Cloth for" and a price. There is no Confirm button. The price it says is the one
+      the Buy button showed, or lower.
+- [ ] 8. Copper on gear (FB-044). Post tab: pick a cheap white or green item from your bags (not a
+      trade good), type `1s 89c` as the buyout and leave the starting bid empty, then Post. It
+      says "Posted". Then the Auctions tab lists it at 1s 89c. If it says "Not posted", copy the
+      whole message.
+- [ ] 9. Undercut on gear. Still on the Post tab, pick a piece of gear that someone else sells,
+      and click the goblin (undercut) switch: the line under the price reads "1 copper below the
+      lowest listing". Screenshot the Post tab.
+- [ ] 10. The stat of an ending (FB-045). Search `of healing` with Fast picked. Point the mouse at
+      the icon of a row, without clicking: does the tooltip show the healing line? Then click
+      Full, search again and point at a row the same way. Write which showed it (Fast, Full,
+      both, neither). The same with `of shadow protection` if you have time.
+- [ ] 11. Crate lines switch (FB-041), only if you have a Waylaid Crate. Point at the crate in your
+      bags: under the game's text, "Cheapest way to fill it" and the bundles, with no "Latest
+      prices" line under it. Open Settings (the gear in aux's top bar): "Waylaid Crates" in the
+      tooltip column. Turn it off and point at the crate again: aux's lines are gone. Turn it
+      back on.
+
+### Results (Tyler, 2026-11-16, test page `0-8-2-1-build-7`)
+
+Read from his screenshots and notes; no step was marked Pass or Fail.
+- 1, Full search `linen`: passes. "37 items, 36,739 for sale, searched just now", no "table full"
+  (build 4 showed 20 of 36). Linen Belt: 550 for sale, 548 sellers, 1s.
+- 2, a line of many sellers: passes. Tyler: "I dont know if this worked, I couldnt even unfurl linen
+  belt but I could linen bag". As built: all 550 Linen Belts are at one price, so they are one line
+  with nothing to open; Linen Bag has many prices and opens.
+- 3, buying 17 from one line: not done. Tyler, 2026-11-16: "Just save the test for a later date :)
+  and we will monitor feedback." Released without it; a cheaper way to run it (a hidden command
+  that keeps 3 auctions per line, so 3 purchases reach the re-read) is in `docs/status.md`.
+- 4, Live: passes. "1 price level, 550 for sale, live: updated just now", no "too many for Live".
+  It said 438 sellers where the Full search said 548 for the same 550: the seller count is an
+  upper bound when the game gives a count instead of names (since 0.8, not new; status file).
+- 5, Tab: "it filled in the vanished part when I pressed tab"; the bar read "linen bag/exact" with
+  the cursor at the end. Tab accepts as built (FB-040).
+- 6, Full scan: "smooth". `SLICE_MS` stays 8.
+- 7, one click buys: passes. "Bought 1 × Linen Cloth for 18c" with the button showing "Buy 1 for
+  19c", and chat "You won an auction for Linen Cloth (x1)". First time seen: Forever accepts the
+  confirm sent from the price event, and the server's price can be lower than the button's.
+- 8, copper on gear: passes. Rough Bronze Leggings posted at 5s 69c ("Posted 1 × Rough Bronze
+  Leggings"), listed at 5s 69c in the Auctions tab; other players' gear listings show copper too.
+- 9, undercut on gear: passes. "1 copper below the lowest listing (5s 50c)", 5s 49c posted, the
+  Auctions tab says "Lowest".
+- 10, stat of an ending: the healing line shows in Fast and in Full (Mercurial Greaves of Healing,
+  Simple Blouse of Healing). Whether it was missing before for these items is not known; "of
+  shadow protection" was not tried.
+- 11, crate lines: "Cheapest way to fill it" and the bundles, no "Latest prices" line. The switch:
+  Tyler, afterwards: "yes that toggle switch works for the text". The heading was then renamed
+  "Cheapest fill price" for the release (Tyler: "I dont want to test that").
+
+## 0.8.2.1 build 6
+
+Not tested on its own: its steps are build 7's steps 1 to 6.
+
+## 0.8.2.1 build 5
+
+Not tested on its own: its fix and its two questions are part of build 6. Its steps were a Full
+search for `linen` without the "Table full!" popup, and the two questions now in build 6 steps 5
+and 6.
+
+## 0.8.2.1 build 4
+
+Tested by Tyler on 2026-11-11 (test page build id `0-8-2-1-build-4`). He marked one step Pass and
+skipped three; the rest are read from his screenshots.
+
+- Step 1, Full scan: "Full scan complete: 220508 auctions recorded in 48.5s (the auction house
+  took 30.3s to answer, 2.0s to send the list; reading took 16.2s)". About the same total as
+  0.8.2 (215090 in 50.5s): most of it is the wait for the auction house. No word on how the game
+  felt; asked in build 5.
+- Step 2, Sniper: passes. Round 1 read 17627 items in 66.6s, round 2 in 54.9s; "88 to buy, 1 gone",
+  rows green, not gray.
+- Step 3, Full search `linen`: the search ran and ended ("20 items, 41,962 for sale, searched just
+  now", gold bar, no "some items missing"), but a popup came up each time: "Table full! Further
+  results from this search will still be processed but no longer displayed in the table." Tyler:
+  "I had to close this error". The debug log of step 4 says 36 items were read; the table shows
+  20. Old behavior (the table keeps 2,000 auctions), not from this build; fixed in part in build
+  5, the rest proposed (review file, S-08).
+- Step 4, `/aux debug`: "Search timing: 24.0s for 36 items, 0.67s each", "Waiting: item list 0.2s,
+  server answers 6.0s, throttle 17.8s, item data 0.0s, other 0.0s", "Answers: 37 on time, 0 after
+  the 1s fallback, 0 timed out (20s each), 0 dropped and resent", "The game announced 37 of 37
+  answers itself, 0 of the 0 taken after the 1s fallback". The second search: 23.8s, the same
+  counts. So R-05 has nothing to gain and is closed.
+- Step 5, post one trade good: "Posted 1 × Linen Cloth" in green. Passes.
+- Step 6, `inf` in the price box: Post faded, "Type a price to post." Passes. The receipt on the
+  right still read "Starting bids, 1 item 51c" for a trade good (review file, S-09, not fixed).
+- Step 7, Bids buttons: skipped.
+- Step 8, typing in the search bar: Pass. Note: "Why dont we have tab completes working here? Is
+  this something you can log as feedback and provide opus the correct way to do it?" Logged as
+  FB-040.
+- Step 9, `/aux memory`: "auxForever uses 61.0 MB of memory; price history for 28069 items (prices
+  not seen for 90 days are forgotten); item list 16004 items. After a cleanup: 46.5 MB; the rest
+  was garbage the game frees over time". The line is as expected. Tyler: "Not sure what was
+  supposed to happen here": the step did not say that the line itself was the whole check.
+- Step 10, gamepad in a fight: skipped. Step 11, leaving the Post tab: skipped. Both stay covered
+  only by the automated tests.
+
+The steps as they were:
+
+- [ ] 1. Click Full scan at the top right of aux and wait without searching. At the end the chat
+      says "Full scan complete: ... auctions recorded in ... (the auction house took ... to answer,
+      ... to send the list; reading took ...)". Screenshot that line. Last time it read 215090
+      auctions in 50.5s. Also say in the note whether the game felt smooth while it read.
+- [ ] 2. Open the Sniper tab and click Start. Wait until the status next to the button says
+      "round 2". Deals show in the table as before, and they are not all gray ("Gone").
+- [ ] 3. Stop the Sniper. Search tab, click Full (next to Fast), search `linen`. Rows appear while
+      it runs. When it ends, the status bar turns gold and the line next to the sub tabs ends with
+      "searched just now", with no red "some items missing".
+- [ ] 4. Type `/aux debug` in chat (it says "search timing log on"). Search `linen` again, wait
+      for it to end, then search `linen` once more. After each search the chat prints a few
+      lines; screenshot the ones that start with "Answers:" and "The game announced". Type
+      `/aux debug` again to turn the log off.
+- [ ] 5. Post tab: click a trade good in the bag list (cloth, ore, herbs), wait for the price,
+      set the quantity to 1 and click Post. Under Duration it says "Posted 1 × " and the item's
+      name, in green.
+- [ ] 6. Post tab, an item selected: click the price box, type `inf` and press Enter. The Post
+      button fades and the line next to it says "Type a price to post." Then type the price you
+      want back, or click another item.
+- [ ] 7. Open the Bids tab and click no row. The Bid and Buyout buttons at the bottom are faded and
+      clicking them does nothing (no BugSack error). If you have a bid there: click its row (the
+      buttons light up), then click the same row again to let go (they fade again).
+- [ ] 8. Search tab: click the search bar and slowly type `line`. After the first letters the bar
+      fills in an item name for you, for example "linen cloth/exact", as it did before, and typing
+      does not stutter.
+- [ ] 9. Type `/aux memory` in chat. The line ends with "price history for ... items (prices not
+      seen for 90 days are forgotten)". Then hover an item you scanned in the last days, anywhere:
+      its tooltip still has its Value line.
+- [ ] 10. Only if you play with a gamepad; otherwise Skip. Turn on the taint log
+      (`/console taintLog 1`), open aux in gamepad mode, and get into a fight (a duel next to the
+      auctioneer will do). During the fight the pad buttons do what they do without aux; after it
+      the gold frame is back in aux and the buttons work in aux again. No "blocked" message.
+- [ ] 11. Post tab: click a piece of gear in the bag list (a weapon or armor you can sell), and
+      right away click the Search tab at the top. Wait five seconds, then click the Post tab again.
+      No BugSack error at any point, and the Post tab opens with its bag list as usual.
+
+## 0.8.2 build 8
 
 One fix from Tyler's build 7 test (results below): with a material selected, the deal sound played
 but new rows showed only after letting go. The table waited whenever the mouse was over its rows,
@@ -687,7 +854,7 @@ automated tests (run on every push) and by the build steps of the version, which
 changed.
 
 - [ ] 1. Log in and talk to an auctioneer: aux opens, no BugSack error.
-- [ ] 2. Search `linen cloth` and buy 1 with the buy bar (Buy, then Confirm): it is bought.
+- [ ] 2. Search `linen cloth` and buy 1 with the buy bar (one click on Buy since 0.8.2.1): it is bought.
 - [ ] 3. Post tab: post one item at the price aux picks: it says "Posted".
 - [ ] 4. Auctions tab: that item is listed with a status.
 - [ ] 5. Sniper tab: Start, wait for one round, Stop.

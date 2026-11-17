@@ -146,6 +146,15 @@ For whoever fixes or builds from it:
 | [FB-037](#fb-037-i-cant-scan-today) | 2026-11-09 | deep_structure | bug | Full scan | S2 | "i cant scan today" | fixed 0.8.2 (released 2026-11-09) |
 | [FB-038](#fb-038-show-auxs-tooltip-lines-only-while-holding-a-key) | 2026-11-09 | blackmyin | request | Settings | n/a | Show aux's tooltip lines only while holding a key | wont-fix (Tyler: the tooltip line switches cover it) |
 | [FB-039](#fb-039-full-scan-not-working-for-a-player-tyler-knows) | 2026-11-09 | a player Tyler knows (name not given) | bug | Full scan | S2 | Full scan "wasnt working" | fixed 0.8.2 (released 2026-11-09) |
+| [FB-040](#fb-040-tab-does-not-complete-in-the-search-bar) | 2026-11-11 | Tyler | bug | Search | S3 | Tab does not complete in the search bar | wont-fix (works as built, seen 2026-11-16) |
+| [FB-041](#fb-041-a-switch-to-turn-off-the-crate-lines-in-tooltips) | 2026-11-16 | user_tdsvrjvpe8rufw54 | request | Settings | n/a | A switch to turn off the crate lines in tooltips | built 0.8.2.1 (released 2026-11-16) |
+| [FB-042](#fb-042-crate-tooltip-full-cost-less-the-quest-reward-favor-and-reputation-per-gold) | 2026-11-16 | user_tdsvrjvpe8rufw54 | request | Other | n/a | Crate tooltip: full cost less the quest reward, favor and reputation per gold | new |
+| [FB-043](#fb-043-a-window-listing-every-crate-and-writ-by-favor-and-reputation-per-gold) | 2026-11-16 | user_tdsvrjvpe8rufw54 | request | Other | n/a | A window listing every crate and writ by favor and reputation per gold | new |
+| [FB-044](#fb-044-gear-can-be-priced-in-copper-but-aux-rounds-it-to-whole-silver) | 2026-11-16 | sarrathsilentstrider, user_mezgz2zh1g3sbu1v | bug | Post | S2 | Gear can be priced in copper, but aux rounds it to whole silver | fixed 0.8.2.1 (released 2026-11-16) |
+| [FB-045](#fb-045-some-gear-endings-of-shadow-protection-of-healing-do-not-show-their-stat-in-search) | 2026-11-16 | karrier_user_slouyac50poxg707 | bug | Search | S3 | Some gear endings (of Shadow Protection, of Healing) do not show their stat in search | fixed 0.8.2.1 (provisional) |
+| [FB-046](#fb-046-posting-says-the-item-is-on-the-mouse-in-the-mail-or-a-trade-when-it-is-not) | 2026-11-16 | karrier_user_slouyac50poxg707 | bug | Post | S2 | Posting says the item is on the mouse, in the mail or a trade when it is not | fixed 0.8.2.1 (released 2026-11-16) |
+| [FB-047](#fb-047-praise-great-addon) | 2026-11-16 | selubangerz | praise | Overall | n/a | Praise: "Great addon" | new |
+| [FB-048](#fb-048-players-do-not-like-the-confirm-click-when-buying-trade-goods) | 2026-11-16 | players, through Tyler | ux | Buy bar | n/a | Players do not like the Confirm click when buying trade goods | built 0.8.2.1 (released 2026-11-16) |
 
 ## Players
 
@@ -173,7 +182,7 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
 - **daland**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-014, FB-015
   and FB-016 in three comments the same day. Also uses Auctionator and compares aux with it.
 - **sarrathsilentstrider**: CurseForge commenter (CurseForge name; in-game name unknown).
-  Reported FB-017, asked for FB-018, praised in FB-019, reported FB-021 and FB-022. Plays in the
+  Reported FB-017, asked for FB-018, praised in FB-019, reported FB-021, FB-022 and FB-044. Plays in the
   Classic theme.
 - **Kortan**: told Tyler directly (Tyler's retelling, not his own words). Asked for FB-023. Knows
   TSM well, including its alt inventory data. Spelling of the in-game name not yet confirmed.
@@ -194,6 +203,14 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
   gold") and knows TSM's posting rules.
 - **Chawitsch**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-032
   and FB-033, reported FB-034. Agreed to FB-032 as an option, off by default.
+- **user_tdsvrjvpe8rufw54**: CurseForge commenter (a name CurseForge generated; in-game name
+  unknown). Asked for FB-041, FB-042 and FB-043. Uses Waylaid Crates and writs, and other addons
+  made for them.
+- **user_mezgz2zh1g3sbu1v**: CurseForge commenter (a name CurseForge generated; in-game name
+  unknown). Reported FB-044 with a code suggestion; has read aux's pricing code.
+- **karrier_user_slouyac50poxg707**: CurseForge commenter (CurseForge name; in-game name unknown).
+  Reported FB-045 and FB-046. Uses Bagnon.
+- **selubangerz**: CurseForge commenter (CurseForge name; in-game name unknown). Praise (FB-047).
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
   words.
@@ -1499,7 +1516,7 @@ fit the 20-pixel gap above Blizzard's optional reagents). Claude recommends A. T
 - Type: bug
 - Area: Performance (Full scan)
 - Severity: S3 (it finishes; it is slow)
-- Status: fixed 0.8.2 (released 2026-11-09, PR #40; Tyler's build 7 test: 215090 auctions in 50.5s, 2.0s to send the list; commit 19921b1: the Full scan prints how long the answer and the list took; the cause, the server, is not aux's to fix; the numbers come from Tyler's test)
+- Status: fixed 0.8.2 (released 2026-11-09, PR #40; Tyler's build 7 test: 215090 auctions in 50.5s, 2.0s to send the list; commit 19921b1: the Full scan prints how long the answer and the list took; the cause, the server, is not aux's to fix; the numbers come from Tyler's test). 0.8.2.1 (not released yet, outside review R-07 to R-09): aux's own part, reading the list, no longer runs at 100 auctions per frame; the wait for the server is unchanged. Tyler's build 4 test, 2026-11-11: 220,508 auctions in 48.5s, of which 30.3s was the auction house answering, 2.0s the list and 16.2s the reading, so the total is about what it was and the reading is a third of it (an earlier note here took the reading for about 48s; that was a wrong inference from a partly hidden chat line)
 - Proposed: 0.8.1 (speed), after measuring
 
 Said:
@@ -2041,6 +2058,407 @@ Recorder's notes (from the code and git):
 Unknowns: the version, what he saw (a chat message, a gray button, an error), and whether the
 Sniper was running. The fix works without them: 0.8.2 waits up to 10 minutes, nothing but the
 player's own search stops a Full scan, and every way it ends says why in the chat.
+
+### FB-040: Tab does not complete in the search bar
+
+- Received: 2026-11-11
+- From: Tyler (testing 0.8.2.1 build 4)
+- Where: Tyler's note on a step of the 0.8.2.1 build 4 test page
+- Source: [source](feedback/sources/2026-11-11-tyler-test-page-tab-complete.md)
+- Version: 0.8.2.1 build 4
+- Type: bug or ux (not known which until Tyler says what Tab did)
+- Area: Search bar (autocompletion)
+- Severity: S3 (provisional: searching works without it)
+- Status: wont-fix: works as built (Tyler, 2026-11-16, build 7 step 5: "it filled in the vanished part when I pressed tab"; the bar read "linen bag/exact" with the cursor at the end)
+- Proposed: 0.8.2.x if it is a bug (Tab does nothing), else the next minor version
+
+Said:
+> Why dont we have tab completes working here? Is this something you can log as feedback and provide opus the correct way to do it?
+
+Steps / setup: Search tab, click the search bar, type `line` slowly. The bar fills in
+"linen cloth/exact" with the added part highlighted. Then, presumably, Tab.
+
+Tyler's notes: none beyond the quote. He marked the step itself (typing is smooth, the name is
+filled in) as Pass.
+
+Recorder's notes (from the code; nothing here was seen in game):
+- What exists: while typing, `completion.complete_filter` (`util/completion.lua`) writes the first
+  matching item name or filter word into the bar and highlights the added part. Tab is handled in
+  `tabs/search/frame.lua`: `OnTabPressed` calls `self:HighlightText(0, 0)`, which is meant to
+  accept the suggestion by taking the highlight away. The same line carries a TODO from the
+  original aux ("more edit features"). The CurseForge page promises it: "Tab accepts an
+  autocompletion." (`docs/curseforge-description.md`).
+- So by the code Tab should accept. Why it did not for Tyler is not known. Possible causes, each an
+  inference to check, none confirmed: (a) the handler runs but leaves the cursor where it was
+  instead of at the end, so the next key does not continue the name; (b) Tab never reaches the
+  bar on Forever's client (a key binding or the window takes it first); (c) it works as built,
+  but only removes a highlight, which looks like nothing happened, and nothing on screen says
+  that Tab accepts or shows what else matches.
+- By the feedback rules this is a finding about the addon whichever it is: the owner of the
+  project could not tell that Tab accepts a completion.
+
+Proposed way to build it (for the primary engineer):
+1. Find out first. Ask Tyler what Tab did (the question below). If the handler's part is in doubt,
+   add one line to the `/aux debug` log in the handler ("Tab in the search bar") and ask for one
+   press, as was done for R-05.
+2. Accept means three things, in this order, in one function used by Tab (and, if wanted, the
+   Right arrow at the end of the text): keep the whole text, take the highlight away, and put the
+   cursor at the end (`self:SetCursorPosition(strlen(self:GetText()))`), so the next key adds to
+   the name instead of replacing the highlighted part. Then run the bar's `change` so the Filter
+   Builder stays in sync (`loading` and `syncing` in `tabs/search/filter.lua`).
+3. If Tab does not reach the bar: do not rebind keys globally. Look at how Blizzard's own edit
+   boxes on Forever take Tab (`Gethe/wow-ui-source`, branch `forever`, chat edit box and the
+   auction house search box) before guessing, and never touch the gamepad's bindings
+   (`docs/gamepad.md`).
+4. Make it visible. A short gray hint at the right end of the bar while a suggestion is
+   highlighted ("Tab to accept") costs one label and answers "I did not know". Visual change:
+   mockup for Tyler first, as the project rules ask.
+5. Not part of this entry unless Tyler asks: stepping through several matches with repeated Tab
+   presses, or a list of matches under the bar. Both are features (next minor version), and a
+   list is a new widget that needs a mockup. Today only the first match is offered (shortest name
+   first).
+6. Tests: the harness does not fire `OnTabPressed` by itself and `SetText` does not fire
+   `OnTextChanged`. Call the bar's `OnTabPressed` script directly after `char`, and check the
+   text, that the highlight was cleared, and that the cursor was set to the end (record
+   `HighlightText` and `SetCursorPosition` calls on the stub). One check that fails without the
+   cursor line. In game: one step for Tyler, "type `line`, press Tab, type `/`": the bar reads
+   "linen cloth/exact/".
+
+Unknowns:
+- What happened when Tyler pressed Tab: nothing visible, the filled-in text went away, or the
+  cursor left the bar? Asked on 2026-11-11.
+- What he expects Tab to do: accept the filled-in name, or step through several names.
+
+### FB-041: A switch to turn off the crate lines in tooltips
+
+- Received: 2026-11-16 (posted about 6 hours before Tyler's screenshot)
+- From: user_tdsvrjvpe8rufw54 (1 request)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-16-user_tdsvrjvpe8rufw54-curseforge.md)
+- Version: unknown (0.8 or later: crate lines came in 0.8)
+- Type: request
+- Area: Settings (tooltips)
+- Severity: n/a
+- Status: built 0.8.2.1 (released 2026-11-16; the switch seen working by Tyler; heading renamed "Cheapest fill price")
+- Proposed: next patch (0.8.2.x): a switch, like the Usually switch of FB-035
+
+Said:
+> About the favor and writ tooltips... Could you make them toggleable, or improve the information in the tooltip? It's not very usable now, compared to other addons specifically for those.
+
+> But a toggle command would be best as with other tooltip info.
+
+Steps / setup: none; a request.
+
+Tyler's notes: none yet.
+
+Recorder's notes (from the code):
+- The lines are aux's: "Cheapest way to fill it" and "Latest prices, less what is in your bags"
+  under a Waylaid Crate (`add_crate_lines` in `tabs/search/crate.lua`, called from
+  `core/tooltip.lua`). Every other aux tooltip line has a switch in Settings (Value, Today,
+  Usually, vendor and disenchant lines, FB-035); the crate lines have none and always show.
+- Inference: "favor and writ tooltips" means aux's crate lines (aux adds nothing to writs; the
+  quoted text "latest prices, less what is in your bags" is aux's). "Favor" is not a word aux
+  uses; the player may mean what a crate is turned in for. Not known.
+- "toggle command": a chat command as well as the switch (AGENTS.md: a setting that has a chat
+  command behaves the same from both).
+
+Unknowns: none for the switch.
+
+### FB-042: Crate tooltip: full cost less the quest reward, favor and reputation per gold
+
+- Received: 2026-11-16
+- From: user_tdsvrjvpe8rufw54 (1 request, same comment as FB-041)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-16-user_tdsvrjvpe8rufw54-curseforge.md)
+- Version: unknown (0.8 or later)
+- Type: request
+- Area: Other (crate tooltip)
+- Severity: n/a
+- Status: new (one part built in 0.8.2.1 build 7: the line "Latest prices, less what is in your bags" is gone; the rest planned with writs, 0.9)
+- Proposed: 0.9, with Craftsman's Writs (`docs/roadmap.md`); the text change alone could go with
+  FB-041
+
+Said:
+> Key info would be total cost (Crate or writ and fill, regardless whether items are in my bags or not!) minus the quest reward X silver, and the calculated favor/cost and rep/cost. Also you could remove the unnecessary text: "latest prices, less what is in your bags".
+
+Steps / setup: none; a request.
+
+Tyler's notes: none yet.
+
+Recorder's notes:
+- What the tooltip shows today (`add_crate_lines`): each bundle with its cost at the latest price
+  aux has seen, less what the bags already hold ("12 in bags", "in your bags"), the cheapest bundle
+  in gold. The player wants instead: (a) the cost of the crate itself plus its fill, not reduced by
+  the bags; (b) less the silver the quest pays; (c) "favor" and reputation gained per gold spent.
+- (a) is a change of what is counted; the bags part was a choice in option A of the mockup
+  (Tyler, 2026-10-20). Inference: a player deciding which crate to do wants the market cost, a
+  player filling one now wants what is left to buy. Both could show.
+- "Crate ... and fill": inference, the crate is bought too (Waylaid Crates may be sold on the
+  auction house). Not known on Forever.
+- (b) and (c) need what each crate pays (silver, reputation, "favor"), which aux does not know.
+  The crate's own tooltip lists its bundles; whether it lists its reward is not known. Earlier
+  findings (FB-020, **Outside**, beta guides): crates are turned in at the Azeroth Commerce
+  Authority or Durotar Supply and Logistics for reputation.
+- "compared to other addons specifically for those": other addons exist for crates and writs on
+  Forever. Not looked at.
+
+- Checked 2026-11-16 (**Outside**, search summaries of several guide sites; the pages themselves
+  could not be loaded from the session): crates pay Merchant's Favor and a little silver, no
+  reputation (for example Apprentice Textiles 5 Favor and 2.5 silver, Journeyman Fabrics 20 Favor
+  and 10 silver; beta-era numbers, partly read from the client by a fan site). Craftsman's Writs
+  pay reputation (75, 125 or 200 by tier, once a day each) and a small coin pouch, no Favor. So
+  "favor/cost" is for crates and "rep/cost" for writs.
+  Sources: [mobalytics](https://mobalytics.gg/wow-forever/profile/stoyven-enbj16/guides/merchant-s-favor),
+  [wow-professions](https://www.wow-professions.com/forever/merchants-favor-durotar-supply-azeroth-commerce),
+  [forevermastery](https://forevermastery.com/en/guides/wow-forever-merchants-favor).
+
+Unknowns: what a crate pays and whether the game says it in a form aux can read; what "favor" is
+on Forever. A first version can work without them: show the full cost (crate and fill) next to
+what is left to buy, and add rewards once their source is known.
+
+Ask Tyler: what does a Waylaid Crate's quest reward show in game (silver, reputation, anything
+called favor)? A screenshot of the turn-in window would do.
+
+### FB-043: A window listing every crate and writ by favor and reputation per gold
+
+- Received: 2026-11-16
+- From: user_tdsvrjvpe8rufw54 (1 request, same comment as FB-041)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-16-user_tdsvrjvpe8rufw54-curseforge.md)
+- Version: unknown
+- Type: request
+- Area: Other (new window)
+- Severity: n/a
+- Status: new
+- Proposed: later (0.9 or after; a new screen needs a mockup first)
+
+Said:
+> And if you ever want to compete with the dedicated crate/writ addons, there could be a new window in aux where you could list every crate or writ sorted by favor/cost and rep/cost.
+
+Steps / setup: none; a request.
+
+Tyler's notes: none yet.
+
+Recorder's notes: needs the list of every crate and writ, what each asks for and what each pays.
+aux reads a crate's bundles from the crate's own tooltip, so it only knows crates the player has
+looked at. A full list would be written by hand and kept up to date (FB-020 named that as the hard
+part). Related: FB-020, FB-042, the 0.9 writs plan.
+
+Unknowns: as FB-042.
+
+### FB-044: Gear can be priced in copper, but aux rounds it to whole silver
+
+- Received: 2026-11-16 (sarrathsilentstrider's first comment about 3 days earlier, the other two
+  within the last day)
+- From: sarrathsilentstrider (2 comments), user_mezgz2zh1g3sbu1v (1): 2 players
+- Where: CurseForge comments on the auxForever project page
+- Source: [source](feedback/sources/2026-11-16-user_mezgz2zh1g3sbu1v-sarrathsilentstrider-curseforge.md),
+  [source](feedback/sources/2026-11-16-karrier-selubangerz-sarrathsilentstrider-curseforge.md)
+- Version: unknown (the whole-silver rule is in every version since 0.4)
+- Type: bug (aux refuses a price Blizzard's own window allows: AGENTS.md, "the addon informs, it
+  does not decide")
+- Area: Post
+- Severity: S2 (the item can be posted at the price wanted only through Blizzard's window)
+- Status: fixed 0.8.2.1 (released 2026-11-16; seen in game: gear posted at 5s 69c)
+- Proposed: next patch (0.8.2.1 or 0.8.2.2) once Tyler has seen it in game (experiment E8)
+
+Said (sarrathsilentstrider, about 3 days before):
+> we can sell items by the copper now. Can you update this in Aux.  I was not able to sell a level 3 white axe on the AH for 1s 89c because of this limitation, but went into the default Blizz AH and posted it w/o issue.
+
+Said (user_mezgz2zh1g3sbu1v; the full comment, with its code idea, is in the source):
+> However not all Non-commodities are restricted by Blizzard to be sold as whole silver rounded. An example is Small Red Pouch which the auxForever restricts to only whole silver price, but Blizzard actually allows it to be sold in copper too.
+
+> Instead of auxForevers blanket restriction on non-commodities, a better way to handle such this would be to disable the a whole-silver restriction IF the addon finds other current listings of the item at non-whole silver prices.
+
+Said (sarrathsilentstrider, a reply to user_mezgz2zh1g3sbu1v):
+> @user_mezgz2zh1g3sbu1v Thanks for this.  I hope it gets implemented somehow, as I prefer not having to swap to the Blizz UI to sell things
+
+Steps / setup: post a common (white) level 3 axe for 1s 89c in aux; aux allows only whole silver.
+The same price posted in Blizzard's window.
+
+Tyler's notes: none yet.
+
+Recorder's notes:
+- The code: `price_step` in `tabs/post/core.lua` returns 1 copper only for trade goods, 100 for
+  everything else; `round_price` rounds typed and automatic prices down to whole silver, and
+  undercut mode steps 1 silver ("Gear is priced in whole silver"). user_mezgz2zh1g3sbu1v describes
+  that rule correctly (they read aux's code).
+- Why the rule exists (`docs/forever-auction-house.md`, section 2): every gear listing seen in 0.4
+  was whole silver **[Seen]**, and Tyler's 10s 50c post in Blizzard's window on 2026-10-19 did not
+  go through **[Seen]**, with no error text. The players' reports are **[Outside]** until Tyler sees
+  it; "now" suggests Blizzard changed it since. Experiment E8 is written for it.
+- On the proposed detection (allow copper only when a current listing has copper): inference, it
+  would still refuse copper on an item nobody has listed in copper yet, which Blizzard's window
+  allows; the rule says aux never refuses what Blizzard's window allows. If E8 shows copper works,
+  the smaller and fuller fix is to price every item in copper, as trade goods are. The detection
+  idea is useful the other way: if some items refuse copper, a listing with copper proves that
+  item takes it.
+- What else would change with it: undercut mode's step for gear (1 copper or 1 silver; a choice for
+  Tyler), the "Gear is priced in whole silver" note, the R-14 and timing tests that expect silver.
+  Gear rows group by buyout price (`price_group`), so copper prices only split rows that differ.
+
+- Checked 2026-11-16: Blizzard's Sell window shows a copper box for gear and does not round it
+  **[Code]**; no Blizzard note about the change was found (`docs/forever-auction-house.md`,
+  section 2). So copper on gear follows "aux never refuses what Blizzard's window allows"; if the
+  server refused it, aux's post would say so.
+
+Unknowns: whether every item takes copper or only some (Small Red Pouch is a bag, the axe common
+gear); what happened in Tyler's test of 2026-10-19. E8 answers both enough to build.
+
+Ask Tyler: run E8 (one cheap item, about a minute).
+
+### FB-045: Some gear endings (of Shadow Protection, of Healing) do not show their stat in search
+
+- Received: 2026-11-16 (posted about 1 day before)
+- From: karrier_user_slouyac50poxg707 (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-16-karrier-selubangerz-sarrathsilentstrider-curseforge.md)
+- Version: unknown
+- Type: bug
+- Area: Search
+- Severity: S3 (provisional: the item can still be found and bought; the player may not see what
+  the ending gives)
+- Status: fixed 0.8.2.1 (provisional; released 2026-11-16): the healing line shows in Fast and Full (seen); whether it was missing for these items before is not known, "of shadow protection" not tried
+- Proposed: next patch once it is known where the stat is missing
+
+Said:
+> i found that some items like "of shadow protection", or "of healing" do not show that "green random stat" on search - many others do, but some dont. thanks!
+
+Steps / setup: a search that lists gear with random endings; for most endings the "green random
+stat" shows, for "of Shadow Protection" and "of Healing" it does not.
+
+Tyler's notes: none yet.
+
+Recorder's notes (from the code; nothing here was seen in game):
+- aux adds no stat text to result rows. The stat shows in the tooltip when the mouse points at a
+  row. On Forever an auction's link has an empty suffix field, so a tooltip built from the link
+  lacks the ending's stats; fast rows build theirs from the auction house item key instead
+  (`SetItemKey`, 0.8.2 build 6, FB-025; `tooltip` in `util/info.lua`). Inference: the row hover may
+  take the link for full rows and the item key for fast rows, so whether the stat shows could
+  depend on Fast or Full. Not checked.
+- Inference: the two endings named give a resistance and a healing bonus, not a primary stat. If
+  the game builds those lines differently (an "Equip:" line instead of a "+5 Stamina" line), the
+  item key may still be read correctly while the line looks different. Not known.
+- "green random stat": inference, the stat line the ending adds, which the game colors green, or
+  the ending in the green item name. Either way it is what the ending gives.
+
+- Checked 2026-11-16 (**Code**): aux's row hover (`OnIconEnter` in `gui/auction_listing.lua`)
+  uses the auction house item key only for Fast rows; Full rows use the auction's link. Blizzard's
+  own item display, given an item key, asks `C_AuctionHouse.GetItemKeySampleLink(itemKey)` first
+  and falls back to `SetItemKey` (`Blizzard_AuctionHouseSharedTemplates.lua`, branch `forever`).
+  Doing the same for Full rows (`record.item_search_key`) is the likely fix; still an inference
+  that the link is what lacks the stat.
+
+Unknowns: Fast or Full search; tooltip or row; which items. A fix can work without them: make
+every row's hover use the item key, as fast rows do, and check both endings in game.
+
+Ask Tyler: search `of healing` (Fast, then Full) and point the mouse at a row: is the healing line
+in the tooltip? The same with `of shadow protection`.
+
+### FB-046: Posting says the item is on the mouse, in the mail or a trade when it is not
+
+- Received: 2026-11-16 (posted about 1 day before)
+- From: karrier_user_slouyac50poxg707 (1 report, same comment as FB-045)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-16-karrier-selubangerz-sarrathsilentstrider-curseforge.md)
+- Version: unknown ("suddenly" suggests after an update; which is not known)
+- Type: bug
+- Area: Post
+- Severity: S2 (provisional: the item cannot be posted from aux while it happens)
+- Status: fixed 0.8.2.1 (released 2026-11-16; not seen in game: the case needs Bagnon or a locked item)
+- Proposed: next patch (0.8.2.x)
+
+Said:
+> also another bug im getting is "item not posted, its on mouse, mail or trade" (when it is not)- happens a lot suddenly - using Bagnon btw
+
+Steps / setup: posting from the Post tab with Bagnon (a bag addon) installed. aux says the item is
+on the mouse, in the mail or a trade; the player says it is not. Often, and it started recently.
+
+Tyler's notes: none yet.
+
+Recorder's notes (from the code; nothing here was seen in game):
+- The message is aux's: "Not posted: the item is on your mouse pointer, or in a trade or the
+  mail." (`NOT_POSTED.locked` in `tabs/post/core.lua`). It shows when Post finds no unlocked bag
+  slot with the item and at least one locked one (`find_item_location`, `missing_item_reason`).
+  The game locks a slot for more reasons than those three. Inferences, none confirmed:
+  (a) Blizzard's own Sell tab holds the item: aux keeps Blizzard's window open but invisible, and
+  an item put in its Sell tab stays locked. aux empties it after a bag right-click
+  (`on_post_item` in `core/shortcut.lua`), but only when the game reports a right mouse button; a
+  bag addon that hands the item over another way (Bagnon) would leave it locked there.
+  (b) A post still waiting for the server's answer keeps its slot locked; posting again before it
+  comes back finds only locked copies.
+  (c) Something changed recently on Blizzard's side or in Bagnon ("suddenly").
+- Checked 2026-11-16: nothing found about Bagnon and this. One unofficial guide says a failed
+  listing on Forever can leave the bag slot locked "in transit" while the item still shows in the
+  bag ([izoate](https://www.izoate.com/blog/6-ways-to-fix-wow-forever-internal-auction-error/),
+  **Outside**, no source given), which would also give this message.
+- Either way the message names three causes, none of which may apply. The message should cover
+  what aux can tell (Blizzard's Sell tab, a post still on its way) and aux could release
+  Blizzard's Sell tab itself before posting.
+
+Unknowns: how the item reached the Post tab (bag click, right-click in Bagnon, the bag list);
+whether a post had just been sent; the version. The fix in Recorder's notes works without them.
+
+Ask Tyler: do you have Bagnon? If so: auction house open, aux open, right-click an item in
+Bagnon's bag, then Post. Does the message come?
+
+### FB-047: Praise: "Great addon"
+
+- Received: 2026-11-16 (posted about 3 days before)
+- From: selubangerz
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-16-karrier-selubangerz-sarrathsilentstrider-curseforge.md)
+- Version: unknown
+- Type: praise
+- Area: Overall
+- Severity: n/a
+- Status: new
+- Proposed: none
+
+Said:
+> Great addon
+
+Recorder's notes: the same batch also opens with praise from karrier_user_slouyac50poxg707
+("hello, awesome addon!") and user_tdsvrjvpe8rufw54 ("Thank you for keeping aux alive, the new
+additions are great!" and "your work is amazing regardless!"); kept in their sources.
+
+### FB-048: Players do not like the Confirm click when buying trade goods
+
+- Received: 2026-11-16
+- From: players, through Tyler ("a lot of people")
+- Where: Tyler, in the session
+- Source: Tyler's message in the session (quoted below)
+- Version: 0.8.2 and earlier
+- Type: ux
+- Area: Buy bar
+- Severity: n/a
+- Status: built 0.8.2.1 (released 2026-11-16; seen in game: one click bought 1 Linen Cloth for 18c)
+- Proposed: 0.8.2.1 (Tyler's decision)
+
+Tyler's summary:
+> When people are buying things, uh, a lot of people don't like the confirm option. I think we should just straight up remove the confirm option, and I want your thoughts. I know you built the confirm option for a reason, but what I want to know is, can we remove the confirm option cleanly and still keep the safety aspect of buying things?
+
+Steps / setup: buying a trade good: Buy asked the server for the price, then a second click on
+Confirm bought. Gear was already one click.
+
+Tyler's notes: the quote above; he decided to put it in build 7 once the safety question was
+answered.
+
+Recorder's notes:
+- Why Confirm was there: Blizzard's own window buys a trade good in two steps (ask for the price,
+  then confirm), and aux copied the shape so the player saw the server's price before paying.
+  The real protection was already automatic: aux cancels any server price above the price on the
+  button before a confirm can happen (`COMMODITY_PRICE_UPDATED` in `gui/buy_bar.lua`), and
+  Blizzard's window is looser (it accepts up to 5% more, **Code**). The second click could only
+  ever confirm a price at or below what the player had already agreed to by clicking Buy.
+- Whether it can go: asking for the price needs a click and confirming does not
+  (`docs/forever-auction-house.md`, section 6: **Code** and **Outside**). Built: the confirm is
+  sent when the price arrives, only if it is at or below the button's price and the player can pay
+  it. What is lost: a last look at a lower server price, and a chance to change one's mind after
+  Buy; both judged not worth a click (Tyler).
+- Not seen in game yet: that Forever accepts the confirm from the price event (build 7 test).
+
+Unknowns: none for the decision.
 
 ## Before this log
 
