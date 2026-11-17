@@ -37,6 +37,13 @@ endings are read only for items whose required level is at least 75% of the play
 (`ENDING_SHARE_BELOW = .25`, `ending_floor` in `tabs/upgrades/core.lua`; at 60 that is 45 up).
 Lower items are scored on their plain stats (or a saved ending) and counted in the status line.
 Test in `tests/timing_test.lua`, checked to fail without it. Step 27. Next: steps 1 to 27.
+Later still (Ben: "save all levels and classes"): a Full scan saves every ending's stats from its
+listings' links (no extra request; after the scan, 50 a frame; `on_full_scan_record` and
+`on_full_scan_end` in `core/scan.lua`, used in `tabs/upgrades/core.lua`). Test in
+`tests/load_test.lua`, checked to fail without it. Two Unknowns (E11 in
+`docs/forever-auction-house.md`), checked by steps 28 and 29. Next: steps 1 to 29.
+Note: under LuaJIT (this Mac has no lua5.1) "sniper memory: no growth" failed once and passed on
+three reruns; GitHub Actions runs real Lua 5.1.
 
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.

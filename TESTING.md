@@ -92,6 +92,14 @@ restart**. Have a few gold on you, and pick a cheap row to buy.
       **Clear** in Settings, then on Upgrades, Two-Hand, press **Search**. When it is done, the
       line above the table ends with, for example, "(14 below level 45 scored without their
       ending's stats)", the level being three quarters of yours. Take a screenshot of that line.
+- [ ] 28. (Full scan saves endings, added 2026-11-17.) Open Settings and press **Clear** under
+      "Saved item stats" (it says "0 endings"). Close Settings and press **Full scan** at the top of
+      aux (it lights up once every 15 minutes). Wait for "Full scan complete" in chat, then a few
+      seconds more. Open Settings again: "Saved item stats" now shows a big number, for example
+      "850 endings". Write it down.
+- [ ] 29. Close Settings, go to Upgrades, Two-Hand, and press **Search**. Tell me whether the
+      "Reading the stats of each ending (3 of 20)..." line appears. If it does not appear, the Full
+      scan saved them. If it does, write down its numbers (for example "3 of 20").
 
 ## Upgrades experiments (branch `search-upgrade-support`, before any code)
 

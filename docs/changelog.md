@@ -30,6 +30,10 @@ A change that comes from a player's feedback credits them by in-game name at the
   so a high-level character's first search does not read hundreds of auctions for old gear. Lower
   items are still listed and scored, without their ending, and the line above the table counts
   them.
+- A Full scan saves the stats of every random ending it sees, for every level and class, and
+  refreshes the ones already saved. It asks the auction house for nothing extra (the scan already
+  has each listing's link) and reads them after "Full scan complete", a few at a time, so the scan
+  is no slower. After a Full scan, the Upgrades tab can skip its own reading step.
 - Buy right on the Upgrades tab: click a row and the buy bar under the table reads that item's
   auctions and shows Buy with today's cheapest price (it can differ from the row's price, which was
   the lowest when you searched; the row then shows the new price). Nothing is bought until you

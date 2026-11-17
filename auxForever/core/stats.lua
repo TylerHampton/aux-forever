@@ -32,6 +32,9 @@ local function get_stats(link)
     return type(stats) == 'table' and stats or nil
 end
 
+-- the stats of an item link, not kept (for one-off reads of many links, such as a Full scan's)
+function M.read_link_stats(link) return get_stats(link) end
+
 -- the stats of an item link; nil while the game has not loaded the item
 local link_cache = {}
 function M.link_stats(link)

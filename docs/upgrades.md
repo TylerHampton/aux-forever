@@ -89,6 +89,14 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
    Items below are still listed and scored, on their plain stats or an ending saved earlier, and
    the status line counts them ("14 below level 45 scored without their ending's stats"). Rare
    miss: a low item whose ending would beat what is worn is scored too low.
+   2026-11-17 (Ben: "save all levels and classes"): a Full scan saves the stats of every ending it
+   sees from its listings' links, which it already has, so no extra request. While the list is
+   read, the first link of each ending name is noted; after the scan has recorded its prices, the
+   stats are read and saved, 50 names a frame. Each saved name gets the scan's date, so its 30
+   days start again. Every level and class is saved, for the account's other characters. Not yet
+   seen: that those links carry the ending's stats and that their item level matches the one the
+   tab looks up (E11 in `docs/forever-auction-house.md`, `TESTING.md` steps 28 and 29). If either
+   fails, the tab reads endings itself, as before.
    2026-11-17 (Ben): buy on the tab itself, with mouse and gamepad. Built: the Search tab's buy
    bar sits under the table while the tab is open (as on the Sniper). A click selects a row; its
    version's auctions are read (one request, `read_row` in `tabs/upgrades/core.lua`) and the

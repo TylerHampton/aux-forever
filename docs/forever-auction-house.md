@@ -310,3 +310,10 @@ page once carried them as build id `ah-facts-1`.
   under one name only (not also `SPELL_DAMAGE_DONE`), weapon DPS as a decimal, and a random
   ending's stats (the Sorcerer's) included. Still open **[Unknown]**: the names an item with Hit,
   Crit or MP5 uses, so such a stat is not counted twice.
+- **E11 A Full scan's links and endings (Upgrades tab).** Since 2026-11-17 a Full scan saves the
+  stats of each ending from its listings' links (`GetReplicateItemLink`), filed by the item level
+  `GetItemInfo` gives for the link; the Upgrades tab looks them up by the item level of the auction
+  house item key. Two things not yet seen **[Unknown]**: that a Full scan link carries the
+  ending's stats (seen only for an item search result's link), and that the two item levels are the
+  same number. `TESTING.md` step 28 checks both at once: after Clear and a Full scan, an Upgrades
+  search that has no "Reading the stats of each ending" step means both hold.

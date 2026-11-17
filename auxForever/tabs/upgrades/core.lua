@@ -249,6 +249,42 @@ local function version_id(key)
     return key.itemID .. ':' .. (key.itemLevel or 0) .. ':' .. (key.itemSuffix or 0)
 end
 
+-- A Full scan refreshes them (Ben, 2026-11-17: "save all levels and classes"). It already reads
+-- every listing's link, so its endings cost no request: while the list is read, the first link of
+-- each ending name is noted (one table lookup per listing), and after the scan has finished and
+-- recorded its prices, their stats are read and saved, 50 a frame, with the date of this scan.
+-- Every ending is saved, whatever its level or class, for the account's other characters. Saved by
+-- the item level of the link (GetItemInfo); the tab looks them up by the auction house item key's
+-- item level. That the two match, and that a Full scan link carries the ending's stats, is not yet
+-- seen in game (TESTING.md, step 28): if not, the tab reads them itself, as before.
+M.FULL_SCAN_PER_FRAME = 50
+local scan_links = {}
+
+local function full_scan_key(record)
+    return record.item_id .. ':' .. (record.item_level or 0) .. ':' .. strlower(record.name or '')
+end
+
+scan.on_full_scan_record(function(record)
+    local key = record.price_key
+    if not key or not record.link or strsub(key, -2) == ':0' then return end
+    key = full_scan_key(record)
+    if not scan_links[key] then scan_links[key] = record.link end
+end)
+
+scan.on_full_scan_end(function()
+    local links = scan_links
+    scan_links = {}
+    if not next(links) then return end
+    aux.coro_thread(function()
+        local n = 0
+        for key, link in pairs(links) do
+            save_stats(key, stats.read_link_stats(link))
+            n = n + 1
+            if n % FULL_SCAN_PER_FRAME == 0 then aux.coro_wait() end
+        end
+    end)
+end)
+
 -- the stats to score a record with; nil while the game has not loaded it. An ending whose auction
 -- could not be read is scored without it (record.base_only), and so is one below the lower edge
 -- (record.below_floor); the status line counts both.

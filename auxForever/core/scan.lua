@@ -125,6 +125,13 @@ function M.on_full_scan_view(f)
     tinsert(view_handlers, f)
 end
 
+-- Code that wants every listing of a Full scan (the Upgrades tab's ending stats) registers
+-- f(record), called once per listing as it is read (keep it cheap: it runs tens of thousands of
+-- times), and f() at the end of a scan that finished.
+local record_handlers, end_handlers = {}, {}
+function M.on_full_scan_record(f) tinsert(record_handlers, f) end
+function M.on_full_scan_end(f) tinsert(end_handlers, f) end
+
 -- 0.8.2 (FB-037): a Full scan is running. Since launch the server can take minutes to answer one,
 -- so scans that start by themselves (Sniper rounds, the Auctions tab's price check) wait for it
 -- instead of stopping it.
@@ -751,6 +758,7 @@ function replicate()
         local record, item_id = info.replicate_record(index)
         if record then
             process_auction(record, nil, count, collector)
+            for _, f in ipairs(record_handlers) do f(record) end
             check_aborted(scan_state)
         else
             pending[index] = item_id or true
@@ -773,6 +781,7 @@ function replicate()
             if record then
                 pending[index] = nil
                 process_auction(record, nil, count, collector)
+                for _, f in ipairs(record_handlers) do f(record) end
                 processed = processed + 1
                 if processed >= 100 then break end
             end
@@ -791,7 +800,9 @@ function replicate()
             f(at, key, flat)
         end
     end or nil)
-    check_aborted(scan_state)
+    check_aborted(scan_state)    if state == scan_state then
+        for _, f in ipairs(end_handlers) do f() end
+    end
 end
 
 -- auxForever: /aux debug list. Times the item list of the whole auction house without opening any

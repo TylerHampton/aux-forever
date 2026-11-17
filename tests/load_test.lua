@@ -2920,6 +2920,72 @@ try('price data 0.5: full scan', function()
   check('full scan: today\'s lowest', h.market_value('9101:0') == 5)
 end)
 
+-- Upgrades (Ben, 2026-11-17): a Full scan saves every ending's stats from the links it already
+-- has, no request, one read per name, after the scan's prices are recorded, a few names a frame
+try('upgrades: a Full scan saves the stats of every ending', function()
+  local scan = loadstring("select(2, ...) 'aux.test.upfull'; return require 'aux.core.scan'")('auxForever', addon)
+  local up = loadstring("select(2, ...) 'aux.tabs.upgrades'; return _M")('auxForever', addon)
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local endings = {'of the Bear', 'of the Owl'}
+  for i = 1, 118 do tinsert(endings, 'of Test ' .. i) end
+  local list = {}
+  for i, ending in ipairs(endings) do
+    tinsert(list, {id = 7201, name = 'Oak Club ' .. ending, buyout = 1000 + i})
+    if i <= 2 then tinsert(list, {id = 7201, name = 'Oak Club ' .. ending, buyout = 2000 + i}) end
+  end
+  tinsert(list, {id = 9101, name = 'Peacebloom', buyout = 50})
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  local function link_of(x) return '|cff1eff00|Hitem:' .. x.id .. '::::::::20:::::|h[' .. x.name .. ']|h|r' end
+  set(C_AuctionHouse, 'ReplicateItems', function() end)
+  set(C_AuctionHouse, 'GetNumReplicateItems', function() return #list end)
+  set(C_AuctionHouse, 'GetReplicateItemInfo', function(i) local x = list[i + 1]; return x.name, 1, 1, 2, true, 15, nil, 0, 0, x.buyout, 0, false, nil, 'Seller', nil, 0, x.id, true end)
+  set(C_AuctionHouse, 'GetReplicateItemLink', function(i) return link_of(list[i + 1]) end)
+  set(G, 'GetItemInfo', function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id == 7201 then return 'Oak Club', '|cff1eff00|Hitem:7201::::::::20:::::|h[Oak Club]|h|r', 2, 20, 15, 'Weapon', 'Two-Handed Maces', 1, 'INVTYPE_2HWEAPON', 1, 1 end
+    if id == 9101 then return 'Peacebloom', '|cffffffff|Hitem:9101::::::0:0|h[Peacebloom]|h|r', 1, 1, 1, 'Trade Goods', 'Herb', 20, '', 1, 1 end
+  end)
+  local reads = 0
+  set(C_Item, 'GetItemStats', function(link)
+    reads = reads + 1
+    if link:find('of the Bear', 1, true) then return {ITEM_MOD_STRENGTH_SHORT = 5} end
+    if link:find('Peacebloom', 1, true) then return {} end
+    return {ITEM_MOD_STAMINA_SHORT = 1}
+  end)
+  local function full_scan()
+    local done
+    scan.start{type = 'list', queries = {{blizzard_query = {}}}, get_all = true, quiet = true, on_complete = function() done = true end}
+    for _ = 1, 10 do tick() end
+    fire('REPLICATE_ITEM_LIST_UPDATE')
+    for _ = 1, 80 do tick(); if done then break end end
+    return done
+  end
+  up.clear_saved_stats()
+  check('upgrades full scan: the scan finishes', full_scan())
+  local right_after = up.saved_stats_count()
+  for _ = 1, 10 do tick() end
+  check('upgrades full scan: a few names a frame, not all at once', right_after < 120)
+  check('upgrades full scan: every ending name saved, the herb not', up.saved_stats_count() == 120)
+  check('upgrades full scan: one read per name, not per listing', reads == 120)
+  local entries = a.account_data.ending_stats.entries
+  local bear = entries['7201:20:oak club of the bear']
+  check('upgrades full scan: by item, item level and name', bear and bear.stats.ITEM_MOD_STRENGTH_SHORT == 5)
+  -- the Upgrades tab finds them by the auction house key: no read of its own
+  local record = {item_id = 7201, name = 'Oak Club of the Bear', requirement = 15, browse_key = {itemID = 7201, itemLevel = 20, itemSuffix = 11}}
+  local found = up.record_stats(record)
+  check('upgrades full scan: the tab uses them', found and found.ITEM_MOD_STRENGTH_SHORT == 5 and not record.base_only)
+  -- the next Full scan refreshes them
+  bear.at = bear.at - up.MAX_AGE - 1
+  full_scan()
+  for _ = 1, 10 do tick() end
+  check('upgrades full scan: the next scan refreshes them', entries['7201:20:oak club of the bear'].at > time() - 60)
+
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  up.clear_saved_stats()
+  a.account_data.replicate_time = 0
+end)
+
 -- 0.5: a view that missed auctions (a request for more went unanswered) gives no market price
 try('price data 0.5: incomplete view', function()
   local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
