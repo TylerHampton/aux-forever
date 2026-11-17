@@ -2202,6 +2202,16 @@ Recorder's notes:
 - "compared to other addons specifically for those": other addons exist for crates and writs on
   Forever. Not looked at.
 
+- Checked 2026-11-16 (**Outside**, search summaries of several guide sites; the pages themselves
+  could not be loaded from the session): crates pay Merchant's Favor and a little silver, no
+  reputation (for example Apprentice Textiles 5 Favor and 2.5 silver, Journeyman Fabrics 20 Favor
+  and 10 silver; beta-era numbers, partly read from the client by a fan site). Craftsman's Writs
+  pay reputation (75, 125 or 200 by tier, once a day each) and a small coin pouch, no Favor. So
+  "favor/cost" is for crates and "rep/cost" for writs.
+  Sources: [mobalytics](https://mobalytics.gg/wow-forever/profile/stoyven-enbj16/guides/merchant-s-favor),
+  [wow-professions](https://www.wow-professions.com/forever/merchants-favor-durotar-supply-azeroth-commerce),
+  [forevermastery](https://forevermastery.com/en/guides/wow-forever-merchants-favor).
+
 Unknowns: what a crate pays and whether the game says it in a form aux can read; what "favor" is
 on Forever. A first version can work without them: show the full cost (crate and fill) next to
 what is left to buy, and add rewards once their source is known.
@@ -2287,6 +2297,11 @@ Recorder's notes:
   Tyler), the "Gear is priced in whole silver" note, the R-14 and timing tests that expect silver.
   Gear rows group by buyout price (`price_group`), so copper prices only split rows that differ.
 
+- Checked 2026-11-16: Blizzard's Sell window shows a copper box for gear and does not round it
+  **[Code]**; no Blizzard note about the change was found (`docs/forever-auction-house.md`,
+  section 2). So copper on gear follows "aux never refuses what Blizzard's window allows"; if the
+  server refused it, aux's post would say so.
+
 Unknowns: whether every item takes copper or only some (Small Red Pouch is a bag, the axe common
 gear); what happened in Tyler's test of 2026-10-19. E8 answers both enough to build.
 
@@ -2327,6 +2342,13 @@ Recorder's notes (from the code; nothing here was seen in game):
 - "green random stat": inference, the stat line the ending adds, which the game colors green, or
   the ending in the green item name. Either way it is what the ending gives.
 
+- Checked 2026-11-16 (**Code**): aux's row hover (`OnIconEnter` in `gui/auction_listing.lua`)
+  uses the auction house item key only for Fast rows; Full rows use the auction's link. Blizzard's
+  own item display, given an item key, asks `C_AuctionHouse.GetItemKeySampleLink(itemKey)` first
+  and falls back to `SetItemKey` (`Blizzard_AuctionHouseSharedTemplates.lua`, branch `forever`).
+  Doing the same for Full rows (`record.item_search_key`) is the likely fix; still an inference
+  that the link is what lacks the stat.
+
 Unknowns: Fast or Full search; tooltip or row; which items. A fix can work without them: make
 every row's hover use the item key, as fast rows do, and check both endings in game.
 
@@ -2366,6 +2388,10 @@ Recorder's notes (from the code; nothing here was seen in game):
   (b) A post still waiting for the server's answer keeps its slot locked; posting again before it
   comes back finds only locked copies.
   (c) Something changed recently on Blizzard's side or in Bagnon ("suddenly").
+- Checked 2026-11-16: nothing found about Bagnon and this. One unofficial guide says a failed
+  listing on Forever can leave the bag slot locked "in transit" while the item still shows in the
+  bag ([izoate](https://www.izoate.com/blog/6-ways-to-fix-wow-forever-internal-auction-error/),
+  **Outside**, no source given), which would also give this message.
 - Either way the message names three causes, none of which may apply. The message should cover
   what aux can tell (Blizzard's Sell tab, a post still on its way) and aux could release
   Blizzard's Sell tab itself before posting.

@@ -99,6 +99,13 @@ search and buy, which work in game **[Seen]**.
   Small Red Pouch (CurseForge comments, 2026-11-13 to 2026-11-16, FB-044) **[Outside]**. This
   contradicts Tyler's 10s 50c test of 2026-10-19 above; sarrathsilentstrider's "now" suggests a
   change on Blizzard's side since. Not seen by Tyler yet: experiment E8.
+- Blizzard's Sell window treats gear and trade goods alike: it shows the copper box whenever
+  `SupportsCopperValues()` is true and does not round a typed gear price to silver (only its
+  default price is silver-aligned) (`Blizzard_AuctionHouseSellFrame.lua`,
+  `Blizzard_AuctionHouseSharedTemplates.lua`, branch `forever`, build 70938) **[Code]**. Its
+  auction house code has not changed since build 70425 (2026-10-16), so any change since Tyler's
+  2026-10-19 test would be on the server. No Blizzard note found that mentions copper prices on
+  gear (searched 2026-11-16).
 - An item can also be marked as listed by another character on your account
   (`containsAccountItem`); Blizzard shows such rows as your own. **[Code]**
 
@@ -132,6 +139,11 @@ search and buy, which work in game **[Seen]**.
   every case. Inference: below some amount the game charges 1s; the Classic formula alone would
   give a few copper for these. The 1c deposit once shown for Minor Mana Potion (0.4) was only
   aux's display, not what the game took.
+- The 1 silver floor drops to 1 copper: listed in Blizzard's 2026-11-10 hotfixes, pulled, and
+  announced for the weekly maintenance of 2026-11-17 (North America) and 2026-11-18 (Europe)
+  **[Outside]** ([Massively OP](https://massivelyop.com/2026/11/11/wow-forever-reduces-auction-house-listing-costs-and-adds-more-gold-to-high-level-quests/),
+  [Icy Veins](https://www.icy-veins.com/wow-forever/news/the-auction-house-is-still-unusable-at-low-levels-deposit-cost-change-delayed/)).
+  aux shows the game's own number, so nothing in aux depends on the floor.
 - A bug took too much deposit (about 1 silver on many auctions) around 2026-09-29. **[Outside]**
   (Wowhead, Seramate summaries). Fixed or not: **[Unknown]**.
 - **Deposit back on a sale:** the seller's invoice adds the deposit to the sale price and subtracts
