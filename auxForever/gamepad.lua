@@ -21,7 +21,8 @@ local gui = require 'aux.gui'
 --   B      closes what is open: a dropdown, a text box, a popup (Settings, quick searches), then aux
 --   X      right-clicks the control (search from a bag item, remove a favorite, clear a text box)
 --   Y      the tab's main action: Buy (then Confirm) on Search, Start or Stop on Sniper, Search on
---          Upgrades, Post on Post,
+--          Upgrades (Buy on a row of its table: the first Y reads the row's price, the second
+--          buys), Post on Post,
 --          Cancel the selected auction on Auctions, Buyout the selected bid on Bids
 --   LB/RB  step through the top bar: the six tabs (switched at once), then Settings, Full scan
 --          and Blizzard UI (A presses them)
@@ -307,7 +308,21 @@ local QUICK_ACTIONS = {
     function() return require('aux.tabs.bids').buyout_button end,
 }
 
+-- Upgrades (Ben, 2026-11-17): with a row of its table in focus, Y buys that row. A row only has a
+-- price once its auctions are read, and the game buys only inside a press, so a row not yet offered
+-- on the buy bar is selected (read) by the first Y and bought by the next.
+local function upgrades_row(f)
+    if tabs._selected ~= 3 or not usable(f) then return end
+    local list = require('aux.tabs.upgrades').upgrades_list
+    return list and inside(f, list) and f.record or nil
+end
+
 local function quick_action()
+    local row = upgrades_row(focused)
+    if row then
+        require('aux.tabs.upgrades').pad_buy(row)
+        return
+    end
     local find = QUICK_ACTIONS[tabs._selected or 0]
     local button = find and find()
     if button and button:IsVisible() and button:IsEnabled() then
@@ -686,6 +701,14 @@ end
 -- is known; on Sniper, Start or Stop.
 local Y_NAMES = {'Buy', 'Start', 'Search', 'Post', 'Cancel', 'Buyout'}
 local function y_label()
+    local row = root() == frame and not menu_open() and upgrades_row(focused)
+    if row then
+        local upgrades = require('aux.tabs.upgrades')
+        if upgrades.reading_row(row) then return end
+        if not upgrades.offering(row) then return 'Get price' end
+        local buy = buy_button()
+        return buy and buy:IsVisible() and buy:IsEnabled() and 'Buy' or nil
+    end
     local button = quick_button()
     if not button then return end
     local text = button:GetText() or ''

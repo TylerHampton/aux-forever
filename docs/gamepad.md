@@ -16,7 +16,7 @@ Nothing in this file applies with mouse and keyboard: every part checks for game
 | A | Presses the control. A text box starts typing; a dropdown opens, then up and down walk its options and A picks one. On a Sniper deal, the gold frame then moves to the buy bar's Buy button once it shows. |
 | B | Closes what is open, in this order: a dropdown, typing in a text box, a popup (Settings, quick searches, the Filter Builder menu, aux's own popups), then aux. On the buy bar after a Sniper deal, B goes back to the deal. |
 | X | A right-click on the control: search from a bag item, add or remove a favorite, clear a text box. |
-| Y | The open tab's main action: Buy and then Confirm on Search, Start or Stop on Sniper, Post on Post, Cancel on Auctions, Buyout on Bids. |
+| Y | The open tab's main action: Buy and then Confirm on Search, Start or Stop on Sniper, Search on Upgrades, Post on Post, Cancel on Auctions, Buyout on Bids. On Upgrades with a row of its table in focus: the first Y selects that row and reads its price (hint "Get price"), the next Y buys it (hint "Buy"); the game buys only inside a press, so the read cannot buy by itself. |
 | LB / RB | Step through the top bar: the five tabs switch at once; after them come Settings, Full scan and Blizzard UI (A presses them). It wraps round at both ends. |
 
 aux opens with the focus on the top-left control of the tab. The top bar is reached only with LB

@@ -23,6 +23,10 @@ mockup).
 
 ### Result tables (Search results, Sniper, Auctions, Bids; `gui/auction_listing.lua`)
 
+The Upgrades tab's table (2026-11-17) works like Search: a click selects a row and the buy bar
+under it offers that item (after reading its auctions); right-click searches for it on the Search
+tab; Shift and Ctrl as below.
+
 | Click | Search | Sniper | Auctions | Bids |
 | --- | --- | --- | --- | --- |
 | Left-click a row | Select (buy bar shows it) | Select and hold the rounds; click again to let go | Select | Select |

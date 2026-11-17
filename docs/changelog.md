@@ -20,14 +20,18 @@ A change that comes from a player's feedback credits them by in-game name at the
   may be undervalued.
 - Attack Power counts for physical specs, worth what the Strength or Agility that gives it is
   worth (from each guide: a Warrior's Strength gives 2 Attack Power, a Rogue's Agility 1).
-- Click a row to see that item's auctions on the Search tab and buy it there.
+- Buy right on the Upgrades tab: click a row and the buy bar under the table reads that item's
+  auctions and shows Buy with today's cheapest price (it can differ from the row's price, which was
+  the lowest when you searched; the row then shows the new price). Nothing is bought until you
+  click Buy. Right-click a row to open that item on the Search tab instead.
 - A Per gold column: how many score points you gain for each gold the item costs, so a cheap small
   upgrade and an expensive big one can be compared.
 - Change the stat weights yourself: Settings, Upgrades, Stat weights, Edit (or Change weights on
   the tab). One number per stat for each spec, kept for each character; your numbers show in gold,
   and Reset to defaults brings back the guide's.
 - Post, Auctions and Bids moved one place to the right. With a gamepad, Y presses Search on the
-  Upgrades tab.
+  Upgrades tab, and with a row of its table in focus, Y buys that row: the first Y reads its price
+  (the hint says "Y Get price"), the second buys it ("Y Buy").
 
 ## 0.8.2 (2026-11-09)
 

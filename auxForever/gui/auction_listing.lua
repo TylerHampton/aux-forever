@@ -715,10 +715,13 @@ local methods = {
         local parts = {}
         local selection = self:GetSelection()
         local selected = selection and selection.record == row.record
-        if row.record and row.record.fast then
+        -- select_hint: a table whose fast rows are selected, not opened (the Upgrades tab)
+        if row.record and row.record.fast and not self.select_hint then
             tinsert(parts, 'Click: see its auctions')
         elseif selected then
             tinsert(parts, 'Click again: let go')
+        elseif self.select_hint then
+            tinsert(parts, self.select_hint)
         else
             tinsert(parts, 'Click: select')
         end

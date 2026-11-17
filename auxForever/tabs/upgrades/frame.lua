@@ -6,6 +6,7 @@ local money = require 'aux.util.money'
 local sort_util = require 'aux.util.sort'
 local auction_listing = require 'aux.gui.auction_listing'
 local search_tab = require 'aux.tabs.search'
+local buy_bar = require 'aux.gui.buy_bar'
 local weights = require 'aux.core.weights'
 
 -- auxForever: the Upgrades tab's screen, from the approved mockup: the choices on the left (spec,
@@ -26,6 +27,13 @@ left:SetWidth(LEFT_WIDTH)
 frame.listing = gui.panel(frame)
 frame.listing:SetPoint('TOPLEFT', aux.frame.content, 'TOPLEFT', LEFT_WIDTH + 6, 0)
 frame.listing:SetPoint('BOTTOMRIGHT', aux.frame.content, 'BOTTOMRIGHT', 0, 0)
+
+-- the table, with the buy bar under it (core.lua attaches the bar while the tab is open)
+frame.listing.list = CreateFrame('Frame', nil, frame.listing)
+frame.listing.list:SetPoint('TOPLEFT', 0, 0)
+frame.listing.list:SetPoint('BOTTOMRIGHT', 0, buy_bar.HEIGHT + 4)
+-- for the gamepad: Y on a row of it buys (gamepad.lua)
+M.upgrades_list = frame.listing.list
 
 local function small_label(text, anchor, y)
     local label = gui.label(left, gui.font_size.small)
@@ -221,19 +229,26 @@ M.columns = {
 M.GAIN_COLUMN = 5
 M.PER_GOLD_COLUMN = 6
 
-M.listing = auction_listing.new(frame.listing, 19, columns)
+M.listing = auction_listing.new(frame.listing.list, 19, columns)
 listing.one_row_each = true
+-- every row is another item: a row that left the table leaves nothing selected, so another item is
+-- never offered to buy without being clicked (as on the Sniper)
+listing.keep_selection_only = true
+listing.select_hint = 'Click: select to buy'
 listing:SetSort(-GAIN_COLUMN)
 listing:Reset()
--- A row opens that exact item (its ending included) on the Search tab, which reads its auctions and
--- buys through the buy bar, with its check that a purchase never costs more than shown
+-- Right-click opens that exact item (its ending included) on the Search tab, as right-click on a row
+-- does in every table (docs/clicks.md). A click selects it to buy here (core.lua, select_row).
 function M.open_in_search(record)
     aux.set_tab(1)
     search_tab.set_filter(strlower(record.name) .. '/exact')
     search_tab.execute(nil, false)
 end
 listing:SetHandler('OnClick', function(row, button)
-    if row.record then open_in_search(row.record) end
+    if row.record and button == 'RightButton' then open_in_search(row.record) end
+end)
+listing:SetHandler('OnSelectionChanged', function(_, selection)
+    select_row(selection and selection.record or nil)
 end)
 
 local function level_options()

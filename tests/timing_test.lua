@@ -321,6 +321,145 @@ return function(env)
     bar.clear()
   end)
 
+  -- The Upgrades tab buys (Ben, 2026-11-17). Its rows come from the item list (the lowest price, no
+  -- auction), so a selected row reads its auctions first and the buy bar then offers the cheapest.
+  -- Here the item list said 1g 50s, but the swords now sell at 2g (2 of them) and 2g 50s.
+  local function upgrades_setup(server)
+    local up = module 'aux.tabs.upgrades'
+    local bar = module 'aux.gui.buy_bar'
+    server.items[7001] = {name = 'Sword', commodity = false}
+    server.items[7002] = {name = 'Axe', commodity = false}
+    server.listings[7001] = {{price = 15000, quantity = 1}, {price = 20000, quantity = 2}, {price = 25000, quantity = 1}}
+    server.listings[7002] = {{price = 9000, quantity = 1}}
+    server:install()
+    -- the game: both are two-handers with Strength, nothing is worn (so both are upgrades)
+    local saved = {G.GetInventoryItemLink, G.C_Item.GetItemStats, G.C_Item.GetItemInfoInstant, rawget(G.AuxTooltip, 'SetItemKey'), rawget(G.AuxTooltip, 'GetItem')}
+    local shown_key
+    G.GetInventoryItemLink = function() end
+    G.C_Item.GetItemStats = function(link) return {ITEM_MOD_STRENGTH_SHORT = link == 'sword' and 20 or 10} end
+    G.C_Item.GetItemInfoInstant = function(id) return id, '', '', 'INVTYPE_2HWEAPON' end
+    rawset(G.AuxTooltip, 'SetItemKey', function(_, id) shown_key = id end)
+    rawset(G.AuxTooltip, 'GetItem', function() return 'x', shown_key == 7001 and 'sword' or 'axe' end)
+    -- the harness does not keep a new parent; the buy bar moves between tabs with SetParent
+    rawset(bar.frame, 'SetParent', function(self, parent) self.__parent = parent end)
+    local saved_choice = aux.character_data.upgrades
+    aux.character_data.upgrades = {spec = 'enhancement', slot = 15} -- Two-Hand
+    aux.set_tab(3)
+    up.search()
+    server:wait(function() local r = up.results(); return #r == 2 and not up.state().scoring end, 100)
+    -- the cheapest sword sells meanwhile: the list said 1g 50s, now the cheapest is 2g
+    table.remove(server.listings[7001], 1)
+    local rows = {}
+    for _, r in ipairs(up.results()) do rows[r.item_id == 7001 and 1 or 2] = r end
+    local function teardown()
+      aux.set_tab(1)
+      G.GetInventoryItemLink, G.C_Item.GetItemStats, G.C_Item.GetItemInfoInstant = saved[1], saved[2], saved[3]
+      rawset(G.AuxTooltip, 'SetItemKey', saved[4]); rawset(G.AuxTooltip, 'GetItem', saved[5])
+      rawset(bar.frame, 'SetParent', nil)
+      aux.character_data.upgrades = saved_choice
+      server:restore()
+      bar.clear()
+    end
+    return up, bar, rows, teardown
+  end
+
+  local function bought_total(server)
+    local total = 0
+    for _, p in ipairs(server.purchases) do total = total + p.total end
+    return total
+  end
+
+  try('timing: buying from the Upgrades tab, answered a second later', function()
+    local server = new_server(env)
+    local up, bar, rows, teardown = upgrades_setup(server)
+    local sword, axe = rows[1], rows[2]
+    check('upgrades buy: the search lists both, the sword at 1g 50s', sword and axe and sword.unit_buyout_price == 15000)
+    check('upgrades buy: the buy bar sits under the Upgrades table', bar.frame:GetParent() == up.frame.listing)
+
+    up.listing:SetSelectedRecord(sword) -- the player clicks the sword's row
+    server:ticks(1)
+    local l1, l2 = bar.lines()
+    check('upgrades buy: it reads the sword\'s auctions first', (l2 or ''):find('Reading', 1, true) ~= nil)
+    bar.primary_click() -- a click on the bar while its auctions are on their way
+    check('upgrades buy: the read reached the server', server:wait(function() return up.offering(sword) end, 40))
+    check('upgrades buy: nothing bought before the price was shown, or by the read itself', #server.purchases == 0)
+    check('upgrades buy: the bar shows today\'s cheapest, 2g, not the list\'s 1g 50s', plain(bar.primary_label()):find('2g', 1, true) ~= nil and sword.unit_buyout_price == 20000)
+
+    bar.primary_click()
+    bar.primary_click() -- a second click before the answer buys nothing more
+    server:ticks(20)
+    check('upgrades buy: bought one, at the price shown', #server.purchases == 1 and server.purchases[1].total == 20000)
+    check('upgrades buy: then reads it again and offers the next one', server:wait(function() return up.offering(sword) end, 60))
+    check('upgrades buy: still nothing more bought', #server.purchases == 1)
+
+    -- the player picks the sword, then the axe, before the sword's answer is in: the bar offers the axe
+    up.listing:SetSelectedRecord()
+    up.listing:SetSelectedRecord(sword)
+    server:ticks(2)
+    up.listing:SetSelectedRecord(axe)
+    check('upgrades buy: the axe is offered, not the sword', server:wait(function() return up.offering(axe) end, 40) and not up.offering(sword))
+    check('upgrades buy: at the axe\'s price', plain(bar.primary_label()):find('90s', 1, true) ~= nil)
+    bar.primary_click()
+    server:ticks(20)
+    check('upgrades buy: the axe bought, 90s', #server.purchases == 2 and server.purchases[2].total == 9000)
+    server:ticks(40)
+    local _, gone = bar.lines()
+    check('upgrades buy: the last axe gone, the bar says so and the row leaves the table', (gone or ''):find('Nothing left', 1, true) ~= nil and not up.listing:ContainsRecord(axe))
+
+    -- leaving the tab gives the bar back to the Search tab
+    aux.set_tab(1)
+    check('upgrades buy: the bar goes back under the Search results', bar.frame:GetParent() ~= up.frame.listing)
+    teardown()
+  end)
+
+  -- Y on a gamepad: with a row of the Upgrades table in focus, the first Y reads its price, the next
+  -- buys it (the game buys only inside a press). Elsewhere on the tab Y stays Search.
+  try('timing: Upgrades tab, Y on a row buys it', function()
+    local aux_env = module 'aux'
+    local aux_frame = aux_env.frame
+    local real = {G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown}
+    G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = function() end, function() end, function() return false end
+    G.InputUtil = {IsGamepadUIEnabled = function() return true end}
+    aux_frame:Hide(); aux_frame:Show()
+    local server = new_server(env)
+    local up, bar, rows, teardown = upgrades_setup(server)
+    local sword = rows[1]
+    local function y() local b = G.auxForeverPadY; b.__scripts.OnClick(b) end
+    local function y_hint() aux_env.update_hints(); local item = aux_env.gamepad_hints().items.Y; return item.label.__shown ~= false and item.label:GetText() end
+    -- the harness draws no table rows (no sizes): a row button of the table, showing the sword
+    local row = G.CreateFrame('Button', nil, up.upgrades_list)
+    row.record = sword
+    rawset(row, 'GetCenter', function() return 500, -300 end)
+    aux_env.gamepad_set_focus(row)
+
+    check('pad upgrades: Y on a row says Get price', y_hint() == 'Get price')
+    y()
+    server:ticks(2)
+    check('pad upgrades: the first Y selects the row, buys nothing', up.listing:GetSelection() and up.listing:GetSelection().record == sword and #server.posts == 0 and #server.purchases == 0)
+    y() -- pressed again while its auctions are on their way
+    check('pad upgrades: the price arrives', server:wait(function() return up.offering(sword) end, 40))
+    check('pad upgrades: a press before the price buys nothing', #server.purchases == 0)
+    check('pad upgrades: Y now says Buy', y_hint() == 'Buy')
+    y(); y()
+    server:ticks(20)
+    check('pad upgrades: Y buys one, at the price shown', #server.purchases == 1 and bought_total(server) == 20000)
+
+    -- Y with the focus on the left side is Search
+    local searched
+    rawset(up.search_button, 'Click', function() searched = true end)
+    rawset(up.search_button, 'IsVisible', function() return true end)
+    aux_env.gamepad_set_focus(up.weights_button)
+    y()
+    check('pad upgrades: Y elsewhere on the tab searches', searched)
+    rawset(up.search_button, 'Click', nil); rawset(up.search_button, 'IsVisible', nil)
+
+    teardown()
+    aux_frame:Hide()
+    G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = real[1], real[2], real[3]
+    G.InputUtil = nil
+    aux_frame:Show()
+  end)
+
   -- leaving the Post tab while a post waits for its answer, and the answer never comes: the Post
   -- tab must not stay on "Posting..." when the player comes back
   try('timing: leaving the Post tab during a post that is never answered', function()

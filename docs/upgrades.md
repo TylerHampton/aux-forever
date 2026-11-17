@@ -12,8 +12,8 @@ saved per character, since Forever does not report talent trees, E9), a slot (He
 and how far above their level to look, and presses Search. aux reads what they wear in that slot, searches the auction house for gear of that slot
 they can use, scores every item with the spec's stat weights and lists the ones that beat what
 they wear: the score, the gain over the worn item, the stats that change, and the price, best gain
-first. Rings, trinkets and one-handed weapons compare with the weaker of the two worn. Buying works
-as on the Search tab (the buy bar).
+first. Rings, trinkets and one-handed weapons compare with the weaker of the two worn. A row is
+bought on the tab itself, with the buy bar under the table (since 2026-11-17).
 
 The tab informs, it does not decide (`AGENTS.md`): it shows the score and what it is made of, never
 "buy this".
@@ -67,6 +67,16 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
    the mockup: a row opens that exact item on the Search tab, which shows its auctions and buys it
    with the Search tab's buy bar and its never-more-than-shown check, instead of a buy bar on the
    Upgrades tab. A buy bar on the tab itself can follow if this feels clumsy in game.
+   2026-11-17 (Ben): buy on the tab itself, with mouse and gamepad. Built: the Search tab's buy
+   bar sits under the table while the tab is open (as on the Sniper). A click selects a row; its
+   version's auctions are read (one request, `read_row` in `tabs/upgrades/core.lua`) and the
+   cheapest with a buyout is offered at its real price on the button; the row takes that price and
+   count. After a purchase it is read again, so the next one is offered or the row leaves the table
+   when none is left. Right-click opens it on the Search tab, as in every table. Gamepad: Y on a
+   focused row selects it (reads its price), the next Y buys; Y elsewhere on the tab is Search. A
+   read that ends cannot buy by itself: aux's buy call (`aux.place_bid`) runs only from a click or
+   pad press (Code, aux's own comment there; not checked in Blizzard's code). Tests:
+   `tests/timing_test.lua`, "buying from the Upgrades tab" and "Y on a row buys it".
    Open: whether the auction house's "usable" filter also hides items above the player's level
    (then "Up to my level + 2" finds nothing extra; `TESTING.md` step 7).
 6. Gamepad (Y runs Search), docs, `TESTING.md` steps, changelog.

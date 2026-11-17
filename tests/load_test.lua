@@ -5912,9 +5912,14 @@ try('upgrades tab: search, score and list upgrades', function()
   for _ = 1, 3 do tick() end
   check('upgrades tab: another spec rescores without searching', params == nil and #up.results() == 0)
 
-  -- a row opens that exact item on the Search tab
-  up.open_in_search({name = 'Better Axe of the Bear'})
-  check('upgrades tab: a row opens the item on the Search tab', aux_env.tabs._selected == 1 and params and params.queries[1].blizzard_query.name ~= nil)
+  -- a click selects a row to buy it here (tests/timing_test.lua); a right-click opens that exact
+  -- item on the Search tab, as in every table (docs/clicks.md)
+  params = nil
+  aux_env.set_tab(3)
+  up.listing.handlers.OnClick({record = {name = 'Better Axe of the Bear'}}, 'LeftButton')
+  check('upgrades tab: a click stays on the tab', aux_env.tabs._selected == 3)
+  up.listing.handlers.OnClick({record = {name = 'Better Axe of the Bear'}}, 'RightButton')
+  check('upgrades tab: a right-click opens the item on the Search tab', aux_env.tabs._selected == 1 and params and params.queries[1].blizzard_query.name ~= nil)
 
   rawset(scan_exports, 'start', real_start)
   for k in pairs(labels) do rawset(G, k, nil) end

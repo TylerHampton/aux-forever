@@ -27,8 +27,8 @@ New files: **full game restart** (not `/reload`). Open the auction house and aux
 - [ ] 5. Point the mouse at a row's icon, without clicking. Its tooltip shows, with your weapon's
       tooltip next to it. Check that the row's Changes column matches the difference (for example
       "+3.1 DPS, +4 Strength").
-- [ ] 6. Click a row. aux switches to the Search tab and shows that exact item's auctions, ready to
-      buy as usual. Do not buy unless you want it.
+- [ ] 6. Right-click a row. aux switches to the Search tab and shows that exact item's auctions.
+      Go back to Upgrades (the search there is still listed).
 - [ ] 7. Back on Upgrades, click **Ring** and press Search. "WEARING NOW" shows the weaker of your
       two rings. Then pick "Up to my level + 2" under Required level and search again: say whether
       rows with a higher level (orange or red Req) appear. This tells us whether the auction house's
@@ -49,6 +49,27 @@ New files: **full game restart** (not `/reload`). Open the auction house and aux
 - [ ] 15. As Enhancement, the "Weights:" line includes "Attack Power 1.5", and in Change weights
       the Attack Power box shows 1.5 (not gold). Type 6 in the Strength box and click outside it:
       Attack Power shows 3.
+
+### Buying on the Upgrades tab (added 2026-11-17)
+
+`/reload` is enough if you already restarted the game for this build; otherwise a **full game
+restart**. Have a few gold on you, and pick a cheap row to buy.
+
+- [ ] 16. On Upgrades, after a search, look under the table: a bar that says "Select a row to buy
+      it". Take a screenshot.
+- [ ] 17. Click a row with a cheap Buyout. The bar shows the item's icon and name and "Reading its
+      auctions...", then a gold button "Buy for" and a price (for example "Buy for 1g 20s"). Nothing
+      is bought yet: check your gold did not change.
+- [ ] 18. Look at that row's Buyout column. Say whether it shows the same price as the gold button.
+      (If someone bought the cheapest one since your search, both now show the new, higher price.)
+- [ ] 19. Click **Buy for ...** once. The item arrives in your mailbox, and the bar then says
+      "Bought. Looking for another one..." and offers the next one, or "Nothing left to buy" and the
+      row leaves the table.
+- [ ] 20. With a gamepad: press the D-pad until the gold frame is on a row of the table. The hint
+      strip at the bottom says "Y Get price". Press Y: the row is selected and the bar shows "Buy
+      for" and a price; the hint now says "Y Buy". Press Y again only if you want to buy it.
+- [ ] 21. With a gamepad: move the gold frame to the Search button on the left. The hint says
+      "Y Search", and Y searches.
 
 ## Upgrades experiments (branch `search-upgrade-support`, before any code)
 

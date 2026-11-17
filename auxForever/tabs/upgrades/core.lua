@@ -125,6 +125,7 @@ function M.set_slot(index)
     if SLOTS[index] and saved().slot ~= index then
         saved().slot = index
         found, shown, state = {}, {}, {}
+        let_go()
         changed()
     end
 end
@@ -239,6 +240,7 @@ function M.search()
         return
     end
     local records = {}
+    let_go()
     generation = generation + 1 -- ends a scoring pass of the last search
     found, shown = records, {}
     state = {searching = true, slot = slot.name}
@@ -277,11 +279,161 @@ function M.worn()
     return stats.worn_score(slot.locations[1], spec_weights(spec))
 end
 
+-- Buying (Ben, 2026-11-17: buy straight from this tab, with the mouse and the gamepad). A row comes
+-- from the item list: its lowest price, not an auction. Selecting it reads that version's auctions
+-- (one request), and the buy bar under the table (gui/buy_bar.lua, borrowed as the Sniper does)
+-- offers the cheapest one at its real price, on the button. Nothing is bought without a click or a
+-- pad press on Buy: the game takes a purchase only from a button press (aux-addon.lua, place_bid),
+-- so a read that ends later cannot buy by itself. A row is read again on every selection, because
+-- the auction house buys from the latest read of an item (the Sniper's finding, Tyler, 0.4.1).
+
+local buy_bar = require 'aux.gui.buy_bar'
+
+local checked  -- the row selected for buying
+local reading  -- the row whose auctions are being read
+local offer    -- the auction on the buy bar now, and its row
+
+local show_offer
+
+-- reads a row's auctions; the cheapest with a buyout goes on the buy bar
+local function read_row(row, note)
+    reading, offer = row, nil
+    buy_bar.show_note(row.name, note or 'Reading its auctions...')
+    local loaded = {}
+    scan.start{
+        type = 'list',
+        quiet = true,
+        no_view = true, -- one version of an item, not a look at the whole item (scan.lua)
+        queries = {{item_keys = {row.browse_key}}},
+        on_auction = function(auction)
+            if not auction.own and not auction.commodity and auction.buyout_price > 0 then
+                tinsert(loaded, auction)
+            end
+        end,
+        on_complete = function()
+            if reading ~= row then return end
+            reading = nil
+            local cheapest
+            for _, auction in ipairs(loaded) do
+                if not cheapest or auction.buyout_price < cheapest.buyout_price then cheapest = auction end
+            end
+            local count = 0
+            for _, auction in ipairs(loaded) do count = count + (auction.auction_count or 1) end
+            if cheapest then
+                -- the row shows what is for sale now
+                row.unit_buyout_price, row.buyout_price, row.auction_count = cheapest.unit_buyout_price, cheapest.buyout_price, count
+                if row.upgrade then row.upgrade.per_gold = per_gold(row.upgrade.gain, cheapest.unit_buyout_price) end
+            else
+                -- gone: off the list (found too, or the next scoring brings it back)
+                for _, list in ipairs{found, shown} do
+                    local index = aux.key(list, row)
+                    if index then tremove(list, index) end
+                end
+            end
+            changed()
+            if checked ~= row then return end
+            if cheapest then
+                show_offer(row, cheapest)
+            else
+                buy_bar.show_note(row.name, 'Nothing left to buy: it sold or was taken down')
+            end
+        end,
+        on_abort = function()
+            if reading ~= row then return end
+            reading = nil
+            if checked == row then
+                buy_bar.show_note(row.name, 'Stopped before its auctions were read: select it again')
+            end
+        end,
+    }
+end
+
+function show_offer(row, auction)
+    offer = {row = row, auction = auction}
+    local mine = offer
+    local function after(note)
+        return function()
+            if offer == mine then offer = nil end
+            if checked == row then read_row(row, note) end
+        end
+    end
+    local function failure(error)
+        if offer == mine then offer = nil end
+        if error == 'timeout' then
+            -- it may still go through on a slow server: nothing more is offered until it is read again
+            buy_bar.show_message('No answer from the auction house yet', 'It may still go through: check your mail before buying again', aux.color.red)
+        elseif checked == row then
+            read_row(row, 'Could not buy it: reading its auctions again...')
+        end
+    end
+    buy_bar.show_item{
+        record = auction,
+        name = row.name,
+        texture = row.texture,
+        quality = row.quality,
+        own = false,
+        busy = function() return offer ~= mine or reading ~= nil or aux.bid_in_progress() end,
+        on_buy = function()
+            aux.place_bid(auction.auction_id, auction.buyout_price, after('Bought. Looking for another one...'), failure)
+        end,
+        on_bid = function()
+            aux.place_bid(auction.auction_id, auction.bid_price, after('Bid placed. Reading its auctions again...'), failure)
+        end,
+    }
+end
+
+-- the table's selection changed (frame.lua): read the new row, or clear the bar
+function M.select_row(row)
+    if row == checked then return end
+    checked = row
+    if row then
+        read_row(row)
+    else
+        offer = nil
+        if reading then reading = nil; scan.abort() end
+        buy_bar.clear()
+    end
+end
+
+-- a new search or slot: nothing selected, nothing on the buy bar
+function M.let_go()
+    if listing then listing:SetSelectedRecord(nil, true) end
+    select_row(nil)
+end
+
+-- whether the buy bar offers this row now (the gamepad's Y buys it then)
+function M.offering(row)
+    return row ~= nil and offer ~= nil and offer.row == row and checked == row and reading == nil
+end
+
+-- Y on a gamepad with a row in focus: Buy when the bar offers that row, else select it so its
+-- auctions are read (and the next Y buys). Runs inside the pad press, so the purchase is allowed.
+function M.pad_buy(row)
+    if not row then return end
+    if offering(row) then
+        buy_bar.primary_click()
+    elseif row ~= checked then
+        listing:SetSelectedRecord(row)
+    elseif reading ~= row then
+        read_row(row) -- selected, but its read was stopped or found nothing: read it again
+    end
+end
+
+-- whether this row's auctions are being read now (the gamepad hint waits)
+function M.reading_row(row)
+    return row ~= nil and reading == row
+end
+
 function tab.OPEN()
     frame:Show()
+    buy_bar.attach(frame.listing)
     changed()
 end
 
 function tab.CLOSE()
+    if reading then reading = nil; scan.abort() end
+    checked, offer = nil, nil
+    listing:SetSelectedRecord(nil, true)
+    buy_bar.attach_default()
     frame:Hide()
 end

@@ -15,6 +15,14 @@ are now 4, 5 and 6), with tests, not tried in game: `TESTING.md`, "Upgrades tab,
 row opens the item on the Search tab to buy it. Also built 2026-11-16: the weights editor (`tabs/upgrades/weights.lua`, own window, from Settings
 and the tab) and a Per gold column. Next: Ben's in-game test (`TESTING.md`, steps 1 to 14).
 
+**2026-11-17, Claude, buying on the Upgrades tab** (Ben: buy from the tab, mouse and gamepad, Y
+buys a highlighted item). Built on `search-upgrade-support`: the buy bar sits under the Upgrades
+table; a click reads that row's auctions and offers the cheapest at its real price; right-click
+opens it on the Search tab; gamepad Y on a row reads its price, the next Y buys (the game buys only
+inside a press). Tests in `tests/timing_test.lua` (slow auction house), checked to fail without
+the change. No new file. Not tried in game: `TESTING.md`, steps 16 to 21. Next: Ben's in-game
+test of steps 1 to 21.
+
 **2026-11-08, Claude, 0.8.0.1 build 1:** Tyler approved the version plan for the feedback batch
 ("go with your version plan", now in `docs/roadmap.md`, "After 0.8") and asked to start 0.8.0.1.
 Two fixes, each with a test that fails without it:
