@@ -317,3 +317,11 @@ page once carried them as build id `ah-facts-1`.
   ending's stats (seen only for an item search result's link), and that the two item levels are the
   same number. `TESTING.md` step 28 checks both at once: after Clear and a Full scan, an Upgrades
   search that has no "Reading the stats of each ending" step means both hold.
+  Result 2026-11-17 (Ben, saved variables read after a `/reload`) **[Seen]**: the Full scan
+  saved 11,354 ending names in about 4 seconds after it finished, so its links do carry the
+  ending's stats. Chest, Back and Wrist searches after it read only 21 names themselves (Chest had
+  read 100+ before). For each of the 21, the scan had saved other endings of the same item at the
+  same item level, so the two item levels match. The 21 names had a market price for that day,
+  which only a complete look such as the Full scan writes, so the scan saw those listings, but no
+  stats were saved for them. **[Inference]**: `GetItemStats` gave nothing for those links at that
+  moment (the game had not loaded them yet), and aux does not try again.
