@@ -8,7 +8,39 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.2.1 build 7 (released as 0.8.2.1 on 2026-11-16, with the crate heading renamed)
+## Current build: 0.8.2.2 build 1
+
+Buying fixes from the CurseForge comments on 0.8.2.1 (FB-049 to FB-052): the buy bar starts at 1,
+Buy rests for a second after a purchase, the new "Confirm before buying" setting (trade goods and
+gear), and `/aux post bid on`. Zip `auxForever-0.8.2.2-build1.zip`; `/reload` is enough (no new
+files). Test page build id `0-8-2-2-build-1`. Steps 2, 4 and 5 spend a few coppers and about 1s.
+
+- [ ] 1. Starts at 1 (FB-050). Search tab: search `linen cloth/exact` and click the cheapest row,
+      nothing else. Look at the bar under the results: the QUANTITY box says 1 and the big button
+      on the right says "Buy 1 for" and a price. Nothing is bought yet. Screenshot the bar.
+- [ ] 2. No double buy (FB-051). Still on that row, with 1 picked, click Buy and then at once click
+      the same button again, as you used to for Confirm. The bar says "Bought 1 × Linen Cloth for"
+      and a price, and the button looks faded for about a second, then lights up again. In the
+      note: did the second click buy another one? (At a mailbox later: how many Linen Cloth came
+      from this step; 1 is right.)
+- [ ] 3. The new setting (FB-049). Click the gear in aux's top bar (Settings). In the left column,
+      under POSTING, there is a BUYING heading with "Confirm before buying" and a switch, off.
+      Turn it on. Screenshot the Settings window (this is the layout check, as there was no
+      mockup).
+- [ ] 4. Confirm with a trade good. Back on `linen cloth/exact`, click the cheapest row, 1 picked,
+      click Buy once. The button turns into "Confirm" and a price, a Cancel button appears to its
+      left, and the line says "Nothing is bought until you confirm". Click Cancel: the bar says
+      "Cancelled" and "Nothing was bought". Click Buy again, then Confirm: "Bought 1 × Linen
+      Cloth".
+- [ ] 5. Confirm with gear. Search `linen belt/exact` (or any cheap gear) and click its cheapest
+      row. Click Buy once: the button turns into "Confirm" and the price, with Cancel next to it.
+      Click Confirm: "Bought 1 × Linen Belt for" and the price. Then type `/aux buy confirm` in
+      chat: it says "buy confirm off", and the switch in Settings is off again.
+- [ ] 6. `/aux post bid on` (FB-052). Type `/aux post bid on` in chat: it says "post bid unit".
+      Type `/aux post bid off`: it says "post bid off". Type `/aux post bid yes`: it changes
+      nothing and lists the choices (on, off, unit or stack).
+
+## 0.8.2.1 build 7 (released as 0.8.2.1 on 2026-11-16, with the crate heading renamed)
 
 Build 6 (a price row of many sellers keeps 20 auctions and counts the rest, review S-08) was not
 tested on its own; build 7 holds it and the fixes from the 2026-11-16 feedback: one click buys a

@@ -228,7 +228,8 @@ Load order is the TOC (`auxForever/auxForever.toc`).
 - `aux-addon.lua`: events, saved variables (`account_data` defaults), tab switching.
 - `frame.lua`: the main window: top bar (logo, tabs, the settings gear, Full scan, Blizzard UI,
   close), resize grip, credit label. Settings (0.6) is two columns, approved by Tyler from a mockup:
-  Window (background, scale, theme) and Posting (default duration) left, tooltip line switches
+  Window (background, scale, theme), Posting (default duration) and Buying (Confirm before buying,
+  0.8.2.2) left, tooltip line switches
   right (bid prices left Settings in 0.6 build 5; `/aux post bid` remains). A setting that also has a chat command must behave the same from both.
 - `color.lua`: the palettes of the two looks (New, Classic; see Design language). `gui/core.lua`:
   widgets (button, label, editbox, dropdown, checkbox, status bar, square or rounded shapes, button
@@ -335,7 +336,11 @@ aux runs inside the game; every frame it spends time in costs the player frame r
   check on it faded Post with a message about a box the player cannot see (FB-021). A check or
   message about a field applies only while that field is shown.
 - Buying must never spend more than the player saw: the buy bar confirms only server quotes at or
-  below the shown price. Keep that guarantee.
+  below the shown price. Keep that guarantee. One click buys unless "Confirm before buying" is on
+  (`account_data.buy_confirm`, 0.8.2.2, off by default; then Buy turns into Confirm, for trade
+  goods and gear). After any purchase Buy rests `HOLD_SECONDS` (1) against a second click
+  (FB-051): a test that buys twice ticks past it first. The bar starts at 1 on Search (FB-050);
+  the Sniper passes `whole_deal` to start at the deal's units.
 - Posting: an item auction's buyout must be above its starting bid, or the server answers
   "Internal auction error"; an equal bid is dropped (`item_post_prices` in `tabs/post/core.lua`).
   Every item takes copper prices since 0.8.2.1 build 7 (FB-044; gear was whole silver before). The auction house cut is the

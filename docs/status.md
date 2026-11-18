@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-16, Tyler's time (0.8.2.1 released).
+Last updated 2026-11-17, Tyler's time (0.8.2.2 build 1 waiting for Tyler's test).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-10 is there).
@@ -14,8 +14,24 @@ built and tested, build by build: `docs/status-history.md` (top) and `TESTING.md
 **Tyler, after the release:** paste `docs/curseforge-description.md` into the CurseForge page (it
 now says a trade good is bought with one click).
 
-**Nothing is being built.** The next version is not chosen; candidates below and in
-`docs/roadmap.md` (0.9: shopping lists and writs, an automatic Full scan option, posting rules).
+**Being built: 0.8.2.2** (branch `claude/confident-bohr-vctz8g`), buying fixes from the
+CurseForge comments on 0.8.2.1 (Tyler, 2026-11-17: "Cover gear too, default off, no mockup, build
+it"). Build 1 is done and waits for Tyler's test (`TESTING.md`, "Current build", test page build
+id `0-8-2-2-build-1`, zip `auxForever-0.8.2.2-build1.zip`, `/reload` is enough):
+- FB-050: the buy bar starts at 1 on the Search tab (it started at a full stack). The Sniper
+  still starts at a deal's units (`whole_deal`), Claude's call: tell Tyler, he may want 1 there.
+- FB-051: after any purchase Buy rests one second and says what was bought (likely cause of the
+  double buys: the Buy then Confirm habit; inference, not seen in game).
+- FB-049: Settings, Buying, "Confirm before buying", and `/aux buy confirm`; off by default; trade
+  goods (the 0.8.2 Confirm flow, with Cancel and the quote running out) and gear (Confirm and the
+  price, then a second click). Not the Bids tab's Buyout. The random player runs half its
+  sessions with it on; the fake auction house's quotes now run out after 20 seconds.
+- FB-052: `/aux post bid on` works; an unknown word lists the choices.
+After a pass: the pull request and release, when Tyler asks.
+
+Next version after that: not chosen; candidates below and in `docs/roadmap.md` (0.9: shopping
+lists and writs, an automatic Full scan option, posting rules; FB-053, a controller button to
+search, belongs there).
 
 **Saved for later (Tyler, 2026-11-16: "Just save the test for a later date :) and we will monitor
 feedback"):** the in-game check of buying through a row of many sellers (S-08; build 7 step 3,
@@ -40,6 +56,9 @@ Protection" tooltips (FB-045, not tried).
   one part each of R-16 and R-20 (review file).
 
 **Open questions for Tyler:**
+0. FB-054 (jebbush, "cannot sort by bag slots"): does he know which screen they meant? Likely the
+   Post tab's bag list, sorted by name. FB-053: whether Forever's gamepad mode lets an addon use
+   the triggers (an experiment before building). FB-052: a reply for joker2206 is in its entry.
 1. FB-046: does he use Bagnon? FB-042: a screenshot of a Waylaid Crate's turn-in reward.
 2. R-27: one sale and a screenshot of its "Auction successful" mail (experiment E1) settles the 5%
    cut aux shows as fact; one auction left to expire (E4) settles "kept if the auction expires".

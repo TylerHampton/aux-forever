@@ -896,6 +896,8 @@ function show_commodity_bar(record)
             texture = record.texture,
             quality = record.quality,
             max_stack = item_info and item_info.max_stack or 1,
+            -- the bar starts at the deal's units, not at 1 as on the Search tab (0.8.2.2)
+            whole_deal = true,
             tiers = function() return record.deal_gone and {} or record.deal_tiers or {record} end,
             on_success = function(n)
                 -- the cheapest units went first; check the item again in the next round
@@ -938,8 +940,9 @@ function show_item_bar(record)
             busy = function()
                 return record.deal_gone or record.deal_bought or aux.bid_in_progress() or refreshing ~= nil
             end,
-            on_buy = function()
+            on_buy = function(on_bought)
                 aux.place_bid(record.auction_id, record.buyout_price, function()
+                    do (on_bought or pass)() end
                     -- the next one at this price has a new auction ID: the next round finds it
                     record.deal_bought = true
                     known[record.deal_key] = nil

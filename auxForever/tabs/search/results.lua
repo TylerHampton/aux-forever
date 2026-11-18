@@ -1242,8 +1242,10 @@ do
             busy = function()
                 return record.syncing or aux.bid_in_progress() or not search.table:ContainsRecord(record)
             end,
-            on_buy = function()
+            -- on_bought: the buy bar says what was bought and holds Buy for a moment (0.8.2.2)
+            on_buy = function(on_bought)
                 aux.place_bid(record.auction_id, record.buyout_price, function()
+                    do (on_bought or pass)() end
                     sync_bucket(search, record)
                 end, failure(search, record))
             end,

@@ -20,7 +20,7 @@ local gui = require 'aux.gui'
 --          Sniper deal it then moves the focus to the buy bar's Buy button once it shows
 --   B      closes what is open: a dropdown, a text box, a popup (Settings, quick searches), then aux
 --   X      right-clicks the control (search from a bag item, remove a favorite, clear a text box)
---   Y      the tab's main action: Buy (then Confirm) on Search, Start or Stop on Sniper, Post on Post,
+--   Y      the tab's main action: Buy (then Confirm, with Confirm before buying on) on Search, Start or Stop on Sniper, Post on Post,
 --          Cancel the selected auction on Auctions, Buyout the selected bid on Bids
 --   LB/RB  step through the top bar: the five tabs (switched at once), then Settings, Full scan
 --          and Blizzard UI (A presses them)
@@ -300,7 +300,8 @@ end
 
 -- Y: the main action of the tab that is open, by tab number (Search 1, Sniper 2, Post 3, Auctions 4,
 -- Bids 5). The buy
--- bar's button is Buy; since 0.8.2.1 build 7 one press buys (no Confirm step).
+-- bar's button is Buy; since 0.8.2.1 build 7 one press buys (Buy, then Confirm with Confirm before
+-- buying on, 0.8.2.2: the same button, so Y presses it twice).
 local QUICK_ACTIONS = {
     function() return require('aux.gui.buy_bar').primary_button end,
     function() return require('aux.tabs.sniper').run_button end,
@@ -692,6 +693,8 @@ local function y_label()
     if not button then return end
     local text = button:GetText() or ''
     if tabs._selected == 2 and text:find('^Stop') then return 'Stop' end
+    -- Confirm before buying on (0.8.2.2): the second press confirms
+    if tabs._selected == 1 and text:find('^Confirm') then return 'Confirm' end
     return Y_NAMES[tabs._selected]
 end
 

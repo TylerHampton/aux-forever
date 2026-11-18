@@ -255,7 +255,11 @@ try('buy bar', function()
   bar.show_commodity{item_id = 123, name = 'Light Feather', max_stack = 20, tiers = function() return tiers end,
     on_success = function(n) bought = n end, on_refresh = function() refreshed = true end}
   tick()
-  check('starts at one stack: Buy 20', bar.primary_label():find('^Buy 20 for') ~= nil)
+  -- 0.8.2.2 (FB-050): the bar starts at 1; a full stack was one click from being bought by mistake
+  check('FB-050: starts at 1: Buy 1', bar.primary_label():find('^Buy 1 for') ~= nil)
+  bar.chips[4]:Click()
+  tick()
+  check('the stack button picks 20: Buy 20', bar.primary_label():find('^Buy 20 for') ~= nil)
 
   -- 20 units, cheapest first: 6 x 6c + 14 x 7c = 1s 34c
   -- 0.8.2.1 build 7 (Tyler: players did not like the Confirm click): one click buys. The click asks
@@ -272,6 +276,16 @@ try('buy bar', function()
   tick()
   check('success reported for 20', bought == 20)
   check('back to Buy', bar.primary_label():find('^Buy') ~= nil)
+  -- 0.8.2.2 (FB-051, "sometimes getting double buys"): a second click just after a purchase, the
+  -- habit of Buy then Confirm, buys nothing; Buy works again a second later
+  calls = {}
+  bar.primary_click()
+  bar.other_input.enter()
+  check('FB-051: a click or Enter just after buying sends nothing', #calls == 0)
+  check('FB-051: Buy is faded for that moment', not bar.primary_button:IsEnabled())
+  check('FB-051: the bar says what was bought', (bar.lines()):find('^Bought 20') ~= nil)
+  for _ = 1, 11 do tick() end
+  check('FB-051: Buy is lit again after a second', bar.primary_button:IsEnabled())
 
   -- a server price below the one shown is bought too, at the server's price
   calls = {}
@@ -279,7 +293,7 @@ try('buy bar', function()
   fire('COMMODITY_PRICE_UPDATED', 6, 120)
   check('a lower price is bought at once', calls[2] == 'confirm 123 20')
   fire('COMMODITY_PURCHASE_SUCCEEDED')
-  tick()
+  for _ = 1, 11 do tick() end
 
   -- a server price above the estimate is cancelled, never confirmed, and the listings re-read
   calls = {}
@@ -336,6 +350,160 @@ try('buy bar', function()
   tick()
   bar.primary_click()
   check('own auction not bought', buys == 1)
+
+  -- 0.8.2.2 (FB-051): after a gear purchase, Buy is faded for a moment too (a row of several
+  -- auctions at one price selects the next one, and a second click bought it as well)
+  local gear = {buyout_price = 30000, bid_price = 0, auction_count = 3}
+  bar.show_item{record = gear, name = 'Fine Shortsword', busy = function() return false end,
+    on_buy = function(on_bought) buys = buys + 1; on_bought() end, on_bid = function() end}
+  tick()
+  buys = 0
+  bar.primary_click()
+  check('gear: one click buys (Confirm before buying off)', buys == 1)
+  bar.primary_click()
+  check('FB-051: gear: a second click just after buys nothing', buys == 1)
+  check('FB-051: gear: the bar says what was bought', (bar.lines()):find('^Bought 1') ~= nil)
+  local next_one = {buyout_price = 30000, bid_price = 0, auction_count = 2}
+  bar.show_item{record = next_one, name = 'Fine Shortsword', busy = function() return false end,
+    on_buy = function(on_bought) buys = buys + 1; on_bought() end, on_bid = function() end}
+  tick()
+  check('FB-051: gear: "Bought" stays when the next one at the price is selected', (bar.lines()):find('^Bought 1') ~= nil)
+  bar.primary_click()
+  check('FB-051: gear: and it is not bought in that moment', buys == 1)
+  for _ = 1, 11 do tick() end
+  bar.primary_click()
+  check('FB-051: gear: a second later Buy buys again', buys == 2)
+  bar.clear()
+end)
+
+-- 0.8.2.2 (FB-049, Tyler: "We need to add the confirm button back, but as an option", gear too,
+-- off unless turned on): Buy shows the price on Confirm, and a second click buys
+try('confirm before buying', function()
+  local require = loadstring("select(2, ...) 'aux.test'; return require")('auxForever', addon)
+  local bar = require 'aux.gui.buy_bar'
+  local aux = require 'aux'
+  local money = require 'aux.util.money'
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  check('confirm: off by default', aux.account_data.buy_confirm == false)
+  for _ = 1, 11 do tick() end -- past the moment Buy rests after the last purchase
+  local calls = {}
+  C_AuctionHouse.StartCommoditiesPurchase = function(id, n) tinsert(calls, 'start ' .. id .. ' ' .. n) end
+  C_AuctionHouse.ConfirmCommoditiesPurchase = function(id, n) tinsert(calls, 'confirm ' .. id .. ' ' .. n) end
+  C_AuctionHouse.CancelCommoditiesPurchase = function() tinsert(calls, 'cancel') end
+  local remaining = 30
+  C_AuctionHouse.GetQuoteDurationRemaining = function() return remaining end
+  local cancel_button
+  for _, f in ipairs(frames) do if f.__text == 'Cancel' and not cancel_button then cancel_button = f end end
+
+  -- the switch in Settings and /aux buy confirm change the same setting
+  aux.buy_confirm_switch.on_click()
+  check('confirm: the Settings switch turns it on', aux.account_data.buy_confirm == true)
+  SlashCmdList.AUX('buy confirm')
+  check('confirm: /aux buy confirm switches it off', aux.account_data.buy_confirm == false)
+  SlashCmdList.AUX('buy confirm on')
+  check('confirm: /aux buy confirm on turns it on', aux.account_data.buy_confirm == true)
+
+  -- trade goods
+  local tiers = {{count = 50, commodity_unit_price = 10}}
+  local bought
+  bar.show_commodity{item_id = 456, name = 'Silk Cloth', max_stack = 20, tiers = function() return tiers end,
+    on_success = function(n) bought = n end, on_refresh = function() end}
+  tick()
+  bar.primary_click()
+  check('confirm: Buy asks for the price', calls[1] == 'start 456 1')
+  fire('COMMODITY_PRICE_UPDATED', 10, 10)
+  tick()
+  check('confirm: the price is not bought when it arrives', #calls == 1)
+  check('confirm: the button shows the price to confirm', plain(bar.primary_label()) == 'Confirm ' .. plain(money.to_string(10, true)))
+  check('confirm: Cancel shows next to it', cancel_button and cancel_button.__shown)
+  bar.primary_click()
+  check('confirm: the second click buys', calls[2] == 'confirm 456 1' and #calls == 2)
+  fire('COMMODITY_PURCHASE_SUCCEEDED')
+  tick()
+  check('confirm: bought', bought == 1)
+  check('confirm: Cancel gone after buying', not cancel_button.__shown)
+  for _ = 1, 11 do tick() end
+
+  -- Cancel, an expired price and a higher price buy nothing
+  calls = {}
+  bar.primary_click()
+  fire('COMMODITY_PRICE_UPDATED', 10, 10)
+  tick()
+  cancel_button:Click()
+  check('confirm: Cancel buys nothing', calls[2] == 'cancel' and #calls == 2)
+  tick()
+  calls = {}
+  bar.primary_click()
+  fire('COMMODITY_PRICE_UPDATED', 10, 10)
+  tick()
+  remaining = 0
+  tick()
+  remaining = 30
+  check('confirm: an expired price is let go', calls[2] == 'cancel' and #calls == 2)
+  bar.primary_click() -- the button says Buy again: this asks anew, it does not confirm
+  check('confirm: and a click after it asks again', calls[3] == 'start 456 1')
+  fire('COMMODITY_PRICE_UPDATED', 11, 11)
+  tick()
+  check('confirm: a higher price is still cancelled at once', calls[4] == 'cancel' and #calls == 4)
+  -- a new price for the same quote while Confirm shows: the button follows it, a click buys at it
+  calls = {}
+  bar.primary_click()
+  fire('COMMODITY_PRICE_UPDATED', 10, 10)
+  tick()
+  fire('COMMODITY_PRICE_UPDATED', 9, 9)
+  check('confirm: a new price shows on the button at once', plain(bar.primary_label()) == 'Confirm ' .. plain(money.to_string(9, true)))
+  bar.primary_click()
+  check('confirm: the price on the button is bought', calls[2] == 'confirm 456 1')
+  fire('COMMODITY_PURCHASE_SUCCEEDED')
+  for _ = 1, 11 do tick() end
+
+  -- gear
+  local buys = 0
+  local record = {buyout_price = 21000, bid_price = 15000, auction_count = 1}
+  local function show(r)
+    bar.show_item{record = r, name = 'Heavy Brown Bag', busy = function() return false end,
+      on_buy = function(on_bought) buys = buys + 1; on_bought() end, on_bid = function() end}
+    tick()
+  end
+  show(record)
+  bar.primary_click()
+  tick()
+  check('confirm: gear: Buy does not buy', buys == 0)
+  check('confirm: gear: the button shows Confirm and the price', plain(bar.primary_label()) == 'Confirm ' .. plain(money.to_string(21000, true)))
+  check('confirm: gear: Cancel shows instead of Bid', cancel_button.__shown and not bar.bid_button.__shown)
+  bar.primary_click()
+  check('confirm: gear: the second click buys', buys == 1)
+  for _ = 1, 11 do tick() end
+  show(record)
+  bar.primary_click()
+  tick()
+  cancel_button:Click()
+  tick()
+  check('confirm: gear: Cancel goes back to Buy', bar.primary_label():find('^Buy for') ~= nil and buys == 1)
+  bar.primary_click()
+  tick()
+  show({buyout_price = 25000, bid_price = 0, auction_count = 1})
+  check('confirm: gear: another auction selected goes back to Buy', bar.primary_label():find('^Buy for') ~= nil)
+  bar.primary_click()
+  check('confirm: gear: and its first click does not buy', buys == 1)
+  bar.clear()
+
+  SlashCmdList.AUX('buy confirm off')
+  check('confirm: /aux buy confirm off', aux.account_data.buy_confirm == false)
+end)
+
+-- FB-052 (joker2206): /aux post bid on turned bid prices off
+try('post bid command', function()
+  local require = loadstring("select(2, ...) 'aux.test'; return require")('auxForever', addon)
+  local aux = require 'aux'
+  SlashCmdList.AUX('post bid on')
+  check('FB-052: /aux post bid on turns it on (per unit)', aux.account_data.post_bid == 'unit')
+  SlashCmdList.AUX('post bid banana')
+  check('FB-052: a word it does not know changes nothing', aux.account_data.post_bid == 'unit')
+  SlashCmdList.AUX('post bid stack')
+  check('FB-052: stack still works', aux.account_data.post_bid == 'stack')
+  SlashCmdList.AUX('post bid off')
+  check('FB-052: off turns it off', aux.account_data.post_bid == nil)
 end)
 
 -- Listings sized by anchors have no size until the first layout pass (Post tab price lists).
@@ -3322,7 +3490,8 @@ try('FB-001: the quantity box', function()
   local box = bar.other_input
   rawset(box, 'GetNumber', function(self) return tonumber(self.__text) or 0 end)
   check('FB-001: the box is labeled Quantity', box.caption and box.caption.__text == 'QUANTITY')
-  check('FB-001: the box shows the quantity being bought from the start', box:GetText() == '20')
+  -- 1 since 0.8.2.2 (FB-050; a full stack before)
+  check('FB-001: the box shows the quantity being bought from the start', box:GetText() == '1')
   bar.chips[2].__scripts.OnClick(bar.chips[2])
   tick()
   check('FB-001: a button fills the box in', box:GetText() == '5' and bar.primary_label():find('^Buy 5 for') ~= nil)
@@ -4248,6 +4417,9 @@ try('gamepad: button hints', function()
   check('hints: Y Buy on Search', label('Y') == 'Buy')
   buy:SetText('Buying...'); aux_env.update_hints()
   check('hints: Y stays Buy while buying (no Confirm step since build 7)', label('Y') == 'Buy')
+  -- 0.8.2.2 (FB-049): with Confirm before buying on, the second press confirms, and Y says so
+  buy:SetText('Confirm 1g'); aux_env.update_hints()
+  check('hints: Y Confirm while the button is Confirm', label('Y') == 'Confirm')
   rawset(buy, 'IsVisible', nil); rawset(buy, 'IsEnabled', nil)
 
   controller = 'xbox'; aux_env.update_hints()
@@ -6425,6 +6597,7 @@ try('second pass: a click on the buy bar does only what its button shows', funct
   set(C_AuctionHouse, 'GetQuoteDurationRemaining', function() return 30 end)
   local tiers = {{count = 100, commodity_unit_price = 6}}
   bar.show_commodity{item_id = 7831, name = 'Shown Herb', max_stack = 20, tiers = function() return tiers end}
+  bar.chips[4]:Click() -- the stack (the bar starts at 1 since 0.8.2.2)
   check('shown: a trade good shows what 20 cost at once', plain(bar.primary_label()) == 'Buy 20 for ' .. plain(money.to_string(120, true)))
   -- the listings change before the bar is drawn again: the cheap ones are gone
   tiers[1].commodity_unit_price = 9

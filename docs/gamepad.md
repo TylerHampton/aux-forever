@@ -16,14 +16,14 @@ Nothing in this file applies with mouse and keyboard: every part checks for game
 | A | Presses the control. A text box starts typing; a dropdown opens, then up and down walk its options and A picks one. On a Sniper deal, the gold frame then moves to the buy bar's Buy button once it shows. |
 | B | Closes what is open, in this order: a dropdown, typing in a text box, a popup (Settings, quick searches, the Filter Builder menu, aux's own popups), then aux. On the buy bar after a Sniper deal, B goes back to the deal. |
 | X | A right-click on the control: search from a bag item, add or remove a favorite, clear a text box. |
-| Y | The open tab's main action: Buy on Search (one press buys since 0.8.2.1 build 7), Start or Stop on Sniper, Post on Post, Cancel on Auctions, Buyout on Bids. |
+| Y | The open tab's main action: Buy on Search (one press buys since 0.8.2.1 build 7; two, Buy then Confirm, with "Confirm before buying" on, 0.8.2.2), Start or Stop on Sniper, Post on Post, Cancel on Auctions, Buyout on Bids. |
 | LB / RB | Step through the top bar: the five tabs switch at once; after them come Settings, Full scan and Blizzard UI (A presses them). It wraps round at both ends. |
 
 aux opens with the focus on the top-left control of the tab. The top bar is reached only with LB
 and RB, so the D-pad stays inside the tab. A strip under the window shows the buttons with the
 controller's own icons and what each does on the control in focus; Y shows only while its button
 can be pressed. Y never spends money on the Sniper: there, buying is A on the deal, then A on Buy (since
-0.8.2.1 build 7 there is no Confirm step).
+0.8.2.1 build 7 there is no Confirm step, unless "Confirm before buying" is on: then A on Confirm too).
 
 The Blizzard UI button gives the pad back to Blizzard's own navigation while Blizzard's window is
 shown, and aux takes it again once it is hidden.

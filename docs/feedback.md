@@ -155,6 +155,12 @@ For whoever fixes or builds from it:
 | [FB-046](#fb-046-posting-says-the-item-is-on-the-mouse-in-the-mail-or-a-trade-when-it-is-not) | 2026-11-16 | karrier_user_slouyac50poxg707 | bug | Post | S2 | Posting says the item is on the mouse, in the mail or a trade when it is not | fixed 0.8.2.1 (released 2026-11-16) |
 | [FB-047](#fb-047-praise-great-addon) | 2026-11-16 | selubangerz | praise | Overall | n/a | Praise: "Great addon" | new |
 | [FB-048](#fb-048-players-do-not-like-the-confirm-click-when-buying-trade-goods) | 2026-11-16 | players, through Tyler | ux | Buy bar | n/a | Players do not like the Confirm click when buying trade goods | built 0.8.2.1 (released 2026-11-16) |
+| [FB-049](#fb-049-confirm-before-buying-back-as-an-option) | 2026-11-17 | Tremulent | request | Buy bar | n/a | Confirm before buying, back as an option | built 0.8.2.2 (build 1, not tested in game) |
+| [FB-050](#fb-050-one-click-bought-far-more-than-the-player-needed) | 2026-11-17 | Tremulent | bug | Buy bar | S1 | One click bought far more than the player needed | fixed 0.8.2.2 (build 1, not tested in game) |
+| [FB-051](#fb-051-sometimes-a-purchase-happens-twice) | 2026-11-17 | Tremulent | bug | Buy bar | S1 | Sometimes a purchase happens twice | fixed 0.8.2.2 (build 1, not tested in game) |
+| [FB-052](#fb-052-aux-post-bid-on-turns-bid-prices-off) | 2026-11-17 | joker2206 | bug | Settings | S3 | `/aux post bid on` turns bid prices off | fixed 0.8.2.2 (build 1, not tested in game) |
+| [FB-053](#fb-053-a-controller-button-to-refresh-or-search) | 2026-11-17 | user_q6cn8g517mpcvp2f | request | Other | n/a | A controller button to refresh or search | new |
+| [FB-054](#fb-054-bag-searching-cannot-sort-by-bag-slots) | 2026-11-17 | jebbush | request | Post | n/a | Bag searching: cannot sort by bag slots | new |
 
 ## Players
 
@@ -211,6 +217,13 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
 - **karrier_user_slouyac50poxg707**: CurseForge commenter (CurseForge name; in-game name unknown).
   Reported FB-045 and FB-046. Uses Bagnon.
 - **selubangerz**: CurseForge commenter (CurseForge name; in-game name unknown). Praise (FB-047).
+- **Tremulent**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-050
+  and FB-051 and asked for FB-049, in one comment on 0.8.2.1. Buys trade goods with the buy bar.
+- **joker2206**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-052;
+  opened with "love the addon". Uses the chat commands.
+- **user_q6cn8g517mpcvp2f**: CurseForge commenter (a name CurseForge generated; in-game name
+  unknown). Asked for FB-053. Plays with a controller.
+- **jebbush**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-054.
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
   words.
@@ -2459,6 +2472,176 @@ Recorder's notes:
 - Not seen in game yet: that Forever accepts the confirm from the price event (build 7 test).
 
 Unknowns: none for the decision.
+
+### FB-049: Confirm before buying, back as an option
+
+- Received: 2026-11-17 (posted about 6 hours before)
+- From: Tremulent
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-17-tremulent-joker2206-user_q6cn8g517mpcvp2f-jebbush-curseforge.md)
+- Version: 0.8.2.1 (inference: "Something changed on the addon now" and the Confirm click went in 0.8.2.1)
+- Type: request
+- Area: Buy bar
+- Severity: n/a
+- Status: built 0.8.2.2 (build 1, not tested in game)
+- Proposed: 0.8.2.2 (Tyler's decision)
+
+Said:
+> Something changed on the addon now. Buyouts no longer ask for confirm.
+
+(The same comment holds FB-050 and FB-051.)
+
+Tyler's notes: "We need to add the confirm button back, but as an option, is that possible? Whats
+the cost of doing that." Then: "Cover gear too, default off, no mockup, build it".
+
+Recorder's notes:
+- FB-048 took the Confirm click away in 0.8.2.1 because many players disliked it. This entry asks
+  for it back; Tyler chose an option, off by default, so the players of FB-048 keep one click.
+- "Buyouts" may mean gear too (gear never had a Confirm in aux). Tyler chose to cover gear.
+- Built: Settings, Buying, "Confirm before buying" (`account_data.buy_confirm`), and
+  `/aux buy confirm` (on, off, or no word to switch it). On: a trade good's server price waits on
+  a Confirm button (the 0.8.2 flow, with Cancel and the quote running out); gear shows Confirm
+  and the price before it is bought. A higher server price is still cancelled at once. The Bids
+  tab's Buyout button is not covered (it buys out an auction the player already bid on).
+
+Unknowns: none for the decision.
+
+### FB-050: One click bought far more than the player needed
+
+- Received: 2026-11-17 (posted about 6 hours before)
+- From: Tremulent
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-17-tremulent-joker2206-user_q6cn8g517mpcvp2f-jebbush-curseforge.md)
+- Version: 0.8.2.1 (inference, as FB-049)
+- Type: bug
+- Area: Buy bar
+- Severity: S1 (spends money the player did not mean to spend)
+- Status: fixed 0.8.2.2 (build 1, not tested in game)
+- Proposed: 0.8.2.2 (Tyler's decision)
+
+Said:
+> Bought A LOT more than I needed.
+
+Tyler's notes: "Since we have the addon default to no confirm button currently, we should not set
+the default selection to twenty. Default selection should keep it safe for people who
+accidentally buy."
+
+Recorder's notes:
+- Cause (Code): the buy bar started at a full stack, or everything for sale if less
+  (`show_commodity` in `gui/buy_bar.lua`). With one click buying since 0.8.2.1 (FB-048), one
+  click bought the whole stack.
+- Fixed: the bar starts at 1 on the Search tab. The Sniper still starts at a deal's own units (up
+  to a stack): its bar offers only the deal's price, and those units are what the deal is. Tyler
+  can change that if he wants 1 there too.
+
+Unknowns: which item and how many; the fix does not depend on it.
+
+### FB-051: Sometimes a purchase happens twice
+
+- Received: 2026-11-17 (posted about 6 hours before)
+- From: Tremulent
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-17-tremulent-joker2206-user_q6cn8g517mpcvp2f-jebbush-curseforge.md)
+- Version: 0.8.2.1 (inference, as FB-049)
+- Type: bug
+- Area: Buy bar
+- Severity: S1 (spends money the player did not mean to spend)
+- Status: fixed 0.8.2.2 (build 1, not tested in game)
+- Proposed: 0.8.2.2 (Tyler's decision)
+
+Said:
+> Also sometimes getting double buys... Please FIX!
+
+Recorder's notes:
+- Likely cause (inference from the code, not seen in game): the habit of Buy, then Confirm (and
+  Enter, then Enter in the quantity box). Since 0.8.2.1 the first click buys; once that purchase
+  is done, Buy is lit again at the same quantity, so the second click buys again. On a quick
+  auction house the purchase is done in under a second. With gear, the next auction at the same
+  price is selected after a purchase and Buy stays lit for it.
+- No sign of the addon sending one purchase twice: the price event is acted on once
+  (`state` in `gui/buy_bar.lua`), and the random player of `tests/fuzz_test.lua` compares every
+  purchase with the button.
+- Fixed: after any purchase from the buy bar Buy rests for one second (`HOLD_SECONDS`) and the bar
+  says what was bought; the message stays when the next auction of the same gear is selected.
+  This does not refuse anything Blizzard's window allows; it only absorbs a click within a second
+  of a purchase (Tyler approved it with the build).
+
+Unknowns: whether it was trade goods or gear, mouse or Enter. The pause covers all of them.
+
+### FB-052: `/aux post bid on` turns bid prices off
+
+- Received: 2026-11-17 (posted about 10 hours before)
+- From: joker2206
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-17-tremulent-joker2206-user_q6cn8g517mpcvp2f-jebbush-curseforge.md)
+- Version: unknown
+- Type: bug
+- Area: Settings
+- Severity: S3
+- Status: fixed 0.8.2.2 (build 1, not tested in game)
+- Proposed: 0.8.2.2
+
+Said:
+> love the addon, thank you for bringing this to wow forever. I'm having trouble enabling auction bid using the /aux post bid on    every attempt just shows "<auxForever> post bid off" in my chat window. Am I doing something wrong or is this a defect? Thanks for your help!
+
+Recorder's notes:
+- Cause (Code): `/aux post bid` knew only `unit` and `stack`; any other word, `on` included, set
+  it off. The help list (`/aux`) printed "post bid [off]", which reads like an on and off switch.
+- Fixed: `on` means per unit (gear is one item per auction on Forever, so unit and stack come to
+  the same there), `off` turns it off, and an unknown word changes nothing and lists the choices.
+- A reply for Tyler to send until the update: "Not you, our help text. Type /aux post bid unit and
+  it turns on. The next update makes /aux post bid on work too."
+
+Unknowns: none.
+
+### FB-053: A controller button to refresh or search
+
+- Received: 2026-11-17 (posted about 15 hours before)
+- From: user_q6cn8g517mpcvp2f
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-17-tremulent-joker2206-user_q6cn8g517mpcvp2f-jebbush-curseforge.md)
+- Version: unknown
+- Type: request
+- Area: Other (gamepad)
+- Severity: n/a
+- Status: new
+- Proposed: 0.9 (a new feature, not a patch)
+
+Said:
+> great addon! any chance you could add a controller button to refresh/search? :) <3
+
+Recorder's notes:
+- Today (Code, `docs/gamepad.md`): Y is Buy on the Search tab; searching takes the D-pad to the
+  Search button, then A. aux does not use the triggers (LT, RT).
+- Unknown: whether Forever's gamepad mode lets an addon bind the triggers (or what they do there
+  now). An experiment for Tyler before building.
+
+Unknowns: whether "refresh" means searching again on the Search tab or a new Sniper round; a
+button that searches again on Search and starts or stops on the Sniper covers both.
+
+### FB-054: Bag searching: cannot sort by bag slots
+
+- Received: 2026-11-17 (posted about 15 hours before)
+- From: jebbush
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-17-tremulent-joker2206-user_q6cn8g517mpcvp2f-jebbush-curseforge.md)
+- Version: unknown
+- Type: request
+- Area: Post
+- Severity: n/a
+- Status: new
+- Proposed: not yet (unclear what is asked)
+
+Said:
+> Bag searching could use an update, cannot sort by bag slots
+
+Recorder's notes:
+- Inference: "bag searching" is likely the Post tab's list of bag items, which is sorted by item
+  name (Code, `tabs/post/core.lua`), not by where items sit in the bags. It could also mean
+  searching from a bag item (right-click), which has no sorting.
+- Ask Tyler: whether he knows what the player meant. Players are not asked (rules above).
+
+Unknowns: which screen; what order they expect (bag 1 slot 1 first is the likely reading).
 
 ## Before this log
 

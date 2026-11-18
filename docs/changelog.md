@@ -6,6 +6,35 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.8.2.2 (not released yet)
+
+Buying fixes from player comments on 0.8.2.1. Nothing to do when updating; `/reload` is enough.
+
+### Buying
+
+- A trade good's buy bar starts at 1. It started at a full stack, and since 0.8.2.1 one click on
+  Buy bought it, so a stray click could buy far more than you meant. The stack and the other
+  amounts are still one click away. The Sniper still starts at all the units of a deal, since
+  those cheap units are the deal. (reported by Tremulent)
+- After a purchase, Buy rests for one second and says what was just bought. A second click right
+  after buying, as with the old Buy then Confirm, could buy a second time: on a quick auction
+  house the first purchase was already done and Buy was ready again. The same goes for Enter in
+  the quantity box and for gear, where the next auction at the same price is selected after you
+  buy one. (reported by Tremulent)
+- New setting: Confirm before buying (Settings, under Buying; also `/aux buy confirm`). When it is
+  on, Buy shows the price on a Confirm button and nothing is bought until a second click; Cancel
+  stands next to it. It works for trade goods and gear, on the Search and Sniper tabs, and with
+  the gamepad (Y twice). It is off unless you turn it on: one click buys, as in 0.8.2.1. With it
+  on, a trade good's price from the auction house is still never more than the price on the
+  button. (suggested by Tremulent)
+
+### Chat commands
+
+- `/aux post bid on` turns bid prices on. Only `unit` and `stack` were known, so `on` turned them
+  off, and the help list showed the setting like an on and off switch. A word the command does
+  not know now changes nothing and lists the choices: on, off, unit or stack. (reported by
+  joker2206)
+
 ## 0.8.2.1 (2026-11-16)
 
 Fixes and speed from a full review of the code (2026-11-10,

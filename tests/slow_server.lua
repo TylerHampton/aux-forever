@@ -335,15 +335,22 @@ return function(env)
         if left > 0 then
           env.fire('COMMODITY_PRICE_UNAVAILABLE')
         else
-          quote = {id = id, quantity = quantity, total = total}
+          quote = {id = id, quantity = quantity, total = total, at = now()}
           env.fire('COMMODITY_PRICE_UPDATED', math.ceil(total / quantity), total)
         end
       end)
     end)
-    set(C, 'GetQuoteDurationRemaining', function() return 30 end)
+    -- a quote holds for a while (0.8.2.2, for Confirm before buying: a price left on Confirm runs
+    -- out). How long the game keeps one is not known; 20 seconds here.
+    set(C, 'GetQuoteDurationRemaining', function()
+      return quote and math.max(0, (server.quote_seconds or 20) - (now() - quote.at)) or 0
+    end)
     set(C, 'ConfirmCommoditiesPurchase', function(id, quantity)
       sent('confirm ' .. id .. ' ' .. quantity)
       local q = quote
+      if q and now() - q.at > (server.quote_seconds or 20) then
+        q = nil -- run out: the purchase fails
+      end
       -- what this confirmation will cost if it goes through (for tests that compare it with what the
       -- button showed when it was pressed)
       server.last_confirm_total = q and q.id == id and q.quantity == quantity and q.total or nil
