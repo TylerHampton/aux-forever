@@ -2700,8 +2700,20 @@ Built in 0.8.2.2 build 2 (Tyler chose all three, and half a second for the FB-05
   deal, a click more than a moment after the round now usually reads the auction again first
   (one request; review H-008, finding 6), since the next round has searched other items.
 
-Unknowns: Tyler's round times now ("round N, X items in Y s" under the Sniper's Start button),
-how many items are gray, whether the request limit is slower at busy hours.
+Tyler's test of build 2 (2026-11-17), Seen:
+- `/aux debug list`: 25,706 items in 37.7 s, 52 requests (October: 7,718 in 8.5 s, 16 requests).
+  The house is 3.3 times larger and each request slower (0.73 s against 0.53).
+- Sniper round 1 without grays: 25,187 items in 153.8 s, so grays are 519 (2%): leaving them out
+  saves about one request a round. The rest of round 1 was opening possible deals (70 gear deals
+  at 18 to 30% of usual were listed).
+- Live every 2 s passed; deals still show and offer Buy (passed); the half second rest "still
+  feels too long" (Tyler).
+- Conclusion: a whole-house round has a floor of about 38 s on Forever now, whatever aux does. Real
+  speed needs a narrower Sniper (a category, trade goods only, a saved search; proposed for Tyler,
+  a new feature) or Live on one item.
+
+Unknowns: how long rounds after the first take now; whether the 70 gear deals are real or come
+from out-of-date usual prices for gear endings (Tyler asked).
 
 ## Before this log
 

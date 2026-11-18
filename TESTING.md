@@ -31,6 +31,13 @@ waits 2 seconds (5 before), and Buy rests half a second after a purchase (1 in b
       whole auction house: ... items in ..."). It counts gray items too, so with step 1 it tells how
       much leaving grays out saved.
 
+### Results (Tyler, 2026-11-17, test page `0-8-2-2-build-2`)
+
+1. Round 1: "25187 items in 153.8s" (screenshot taken during round 2; 70 deals listed). 2. Live
+counts from 2s: pass. 3. The half second rest: "It still feels too long". 4. Deals show and offer
+Buy: pass. 5. `/aux debug list`: "25706 items in 37.7s (52 requests)" (it takes the list's whole
+time before it prints).
+
 ## 0.8.2.2 build 1 (passed, Tyler, 2026-11-17)
 
 Buying fixes from the CurseForge comments on 0.8.2.1 (FB-049 to FB-052): the buy bar starts at 1,

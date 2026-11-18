@@ -250,6 +250,10 @@ Other mails **[Code]**: "Auction expired: X" (item back), "Auction canceled: X",
   fallback (K was 0), so nothing was changed (outside review, R-05, closed).
 - Where a Full search's time goes: `linen`, 36 items, 24.0 s in all: 17.8 s waiting for the game's
   request limit, 6.0 s for the server's answers, 0.2 s for the item list (2026-11-11). **[Seen]**
+- Measured again after launch (Tyler, 2026-11-17, `/aux debug list`): 25,706 items in 37.7 seconds
+  over 52 requests, about 0.73 s per request. **[Seen]** The same evening a Sniper round asked
+  without gray items got 25,187 items, so grays were 519 (about 2%) **[Seen]**; that round took
+  153.8 s in all, most of it opening possible deals.
 - Measured: the whole house's item list, 7,718 items in 8.5 seconds over 16 requests
   (2026-10-04); item searches about one every 0.4 seconds because of the game's request limit
   (`IsThrottledMessageSystemReady`), 335 items in 3m 13s (0.4). **[Seen]**

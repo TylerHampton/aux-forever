@@ -31,7 +31,12 @@ the FB-051 rest is half a second (1). A harness measurement showed aux's own wor
   price, then a second click). Not the Bids tab's Buyout. The random player runs half its
   sessions with it on; the fake auction house's quotes now run out after 20 seconds.
 - FB-052: `/aux post bid on` works; an unknown word lists the choices.
-After a pass: the pull request and release, when Tyler asks.
+Build 2 tested (2026-11-17): Live and deals pass; the house is now 25,706 items (37.7 s, 52
+requests for the list alone; grays only 2%), so a whole-house Sniper round cannot go under about
+38 s. Waiting on Tyler: the rest after buying (he finds half a second too long; Claude recommends a
+quarter second), and whether a narrower Sniper (a category, trade goods, a saved search; mockup
+first) goes into 0.8.2.2 or 0.9.
+After that: the pull request and release, when Tyler asks.
 
 Next version after that: not chosen; candidates below and in `docs/roadmap.md` (0.9: shopping
 lists and writs, an automatic Full scan option, posting rules; FB-053, a controller button to
