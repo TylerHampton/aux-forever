@@ -8,7 +8,18 @@ A change that comes from a player's feedback credits them by in-game name at the
 
 ## 0.8.2.2 (not released yet)
 
-Buying fixes from player comments on 0.8.2.1. Nothing to do when updating; `/reload` is enough.
+Buying fixes and a faster Sniper and Live from player comments on 0.8.2.1. Nothing to do when
+updating; `/reload` is enough.
+
+### Sniper and Live
+
+- The Sniper looks at the auction house more often. Its rounds leave gray items out of the item
+  list (they were never a deal) and wait 1 second between rounds instead of 2.5. Almost all of a
+  round is waiting for the auction house, which sends the list 500 items at a time and answers
+  about one request every half second, so every page left out and every second of pause less
+  means a new deal is seen sooner. (reported by khorrs)
+- Live on the Search tab waits 2 seconds between rounds instead of 5. Watching one item, a round is
+  only a couple of requests, so the wait was most of the time between looks. (reported by khorrs)
 
 ### Buying
 
@@ -16,7 +27,7 @@ Buying fixes from player comments on 0.8.2.1. Nothing to do when updating; `/rel
   Buy bought it, so a stray click could buy far more than you meant. The stack and the other
   amounts are still one click away. The Sniper still starts at all the units of a deal, since
   those cheap units are the deal. (reported by Tremulent)
-- After a purchase, Buy rests for one second and says what was just bought. A second click right
+- After a purchase, Buy rests for half a second and says what was just bought. A second click right
   after buying, as with the old Buy then Confirm, could buy a second time: on a quick auction
   house the first purchase was already done and Buy was ready again. The same goes for Enter in
   the quantity box and for gear, where the next auction at the same price is selected after you

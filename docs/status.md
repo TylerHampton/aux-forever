@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-17, Tyler's time (0.8.2.2 build 1 waiting for Tyler's test).
+Last updated 2026-11-17, Tyler's time (0.8.2.2 build 2 waiting for Tyler's test).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-10 is there).
@@ -16,11 +16,15 @@ now says a trade good is bought with one click).
 
 **Being built: 0.8.2.2** (branch `claude/confident-bohr-vctz8g`), buying fixes from the
 CurseForge comments on 0.8.2.1 (Tyler, 2026-11-17: "Cover gear too, default off, no mockup, build
-it"). Build 1 is done and waits for Tyler's test (`TESTING.md`, "Current build", test page build
-id `0-8-2-2-build-1`, zip `auxForever-0.8.2.2-build1.zip`, `/reload` is enough):
+it"). Build 1 passed every step in game (2026-11-17). Build 2 waits for Tyler's test (`TESTING.md`,
+"Current build", test page build id `0-8-2-2-build-2`, zip `auxForever-0.8.2.2-build2.zip`,
+`/reload` is enough): FB-055 (khorrs; Tyler: "sniper is quite slow"; he chose all three changes):
+the Sniper's item list leaves grays out, 1 s between Sniper rounds (2.5), Live every 2 s (5), and
+the FB-051 rest is half a second (1). A harness measurement showed aux's own work per round is
+20 to 50 ms for 8,000 items: round time is the auction house. Build 1 held:
 - FB-050: the buy bar starts at 1 on the Search tab (it started at a full stack). The Sniper
   still starts at a deal's units (`whole_deal`), Claude's call: tell Tyler, he may want 1 there.
-- FB-051: after any purchase Buy rests one second and says what was bought (likely cause of the
+- FB-051: after any purchase Buy rests (half a second since build 2) and says what was bought (likely cause of the
   double buys: the Buy then Confirm habit; inference, not seen in game).
 - FB-049: Settings, Buying, "Confirm before buying", and `/aux buy confirm`; off by default; trade
   goods (the 0.8.2 Confirm flow, with Cancel and the quote running out) and gear (Confirm and the

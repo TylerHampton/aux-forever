@@ -338,9 +338,14 @@ aux runs inside the game; every frame it spends time in costs the player frame r
 - Buying must never spend more than the player saw: the buy bar confirms only server quotes at or
   below the shown price. Keep that guarantee. One click buys unless "Confirm before buying" is on
   (`account_data.buy_confirm`, 0.8.2.2, off by default; then Buy turns into Confirm, for trade
-  goods and gear). After any purchase Buy rests `HOLD_SECONDS` (1) against a second click
+  goods and gear). After any purchase Buy rests `HOLD_SECONDS` (0.5) against a second click
   (FB-051): a test that buys twice ticks past it first. The bar starts at 1 on Search (FB-050);
   the Sniper passes `whole_deal` to start at the deal's units.
+- Sniper and Live speed (0.8.2.2, FB-055): a round is almost all waiting on the auction house (the
+  item list comes 500 items per request, about one request every half second; aux's own work is
+  20 to 50 ms for 8,000 items). The Sniper's list asks for common quality and up (grays are never a
+  deal), `ROUND_PAUSE` is 1 s and Live's `LIVE_INTERVAL` 2 s. The fake auction house applies rarity
+  filters to items that state a `quality`.
 - Posting: an item auction's buyout must be above its starting bid, or the server answers
   "Internal auction error"; an equal bid is dropped (`item_post_prices` in `tabs/post/core.lua`).
   Every item takes copper prices since 0.8.2.1 build 7 (FB-044; gear was whole silver before). The auction house cut is the

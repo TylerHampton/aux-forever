@@ -43,7 +43,9 @@ local INPUT_HOVER = {.42, .42, .42}
 local NONE, COMMODITY, ITEM = aux.enum(3)
 local IDLE, QUOTING, QUOTED, BUYING = aux.enum(4)
 
-M.HOLD_SECONDS = 1
+-- half a second (Tyler, 0.8.2.2 build 2; 1 in build 1): long enough for the second click of a
+-- double click, short enough for buying several undercuts in a row (FB-055)
+M.HOLD_SECONDS = .5
 local hold_until = 0
 -- gear waiting for its Confirm click (0.8.2.2): the record and the price the Confirm button shows
 local item_confirm

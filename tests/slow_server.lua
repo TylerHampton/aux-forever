@@ -248,10 +248,21 @@ return function(env)
       browse, browse_rest = nil, nil
       -- browse_silent: the auction house never answers an item list (a busy server)
       if server.browse_silent then return end
+      -- the rarity filters (0.8.2.2): an item of a quality the query does not ask for is left out,
+      -- as the game does (Blizzard's Enum.AuctionHouseFilter, PoorQuality to LegendaryQuality). Only
+      -- items that state their quality: load_test.lua's own stubs save many names as green, and an
+      -- exact search asks for the quality saved for its name
+      local F = G.Enum.AuctionHouseFilter
+      local by_quality = {[F.PoorQuality] = 0, [F.CommonQuality] = 1, [F.UncommonQuality] = 2, [F.RareQuality] = 3, [F.EpicQuality] = 4, [F.LegendaryQuality] = 5}
+      local qualities
+      for _, f in ipairs(query.filters or {}) do
+        if by_quality[f] then qualities = qualities or {}; qualities[by_quality[f]] = true end
+      end
       later(function()
         browse = {}
         local text = string.lower(query.searchString or '')
         for id, it in pairs(server.items) do
+          if not qualities or it.quality == nil or qualities[it.quality] then
           -- one row per version that is listed (an item without versions: one row)
           local versions = {}
           for _, l in ipairs(sorted(id)) do versions[l.version or 0] = true end
@@ -262,6 +273,7 @@ return function(env)
               for _, l in ipairs(list) do total = total + l.quantity; own = own or l.own end
               table.insert(browse, {itemKey = server:key(id, version ~= 0 and version or nil), totalQuantity = total, minPrice = list[1].price, containsOwnerItem = own})
             end
+          end
           end
         end
         table.sort(browse, function(a, b)

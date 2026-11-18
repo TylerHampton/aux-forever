@@ -389,6 +389,27 @@ return function(env)
   -- 0.8.2 build 7 (H-010): the rounds go on while a trade good is selected. Buy clicked in the
   -- middle of a round: the round stops before the price is asked, the purchase is the amount shown
   -- at or below the price shown, and the rounds go on after it.
+  -- 0.8.2.2 (FB-055, Tyler): the Sniper's item list leaves gray items out (they are never a deal),
+  -- so each round asks for fewer pages of the list
+  try('timing: FB-055 the Sniper does not ask for gray items', function()
+    local server = new_server(env)
+    local sniper = module 'aux.tabs.sniper'
+    server.items[9301] = {name = 'Snipe Cloth', commodity = true, vendor = 50, max_stack = 20, quality = 1}
+    server.listings[9301] = {{price = 60, quantity = 5}}
+    server.items[9302] = {name = 'Broken Tooth', commodity = true, vendor = 50, max_stack = 20, quality = 0}
+    server.listings[9302] = {{price = 60, quantity = 5}}
+    server:install()
+    sniper.clear_deals()
+    aux.set_tab(2) -- Search 1, Sniper 2
+    local r0 = sniper.round
+    sniper.start()
+    check('grays: a round ends', server:wait(function() return sniper.round > r0 end, 300))
+    check('grays: the gray item is not on the list, the common one is', sniper.last_count == 1)
+    sniper.stop()
+    aux.set_tab(1)
+    server:restore()
+  end)
+
   try('timing: Sniper buys a selected trade good while a round runs', function()
     local server = new_server(env)
     local sniper = module 'aux.tabs.sniper'

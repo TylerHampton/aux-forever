@@ -8,7 +8,30 @@ If BugSack shows an error at any point, copy its full text into that step's note
 
 Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
 
-## Current build: 0.8.2.2 build 1
+## Current build: 0.8.2.2 build 2
+
+Build 1 passed every step (Tyler, 2026-11-17). Build 2 makes the Sniper and Live faster (FB-055):
+the Sniper leaves gray items out of its list and waits 1 second between rounds (2.5 before), Live
+waits 2 seconds (5 before), and Buy rests half a second after a purchase (1 in build 1). Zip
+`auxForever-0.8.2.2-build2.zip`; `/reload` is enough (no new files). Test page build id
+`0-8-2-2-build-2`. Step 3 buys one Linen Cloth.
+
+- [ ] 1. Sniper round time. Sniper tab, click Start and let it run until the line under Start says
+      "round 4" or more (the first round after logging in or a Full scan is the longest). Write
+      that line in the note, for example "round 4, 9,812 items in 11.3s".
+- [ ] 2. Live every 2 seconds. Search tab: search `linen cloth/exact`, then click Live. After the
+      first round the button counts "Live 2s", "Live 1s", then "Updating", over and over. Click
+      Live again to stop.
+- [ ] 3. Half a second rest. Click the cheapest Linen Cloth row, keep 1 picked, click Buy and at
+      once click it again. The bar says "Bought 1 × Linen Cloth", the button is faded only very
+      briefly, and one Linen Cloth is bought (one "You won an auction" line in chat).
+- [ ] 4. The Sniper still finds deals. Leave it running a few minutes. If a deal shows, click it:
+      the bar offers it with Buy. Nothing to buy; write whether any deal showed.
+- [ ] 5. A question. Type `/aux debug list` in chat and copy the line it prints ("Item list of the
+      whole auction house: ... items in ..."). It counts gray items too, so with step 1 it tells how
+      much leaving grays out saved.
+
+## 0.8.2.2 build 1 (passed, Tyler, 2026-11-17)
 
 Buying fixes from the CurseForge comments on 0.8.2.1 (FB-049 to FB-052): the buy bar starts at 1,
 Buy rests for a second after a purchase, the new "Confirm before buying" setting (trade goods and

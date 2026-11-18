@@ -308,7 +308,9 @@ end
 -- Live button counts down LIVE_INTERVAL seconds to the next one ("Live 4s"), and says "Updating"
 -- during a round. Pause stops it until Resume; leaving the Search tab holds it and coming back
 -- carries on. A new auction that matches one of your alert favorites brings up the alert.
-LIVE_INTERVAL = 5
+-- 5 until 0.8.2.2; 2 since (FB-055, khorrs: "cant keep up with rapidlly changing market prices").
+-- A round of one exact item is about two requests, so the pause was most of the time between looks.
+LIVE_INTERVAL = 2
 
 live_search = nil
 

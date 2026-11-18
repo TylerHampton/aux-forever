@@ -161,7 +161,7 @@ For whoever fixes or builds from it:
 | [FB-052](#fb-052-aux-post-bid-on-turns-bid-prices-off) | 2026-11-17 | joker2206 | bug | Settings | S3 | `/aux post bid on` turns bid prices off | fixed 0.8.2.2 (build 1, not tested in game) |
 | [FB-053](#fb-053-a-controller-button-to-refresh-or-search) | 2026-11-17 | user_q6cn8g517mpcvp2f | request | Other | n/a | A controller button to refresh or search | new |
 | [FB-054](#fb-054-bag-searching-cannot-sort-by-bag-slots) | 2026-11-17 | jebbush | request | Post | n/a | Bag searching: cannot sort by bag slots | new |
-| [FB-055](#fb-055-too-slow-to-keep-up-with-quickly-changing-prices-and-snipe-undercuts) | 2026-11-17 | khorrs; Tyler | ux | Sniper | n/a | Too slow to keep up with quickly changing prices and snipe undercuts | needs-info |
+| [FB-055](#fb-055-too-slow-to-keep-up-with-quickly-changing-prices-and-snipe-undercuts) | 2026-11-17 | khorrs; Tyler | ux | Sniper | n/a | Too slow to keep up with quickly changing prices and snipe undercuts | built 0.8.2.2 (build 2, not tested in game) |
 
 ## Players
 
@@ -2656,8 +2656,8 @@ Unknowns: which screen; what order they expect (bag 1 slot 1 first is the likely
 - Type: ux
 - Area: Sniper (and Live on the Search tab: "snipe undercuts" can mean either)
 - Severity: n/a
-- Status: needs-info (round times from Tyler's game)
-- Proposed: 0.8.2.2 for the cheap speed changes, once measured
+- Status: built 0.8.2.2 (build 2, not tested in game)
+- Proposed: 0.8.2.2 (Tyler: "Do 1, 2 and 3, half second rest")
 
 Said:
 > @Tremulent Not only this, but the UI seems to be slower and cant keep up with rapidlly changing market prices. This makes it very hard to snipe undercuts, its disapointing because Aux previously was a great tool to enable that.
@@ -2688,6 +2688,17 @@ Recorder's notes (Claude, 2026-11-17):
   new" request.
 - The 0.8.2.2 pause after a purchase (FB-051) adds 1 s between purchases, which a player buying
   several undercuts in a row will feel.
+
+Built in 0.8.2.2 build 2 (Tyler chose all three, and half a second for the FB-051 pause):
+- The Sniper's item list asks for common quality and up (`quality = 1`, the game's rarity filters),
+  so grays are not sent at all.
+- `ROUND_PAUSE` 2.5 -> 1 second; `LIVE_INTERVAL` 5 -> 2 seconds; `HOLD_SECONDS` 1 -> 0.5.
+- In the test harness (8,000 items, one in ten gray, answers after 0.5 s): 17.8 s from one look to
+  the next became 15.2 s. Game numbers come from Tyler's test (build 2, steps 1 and 5).
+- Noticed while testing: a click on a deal in the same frame as the round opens that item puts a
+  new record in its place; the selection follows it, so the player sees nothing wrong. With a gear
+  deal, a click more than a moment after the round now usually reads the auction again first
+  (one request; review H-008, finding 6), since the next round has searched other items.
 
 Unknowns: Tyler's round times now ("round N, X items in Y s" under the Sniper's Start button),
 how many items are gray, whether the request limit is slower at busy hours.

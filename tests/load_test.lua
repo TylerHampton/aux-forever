@@ -284,8 +284,8 @@ try('buy bar', function()
   check('FB-051: a click or Enter just after buying sends nothing', #calls == 0)
   check('FB-051: Buy is faded for that moment', not bar.primary_button:IsEnabled())
   check('FB-051: the bar says what was bought', (bar.lines()):find('^Bought 20') ~= nil)
-  for _ = 1, 11 do tick() end
-  check('FB-051: Buy is lit again after a second', bar.primary_button:IsEnabled())
+  for _ = 1, 6 do tick() end
+  check('FB-051: Buy is lit again after half a second', bar.primary_button:IsEnabled())
 
   -- a server price below the one shown is bought too, at the server's price
   calls = {}
@@ -1759,13 +1759,14 @@ try('live mode', function()
   check('live: turning Live on runs the search', search.mode == search.LIVE_MODE and s.mode == search.LIVE_MODE and s.active)
   tick()
   check('live: "Updating" during a round', search.live_status(s) == 'updating' and search.mode_button:GetText() == 'Updating')
-  run(20)
+  run(5)
   local status, seconds = search.live_status(s)
   check('live: a countdown after the round', status == 'waiting' and seconds >= 1 and seconds <= search.LIVE_INTERVAL and s.live_round == 1)
   check('live: the button counts down', search.mode_button:GetText():find('^Live %ds$') ~= nil)
   check('live: summary says when the next round is', (search.results_summary(s) or ''):find('live: updated just now, next in', 1, true) ~= nil)
-  run(70)
-  check('live: the next round runs after the countdown', s.live_round >= 2)
+  -- 2 seconds since 0.8.2.2 (5 before; FB-055, khorrs: Live could not keep up with prices)
+  run(20)
+  check('live: the next round runs after the 2 second countdown', s.live_round >= 2)
   search.pause()
   check('live: Pause shows Paused', search.live_status(s) == 'paused')
   search.update_live_button()
@@ -2015,6 +2016,14 @@ try('sniper round', function()
   sniper.settings_changed()
   -- buying a deal from the buy bar: the cheapest units first, never above the price shown
   local bar = aux_require 'aux.gui.buy_bar'
+  -- clicked between rounds: a round opening items in the same frame as the click can open the
+  -- deal too and put a new record in its place (the selection follows it), which this test, holding
+  -- the old record, would not see. With 1 second between rounds (0.8.2.2) that frame came up here.
+  for _ = 1, 40 do if not sniper.active then break end run(1) end
+  -- the deal as the table shows it now: with a round every second (0.8.2.2) a later round may have
+  -- read Kingsblood again since `found` was taken, which puts a new record in its place
+  for _, deal in ipairs(sniper.deals) do if deal.name == 'Kingsblood' then found.Kingsblood = deal end end
+  sniper.update_deals()
   sniper.listing:SetSelectedRecord(found.Kingsblood)
   -- the deal is read again first (Tyler, 0.4.1: trade good buys failed on old deals)
   run(10)
@@ -2150,12 +2159,13 @@ try('sniper: one sound per burst, deals shown during the round, no timing lines'
   local timing_lines = 0
   for _, text in ipairs(printed) do if text:find('Search timing') then timing_lines = timing_lines + 1 end end
   check('sniper: rounds print no timing lines with /aux debug on', timing_lines == 0)
-  -- 2.5 seconds between rounds (Tyler, 0.4): the next round starts after the pause, not before
+  -- 1 second between rounds (Tyler, 2.5 from 0.4, 1 since 0.8.2.2, FB-055): the next round starts
+  -- after the pause, not before
   local r1 = sniper.round
-  run(23)
+  run(8)
   check('sniper: no new round during the pause', sniper.round == r1 and not sniper.active)
-  run(5)
-  check('sniper: the next round starts after 2.5 seconds', sniper.active or sniper.round > r1)
+  run(4)
+  check('sniper: the next round starts after 1 second', sniper.active or sniper.round > r1)
   sniper.stop()
   aux.account_data.debug_timing = false
   aux.account_data.sniper_profit = 500
@@ -2560,6 +2570,10 @@ try('H-010: rounds go on while a trade good or a gone deal is selected', functio
   local function deal_of(id) for _, d in ipairs(sniper.deals) do if d.item_id == id then return d end end end
   local cloth = deal_of(711)
   check('H-010 1: the trade good deal is found', cloth ~= nil)
+  -- a player clicks a row once the table shows it (it is redrawn at most twice a second); with a
+  -- 1 second pause between rounds (0.8.2.2) the round can end before the table has caught up
+  local function in_table(record) for _, r in ipairs(sniper.listing.records or {}) do if r == record then return true end end end
+  for _ = 1, 10 do if in_table(cloth) then break end run(1) end
   sniper.listing:SetSelectedRecord(cloth)
   run(2)
   local r1 = sniper.round
@@ -5601,8 +5615,14 @@ try('0.8.2: a fresh Sniper deal goes straight to the buy bar', function()
   local axe, ore
   for _, d in ipairs(sniper.deals) do if d.item_id == 701 then axe = d elseif d.item_id == 702 then ore = d end end
   check('fb028: both deals found', axe ~= nil and ore ~= nil)
-  -- the table shows new deals at most twice a second
-  for _ = 1, 10 do tick() end
+  -- the table shows new deals at most twice a second; the deal is clicked as soon as it shows (a
+  -- second later the next round has searched other items, 0.8.2.2, and gear is then read again)
+  for _ = 1, 10 do
+    local n = 0
+    for _, r in ipairs(sniper.listing.records or {}) do if r == axe or r == ore then n = n + 1 end end
+    if n == 2 then break end
+    tick()
+  end
   local in_table = 0
   for _, r in ipairs(sniper.listing.records or {}) do if r == axe or r == ore then in_table = in_table + 1 end end
   check('fb028: both deals in the table', in_table == 2)

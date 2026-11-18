@@ -19,7 +19,10 @@ local tab = aux.tab 'Sniper'
 
 AUCTION_CUT = aux.AUCTION_CUT -- the auction house cut, one number for every tab (aux-addon.lua)
 MIN_DAYS = 3 -- days of price history needed before a price can be a deal against the usual price
-ROUND_PAUSE = 2.5 -- seconds between rounds: less garbage and fewer requests than 1s, deals still quick (Tyler)
+-- seconds between rounds. 2.5 from 0.4.1 (Tyler's compromise between speed and memory garbage), 1
+-- since 0.8.2.2 (FB-055, Tyler): a round is mostly waiting on the auction house (20 to 50 ms of aux's
+-- own work for 8,000 items, measured in the test harness), and new deals were seen too late
+ROUND_PAUSE = 1
 MAX_DEALS = 100
 ALERT_GAP = 10 -- seconds: at most one sound per this long, however many deals turn up
 -- 0.8.2 (FB-028): a deal read this many seconds ago or less goes straight to the buy bar when
@@ -559,7 +562,10 @@ function start_round()
     scan.start{
         type = 'list',
         quiet = true,
-        queries = {{blizzard_query = {}}},
+        -- 0.8.2.2 (FB-055, Tyler): common quality and up. Gray items are never a deal (item_facts),
+        -- and leaving them out of the item list makes every round shorter by their share of it (the
+        -- list comes 500 items per request, at about one request every half second)
+        queries = {{blizzard_query = {quality = 1}}},
         on_item_list = function(results)
             got_list = true
             last_count = #results
