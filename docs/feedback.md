@@ -161,6 +161,7 @@ For whoever fixes or builds from it:
 | [FB-052](#fb-052-aux-post-bid-on-turns-bid-prices-off) | 2026-11-17 | joker2206 | bug | Settings | S3 | `/aux post bid on` turns bid prices off | fixed 0.8.2.2 (build 1, not tested in game) |
 | [FB-053](#fb-053-a-controller-button-to-refresh-or-search) | 2026-11-17 | user_q6cn8g517mpcvp2f | request | Other | n/a | A controller button to refresh or search | new |
 | [FB-054](#fb-054-bag-searching-cannot-sort-by-bag-slots) | 2026-11-17 | jebbush | request | Post | n/a | Bag searching: cannot sort by bag slots | new |
+| [FB-055](#fb-055-too-slow-to-keep-up-with-quickly-changing-prices-and-snipe-undercuts) | 2026-11-17 | khorrs; Tyler | ux | Sniper | n/a | Too slow to keep up with quickly changing prices and snipe undercuts | needs-info |
 
 ## Players
 
@@ -224,6 +225,8 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
 - **user_q6cn8g517mpcvp2f**: CurseForge commenter (a name CurseForge generated; in-game name
   unknown). Asked for FB-053. Plays with a controller.
 - **jebbush**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-054.
+- **khorrs**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-055, a
+  reply under Tremulent's comment. Used aux before Forever to snipe undercuts.
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
   words.
@@ -2642,6 +2645,52 @@ Recorder's notes:
 - Ask Tyler: whether he knows what the player meant. Players are not asked (rules above).
 
 Unknowns: which screen; what order they expect (bag 1 slot 1 first is the likely reading).
+
+### FB-055: Too slow to keep up with quickly changing prices and snipe undercuts
+
+- Received: 2026-11-17 (posted minutes before)
+- From: khorrs; Tyler says the same of the Sniper
+- Where: CurseForge comment (a reply under Tremulent's, FB-049 to FB-051)
+- Source: [source](feedback/sources/2026-11-17-tremulent-joker2206-user_q6cn8g517mpcvp2f-jebbush-curseforge.md)
+- Version: 0.8.2.1 (inference: posted under a comment on it)
+- Type: ux
+- Area: Sniper (and Live on the Search tab: "snipe undercuts" can mean either)
+- Severity: n/a
+- Status: needs-info (round times from Tyler's game)
+- Proposed: 0.8.2.2 for the cheap speed changes, once measured
+
+Said:
+> @Tremulent Not only this, but the UI seems to be slower and cant keep up with rapidlly changing market prices. This makes it very hard to snipe undercuts, its disapointing because Aux previously was a great tool to enable that.
+
+Tyler's notes: "Investigate this while I test. As it stands now sniper is quite slow."
+
+Recorder's notes (Claude, 2026-11-17):
+- Measured in the test harness (a fake house of 8,000 items, answers after 0.5 s): aux's own work
+  per Sniper round is 20 to 50 ms of CPU; the rest of the round is waiting for the auction house.
+  So the round time is set by requests, not by aux's code.
+- A round (Code, `tabs/sniper/core.lua`): the item list of the whole house, 500 items per request,
+  then one request per possible deal (more for gear with several versions), then a 2.5 s pause
+  (`ROUND_PAUSE`, Tyler's compromise in 0.4.1 between speed and memory garbage). The game allows
+  about one request every half second (Seen: 7,718 items in 8.5 s over 16 requests, 2026-10-04;
+  17.8 s of a 24 s Full search was the request limit, 2026-11-11). So a round costs about 0.5 s per
+  500 items listed, plus about 0.5 s per possible deal, plus 2.5 s.
+- Likely reasons it feels slower now (inference, not measured): the house has more items than the
+  7,718 of October (Forever launched since, and since 0.8 every gear version is its own entry);
+  after a Full scan and on a new day every item is judged again (0.8.2.1, R-03), so that round
+  opens many possible deals.
+- Each round also downloads every gray item, though grays are never a Sniper deal (Tyler, 0.6).
+  Asking without grays (the rarity filter, as the Search tab does) shortens every round by the
+  grays' share of the list (unknown on Forever).
+- Live on the Search tab waits 5 s between rounds (`LIVE_INTERVAL`, since 0.3); a round of one
+  exact item is about 2 requests. That pause, not the requests, sets how fast Live follows an item.
+- Classic aux watched the last page of a search for new auctions (Outside, from memory of Classic
+  aux; not checked here). Forever's auction house has no pages, so there is no cheap "only what is
+  new" request.
+- The 0.8.2.2 pause after a purchase (FB-051) adds 1 s between purchases, which a player buying
+  several undercuts in a row will feel.
+
+Unknowns: Tyler's round times now ("round N, X items in Y s" under the Sniper's Start button),
+how many items are gray, whether the request limit is slower at busy hours.
 
 ## Before this log
 

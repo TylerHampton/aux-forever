@@ -30,3 +30,11 @@ Tyler's words in the session, after the screenshot:
 
 And after the discussion:
 > Cover gear too, default off, no mockup, build it
+
+## Added later the same day: a reply under Tremulent's comment
+
+Passed on by Tyler as a second screenshot while testing 0.8.2.2 build 1, with: "Investigate this
+while I test. As it stands now sniper is quite slow."
+
+**khorrs** (4 minutes ago, a reply to Tremulent)
+> @Tremulent Not only this, but the UI seems to be slower and cant keep up with rapidlly changing market prices. This makes it very hard to snipe undercuts, its disapointing because Aux previously was a great tool to enable that.
