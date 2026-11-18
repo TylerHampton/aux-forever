@@ -2,10 +2,10 @@ select(2, ...) 'aux.core.stats'
 
 -- auxForever (Upgrades tab, docs/upgrades.md): gear stats, and scores by stat weights.
 --
--- Stats come from the game's GetItemStats on an item link (E8 in docs/forever-auction-house.md,
+-- Stats come from the game's GetItemStats on an item link (E12 in docs/forever-auction-house.md,
 -- Seen 2026-11-16). An auction house row has an item key, not a link: aux's hidden tooltip shows the
 -- key (SetItemKey, which shows the version's ending) and gives its link (GetItem); that link's stats
--- were seen in game too. Never C_TooltipInfo.GetItemKey: the game blocks it for addons (E8, Seen).
+-- were seen in game too. Never C_TooltipInfo.GetItemKey: the game blocks it for addons (E12, Seen).
 --
 -- Stats keep the game's names (ITEM_MOD_STRENGTH_SHORT, ITEM_MOD_DAMAGE_PER_SECOND_SHORT, ...), and
 -- weights use the same names, so a stat the weights do not name counts 0 and no list of stat names
@@ -27,7 +27,8 @@ local MAIN_HAND, OFF_HAND = 16, 17
 local OFF_HAND_WEAPONS = {INVTYPE_WEAPON = true, INVTYPE_WEAPONOFFHAND = true}
 
 local function get_stats(link)
-    local get = C_Item and C_Item.GetItemStats or GetItemStats
+    -- Forever has C_Item.GetItemStats only, no global GetItemStats (BlizzardInterfaceResources, forever)
+    local get = C_Item and C_Item.GetItemStats
     local stats = link and get and get(link)
     return type(stats) == 'table' and stats or nil
 end

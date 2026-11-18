@@ -65,8 +65,9 @@ from aux on Classic:
 
 - **Trade goods are "commodities".** Herbs, cloth, ore and the like are bought by quantity and the
   game always sells the cheapest units first. The buy bar offers quantities with their total cost,
-  asks the server for the real price, and nothing is bought until you press Confirm. If the price
-  went up in the meantime, the purchase is cancelled and the listings are read again.
+  asks the server for the real price when you click Buy and buys only if it is no higher than the
+  price on the button. If the price went up in the meantime, nothing is bought and the listings
+  are read again.
 - **Gear is bought one at a time** at the price on the button, and can still be bid on.
 - **Match the lowest price by default.** The Post tab starts at the cheapest listing's price, so
   prices do not slide one step lower with every new listing. On the modern auction house the newest

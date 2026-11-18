@@ -83,7 +83,7 @@ unchanged; modifier clicks (Shift, Ctrl, Alt) have no pad button.
 | --- | --- |
 | A | Left-click (a text box: start typing; a dropdown option: its mouse-down) |
 | X | Right-click |
-| Y | Left-click on the tab's main button: the buy bar's Buy/Confirm (Search), Start/Stop (Sniper), Post, Cancel (Auctions), Buyout (Bids) |
+| Y | Left-click on the tab's main button: the buy bar's Buy (Search; one press buys since 0.8.2.1 build 7), Start/Stop (Sniper), Post, Cancel (Auctions), Buyout (Bids) |
 | B | Escape: closes a dropdown, typing, a popup, then aux |
 | LB / RB | Left-click on the previous / next tab; past the tabs, the frame moves to Settings, Full scan, Blizzard UI |
 

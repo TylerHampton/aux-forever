@@ -143,7 +143,7 @@ function M.filter_string(slot, max_level)
 end
 
 local function equip_location(item_id)
-    local get = C_Item and C_Item.GetItemInfoInstant or GetItemInfoInstant
+    local get = C_Item and C_Item.GetItemInfoInstant -- Forever has no global GetItemInfoInstant
     local location = get and select(4, get(item_id))
     return type(location) == 'string' and location ~= '' and location or nil
 end
@@ -258,7 +258,8 @@ end
 -- item level. That the two match, and that a Full scan link carries the ending's stats, is not yet
 -- seen in game (TESTING.md, step 28): if not, the tab reads them itself, as before.
 M.FULL_SCAN_PER_FRAME = 50
-M.FULL_SCAN_RETRIES, M.FULL_SCAN_RETRY_SECONDS = 5, 1
+M.FULL_SCAN_RETRIES = 5
+M.FULL_SCAN_RETRY_SECONDS = 1
 local scan_links = {}
 
 local function full_scan_key(record)

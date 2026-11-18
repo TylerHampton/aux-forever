@@ -7,6 +7,7 @@
 
 return function(env)
   local G, check, try, addon, dir = env.G, env.check, env.try, env.addon, env.dir
+  local rawset = env.rawset -- a nil puts back what a swapped field held (load_test.lua)
   local new_server = dofile(dir .. 'slow_server.lua')
 
   local function module(name)
@@ -169,8 +170,9 @@ return function(env)
     post_teardown(server, post)
   end)
 
-  -- buying a trade good from the buy bar: the price is asked first, then confirmed, each answered
-  -- a second later. What the server charged is checked, not only what the bar says.
+  -- buying a trade good from the buy bar: the price is asked first, then confirmed by itself when
+  -- it is no higher than the button showed (one click since 0.8.2.1 build 7), each answered a
+  -- second later. What the server charged is checked, not only what the bar says.
   local function buy_setup(server)
     local bar = module 'aux.gui.buy_bar'
     server.items[2589] = {name = 'Linen Cloth', commodity = true, max_stack = 200}
@@ -199,9 +201,8 @@ return function(env)
     bar.primary_click()
     bar.primary_click() -- a second click while the price is asked does nothing
     check('buy: one price request', #server.requests == 1)
-    check('buy: the price arrives', server:wait(function() return bar.primary_label():find('^Confirm') end, 30))
-    bar.primary_click()
-    bar.primary_click() -- a double click on Confirm buys once
+    check('buy: the price arrives and is confirmed with no second click', server:wait(function() return bar.primary_label():find('^Buying') end, 30))
+    bar.primary_click() -- clicks while buying buy nothing more
     check('buy: the purchase arrives', server:wait(function() return bought() end, 30))
     check('buy: bought once, 20 for 1s 34c', #server.purchases == 1 and server.purchases[1].quantity == 20 and server.purchases[1].total == 134)
     server:restore()
@@ -227,9 +228,8 @@ return function(env)
     local server = new_server(env)
     local bar, bought = buy_setup(server)
     bar.primary_click()
-    server:wait(function() return bar.primary_label():find('^Confirm') end, 30)
-    server.delay = 12
-    bar.primary_click()
+    server.delay = 12 -- the price comes back in a second; the purchase, sent then, takes 12
+    server:wait(function() return bar.primary_label():find('^Buying') end, 30)
     server:ticks(110) -- 11 seconds: the bar has stopped waiting, the server has not answered yet
     local l1, l2 = bar.lines()
     check('late buy: does not say nothing was bought', not plain(l2):find('Nothing was bought', 1, true))
@@ -518,9 +518,9 @@ return function(env)
     check('endings: read once, then kept', searches == 0)
 
     -- saved for the account (Ben, 2026-11-17), only the numbers, with when they were read
-    local saved = aux.account_data.ending_stats
-    local entry = saved.entries and saved.entries['7101:0:birchwood maul of the bear']
-    check('endings: saved in the account data, by item, item level and name', entry and entry.stats.ITEM_MOD_STRENGTH_SHORT == 5 and type(entry.at) == 'number' and saved.build == '70862')
+    local ending_saved = aux.account_data.ending_stats
+    local entry = ending_saved.entries and ending_saved.entries['7101:0:birchwood maul of the bear']
+    check('endings: saved in the account data, by item, item level and name', entry and entry.stats.ITEM_MOD_STRENGTH_SHORT == 5 and type(entry.at) == 'number' and ending_saved.build == '70862')
     check('endings: two names saved', up.saved_stats_count() == 2)
 
     local function reads_on_search()
@@ -536,7 +536,7 @@ return function(env)
     check('endings: one read 30 days ago is read again, the other kept', reads_on_search() == 1)
     -- a patch (another build) reads them all again
     build = '71000'
-    check('endings: after a patch all are read again', reads_on_search() == 2 and saved.build == '71000')
+    check('endings: after a patch all are read again', reads_on_search() == 2 and ending_saved.build == '71000')
     -- Settings: the count, and Clear
     local settings = module 'aux'
     settings.refresh_settings()
@@ -638,9 +638,8 @@ return function(env)
     check('sniper buy: the round still runs when Buy is clicked', sniper.active)
     local before = #server.requests
     bar.primary_click()
-    check('sniper buy: the price arrives', server:wait(function() return bar.primary_label():find('^Confirm') end, 30))
+    check('sniper buy: the price arrives and is bought with the one click', server:wait(function() return bar.primary_label():find('^Buying') end, 30))
     check('sniper buy: the round stopped for it', not sniper.active)
-    bar.primary_click()
     check('sniper buy: the purchase arrives', server:wait(function() return #server.purchases > 0 end, 30))
     check('sniper buy: 5 bought for 1s, no more than shown', #server.purchases == 1 and server.purchases[1].quantity == 5 and server.purchases[1].total == 100)
     local between = {}
@@ -738,8 +737,7 @@ return function(env)
     server = new_server(env)
     bar, bought = buy_setup(server)
     bar.primary_click()
-    check('closed mid-quote: a new price arrives after opening again', server:wait(function() return bar.primary_label():find('^Confirm') end, 30))
-    bar.primary_click()
+    check('closed mid-quote: a new price arrives after opening again', server:wait(function() return bar.primary_label():find('^Buying') end, 30))
     check('closed mid-quote: and the purchase goes through', server:wait(function() return bought() end, 30))
     server:restore()
     bar.clear()
@@ -764,6 +762,26 @@ return function(env)
     server:ticks(20)
     local sent = server.posts[1]
     check('buyout only: posted with no bid at 1g 90s', sent and sent.bid == nil and sent.buyout == 19000)
+    post_teardown(server, post)
+  end)
+
+  -- 0.8.2.1 build 7 (FB-044, reported by sarrathsilentstrider: "I was not able to sell a level 3
+  -- white axe on the AH for 1s 89c"): gear is posted at the copper price typed, and undercut mode
+  -- goes 1 copper below a gear listing
+  try('timing: gear is posted at a copper price', function()
+    local server = new_server(env)
+    local post = post_setup(server)
+    post.select_item('7001:0')
+    check('copper gear: the listings arrive', server:wait(function() return aux.status_bar.done and post.selected_item and post.selected_item.key == '7001:0' end, 80))
+    server:ticks(3)
+    type_into(post.unit_start_price_input, '')
+    type_into(post.unit_buyout_price_input, '1s 89c')
+    post.validate_parameters()
+    check('copper gear: Post is ready', post.disabled_reason() == nil)
+    click_post(post)
+    server:ticks(20)
+    local sent = server.posts[1]
+    check('copper gear: posted at 1s 89c, not 1s (' .. tostring(sent and sent.buyout) .. ')', sent and sent.buyout == 189)
     post_teardown(server, post)
   end)
 
@@ -1017,5 +1035,571 @@ return function(env)
     G.InputUtil = nil
     aux_frame:Show()
     post_teardown(server, post)
+  end)
+
+  -- Outside review of 2026-11-10 (docs/reviews/2026-11-10-outside-review.md), 0.8.2.1.
+  -- R-01: a Sniper round the auction house does not answer saw nothing, and marked every deal gone.
+  -- R-02: a list that arrived only in part did the same to the deals past its end.
+  -- Gone deals stayed gone: an item is opened again only when its lowest price changes.
+  try('timing: R-01 R-02 a Sniper round without the whole item list keeps the deals', function()
+    local server = new_server(env)
+    local sniper = module 'aux.tabs.sniper'
+    for i = 1, 3 do
+      server.items[9200 + i] = {name = 'Quiet Thing ' .. i, commodity = false, vendor = 5000}
+      server.listings[9200 + i] = {{price = 1000, quantity = 1}}
+    end
+    server:install()
+    sniper.clear_deals()
+    sniper.settings_changed()
+    aux.set_tab(2) -- Search 1, Sniper 2
+    sniper.start()
+    check('R-01: the three deals are found', server:wait(function() return #sniper.deals >= 3 end, 300))
+    local function gone()
+      local n = 0
+      for _, d in ipairs(sniper.deals) do if d.deal_gone then n = n + 1 end end
+      return n
+    end
+    local r = sniper.round
+    check('R-01: a whole round ends with them still listed', server:wait(function() return sniper.round > r end, 300) and gone() == 0)
+    -- the auction house stops answering item lists; aux gives up on one after 20 seconds
+    local said = {}
+    rawset(G.DEFAULT_CHAT_FRAME, 'AddMessage', function(_, text) table.insert(said, tostring(text)) end)
+    server.browse_silent = true
+    server:ticks(330)
+    check('R-01: an unanswered round leaves every deal as it was', #sniper.deals >= 3 and gone() == 0)
+    check('R-01: and says nothing in chat (a quiet scan)', #said == 0)
+    rawset(G.DEFAULT_CHAT_FRAME, 'AddMessage', nil)
+    server.browse_silent = false
+    -- the list arrives one row at a time and the request for more is never answered
+    server.page_size, server.more_silent = 1, true
+    server:ticks(330)
+    check('R-02: a round with part of the list leaves the deals past its end alone', #sniper.deals >= 3 and gone() == 0)
+    -- a deal that really sold is still found gone by the next whole round
+    server.page_size, server.more_silent = nil, nil
+    server.listings[9202] = {}
+    check('R-01: a whole round still marks a sold deal gone', server:wait(function() return gone() == 1 end, 400))
+    sniper.stop()
+    sniper.clear_deals()
+    aux.set_tab(1)
+    server:restore()
+  end)
+
+  -- R-02 on the Post tab: gear is read by name, version by version. When the item list stops before
+  -- the versions of the selected name, the Post tab had nothing of that name, called its listings
+  -- ready and picked a price from elsewhere.
+  try('timing: R-02 the Post tab does not price gear from part of the item list', function()
+    local server = new_server(env)
+    local post = module 'aux.tabs.post'
+    server.items[4585] = {name = 'Cut Staff', commodity = false, vendor = 1487,
+      versions = {[201] = 'of the Bandit', [202] = 'of the Bear', [203] = 'of the Wolf'}}
+    server.listings[4585] = {
+      {price = 11500, quantity = 1, version = 201},
+      {price = 11000, quantity = 1, version = 202},
+      {price = 15000, quantity = 1, version = 203},
+    }
+    server.bag = {{id = 4585, count = 1, version = 203}}
+    server.page_size, server.more_silent = 2, true -- the Wolf's row is past the cut
+    server:install()
+    for _, box in ipairs{post.stack_size_input, post.stack_count_input} do
+      local n = 1
+      rawset(box, 'SetNumber', function(self, v) n = math.max(0, math.min(v, self.max_value or v)) end)
+      rawset(box, 'GetNumber', function() return n end)
+    end
+    rawset(post.duration_dropdown, 'GetIndex', function() return 2 end)
+    post.set_undercut_mode(false)
+    aux.set_tab(4) -- Post
+    server:ticks(2)
+    post.select_item('4585:of the wolf')
+    check('R-02 post: the Wolf staff is selected', post.selected_item and post.selected_item.key == '4585:of the wolf')
+    post.set_unit_buyout_price(0)
+    local function read_over()
+      post.validate_parameters()
+      return post.disabled_reason() ~= 'Reading the listings...'
+    end
+    check('R-02 post: the read ends', server:wait(read_over, 400))
+    server:ticks(3)
+    post.validate_parameters()
+    check('R-02 post: it says the read stopped, not that none are for sale', post.disabled_reason() == 'Reading stopped. Press Refresh, or type a price.')
+    check('R-02 post: no price was picked from the part that arrived', post.get_unit_buyout_price() == 0)
+    -- Refresh with the whole list: the Wolf listing is found and priced against
+    server.page_size, server.more_silent = nil, nil
+    post.refresh_button_click()
+    check('R-02 post: after Refresh the listings are in', server:wait(function()
+      post.validate_parameters()
+      return post.get_unit_buyout_price() == 15000
+    end, 300))
+    post_teardown(server, post)
+  end)
+
+  -- R-02 on the Search tab: the search says that items are missing (chat and the results line)
+  try('timing: R-02 a search with part of the item list says so', function()
+    local server = new_server(env)
+    local search = module 'aux.tabs.search'
+    local scan = module 'aux.core.scan'
+    for i = 1, 3 do
+      server.items[9300 + i] = {name = 'Partial Cloth ' .. i, commodity = true, vendor = 1}
+      server.listings[9300 + i] = {{price = 50, quantity = 10}}
+    end
+    server.page_size, server.more_silent = 2, true
+    server:install()
+    aux.set_tab(1)
+    search.frame:Show()
+    search.update_mode(search.NORMAL_MODE)
+    local said = {}
+    rawset(G.DEFAULT_CHAT_FRAME, 'AddMessage', function(_, text) table.insert(said, tostring(text)) end)
+    search.search_box:SetText('partial cloth')
+    search.execute(nil, false)
+    check('R-02 search: the search ends', server:wait(function() local s = search.current_search(); return s and s.complete end, 400))
+    local s = search.current_search()
+    check('R-02 search: it found the part that arrived', #s.records == 2)
+    check('R-02 search: the search is marked as missing items', s.incomplete == true)
+    local told
+    for _, line in ipairs(said) do if line:find(scan.PARTIAL_LIST_TEXT, 1, true) then told = true end end
+    check('R-02 search: chat says the list was cut', told)
+    check('R-02 search: the results line says so too', plain(search.results_summary(s) or ''):find('some items missing', 1, true) ~= nil)
+    rawset(G.DEFAULT_CHAT_FRAME, 'AddMessage', nil)
+    -- the same search with the whole list: nothing missing
+    server.page_size, server.more_silent = nil, nil
+    search.execute(nil, false)
+    check('R-02 search: searched again, the whole list arrives', server:wait(function() local t = search.current_search(); return t and t.complete and #t.records == 3 end, 400))
+    check('R-02 search: and nothing is said to be missing', not search.current_search().incomplete)
+    search.frame:Hide()
+    server:restore()
+  end)
+
+  -- 0.8.2.1 build 6 (outside review S-08): a row of many sellers at one price keeps FOLD_KEEP real
+  -- auctions and counts the rest. The player buys from it again and again, faster than the auction
+  -- house answers: every purchase is one auction at the price the button showed, the row's count
+  -- follows what is left, and when its kept auctions run low the item is read again, so the player
+  -- can buy every last one.
+  local set_search = loadstring("select(2, ...) 'aux.tabs.search'; local k, v = select(3, ...); M[k] = v")
+  local function fold_setup(server, sellers)
+    local search = module 'aux.tabs.search'
+    local bar = module 'aux.gui.buy_bar'
+    set_search('auxForever', addon, 'FOLD_KEEP', 4)
+    set_search('auxForever', addon, 'REFILL_AT', 2)
+    server.items[7101] = {name = 'Linen Belt', commodity = false}
+    server.listings[7101] = {}
+    for i = 1, sellers do table.insert(server.listings[7101], {price = 100, quantity = 1, owner = 'Seller' .. i}) end
+    table.insert(server.listings[7101], {price = 150, quantity = 1, owner = 'Dear'})
+    server:install()
+    aux.set_tab(1)
+    search.frame:Show()
+    search.update_mode(search.NORMAL_MODE)
+    return search, bar
+  end
+  local function fold_done(search, server, bar)
+    set_search('auxForever', addon, 'FOLD_KEEP', 20)
+    set_search('auxForever', addon, 'REFILL_AT', 5)
+    search.frame:Hide()
+    server:restore()
+    bar.clear()
+  end
+  -- the row at a price: its info child in the table
+  local function price_row(s, price)
+    for _, info_row in ipairs(s.table.rowInfo) do
+      for _, child in ipairs(info_row.children) do
+        if child.record.buyout_price == price then return child end
+      end
+    end
+  end
+
+  -- the player presses Buy until one purchase goes through (a press the bar does not allow does
+  -- nothing; its text can still be the last item's for a moment)
+  local function buy_one(server, bar)
+    local n = #server.purchases
+    for _ = 1, 150 do
+      bar.primary_click()
+      server:ticks(1)
+      if #server.purchases > n then return true end
+    end
+  end
+
+  try('timing: buying through a row of many sellers', function()
+    local server = new_server(env)
+    local search, bar = fold_setup(server, 12)
+    search.search_box:SetText('linen belt/exact')
+    search.execute(nil, false)
+    check('S-08 buy: the search ends', server:wait(function() local s = search.current_search(); return s and s.complete end, 200))
+    local s = search.current_search()
+    local row = price_row(s, 100)
+    check('S-08 buy: the 1s row keeps 4 auctions (' .. #s.records .. ' records)', #s.records == 5)
+    check('S-08 buy: and says 12 for sale (' .. tostring(row and row.count) .. ')', row and row.count == 12)
+    check('S-08 buy: from 12 sellers', row and row.record.group_sellers == 12)
+    s.table:SetSelectedRecord(row.record) -- the player clicks the row
+    server:ticks(1)
+    local searches_before = 0
+    for _, r in ipairs(server.requests) do if r == 'search 7101' then searches_before = searches_before + 1 end end
+    -- the player presses Buy as fast as the button lets them, for as long as the row is there
+    local shown_wrong, counts_wrong = 0, 0
+    for _ = 1, 600 do
+      local label = bar.primary_label() or ''
+      if label:find('^Buy for') then
+        if plain(label) ~= 'Buy for 1s' then shown_wrong = shown_wrong + 1 end
+        bar.primary_click()
+      end
+      server:ticks(1)
+      if #server.purchases == 12 then break end
+      -- once nothing is under way, the row says what the auction house still lists at 1s
+      local left = 0
+      for _, l in ipairs(server.listings[7101]) do if l.price == 100 then left = left + l.quantity end end
+      local now = price_row(s, 100)
+      if left > 0 and not aux.bid_in_progress() and not (s.refilling and next(s.refilling)) and server:pending() == 0 and not (now and now.record.syncing) then
+        if not now or now.count ~= left then counts_wrong = counts_wrong + 1 end
+      end
+    end
+    local over = 0
+    for _, p in ipairs(server.purchases) do if p.total ~= 100 then over = over + 1 end end
+    check('S-08 buy: all 12 at 1s were bought (' .. #server.purchases .. ')', #server.purchases == 12)
+    check('S-08 buy: each at the price the button showed', over == 0 and shown_wrong == 0)
+    check('S-08 buy: the row\'s count followed what was left (' .. counts_wrong .. ' times wrong)', counts_wrong == 0)
+    local searches_after = 0
+    for _, r in ipairs(server.requests) do if r == 'search 7101' then searches_after = searches_after + 1 end end
+    check('S-08 buy: the item was read again when the row ran low (' .. (searches_after - searches_before) .. ' reads)', searches_after > searches_before)
+    server:ticks(80)
+    check('S-08 buy: the 1s row is gone, the 1s 50c one stays', not price_row(s, 100) and price_row(s, 150) ~= nil)
+    fold_done(search, server, bar)
+  end)
+
+  -- a row runs low while the player starts another search: the read of the item waits for it and
+  -- never cuts it off
+  try('timing: a row read again waits for a search the player started', function()
+    local server = new_server(env)
+    local search, bar = fold_setup(server, 8)
+    server.items[2589] = {name = 'Linen Cloth', commodity = true, max_stack = 200}
+    server.listings[2589] = {{price = 6, quantity = 50}}
+    search.search_box:SetText('linen belt/exact')
+    search.execute(nil, false)
+    server:wait(function() local s = search.current_search(); return s and s.complete end, 200)
+    local s = search.current_search()
+    s.table:SetSelectedRecord(price_row(s, 100).record)
+    server:ticks(1)
+    -- three purchases bring the row under REFILL_AT
+    for _ = 1, 3 do buy_one(server, bar) end
+    check('S-08 wait: three bought', #server.purchases == 3)
+    search.search_box:SetText('linen cloth/exact')
+    search.execute(nil, false)
+    local done = server:wait(function()
+      local t = search.current_search()
+      return t and t.complete and t.filter_string == 'linen cloth/exact'
+    end, 200)
+    check('S-08 wait: the search the player started finishes', done and search.current_search().records[1] and search.current_search().records[1].item_id == 2589)
+    server:ticks(100)
+    check('S-08 wait: no error', true)
+    fold_done(search, server, bar)
+  end)
+
+  -- the player buys the row's last kept auction before the read of its item comes back: the row is
+  -- gone for a moment. The selection must not move to the next row (another price, 1s 50c here);
+  -- the row is selected again when the read arrives.
+  try('timing: a row bought empty while its item is read again', function()
+    local server = new_server(env)
+    local search, bar = fold_setup(server, 8)
+    search.search_box:SetText('linen belt/exact')
+    search.execute(nil, false)
+    server:wait(function() local s = search.current_search(); return s and s.complete end, 200)
+    local s = search.current_search()
+    -- the table's rows are on screen, so a lost selection would fall to the row in the same place
+    -- (the stub table has no height, so no rows, and stub rows say they are not visible)
+    rawset(s.table, 'GetHeight', function() return 300 end)
+    s.table.__scripts.OnSizeChanged(s.table)
+    for _, r in ipairs(s.table.rows) do rawset(r, 'IsVisible', function() return true end) end
+    check('S-08 empty: the table has rows on screen (' .. #s.table.rows .. ')', #s.table.rows >= 2)
+    s.table:SetSelectedRecord(price_row(s, 100).record)
+    server:ticks(1)
+    buy_one(server, bar)
+    buy_one(server, bar)
+    server.delay = 4 -- the auction house is slow to answer the read
+    buy_one(server, bar)
+    server:ticks(3)
+    check('S-08 empty: the row is being read again', s.refilling ~= nil and next(s.refilling) ~= nil)
+    server.delay = .3 -- purchases come back quickly
+    buy_one(server, bar)
+    server:ticks(3)
+    local selected = s.table:GetSelection()
+    check('S-08 empty: four bought, at 1s each', #server.purchases == 4 and server.purchases[4].total == 100)
+    check('S-08 empty: nothing else is selected meanwhile', selected == nil)
+    check('S-08 empty: the bar says the item is being read', plain(select(2, bar.lines())):find('Reading more of its auctions', 1, true) ~= nil)
+    server:ticks(80)
+    selected = s.table:GetSelection()
+    check('S-08 empty: the row is selected again when the read arrives', selected and selected.record.buyout_price == 100)
+    check('S-08 empty: with the 4 auctions left (' .. tostring(price_row(s, 100) and price_row(s, 100).count) .. ')', price_row(s, 100) and price_row(s, 100).count == 4)
+    for _, r in ipairs(s.table.rows) do rawset(r, 'IsVisible', nil); r:Hide() end
+    rawset(s.table, 'GetHeight', nil)
+    s.table.rows = {}
+    fold_done(search, server, bar)
+  end)
+
+  -- a purchase sent just after the row's item was read again, answered after that read: the read
+  -- still lists the auction bought, and the row must not count it
+  try('timing: a purchase that lands after its row was read again', function()
+    local server = new_server(env)
+    local search, bar = fold_setup(server, 8)
+    search.search_box:SetText('linen belt/exact')
+    search.execute(nil, false)
+    server:wait(function() local s = search.current_search(); return s and s.complete end, 200)
+    local s = search.current_search()
+    s.table:SetSelectedRecord(price_row(s, 100).record)
+    server:ticks(1)
+    buy_one(server, bar)
+    buy_one(server, bar)
+    server.delay = .5
+    buy_one(server, bar) -- the row is down to 1 kept auction: its item is read again
+    local reads = 0
+    server:wait(function()
+      reads = 0
+      for _, r in ipairs(server.requests) do if r == 'search 7101' then reads = reads + 1 end end
+      return reads >= 2
+    end, 50)
+    server.delay = 2 -- this purchase is answered after the read
+    buy_one(server, bar)
+    server:ticks(40)
+    local left = 0
+    for _, l in ipairs(server.listings[7101]) do if l.price == 100 then left = left + l.quantity end end
+    check('S-08 late purchase: four bought', #server.purchases == 4)
+    check('S-08 late purchase: the row counts what is left (' .. tostring(price_row(s, 100) and price_row(s, 100).count) .. ', listed ' .. left .. ')', price_row(s, 100) and price_row(s, 100).count == left)
+    fold_done(search, server, bar)
+  end)
+
+  -- the read waits for a scan under way; if the player leaves the Search tab meanwhile, it is
+  -- dropped. It used to start once the scan ended, between another tab's own reads (it broke the
+  -- Sniper's R-14 test).
+  try('timing: a row is read again only while its search is on screen', function()
+    local server = new_server(env)
+    local search, bar = fold_setup(server, 8)
+    local scan = module 'aux.core.scan'
+    server.items[2589] = {name = 'Linen Cloth', commodity = true, max_stack = 200}
+    server.listings[2589] = {{price = 6, quantity = 50}}
+    search.search_box:SetText('linen belt/exact')
+    search.execute(nil, false)
+    server:wait(function() local s = search.current_search(); return s and s.complete end, 200)
+    local s = search.current_search()
+    s.table:SetSelectedRecord(price_row(s, 100).record)
+    server:ticks(1)
+    buy_one(server, bar)
+    buy_one(server, bar)
+    -- some other read is under way when the row runs low (three items, a few seconds)
+    scan.start{type = 'list', quiet = true, queries = {{item_keys = {server:key(2589), server:key(2589), server:key(2589)}}}}
+    buy_one(server, bar)
+    server:ticks(3) -- the purchase is taken off the row
+    check('S-08 on screen: three bought', #server.purchases == 3)
+    check('S-08 on screen: the row ran low while another read was under way', s.refilling ~= nil and next(s.refilling) ~= nil and scan.is_scanning())
+    search.frame:Hide() -- the player goes to another tab
+    local before = #server.requests
+    server:ticks(150)
+    local read_again = false
+    for i = before + 1, #server.requests do if server.requests[i] == 'search 7101' then read_again = true end end
+    check('S-08 on screen: the row is not read after the player left the tab', not read_again)
+    check('S-08 on screen: and nothing is left waiting', not next(s.refilling or {}))
+    fold_done(search, server, bar)
+  end)
+
+  -- Live: a round keeps a few auctions per row and counts the rest, so a row of many sellers is
+  -- not "too many for Live"; and a counted auction is not taken for a new one at the next round
+  try('timing: Live with a row of many sellers', function()
+    local server = new_server(env)
+    local search, bar = fold_setup(server, 30)
+    local set_limit = loadstring("select(2, ...) 'aux.tabs.search'; M.TABLE_LIMIT = (select(3, ...))")
+    set_limit('auxForever', addon, 10)
+    local alerts = 0
+    rawset(aux, 'show_popup', function(name) if name == 'AUX_SCAN_ALERT' then alerts = alerts + 1 end end)
+    search.search_box:SetText('linen belt/exact')
+    search.update_mode(search.LIVE_MODE)
+    search.execute(nil, false, search.LIVE_MODE)
+    local s = search.current_search()
+    s.alert_validator = function() return true end -- every auction matches an alert
+    check('S-08 live: a round ends', server:wait(function() return (s.live_round or 0) >= 1 end, 300))
+    local row = price_row(s, 100)
+    check('S-08 live: not too many for Live', not s.live_too_many)
+    check('S-08 live: the row counts all 30 (' .. tostring(row and row.count) .. ')', row and row.count == 30)
+    alerts = 0
+    check('S-08 live: a second round ends', server:wait(function() return (s.live_round or 0) >= 2 end, 300))
+    check('S-08 live: no alert for auctions seen in the round before (' .. alerts .. ')', alerts == 0)
+    search.toggle_live()
+    server:ticks(20)
+    rawset(aux, 'show_popup', nil)
+    set_limit('auxForever', addon, 2000)
+    fold_done(search, server, bar)
+  end)
+
+  -- Tyler, build 4 test: a Full search for linen brought up "Table full!", a popup to close ("I had
+  -- to close this error"), at every search. The limit stays (a bigger table costs frame rate at
+  -- every redraw); it is said next to the results and once in chat, with how much is not shown.
+  try('timing: a full table says so without a popup', function()
+    local server = new_server(env)
+    local search = module 'aux.tabs.search'
+    server.items[9400] = {name = 'Crowded Cloth', commodity = true, vendor = 1}
+    server.listings[9400] = {}
+    for i = 1, 6 do table.insert(server.listings[9400], {price = 49 + i, quantity = 10}) end
+    server:install()
+    local set_limit = loadstring("select(2, ...) 'aux.tabs.search'; M.TABLE_LIMIT = (select(3, ...))")
+    set_limit('auxForever', addon, 4)
+    local popups, said = 0, {}
+    rawset(G, 'StaticPopup_Show', function() popups = popups + 1 end)
+    rawset(G.DEFAULT_CHAT_FRAME, 'AddMessage', function(_, text) table.insert(said, plain(tostring(text))) end)
+    aux.set_tab(1)
+    search.frame:Show()
+    search.update_mode(search.NORMAL_MODE)
+    local was_full = aux.account_data.full_search
+    aux.account_data.full_search = true -- Full mode: every listing, not one row per item
+    search.search_box:SetText('crowded cloth')
+    search.execute(nil, false)
+    check('table full: the search ends', server:wait(function() local s = search.current_search(); return s and s.complete end, 400))
+    local s = search.current_search()
+    check('table full: the table holds its limit (' .. #s.records .. ')', #s.records == 4)
+    check('table full: what is not shown is counted in units for sale (' .. tostring(s.not_shown) .. ')', s.not_shown == 20)
+    check('table full: no popup to close', popups == 0)
+    check('table full: the results line says how much is not shown', plain(search.results_summary(s) or ''):find('table full: 20 more not shown', 1, true) ~= nil)
+    local told = 0
+    for _, line in ipairs(said) do if line:find('The results table is full (4 auctions). 20 more for sale', 1, true) then told = told + 1 end end
+    check('table full: chat says it once (' .. told .. ')', told == 1)
+    -- with room for everything, nothing is said
+    set_limit('auxForever', addon, 2000)
+    search.execute(nil, false)
+    check('table full: searched again with room, everything shows', server:wait(function() local t = search.current_search(); return t and t.complete and #t.records == 6 end, 400))
+    check('table full: and the note is gone', not search.current_search().not_shown
+      and not plain(search.results_summary(search.current_search()) or ''):find('table full', 1, true))
+    aux.account_data.full_search = was_full
+    rawset(G, 'StaticPopup_Show', nil)
+    rawset(G.DEFAULT_CHAT_FRAME, 'AddMessage', nil)
+    search.frame:Hide()
+    server:restore()
+  end)
+
+  -- R-02 on the Auctions tab: gear the price check found nothing for, because the item list was cut
+  -- before its versions, read "Only one listed"
+  try('timing: R-02 the Auctions check does not call an unread item the lowest', function()
+    local server = new_server(env)
+    local auctions = module 'aux.tabs.auctions'
+    server.items[4586] = {name = 'Check Staff', commodity = false, vendor = 1487,
+      versions = {[301] = 'of the Bandit', [302] = 'of the Bear', [303] = 'of the Wolf'}}
+    server.listings[4586] = {
+      {price = 11500, quantity = 1, version = 301},
+      {price = 11000, quantity = 1, version = 302},
+      {price = 9000, quantity = 1, version = 303},
+    }
+    server.page_size, server.more_silent = 2, true
+    server:install()
+    local mine = {item_id = 4586, price_key = '4586:of the wolf', item_search_key = server:key(4586, 303), sale_status = 0,
+      buyout_price = 15000, unit_buyout_price = 15000, count = 1, auction_id = 5, name = 'Check Staff of the Wolf'}
+    local real_records = auctions.listing.records
+    auctions.listing.records = {mine}
+    auctions.checks = {}
+    auctions.check_prices()
+    check('R-02 auctions: the check ends', server:wait(function() return not auctions.checking end, 400))
+    check('R-02 auctions: an item it could not read stays "Not checked"', auctions.auction_status(mine) == 'unchecked')
+    server.page_size, server.more_silent = nil, nil
+    auctions.check_prices()
+    check('R-02 auctions: checked again with the whole list', server:wait(function() return not auctions.checking end, 400))
+    local status, by = auctions.auction_status(mine)
+    check('R-02 auctions: the cheaper Wolf listing is found', status == 'undercut' and by == 6000)
+    auctions.listing.records = real_records
+    auctions.checks = {}
+    server:restore()
+  end)
+
+  -- R-14: a gear deal read again before buying. When its auction is gone and a cheaper one of the
+  -- item is there, the deal takes on that auction, price included: the button shows and sends what
+  -- that auction costs (the old, higher buyout was sent with the new auction's ID).
+  try('timing: R-14 a Sniper gear deal bought at the price of the auction found', function()
+    local server = new_server(env)
+    local sniper = module 'aux.tabs.sniper'
+    local bar = module 'aux.gui.buy_bar'
+    server.items[9401] = {name = 'Found Blade', commodity = false, vendor = 5000}
+    server.listings[9401] = {{price = 1000, quantity = 1}}
+    server:install()
+    aux.account_data.sniper_profit = 1
+    sniper.clear_deals()
+    sniper.settings_changed()
+    aux.set_tab(2) -- Search 1, Sniper 2
+    sniper.start()
+    local deal
+    check('R-14: the deal is found at 10s', server:wait(function()
+      for _, d in ipairs(sniper.deals) do if d.item_id == 9401 then deal = d end end
+      return deal ~= nil
+    end, 200) and deal.buyout_price == 1000)
+    sniper.stop()
+    server:ticks(20)
+    -- that auction sells and a cheaper one is posted before the player clicks the deal
+    server.listings[9401] = {{price = 900, quantity = 1}}
+    deal.deal_read_at = G.GetTime() - 100
+    sniper.listing:SetSelectedRecord(deal)
+    -- the bar offers the deal: a hidden Buy button keeps its last text, which an earlier test left
+    -- as "Buy for 1s" (S-08), and this wait ended before the deal was read again
+    check('R-14: the deal is read again and offered', server:wait(function()
+      return (bar.primary_label() or ''):find('^Buy for') ~= nil and plain((bar.lines())):find('1 × Found Blade', 1, true) ~= nil
+    end, 100))
+    check('R-14: the button shows the price of the auction found, 9s', deal.buyout_price == 900 and plain(bar.primary_label()):find('9s', 1, true) ~= nil)
+    bar.primary_click()
+    check('R-14: the purchase arrives', server:wait(function() return #server.purchases > 0 end, 50))
+    check('R-14: 9s is what was sent, not the 10s first seen', #server.purchases == 1 and server.purchases[1].total == 900)
+    sniper.listing:SetSelectedRecord()
+    aux.account_data.sniper_profit = 500
+    sniper.clear_deals()
+    bar.clear()
+    aux.set_tab(1)
+    server:restore()
+  end)
+
+  -- R-12 and R-20: a full-mode search draws its table a few times a second, not after every item,
+  -- and an alert favorite brings up its popup once per search
+  try('timing: R-12 R-20 a search redraws now and then and alerts once', function()
+    local server = new_server(env)
+    local search = module 'aux.tabs.search'
+    for i = 1, 12 do
+      server.items[9500 + i] = {name = 'Redraw Cloth ' .. i, commodity = true, vendor = 1}
+      server.listings[9500 + i] = {{price = 50 + i, quantity = 10}}
+    end
+    server.delay, server.throttle = .1, 0 -- a fast auction house: an item read every frame or two
+    server:install()
+    local alert = {filter_string = 'redraw cloth', prettified = 'redraw cloth', alert = true}
+    tinsert(search.favorite_searches, 1, alert)
+    local alerts = 0
+    local real_show = G.StaticPopup_Show
+    G.StaticPopup_Show = function(name, ...) if name == 'AUX_SCAN_ALERT' then alerts = alerts + 1 end; return real_show(name, ...) end
+    aux.set_tab(1)
+    search.frame:Show()
+    search.update_mode(search.NORMAL_MODE)
+    local was_full = aux.account_data.full_search
+    search.set_full_search(true)
+    search.search_box:SetText('redraw cloth')
+    search.execute(nil, false)
+    local s = search.current_search()
+    local draws, real_set = 0, s.table.SetDatabase
+    rawset(s.table, 'SetDatabase', function(...) draws = draws + 1; return real_set(...) end)
+    check('R-12: the search ends with every item', server:wait(function() return s.complete end, 400) and #s.records == 12)
+    check('R-12: the table was drawn less often than once per item', draws >= 1 and draws <= 8)
+    local shown = 0
+    for _, row in ipairs(s.table.rowInfo) do shown = shown + #row.children end
+    check('R-12: and holds every row at the end', shown == 12)
+    check('R-20: an alert favorite brings up its popup once per search', alerts == 1)
+    rawset(s.table, 'SetDatabase', nil)
+    G.StaticPopup_Show = real_show
+    for i = #search.favorite_searches, 1, -1 do if search.favorite_searches[i] == alert then table.remove(search.favorite_searches, i) end end
+    search.set_full_search(was_full)
+    search.frame:Hide()
+    server:restore()
+  end)
+
+  -- Found by the random player (tests/fuzz_test.lua): leaving the Post tab while a gear item's
+  -- listings are still being read. The read went on and used the selection, which the tab clears
+  -- when it closes: an error at every answer, and "The search stopped because of an error".
+  try('timing: leaving the Post tab while gear listings are read', function()
+    local server = new_server(env)
+    local post = module 'aux.tabs.post'
+    server.items[4590] = {name = 'Leave Staff', commodity = false, vendor = 1487, versions = {[401] = 'of the Bandit', [402] = 'of the Wolf'}}
+    server.listings[4590] = {{price = 11500, quantity = 1, version = 401}, {price = 15000, quantity = 1, version = 402}}
+    server.bag = {{id = 4590, count = 1, version = 402}}
+    server:install()
+    aux.set_tab(4) -- Post
+    server:ticks(2)
+    post.select_item('4590:of the wolf')
+    check('leave post: the staff is selected and its listings are on their way', post.selected_item ~= nil and server:pending() > 0)
+    local errors_before = env.errors()
+    aux.set_tab(1) -- the player goes to another tab before the answer
+    server:ticks(80)
+    check('leave post: the read ends without an error', env.errors() == errors_before)
+    aux.set_tab(1)
+    server:restore()
   end)
 end

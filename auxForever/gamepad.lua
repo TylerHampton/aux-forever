@@ -20,7 +20,7 @@ local gui = require 'aux.gui'
 --          Sniper deal it then moves the focus to the buy bar's Buy button once it shows
 --   B      closes what is open: a dropdown, a text box, a popup (Settings, quick searches), then aux
 --   X      right-clicks the control (search from a bag item, remove a favorite, clear a text box)
---   Y      the tab's main action: Buy (then Confirm) on Search, Start or Stop on Sniper, Search on
+--   Y      the tab's main action: Buy on Search (one press), Start or Stop on Sniper, Search on
 --          Upgrades (Buy on a row of its table: the first Y reads the row's price, the second
 --          buys), Post on Post,
 --          Cancel the selected auction on Auctions, Buyout the selected bid on Bids
@@ -221,7 +221,11 @@ local function scroll_bar_of(row)
     for _, child in ipairs{list:GetChildren()} do
         if child:IsObjectType('ScrollFrame') then
             local name = child:GetName()
-            return child.ScrollBar or (name and _G[name .. 'ScrollBar'])
+            local bar = child.ScrollBar
+            if type(bar) ~= 'table' then
+                bar = name and _G[name .. 'ScrollBar']
+            end
+            return type(bar) == 'table' and bar or nil
         end
     end
 end
@@ -298,7 +302,7 @@ end
 
 -- Y: the main action of the tab that is open, by tab number (Search 1, Sniper 2, Upgrades 3, Post 4,
 -- Auctions 5, Bids 6). The buy
--- bar's button is Buy, then Confirm once the price is known, so Y twice buys.
+-- bar's button is Buy; since 0.8.2.1 build 7 one press buys (no Confirm step).
 local QUICK_ACTIONS = {
     function() return require('aux.gui.buy_bar').primary_button end,
     function() return require('aux.tabs.sniper').run_button end,
@@ -697,8 +701,8 @@ local function quick_button()
     end
 end
 
--- Y's name: the tab's action. On Search the buy bar's button says Buy, then Confirm once the price
--- is known; on Sniper, Start or Stop.
+-- Y's name: the tab's action. On Search Buy (one press buys since 0.8.2.1 build 7); on Sniper,
+-- Start or Stop.
 local Y_NAMES = {'Buy', 'Start', 'Search', 'Post', 'Cancel', 'Buyout'}
 local function y_label()
     local row = root() == frame and not menu_open() and upgrades_row(focused)
@@ -712,7 +716,6 @@ local function y_label()
     local button = quick_button()
     if not button then return end
     local text = button:GetText() or ''
-    if tabs._selected == 1 and text:find('^Confirm') then return 'Confirm' end
     if tabs._selected == 2 and text:find('^Stop') then return 'Stop' end
     return Y_NAMES[tabs._selected]
 end
@@ -770,12 +773,28 @@ local function key_of(entry)
     return _G[entry[2]] or entry[3]
 end
 
+-- 0.8.2.1 (outside review 2026-11-10, R-19; Tyler, 2026-11-10: yes): when a fight starts while aux
+-- holds the pad buttons, they go back to the game for the fight and come back to aux after it, if
+-- aux is still open. They stayed with aux for the whole fight, since bindings cannot change in
+-- combat. The event PLAYER_REGEN_DISABLED comes as a fight starts; on the modern client bindings
+-- can still be changed while it is handled (Outside: known from retail addons, not seen on
+-- Forever). aux only tries when the game says it is not locked yet (InCombatLockdown), so if that
+-- does not hold on Forever nothing is called and it behaves as before.
+local rebind_after_combat
+
 function M.gamepad_bind()
-    if bound or not gamepad_enabled() or InCombatLockdown() then return end
+    if bound or not gamepad_enabled() then return end
+    if InCombatLockdown() then
+        -- opened during a fight: aux takes the buttons once it is over
+        rebind_after_combat = true
+        owner:RegisterEvent('PLAYER_REGEN_ENABLED')
+        return
+    end
     for _, entry in ipairs(KEYS) do
         SetOverrideBindingClick(owner, true, key_of(entry), 'auxForeverPad' .. entry[1])
     end
     bound = true
+    owner:RegisterEvent('PLAYER_REGEN_DISABLED')
 end
 
 function M.gamepad_unbind()
@@ -788,14 +807,39 @@ function M.gamepad_unbind()
     end
     ClearOverrideBindings(owner)
     bound = false
+    owner:UnregisterEvent('PLAYER_REGEN_DISABLED')
 end
 
+function M.gamepad_bound() return bound and true or false end
+
 owner:SetScript('OnEvent', function(self, event)
-    if event == 'PLAYER_REGEN_ENABLED' then
+    if event == 'PLAYER_REGEN_DISABLED' then
+        -- a fight starts: the game gets its buttons back while that is still allowed
+        if bound and not InCombatLockdown() then
+            set_focus(nil)
+            gamepad_unbind()
+            rebind_after_combat = true
+            self:RegisterEvent('PLAYER_REGEN_ENABLED')
+            update_hints()
+        end
+    elseif event == 'PLAYER_REGEN_ENABLED' then
         self:UnregisterEvent('PLAYER_REGEN_ENABLED')
-        if unbind_after_combat and not (frame:IsShown() and not blizzard_frame_shown()) then
+        local open = frame:IsShown() and not blizzard_frame_shown()
+        if unbind_after_combat and not open then
             unbind_after_combat = false
             gamepad_unbind()
+        end
+        unbind_after_combat = false
+        if rebind_after_combat then
+            rebind_after_combat = false
+            if open and not bound then
+                gamepad_bind()
+                if bound then
+                    set_focus(first_stop())
+                    if not hints then create_hints() end
+                end
+                update_hints()
+            end
         end
     end
 end)
@@ -816,6 +860,7 @@ frame:HookScript('OnShow', function()
 end)
 frame:HookScript('OnHide', function()
     unbind_after_combat = false
+    rebind_after_combat = false
     set_focus(nil)
     gamepad_unbind()
     update_hints()

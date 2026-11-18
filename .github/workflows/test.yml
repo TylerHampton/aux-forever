@@ -21,6 +21,10 @@ jobs:
         run: |
           for f in $(find auxForever tests -name '*.lua'); do luac5.1 -p "$f"; done
 
+      # a name that is read but defined nowhere is most likely misspelled (tests/lint_globals.lua)
+      - name: Unknown names
+        run: lua5.1 tests/lint_globals.lua
+
       - name: Load test
         working-directory: auxForever
         run: |
@@ -33,6 +37,16 @@ jobs:
         run: |
           lua5.1 ../tests/load_test.lua classic | tee ../test-output-classic.txt
           tail -n 1 ../test-output-classic.txt | grep -qx 'done, errors: 0'
+
+      # the version in the TOC has its section in the changelog (released or "not released yet"),
+      # so a version never ships without its notes
+      - name: The version has a changelog section
+        run: |
+          version=$(sed -n 's/^## Version: forever-//p' auxForever/auxForever.toc | tr -d '\r')
+          grep -q "^## $version " docs/changelog.md || {
+            echo "docs/changelog.md has no section for $version (the Version line of auxForever.toc)"
+            exit 1
+          }
 
       - name: Package the addon
         run: |

@@ -50,6 +50,158 @@ A change that comes from a player's feedback credits them by in-game name at the
   Upgrades tab, and with a row of its table in focus, Y buys that row: the first Y reads its price
   (the hint says "Y Get price"), the second buys it ("Y Buy").
 
+## 0.8.2.1 (2026-11-16)
+
+Fixes and speed from a full review of the code (2026-11-10,
+`docs/reviews/2026-11-10-outside-review.md`). Nothing to do when updating; `/reload` is enough.
+
+### Prices
+
+- aux forgets the prices of items it has not seen at the auction house for 90 days. It kept every
+  item it ever saw, forever, and since 0.8 every gear ending is an item of its own; all of it is
+  loaded each time you log in. An item's prices come back the next time a search or Full scan sees
+  it. `/aux memory` says how many items it keeps.
+
+### Sniper
+
+- One round the auction house did not answer no longer empties your deals. Such a round had seen
+  nothing, so every deal was marked "Gone: sold or relisted", and they stayed that way while still
+  for sale. The same happened to part of the deals when only part of the item list arrived. A round
+  now only says what is gone when it got the whole list, and a round nobody answered no longer
+  puts a line about a search in your chat.
+- After a Full scan, and on a new day, the Sniper looks at everything again. It only looked at an
+  item again when its price changed, so on the third day of scans (the day deals against the usual
+  price start) nothing already listed became a deal after your Full scan, until you touched a
+  Sniper setting.
+- When a gear deal is read again before you buy and its auction is gone but a cheaper one of the
+  item is there, the Buy button now shows and pays that auction's own price. It showed the first
+  price and sent it with the new auction.
+- Ignore item ignores gear by its name with the ending. The auction house keeps one name under
+  several versions with the same stats, and the other versions of an ignored item kept showing.
+
+### Full scan
+
+- Reading the auctions no longer depends on your frame rate. aux read 100 auctions per frame
+  however little of the frame that took, so on a slow frame rate the reading took longer. It now
+  uses a set share of each frame, no longer builds a full record for every auction only to throw
+  it away, and updates the bar once per frame instead of once per auction. Most of a Full scan is
+  still the wait for the auction house to answer, which aux cannot shorten: in our test, 220,508
+  auctions took 48.5 seconds, of which 30.3 were that wait and 16.2 the reading (reported by
+  user_ayzkr6rhvrlna3ya).
+- Auctions whose items the game has not loaded yet are asked about a share at a time. All of them
+  were asked about again every frame for up to 30 seconds.
+
+### Search
+
+- Pointing at a row of Fast search results shows a real auction of that item in the tooltip when
+  the game has one, as Blizzard's window does, so the stats of endings such as "of Healing" and
+  "of Shadow Protection" should show; not yet seen in game (reported by
+  karrier_user_slouyac50poxg707).
+- When only part of the item list arrives from a slow auction house, the search says so, in chat
+  and next to the results ("some items missing: search again"). It used to show what arrived as if
+  it were everything. Live mode keeps its table through such a round instead of emptying it.
+- A search for something like `linen` shows every item it finds. On Forever one popular piece of
+  gear can be hundreds of auctions at one price (Linen Belt: 585 sellers at 1s), and a few such
+  items filled the table's 2,000 places, so items read later never showed (a Full search for
+  `linen` showed 20 of its 36 items). A row now keeps 20 of its auctions and counts the rest: "For
+  sale", "N sellers" and the line next to the results still count every one, and Buy buys one of
+  the kept auctions at the price on the button. When a row is down to its last few, aux reads that
+  item again, so you can keep buying from it. Live mode does the same, so such a search is no
+  longer "too many for Live".
+- "Table full!" no longer pops up. A search that still finds more than the table holds (2,000
+  rows) says so next to the results, with how many more are for sale but not shown, and once in
+  chat when it ends. The popup had to be closed at every such search, and in Live mode at every
+  round.
+- A Full search draws its table at most four times a second while it runs, not after every item
+  read, so long searches cost less.
+- A favorite with an alert brings up its popup once per search, not once for every auction that
+  matches.
+- Typing in the search bar no longer hitches. At every key press aux built a list of every item
+  name it knows to find a completion; it now looks through the names directly.
+- A right-click search on an item the game has no data for at that moment does nothing instead of
+  raising an error, in every tab. The same goes for the conditions `item`, `vendor-profit` and
+  `bid-vendor-profit`.
+- After typing `and/`, `or/` or `not/` in the search bar, the conditions (price, seller, ...) are
+  offered again.
+- Removing a favorite removes the one you were asked about, also when the list changed while the
+  question was open.
+
+### Tooltips
+
+- The Waylaid Crate lines in tooltips have a switch: "Waylaid Crates" in Settings, or
+  `/aux tooltip crate`. They were always shown. Their heading reads "Cheapest fill price" (it was
+  "Cheapest way to fill it"), and the line "Latest prices, less what is in your bags" under it is
+  gone; each bundle still says how many you have (suggested by user_tdsvrjvpe8rufw54).
+
+### Post
+
+- Gear and every other item can be priced in copper, as in Blizzard's own Sell window (a white
+  axe at 1s 89c). aux rounded everything that is not a trade good down to whole silver, so such a
+  price could only be posted through Blizzard's window. Undercut mode now goes 1 copper below the
+  lowest listing for gear too (reported by sarrathsilentstrider and user_mezgz2zh1g3sbu1v).
+- "Not posted: the item is on your mouse pointer, or in a trade or the mail" came up when it was
+  not. The game also holds an item while it sits in Blizzard's own Sell tab (open but hidden under
+  aux; a bag addon can put it there) or while a post from a moment ago is still on its way. aux
+  now empties Blizzard's Sell tab itself and posts, and when the item is still held it says "Not
+  posted: the game is holding this item. Try again in a moment.", with the possible reasons in
+  chat (reported by karrier_user_slouyac50poxg707).
+- Gear is not priced from part of its listings. When the item list was cut before the versions of
+  your item's name, the Post tab called the listings ready and picked a price from somewhere else,
+  or said "None for sale". It now says "Reading stopped. Press Refresh, or type a price." The same
+  goes for an item the auction house could not be read for.
+- The price boxes take numbers and coins only. Words the game's language reads as numbers were
+  taken: `inf` gave an endless price. A price is also capped at the game's highest.
+- `/aux clear post` now clears the remembered prices and durations at once. It cleared nothing
+  until the next login, and what was remembered after it was lost.
+- Counting an item in your bags while a post is under way no longer reads every bag slot's
+  tooltip.
+- Leaving the Post tab while the listings of a piece of gear were still being read no longer
+  raises an error at each answer that arrives.
+- A click on Post posts only when the button may be pressed at that moment. The button is faded a
+  few times a second, so for an instant a click could still get through: with nothing selected
+  it raised an error, and with a starting bid above the buyout it sent a post the tab would
+  have refused.
+
+### Auctions and Bids
+
+- The Auctions tab's price check does not call an item "Lowest" or "Only one listed" when it
+  could not read that item's listings; it stays "Not checked" and is checked again next time.
+- A sold auction reads "Sold. The money comes by mail." It said the money was in your mailbox,
+  which aux cannot know: after a sale the game first sends a notice, the money later.
+- On the Bids tab, Bid and Buyout fade when no bid is selected. They stayed lit from the last
+  selection, and a click (or the gamepad's Y) raised an error.
+
+### Buying
+
+- Trade goods are bought with one click on Buy. aux asks the auction house for the price and buys
+  at once if it is no higher than the price on the button; if it went up, nothing is bought and the
+  listings are read again, as before. The second click on Confirm added no safety (that check is
+  what keeps you from paying more than you saw) and players did not like it. Gear was already
+  bought with one click. On a gamepad, one press of Y buys.
+- When the game drops a trade good's price request for being sent too soon after another request,
+  the buy bar says "The auction house was busy" at once. It said "No answer" after 10 seconds.
+- The buy button does only what it shows. It was redrawn a few times a second, so right after
+  you selected another auction, or after the price of the selected one changed, it could show
+  the old price for an instant while a click acted on the new one. A new selection now shows at
+  once, and a click does nothing unless the button shows what would be bought.
+
+### Gamepad
+
+- When a fight starts while aux is open, the pad buttons go back to the game for the fight and
+  come back to aux after it, if aux is still open. They stayed with aux for the whole fight. Opened
+  during a fight, aux takes them once it is over.
+
+### Under the hood
+
+- Events reach every part of aux exactly once. When one part started a search while an event was
+  being handed out, another part could miss that event and wait out a timeout.
+- The list of item names for autocompletion is sorted at login only when a name was added.
+- The auction house cut (5%) is one number for the whole addon.
+- A new automated test plays aux like a player clicking at random (searching, buying, sniping,
+  posting, cancelling, with and without a gamepad) against a slow test auction house, and checks
+  after every click that nothing was bought or posted that the screen did not show. It found the
+  three fixes above about leaving the Post tab, the Post click and the buy button.
+
 ## 0.8.2 (2026-11-09)
 
 ### Sniper

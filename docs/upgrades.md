@@ -32,7 +32,7 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
   slot's category and the usable filter. One row per version ("of the Bear", "of the Eagle"). No
   search per item.
 - **Stats:** read once per version and kept by price key (`info.price_key`): versions of one name
-  have the same stats (`docs/forever-auction-house.md`, Seen). E8: `C_Item.GetItemStats(link)` works
+  have the same stats (`docs/forever-auction-house.md`, Seen). E12: `C_Item.GetItemStats(link)` works
   on a link (Seen); `C_TooltipInfo.GetItemKey` is blocked for addons (Seen), never call it. A listed
   version has an item key, not a link: the plan is a hidden tooltip of aux's own, `SetItemKey`,
   then `GetItem()` for the link, then `GetItemStats`: this works on a row's icon in aux's results
@@ -46,7 +46,7 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
 
 ## Steps
 
-1. Experiments E8 and E9 in game (`TESTING.md`, "Upgrades experiments"): done 2026-11-16.
+1. Experiments E12 and E9 in game (`TESTING.md`, "Upgrades experiments"): done 2026-11-16.
 2. Mockup approved (the link above): approved by Ben, 2026-11-16.
 3. Stat reading and scoring, with tests: built 2026-11-16, `core/stats.lua` (`key_stats`,
    `link_stats`, `score`, `worn_score`, `compare`, `changes`), test `upgrades: stats, scores and
@@ -68,7 +68,7 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
    with the Search tab's buy bar and its never-more-than-shown check, instead of a buy bar on the
    Upgrades tab. A buy bar on the tab itself can follow if this feels clumsy in game.
    2026-11-17 (Ben, screenshot): every "of the ..." version scored as the plain item, since the
-   link `SetItemKey` gives has no ending (E8 in `docs/forever-auction-house.md`). Fixed: after the
+   link `SetItemKey` gives has no ending (E12 in `docs/forever-auction-house.md`). Fixed: after the
    item list, one auction of each ending name of the slot is read (one request per name, one scan;
    `read_endings` in `tabs/upgrades/core.lua`) and its link's stats score every version of that
    name (Ben: the lowest values of a grouping are acceptable; one case Seen of two versions of one

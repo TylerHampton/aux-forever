@@ -46,6 +46,11 @@ date and who saw it.
 5. Our own observations: Tyler's in-game tests, recorded in `docs/status.md`,
    `docs/testing-history.md` and the test pages.
 
+6. Checked again on 2026-11-10 against build 70888 of source 1 (and build 70532 of source 2, the
+   lists of global functions, frames and text): every `C_` function, event and `Enum` member
+   auxForever uses is in Blizzard's generated documentation for Forever, with the values the tests
+   now use (`tests/forever_api.lua`); so is the timing function `debugprofilestop`. **[Code]**
+
 ## 1. Which auction houses there are
 
 - Each faction has its own auction house; the neutral auctioneers (Gadgetzan, Booty Bay,
@@ -85,9 +90,24 @@ search and buy, which work in game **[Seen]**.
   typed 10s 50c there and clicked Create Auction; afterwards his auction list showed only the Merc
   Sword aux had posted at 11s, and two Merc Swords were still in his bags (2026-10-19, 0.7.1.1
   build 2, step 8, screenshots) **[Seen]**. Inference: the 10s 50c post did not go through; no
-  error text was captured. Every gear listing Blizzard's window showed was whole silver. Until a
-  refused post is seen with its error text, aux keeps gear in whole silver; a typed copper amount
-  shows rounded down in the box after Enter.
+  error text was captured. Every gear listing Blizzard's window showed was whole silver. aux kept
+  gear in whole silver until 0.8.2.1 build 6; since build 7 it posts the copper price typed (below,
+  FB-044).
+- Two players report that Blizzard's window now posts copper prices on items that are not trade
+  goods: sarrathsilentstrider posted "a level 3 white axe on the AH for 1s 89c" through "the default
+  Blizz AH ... w/o issue" ("we can sell items by the copper now"), and user_mezgz2zh1g3sbu1v names
+  Small Red Pouch (CurseForge comments, 2026-11-13 to 2026-11-16, FB-044) **[Outside]**. This
+  contradicts Tyler's 10s 50c test of 2026-10-19 above; sarrathsilentstrider's "now" suggests a
+  change on Blizzard's side since. Seen by Tyler on 2026-11-16 (0.8.2.1 build 7, step 8): aux
+  posted Rough Bronze Leggings at 5s 69c and the Auctions tab listed it at 5s 69c; other players'
+  gear listings at 5s 67c, 5s 71c **[Seen]**. Gear takes copper prices on Forever now.
+- Blizzard's Sell window treats gear and trade goods alike: it shows the copper box whenever
+  `SupportsCopperValues()` is true and does not round a typed gear price to silver (only its
+  default price is silver-aligned) (`Blizzard_AuctionHouseSellFrame.lua`,
+  `Blizzard_AuctionHouseSharedTemplates.lua`, branch `forever`, build 70938) **[Code]**. Its
+  auction house code has not changed since build 70425 (2026-10-16), so any change since Tyler's
+  2026-10-19 test would be on the server. No Blizzard note found that mentions copper prices on
+  gear (searched 2026-11-16).
 - An item can also be marked as listed by another character on your account
   (`containsAccountItem`); Blizzard shows such rows as your own. **[Code]**
 
@@ -121,6 +141,11 @@ search and buy, which work in game **[Seen]**.
   every case. Inference: below some amount the game charges 1s; the Classic formula alone would
   give a few copper for these. The 1c deposit once shown for Minor Mana Potion (0.4) was only
   aux's display, not what the game took.
+- The 1 silver floor drops to 1 copper: listed in Blizzard's 2026-11-10 hotfixes, pulled, and
+  announced for the weekly maintenance of 2026-11-17 (North America) and 2026-11-18 (Europe)
+  **[Outside]** ([Massively OP](https://massivelyop.com/2026/11/11/wow-forever-reduces-auction-house-listing-costs-and-adds-more-gold-to-high-level-quests/),
+  [Icy Veins](https://www.icy-veins.com/wow-forever/news/the-auction-house-is-still-unusable-at-low-levels-deposit-cost-change-delayed/)).
+  aux shows the game's own number, so nothing in aux depends on the floor.
 - A bug took too much deposit (about 1 silver on many auctions) around 2026-09-29. **[Outside]**
   (Wowhead, Seramate summaries). Fixed or not: **[Unknown]**.
 - **Deposit back on a sale:** the seller's invoice adds the deposit to the sale price and subtracts
@@ -159,11 +184,22 @@ search and buy, which work in game **[Seen]**.
   (`COMMODITY_PRICE_UPDATED` or `COMMODITY_PRICE_UNAVAILABLE`); `ConfirmCommoditiesPurchase`
   completes it (`COMMODITY_PURCHASE_SUCCEEDED` or `_FAILED`). The quote expires
   (`GetQuoteDurationRemaining`). Units are taken cheapest first and your own units are skipped
-  (`quantity - numOwnerItems`). **[Code]** aux's buy bar (Buy, then Confirm) works **[Seen]**.
+  (`quantity - numOwnerItems`). **[Code]** aux's buy bar (Buy, then Confirm) works **[Seen]**
+  (until 0.8.2.1 build 6; since build 7 one click, below).
+- Blizzard's own buy window accepts a server price up to 5% above the price it showed, and shows
+  the increase (`MAXIMUM_PREVIEW_PRICE_DIFFERENTIAL = 1.05` in
+  `Blizzard_AuctionHouseBuyDialog.lua`, build 70888). **[Code]** aux is stricter: it confirms only a
+  server price at or below what it showed.
 - A purchase on a quote that went stale ended with "Internal auction error" (0.4.1 tests, Sniper
   trade goods 4 of 5 times on deals found minutes earlier). **[Seen]**
-- Whether the confirm step may run without a click: **[Unknown]**. aux always asks for the click,
-  so this does not matter today.
+- Whether the confirm step may run without a click: `StartCommoditiesPurchase` and `PlaceBid` are
+  marked `HasRestrictions` in Blizzard's generated documentation and `ConfirmCommoditiesPurchase`
+  is not (`AuctionHouseDocumentation.lua`, branch `forever`, build 70938) **[Code]**; the wiki says
+  the start needs a hardware event (a click or key) and lists no restriction on the confirm
+  ([warcraft.wiki.gg](https://warcraft.wiki.gg/wiki/API_C_AuctionHouse.StartCommoditiesPurchase))
+  **[Outside]**. Since 0.8.2.1 build 7 aux confirms by itself when the price arrives at or below
+  the one shown, so Buy is one click (Tyler, 2026-11-16). Seen 2026-11-16 (build 7, step 7):
+  one click on "Buy 1 for 19c" bought 1 Linen Cloth for 18c **[Seen]**.
 - After buying, the item arrives by mail; the game reports a delivery delay for purchased and for
   cancelled items (`AUCTION_HOUSE_ITEM_DELIVERY_DELAY_UPDATE`). **[Code]** The delays:
   **[Unknown]**.
@@ -200,6 +236,20 @@ Other mails **[Code]**: "Auction expired: X" (item back), "Auction canceled: X",
 - Browse first (`SendBrowseQuery`): one row per item, with its lowest price and total quantity.
   Then one search per item (`SendSearchQuery`), at most 100 per minute (Blizzard's documentation).
   **[Code]**
+- The game has an event made for addons that says results have arrived:
+  `AUCTION_HOUSE_NEW_RESULTS_RECEIVED`, with the item key of a search, or nothing for an item list
+  ("This signal is not used in the base UI but is included for AddOn ease-of-use", Blizzard's
+  documentation, build 70888). Blizzard's own trade goods list also treats
+  `COMMODITY_SEARCH_RESULTS_RECEIVED` as "results loaded", next to the updated event. **[Code]**
+  On Forever the event came for every answer of two Full searches for `linen` (37 of 37 each,
+  2026-11-11, `/aux debug`). **[Seen]** Whether it also comes when the results did not change
+  since the last request: **[Unknown]**. aux waits for the updated events and, after 1 second without one, takes results
+  the game already holds (`request` in `core/scan.lua`), which cannot tell an unchanged answer
+  from no answer yet. Since 0.8.2.1 `/aux debug` counts the event ("The game announced N of M
+  answers itself, J of the K taken after the 1s fallback"). In Tyler's test no answer needed the
+  fallback (K was 0), so nothing was changed (outside review, R-05, closed).
+- Where a Full search's time goes: `linen`, 36 items, 24.0 s in all: 17.8 s waiting for the game's
+  request limit, 6.0 s for the server's answers, 0.2 s for the item list (2026-11-11). **[Seen]**
 - Measured: the whole house's item list, 7,718 items in 8.5 seconds over 16 requests
   (2026-10-04); item searches about one every 0.4 seconds because of the game's request limit
   (`IsThrottledMessageSystemReady`), 335 items in 3m 13s (0.4). **[Seen]**
@@ -208,7 +258,9 @@ Other mails **[Code]**: "Auction expired: X" (item back), "Auction canceled: X",
 - Full scan time since launch: one player saw more than 5 minutes before the list arrived
   (user_ayzkr6rhvrlna3ya, FB-027, 2026-11-06). **[Outside]** (a player's report, not seen by us).
   aux gave up after 2 minutes until 0.8.2, which waits up to 10 and prints how long the answer and
-  the list took at the end of each Full scan; Tyler's first such line settles it.
+  the list took at the end of each Full scan. Tyler's line of 2026-11-11 (0.8.2.1 build 4):
+  220,508 auctions in 48.5 s, of which the auction house took 30.3 s to answer, 2.0 s to send the
+  list, and aux 16.2 s to read it. **[Seen]** Most of a Full scan is the wait for the server.
 - Full scan allowed once every 15 minutes per account. **[Outside]** (retail's rule, used by
   Auctionator and Arbitrage). aux waits 15 minutes itself, so the real limit on Forever has never
   been tried. **[Unknown]**; low priority.
@@ -278,21 +330,7 @@ page once carried them as build id `ah-facts-1`.
   after a post, aux picks the next item and reads it; picking another item before that answer came
   back read the late, empty answer as the new item's and said "None for sale". Same test in game:
   post an item, and right away pick a different one in the bag list.
-- **E8 Item stats (Upgrades tab, `docs/upgrades.md`).** Results 2026-11-16 (Ben):
-  - A hovered item's link with `C_Item.GetItemStats` (or `GetItemStats`) prints its stats **[Seen]**.
-  - `C_TooltipInfo.GetItemKey` is blocked: run from chat, the game showed "*** ForceTaint_Strong ***
-    has been blocked from an action only available to the Blizzard UI" **[Seen]**. Addon code is
-    tainted the same way, so aux must not call it (it would show the same popup, with aux's name).
-  - The link of a row's icon in aux's results (a tooltip set with `SetItemKey`, then
-    `GameTooltip:GetItem()`) gives stats with `GetItemStats` too (Ben, 2026-11-16) **[Seen]**.
-  - But that link has no ending: on the Upgrades tab every version of Birchwood Maul (of Defense,
-    of Fire Protection, of the Owl, of Healing, ...) and of Spiked Club scored exactly the same,
-    "+2.8 DPS, -1 Strength" against the worn weapon (Ben, 2026-11-17, screenshot) **[Seen]**. So a
-    key's stats from `SetItemKey` are the plain item's. Whether the tooltip itself shows the
-    ending's stat lines **[Unknown]**. A real auction's link (an item search result's `itemLink`)
-    carries the ending (see "A gear link's ending" above, **[Seen]**); that its `GetItemStats`
-    includes the ending's stats is **[Inference]** from E10's Brutal War Axe of the Sorcerer, to be
-    confirmed by `TESTING.md` step 22.
+- **E8 Copper prices on gear (FB-044).** Settled 2026-11-16: gear takes copper prices (section 2).
 - **E9 Talents.** Result 2026-11-16 (Ben): the command printed "Shaman SHAMAN 7" and no talent tree
   lines, so `GetNumTalentTabs` gave 0 or is missing on Forever **[Seen]**. Whether another function
   (`GetSpecialization`) answers **[Unknown]**; the Upgrades tab can do without it (the player picks
@@ -326,3 +364,18 @@ page once carried them as build id `ah-facts-1`.
   stats were saved for them. **[Inference]**: `GetItemStats` gave nothing for those links at that
   moment (the game had not loaded them yet), and aux does not try again. Since the same day aux
   tries those names again every second, 5 times (`TESTING.md` step 30).
+- **E12 Item stats (Upgrades tab, `docs/upgrades.md`).** Results 2026-11-16 (Ben):
+  - A hovered item's link with `C_Item.GetItemStats` (or `GetItemStats`) prints its stats **[Seen]**.
+  - `C_TooltipInfo.GetItemKey` is blocked: run from chat, the game showed "*** ForceTaint_Strong ***
+    has been blocked from an action only available to the Blizzard UI" **[Seen]**. Addon code is
+    tainted the same way, so aux must not call it (it would show the same popup, with aux's name).
+  - The link of a row's icon in aux's results (a tooltip set with `SetItemKey`, then
+    `GameTooltip:GetItem()`) gives stats with `GetItemStats` too (Ben, 2026-11-16) **[Seen]**.
+  - But that link has no ending: on the Upgrades tab every version of Birchwood Maul (of Defense,
+    of Fire Protection, of the Owl, of Healing, ...) and of Spiked Club scored exactly the same,
+    "+2.8 DPS, -1 Strength" against the worn weapon (Ben, 2026-11-17, screenshot) **[Seen]**. So a
+    key's stats from `SetItemKey` are the plain item's. Whether the tooltip itself shows the
+    ending's stat lines **[Unknown]**. A real auction's link (an item search result's `itemLink`)
+    carries the ending (see "A gear link's ending" above, **[Seen]**); that its `GetItemStats`
+    includes the ending's stats is **[Inference]** from E10's Brutal War Axe of the Sorcerer, to be
+    confirmed by `TESTING.md` step 22.

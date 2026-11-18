@@ -4,6 +4,7 @@
 -- walk through a commodity purchase.
 local G = _G
 local frames = {}
+local REAL_EVENTS -- set below, once tests/forever_api.lua is read
 local NUMERIC = { GetRight=1, GetLeft=1, GetTop=1, GetBottom=1, GetWidth=1, GetHeight=1, GetNumber=1, GetScale=1, GetEffectiveScale=1, GetAlpha=1, GetID=1, GetNumPoints=1, GetVerticalScroll=1, GetHorizontalScroll=1, GetCursorPosition=1, GetStringWidth=1, GetTextWidth=1, GetFrameLevel=1, GetValue=1, GetEffectiveAlpha=1, GetStringHeight=1 }
 local function new_frame(name)
   local f = { __scripts = {}, __events = {}, __name = name, __shown = true, __text = '' }
@@ -29,7 +30,11 @@ local function new_frame(name)
       local before = self.__scripts[s]
       self.__scripts[s] = before and function(...) before(...); return fn(...) end or fn
     end end
-    if k == 'RegisterEvent' then return function(self, e) self.__events[e] = true end end
+    if k == 'RegisterEvent' then return function(self, e)
+      -- an event Forever does not have is an error (R-22); the tests' own events start with AUX_TEST
+      if REAL_EVENTS and not REAL_EVENTS[e] and not tostring(e):match('^AUX_TEST') then error('RegisterEvent: ' .. tostring(e) .. ' is not an event of Forever (tests/forever_api.lua)', 2) end
+      self.__events[e] = true
+    end end
     if k == 'UnregisterEvent' then return function(self, e) self.__events[e] = nil end end
     if k == 'Show' then return function(self) self.__shown = true; if self.__scripts.OnShow then self.__scripts.OnShow(self) end end end
     if k == 'Hide' then return function(self) self.__shown = false; if self.__scripts.OnHide then self.__scripts.OnHide(self) end end end
@@ -54,7 +59,18 @@ local function new_frame(name)
     if k == 'SetTextColor' then return function(self, ...) self.__text_color = {...} end end
     if k == 'SetColorTexture' then return function(self, ...) self.__texture_color = {...} end end
     if k == 'SetVertexColor' then return function(self, ...) self.__vertex_color = {...} end end
-    if k == 'IsEnabled' then return function() return true end end
+    -- a button knows whether it is enabled, as in the game (it always answered true, so a test or
+    -- the gamepad's press could go through a faded button; AGENTS.md, Tests)
+    if k == 'Enable' then return function(self) self.__enabled = true end end
+    if k == 'Disable' then return function(self) self.__enabled = false end end
+    if k == 'SetEnabled' then return function(self, on) self.__enabled = on and true or false end end
+    if k == 'IsEnabled' then return function(self) return self.__enabled ~= false end end
+    -- a slider's range is two numbers (the gamepad scrolls lists with it)
+    if k == 'GetMinMaxValues' then return function() return 0, 100 end end
+    -- Click presses the button as the game does: its OnClick runs, unless it is faded
+    if k == 'Click' then return function(self, button)
+      if self.__enabled ~= false and self.__scripts.OnClick then self.__scripts.OnClick(self, button or 'LeftButton') end
+    end end
     if k == 'GetChecked' or k == 'IsMouseOver' or k == 'HasFocus' or k == 'IsForbidden' then return function() return false end end
     if NUMERIC[k] then return function()
       if G.__geometry and (k == 'GetHeight' or k == 'GetWidth') then return G.__geometry.size end
@@ -77,10 +93,52 @@ end
 for _, n in ipairs{'UIParent','GameTooltip','ItemRefTooltip','DEFAULT_CHAT_FRAME','UIErrorsFrame','AuctionHouseFrame'} do G[n] = new_frame(n) end
 G.UIParent.__tracked = true -- the top of the frame tree: no parent
 G.UISpecialFrames = {}; G.StaticPopupDialogs = {}; G.SlashCmdList = {}; G.SOUNDKIT = {}
-local api = function(t) return setmetatable(t or {}, {__index=function() return function() return 0 end end}) end
-G.C_AuctionHouse = api{GetTimeLeftBandInfo=function(b) return 0, ({1800,7200,43200,86400})[b+1] end, IsThrottledMessageSystemReady=function() return true end, SupportsCopperValues=function() return true end, GetBrowseResults=function() return {} end}
-G.Enum = setmetatable({}, {__index=function(t,k) local e = setmetatable({}, {__index=function() return 1 end}); rawset(t,k,e); return e end})
-for _, n in ipairs{'C_Item','C_Container','C_CurrencyInfo','C_Sound','C_AddOns','C_MerchantFrame','C_PlayerInfo','TooltipDataProcessor','ItemLocation','ChatFrameUtil'} do G[n] = api() end
+-- Forever's real game functions, events and enum values (outside review 2026-11-10, R-22), made
+-- from Blizzard's generated documentation by tests/tools/make_forever_api.lua. The stubs answered
+-- any function name and any enum member, so a misspelled one passed every test and was only found
+-- in game. Now a C_ function, an event or an enum member Forever does not have is an error here.
+-- Functions Blizzard's interface code writes in Lua (ItemLocation, TooltipDataProcessor, frames
+-- such as AuctionHouseFrame) are not in that documentation and stay unchecked.
+local FOREVER = dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'forever_api.lua')
+local REAL_FUNCTIONS = {}
+REAL_EVENTS = {}
+for namespace, names in pairs(FOREVER.functions) do
+  REAL_FUNCTIONS[namespace] = {}
+  for _, name in ipairs(names) do REAL_FUNCTIONS[namespace][name] = true end
+end
+for _, name in ipairs(FOREVER.events) do REAL_EVENTS[name] = true end
+local strict_namespaces = {} -- the stub table of a namespace -> its name
+local function real_function(namespace, name)
+  local real = REAL_FUNCTIONS[namespace]
+  if not real then
+    error(namespace .. ' is not in tests/forever_api.lua: run tests/tools/make_forever_api.lua again', 3)
+  elseif not real[name] then
+    error(namespace .. '.' .. tostring(name) .. ' is not a function of Forever (tests/forever_api.lua)', 3)
+  end
+end
+local api = function(t, namespace)
+  t = t or {}
+  if namespace then
+    for name in pairs(t) do real_function(namespace, name) end
+    strict_namespaces[t] = namespace
+  end
+  return setmetatable(t, {__index=function(_, name)
+    if namespace then real_function(namespace, name) end
+    return function() return 0 end
+  end})
+end
+G.C_AuctionHouse = api({GetTimeLeftBandInfo=function(b) return 0, ({1800,7200,43200,86400})[b+1] end, IsThrottledMessageSystemReady=function() return true end, SupportsCopperValues=function() return true end, GetBrowseResults=function() return {} end}, 'C_AuctionHouse')
+-- enums hold the game's own values; one the game does not have is an error
+G.Enum = setmetatable({}, {__index=function(t, k)
+  local real = FOREVER.enums[k]
+  if not real then error('Enum.' .. tostring(k) .. ' is not in tests/forever_api.lua: run tests/tools/make_forever_api.lua again (or it is not an Enum of Forever)', 2) end
+  local e = setmetatable({}, {__index=function(_, m) error('Enum.' .. k .. '.' .. tostring(m) .. ' is not a member on Forever (tests/forever_api.lua)', 2) end})
+  for member, value in pairs(real) do rawset(e, member, value) end
+  rawset(t, k, e)
+  return e
+end})
+for _, n in ipairs{'C_Item','C_Container','C_CurrencyInfo','C_Sound','C_AddOns','C_MerchantFrame','C_PlayerInfo'} do G[n] = api(nil, n) end
+for _, n in ipairs{'TooltipDataProcessor','ItemLocation','ChatFrameUtil'} do G[n] = api() end
 G.C_Container.GetContainerNumSlots = function() return 0 end
 G.C_Item.GetItemQualityColor = function() return 1, 1, 1, 'ffffffff' end -- r, g, b and the color code, as in the game
 G.ITEM_QUALITY_COLORS = setmetatable({}, {__index=function() return {r=1,g=1,b=1} end})
@@ -94,12 +152,39 @@ G.strmatch = string.match; G.strfind = string.find; G.strsub = string.sub; G.str
 G.hooksecurefunc = function() end; G.FauxScrollFrame_Update = function() end; G.FauxScrollFrame_GetOffset = function() return 0 end; G.FauxScrollFrame_SetOffset=function() end; G.FauxScrollFrame_OnVerticalScroll=function() end
 G.IsShiftKeyDown = function() return false end; G.IsAltKeyDown = G.IsShiftKeyDown; G.IsControlKeyDown = G.IsShiftKeyDown
 G.PlaySound = function() end; G.ClearCursor = function() end; G.StaticPopup_Show = function() end; G.StaticPopup_Hide = function() end
+G.GameTooltip_SetDefaultAnchor = function() end; G.GameTooltip_ShowCompareItem = function() end
 for _, s in ipairs{'LIGHTYELLOW_FONT_COLOR_CODE','FONT_COLOR_CODE_CLOSE','GRAY_FONT_COLOR_CODE','HOURS','ITEM_SPELL_CHARGES'} do G[s] = s end
 for i, q in ipairs{'Poor', 'Common', 'Uncommon', 'Rare', 'Epic'} do G['ITEM_QUALITY' .. (i - 1) .. '_DESC'] = q end
 G.ITEM_SPELL_CHARGES = '%d Charges'; G.AUCTION_DURATION_ONE = '2 Hours'; G.AUCTION_DURATION_TWO = '8 Hours'; G.AUCTION_DURATION_THREE = '24 Hours'
 setmetatable(G, {__index=function(_, k) if type(k)=='string' and (k:match('Button$') or k:match('ScrollBar$') or k:match('Text$') or k:match('Icon$') or k:match('Count$') or k:match('Text[LR]%a+%d+$')) then return new_frame(k) end end})
 
-local errors = 0
+-- A test that swaps a field for a fake ends with rawset(t, k, nil). The widgets keep many of
+-- their functions as plain fields (a table's GetSelection, a button's Enable, a dropdown's
+-- GetIndex), so that nil removed the real one for every later test: the Bids table lost
+-- GetSelection this way, which hid a real error (outside review 2026-11-10, R-21). In this file and
+-- in timing_test.lua, rawset remembers what a field held before its first swap, and a later nil
+-- puts that back.
+local real_rawset = rawset
+local swapped = setmetatable({}, {__mode = 'k'})
+local function rawset(t, k, v)
+  -- a test that fakes a game function must name one Forever has
+  if strict_namespaces[t] and v ~= nil then real_function(strict_namespaces[t], k) end
+  local kept = swapped[t]
+  if v == nil then
+    if kept and kept[k] then
+      real_rawset(t, k, kept[k][1])
+      kept[k] = nil
+    else
+      real_rawset(t, k, nil)
+    end
+    return t
+  end
+  if not kept then kept = {}; swapped[t] = kept end
+  if not kept[k] then kept[k] = {rawget(t, k)} end
+  return real_rawset(t, k, v)
+end
+
+local errors, checks = 0, 0
 local function try(label, f, ...)
   local ok, err = pcall(f, ...)
   if not ok then errors = errors + 1; print('ERROR', label, err) end
@@ -135,6 +220,7 @@ for i = 1, 5 do
 end
 -- Buy bar (gui/buy_bar.lua)
 local function check(label, ok)
+  checks = checks + 1
   if not ok then errors = errors + 1; print('FAIL', label) end
 end
 local function tick()
@@ -172,18 +258,28 @@ try('buy bar', function()
   check('starts at one stack: Buy 20', bar.primary_label():find('^Buy 20 for') ~= nil)
 
   -- 20 units, cheapest first: 6 x 6c + 14 x 7c = 1s 34c
+  -- 0.8.2.1 build 7 (Tyler: players did not like the Confirm click): one click buys. The click asks
+  -- for the server's price; a price at or below the one on the button is confirmed when it arrives
   bar.primary_click()
   check('quote requested for 20', calls[1] == 'start 123 20')
+  bar.primary_click() -- a second click while the price is on its way sends nothing
+  check('nothing confirmed before the price arrives', #calls == 1)
   fire('COMMODITY_PRICE_UPDATED', 7, 134)
   tick()
-  check('confirm shows the price', bar.primary_label():find('^Confirm') ~= nil)
-  check('nothing confirmed before the click', #calls == 1)
-  bar.primary_click()
-  check('confirmed after the click', calls[2] == 'confirm 123 20')
+  check('the price shown is confirmed with no second click', calls[2] == 'confirm 123 20' and #calls == 2)
+  check('the button says it is buying', bar.primary_label():find('^Buying') ~= nil)
   fire('COMMODITY_PURCHASE_SUCCEEDED')
   tick()
   check('success reported for 20', bought == 20)
   check('back to Buy', bar.primary_label():find('^Buy') ~= nil)
+
+  -- a server price below the one shown is bought too, at the server's price
+  calls = {}
+  bar.primary_click()
+  fire('COMMODITY_PRICE_UPDATED', 6, 120)
+  check('a lower price is bought at once', calls[2] == 'confirm 123 20')
+  fire('COMMODITY_PURCHASE_SUCCEEDED')
+  tick()
 
   -- a server price above the estimate is cancelled, never confirmed, and the listings re-read
   calls = {}
@@ -195,37 +291,36 @@ try('buy bar', function()
   check('higher price refreshes listings', refreshed)
   check('higher price returns to Buy', bar.primary_label():find('^Buy') ~= nil)
 
-  -- the Cancel button next to Confirm cancels the quote and buys nothing
+  -- a server price the player cannot pay is not confirmed
+  calls = {}
+  bar.primary_click()
+  rawset(G, 'GetMoney', function() return 100 end)
+  fire('COMMODITY_PRICE_UPDATED', 6, 120)
+  tick()
+  rawset(G, 'GetMoney', nil)
+  check('a price above the money is not confirmed', calls[2] == 'cancel' and #calls == 2)
+
+  -- no Cancel button any more: nothing waits for the player between the price and the purchase
   local cancel_button
   for _, f in ipairs(frames) do if f.__text == 'Cancel' and not cancel_button then cancel_button = f end end -- the buy bar's is created first
   calls = {}
-  -- the colors the Buy button is painted in (0.8, Tyler: it stayed Confirm green after Cancel)
-  local painted
-  rawset(bar.primary_button, 'SetBackdropBorderColor', function(_, r, g, b) painted = r .. ',' .. g .. ',' .. b end)
   bar.primary_click()
+  tick()
+  check('no Cancel button while the price is asked for', cancel_button and not cancel_button.__shown)
+  -- Escape in the quantity box still cancels while the price is on its way
+  bar.other_input.escape()
+  check('Escape cancels the price request', calls[2] == 'cancel')
   fire('COMMODITY_PRICE_UPDATED', 6, 120)
+  check('and a price arriving after it buys nothing', #calls == 2)
   tick()
-  local confirm_paint = painted
-  check('Cancel button exists and is shown with a quote', cancel_button and cancel_button.__shown)
-  -- the bar redraws every frame; hiding the button between mouse press and release loses the click
-  local hides = 0
-  rawset(cancel_button, 'Hide', function(self) hides = hides + 1; self.__shown = false end)
-  tick(); tick()
-  rawset(cancel_button, 'Hide', nil)
-  check('Cancel button is not hidden while the quote is shown', hides == 0 and cancel_button.__shown)
-  cancel_button.__scripts.OnClick(cancel_button, 'LeftButton')
-  tick()
-  check('Cancel button cancels the quote', calls[2] == 'cancel' and #calls == 2)
-  check('Cancel button returns to Buy', bar.primary_label():find('^Buy') ~= nil)
-  check('after Cancel the Buy button loses the Confirm color', confirm_paint and painted ~= confirm_paint)
-  rawset(bar.primary_button, 'SetBackdropBorderColor', nil)
 
-  -- selecting something else while a price is shown cancels it
+  -- selecting something else while the price is on its way cancels it
   calls = {}
   bar.primary_click()
-  fire('COMMODITY_PRICE_UPDATED', 6, 120)
   bar.clear()
-  check('clearing the bar cancels the quote', calls[2] == 'cancel')
+  check('clearing the bar cancels the price request', calls[2] == 'cancel')
+  fire('COMMODITY_PRICE_UPDATED', 6, 120)
+  check('and nothing is confirmed after it', #calls == 2)
 
   -- items: one per click at the price on the button; never your own
   local buys = 0
@@ -437,9 +532,12 @@ try('undercut mode', function()
   check('own listing is never undercut', post.undercut({unit_price = 88, own = true}, 1) == 88)
 
   post_env.selected_item = {commodity = false, key = '15248:0'}
-  check('gear: undercut goes 1 silver below', post.undercut({unit_price = 21000}, 1) == 20900)
-  check('gear: never below 1 silver', post.undercut({unit_price = 100}, 1) == 100)
-  check('gear: prices round down to whole silver', post.round_price(20947) == 20900 and post.round_price(40) == 100)
+  -- 0.8.2.1 build 7 (FB-044, reported by sarrathsilentstrider and user_mezgz2zh1g3sbu1v): gear takes
+  -- copper prices, as Blizzard's Sell window allows (a white axe at 1s 89c)
+  check('gear: undercut goes 1 copper below', post.undercut({unit_price = 21000}, 1) == 20999)
+  check('gear: never below 1 copper', post.undercut({unit_price = 1}, 1) == 1)
+  check('gear: a copper price stays as typed (1s 89c)', post.round_price(189) == 189 and post.round_price(20947) == 20947)
+  check('gear: posted at 1s 89c, as typed', select(2, post.item_post_prices(0, 189)) == 189)
   post.set_undercut_mode(false)
   check('gear: default matches the cheapest price', post.undercut({unit_price = 21000}, 1) == 21000)
 
@@ -649,7 +747,7 @@ try('post panel', function()
   post.set_undercut_mode(true)
   check('undercut note for trade goods', plain(post.price_note_text()):find('^1 copper below') ~= nil)
   post.selected_item.commodity = false
-  check('undercut note for gear', plain(post.price_note_text()):find('^1 silver below') ~= nil and plain(post.price_note_text()):find('whole silver') ~= nil)
+  check('undercut note for gear: 1 copper, no whole silver', plain(post.price_note_text()):find('^1 copper below') ~= nil and plain(post.price_note_text()):find('whole silver') == nil)
   post.set_undercut_mode(false)
   post.set_buyout_selection({unit_price = 69, own = true})
   check('own listing note', plain(post.price_note_text()):find('your own listing') ~= nil)
@@ -784,7 +882,9 @@ end)
 try('table columns', function()
   local require = loadstring("select(2, ...) 'aux.test13'; return require")('auxForever', addon)
   local al = require 'aux.gui.auction_listing'
-  for name, columns in pairs{search = al.search_columns, auctions = al.auctions_columns, bids = al.bids_columns} do
+  local auctions_tab = loadstring("select(2, ...) 'aux.tabs.auctions'; return _M")('auxForever', addon)
+  check('the unused auctions column list is gone (R-17)', al.auctions_columns == nil)
+  for name, columns in pairs{search = al.search_columns, auctions = auctions_tab.columns, bids = al.bids_columns} do
     -- Tyler, 0.7: Req, iLvl, Item, For sale (build 4: "Req first always"); the units for sale never
     -- next to a level
     check(name .. ': required level is the first column', columns[1].title == 'Req')
@@ -1266,6 +1366,12 @@ try('search timing log', function()
   check('how answers came', lines[3] == 'Answers: 380 on time, 18 after the 1s fallback, 2 timed out (20s each), 3 dropped and resent')
   check('slowest items first', lines[4] == 'Slowest: Ritual Sandals 21.0s, Seer\'s Pants 2.0s')
   check('stopped searches say so', scan.timing_report(scan.new_timing(), 1, true)[1]:find('(stopped)', 1, true) ~= nil)
+  -- R-05: how many answers the game announced with its own event, to decide whether aux can rely on it
+  local t2 = scan.new_timing()
+  t2.requests, t2.signal, t2.cached, t2.cached_signal = 400, 390, 18, 16
+  local announced
+  for _, line in ipairs(scan.timing_report(t2, 10)) do if line:find('The game announced', 1, true) then announced = line end end
+  check('the timing log says how many answers the game announced itself', announced == 'The game announced 390 of 400 answers itself, 16 of the 18 taken after the 1s fallback')
   local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
   local before = a.account_data.debug_timing
   SlashCmdList.AUX('debug')
@@ -1749,8 +1855,7 @@ try('sniper round', function()
   bar.primary_click()
   fire('COMMODITY_PRICE_UPDATED', 900, 17400)
   tick()
-  check('sniper: the server price is confirmed only after a click', bar.primary_label():find('^Confirm') ~= nil)
-  bar.primary_click()
+  check('sniper: one click buys, at a server price no higher than shown (build 7)', bar.primary_label():find('^Buying') ~= nil)
   fire('COMMODITY_PURCHASE_SUCCEEDED')
   tick()
   check('sniper: once its price is bought up the deal shows as bought', found.Kingsblood.deal_bought == true and found.Kingsblood.deal_gone == true)
@@ -3083,8 +3188,25 @@ try('FB-003: posts always say what happened', function()
 
   -- locked (on the cursor, in a trade)
   bag = {{id = 7001, locked = true}}
+  local cleared = 0
+  rawset(G, 'AuctionHouseFrame', {ClearPostItem = function() cleared = cleared + 1 end})
   post.post_auction()
-  check('FB-003: a locked item says so', message():find('mouse pointer', 1, true) and posts == 0)
+  check('FB-003: a locked item says so', message():find('holding this item', 1, true) and posts == 0)
+  -- 0.8.2.1 build 7 (FB-046, reported by karrier_user_slouyac50poxg707: "when it is not"): the
+  -- message names every reason in chat, and Blizzard's hidden Sell tab lets go of the item first
+  check('FB-046: chat names the other reasons', printed[#printed] and printed[#printed]:find('still be on its way', 1, true) ~= nil)
+  check('FB-046: Blizzard\'s Sell tab is emptied before giving up', cleared == 1)
+  -- the item was locked only by Blizzard's Sell tab: emptying it lets the post go through
+  rawset(G, 'AuctionHouseFrame', {ClearPostItem = function() cleared = cleared + 1; bag[1].locked = nil end})
+  post.post_auction()
+  check('FB-046: an item held by Blizzard\'s Sell tab is posted', posts == 1)
+  rawset(G, 'AuctionHouseFrame', nil)
+  -- that post is never answered here: let it time out before the next check
+  for _ = 1, 1200 do if post.posting == nil then break end tick() end
+  check('FB-046: (the post ended before the next check)', post.posting == nil)
+  posts = 0
+  bag = {{id = 7001}}
+  select_sword() -- a finished post moves the tab on; the next check starts from the sword again
 
   -- the auction house never answers
   bag = {{id = 7001}}
@@ -3668,7 +3790,7 @@ try('0.6: settings', function()
   for _, k in ipairs{'value', 'usually', 'daily', 'merchant_sell', 'merchant_buy', 'disenchant_value', 'disenchant_distribution', 'money_icons'} do
     if not keys[k] then all = false end
   end
-  check('settings: every /aux tooltip line has a box', all and #a.tooltip_boxes == 8)
+  check('settings: every /aux tooltip line has a box', all and #a.tooltip_boxes == 9)
   local box = a.tooltip_boxes[1]
   local checked
   local own_set_checked = rawget(box, 'SetChecked')
@@ -3990,6 +4112,8 @@ try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
   for i, b in ipairs(quick) do
     rawset(b, 'Click', function() pressed[i] = (pressed[i] or 0) + 1 end)
     rawset(b, 'IsVisible', function() return true end)
+    -- lit, as when there is something to buy, post or cancel (a stub button now knows when it is faded)
+    rawset(b, 'IsEnabled', function() return true end)
   end
   for i = 1, 6 do
     aux_env.set_tab(i)
@@ -4009,7 +4133,7 @@ try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
   pad('Y')
   check('gamepad nav: Y does nothing while a popup is open', pressed[4] == 1)
   cover:Hide()
-  for _, b in ipairs(quick) do rawset(b, 'Click', nil); rawset(b, 'IsVisible', nil) end
+  for _, b in ipairs(quick) do rawset(b, 'Click', nil); rawset(b, 'IsVisible', nil); rawset(b, 'IsEnabled', nil) end
   aux_env.set_tab(1)
 
   aux_env.gamepad_set_focus(b1)
@@ -4198,8 +4322,8 @@ try('gamepad: button hints', function()
   aux_env.set_tab(1)
   buy:SetText('Buy 5 for 1g'); aux_env.update_hints()
   check('hints: Y Buy on Search', label('Y') == 'Buy')
-  buy:SetText('Confirm 1g'); aux_env.update_hints()
-  check('hints: Y Confirm once the price is known', label('Y') == 'Confirm')
+  buy:SetText('Buying...'); aux_env.update_hints()
+  check('hints: Y stays Buy while buying (no Confirm step since build 7)', label('Y') == 'Buy')
   rawset(buy, 'IsVisible', nil); rawset(buy, 'IsEnabled', nil)
 
   controller = 'xbox'; aux_env.update_hints()
@@ -4535,7 +4659,8 @@ try('0.8: Waylaid Crates in the tooltip and the search', function()
   local function data() reads = reads + 1; return {lines = crate_lines} end
   tooltip.extend_tooltip(tip, '|cffffffff|Hitem:248698::::::0:0|h[Waylaid Crate: Journeyman Textiles]|h|r', 1, data())
   local all = table.concat(lines, '\n')
-  check('crate tooltip: says what it shows', all:find('Cheapest way to fill it', 1, true) and all:find('Latest prices, less what is in your bags', 1, true))
+  -- 0.8.2.1 build 7 (FB-042): the line "Latest prices, less what is in your bags" is gone
+  check('crate tooltip: says what it shows, without the extra line', all:find('Cheapest fill price', 1, true) and not all:find('Latest prices', 1, true) and not all:find('Cheapest way', 1, true))
   check('crate tooltip: a bundle partly in the bags, priced for the rest', all:find('20 Wool Cloth (12 in bags) | 2s 56c', 1, true) ~= nil)
   check('crate tooltip: the others', all:find('40 Silk Cloth | 5s 60c', 1, true) and all:find('20 Medium Leather | no price yet', 1, true))
   local gold = {aux.color.accent.background()}
@@ -4547,7 +4672,24 @@ try('0.8: Waylaid Crates in the tooltip and the search', function()
   check('crate tooltip: a bundle already in the bags says so', table.concat(lines, '\n'):find('20 Wool Cloth | in your bags', 1, true) ~= nil)
   lines = {}
   tooltip.extend_tooltip(tip, '|cffffffff|Hitem:4575::::::0:0|h[Medicine Staff]|h|r', 1, {lines = {{leftText = 'Medicine Staff'}, {leftText = '+4 Agility'}}})
-  check('crate tooltip: other items get no crate lines', not table.concat(lines, '\n'):find('Cheapest way', 1, true))
+  check('crate tooltip: other items get no crate lines', not table.concat(lines, '\n'):find('Cheapest fill', 1, true))
+  -- 0.8.2.1 build 7 (FB-041, suggested by user_tdsvrjvpe8rufw54): a switch turns the crate lines off,
+  -- in Settings and with /aux tooltip crate, the same from both
+  local tooltip_settings = aux.character_data.tooltip
+  check('crate switch: on by default', tooltip_settings.crate == true)
+  SlashCmdList.AUX('tooltip crate')
+  check('crate switch: /aux tooltip crate turns it off', tooltip_settings.crate == false)
+  lines = {}
+  tooltip.extend_tooltip(tip, '|cffffffff|Hitem:248698::::::0:0|h[Waylaid Crate: Journeyman Textiles]|h|r', 1, data())
+  check('crate switch: off, a crate gets no crate lines', not table.concat(lines, '\n'):find('Cheapest fill', 1, true))
+  SlashCmdList.AUX('tooltip crate')
+  lines = {}
+  tooltip.extend_tooltip(tip, '|cffffffff|Hitem:248698::::::0:0|h[Waylaid Crate: Journeyman Textiles]|h|r', 1, data())
+  check('crate switch: on again, the lines are back', tooltip_settings.crate == true and table.concat(lines, '\n'):find('Cheapest fill', 1, true) ~= nil)
+  local frame_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local crate_box
+  for _, box in ipairs(frame_env.tooltip_boxes or {}) do if box.key == 'crate' then crate_box = box end end
+  check('crate switch: Settings has a box for it', crate_box ~= nil)
   -- the font strings, when the game hands no tooltip data
   local named = new_frame()
   rawset(named, 'GetName', function() return 'AuxCrateTip' end)
@@ -5779,7 +5921,7 @@ end)
 
 -- Upgrades tab (docs/upgrades.md): item stats by GetItemStats, scores by stat weights, and what an
 -- item would replace. Stats of an auction house row come through aux's hidden tooltip (SetItemKey,
--- then its link); C_TooltipInfo.GetItemKey is blocked for addons in game (E8) and never called.
+-- then its link); C_TooltipInfo.GetItemKey is blocked for addons in game (E12) and never called.
 try('upgrades: stats, scores and the worn item', function()
   local stats = loadstring("select(2, ...) 'aux.test.upgrades'; return require")('auxForever', addon) 'aux.core.stats'
   local saved = {}
@@ -6106,11 +6248,774 @@ try('weights: attack power from each guide\'s conversion', function()
   check('ap: a score counts it', require('aux.core.stats').score({ITEM_MOD_ATTACK_POWER_SHORT = 20}, weights.weights(weights.spec('SHAMAN', 'enhancement'))) == 30)
 end)
 
+-- Outside review of 2026-11-10 (docs/reviews/2026-11-10-outside-review.md), 0.8.2.1
+try('outside review: R-03 R-04 R-06', function()
+  local function M(name) return loadstring("select(2, ...) '" .. name .. "'; return _M")('auxForever', addon) end
+  local a, sniper, h, scan = M 'aux', M 'aux.tabs.sniper', M 'aux.core.history', M 'aux.core.scan'
+
+  -- R-04: the Bids tab's buttons follow the selection, and a click with nothing selected does nothing
+  local bids = M 'aux.tabs.bids'
+  local bid = {item_id = 1, item_key = '1:0', price_key = '1:0', name = 'Bid Thing', search_signature = 'bid thing', sniping_signature = 'bid thing',
+    buyout_price = 1000, bid_price = 500, unit_buyout_price = 1000, unit_bid_price = 500, count = 1, auction_id = 77,
+    link = '|cffffffff|Hitem:1::::::0:0|h[Bid Thing]|h|r', requirement = 1, duration = 2, sale_status = 0}
+  bids.refresh, bids.next_refresh = false, GetTime() + 1000
+  bids.listing:SetDatabase({bid})
+  bids.listing:SetSelectedRecord(bid)
+  check('R-04: the Bids table has its own GetSelection again (R-21)', bids.listing:GetSelection() and bids.listing:GetSelection().record == bid)
+  bids.next_buttons = 0
+  bids.on_update()
+  check('R-04: a bid selected: Bid and Buyout can be pressed', bids.bid_button.aux_enabled == true and bids.buyout_button.aux_enabled == true)
+  bids.listing:SetSelectedRecord() -- the player clicks the row again to let go
+  bids.next_buttons = 0
+  bids.on_update()
+  check('R-04: nothing selected: neither can be pressed', bids.bid_button.aux_enabled == false and bids.buyout_button.aux_enabled == false)
+  local placed = 0
+  local real_place = rawget(C_AuctionHouse, 'PlaceBid')
+  rawset(C_AuctionHouse, 'PlaceBid', function() placed = placed + 1 end)
+  local ok1 = pcall(bids.bid_button.__scripts.OnClick, bids.bid_button)
+  local ok2 = pcall(bids.buyout_button.__scripts.OnClick, bids.buyout_button)
+  check('R-04: a click with nothing selected raises no error', ok1 and ok2)
+  check('R-04: and bids on nothing', placed == 0)
+  rawset(C_AuctionHouse, 'PlaceBid', real_place)
+  bids.listing:SetDatabase({})
+
+  -- R-06: /aux clear post empties the table the Post tab reads and writes
+  local post = M 'aux.tabs.post'
+  post.write_settings({duration = 2, start_price = 0, buyout_price = 4200, hidden = false}, '9966:0')
+  check('R-06: a price is remembered', post.read_settings('9966:0').buyout_price == 4200)
+  SlashCmdList.AUX('clear post')
+  check('R-06: clear post forgets it at once', post.read_settings('9966:0').buyout_price == 0)
+  post.write_settings({duration = 2, start_price = 0, buyout_price = 77, hidden = false}, '9966:0')
+  check('R-06: a price remembered afterwards is in the saved table', a.faction_data.post['9966:0'] ~= nil and post.data == a.faction_data.post)
+  a.faction_data.post['9966:0'] = nil
+
+  -- R-03: an item refused for too few days of history is judged again once a Full scan adds today
+  local d = h.today()
+  local real_info = G.GetItemInfo
+  G.GetItemInfo = function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id == 955 then return 'Third Day Herb', '|cffffffff|Hitem:955::::::0:0|h[Third Day Herb]|h|r', 2, 20, 15, 'Trade Goods', 'Herb', 20, '', 1, 1 end
+    return real_info(x)
+  end
+  local old_percent, old_profit = a.account_data.sniper_percent, a.account_data.sniper_profit
+  a.account_data.sniper_percent, a.account_data.sniper_profit = 60, 1
+  h.write_record('955:0', {day = d, points = {{value = 3200, day = d - 1, units = 10}, {value = 3200, day = d - 2, units = 10}}})
+  local opened = {}
+  local real_check = sniper.check_item
+  sniper.check_item = function(_, key) opened[key] = true end
+  local r = {itemKey = {itemID = 955, itemSuffix = 0, itemLevel = 20}, totalQuantity = 5, minPrice = 500}
+  local k = scan.item_key_string(r.itemKey)
+  sniper.settings_changed()
+  sniper.check_list({r}, {})
+  check('R-03: with 2 days of history the item is not opened', not opened[k])
+  -- today's Full scan: 40 listed at 32s and the cheap 5
+  local list = {}
+  for _ = 1, 40 do tinsert(list, 3200) end
+  for _ = 1, 5 do tinsert(list, 500) end
+  local saved = {}
+  local function set(t, key, v) tinsert(saved, {t, key, rawget(t, key)}); rawset(t, key, v) end
+  set(C_AuctionHouse, 'ReplicateItems', function() end)
+  set(C_AuctionHouse, 'GetNumReplicateItems', function() return #list end)
+  set(C_AuctionHouse, 'GetReplicateItemInfo', function(i) return 'Third Day Herb', 1, 1, 2, true, 20, nil, 0, 0, list[i + 1], 0, false, nil, 'Seller', nil, 0, 955, true end)
+  set(C_AuctionHouse, 'GetReplicateItemLink', function() return '|cffffffff|Hitem:955::::::0:0|h[Third Day Herb]|h|r' end)
+  local done
+  scan.start{type = 'list', queries = {{blizzard_query = {}}}, get_all = true, quiet = true, on_complete = function() done = true end}
+  for _ = 1, 10 do tick() end
+  fire('REPLICATE_ITEM_LIST_UPDATE')
+  for _ = 1, 120 do tick(); if done then break end end
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  check('R-03: the Full scan finished and today counts as a third day', done and select(2, h.value_and_complete_days('955:0')) == 3)
+  opened = {}
+  sniper.check_list({r}, {})
+  check('R-03: after the Full scan the same listing is judged again and opened', opened[k] == true)
+  -- midnight: the usual prices change, so everything is judged again on a new day
+  opened = {}
+  sniper.check_list({r}, {})
+  check('R-03: opened once (check_item is faked, so it stays a candidate)', opened[k] == true)
+  local far = {itemKey = {itemID = 955, itemSuffix = 0, itemLevel = 20}, totalQuantity = 5, minPrice = 3000}
+  sniper.forget_on_new_day(d)
+  sniper.check_list({far}, {})
+  opened = {}
+  sniper.check_list({far}, {})
+  local judged = 0
+  local real_facts = sniper.item_facts
+  sniper.item_facts = function(...) judged = judged + 1; return real_facts(...) end
+  sniper.check_list({far}, {})
+  check('R-03: a price already refused is not judged again the same day', judged == 0)
+  sniper.forget_on_new_day(d)
+  sniper.check_list({far}, {})
+  check('R-03: nor when the day is still the same', judged == 0)
+  sniper.forget_on_new_day(d + 1)
+  sniper.check_list({far}, {})
+  check('R-03: on a new day it is judged again', judged == 1)
+  sniper.item_facts = real_facts
+  sniper.check_item = real_check
+  sniper.settings_changed()
+  a.account_data.sniper_percent, a.account_data.sniper_profit = old_percent, old_profit
+  G.GetItemInfo = real_info
+  h.data['955:0'] = nil
+end)
+
+-- R-18: an event reaches every listener exactly once, also when a callback makes new listeners
+-- (which a callback that starts a scan does), and a thread started by a thread does not upset the
+-- frame's walk over the threads
+try('outside review: R-18 listeners and threads added during a walk', function()
+  local a = loadstring("select(2, ...) 'aux.test.r18'; return require 'aux'")('auxForever', addon)
+  local calls, ids, extra = {}, {}, {}
+  for i = 1, 12 do
+    calls[i] = 0
+    ids[i] = a.event_listener('AUX_TEST_R18', function()
+      calls[i] = calls[i] + 1
+      -- each callback makes many listeners, as a scan's requests do; the table grows while walked
+      for _ = 1, 40 do tinsert(extra, a.event_listener('AUX_TEST_R18_OTHER', function() end)) end
+    end)
+  end
+  local late = 0
+  local late_id
+  ids[13] = a.event_listener('AUX_TEST_R18', function()
+    if not late_id then late_id = a.event_listener('AUX_TEST_R18', function() late = late + 1 end) end
+  end)
+  for round = 1, 5 do
+    fire('AUX_TEST_R18')
+    local once = true
+    for i = 1, 12 do if calls[i] ~= round then once = false end end
+    check('R-18: every listener got event ' .. round .. ' exactly once', once)
+  end
+  check('R-18: a listener made during an event gets the later ones, not that one', late == 4)
+  -- a killed listener gets nothing more, at once
+  a.kill_listener(ids[1])
+  fire('AUX_TEST_R18')
+  check('R-18: a killed listener is not called', calls[1] == 5 and calls[2] == 6)
+  for _, id in ipairs(ids) do a.kill_listener(id) end
+  for _, id in ipairs(extra) do a.kill_listener(id) end
+  a.kill_listener(late_id)
+  tick()
+  -- threads: each of 20 threads starts 10 more while the frame runs them; all run to their end
+  local finished, before = 0, a.thread_count()
+  for _ = 1, 20 do
+    a.coro_thread(function()
+      a.coro_wait()
+      for _ = 1, 10 do
+        a.coro_thread(function() a.coro_wait(); a.coro_wait(); finished = finished + 1 end)
+      end
+      a.coro_wait()
+      finished = finished + 1
+    end)
+  end
+  for _ = 1, 8 do tick() end
+  check('R-18: threads started by threads all run to their end', finished == 220)
+  check('R-18: and none is left behind', a.thread_count() == before)
+end)
+
+-- R-07, R-08, R-09 (FB-027): the Full scan pauses by the clock, builds no auction record, and asks
+-- about listings that have not loaded a share at a time
+try('outside review: R-07 R-08 R-09 the Full scan', function()
+  local function M(name) return loadstring("select(2, ...) '" .. name .. "'; return _M")('auxForever', addon) end
+  local a, h, scan = M 'aux', M 'aux.core.history', M 'aux.core.scan'
+  local names = {[981] = 'Lean Herb', [982] = 'Lean Staff'}
+  local real_info = G.GetItemInfo
+  G.GetItemInfo = function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if names[id] then return names[id], '|cffffffff|Hitem:' .. id .. '::::::0:0|h[' .. names[id] .. ']|h|r', 2, 20, 15, 'Trade Goods', 'Herb', 20, '', 1, 1 end
+    return real_info(x)
+  end
+  -- stacks of a trade good, and a staff under two endings
+  local list = {}
+  for i = 1, 30 do tinsert(list, {id = 981, count = 1 + i % 5, buyout = (1 + i % 5) * (40 + i % 7), name = 'Lean Herb'}) end
+  for i = 1, 6 do tinsert(list, {id = 982, count = 1, buyout = 9000 + i * 100, name = 'Lean Staff of the Wolf'}) end
+  for i = 1, 4 do tinsert(list, {id = 982, count = 1, buyout = 5000 + i * 100, name = 'Lean Staff of the Bear'}) end
+  tinsert(list, {id = 981, count = 3, buyout = 0, name = 'Lean Herb'}) -- bid only: no price
+  local loaded = function() return true end
+  local asked = 0
+  local saved = {}
+  local function set(t, key, v) tinsert(saved, {t, key, rawget(t, key)}); rawset(t, key, v) end
+  set(C_AuctionHouse, 'ReplicateItems', function() end)
+  set(C_AuctionHouse, 'GetNumReplicateItems', function() return #list end)
+  set(C_AuctionHouse, 'GetReplicateItemInfo', function(i)
+    asked = asked + 1
+    local x = list[i + 1]
+    return x.name, 1, x.count, 2, true, 20, nil, 0, 0, x.buyout, 0, false, nil, 'Seller', nil, 0, x.id, loaded(i)
+  end)
+  set(C_AuctionHouse, 'GetReplicateItemLink', function(i) local x = list[i + 1]; return '|cffffffff|Hitem:' .. x.id .. '::::::0:0|h[' .. x.name .. ']|h|r' end)
+  local records_built = 0
+  set(C_PlayerInfo, 'CanUseItem', function() records_built = records_built + 1; return true end) -- asked once per auction record
+  local keys = {'981:0', '982:of the wolf', '982:of the bear'}
+  local function full_scan(params, ticks_after)
+    for _, key in ipairs(keys) do h.data[key] = nil end
+    local done, result, frames = false, nil, 0
+    params.type, params.queries, params.get_all, params.quiet = 'list', {{blizzard_query = {}}}, true, true
+    params.on_complete = function(r) done, result = true, r end
+    scan.start(params)
+    for _ = 1, 10 do tick() end
+    fire('REPLICATE_ITEM_LIST_UPDATE')
+    for _ = 1, ticks_after or 3000 do tick(); frames = frames + 1; if done then break end end
+    local lines = {}
+    for _, key in ipairs(keys) do tinsert(lines, key .. '=' .. tostring(h.data[key])) end
+    return table.concat(lines, ' '), result, frames, done
+  end
+  -- R-08: the lean read records the same prices as the read that builds records
+  local with_records = full_scan({on_auction = function() end})
+  check('R-08: the read with records builds one per auction', records_built == #list)
+  records_built = 0
+  local progress = {}
+  local lean, result = full_scan({on_progress = function(done, total) tinsert(progress, done .. '/' .. total) end})
+  check('R-08: the Full scan builds no auction record', records_built == 0)
+  check('R-08: and records the same prices, per ending', lean == with_records and h.data['982:of the wolf'] ~= nil and h.data['982:of the bear'] ~= nil)
+  check('R-08: it says how far it is and ends at all of them', progress[#progress] == #list .. '/' .. #list)
+  check('R-08: the result says how many were read', result and result.full and result.full.recorded == #list)
+
+  -- R-07: by the clock, a long list of cheap auctions takes few frames; without one, 100 a frame
+  local long = {}
+  for i = 1, 5000 do long[i] = {id = 981, count = 1, buyout = 40 + i % 9, name = 'Lean Herb'} end
+  local short = list
+  list = long
+  local _, _, frames_counted = full_scan({})
+  check('R-07: without the game\'s clock the read pauses every 100 auctions', frames_counted >= 50)
+  -- a clock where every look at it costs a twentieth of a millisecond: 8 ms are 1,600 auctions
+  local now = 0
+  G.debugprofilestop = function() now = now + .05; return now end
+  local _, _, frames_clocked, finished = full_scan({})
+  G.debugprofilestop = nil
+  -- both counts include the 2 seconds (20 frames) the scan waits for the list to stop growing
+  check('R-07: with the clock the same read takes a few frames', finished and frames_clocked <= 30 and frames_counted - frames_clocked >= 40)
+  check('R-07: coro_due is false without a clock until the count comes round', a.coro_due(7, 100) == false and a.coro_due(200, 100) == true)
+
+  -- R-09: listings that never load are asked about a share at a time, not all of them every frame
+  list = {}
+  for i = 1, 1000 do list[i] = {id = 981, count = 1, buyout = 50, name = 'Lean Herb'} end
+  loaded = function() return false end
+  local done
+  scan.start{type = 'list', queries = {{blizzard_query = {}}}, get_all = true, quiet = true, on_complete = function() done = true end}
+  for _ = 1, 10 do tick() end
+  fire('REPLICATE_ITEM_LIST_UPDATE')
+  for _ = 1, 60 do tick() end -- the list is read (all 1,000 not loaded); now they are waited for
+  local most = 0
+  for _ = 1, 20 do
+    asked = 0
+    tick()
+    if asked > most then most = asked end
+  end
+  check('R-09: at most 200 unloaded listings are asked about per frame', most > 0 and most <= 200)
+  -- they load: every one is still read, each once
+  loaded = function() return true end
+  for _ = 1, 400 do tick(); if done then break end end
+  check('R-09: once they load, the scan ends', done)
+  local _, units = h.today_market('981:0')
+  check('R-09: and all 1,000 are counted, none twice', units == 1000)
+  scan.abort()
+  list = short
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  for _, key in ipairs(keys) do h.data[key] = nil end
+  G.GetItemInfo = real_info
+end)
+
+-- The smaller findings of the outside review (R-11, R-13, R-15, R-16, R-20, R-22)
+try('outside review: smaller findings', function()
+  local function M(name) return loadstring("select(2, ...) '" .. name .. "'; return _M")('auxForever', addon) end
+  local a, money, f, sniper, post, h, scan = M 'aux', M 'aux.util.money', M 'aux.util.filter', M 'aux.tabs.sniper', M 'aux.tabs.post', M 'aux.core.history', M 'aux.core.scan'
+
+  -- R-22: enum members differ in the stubs
+  check('R-22: enum members have the game\'s own values', Enum.AuctionHouseError.ItemNotFound == 4 and Enum.AuctionHouseError.ItemNotFound ~= Enum.AuctionHouseError.ItemNotAvailable)
+  check('R-22: a function Forever does not have is an error in the tests', not pcall(function() return C_AuctionHouse.NoSuchFunction() end))
+  check('R-22: so is faking one', not pcall(rawset, C_AuctionHouse, 'NoSuchFunction', function() end))
+  check('R-22: so is an enum member Forever does not have', not pcall(function() return Enum.AuctionHouseError.NoSuchMember end))
+  check('R-22: and an event Forever does not have', not pcall(function() return a.event_listener('NO_SUCH_EVENT_AT_ALL', function() end) end))
+  check('R-22: the clock the Full scan paces itself by is a function of Forever', (function() for _, name in ipairs(FOREVER.globals) do if name == 'debugprofilestop' then return true end end end)())
+
+  -- R-15: a price box takes plain numbers and coins, nothing else the language calls a number
+  check('R-15: 1.5 is 1g 50s', money.from_string('1.5') == 15000)
+  check('R-15: 12 is 12g, .5 is 50s, 5. is 5g', money.from_string('12') == 120000 and money.from_string('.5') == 5000 and money.from_string('5.') == 50000)
+  check('R-15: coins still read', money.from_string('1g 20s 5c') == 12005 and money.from_string('7c') == 7)
+  check('R-15: inf, nan, hex and exponents are not prices', money.from_string('inf') == nil and money.from_string('nan') == nil and money.from_string('0x10') == nil and money.from_string('1e3') == nil)
+  check('R-15: a price is capped at the game\'s highest', money.from_string('99999999999999') == 99999999999)
+
+  -- R-16: after an operator the conditions are offered
+  local query, suggestions = f.query('cloth/and')
+  local offered = {}
+  for _, word in ipairs(suggestions or {}) do offered[word] = true end
+  check('R-16: after "and/" the conditions are offered', query == nil and offered['price'] and offered['seller'] and offered['and'])
+
+  -- R-20: one number for the cut
+  check('R-20: the cut is one number for every tab', a.AUCTION_CUT == .05 and sniper.AUCTION_CUT == a.AUCTION_CUT and post.AUCTION_CUT == a.AUCTION_CUT)
+
+  -- R-13: the item names are sorted only when they are out of order
+  local names = {'ab', 'abc', 'abd', 'longer name'}
+  check('R-13: a sorted name list is left alone', a.sort_item_names(names) == false)
+  tinsert(names, 'a')
+  check('R-13: a name added at the end is sorted in', a.sort_item_names(names) == true and names[1] == 'a' and names[5] == 'longer name')
+  -- an item the game loads that aux knows already starts no thread
+  a.account_data.items[424242] = 'known'
+  local threads_before = a.thread_count()
+  fire('GET_ITEM_INFO_RECEIVED', 424242, true)
+  check('R-13: a known item loading starts no thread', a.thread_count() == threads_before)
+  a.account_data.items[424242] = nil
+
+  -- R-11: counting an item in the bags reads no tooltip
+  local saved = {}
+  local function set(t, key, v) tinsert(saved, {t, key, rawget(t, key)}); rawset(t, key, v) end
+  local bag = {{id = 7801, count = 12, name = 'Count Herb'}, {id = 7802, count = 3, name = 'Other Herb'}, {id = 7801, count = 5, name = 'Count Herb'}, {id = 7803, count = 1, name = 'Count Staff of the Wolf'}}
+  local real_info = G.GetItemInfo
+  G.GetItemInfo = function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id == 7801 then return 'Count Herb', nil, 1, 5, 1, 'Trade Goods', 'Herb', 20, '', 1, 10 end
+    if id == 7802 then return 'Other Herb', nil, 1, 5, 1, 'Trade Goods', 'Herb', 20, '', 1, 10 end
+    if id == 7803 then return 'Count Staff', nil, 2, 20, 15, 'Weapon', 'Staves', 1, 'INVTYPE_2HWEAPON', 1, 100 end
+    return real_info(x)
+  end
+  set(C_Container, 'GetContainerNumSlots', function(b) return b == 0 and #bag or 0 end)
+  set(C_Container, 'GetContainerItemLink', function(b, slot) local x = b == 0 and bag[slot]; return x and '|cffffffff|Hitem:' .. x.id .. '::::::0:0|h[' .. x.name .. ']|h|r' end)
+  set(C_Container, 'GetContainerItemInfo', function(b, slot) local x = b == 0 and bag[slot]; return x and {stackCount = x.count, iconFileID = 1} end)
+  local tooltips = 0
+  set(AuxTooltip, 'SetBagItem', function() tooltips = tooltips + 1 end)
+  check('R-11: the bag count adds up the slots of the item', post.bag_count('7801:0') == 17)
+  check('R-11: gear is counted by its ending', post.bag_count('7803:of the wolf') == 1 and post.bag_count('7803:0') == 0)
+  check('R-11: and reads no tooltip for it', tooltips == 0)
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  saved = {}
+
+  -- R-20: an ignored gear name is ignored under every version the auction house keeps it by
+  local d = h.today()
+  G.GetItemInfo = function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id == 971 then return 'Ignore Staff', '|cffffffff|Hitem:971::::::0:0|h[Ignore Staff]|h|r', 2, 20, 15, 'Weapon', 'Staves', 1, 'INVTYPE_2HWEAPON', 1, 1 end
+    return real_info(x)
+  end
+  local real_key_info = C_AuctionHouse.GetItemKeyInfo
+  set(C_AuctionHouse, 'GetItemKeyInfo', function(key) return key.itemID == 971 and {itemID = 971, itemName = 'Ignore Staff of the Wolf', quality = 2} or real_key_info(key) end)
+  h.write_record('971:of the wolf', {day = d, points = {{value = 3200, day = d - 1, units = 10}, {value = 3200, day = d - 2, units = 10}, {value = 3200, day = d - 3, units = 10}}})
+  local old_percent, old_profit = a.account_data.sniper_percent, a.account_data.sniper_profit
+  a.account_data.sniper_percent, a.account_data.sniper_profit = 60, 1
+  local opened = {}
+  local real_check = sniper.check_item
+  sniper.check_item = function(_, key) opened[key] = true end
+  local function version(suffix) return {itemKey = {itemID = 971, itemSuffix = suffix, itemLevel = 20}, totalQuantity = 1, minPrice = 1000} end
+  local v1, v2 = version(11), version(12)
+  local k1, k2 = scan.item_key_string(v1.itemKey), scan.item_key_string(v2.itemKey)
+  sniper.settings_changed()
+  sniper.check_list({v1, v2}, {})
+  check('R-20: both versions of the staff are possible deals', opened[k1] and opened[k2])
+  local ignored_before = sniper.ignored_count()
+  sniper.ignore({deal_key = k1, price_key = '971:of the wolf', name = 'Ignore Staff of the Wolf'})
+  check('R-20: ignoring it adds one entry', sniper.ignored_count() == ignored_before + 1)
+  sniper.settings_changed()
+  opened = {}
+  sniper.check_list({v1, v2}, {})
+  check('R-20: an ignored gear name is ignored under its other version too', not opened[k1] and not opened[k2])
+  a.account_data.sniper_ignored['971:of the wolf'] = nil
+  sniper.check_item = real_check
+  sniper.settings_changed()
+  a.account_data.sniper_percent, a.account_data.sniper_profit = old_percent, old_profit
+  h.data['971:of the wolf'] = nil
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  G.GetItemInfo = real_info
+
+  -- R-20: removing a favorite removes the one asked about, also after the list changed meanwhile
+  local search = M 'aux.tabs.search'
+  local favorites = search.favorite_searches
+  local keep = {filter_string = 'keep me', prettified = 'keep me'}
+  local drop = {filter_string = 'drop me', prettified = 'drop me'}
+  tinsert(favorites, 1, keep); tinsert(favorites, 1, drop)
+  -- the question is open for "drop me" (row 1); meanwhile another favorite moves to the top
+  local moved = {filter_string = 'moved up', prettified = 'moved up'}
+  tinsert(favorites, 1, moved)
+  StaticPopupDialogs.AUX_REMOVE_FAVORITE_CONFIRMATION.OnAccept(nil, drop)
+  local left = {}
+  for _, entry in ipairs(favorites) do left[entry.filter_string] = true end
+  check('R-20: the favorite asked about is the one removed', not left['drop me'] and left['keep me'] and left['moved up'])
+  for i = #favorites, 1, -1 do if favorites[i] == keep or favorites[i] == moved then tremove(favorites, i) end end
+  search.update_search_listings()
+
+  -- R-20: a price request the game drops for being sent too soon is said at once
+  local bar = M 'aux.gui.buy_bar'
+  local calls = {}
+  set(C_AuctionHouse, 'StartCommoditiesPurchase', function() tinsert(calls, 'start') end)
+  set(C_AuctionHouse, 'CancelCommoditiesPurchase', function() tinsert(calls, 'cancel') end)
+  bar.show_commodity{item_id = 7811, name = 'Busy Herb', max_stack = 20, tiers = function() return {{count = 50, commodity_unit_price = 6}} end}
+  tick()
+  bar.primary_click()
+  check('R-20: the price is asked for', calls[1] == 'start' and bar.busy())
+  fire('AUCTION_HOUSE_THROTTLED_MESSAGE_DROPPED')
+  tick()
+  local line1, line2 = bar.lines()
+  check('R-20: a dropped price request is said at once, and Buy can be pressed again', not bar.busy() and tostring(line1):find('busy', 1, true) ~= nil and bar.primary_label():find('^Buy') ~= nil)
+  bar.clear()
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+end)
+
+-- R-10 (Tyler, 2026-11-10: yes): prices not seen for 90 days are forgotten, once a day at login
+try('outside review: R-10 old prices are forgotten', function()
+  local function M(name) return loadstring("select(2, ...) '" .. name .. "'; return _M")('auxForever', addon) end
+  local a, h = M 'aux', M 'aux.core.history'
+  local d = h.today()
+  local function line(record) h.write_record('x', record); local str = h.data['x']; h.data['x'] = nil; return str end
+  h.data['9801:0'] = line({day = d - 100, low = 50, points = {{day = d - 101, value = 60, units = 5}}}) -- last seen 100 days ago
+  h.data['9802:0'] = line({day = d - 10, low = 50, points = {}})                                       -- seen 10 days ago
+  h.data['9803:0'] = line({day = d, low = 50, points = {{day = d - 200, value = 60}}})                 -- seen today, old past days
+  h.data['9804:of the wolf'] = line({day = d, points = {{day = d - 95, value = 60, units = 3}}})       -- read today, last seen 95 days ago
+  h.data['9805:0'] = line({day = d - 90, market = 70, units = 4, points = {}})                         -- exactly 90 days: kept
+  local day_seconds = 24 * 60 * 60
+  h.data['9806:0'] = (time() - 100 * day_seconds) .. '#45#' .. '40@' .. (time() - 101 * day_seconds)   -- a 0.4 line, 100 days old
+  h.data['9807:0'] = (time() - 5 * day_seconds) .. '#45#'                                              -- a 0.4 line, 5 days old
+  check('R-10: the day a line was last seen is its newest price\'s day', h.last_seen_day(h.data['9801:0']) == d - 100 and h.last_seen_day(h.data['9804:of the wolf']) == d - 95 and h.last_seen_day(h.data['9803:0']) == d)
+  a.faction_data.history_trimmed = nil
+  local forgotten
+  a.coro_thread(function() forgotten = h.forget_old_prices() end)
+  for _ = 1, 20 do tick() end
+  check('R-10: prices last seen more than 90 days ago are forgotten', h.data['9801:0'] == nil and h.data['9804:of the wolf'] == nil and h.data['9806:0'] == nil)
+  check('R-10: newer ones are kept, also at exactly 90 days and with old past days', h.data['9802:0'] ~= nil and h.data['9803:0'] ~= nil and h.data['9805:0'] ~= nil and h.data['9807:0'] ~= nil)
+  check('R-10: it says how many it forgot', forgotten == 3)
+  check('R-10: a forgotten item has no price any more', h.value('9801:0') == nil and h.latest('9801:0') == nil)
+  -- once a day: a second run the same day does nothing
+  h.data['9808:0'] = line({day = d - 300, low = 5, points = {}})
+  local again = 'not run'
+  a.coro_thread(function() again = h.forget_old_prices() end)
+  for _ = 1, 5 do tick() end
+  check('R-10: it runs once a day', again == nil and h.data['9808:0'] ~= nil)
+  for _, key in ipairs{'9802:0', '9803:0', '9805:0', '9807:0', '9808:0'} do h.data[key] = nil end
+end)
+
+-- R-19 (Tyler, 2026-11-10: yes): the pad buttons go back to the game when a fight starts and come
+-- back to aux after it
+try('outside review: R-19 the gamepad in combat', function()
+  local aux_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local bindings, combat, gamepad_ui, cleared_in_lockdown = {}, false, true, 0
+  local real = {G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown}
+  G.SetOverrideBindingClick = function(_, _, key, button) bindings[key] = button end
+  -- as the game: changing bindings during the lockdown is refused (counted here)
+  G.ClearOverrideBindings = function() if combat then cleared_in_lockdown = cleared_in_lockdown + 1 else bindings = {} end end
+  G.InCombatLockdown = function() return combat end
+  G.InputUtil = {IsGamepadUIEnabled = function() return gamepad_ui end}
+  local aux_frame = aux_env.frame
+  local function count() local n = 0 for _ in pairs(bindings) do n = n + 1 end return n end
+  local function event(name)
+    for _, f in ipairs(frames) do
+      if f.__events[name] and f.__scripts.OnEvent then f.__scripts.OnEvent(f, name) end
+    end
+  end
+  aux_frame:Hide(); aux_frame:Show()
+  check('R-19: aux open in gamepad mode holds the pad buttons', count() == 10 and aux_env.gamepad_bound())
+  -- a fight starts: the event comes first, the lockdown after it
+  event('PLAYER_REGEN_DISABLED')
+  combat = true
+  check('R-19: when a fight starts the buttons go back to the game', count() == 0 and not aux_env.gamepad_bound())
+  check('R-19: and the gold focus frame is gone', aux_env.gamepad_focused() == nil)
+  combat = false
+  event('PLAYER_REGEN_ENABLED')
+  check('R-19: after the fight aux, still open, takes them again', count() == 10 and aux_env.gamepad_bound())
+  -- closed during the fight: nothing comes back to aux afterwards
+  event('PLAYER_REGEN_DISABLED')
+  combat = true
+  aux_frame:Hide()
+  combat = false
+  event('PLAYER_REGEN_ENABLED')
+  check('R-19: closed during the fight, aux does not take them afterwards', count() == 0 and not aux_env.gamepad_bound())
+  -- opened during a fight: aux waits for its end
+  combat = true
+  aux_frame:Show()
+  check('R-19: opened during a fight, aux leaves the buttons alone', count() == 0)
+  combat = false
+  event('PLAYER_REGEN_ENABLED')
+  check('R-19: and takes them once the fight is over', count() == 10)
+  -- if the lockdown is already on when the event comes (not as on retail), nothing is called
+  combat = true
+  event('PLAYER_REGEN_DISABLED')
+  check('R-19: already locked when the event comes: no binding call is made', cleared_in_lockdown == 0 and count() == 10)
+  aux_frame:Hide()
+  check('R-19: then closing in the fight waits for its end, as before', count() == 10 and cleared_in_lockdown == 0)
+  combat = false
+  event('PLAYER_REGEN_ENABLED')
+  check('R-19: and gives them back after it', count() == 0)
+  G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = real[1], real[2], real[3]
+  G.InputUtil = nil
+  aux_frame:Show()
+end)
+
+-- Second pass of the outside review: the search bar's completion looks through the item names
+-- itself; it used to get a list of all of them, built anew at every key press
+try('second pass: search bar completion', function()
+  local function M(name) return loadstring("select(2, ...) '" .. name .. "'; return _M")('auxForever', addon) end
+  local a, search, f = M 'aux', M 'aux.tabs.search', M 'aux.util.filter'
+  local saved_names = a.account_data.auctionable_items
+  a.account_data.auctionable_items = {'rare thing', 'linen cloth', 'light leather', 'andorian blade'}
+  local box = search.search_box
+  local function typed(text)
+    box:SetText(text)
+    box.__scripts.OnChar(box)
+    return box:GetText()
+  end
+  check('completion: the first word completes to an item name', typed('li') == 'linen cloth/exact')
+  check('completion: any letter case', typed('LiG') == 'light leather/exact')
+  check('completion: words of the search language come before item names', typed('an') == 'and')
+  check('completion: a longer start reaches the item', typed('ando') == 'andorian blade/exact')
+  check('completion: after a name, exact is offered', typed('linen cloth/ex') == 'linen cloth/exact')
+  check('completion: later words are never item names', typed('linen cloth/lig') == 'linen cloth/lig')
+  check('completion: nothing fits, the text stays', typed('zzz') == 'zzz')
+  check('completion: a second search after ; completes like the first', typed('linen cloth/exact;ra') ~= nil)
+  -- the cost: no list of every item name is built for a key press
+  local _, with_items = f.query(nil)
+  local _, without = f.query(nil, true)
+  check('completion: the suggestions it asks for hold no item names', #with_items - #without == 4)
+  a.account_data.auctionable_items = saved_names
+  box:SetText('')
+end)
+
+-- Second pass of the outside review: an item the game has dropped the data of raises no error
+try('second pass: items the game does not know', function()
+  local function M(name) return loadstring("select(2, ...) '" .. name .. "'; return _M")('auxForever', addon) end
+  local a, search, f, auctions = M 'aux', M 'aux.tabs.search', M 'aux.util.filter', M 'aux.tabs.auctions'
+  -- a right-click search for an item nobody knows does nothing
+  local before = search.search_box:GetText()
+  local ok, found = pcall(search.search_item, 98765432)
+  check('unknown item: a right-click search raises no error and searches nothing', ok and found == false and search.search_box:GetText() == before)
+  -- the conditions that read the item's own data match nothing for it
+  local record = {item_id = 98765432, buyout_price = 5, bid_price = 5, count = 1, unit_buyout_price = 5}
+  for _, name in ipairs{'vendor-profit', 'bid-vendor-profit'} do
+    local ok2, result = pcall(f.filters[name].validator(100), record)
+    check('unknown item: ' .. name .. ' matches nothing and raises no error', ok2 and not result)
+  end
+  local ok3, result3 = pcall(f.filters['item'].validator('some name'), record)
+  check('unknown item: the item condition matches nothing and raises no error', ok3 and not result3)
+  -- a known item still searches
+  local real_info = G.GetItemInfo
+  G.GetItemInfo = function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id == 7821 then return 'Known Herb', nil, 1, 5, 1, 'Trade Goods', 'Herb', 20, '', 1, 10 end
+    return real_info(x)
+  end
+  local real_execute = search.execute
+  local ran
+  search.execute = function() ran = search.search_box:GetText() end
+  check('known item: a right-click search searches its exact name', search.search_item(7821) == true and ran == 'known herb/exact')
+  search.execute = real_execute
+  G.GetItemInfo = real_info
+  search.search_box:SetText(before or '')
+end)
+
+-- Found by the random player (tests/fuzz_test.lua): the buy bar draws its texts ten times a second,
+-- and a click acted on the selection as it was at the click. For a moment after the selection or a
+-- price changed, Buy showed one price and bought at another.
+try('second pass: a click on the buy bar does only what its button shows', function()
+  local function M(name) return loadstring("select(2, ...) '" .. name .. "'; return _M")('auxForever', addon) end
+  local bar, money = M 'aux.gui.buy_bar', M 'aux.util.money'
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local bought = {}
+  local function item(price)
+    local record = {buyout_price = price, bid_price = price, auction_count = 1}
+    return {record = record, name = 'Shown Blade', busy = function() return false end,
+      on_buy = function() tinsert(bought, record.buyout_price) end, on_bid = function() end}
+  end
+  -- another row is selected: the button shows its price at once, with no wait for the next draw
+  local a, b = item(1000), item(5000)
+  bar.show_item(a)
+  tick()
+  bar.show_item(b)
+  check('shown: a new selection shows its own price at once', plain(bar.primary_label()) == 'Buy for ' .. plain(money.to_string(5000, true)))
+  bar.primary_click()
+  check('shown: and a click buys it at that price', #bought == 1 and bought[1] == 5000)
+  -- the selected auction's price changes under the button (a deal re-priced, a table refresh)
+  b.record.buyout_price = 7000
+  bar.primary_click()
+  check('shown: a click while the button still shows the old price buys nothing', #bought == 1)
+  check('shown: and the button shows the new price', plain(bar.primary_label()) == 'Buy for ' .. plain(money.to_string(7000, true)))
+  bar.primary_click()
+  check('shown: the next click buys at the price now shown', #bought == 2 and bought[2] == 7000)
+
+  -- trade goods: the amount on the button is what the price is asked for
+  local calls = {}
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  set(C_AuctionHouse, 'StartCommoditiesPurchase', function(id, n) tinsert(calls, 'start ' .. n) end)
+  set(C_AuctionHouse, 'ConfirmCommoditiesPurchase', function(id, n) tinsert(calls, 'confirm ' .. n) end)
+  set(C_AuctionHouse, 'CancelCommoditiesPurchase', function() end)
+  set(C_AuctionHouse, 'GetQuoteDurationRemaining', function() return 30 end)
+  local tiers = {{count = 100, commodity_unit_price = 6}}
+  bar.show_commodity{item_id = 7831, name = 'Shown Herb', max_stack = 20, tiers = function() return tiers end}
+  check('shown: a trade good shows what 20 cost at once', plain(bar.primary_label()) == 'Buy 20 for ' .. plain(money.to_string(120, true)))
+  -- the listings change before the bar is drawn again: the cheap ones are gone
+  tiers[1].commodity_unit_price = 9
+  bar.primary_click()
+  check('shown: a click on a cost that no longer holds asks for nothing', #calls == 0)
+  check('shown: and the button shows the new cost', plain(bar.primary_label()) == 'Buy 20 for ' .. plain(money.to_string(180, true)))
+  bar.primary_click()
+  check('shown: the next click asks for the price', calls[1] == 'start 20')
+  -- build 7: the price shown on the button when it was pressed is the most that is paid
+  fire('COMMODITY_PRICE_UPDATED', 9, 180)
+  check('shown: the price on the button is bought when it arrives', calls[2] == 'confirm 20')
+  -- a second price for the same request changes nothing: one purchase
+  fire('COMMODITY_PRICE_UPDATED', 8, 160)
+  check('shown: a second price for it buys nothing more', #calls == 2)
+  bar.clear()
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+end)
+
+-- found by the random player (tests/fuzz_test.lua): a click on Post that reaches the code while
+-- the button should be faded (it is faded five times a second, so it can lag a moment)
+try('second pass: Post posts only when the button may be pressed', function()
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  local bag = {{id = 7001}}
+  local function link(id) return '|cffffffff|Hitem:' .. id .. '::::::0:0|h[Sword]|h|r' end
+  set(C_Container, 'GetContainerNumSlots', function(b) return b == 0 and #bag or 0 end)
+  set(C_Container, 'GetContainerItemLink', function(b, i) return bag[i] and link(bag[i].id) end)
+  set(C_Container, 'GetContainerItemInfo', function(b, i) local it = bag[i]; return it and {stackCount = 1, isLocked = false, iconFileID = 1, hasLoot = false} end)
+  set(G, 'GetItemInfo', function(x) local id = tonumber(tostring(x):match('item:(%d+)') or x); if id == 7001 then return 'Sword', link(7001), 2, 20, 1, 'Weapon', 'Sword', 1, 'INVTYPE_WEAPON', 1, 100 end end)
+  set(C_Container, 'GetContainerItemDurability', function() end)
+  for _, k in ipairs{'ITEM_BIND_ON_PICKUP', 'ITEM_BIND_QUEST', 'ITEM_SOULBOUND'} do set(G, k, k) end
+  set(AuxTooltip, 'NumLines', function() return 0 end)
+  set(ItemLocation, 'CreateFromBagAndSlot', function(_, b, i) return {IsValid = function() return true end, bag = b, slot = i} end)
+  set(C_AuctionHouse, 'IsSellItemValid', function() return true end)
+  local posts = 0
+  set(C_AuctionHouse, 'PostItem', function() posts = posts + 1 return false end)
+  set(post.stack_count_input, 'GetNumber', function() return 1 end)
+  set(post.duration_dropdown, 'GetIndex', function() return 2 end)
+  post.frame:Show()
+  for _ = 1, 200 do tick() end
+
+  -- nothing is selected (the tab was left and opened again): no error, nothing sent
+  post.selected_item = nil
+  local ok, err = pcall(post.post_auction)
+  check('post click: with nothing selected a click does nothing (' .. tostring(err) .. ')', ok and posts == 0)
+
+  -- the button would be faded: a starting bid above the buyout
+  post.selected_item = {key = '7001:0', item_id = 7001, name = 'Sword', quality = 2, count = 1, max_stack = 1}
+  post.set_unit_start_price(9500)
+  post.set_unit_buyout_price(9000)
+  check('post click: the tab has a reason to fade Post', post.disabled_reason() ~= nil)
+  post.post_auction()
+  check('post click: a click past a faded Post sends nothing', posts == 0)
+
+  -- the same item with prices the tab accepts is posted
+  post.set_unit_start_price(5000)
+  check('post click: no reason left', post.disabled_reason() == nil)
+  post.post_auction()
+  check('post click: and a click the tab allows posts', posts == 1)
+  for _ = 1, 70 do tick() end
+  post.selected_item = nil
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+end)
+
+-- 0.8.2.1 build 6 (outside review S-08, Tyler, 2026-11-11: "yes"): a Full search for linen filled
+-- the table with a few pieces of gear of hundreds of sellers each (Linen Belt: 585 at 1s), and 16
+-- of its 36 items did not show. A search keeps FOLD_KEEP auctions per price row and counts the rest.
+try('S-08: a row of many sellers keeps a few auctions and counts the rest', function()
+  local function M(name) return loadstring("select(2, ...) '" .. name .. "'; return _M")('auxForever', addon) end
+  local info, search, al = M 'aux.util.info', M 'aux.tabs.search', M 'aux.gui.auction_listing'
+  local function plain(x) return ((x or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local real_get_info = G.GetItemInfo
+  local names = {[4571] = 'Linen Belt', [4572] = 'Linen Boots', [4573] = 'Linen Cloak'}
+  G.GetItemInfo = function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)') or '')
+    if names[id] then
+      return names[id], type(x) == 'string' and x or nil, 2, 10, 5, 'Armor', 'Cloth', 1, 'INVTYPE_WAIST', 1, 50
+    end
+    return real_get_info(x)
+  end
+  local id = 0
+  local function row(item, seller, buyout, bid, quantity)
+    id = id + 1
+    return info.item_search_record({itemKey = {itemID = item, itemSuffix = 0}, itemLink = '|cff1eff00|Hitem:' .. item .. '::::::::10:::::|h[' .. names[item] .. ']|h|r',
+      auctionID = 50000 + id, quantity = quantity or 1, buyoutAmount = buyout, minBid = bid or 0, owners = {seller}, totalNumberOfOwners = 1, timeLeft = 2})
+  end
+  local keep = search.FOLD_KEEP
+  check('S-08: about 20 auctions are kept per row', keep == 20)
+  local c = search.new_collection()
+  -- 60 sellers of the belt at 1s; the last one has the lowest starting bid
+  for i = 1, 59 do search.collect(c, row(4571, 'Seller' .. i, 100, 90)) end
+  local low = row(4571, 'Seller60', 100, 50)
+  search.collect(c, low)
+  -- the same seller twice counts once (Seller2 is one of the kept auctions)
+  search.collect(c, row(4571, 'Seller2', 100, 90))
+  check('S-08: the row keeps ' .. keep .. ' real auctions (' .. #c.records .. ')', #c.records == keep)
+  local kept_low = false
+  for _, r in ipairs(c.records) do if r == low then kept_low = true end end
+  check('S-08: a later auction with a lower starting bid takes the place of a kept one', kept_low)
+  local t = search.current_search().table
+  t:SetDatabase(c.records, c.folded)
+  local child = t.rowInfo[1] and t.rowInfo[1].children[1]
+  check('S-08: one row', #t.rowInfo == 1 and #t.rowInfo[1].children == 1)
+  check('S-08: the row counts every auction for sale (' .. tostring(child and child.count) .. ')', child and child.count == 61)
+  check('S-08: and each seller once (' .. plain(child and al.seller_text(child.record)) .. ')', child and plain(al.seller_text(child.record)) == '60 sellers')
+  check('S-08: the buy bar says how many at that price', child and child.record.group_count == 61)
+  check('S-08: the row offers the lowest starting bid', child and child.record == low)
+  check('S-08: the units for sale add up', t.rowInfo[1].totalUnits == 61)
+  -- the line next to the results counts them too
+  local s = search.current_search()
+  local real = {s.records, s.kept, s.folded, s.folded_seen, s.not_shown, s.complete}
+  s.records, s.kept, s.folded, s.folded_seen = c.records, c.kept, c.folded, c.folded_seen
+  check('S-08: the results line counts the folded auctions (' .. plain(search.results_summary(s)) .. ')', plain(search.results_summary(s) or ''):find('61 for sale', 1, true) ~= nil)
+  -- the crate cost line counts them as listed
+  local crate_rows = search.crate_live_costs({bundles = {{name = 'Linen Belt', count = 40}}}, c.records, c.folded)
+  check('S-08: the crate line counts folded auctions as listed', crate_rows[1] and not crate_rows[1].short and crate_rows[1].cost == 4000)
+  crate_rows = search.crate_live_costs({bundles = {{name = 'Linen Belt', count = 40}}}, c.records)
+  check('S-08: (without them it would be short)', crate_rows[1] and crate_rows[1].short == 20)
+  -- an own auction, an auction without buyout and other prices each keep their own rows
+  local c2 = search.new_collection()
+  for i = 1, 30 do search.collect(c2, row(4572, 'B' .. i, 300)) end
+  for i = 1, 30 do search.collect(c2, row(4572, 'B' .. i, 400)) end
+  local no_buyout = row(4572, 'Bidder', 0, 200)
+  search.collect(c2, no_buyout)
+  check('S-08: each price row keeps its own auctions (' .. #c2.records .. ')', #c2.records == 2 * keep + 1)
+  -- many items in a small table: every item shows (the linen search)
+  local set_limit = loadstring("select(2, ...) 'aux.tabs.search'; M.TABLE_LIMIT = (select(3, ...))")
+  set_limit('auxForever', addon, 50)
+  local c3 = search.new_collection()
+  for _, item in ipairs{4571, 4572, 4573} do
+    for i = 1, 200 do search.collect(c3, row(item, 'S' .. i, 100)) end
+  end
+  local items = {}
+  for _, r in ipairs(c3.records) do items[r.item_id] = true end
+  check('S-08: 600 auctions of three items fit a table of 50, every item shows', items[4571] and items[4572] and items[4573] and not c3.not_shown)
+  set_limit('auxForever', addon, 2000)
+  -- Clear empties the counts too
+  search.clear_results(s)
+  check('S-08: Clear empties the counts', not next(s.folded) and not next(s.kept) and #s.records == 0)
+  s.records, s.kept, s.folded, s.folded_seen, s.not_shown, s.complete = real[1], real[2], real[3], real[4], real[5], real[6]
+  t:SetDatabase(s.records, s.folded)
+  G.GetItemInfo = real_get_info
+end)
+
+-- 0.8.2.1 build 7 (FB-045, reported by karrier_user_slouyac50poxg707: "of shadow protection" and "of
+-- healing" without their stat): a fast row's tooltip takes a real link of one of its item key's
+-- auctions when the game has one, as Blizzard's item display does, and the item key otherwise
+try('FB-045: a fast row shows a real auction of its item key first', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local t = search.current_search().table
+  local calls = {}
+  rawset(GameTooltip, 'SetHyperlink', function(_, link) tinsert(calls, 'link ' .. link) end)
+  rawset(GameTooltip, 'SetItemKey', function(_, id, level, suffix) tinsert(calls, 'key ' .. id .. ':' .. suffix) end)
+  local sample
+  rawset(C_AuctionHouse, 'GetItemKeySampleLink', function() return sample end)
+  local key = {itemID = 4570, itemLevel = 20, itemSuffix = 0, battlePetSpeciesID = 0}
+  local row = {rt = t, record = {fast = true, browse_key = key, link = 'base', name = 'Merc Sword', item_key = '4570:0'}}
+  local icon = {GetParent = function() return {row = row} end}
+  local ok = pcall(t.OnIconEnter, icon)
+  check('FB-045: no sample link, the item key as before', ok and calls[1] == 'key 4570:0')
+  calls = {}
+  sample = '|cff1eff00|Hitem:4570::::::::20:::1:12701|h[Merc Sword of Healing]|h|r'
+  pcall(t.OnIconEnter, icon)
+  check('FB-045: with a sample link, the real link', calls[1] == 'link ' .. sample)
+  calls = {}
+  row.record = {link = 'own', name = 'Merc Sword', item_key = '4570:0'}
+  pcall(t.OnIconEnter, icon)
+  check('FB-045: a full row keeps its own link', calls[1] == 'link own')
+  rawset(GameTooltip, 'SetHyperlink', nil)
+  rawset(GameTooltip, 'SetItemKey', nil)
+  rawset(C_AuctionHouse, 'GetItemKeySampleLink', nil)
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
-dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'timing_test.lua')({
-  G = G, fire = fire, tick = tick, check = check, try = try, addon = addon,
+local test_env = {
+  G = G, fire = fire, tick = tick, check = check, try = try, addon = addon, rawset = rawset,
   dir = (arg and arg[0] or ''):gsub('[^/\\]*$', ''),
-})
+  errors = function() return errors end,
+}
+dofile(test_env.dir .. 'timing_test.lua')(test_env)
 
+-- a player doing random things against the slow auction house (tests/fuzz_test.lua)
+dofile(test_env.dir .. 'fuzz_test.lua')(test_env)
+
+-- how many checks ran, so a block that silently stops running shows as a lower number
+print('checks: ' .. checks)
 print('done, errors: ' .. errors)

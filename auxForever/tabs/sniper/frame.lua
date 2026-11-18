@@ -186,9 +186,9 @@ listing:SetHandler('OnClick', function(row, button)
     if button == 'LeftButton' then
         click_deal(row.record)
     elseif button == 'RightButton' then
+        local item_id = row.record.item_id
         aux.set_tab(1)
-        search_tab.set_filter(strlower(info.item(row.record.item_id).name) .. '/exact')
-        search_tab.execute(nil, false)
+        search_tab.search_item(item_id)
     end
 end)
 

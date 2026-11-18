@@ -20,7 +20,7 @@ return function(env)
     delay = 1,       -- seconds before an answer arrives
     throttle = .3,   -- seconds the throttle stays busy after a request
     items = {},      -- [item_id] = {name, commodity, quality, vendor, max_stack, level, versions}
-    listings = {},   -- [item_id] = {{price, quantity, own, bid, version}, ...}; price per unit
+    listings = {},   -- [item_id] = {{price, quantity, own, bid, version, owner}, ...}; price per unit
     bag = {},        -- {{id, count, locked, version}, ...}: bag 0, one slot each
     -- gear versions (0.8): an item's versions = {[suffix number] = 'of the Wolf'}; a listing or a
     -- bag slot with a version is that version of the item. As seen on Forever (2026-10-20), the
@@ -31,7 +31,7 @@ return function(env)
     money = 1000000,
   }
 
-  local saved, due, results, browse = {}, {}, {}, nil
+  local saved, due, results, browse, browse_rest = {}, {}, {}, nil, nil
   local auctions = {} -- [auction ID] = {id, listing}, as last shown in search results
   local quote
   local ready_at = 0
@@ -110,12 +110,25 @@ return function(env)
     }
   end
 
+  -- As in the game, an auction has an ID of its own, whatever row it shows in, and a row of
+  -- identical auctions carries on under a new ID once one of them is bought (the purchase clears
+  -- it). The ID used to be the row's place in the results, so another auction in the same place
+  -- passed for the same one (outside review 2026-11-10, R-14).
+  local function auction_id_of(l)
+    if not l.auction_id then
+      next_auction_id = next_auction_id + 1
+      l.auction_id = next_auction_id
+    end
+    return l.auction_id
+  end
+
   local function item_row(id, l, i)
-    auctions[id * 100 + i] = {id = id, listing = l}
+    local auction_id = auction_id_of(l)
+    auctions[auction_id] = {id = id, listing = l}
     return {
-      itemKey = server:key(id, l.version), itemLink = server:link(id, l.version), auctionID = id * 100 + i,
+      itemKey = server:key(id, l.version), itemLink = server:link(id, l.version), auctionID = auction_id,
       quantity = l.quantity, buyoutAmount = l.price, minBid = l.bid, bidAmount = nil,
-      owners = {l.own and 'player' or 'Someone'}, totalNumberOfOwners = 1,
+      owners = {l.own and 'player' or l.owner or 'Someone'}, totalNumberOfOwners = 1,
       containsOwnerItem = l.own or false, timeLeftSeconds = 40000,
     }
   end
@@ -224,13 +237,17 @@ return function(env)
     set(C, 'HasFullItemSearchResults', function(key) return results[result_key(key)] ~= nil end)
     set(C, 'GetItemSearchResultsQuantity', function(key) return #(results[result_key(key)] or {}) end)
     set(C, 'GetNumItemSearchResults', function(key) return #(results[result_key(key)] or {}) end)
-    set(C, 'GetItemSearchResultInfo', function(key, i) local l = (results[result_key(key)] or {})[i]; return l and item_row(key.itemID, l, i) end)
+    -- a listing bought out after the answer arrived is no longer a row (it used to come back with
+    -- quantity 0 under a new auction ID, S-08)
+    set(C, 'GetItemSearchResultInfo', function(key, i) local l = (results[result_key(key)] or {})[i]; return l and l.quantity > 0 and item_row(key.itemID, l, i) or nil end)
     set(C, 'RequestMoreItemSearchResults', function() sent('more') end)
 
     -- the item list of a search (browse)
     set(C, 'SendBrowseQuery', function(query)
       sent('browse ' .. (query.searchString or ''))
-      browse = nil
+      browse, browse_rest = nil, nil
+      -- browse_silent: the auction house never answers an item list (a busy server)
+      if server.browse_silent then return end
       later(function()
         browse = {}
         local text = string.lower(query.searchString or '')
@@ -251,17 +268,35 @@ return function(env)
           if a.itemKey.itemID ~= b.itemKey.itemID then return a.itemKey.itemID < b.itemKey.itemID end
           return a.itemKey.itemSuffix < b.itemKey.itemSuffix
         end)
+        -- page_size: the list arrives that many rows at a time, the rest when asked for more
+        if server.page_size and #browse > server.page_size then
+          browse_rest = {}
+          while #browse > server.page_size do table.insert(browse_rest, 1, table.remove(browse)) end
+        end
         env.fire('AUCTION_HOUSE_BROWSE_RESULTS_UPDATED')
       end)
     end)
-    set(C, 'HasFullBrowseResults', function() return browse ~= nil end)
+    set(C, 'HasFullBrowseResults', function() return browse ~= nil and not browse_rest end)
     set(C, 'GetBrowseResults', function() return browse or {} end)
-    set(C, 'RequestMoreBrowseResults', function() sent('more browse') end)
+    set(C, 'RequestMoreBrowseResults', function()
+      sent('more browse')
+      -- more_silent: a request for more of the list is never answered
+      if server.more_silent or not browse_rest then return end
+      local page = server.page_size or 500
+      later(function()
+        for _ = 1, page do
+          if browse_rest and browse_rest[1] then table.insert(browse, table.remove(browse_rest, 1)) end
+        end
+        if browse_rest and not browse_rest[1] then browse_rest = nil end
+        env.fire('AUCTION_HOUSE_BROWSE_RESULTS_ADDED')
+      end)
+    end)
 
     -- posting: the item leaves the bag and the listing appears when the server has answered
     local function finish_post(post)
       take_from_bag(post.id, post.quantity, post.version)
-      add_listing(post.id, post.unit_price or post.buyout, post.quantity, true, post.bid, post.version)
+      -- gear posted with a starting bid only has no buyout: price 0, as the game lists it
+      add_listing(post.id, post.unit_price or post.buyout or 0, post.quantity, true, post.bid, post.version)
       env.fire('AUCTION_HOUSE_AUCTION_CREATED', next_auction_id)
       next_auction_id = next_auction_id + 1
       env.fire('BAG_UPDATE', 0)
@@ -309,6 +344,9 @@ return function(env)
     set(C, 'ConfirmCommoditiesPurchase', function(id, quantity)
       sent('confirm ' .. id .. ' ' .. quantity)
       local q = quote
+      -- what this confirmation will cost if it goes through (for tests that compare it with what the
+      -- button showed when it was pressed)
+      server.last_confirm_total = q and q.id == id and q.quantity == quantity and q.total or nil
       quote = nil
       later(function()
         if not q or q.id ~= id or q.quantity ~= quantity then
@@ -340,9 +378,60 @@ return function(env)
           return
         end
         a.listing.quantity = a.listing.quantity - 1
+        a.listing.auction_id = nil -- what is left of the row goes on under a new ID
+        auctions[auction_id] = nil
         server.money = server.money - amount
         table.insert(server.purchases, {id = a.id, auction_id = auction_id, total = amount})
         env.fire('AUCTION_HOUSE_PURCHASE_COMPLETED', auction_id)
+      end)
+    end)
+
+    -- your own auctions (the Auctions tab): every listing of yours is one auction. Asked for with
+    -- QueryOwnedAuctions and answered later; a cancel is answered later too and takes the auction
+    -- off the house. server.cancels records the auction IDs the addon asked to cancel.
+    local owned = {}
+    server.cancels = server.cancels or {}
+    set(C, 'QueryOwnedAuctions', function()
+      sent('owned')
+      later(function()
+        owned = {}
+        for id, list in pairs(server.listings) do
+          for _, l in ipairs(list) do
+            if l.own and l.quantity > 0 then
+              local auction_id = auction_id_of(l)
+              auctions[auction_id] = {id = id, listing = l}
+              table.insert(owned, {
+                auctionID = auction_id, itemKey = server:key(id, l.version),
+                -- as seen on Forever: no link for trade goods, gear has one
+                itemLink = not server.items[id].commodity and server:link(id, l.version) or nil,
+                status = G.Enum.AuctionStatus.Active, quantity = l.quantity, timeLeftSeconds = 40000,
+                buyoutAmount = l.price > 0 and l.price or nil, bidAmount = nil, bidder = nil,
+              })
+            end
+          end
+        end
+        table.sort(owned, function(a, b) return a.auctionID < b.auctionID end)
+        env.fire('OWNED_AUCTIONS_UPDATED')
+      end)
+    end)
+    set(C, 'GetNumOwnedAuctions', function() return #owned end)
+    set(C, 'GetOwnedAuctionInfo', function(i) return owned[i] end)
+    set(C, 'CanCancelAuction', function(auction_id)
+      local a = auctions[auction_id]
+      return a ~= nil and a.listing.own == true and a.listing.quantity > 0
+    end)
+    set(C, 'GetCancelCost', function() return 0 end)
+    set(C, 'CancelAuction', function(auction_id)
+      sent('cancel ' .. auction_id)
+      table.insert(server.cancels, auction_id)
+      later(function()
+        local a = auctions[auction_id]
+        if not a or not a.listing.own or a.listing.quantity <= 0 then
+          env.fire('AUCTION_HOUSE_SHOW_ERROR', G.Enum.AuctionHouseError.ItemNotFound)
+          return
+        end
+        a.listing.quantity = 0
+        env.fire('AUCTION_CANCELED', auction_id)
       end)
     end)
 
@@ -356,6 +445,7 @@ return function(env)
     if self.frame then self.frame:Hide(); self.frame:SetScript('OnUpdate', nil) end
     for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
     saved, due, results, browse, quote, auctions = {}, {}, {}, nil, nil, {}
+    browse_rest = nil
   end
 
   -- an answer the server still owes
