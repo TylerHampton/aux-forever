@@ -267,7 +267,10 @@ Other mails **[Code]**: "Auction expired: X" (item back), "Auction canceled: X",
   list, and aux 16.2 s to read it. **[Seen]** Most of a Full scan is the wait for the server.
 - Full scan allowed once every 15 minutes per account. **[Outside]** (retail's rule, used by
   Auctionator and Arbitrage). aux waits 15 minutes itself, so the real limit on Forever has never
-  been tried. **[Unknown]**; low priority.
+  been tried. **[Unknown]**; low priority. A contributor report (Dragoy, PR #37, 2026-11-07) saw a
+  second `ReplicateItems` call a few minutes after another addon's get no answer within 2 minutes,
+  suggesting other addons' Full scans share the server's limit **[Outside]** (exact length still
+  **[Unknown]**).
 - The categories (Weapons, One-Handed, Daggers, ...) as the game printed them on 2026-10-11 **[Seen]**:
   `tests/forever_categories.lua`.
 - How many auctions one character may have up: **[Unknown]**; no experiment planned.

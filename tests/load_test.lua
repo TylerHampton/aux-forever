@@ -3732,6 +3732,7 @@ try('0.5 build 3 results', function()
   set(C_AuctionHouse, 'GetNumReplicateItems', function() return #list end)
   set(C_AuctionHouse, 'GetReplicateItemInfo', function(i) local a = list[i + 1]; return 'Item', 1, a.count, 1, true, 1, nil, 0, 0, a.buyout, 0, false, nil, 'Seller', nil, 0, a.id, true end)
   set(C_AuctionHouse, 'GetReplicateItemLink', function() return link end)
+  set(aux.account_data, 'replicate_time', 0)
   if scan_button then scan_button.__scripts.OnClick(scan_button) end
   for _ = 1, 3 do tick() end
   check('build 3: a Full scan says it is waiting for the auction house', texts[1] and texts[1]:find('waiting for the auction house', 1, true) ~= nil)
@@ -4254,6 +4255,141 @@ try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
   G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = real[1], real[2], real[3]
   G.InputUtil, G.GamepadMode = nil, nil
   aux_frame:Show()
+end)
+
+-- Gamepad focus on a result row (PR #41, nokkty): the item's tooltip beside aux's window, the item
+-- worn in that slot under it (Blizzard's comparison, moved from beside to under), so they compare
+-- top to bottom
+try('gamepad: a result row shows its item beside aux, the worn item under it', function()
+  local aux_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local require = loadstring("select(2, ...) 'aux.test.gamepad_compare'; return require")('auxForever', addon)
+  local auction_listing = require 'aux.gui.auction_listing'
+  local aux_frame = aux_env.frame
+  local saved = {}
+  for _, n in ipairs{'GameTooltip', 'ShoppingTooltip1', 'ShoppingTooltip2', 'GameTooltip_ShowCompareItem', 'TooltipComparisonManager', 'hooksecurefunc'} do saved[n] = G[n] end
+  local saved_sample = rawget(C_AuctionHouse, 'GetItemKeySampleLink')
+
+  -- tooltips that remember their owner, points and item
+  local function tooltip(name)
+    local t = new_frame(name)
+    t.__points = {}
+    rawset(t, 'SetOwner', function(self, owner, anchor) self.__owner, self.__anchor, self.__points = owner, anchor, {} end)
+    rawset(t, 'GetOwner', function(self) return self.__owner end)
+    rawset(t, 'ClearAllPoints', function(self) self.__points = {} end)
+    rawset(t, 'SetPoint', function(self, ...) tinsert(self.__points, {...}) end)
+    rawset(t, 'SetHyperlink', function(self, link) self.__item = link end)
+    rawset(t, 'GetWidth', function() return 300 end)
+    rawset(t, 'GetEffectiveScale', function() return 1 end)
+    t:Hide()
+    return t
+  end
+  G.GameTooltip, G.ShoppingTooltip1, G.ShoppingTooltip2 = tooltip('GameTooltip'), tooltip('ShoppingTooltip1'), tooltip('ShoppingTooltip2')
+  -- Blizzard's comparison: shows what is worn (two items, as for a ring) and places it beside
+  local worn = 2
+  G.TooltipComparisonManager = {AnchorShoppingTooltips = function()
+    ShoppingTooltip1:ClearAllPoints(); ShoppingTooltip1:SetPoint('TOPRIGHT', GameTooltip, 'TOPLEFT', 0, -10)
+    ShoppingTooltip2:ClearAllPoints(); ShoppingTooltip2:SetPoint('TOPRIGHT', ShoppingTooltip1, 'TOPLEFT', 0, 0)
+  end}
+  G.hooksecurefunc = function(t, name, fn)
+    local before = t[name]
+    t[name] = function(...) local r = before(...); fn(...); return r end
+  end
+  G.GameTooltip_ShowCompareItem = function(tip)
+    if worn >= 1 then ShoppingTooltip1:SetOwner(tip, 'ANCHOR_NONE'); ShoppingTooltip1:Show() end
+    if worn >= 2 then ShoppingTooltip2:SetOwner(tip, 'ANCHOR_NONE'); ShoppingTooltip2:Show() end
+    if worn >= 1 then TooltipComparisonManager:AnchorShoppingTooltips(true, worn >= 2) end
+  end
+
+  -- the window's right edge at 500 on a 1920 wide screen
+  rawset(aux_frame, 'GetRight', function() return 500 end)
+  rawset(aux_frame, 'GetEffectiveScale', function() return 1 end)
+  rawset(UIParent, 'GetRight', function() return 1920 end)
+  rawset(UIParent, 'GetEffectiveScale', function() return 1 end)
+
+  G.__geometry = {size = 29 + 19 * 3, edge = 100}
+  local holder = CreateFrame('Frame', nil, aux_frame)
+  local rt = auction_listing.new(holder, 19, auction_listing.search_columns)
+  rt.__scripts.OnSizeChanged(rt)
+  G.__geometry = nil
+  local row = rt.rows[1]
+  row.record = {link = 'item:4575', item_id = 4575}
+  row:Show()
+  local other = CreateFrame('Button', nil, aux_frame)
+  local function point(t, i) local p = t.__points[i or 1] return p and table.concat({tostring(p[1]), p[2] == aux_frame and 'aux' or tostring(p[2] and p[2].__name), tostring(p[3])}, ' ') end
+
+  aux_env.gamepad_set_focus(row)
+  check('gamepad compare: the row shows its item', GameTooltip.__shown and GameTooltip.__item == 'item:4575' and GameTooltip:GetOwner() == aux_frame)
+  check('gamepad compare: the item is right of the window', point(GameTooltip) == 'TOPLEFT aux TOPRIGHT' and #GameTooltip.__points == 1)
+  check('gamepad compare: the worn item is under it', point(ShoppingTooltip1) == 'TOPLEFT GameTooltip BOTTOMLEFT' and #ShoppingTooltip1.__points == 1)
+  check('gamepad compare: a second worn item (rings) under that', point(ShoppingTooltip2) == 'TOPLEFT ShoppingTooltip1 BOTTOMLEFT')
+  check('gamepad compare: the row is highlighted as under the mouse', row.hover.__shown)
+
+  -- Blizzard places the comparison again (its item data arrives late): it goes back under
+  TooltipComparisonManager:AnchorShoppingTooltips(true, true)
+  check('gamepad compare: placed again by Blizzard, it stays under', point(ShoppingTooltip1) == 'TOPLEFT GameTooltip BOTTOMLEFT' and point(ShoppingTooltip2) == 'TOPLEFT ShoppingTooltip1 BOTTOMLEFT')
+
+  -- refreshing the same focused row onto a non-gear item (as scroll or A does) clears old comparison
+  check('gamepad compare: gear shows comparison before refresh', ShoppingTooltip1.__shown and ShoppingTooltip2.__shown)
+  worn = 0
+  row.record = {link = 'item:2589', item_id = 2589}
+  local old_click, clicked = row:GetScript('OnClick'), 0
+  row:SetScript('OnClick', function() clicked = clicked + 1 end)
+  local padA = G['auxForeverPadA']
+  padA.__scripts.OnClick(padA)
+  check('gamepad compare: refreshing onto a non-gear item clears old comparison tooltips', clicked == 1 and not ShoppingTooltip1.__shown and not ShoppingTooltip2.__shown and GameTooltip.__item == 'item:2589')
+
+  -- pressing A on a row whose click clears its record (e.g. fast row opening a search) hides cleanly
+  row:SetScript('OnClick', function(self) clicked = clicked + 1; self.record = nil end)
+  padA.__scripts.OnClick(padA)
+  check('gamepad compare: pressing A when record clears hides tooltip without error', clicked == 2 and not GameTooltip.__shown)
+  row:SetScript('OnClick', old_click)
+  row.record = {link = 'item:4575', item_id = 4575}
+
+  -- moving on hides the comparison with the tooltip
+  worn = 2
+  aux_env.gamepad_set_focus(other)
+  aux_env.gamepad_set_focus(row)
+  aux_env.gamepad_set_focus(other)
+  check('gamepad compare: moving off the row hides both', not GameTooltip.__shown and not ShoppingTooltip1.__shown and not ShoppingTooltip2.__shown and not row.hover.__shown)
+
+  -- the mouse keeps Blizzard's own placement
+  ShoppingTooltip1:Show(); ShoppingTooltip2:Show()
+  GameTooltip:SetOwner(row, 'ANCHOR_RIGHT'); GameTooltip:Show()
+  TooltipComparisonManager:AnchorShoppingTooltips(true, true)
+  check('gamepad compare: a mouse hover keeps Blizzard placing it', point(ShoppingTooltip1) == 'TOPRIGHT GameTooltip TOPLEFT')
+  GameTooltip:Hide(); ShoppingTooltip1:Hide(); ShoppingTooltip2:Hide()
+
+  -- no room on the right: left of the window, comparison right-aligned so it stays off aux
+  rawset(aux_frame, 'GetRight', function() return 1800 end)
+  worn = 2
+  aux_env.gamepad_set_focus(row)
+  check('gamepad compare: no room on the right, the item is left of the window', point(GameTooltip) == 'TOPRIGHT aux TOPLEFT')
+  check('gamepad compare: left-side comparison stacks along the right edge away from aux', point(ShoppingTooltip1) == 'TOPRIGHT GameTooltip BOTTOMRIGHT' and point(ShoppingTooltip2) == 'TOPRIGHT ShoppingTooltip1 BOTTOMRIGHT')
+  worn = 0
+  aux_env.gamepad_set_focus(other)
+  aux_env.gamepad_set_focus(row)
+  check('gamepad compare: nothing worn, no comparison', not ShoppingTooltip1.__shown)
+
+  -- FB-045 preserved: ItemTooltip prefers C_AuctionHouse.GetItemKeySampleLink on fast rows
+  rawset(C_AuctionHouse, 'GetItemKeySampleLink', function() return 'item:4575:sample' end)
+  row.record = {browse_key = {itemID = 4575, itemLevel = 20, itemSuffix = 123}, link = 'item:4575'}
+  aux_env.gamepad_set_focus(other)
+  aux_env.gamepad_set_focus(row)
+  check('gamepad compare: ItemTooltip preserves GetItemKeySampleLink (FB-045)', GameTooltip.__item == 'item:4575:sample')
+
+  -- a list scrolled past its last record: the empty row shows nothing
+  row.record = nil
+  aux_env.gamepad_set_focus(other)
+  aux_env.gamepad_set_focus(row)
+  check('gamepad compare: an empty row shows no item', not GameTooltip.__shown)
+
+  aux_env.gamepad_set_focus(nil)
+  rawset(C_AuctionHouse, 'GetItemKeySampleLink', saved_sample)
+  rawset(aux_frame, 'GetRight', nil); rawset(aux_frame, 'GetEffectiveScale', nil)
+  rawset(UIParent, 'GetRight', nil); rawset(UIParent, 'GetEffectiveScale', nil)
+  other:Hide()
+  holder:Hide()
+  for n, v in pairs(saved) do G[n] = v end
 end)
 
 -- aux's popups in gamepad mode: shown in a dialog of aux's own the pad can reach (a Blizzard popup
@@ -5535,8 +5671,21 @@ try('0.8.2: a Full scan waits for a slow auction house', function()
   for _ = 1, 6100 do tick(); if not scan.is_scanning() then break end end
   check('fb037: after 10 minutes without an answer it stops', not scan.is_scanning())
   check('fb037: and says nothing was recorded', said('did not answer within 10 minutes, so nothing was recorded') ~= nil)
+  check('pr37: no-answer message notes another addon counts too', said('another addon counts too') ~= nil)
   check('fb037: no "complete" line when nothing came', said('Full scan complete') == nil and said('full scan complete') == nil)
   check('fb037: the summary is empty for a failed scan', scan.full_scan_summary({full = {failed = true}}) == nil)
+
+  -- PR #37: clicking Full scan (or Sniper's notice button) while on cooldown reports when it is ready
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local asked_before = asked
+  printed = {}
+  a.account_data.replicate_time = time()
+  sniper.notice_button.__scripts.OnClick(sniper.notice_button)
+  check('pr37: Sniper notice button on cooldown says when ready and does not call ReplicateItems', asked == asked_before and not scan.is_scanning() and said('available again in') ~= nil)
+  a.account_data.replicate_time = 0
+  sniper.notice_button.__scripts.OnClick(sniper.notice_button)
+  check('pr37: Sniper notice button starts Full scan when ready', scan.is_full_scan() and asked == asked_before + 1)
+  scan.abort()
 
   a.frame.__shown = was_shown
   for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end

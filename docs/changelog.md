@@ -39,6 +39,20 @@ updating; `/reload` is enough.
   on, a trade good's price from the auction house is still never more than the price on the
   button. (suggested by Tremulent)
 
+### Gamepad
+
+- On a row of the search results (and the Sniper, Auctions and Bids tables), the item's tooltip now
+  shows beside aux's window instead of over the rows, and for gear the item you wear in that slot
+  shows right under it, with the stat changes, so you can compare without the mouse. (contributed
+  by nokkty)
+
+### Full scan
+
+- When the auction house does not answer a Full scan, the chat message now notes that a recent Full
+  scan by another addon counts toward the server limit too. Clicking the Sniper notice's Full scan
+  button while on the 15-minute cooldown now prints when the next scan is allowed instead of doing
+  nothing. (suggested by Dragoy)
+
 ### Chat commands
 
 - `/aux post bid on` turns bid prices on. Only `unit` and `stack` were known, so `on` turned them

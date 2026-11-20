@@ -8,17 +8,34 @@ saved is exported in `docs/test-results/test-page-results.md`.
 
 If BugSack shows an error at any point, copy its full text into that step's note.
 
-## Current build: 0.8.2.2 build 3
+## Current build: 0.8.2.2 build 4
 
-Built by Claude on 2026-11-19 as the last change before the takeover; checked by Gemini Neon's first
-session with Tyler. The only change from build 2: Buy rests a quarter second after a purchase (half a
-second in build 2, which Tyler found "still feels too long"; FB-051). Zip
-`auxForever-0.8.2.2-build3.zip`; `/reload` is enough (no new files).
+Built 2026-11-20 (Gemini Neon): adds build 3's quarter-second rest after buying (not tested yet) plus
+two contributor pull requests: gamepad item comparison beside aux's window (PR #41, nokkty) and
+Full scan cooldown/no-answer feedback (PR #37, Dragoy; most of PR #37 already shipped in 0.8.2).
+Zip `auxForever-0.8.2.2-build4.zip`; `/reload` is enough (no new files).
 
-- [ ] 1. The rest after buying. Search tab: search `linen cloth/exact`, click the cheapest row, keep
-      1 picked, click Buy and then at once click it again. The bar says "Bought 1 × Linen Cloth",
-      the button is faded only for a blink, and chat shows one "You won an auction for Linen Cloth
-      (x1)" line. In the note: does the rest still feel too long?
+- [ ] 1. The rest after buying (FB-051, carried over from build 3). Search tab: search
+      `linen cloth/exact`, click the cheapest row, keep `1` picked, click Buy and then at once click
+      it again. The bar says "Bought 1 × Linen Cloth", the button is faded only for a blink, and
+      chat shows one "You won an auction for Linen Cloth (x1)" line. In your reply: Pass or Fail,
+      and does the rest still feel too long?
+- [ ] 2. Mouse tooltip sanity check. On the Search tab, point the mouse at the icon of any gear row
+      (for example `linen belt/exact`). The item's tooltip still shows next to the mouse as before
+      (and your equipped comparison tooltip if you wear something in that slot), with no BugSack
+      error.
+- [ ] 3. Only if you play with a gamepad; otherwise Skip (PR #41, nokkty). Turn on gamepad mode.
+      Search `usable/weapons` (Fast), press D-pad down onto a gear row for a slot where you wear
+      something: the item's tooltip appears to the right of aux's window (or left if aux sits on the
+      right edge of the screen), and your worn item's comparison stacks directly under it. Press
+      D-pad down past the bottom row to scroll: both tooltips follow each row. Press D-pad left or
+      right to leave the list: both tooltips disappear.
+
+## 0.8.2.2 build 3 (not tested; superseded by build 4)
+
+Built by Claude on 2026-11-19 as the last change before the takeover. The only change from build 2:
+Buy rests a quarter second after a purchase (half a second in build 2, which Tyler found "still
+feels too long"; FB-051). Its check is step 1 of build 4.
 
 ## 0.8.2.2 build 2 (tested 2026-11-17)
 

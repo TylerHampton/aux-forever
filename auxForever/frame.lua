@@ -307,9 +307,19 @@ do
     end)
     btn:SetScript('OnLeave', function() GameTooltip:Hide() end)
     btn:SetMotionScriptsWhileDisabled(true)
-    -- the Sniper's notice has a Full scan button of its own that clicks this one (0.6 build 9)
+    -- Starts a Full scan (PR #37, Dragoy). Both the top button and the Sniper's notice button call
+    -- this; if clicked while on cooldown, it says when the next one is allowed instead of silently
+    -- doing nothing.
     M.full_scan_button = btn
-    btn:SetScript('OnClick', function()
+    function M.start_full_scan()
+        if scan.is_full_scan() then
+            return
+        end
+        local seconds = seconds_until_scan()
+        if seconds > 0 then
+            print(format('Full scan is available again in %d:%02d. The game allows one every 15 minutes.', floor(seconds / 60), seconds % 60))
+            return
+        end
         local count, shown_percent = 0
         scan.start{
             type = 'list',
@@ -355,6 +365,9 @@ do
                 end
             end,
         }
+    end
+    btn:SetScript('OnClick', function()
+        start_full_scan()
     end)
     scan_button = btn
 end

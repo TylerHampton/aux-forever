@@ -146,14 +146,107 @@ local function stops()
     return found
 end
 
-local function show_tooltip(f)
-    local enter = f and f:GetScript('OnEnter')
-    if enter then enter(f) end
+-- An auction row (gui/auction_listing.lua) under the pad shows its item's tooltip beside aux's
+-- window, where it covers no rows, and under it the item the player wears in that slot, so the two
+-- read top to bottom (PR #41, nokkty). The mouse keeps the row's own tooltips. The comparison is
+-- Blizzard's (GameTooltip_ShowCompareItem, as the row icon's hover uses): it shows only for gear
+-- with something worn in its slot, and places ShoppingTooltip1 and 2 beside the item; aux moves
+-- them under it.
+local row_tooltip -- the row whose item tooltip is shown
+local row_tooltip_side -- 'right' or 'left' of aux's window
+local GAP = 2
+
+local function is_auction_row(f)
+    return f.rt ~= nil and f.record ~= nil and f.rt.ItemTooltip ~= nil
+end
+
+local function hide_shopping_tooltips()
+    for _, name in ipairs{'ShoppingTooltip1', 'ShoppingTooltip2'} do
+        if _G[name] then _G[name]:Hide() end
+    end
+end
+
+local function stack_comparison()
+    if not row_tooltip or not GameTooltip:IsShown() or GameTooltip:GetOwner() ~= frame then return end
+    local edge = row_tooltip_side == 'left' and 'RIGHT' or 'LEFT'
+    local above = GameTooltip
+    for _, name in ipairs{'ShoppingTooltip1', 'ShoppingTooltip2'} do
+        local tip = _G[name]
+        if tip and tip:IsShown() then
+            tip:ClearAllPoints()
+            tip:SetPoint('TOP' .. edge, above, 'BOTTOM' .. edge, 0, -GAP)
+            above = tip
+        end
+    end
+end
+
+-- right of aux's window, or left of it when the screen has no room on the right
+local function place_row_tooltip()
+    GameTooltip:ClearAllPoints()
+    local width = (GameTooltip:GetWidth() or 0) * (GameTooltip:GetEffectiveScale() or 1)
+    for _, name in ipairs{'ShoppingTooltip1', 'ShoppingTooltip2'} do
+        local tip = _G[name]
+        if tip and tip:IsShown() then
+            width = max(width, (tip:GetWidth() or 0) * (tip:GetEffectiveScale() or 1))
+        end
+    end
+    local right = (frame:GetRight() or 0) * (frame:GetEffectiveScale() or 1)
+    local screen = (UIParent:GetRight() or 0) * (UIParent:GetEffectiveScale() or 1)
+    if right + width + GAP <= screen then
+        row_tooltip_side = 'right'
+        GameTooltip:SetPoint('TOPLEFT', frame, 'TOPRIGHT', GAP, 0)
+    else
+        row_tooltip_side = 'left'
+        GameTooltip:SetPoint('TOPRIGHT', frame, 'TOPLEFT', -GAP, 0)
+    end
+    stack_comparison()
+end
+
+-- Blizzard places the comparison again when its item data arrives late: aux puts it back under.
+-- Confirmed in Forever's UI source (Code, Blizzard_SharedXMLGame/Tooltip/TooltipComparisonManager.lua).
+local comparison_hooked
+local function hook_comparison()
+    if comparison_hooked then return end
+    comparison_hooked = true
+    local manager = _G.TooltipComparisonManager
+    if manager and manager.AnchorShoppingTooltips then
+        hooksecurefunc(manager, 'AnchorShoppingTooltips', function()
+            if row_tooltip and GameTooltip:IsShown() and GameTooltip:GetOwner() == frame then
+                place_row_tooltip()
+            end
+        end)
+    end
+end
+
+local function show_row_tooltip(row)
+    hook_comparison()
+    row_tooltip = row
+    if row.hover then row.hover:Show() end
+    -- scrolling from gear to a trade good on the same row leaves prior comparison tooltips up unless cleared
+    hide_shopping_tooltips()
+    GameTooltip:SetOwner(frame, 'ANCHOR_NONE')
+    row.rt:ItemTooltip(row)
+    GameTooltip:Show()
+    if GameTooltip_ShowCompareItem then GameTooltip_ShowCompareItem(GameTooltip) end
+    place_row_tooltip()
 end
 
 local function hide_tooltip(f)
+    if f and f == row_tooltip then
+        row_tooltip = nil
+        row_tooltip_side = nil
+        hide_shopping_tooltips()
+    end
     local leave = f and f:GetScript('OnLeave')
     if leave then leave(f) end
+end
+
+local function show_tooltip(f)
+    if f and is_auction_row(f) then return show_row_tooltip(f) end
+    -- a list scrolled past its last record leaves the row empty
+    if f and f == row_tooltip then hide_tooltip(f) end
+    local enter = f and f:GetScript('OnEnter')
+    if enter then enter(f) end
 end
 
 local function set_focus(f)
@@ -554,6 +647,11 @@ local actions = {
             else
                 local deal = sniper_deal(focused) and focused
                 press(focused)
+                -- the row's click hint follows the new state (Click: select, Click again: let go);
+                -- uses show_tooltip so a row whose record cleared hides cleanly instead of erroring
+                if focused and focused == row_tooltip then
+                    if focused:IsVisible() then show_tooltip(focused) else hide_tooltip(focused) end
+                end
                 if deal then
                     wait_for_buy(deal)
                     gamepad_poll()

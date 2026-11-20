@@ -25,6 +25,12 @@ controller's own icons and what each does on the control in focus; Y shows only 
 can be pressed. Y never spends money on the Sniper: there, buying is A on the deal, then A on Buy (since
 0.8.2.1 build 7 there is no Confirm step, unless "Confirm before buying" is on: then A on Confirm too).
 
+On a row of a results table (Search, Sniper, Auctions, Bids), the item's tooltip shows to the right
+of aux's window (to its left when the screen has no room on the right), where it covers no rows.
+For gear with something worn in its slot, the worn item's tooltip shows under it, with the stat
+changes, so the two read top to bottom; for rings, trinkets and one-handed weapons both worn items
+show, one under the other. The tooltip follows the gold frame as the D-pad moves and scrolls.
+
 The Blizzard UI button gives the pad back to Blizzard's own navigation while Blizzard's window is
 shown, and aux takes it again once it is hidden.
 
@@ -62,6 +68,16 @@ shown, and aux takes it again once it is hidden.
   definition (text, buttons, OnShow, OnAccept, OnCancel, OnHide, edit box), with the focus on
   Cancel or No when there are two buttons. With mouse and keyboard they are the game's popups as
   before.
+- **Item tooltips on result rows (PR #41, nokkty).** When the focus lands on a row of
+  `gui/auction_listing.lua`, aux shows `rt:ItemTooltip(row)` (the item and its click hint, also used
+  by the row icon's mouse hover) in `GameTooltip`, owned by aux's window, then Blizzard's comparison
+  (`GameTooltip_ShowCompareItem`, as the icon hover; it shows only for gear with something worn
+  there). Blizzard places `ShoppingTooltip1` and `2` beside the item; aux moves them under it
+  (aligned along the outer edge away from aux's window). When Blizzard places them again on late
+  item data, aux hooks `TooltipComparisonManager.AnchorShoppingTooltips` with `hooksecurefunc`
+  (confirmed in Forever's UI source, `Blizzard_SharedXMLGame/Tooltip/TooltipComparisonManager.lua`,
+  **Code**) and puts them back, only while its own row tooltip is shown. Hooking a tooltip function
+  is not writing into the gamepad system. Mouse hovers are unchanged.
 - **Hints.** The strip is checked four times a second while it is shown, since buttons appear and
   grey out without a pad press, and redrawn only on a change. Nothing else runs on a timer, and
   nothing runs with aux closed or with mouse and keyboard.
