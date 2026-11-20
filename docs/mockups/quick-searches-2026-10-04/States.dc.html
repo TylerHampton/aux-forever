@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Quick search menu states</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#e3a43b}a:hover{color:#f2c46d}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 1100px; height: 560px; box-sizing: border-box; padding: 24px; background: #0c0d0f; font-family: 'Arial Narrow', 'PT Sans Narrow', sans-serif; color: #e6e2d8; display: flex; gap: 28px">
+
+<div style="width: 420px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 13px; color: #8e8a81; text-transform: uppercase; letter-spacing: 0.6px">A recent item search</div>
+<div style="padding: 6px; background: #1b1e22; border: 1px solid #3a3f46; border-radius: 8px">
+<div style="display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 4px 0 8px; border-radius: 6px">
+<span style="width: 30px; height: 30px; box-sizing: border-box; border-radius: 5px; background: #2a2e34; border: 1px solid #4a4f56; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #cfcac0">LH</span>
+<span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15.5px; color: #f3efe6">Light Hide</span><span style="font-size: 12.5px; color: #8e8a81">Cheapest 48c, 12m ago</span></span>
+</div>
+</div>
+
+<div style="font-size: 13px; color: #8e8a81; text-transform: uppercase; letter-spacing: 0.6px">Mouse over it: the pin appears</div>
+<div style="padding: 6px; background: #1b1e22; border: 1px solid #3a3f46; border-radius: 8px">
+<div style="display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 4px 0 8px; border-radius: 6px; background: #262a30">
+<span style="width: 30px; height: 30px; box-sizing: border-box; border-radius: 5px; background: #2a2e34; border: 1px solid #2f6b2f; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #cfcac0">RB</span>
+<span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15.5px; color: #4fd04f">Ritual Bands</span><span style="font-size: 12.5px; color: #8e8a81">Cheapest 3s 00c, 25m ago</span></span>
+<button aria-label="Pin Ritual Bands" style="width: 30px; height: 30px; border: none; border-radius: 5px; background: #30353c; color: #e6e2d8; display: flex; align-items: center; justify-content: center"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M6 1.8h4l-.5 4 2.3 2.4H4.2L6.5 5.8z"></path><path d="M8 8.2V14.5" stroke-linecap="round"></path></svg></button>
+</div>
+</div>
+
+<div style="font-size: 13px; color: #8e8a81; text-transform: uppercase; letter-spacing: 0.6px">Pinned: always at the top, pin stays lit</div>
+<div style="padding: 6px; background: #1b1e22; border: 1px solid #3a3f46; border-radius: 8px">
+<div style="display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 4px 0 8px; border-radius: 6px">
+<span style="width: 30px; height: 30px; box-sizing: border-box; border-radius: 5px; background: #2a2e34; border: 1px solid #4a4f56; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #cfcac0">CO</span>
+<span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15.5px; color: #f3efe6">Copper Ore</span><span style="font-size: 12.5px; color: #8e8a81">Cheapest 2s 77c, 4m ago</span></span>
+<button aria-label="Unpin Copper Ore" style="width: 30px; height: 30px; border: none; border-radius: 5px; background: transparent; color: #e3a43b; display: flex; align-items: center; justify-content: center"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"><path d="M6 1.8h4l-.5 4 2.3 2.4H4.2L6.5 5.8z"></path><path d="M8 8.2V14.5" fill="none" stroke-linecap="round"></path></svg></button>
+</div>
+</div>
+
+<div style="font-size: 13px; color: #8e8a81; text-transform: uppercase; letter-spacing: 0.6px">A filter search (more than one item)</div>
+<div style="padding: 6px; background: #1b1e22; border: 1px solid #3a3f46; border-radius: 8px">
+<div style="display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 4px 0 8px; border-radius: 6px">
+<span style="width: 30px; height: 30px; box-sizing: border-box; border-radius: 5px; background: #23262b; border: 1px solid #3a3f46; display: flex; align-items: center; justify-content: center; color: #a8a49b"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2 3h12l-4.6 5.4V13l-2.8 1.2V8.4z"></path></svg></span>
+<span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15.5px; color: #e6e2d8">Cloth, level 20 to 30</span><span style="font-size: 12.5px; color: #8e8a81">Filter search, 1h ago</span></span>
+</div>
+</div>
+</div>
+
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 13px; color: #8e8a81; text-transform: uppercase; letter-spacing: 0.6px">The button next to the back arrow</div>
+<div style="display: flex; align-items: center; gap: 28px; padding: 14px; background: #16181b; border: 1px solid #2b2f35; border-radius: 8px">
+<div style="display: flex; align-items: center; gap: 6px">
+<button aria-label="Previous search" style="width: 30px; height: 30px; border: 1px solid #2f343a; border-radius: 6px; background: #1b1e22; color: #cfcac0; display: flex; align-items: center; justify-content: center"><svg width="9" height="13" viewBox="0 0 10 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1L2 7l6 6"></path></svg></button>
+<button aria-label="Quick searches" style="height: 30px; padding: 0 7px; display: flex; align-items: center; gap: 3px; border: 1px solid #2f343a; border-radius: 6px; background: #1b1e22; color: #cfcac0"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.2"></circle><path d="M8 4.6V8l2.4 1.6"></path></svg><svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3.5l3 3 3-3"></path></svg></button>
+<span style="font-size: 14px; color: #8e8a81">Closed</span>
+</div>
+<div style="display: flex; align-items: center; gap: 6px">
+<button aria-label="Previous search" style="width: 30px; height: 30px; border: 1px solid #2f343a; border-radius: 6px; background: #1b1e22; color: #cfcac0; display: flex; align-items: center; justify-content: center"><svg width="9" height="13" viewBox="0 0 10 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1L2 7l6 6"></path></svg></button>
+<button aria-label="Quick searches" style="height: 30px; padding: 0 7px; display: flex; align-items: center; gap: 3px; border: 1px solid #e3a43b; border-radius: 6px; background: #3a2e15; color: #f6d48f"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.2"></circle><path d="M8 4.6V8l2.4 1.6"></path></svg><svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3.5l3 3 3-3"></path></svg></button>
+<span style="font-size: 14px; color: #8e8a81">Menu open</span>
+</div>
+</div>
+
+<div style="font-size: 13px; color: #8e8a81; text-transform: uppercase; letter-spacing: 0.6px">First time: nothing searched yet</div>
+<div style="width: 400px; box-sizing: border-box; padding: 8px; background: #1b1e22; border: 1px solid #3a3f46; border-radius: 8px; display: flex; flex-direction: column; gap: 2px">
+<div style="padding: 4px 10px 6px 10px; font-size: 12px; color: #e3a43b; text-transform: uppercase; letter-spacing: 0.8px">Pinned</div>
+<div style="padding: 2px 10px 10px 10px; font-size: 13px; color: #8e8a81">Pin a search below to keep it here.</div>
+<div style="height: 1px; background: #2b2f35; margin: 4px 4px"></div>
+<div style="padding: 4px 10px 6px 10px; font-size: 12px; color: #a8a49b; text-transform: uppercase; letter-spacing: 0.8px">Recent</div>
+<div style="padding: 2px 10px 12px 10px; font-size: 13px; color: #8e8a81">Your searches show up here, the last 50 are kept. Shift-click an item in your bags to search it.</div>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1100,"height":560}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

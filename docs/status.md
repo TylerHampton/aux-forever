@@ -1,14 +1,20 @@
 # Status
 
-Last updated 2026-11-18, Tyler's time (0.8.2.1 released; main merged into the Upgrades branch).
+Last updated 2026-11-20, Tyler's time (0.8.2.2 build 4 passed, ready to release when Tyler says; 0.8.2.2 merged into the Upgrades branch).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-10 is there).
 
 ## Start here (next session)
 
+**Takeover (Tyler, 2026-11-19):** Gemini Neon is now the primary engineer and Claude Code the
+reviewer (`AGENTS.md`, "Roles"). H-012 in `docs/handoff.md` stays open until 0.8.2.2 is released.
+Claude-only tools are retired: mockups are in `docs/mockups/`, the test page's saved answers in
+`docs/test-results/test-page-results.md`.
+
 **Being built: the Upgrades tab** (branch `search-upgrade-support`, not released). `main` up to
-0.8.2.1 merged into it on 2026-11-18 (see the last note). Notes, newest last:
+0.8.2.1 merged into it on 2026-11-18, and 0.8.2.2 build 4 (branch `claude/confident-bohr-vctz8g`) on
+2026-11-20 (see the last note). Notes, newest last:
 
 **2026-11-16, Claude, Upgrades tab plan** (branch `search-upgrade-support`, from `main` after
 0.8.2): a new tab after Sniper that finds gear upgrades by spec stat weights. Plan, open decisions
@@ -68,15 +74,43 @@ named `saved` hid the saved functions); fixed. Lint: `GetInventoryItemLink` adde
 only the `C_Item` ones). Both looks 0 errors under LuaJIT. Next: steps 1 to 31 in game, plus a
 Full scan to check the endings are still saved after the merge (step 28).
 
+**2026-11-20, Claude, 0.8.2.2 merged in.** Tyler's branch `claude/confident-bohr-vctz8g` (0.8.2.2
+build 4: Confirm before buying, the rest after buying, the faster Sniper and Live, gamepad item
+compare from PR #41, the Full scan polish from PR #37, and the Gemini Neon takeover docs) merged
+into this branch. Conflicts: Settings now has POSTING, BUYING, then UPGRADES in the left column, and
+the window is 386 high (was 358) so "Saved item stats" fits while a reload is waiting; the gamepad
+Y line names both Confirm and the Upgrades tab; changelog, `TESTING.md` and this file keep both
+sides. Tyler's new code uses only tab numbers 1 and 2, which did not move. Tests: both looks 0
+errors, 1566 checks (1497 here, 1440 on his branch before). Lint not run locally (no `luac5.1`);
+CI runs it. Step 14 now checks the new Settings column. Next: steps 1 to 31 in game.
+
 **Released:** 0.8.2.1 on 2026-11-16 (pull request to `main`, Release workflow: tag `v0.8.2.1`,
 GitHub release, CurseForge Beta file). What it holds: `docs/changelog.md`, "0.8.2.1". How it was
 built and tested, build by build: `docs/status-history.md` (top) and `TESTING.md`.
 
 **Tyler, after the release:** paste `docs/curseforge-description.md` into the CurseForge page (it
-now says a trade good is bought with one click).
+now says a trade good is bought with one click, starts at 1, and mentions Confirm before buying).
 
-**Nothing else is being built.** The next version is not chosen; candidates below and in
-`docs/roadmap.md` (0.9: shopping lists and writs, an automatic Full scan option, posting rules).
+**Ready to release: 0.8.2.2** (branch `claude/confident-bohr-vctz8g`). Every non-gamepad step across
+builds 1, 2 and 4 passed in game:
+- Build 1 (passed 2026-11-17): FB-050 (Search buy bar starts at 1; Sniper still starts at a deal's
+  units), FB-051 (rest after buying, tuned to 0.25 s in build 3), FB-049 (Settings > Buying >
+  "Confirm before buying" and `/aux buy confirm`, off by default, trade goods and gear), FB-052
+  (`/aux post bid on`).
+- Build 2 (passed 2026-11-17): FB-055 (Sniper skips grays, 1 s between rounds, Live every 2 s).
+  The house was 25,706 items (37.7 s, 52 requests for the list alone; grays only 2%), so a
+  whole-house Sniper round cannot go under about 38 s.
+- Build 4 (passed 2026-11-20): quarter-second rest after buying passed; mouse tooltip sanity check
+  passed; PR #41 (nokkty, gamepad item compare; skipped by Tyler, tested by nokkty and automated
+  tests) and PR #37 (Dragoy, Full scan cooldown and no-answer message polish) integrated and closed;
+  CI test artifacts now named `auxForever-<version>-build<n>.zip`.
+
+Waiting on Tyler: say the word to release 0.8.2.2 (PR to `main` + Release workflow), and decide
+whether a narrower Sniper (FB-055, mockup first) goes into 0.9.
+
+Next version after that: not chosen; candidates below and in `docs/roadmap.md` (0.9: shopping
+lists and writs, an automatic Full scan option, posting rules; FB-053, a controller button to
+search, belongs there).
 
 **Saved for later (Tyler, 2026-11-16: "Just save the test for a later date :) and we will monitor
 feedback"):** the in-game check of buying through a row of many sellers (S-08; build 7 step 3,
@@ -101,25 +135,27 @@ Protection" tooltips (FB-045, not tried).
   one part each of R-16 and R-20 (review file).
 
 **Open questions for Tyler:**
+0. FB-054 (jebbush, "cannot sort by bag slots"): does he know which screen they meant? Likely the
+   Post tab's bag list, sorted by name. FB-053: whether Forever's gamepad mode lets an addon use
+   the triggers (an experiment before building). FB-052: a reply for joker2206 is in its entry.
 1. FB-046: does he use Bagnon? FB-042: a screenshot of a Waylaid Crate's turn-in reward.
 2. R-27: one sale and a screenshot of its "Auction successful" mail (experiment E1) settles the 5%
    cut aux shows as fact; one auction left to expire (E4) settles "kept if the auction expires".
 3. Replies to the players of the 2026-11-08 and 2026-11-16 feedback batches are not written; does
    he want them?
 
-**Roles (Tyler, 2026-10-26):** Claude Code is the primary engineer; Gemini (Gemini 4 Argon) gives
-second opinions in `docs/reviews/` (`AGENTS.md`, "Roles"). Agents talk through `docs/handoff.md`;
-Tyler only says "Check the handoff". Nothing is open there.
+**Roles (Tyler, 2026-11-19):** Gemini Neon is the primary engineer; Claude Code gives second
+opinions in `docs/reviews/` (`AGENTS.md`, "Roles"; until 2026-11-19 it was the other way, with
+Gemini 4 Argon reviewing). Agents talk through `docs/handoff.md`; Tyler only says "Check the
+handoff". Open there: H-012, the takeover, for Gemini Neon.
 
-**How Tyler tests:** one test page, https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ. For a new
-build, republish its `index.html` with a new `BUILD` id and the steps in `AREAS` (the same steps as
-`TESTING.md`, "Current build"). Tyler marks Pass, Fail or Skip with notes and screenshots; read
-them with ArtifactData, collection `builds/<build id>/results`, and download each screenshot with
-Artifact read, `path` = the asset id, one at a time. He often uploads screenshots without marking a
-status: read the screenshots. He screenshots with Win+Shift+S, which holds Shift (tooltip prices
-then show the whole stack, "for 3"). Zips are `auxForever-<version>-build<n>.zip`, sent with the
-file tool; always say whether `/reload` is enough.
+**How Tyler tests:** from `TESTING.md` ("Current build"): he runs the steps and answers in the chat
+with Pass or Fail, notes and screenshots; the engineer writes them under the build as "Results".
+He often sends screenshots without saying Pass or Fail (judge from the picture). He screenshots
+with Win+Shift+S, which holds Shift (tooltip prices then show the whole stack, "for 3"). Zips are
+`auxForever-<version>-build<n>.zip`; always say whether `/reload` is enough. (Until 2026-11-19 Claude
+used a claude.ai test page; its answers are in `docs/test-results/test-page-results.md`.)
 
-**Where the rest is:** plans in `docs/roadmap.md` (0.9: shopping lists, an automatic Full scan
+**Where the rest is:** everything Claude knew at the takeover in `docs/takeover-2026-11.md`, plans in `docs/roadmap.md` (0.9: shopping lists, an automatic Full scan
 option, posting rules), player feedback in `docs/feedback.md`, facts about Forever's auction house
 in `docs/forever-auction-house.md`, older status notes in `docs/status-history.md`.

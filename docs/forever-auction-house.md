@@ -141,11 +141,14 @@ search and buy, which work in game **[Seen]**.
   every case. Inference: below some amount the game charges 1s; the Classic formula alone would
   give a few copper for these. The 1c deposit once shown for Minor Mana Potion (0.4) was only
   aux's display, not what the game took.
-- The 1 silver floor drops to 1 copper: listed in Blizzard's 2026-11-10 hotfixes, pulled, and
-  announced for the weekly maintenance of 2026-11-17 (North America) and 2026-11-18 (Europe)
-  **[Outside]** ([Massively OP](https://massivelyop.com/2026/11/11/wow-forever-reduces-auction-house-listing-costs-and-adds-more-gold-to-high-level-quests/),
+- The 1 silver floor dropped to 1 copper: announced for the weekly maintenance of 2026-11-17
+  (North America) and 2026-11-18 (Europe) **[Outside]**
+  ([Massively OP](https://massivelyop.com/2026/11/11/wow-forever-reduces-auction-house-listing-costs-and-adds-more-gold-to-high-level-quests/),
   [Icy Veins](https://www.icy-veins.com/wow-forever/news/the-auction-house-is-still-unusable-at-low-levels-deposit-cost-change-delayed/)).
-  aux shows the game's own number, so nothing in aux depends on the floor.
+  Confirmed in game (Tyler, 2026-11-20) **[Seen]**: 10 Rough Sharpening Stones (2 hours) showed 1c
+  deposit in Blizzard's window and took 1c; Scroll: CHAP BALK WELLES showed 1c at 2 hours (in both
+  aux and Blizzard's window) and 3c at 8 hours. aux shows the game's own number, so nothing in aux
+  depends on the floor.
 - A bug took too much deposit (about 1 silver on many auctions) around 2026-09-29. **[Outside]**
   (Wowhead, Seramate summaries). Fixed or not: **[Unknown]**.
 - **Deposit back on a sale:** the seller's invoice adds the deposit to the sale price and subtracts
@@ -250,9 +253,19 @@ Other mails **[Code]**: "Auction expired: X" (item back), "Auction canceled: X",
   fallback (K was 0), so nothing was changed (outside review, R-05, closed).
 - Where a Full search's time goes: `linen`, 36 items, 24.0 s in all: 17.8 s waiting for the game's
   request limit, 6.0 s for the server's answers, 0.2 s for the item list (2026-11-11). **[Seen]**
+- Measured again after launch (Tyler, 2026-11-17, `/aux debug list`): 25,706 items in 37.7 seconds
+  over 52 requests, about 0.73 s per request. **[Seen]** The same evening a Sniper round asked
+  without gray items got 25,187 items, so grays were 519 (about 2%) **[Seen]**; that round took
+  153.8 s in all, most of it opening possible deals.
 - Measured: the whole house's item list, 7,718 items in 8.5 seconds over 16 requests
   (2026-10-04); item searches about one every 0.4 seconds because of the game's request limit
   (`IsThrottledMessageSystemReady`), 335 items in 3m 13s (0.4). **[Seen]**
+- A stuck request can freeze `C_AuctionHouse.IsThrottledMessageSystemReady()` at `false` until a
+  full game restart (Tyler, 2026-11-20) **[Seen]**: trying to post or open listings for
+  Scroll: CHAP BALK WELLES froze both aux (`Reading the listings...`) and Blizzard's own Post
+  Auctions window (`Searching...`, Create Auction grayed out), with `IsThrottledMessageSystemReady()`
+  returning `false`; a full game restart cleared it and normal items (Rough Sharpening Stone)
+  posted cleanly.
 - Full scan (`ReplicateItems`) works: whole house in one go, one row per auction, buyout for the
   whole stack. **[Seen]** (0.5, prices per unit matched the lowest listing).
 - Full scan time since launch: one player saw more than 5 minutes before the list arrived
@@ -263,7 +276,10 @@ Other mails **[Code]**: "Auction expired: X" (item back), "Auction canceled: X",
   list, and aux 16.2 s to read it. **[Seen]** Most of a Full scan is the wait for the server.
 - Full scan allowed once every 15 minutes per account. **[Outside]** (retail's rule, used by
   Auctionator and Arbitrage). aux waits 15 minutes itself, so the real limit on Forever has never
-  been tried. **[Unknown]**; low priority.
+  been tried. **[Unknown]**; low priority. A contributor report (Dragoy, PR #37, 2026-11-07) saw a
+  second `ReplicateItems` call a few minutes after another addon's get no answer within 2 minutes,
+  suggesting other addons' Full scans share the server's limit **[Outside]** (exact length still
+  **[Unknown]**).
 - The categories (Weapons, One-Handed, Daggers, ...) as the game printed them on 2026-10-11 **[Seen]**:
   `tests/forever_categories.lua`.
 - How many auctions one character may have up: **[Unknown]**; no experiment planned.

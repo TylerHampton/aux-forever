@@ -49,6 +49,59 @@ A change that comes from a player's feedback credits them by in-game name at the
 - Post, Auctions and Bids moved one place to the right. With a gamepad, Y presses Search on the
   Upgrades tab, and with a row of its table in focus, Y buys that row: the first Y reads its price
   (the hint says "Y Get price"), the second buys it ("Y Buy").
+## 0.8.2.2 (not released yet)
+
+Buying fixes and a faster Sniper and Live from player comments on 0.8.2.1. Nothing to do when
+updating; `/reload` is enough.
+
+### Sniper and Live
+
+- The Sniper looks at the auction house more often. Its rounds leave gray items out of the item
+  list (they were never a deal) and wait 1 second between rounds instead of 2.5. Almost all of a
+  round is waiting for the auction house, which sends the list 500 items at a time and answers
+  about one request every half second, so every page left out and every second of pause less
+  means a new deal is seen sooner. (reported by khorrs)
+- Live on the Search tab waits 2 seconds between rounds instead of 5. Watching one item, a round is
+  only a couple of requests, so the wait was most of the time between looks. (reported by khorrs)
+
+### Buying
+
+- A trade good's buy bar starts at 1. It started at a full stack, and since 0.8.2.1 one click on
+  Buy bought it, so a stray click could buy far more than you meant. The stack and the other
+  amounts are still one click away. The Sniper still starts at all the units of a deal, since
+  those cheap units are the deal. (reported by Tremulent)
+- After a purchase, Buy rests for a quarter of a second and says what was just bought. A second
+  click right after buying, as with the old Buy then Confirm, could buy a second time: on a quick auction
+  house the first purchase was already done and Buy was ready again. The same goes for Enter in
+  the quantity box and for gear, where the next auction at the same price is selected after you
+  buy one. (reported by Tremulent)
+- New setting: Confirm before buying (Settings, under Buying; also `/aux buy confirm`). When it is
+  on, Buy shows the price on a Confirm button and nothing is bought until a second click; Cancel
+  stands next to it. It works for trade goods and gear, on the Search and Sniper tabs, and with
+  the gamepad (Y twice). It is off unless you turn it on: one click buys, as in 0.8.2.1. With it
+  on, a trade good's price from the auction house is still never more than the price on the
+  button. (suggested by Tremulent)
+
+### Gamepad
+
+- On a row of the search results (and the Sniper, Auctions and Bids tables), the item's tooltip now
+  shows beside aux's window instead of over the rows, and for gear the item you wear in that slot
+  shows right under it, with the stat changes, so you can compare without the mouse. (contributed
+  by nokkty)
+
+### Full scan
+
+- When the auction house does not answer a Full scan, the chat message now notes that a recent Full
+  scan by another addon counts toward the server limit too. Clicking the Sniper notice's Full scan
+  button while on the 15-minute cooldown now prints when the next scan is allowed instead of doing
+  nothing. (suggested by Dragoy)
+
+### Chat commands
+
+- `/aux post bid on` turns bid prices on. Only `unit` and `stack` were known, so `on` turned them
+  off, and the help list showed the setting like an on and off switch. A word the command does
+  not know now changes nothing and lists the choices: on, off, unit or stack. (reported by
+  joker2206)
 
 ## 0.8.2.1 (2026-11-16)
 

@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Search in fast mode</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#e3a43b}a:hover{color:#f2c46d}
+button{font-family:inherit;cursor:pointer}
+input{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 1100px; height: 700px; box-sizing: border-box; background: #0c0d0f; font-family: 'Arial Narrow', 'PT Sans Narrow', sans-serif; color: #e6e2d8; display: flex; flex-direction: column; border: 1px solid #2b2f35; border-radius: 8px; overflow: hidden">
+
+<div style="height: 40px; flex-shrink: 0; display: flex; align-items: center; gap: 22px; padding: 0 12px 0 14px; background: #16181b; border-bottom: 1px solid #262a2f">
+<span style="font-size: 20px; font-weight: 700"><span style="color: #e3a43b">aux</span><span style="color: #e6e2d8">Forever</span></span>
+<div style="display: flex; gap: 4px">
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: #262a30; color: #f3efe6; font-size: 15px">Search</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 15px">Sniper</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 15px">Post</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 15px">Auctions</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 15px">Bids</button>
+</div>
+<div style="flex-grow: 1"></div>
+<button aria-label="Settings" style="width: 28px; height: 28px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #cfcac0; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2.3"></circle><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"></path></svg></button>
+<button style="height: 28px; padding: 0 10px; border: none; border-radius: 5px; background: #2e9d5b; color: #f3efe6; font-size: 15px">Full scan</button>
+<button style="height: 28px; padding: 0 10px; border: 1px solid #2f6f8f; border-radius: 5px; background: #13293a; color: #8fd0f0; font-size: 13px">Blizzard UI</button>
+<button aria-label="Close" style="width: 28px; height: 28px; border: none; background: transparent; color: #a8a49b; font-size: 18px">×</button>
+</div>
+
+<div style="display: flex; align-items: center; gap: 6px; padding: 8px 10px">
+<button aria-label="Previous search" style="width: 30px; height: 30px; border: 1px solid #2f343a; border-radius: 6px; background: #1b1e22; color: #cfcac0">‹</button>
+<button aria-label="Quick searches" style="width: 44px; height: 30px; border: 1px solid #2f343a; border-radius: 6px; background: #1b1e22; color: #cfcac0; font-size: 12px">◷ ▾</button>
+<button aria-label="Next search" style="width: 30px; height: 30px; border: 1px solid #2f343a; border-radius: 6px; background: #1b1e22; color: #cfcac0; opacity: .35">›</button>
+<label style="flex-grow: 1; height: 30px; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 0 10px; border: 1px solid #3a3f46; border-radius: 6px; background: #0f1113; font-size: 15px">
+<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#7d7a73" stroke-width="1.6"><circle cx="6" cy="6" r="4.5"></circle><path d="M9.5 9.5L13 13" stroke-linecap="round"></path></svg>
+<input aria-label="Search filter" value="15/25/usable/armor/cloth/uncommon" style="flex-grow: 1; border: none; background: transparent; color: #f3efe6; font-size: 15px; outline: none">
+</label>
+<div style="height: 30px; display: flex; padding: 2px; box-sizing: border-box; gap: 2px; border: 1px solid #2f343a; border-radius: 6px; background: #15171a">
+<button onClick="{{pickFast}}" style="{{fastStyle}}">Fast</button>
+<button onClick="{{pickFull}}" style="{{fullStyle}}">Full</button>
+</div>
+<button style="height: 30px; padding: 0 16px; border: none; border-radius: 6px; background: #e3a43b; color: #1a1408; font-size: 16px; font-weight: 700">Search</button>
+</div>
+
+<div style="display: flex; align-items: center; gap: 5px; padding: 0 10px 8px 10px">
+<button style="width: 160px; height: 26px; border: 1px solid #e3a43b; border-radius: 5px; background: #3a2e15; color: #f6d48f; font-size: 15px">Search Results</button>
+<button style="width: 160px; height: 26px; border: 1px solid #2f343a; border-radius: 5px; background: #1b1e22; color: #a8a49b; font-size: 15px">Saved Searches</button>
+<button style="width: 160px; height: 26px; border: 1px solid #2f343a; border-radius: 5px; background: #1b1e22; color: #a8a49b; font-size: 15px">Filter Builder</button>
+<div style="flex-grow: 1"></div>
+<span style="{{summaryStyle}}">{{summary}}</span>
+</div>
+
+<div style="flex-grow: 1; min-height: 0; display: flex; flex-direction: column; margin: 0 10px; border: 1px solid #262a2f; border-radius: 8px; overflow: hidden">
+<div style="display: grid; grid-template-columns: 44px minmax(0, 1fr) 80px 120px 110px 90px; align-items: center; height: 30px; flex-shrink: 0; padding: 0 12px; background: #1d2024; color: #8e8a81; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px">
+<div style="text-align: center">Lvl</div><div>Item</div><div style="text-align: right">For sale</div><div style="text-align: right; color: #e3a43b">Lowest each</div><div style="text-align: right">Usual</div><div style="text-align: right">% usual</div>
+</div>
+<div style="flex-grow: 1; min-height: 0; overflow-y: auto">
+<sc-for list="{{rows}}" as="row" hint-placeholder-count="12">
+<sc-if value="{{row.isItem}}" hint-placeholder-val="{{ true }}">
+<button onClick="{{row.pick}}" style="{{row.style}}">
+<div style="text-align: center; color: #8e8a81">{{row.lvl}}</div>
+<div style="display: flex; align-items: center; gap: 8px; min-width: 0">
+<span style="{{row.caretStyle}}">›</span>
+<span style="width: 20px; height: 20px; flex-shrink: 0; border-radius: 4px; background: #2a2e34; border: 1px solid #2f7a3a"></span>
+<span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #4fd15c">{{row.name}}</span>
+</div>
+<div style="text-align: right; font-variant-numeric: tabular-nums">{{row.sale}}</div>
+<div style="text-align: right; font-variant-numeric: tabular-nums; color: #f0e2b8; font-weight: 700">{{row.low}}</div>
+<div style="text-align: right; font-variant-numeric: tabular-nums; color: #a8a49b">{{row.usual}}</div>
+<div style="text-align: right"><span style="{{row.pctStyle}}">{{row.pct}}</span></div>
+</button>
+</sc-if>
+<sc-if value="{{row.isLoading}}" hint-placeholder-val="{{ false }}">
+<div style="height: 28px; display: flex; align-items: center; padding-left: 92px; font-size: 14px; color: #8e8a81; background: #121417; border-bottom: 1px solid #202327">Reading this item's auctions...</div>
+</sc-if>
+<sc-if value="{{row.isAuction}}" hint-placeholder-val="{{ false }}">
+<button onClick="{{row.pick}}" style="{{row.style}}">
+<div></div>
+<div style="display: flex; align-items: center; gap: 14px; padding-left: 36px; font-size: 14px; color: #a8a49b; min-width: 0; white-space: nowrap">
+<span style="{{row.leftStyle}}">{{row.left}}</span><span>{{row.seller}}</span><span>bid {{row.bid}}</span>
+</div>
+<div style="text-align: right; color: #8e8a81">1</div>
+<div style="text-align: right; font-variant-numeric: tabular-nums; color: #f0e2b8">{{row.low}}</div>
+<div></div>
+<div style="text-align: right"><span style="{{row.pctStyle}}">{{row.pct}}</span></div>
+</button>
+</sc-if>
+</sc-for>
+</div>
+</div>
+
+<div style="margin: 10px; padding: 10px 14px; min-height: 48px; border: 1px solid #3b3426; border-radius: 8px; background: #1b1a17; display: flex; align-items: center; gap: 14px">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0">
+<div style="font-size: 16px; color: #f3efe6">{{barTitle}}</div>
+<div style="{{barDetailStyle}}">{{barDetail}}</div>
+</div>
+<sc-if value="{{showButtons}}" hint-placeholder-val="{{ true }}">
+<button onClick="{{doBid}}" style="height: 40px; padding: 0 14px; border: 1px solid #3a3f46; border-radius: 6px; background: transparent; color: #cfcac0; font-size: 15px">Bid {{auctionBid}}</button>
+<button onClick="{{doBuy}}" style="height: 40px; padding: 0 18px; border: none; border-radius: 6px; background: #e3a43b; color: #1a1408; font-size: 16px; font-weight: 700; white-space: nowrap">Buy for {{auctionLow}}</button>
+</sc-if>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1100,"height":700}}'>
+var ITEMS = [
+  [16, 'Spellbinder Robe of the Eagle', 3, 18500, 24000],
+  [21, "Sage's Cloak of the Owl", 2, 11200, 13000],
+  [18, 'Greenweave Robe of Intellect', 5, 6400, 15500],
+  [19, 'Pagan Mantle of the Owl', 1, 22000, 17500],
+  [24, 'Bright Gloves of Spirit', 4, 9500, 10200],
+  [15, 'Native Sash of the Eagle', 6, 3800, 4400],
+  [22, 'Ritual Kilt of Stamina', 2, 14500, 16000],
+  [25, 'Durable Hat of the Owl', 1, 39000, 0],
+  [17, 'Spellbinder Bracers of Intellect', 3, 5200, 6100],
+  [20, "Sage's Sash of Spirit", 2, 7800, 9900],
+  [23, 'Ritual Gloves of the Owl', 3, 12000, 11000],
+  [16, 'Greenweave Sash of Stamina', 7, 3100, 3900],
+  [21, "Sage's Boots of Intellect", 1, 16500, 21000],
+  [18, 'Pagan Wraps of the Eagle', 2, 8800, 9000]
+];
+var LEFT = ['24h', '12h', '2h'];
+var SELLERS = ['Thrakk', 'Velyra', 'Morgash'];
+var GRID = 'display: grid; grid-template-columns: 44px minmax(0, 1fr) 80px 120px 110px 90px; align-items: center; width: 100%; box-sizing: border-box; padding: 0 12px; border: none; border-bottom: 1px solid #202327; text-align: left; color: #e6e2d8; font-size: 15px; ';
+function money(c) {
+  var g = Math.floor(c / 10000), s = Math.floor((c % 10000) / 100), k = c % 100;
+  var out = [];
+  if (g) out.push(g + 'g');
+  if (s) out.push(s + 's');
+  if (k || !out.length) out.push(k + 'c');
+  return out.join(' ');
+}
+function silver(c) { return Math.round(c / 100) * 100; }
+function pctPill(low, usual) {
+  if (!usual) return { text: '?', style: 'display: inline-block; min-width: 48px; text-align: center; padding: 1px 6px; border-radius: 10px; font-size: 13px; color: #8e8a81' };
+  var p = Math.round(100 * low / usual);
+  var color = p <= 60 ? '#6fd39a' : (p <= 100 ? '#e3a43b' : '#ff7a6b');
+  return { text: p + '%', style: 'display: inline-block; min-width: 48px; text-align: center; padding: 1px 6px; border-radius: 10px; font-size: 13px; font-weight: 700; background: rgba(255,255,255,0.05); color: ' + color };
+}
+function auctionsOf(i) {
+  var it = ITEMS[i], out = [];
+  var mult = [1, 1.12, 1.35];
+  for (var k = 0; k < Math.min(it[2], 3); k++) {
+    var buy = k === 0 ? it[3] : silver(it[3] * mult[k]);
+    out.push({ key: i + ':' + k, buy: buy, bid: silver(buy * 0.85), left: LEFT[k], seller: SELLERS[(i + k) % 3] });
+  }
+  return out;
+}
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mode: 'fast', open: 2, loading: false, auction: '2:0', bought: null };
+  }
+  componentWillUnmount() { clearTimeout(this.timer); }
+  openItem(i) {
+    var self = this;
+    clearTimeout(this.timer);
+    if (this.state.open === i && !this.state.loading) {
+      this.setState({ open: null, auction: null, bought: null });
+      return;
+    }
+    this.setState({ open: i, loading: true, auction: null, bought: null });
+    this.timer = setTimeout(function () { self.setState({ loading: false, auction: i + ':0' }); }, 550);
+  }
+  renderVals() {
+    var self = this, st = this.state;
+    var rows = [];
+    ITEMS.forEach(function (it, i) {
+      var pill = pctPill(it[3], it[4]);
+      var isOpen = st.open === i;
+      rows.push({
+        isItem: true, isLoading: false, isAuction: false,
+        lvl: it[0], name: it[1], sale: it[2], low: money(it[3]), usual: it[4] ? money(it[4]) : 'no history',
+        pct: pill.text, pctStyle: pill.style,
+        caretStyle: 'width: 10px; color: #8e8a81; display: inline-block; transform: rotate(' + (isOpen ? 90 : 0) + 'deg)',
+        style: GRID + 'height: 30px; cursor: pointer; background: ' + (isOpen ? '#23262b' : (i % 2 ? '#191b1e' : '#16181b')),
+        pick: function () { self.openItem(i); }
+      });
+      if (isOpen && st.loading) rows.push({ isItem: false, isLoading: true, isAuction: false });
+      if (isOpen && !st.loading) {
+        auctionsOf(i).forEach(function (a) {
+          var sel = st.auction === a.key;
+          var ap = pctPill(a.buy, it[4]);
+          rows.push({
+            isItem: false, isLoading: false, isAuction: true,
+            left: a.left, seller: a.seller, bid: money(a.bid), low: money(a.buy), pct: ap.text, pctStyle: ap.style,
+            leftStyle: a.left === '2h' ? 'color: #e3a43b' : 'color: #a8a49b',
+            style: GRID + 'height: 28px; cursor: pointer; background: ' + (sel ? '#2a2414' : '#121417') + (sel ? '; box-shadow: inset 0 0 0 1px #6b5524' : ''),
+            pick: function () { self.setState({ auction: a.key, bought: null }); }
+          });
+        });
+      }
+    });
+    var cur = null;
+    if (st.open !== null && st.auction) {
+      var parts = st.auction.split(':');
+      cur = auctionsOf(+parts[0])[+parts[1]];
+    }
+    var it = st.open !== null ? ITEMS[st.open] : null;
+    var barTitle = 'Click an item to read its auctions', barDetail = 'Fast mode lists each item once with its lowest price. Opening one takes about half a second.';
+    var barDetailStyle = 'font-size: 13px; color: #8e8a81';
+    if (it && st.loading) { barTitle = it[1]; barDetail = 'Reading its auctions...'; }
+    if (it && cur) {
+      barTitle = it[1] + ', ' + cur.left + ' left, seller ' + cur.seller;
+      barDetail = 'Buyout ' + money(cur.buy) + (it[4] ? ', usual price ' + money(it[4]) : ', no price history yet');
+      if (st.bought) { barDetail = st.bought; barDetailStyle = 'font-size: 13px; color: #6fd39a'; }
+    }
+    var on = 'height: 24px; padding: 0 12px; border: none; border-radius: 4px; background: #3a2e15; color: #f6d48f; font-size: 14px; font-weight: 700';
+    var off = 'height: 24px; padding: 0 12px; border: none; border-radius: 4px; background: transparent; color: #8e8a81; font-size: 14px';
+    var fast = st.mode === 'fast';
+    return {
+      rows: rows,
+      fastStyle: fast ? on : off,
+      fullStyle: fast ? off : on,
+      pickFast: function () { self.setState({ mode: 'fast' }); },
+      pickFull: function () { self.setState({ mode: 'full' }); },
+      summary: fast ? '335 items, 1,018 for sale, read in 0.9s' : 'Full: reads every auction of every item, about 3 minutes for this search',
+      summaryStyle: 'font-size: 14px; color: ' + (fast ? '#8e8a81' : '#e3a43b'),
+      barTitle: barTitle, barDetail: barDetail, barDetailStyle: barDetailStyle,
+      showButtons: !!cur,
+      auctionLow: cur ? money(cur.buy) : '',
+      auctionBid: cur ? money(cur.bid) : '',
+      doBuy: function () { if (cur) self.setState({ bought: 'Bought for ' + money(cur.buy) + '. It is on the way to your mailbox.' }); },
+      doBid: function () { if (cur) self.setState({ bought: 'Bid ' + money(cur.bid) + ' placed.' }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

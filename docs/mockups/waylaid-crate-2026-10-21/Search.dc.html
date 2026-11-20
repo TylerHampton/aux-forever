@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Crate search on the Search tab</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 900px; height: 520px; box-sizing: border-box; padding: 24px; background: #111111; font-family: Arial, Helvetica, sans-serif; display: flex; flex-direction: column; gap: 12px;">
+<div style="font-size: 12px; color: #a8a8a8;">Alt-click a crate in your bags while aux is open: one search for every bundle's item, as recipe search does. Prices are live auctions. Example numbers.</div>
+<div style="flex-grow: 1; display: flex; flex-direction: column; background: #1a1a1a; border: 1px solid #000000;">
+<div style="display: flex; align-items: center; gap: 6px; padding: 8px 10px; background: #101010; border-bottom: 1px solid #000000;">
+<span style="font-size: 18px; color: #ebebeb;">aux<span style="color: #e5be5b;">Forever</span></span>
+<span style="margin-left: 14px; padding: 5px 12px; font-size: 13px; color: #e5be5b; background: #2a2312; border: 1px solid #e5be5b;">Search</span>
+<span style="padding: 5px 12px; font-size: 13px; color: #cfcfcf; background: #2a2a2a; border: 1px solid #000000;">Sniper</span>
+<span style="padding: 5px 12px; font-size: 13px; color: #cfcfcf; background: #2a2a2a; border: 1px solid #000000;">Post</span>
+<span style="padding: 5px 12px; font-size: 13px; color: #cfcfcf; background: #2a2a2a; border: 1px solid #000000;">Auctions</span>
+<span style="padding: 5px 12px; font-size: 13px; color: #cfcfcf; background: #2a2a2a; border: 1px solid #000000;">Bids</span>
+</div>
+<div style="padding: 8px 10px;">
+<div style="padding: 6px 10px; font-size: 13px; color: #ebebeb; background: #0c0c0c; border: 1px solid #404040;">wool cloth/exact;silk cloth/exact;medium leather/exact</div>
+</div>
+<div style="margin: 0 10px; flex-grow: 1; display: flex; flex-direction: column; background: #0c0c0c; border: 1px solid #404040; font-size: 13px;">
+<div style="display: grid; grid-template-columns: 50px minmax(0, 1fr) 90px 120px 120px; gap: 8px; padding: 6px 10px; background: #222222; color: #cfcfcf;">
+<span>Req</span><span>Item</span><span>For sale</span><span>Unit price</span><span>Seller</span>
+</div>
+<div style="display: grid; grid-template-columns: 50px minmax(0, 1fr) 90px 120px 120px; gap: 8px; padding: 6px 10px; color: #ebebeb;">
+<span>1</span><span>Wool Cloth</span><span style="color: #5aa9ff;">212</span><span>32<span style="color: #eda55f;">c</span></span><span>14 sellers</span>
+</div>
+<div style="display: grid; grid-template-columns: 50px minmax(0, 1fr) 90px 120px 120px; gap: 8px; padding: 6px 10px; color: #ebebeb; background: rgba(255,255,255,.04);">
+<span>1</span><span>Silk Cloth</span><span style="color: #5aa9ff;">480</span><span>14<span style="color: #eda55f;">c</span></span><span>22 sellers</span>
+</div>
+<div style="display: grid; grid-template-columns: 50px minmax(0, 1fr) 90px 120px 120px; gap: 8px; padding: 6px 10px; color: #6b6b6b;">
+<span></span><span>Medium Leather</span><span>none listed</span><span></span><span></span>
+</div>
+</div>
+<div style="display: flex; align-items: center; gap: 14px; padding: 10px; font-size: 13px; color: #a8a8a8; border-top: 1px solid #000000; margin-top: 10px; background: #101010;">
+<span style="color: #e5be5b;">Crate</span>
+<span style="color: #ebebeb;">Journeyman Textiles</span>
+<span>cheapest fill</span>
+<span style="color: #ebebeb;">20 Wool Cloth <span style="color: #a8a8a8;">(12 in bags)</span></span>
+<span style="color: #ebebeb;">2<span style="color: #c7c7cf;">s</span> 56<span style="color: #eda55f;">c</span></span>
+<span>next: 40 Silk Cloth 5<span style="color: #c7c7cf;">s</span> 60<span style="color: #eda55f;">c</span></span>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":900,"height":520}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

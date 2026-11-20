@@ -37,8 +37,10 @@ from aux on Classic:
   game always sells the cheapest units first. The buy bar offers quantities with their total cost,
   asks the server for the real price when you click Buy and buys only if it is no higher than the
   price on the button. If the price went up in the meantime, nothing is bought and the listings
-  are read again.
+  are read again. It starts at 1; pick the stack or type an amount for more.
 - **Gear is bought one at a time** at the price on the button, and can still be bid on.
+- **One click buys.** For a second click first, turn on "Confirm before buying" in Settings
+  (`/aux buy confirm`): Buy then shows the price on a Confirm button, for trade goods and gear.
 - **Match the lowest price by default.** The Post tab starts at the cheapest listing's price, so
   prices do not slide one step lower with every new listing. On the modern auction house the newest
   listing at a price is said to sell first, which would make matching sell as fast as undercutting;

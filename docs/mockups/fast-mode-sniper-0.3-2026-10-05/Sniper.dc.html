@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sniper tab</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#e3a43b}a:hover{color:#f2c46d}
+button{font-family:inherit;cursor:pointer}
+input{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 1100px; height: 700px; box-sizing: border-box; background: #0c0d0f; font-family: 'Arial Narrow', 'PT Sans Narrow', sans-serif; color: #e6e2d8; display: flex; flex-direction: column; border: 1px solid #2b2f35; border-radius: 8px; overflow: hidden">
+
+<div style="height: 40px; flex-shrink: 0; display: flex; align-items: center; gap: 22px; padding: 0 12px 0 14px; background: #16181b; border-bottom: 1px solid #262a2f">
+<span style="font-size: 20px; font-weight: 700"><span style="color: #e3a43b">aux</span><span style="color: #e6e2d8">Forever</span></span>
+<div style="display: flex; gap: 4px">
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 15px">Search</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: #262a30; color: #f3efe6; font-size: 15px">Sniper</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 15px">Post</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 15px">Auctions</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 15px">Bids</button>
+</div>
+<div style="flex-grow: 1"></div>
+<button aria-label="Settings" style="width: 28px; height: 28px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #cfcac0; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2.3"></circle><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"></path></svg></button>
+<button style="height: 28px; padding: 0 10px; border: none; border-radius: 5px; background: #2e9d5b; color: #f3efe6; font-size: 15px">Full scan</button>
+<button style="height: 28px; padding: 0 10px; border: 1px solid #2f6f8f; border-radius: 5px; background: #13293a; color: #8fd0f0; font-size: 13px">Blizzard UI</button>
+<button aria-label="Close" style="width: 28px; height: 28px; border: none; background: transparent; color: #a8a49b; font-size: 18px">×</button>
+</div>
+
+<div style="display: flex; align-items: center; gap: 14px; padding: 10px 10px 8px 10px">
+<button onClick="{{toggle}}" style="{{runStyle}}">{{runLabel}}</button>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<div style="display: flex; align-items: center; gap: 8px; font-size: 16px; color: #f3efe6">
+<span style="{{dotStyle}}"></span><span>{{statusTitle}}</span>
+</div>
+<div style="font-size: 13px; color: #8e8a81">{{statusDetail}}</div>
+</div>
+<div style="flex-grow: 1"></div>
+<div style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid #262a2f; border-radius: 8px; background: #16181b; font-size: 15px; color: #a8a49b">
+<span style="font-size: 13px; color: #e3a43b; text-transform: uppercase; letter-spacing: .8px">Deal</span>
+<span>at most</span>
+<input aria-label="Highest percent of usual price" value="{{pctText}}" onChange="{{onPct}}" style="width: 40px; height: 26px; box-sizing: border-box; padding: 0 6px; border: 1px solid #3a3f46; border-radius: 5px; background: #0f1113; color: #f3efe6; font-size: 15px; text-align: right; outline: none">
+<span>% of usual, profit at least</span>
+<input aria-label="Lowest profit" value="{{profitText}}" onChange="{{onProfit}}" style="{{profitInputStyle}}">
+<div style="width: 1px; height: 20px; background: #2b2f35"></div>
+<button onClick="{{toggleSound}}" style="{{soundStyle}}">Sound</button>
+</div>
+</div>
+
+<div style="display: flex; align-items: center; gap: 8px; padding: 0 10px 8px 10px">
+<span style="font-size: 13px; color: #e3a43b; text-transform: uppercase; letter-spacing: .8px">Deals</span>
+<span style="font-size: 14px; color: #8e8a81">{{dealCount}}</span>
+<div style="flex-grow: 1"></div>
+<button onClick="{{clearDeals}}" style="height: 24px; padding: 0 10px; border: 1px solid #2f343a; border-radius: 5px; background: #1b1e22; color: #a8a49b; font-size: 13px">Clear</button>
+</div>
+
+<div style="flex-grow: 1; min-height: 0; display: flex; flex-direction: column; margin: 0 10px; border: 1px solid #262a2f; border-radius: 8px; overflow: hidden">
+<div style="display: grid; grid-template-columns: 80px 40px minmax(0, 1fr) 70px 110px 100px 120px 100px; align-items: center; height: 30px; flex-shrink: 0; padding: 0 12px; background: #1d2024; color: #8e8a81; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px">
+<div>Found</div><div style="text-align: center">Lvl</div><div>Item</div><div style="text-align: right">For sale</div><div style="text-align: right; color: #e3a43b">Lowest each</div><div style="text-align: right">Usual</div><div style="text-align: center">Why</div><div style="text-align: right">Profit each</div>
+</div>
+<div style="flex-grow: 1; min-height: 0; overflow-y: auto">
+<sc-if value="{{noDeals}}" hint-placeholder-val="{{ false }}">
+<div style="padding: 40px 0; text-align: center; font-size: 15px; color: #8e8a81">{{emptyText}}</div>
+</sc-if>
+<sc-for list="{{rows}}" as="row" hint-placeholder-count="4">
+<button onClick="{{row.pick}}" style="{{row.style}}">
+<div style="{{row.foundStyle}}">{{row.found}}</div>
+<div style="text-align: center; color: #8e8a81">{{row.lvl}}</div>
+<div style="display: flex; align-items: center; gap: 8px; min-width: 0">
+<span style="{{row.iconStyle}}"></span>
+<span style="{{row.nameStyle}}">{{row.name}}</span>
+</div>
+<div style="text-align: right; font-variant-numeric: tabular-nums">{{row.sale}}</div>
+<div style="text-align: right; font-variant-numeric: tabular-nums; color: #f0e2b8; font-weight: 700">{{row.low}}</div>
+<div style="text-align: right; font-variant-numeric: tabular-nums; color: #a8a49b">{{row.usual}}</div>
+<div style="text-align: center"><span style="{{row.whyStyle}}">{{row.why}}</span></div>
+<div style="text-align: right; font-variant-numeric: tabular-nums; color: #6fd39a; font-weight: 700">{{row.profit}}</div>
+</button>
+</sc-for>
+</div>
+</div>
+
+<div style="margin: 10px; padding: 10px 14px; min-height: 48px; border: 1px solid #3b3426; border-radius: 8px; background: #1b1a17; display: flex; align-items: center; gap: 14px">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0">
+<div style="font-size: 16px; color: #f3efe6">{{barTitle}}</div>
+<div style="{{barDetailStyle}}">{{barDetail}}</div>
+</div>
+<sc-if value="{{showButtons}}" hint-placeholder-val="{{ true }}">
+<button onClick="{{doIgnore}}" style="height: 40px; padding: 0 14px; border: 1px solid #3a3f46; border-radius: 6px; background: transparent; color: #cfcac0; font-size: 15px">Ignore item</button>
+<button onClick="{{doBuy}}" style="height: 40px; padding: 0 18px; border: none; border-radius: 6px; background: #e3a43b; color: #1a1408; font-size: 16px; font-weight: 700; white-space: nowrap">{{buyLabel}}</button>
+</sc-if>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1100,"height":700}}'>
+var LAP = 8.5;
+var AH_CUT = 0.05;
+// name, level, gear?, for sale, lowest, usual, vendor, how many at the lowest price, lap it sells out (relative)
+var POOL = [
+  ['Spellbinder Robe of the Eagle', 16, true, 1, 4500, 19000, 3800, 1, 99],
+  ['Ritual Kilt of the Wolf', 18, true, 1, 1500, 10000, 2200, 1, 3],
+  ['Bolt of Silk Cloth', 1, false, 12, 1400, 4000, 100, 6, 99],
+  ['Bronze Bar', 1, false, 30, 1100, 3000, 100, 14, 4],
+  ["Sage's Cloak of the Owl", 21, true, 1, 4200, 13000, 2400, 1, 99],
+  ['Greater Healing Potion', 21, false, 9, 800, 2600, 100, 9, 99],
+  ['Wool Cloth', 1, false, 80, 210, 600, 33, 20, 99]
+];
+var START = [
+  { d: ['Medium Leather', 1, false, 60, 300, 1200, 25, 18, 0], found: 6, gone: 9 },
+  { d: ['Moss Agate', 1, false, 8, 1800, 5500, 150, 3, 0], found: 9, gone: 999 },
+  { d: ['Kingsblood', 1, false, 41, 850, 2200, 50, 12, 0], found: 10, gone: 16 }
+];
+function money(c) {
+  var g = Math.floor(c / 10000), s = Math.floor((c % 10000) / 100), k = c % 100;
+  var out = [];
+  if (g) out.push(g + 'g');
+  if (s) out.push(s + 's');
+  if (k || !out.length) out.push(k + 'c');
+  return out.join(' ');
+}
+function parseMoney(t) {
+  var s = String(t).toLowerCase().replace(/\s+/g, '');
+  if (/^\d+(\.\d+)?$/.test(s)) return Math.round(parseFloat(s) * 10000);
+  var m = s.match(/^(?:(\d+)g)?(?:(\d+)s)?(?:(\d+)c)?$/);
+  if (!m || s === '') return null;
+  return (+(m[1] || 0)) * 10000 + (+(m[2] || 0)) * 100 + (+(m[3] || 0));
+}
+function judge(d, maxPct, minProfit) {
+  var low = d[4], usual = Math.max(d[5], d[6]), vendor = d[6];
+  if (low < vendor) return { deal: true, vendor: true, profit: vendor - low, pct: Math.round(100 * low / usual) };
+  var profit = Math.floor(usual * (1 - AH_CUT)) - low;
+  var pct = Math.round(100 * low / usual);
+  return { deal: pct <= maxPct && profit >= minProfit, vendor: false, profit: profit, pct: pct };
+}
+function ago(laps) {
+  var s = Math.round(laps * LAP);
+  if (s < 1) return 'just now';
+  if (s < 60) return s + 's ago';
+  return Math.floor(s / 60) + 'm ago';
+}
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { running: true, lap: 11, next: 0, deals: START.map(function (x, i) { return { id: 's' + i, d: x.d, found: x.found, gone: x.gone }; }), pctText: '60', profitText: '5s', sound: true, sel: null, loading: false, bought: null, ignored: {} };
+  }
+  componentDidMount() { this.start(); }
+  componentWillUnmount() { clearInterval(this.iv); clearTimeout(this.timer); }
+  start() {
+    var self = this;
+    clearInterval(this.iv);
+    this.iv = setInterval(function () { self.tick(); }, 2200);
+  }
+  tick() {
+    var st = this.state;
+    if (!st.running) return;
+    var lap = st.lap + 1;
+    var deals = st.deals.slice();
+    var next = st.next;
+    if (lap % 2 === 0 && next < POOL.length) {
+      var d = POOL[next];
+      deals.unshift({ id: 'p' + next, d: d, found: lap, gone: lap + d[8] });
+      next = next + 1;
+    }
+    this.setState({ lap: lap, deals: deals, next: next });
+  }
+  select(id) {
+    var self = this;
+    clearTimeout(this.timer);
+    this.setState({ sel: id, loading: true, bought: null });
+    this.timer = setTimeout(function () { self.setState({ loading: false }); }, 550);
+  }
+  renderVals() {
+    var self = this, st = this.state;
+    var maxPct = parseInt(st.pctText, 10);
+    if (isNaN(maxPct)) maxPct = 60;
+    var minProfit = parseMoney(st.profitText);
+    var profitOk = minProfit !== null;
+    if (!profitOk) minProfit = 500;
+    var shown = st.deals.filter(function (x) { return !st.ignored[x.d[0]] && judge(x.d, maxPct, minProfit).deal; });
+    var GRID = 'display: grid; grid-template-columns: 80px 40px minmax(0, 1fr) 70px 110px 100px 120px 100px; align-items: center; width: 100%; height: 30px; box-sizing: border-box; padding: 0 12px; border: none; border-bottom: 1px solid #202327; text-align: left; color: #e6e2d8; font-size: 15px; cursor: pointer; ';
+    var rows = shown.map(function (x, i) {
+      var j = judge(x.d, maxPct, minProfit);
+      var gone = st.lap >= x.gone;
+      var fresh = st.lap - x.found < 1 && !gone;
+      var sel = st.sel === x.id;
+      var bg = sel ? '#2a2414' : (fresh ? '#1c2a20' : (i % 2 ? '#191b1e' : '#16181b'));
+      return {
+        found: gone ? 'gone' : ago(st.lap - x.found),
+        foundStyle: 'font-size: 14px; color: ' + (gone ? '#6b675f' : (fresh ? '#6fd39a' : '#a8a49b')),
+        lvl: x.d[1], name: x.d[0], sale: x.d[3], low: money(x.d[4]), usual: money(Math.max(x.d[5], x.d[6])),
+        iconStyle: 'width: 20px; height: 20px; flex-shrink: 0; border-radius: 4px; background: #2a2e34; border: 1px solid ' + (x.d[2] ? '#2f7a3a' : '#4a4f57'),
+        nameStyle: 'white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: ' + (x.d[2] ? '#4fd15c' : '#e6e2d8') + (gone ? '; text-decoration: line-through' : ''),
+        why: j.vendor ? 'below vendor' : j.pct + '% of usual',
+        whyStyle: 'display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 13px; font-weight: 700; background: ' + (j.vendor ? '#13293a' : 'rgba(255,255,255,0.05)') + '; color: ' + (j.vendor ? '#8fd0f0' : '#6fd39a'),
+        profit: money(j.profit),
+        style: GRID + 'background: ' + bg + (sel ? '; box-shadow: inset 0 0 0 1px #6b5524' : '') + (gone ? '; opacity: .45' : ''),
+        pick: function () { self.select(x.id); }
+      };
+    });
+    var cur = null;
+    st.deals.forEach(function (x) { if (x.id === st.sel) cur = x; });
+    var curGone = cur && st.lap >= cur.gone;
+    var barTitle = 'Click a deal to read its auctions', barDetail = 'Buying works as on the Search tab: nothing costs more than the price shown.';
+    var barDetailStyle = 'font-size: 13px; color: #8e8a81';
+    var buyLabel = '';
+    var count = 0;
+    if (cur) {
+      count = cur.d[7];
+      barTitle = cur.d[0];
+      if (st.loading) barDetail = 'Reading its auctions...';
+      else if (curGone) { barDetail = 'Sold before you got to it.'; barDetailStyle = 'font-size: 13px; color: #ff7a6b'; }
+      else {
+        var j2 = judge(cur.d, maxPct, minProfit);
+        barDetail = (cur.d[2] ? '1 auction' : count + ' for sale') + ' at ' + money(cur.d[4]) + (cur.d[2] ? '' : ' each') + ', profit about ' + money(j2.profit * count) + ' if you resell at the usual price';
+        buyLabel = (cur.d[2] ? 'Buy for ' : 'Buy ' + count + ' for ') + money(cur.d[4] * count);
+      }
+      if (st.bought) { barDetail = st.bought; barDetailStyle = 'font-size: 13px; color: #6fd39a'; }
+    }
+    var running = st.running;
+    return {
+      rows: rows,
+      noDeals: rows.length === 0,
+      emptyText: running ? 'No deals yet. The whole auction house is checked every 8.5 seconds.' : 'Press Start to watch the whole auction house for deals.',
+      dealCount: rows.length === 1 ? '1 found' : rows.length + ' found',
+      runLabel: running ? 'Stop' : 'Start',
+      runStyle: 'width: 92px; height: 40px; border-radius: 6px; font-size: 17px; font-weight: 700; ' + (running ? 'border: 1px solid #3a3f46; background: #1b1e22; color: #f3efe6' : 'border: none; background: #e3a43b; color: #1a1408'),
+      dotStyle: 'width: 9px; height: 9px; border-radius: 5px; background: ' + (running ? '#6fd39a' : '#5d5a54'),
+      statusTitle: running ? 'Watching the whole auction house' : 'Stopped',
+      statusDetail: running ? 'Round ' + st.lap + ', 7,718 items in 8.5s each round' : 'Stopped after round ' + st.lap,
+      toggle: function () { self.setState({ running: !running }); },
+      pctText: st.pctText,
+      onPct: function (e) { self.setState({ pctText: e.target.value }); },
+      profitText: st.profitText,
+      onProfit: function (e) { self.setState({ profitText: e.target.value }); },
+      profitInputStyle: 'width: 54px; height: 26px; box-sizing: border-box; padding: 0 6px; border: 1px solid ' + (profitOk ? '#3a3f46' : '#c4544a') + '; border-radius: 5px; background: #0f1113; color: #f3efe6; font-size: 15px; text-align: right; outline: none',
+      soundStyle: 'height: 26px; padding: 0 10px; border-radius: 5px; font-size: 14px; ' + (st.sound ? 'border: 1px solid #e3a43b; background: #3a2e15; color: #f6d48f' : 'border: 1px solid #2f343a; background: #1b1e22; color: #8e8a81'),
+      toggleSound: function () { self.setState({ sound: !st.sound }); },
+      clearDeals: function () { self.setState({ deals: [], sel: null }); },
+      barTitle: barTitle, barDetail: barDetail, barDetailStyle: barDetailStyle,
+      showButtons: !!cur && !st.loading && !curGone && !st.bought,
+      buyLabel: buyLabel,
+      doBuy: function () { if (cur) self.setState({ bought: 'Bought ' + (cur.d[2] ? '' : count + ' ') + 'for ' + money(cur.d[4] * count) + '. It is on the way to your mailbox.', deals: st.deals.map(function (x) { return x.id === cur.id ? { id: x.id, d: x.d, found: x.found, gone: st.lap } : x; }) }); },
+      doIgnore: function () { var ig = Object.assign({}, st.ignored); ig[cur.d[0]] = true; self.setState({ ignored: ig, sel: null }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

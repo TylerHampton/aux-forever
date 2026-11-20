@@ -248,10 +248,21 @@ return function(env)
       browse, browse_rest = nil, nil
       -- browse_silent: the auction house never answers an item list (a busy server)
       if server.browse_silent then return end
+      -- the rarity filters (0.8.2.2): an item of a quality the query does not ask for is left out,
+      -- as the game does (Blizzard's Enum.AuctionHouseFilter, PoorQuality to LegendaryQuality). Only
+      -- items that state their quality: load_test.lua's own stubs save many names as green, and an
+      -- exact search asks for the quality saved for its name
+      local F = G.Enum.AuctionHouseFilter
+      local by_quality = {[F.PoorQuality] = 0, [F.CommonQuality] = 1, [F.UncommonQuality] = 2, [F.RareQuality] = 3, [F.EpicQuality] = 4, [F.LegendaryQuality] = 5}
+      local qualities
+      for _, f in ipairs(query.filters or {}) do
+        if by_quality[f] then qualities = qualities or {}; qualities[by_quality[f]] = true end
+      end
       later(function()
         browse = {}
         local text = string.lower(query.searchString or '')
         for id, it in pairs(server.items) do
+          if not qualities or it.quality == nil or qualities[it.quality] then
           -- one row per version that is listed (an item without versions: one row)
           local versions = {}
           for _, l in ipairs(sorted(id)) do versions[l.version or 0] = true end
@@ -262,6 +273,7 @@ return function(env)
               for _, l in ipairs(list) do total = total + l.quantity; own = own or l.own end
               table.insert(browse, {itemKey = server:key(id, version ~= 0 and version or nil), totalQuantity = total, minPrice = list[1].price, containsOwnerItem = own})
             end
+          end
           end
         end
         table.sort(browse, function(a, b)
@@ -335,15 +347,22 @@ return function(env)
         if left > 0 then
           env.fire('COMMODITY_PRICE_UNAVAILABLE')
         else
-          quote = {id = id, quantity = quantity, total = total}
+          quote = {id = id, quantity = quantity, total = total, at = now()}
           env.fire('COMMODITY_PRICE_UPDATED', math.ceil(total / quantity), total)
         end
       end)
     end)
-    set(C, 'GetQuoteDurationRemaining', function() return 30 end)
+    -- a quote holds for a while (0.8.2.2, for Confirm before buying: a price left on Confirm runs
+    -- out). How long the game keeps one is not known; 20 seconds here.
+    set(C, 'GetQuoteDurationRemaining', function()
+      return quote and math.max(0, (server.quote_seconds or 20) - (now() - quote.at)) or 0
+    end)
     set(C, 'ConfirmCommoditiesPurchase', function(id, quantity)
       sent('confirm ' .. id .. ' ' .. quantity)
       local q = quote
+      if q and now() - q.at > (server.quote_seconds or 20) then
+        q = nil -- run out: the purchase fails
+      end
       -- what this confirmation will cost if it goes through (for tests that compare it with what the
       -- button showed when it was pressed)
       server.last_confirm_total = q and q.id == id and q.quantity == quantity and q.total or nil

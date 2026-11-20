@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Auctions tab</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#e3a43b}a:hover{color:#f2c46d}
+button{font-family:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 1100px; height: 700px; box-sizing: border-box; background: #0c0d0f; font-family: 'Arial Narrow', 'PT Sans Narrow', sans-serif; color: #e6e2d8; display: flex; flex-direction: column; border: 1px solid #2b2f35; border-radius: 8px; overflow: hidden">
+
+<div style="height: 40px; flex-shrink: 0; display: flex; align-items: center; gap: 22px; padding: 0 12px 0 14px; background: #16181b; border-bottom: 1px solid #262a2f">
+<span style="font-size: 20px; font-weight: 700"><span style="color: #e3a43b">aux</span><span style="color: #e6e2d8">Forever</span></span>
+<div style="display: flex; gap: 4px">
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 15px">Search</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 15px">Sniper</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 15px">Post</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: #262a30; color: #f3efe6; font-size: 15px">Auctions</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 15px">Bids</button>
+</div>
+<div style="flex-grow: 1"></div>
+<button aria-label="Settings" style="width: 28px; height: 28px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #cfcac0; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2.3"></circle><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"></path></svg></button>
+<button style="height: 28px; padding: 0 10px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #cfcac0; font-size: 15px">Full scan</button>
+<button style="height: 28px; padding: 0 10px; border: 1px solid #2f6f8f; border-radius: 5px; background: #13293a; color: #8fd0f0; font-size: 13px">Blizzard UI</button>
+<button aria-label="Close" style="width: 28px; height: 28px; border: none; background: transparent; color: #a8a49b; font-size: 18px">×</button>
+</div>
+
+<div style="display: flex; align-items: center; gap: 14px; padding: 10px 10px 8px 10px">
+<button onClick="{{check}}" style="height: 34px; padding: 0 14px; border: 1px solid #3a3f46; border-radius: 6px; background: #1b1e22; color: #f3efe6; font-size: 15px">Check prices</button>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; color: #f3efe6">{{summary}}</span>
+<span style="font-size: 13px; color: #8e8a81">{{checked}}</span>
+</div>
+<div style="flex-grow: 1"></div>
+<div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; max-width: 420px">
+<span style="font-size: 13px; color: #8e8a81; text-align: right">{{nextText}}</span>
+</div>
+<button onClick="{{cancelNext}}" style="{{cancelStyle}}">{{cancelLabel}}</button>
+</div>
+
+<div style="flex-grow: 1; min-height: 0; display: flex; flex-direction: column; margin: 0 10px; border: 1px solid #262a2f; border-radius: 8px; overflow: hidden">
+<div style="display: grid; grid-template-columns: 40px minmax(0, 1fr) 60px 56px 110px 110px 190px; align-items: center; height: 30px; flex-shrink: 0; padding: 0 12px; background: #1d2024; color: #8e8a81; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px">
+<div style="text-align: center">Lvl</div><div>Item</div><div style="text-align: right">Qty</div><div style="text-align: center">Left</div><div style="text-align: right; color: #e3a43b">Your price</div><div style="text-align: right">Lowest other</div><div style="text-align: center">Status</div>
+</div>
+<div style="flex-grow: 1; min-height: 0; overflow-y: auto">
+<sc-for list="{{rows}}" as="row" hint-placeholder-count="8">
+<button onClick="{{row.pick}}" style="{{row.style}}">
+<div style="text-align: center; color: #8e8a81">{{row.lvl}}</div>
+<div style="display: flex; align-items: center; gap: 8px; min-width: 0">
+<span style="{{row.iconStyle}}"></span>
+<span style="{{row.nameStyle}}">{{row.name}}</span>
+</div>
+<div style="text-align: right; font-variant-numeric: tabular-nums">{{row.qty}}</div>
+<div style="{{row.leftStyle}}">{{row.left}}</div>
+<div style="text-align: right; font-variant-numeric: tabular-nums; color: #f0e2b8; font-weight: 700">{{row.yours}}</div>
+<div style="text-align: right; font-variant-numeric: tabular-nums; color: #a8a49b">{{row.lowest}}</div>
+<div style="text-align: center"><span style="{{row.statusStyle}}">{{row.status}}</span></div>
+</button>
+</sc-for>
+</div>
+</div>
+
+<div style="display: flex; align-items: center; gap: 10px; margin: 10px; padding: 10px 14px; min-height: 40px; border: 1px solid #3b3426; border-radius: 8px; background: #1b1a17">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 3px">
+<span style="font-size: 15px; color: #f3efe6">{{selTitle}}</span>
+<span style="{{selDetailStyle}}">{{selDetail}}</span>
+</div>
+<sc-if value="{{canCancelSel}}" hint-placeholder-val="{{ true }}">
+<button onClick="{{cancelSel}}" style="height: 36px; padding: 0 14px; border: 1px solid #3a3f46; border-radius: 6px; background: transparent; color: #cfcac0; font-size: 15px">Cancel this auction</button>
+</sc-if>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1100,"height":700}}'>
+// level, name, gear, qty, time left, your price each, lowest other each (0: none), others at your price, sold, cancel cost
+var DATA = [
+  [16, 'Spellbinder Robe of the Eagle', true, 1, '24h', 18500, 17000, 0, false, 925],
+  [1, 'Linen Cloth', false, 40, '8h', 12, 12, 3, false, 24],
+  [22, 'Ritual Kilt of Stamina', true, 1, '24h', 14500, 16000, 0, false, 725],
+  [1, 'Copper Bar', false, 20, '2h', 30, 26, 0, false, 30],
+  [5, 'Minor Mana Potion', false, 5, '24h', 1800, 0, 0, false, 45],
+  [1, 'Light Feather', false, 16, '', 7, 0, 0, true, 0],
+  [16, 'Greenweave Sash of Stamina', true, 1, '8h', 5200, 4800, 0, false, 260],
+  [10, 'Melon Juice', false, 10, '24h', 600, 600, 1, false, 15]
+];
+var GRID = 'display: grid; grid-template-columns: 40px minmax(0, 1fr) 60px 56px 110px 110px 190px; align-items: center; width: 100%; height: 32px; box-sizing: border-box; padding: 0 12px; border: none; border-bottom: 1px solid #202327; text-align: left; color: #e6e2d8; font-size: 15px; cursor: pointer; ';
+var PILL = 'display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 13px; font-weight: 700; ';
+function money(c) {
+  var g = Math.floor(c / 10000), s = Math.floor((c % 10000) / 100), k = c % 100;
+  var out = [];
+  if (g) out.push(g + 'g');
+  if (s) out.push(s + 's');
+  if (k || !out.length) out.push(k + 'c');
+  return out.join(' ');
+}
+function statusOf(d, cancelled) {
+  if (cancelled) return { key: 'cancelled', text: 'Cancelled, comes by mail', style: PILL + 'background: rgba(255,255,255,0.05); color: #8e8a81' };
+  if (d[8]) return { key: 'sold', text: 'Sold, money in the mail', style: PILL + 'background: #13293a; color: #8fd0f0' };
+  if (d[6] && d[6] < d[5]) return { key: 'undercut', text: 'Undercut by ' + money(d[5] - d[6]), style: PILL + 'background: #3a1a17; color: #ff8a7a' };
+  if (d[7] > 0) return { key: 'tied', text: 'Tied with ' + d[7] + (d[7] === 1 ? ' other' : ' others'), style: PILL + 'background: #3a2e15; color: #f6d48f' };
+  return { key: 'lowest', text: d[6] ? 'Lowest' : 'Only one listed', style: PILL + 'background: #15301f; color: #6fd39a' };
+}
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { cancelled: {}, sel: 0, checking: 0, checkedAgo: '12s ago' };
+  }
+  componentWillUnmount() { clearInterval(this.iv); }
+  renderVals() {
+    var self = this, st = this.state;
+    var counts = { undercut: 0, tied: 0, lowest: 0, sold: 0, cancelled: 0 };
+    var nextIndex = -1;
+    var rows = DATA.map(function (d, i) {
+      var s = statusOf(d, st.cancelled[i]);
+      counts[s.key] = counts[s.key] + 1;
+      if (s.key === 'undercut' && nextIndex < 0) nextIndex = i;
+      var sel = st.sel === i;
+      var dim = s.key === 'cancelled' || s.key === 'sold';
+      return {
+        lvl: d[0], name: d[1], qty: d[3], left: d[4] || '-', yours: money(d[5]) + (d[2] ? '' : ' each'),
+        lowest: d[8] ? '-' : (d[6] ? money(d[6]) : 'none'),
+        status: s.text, statusStyle: s.style,
+        leftStyle: 'text-align: center; color: ' + (d[4] === '2h' ? '#e3a43b' : '#8e8a81'),
+        iconStyle: 'width: 20px; height: 20px; flex-shrink: 0; border-radius: 4px; background: #2a2e34; border: 1px solid ' + (d[2] ? '#2f7a3a' : '#4a4f57'),
+        nameStyle: 'white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: ' + (dim ? '#7d7a73' : (d[2] ? '#4fd15c' : '#e6e2d8')),
+        style: GRID + 'background: ' + (sel ? '#2a2414' : (i % 2 ? '#191b1e' : '#16181b')) + (sel ? '; box-shadow: inset 0 0 0 1px #6b5524' : ''),
+        pick: function () { self.setState({ sel: i }); }
+      };
+    });
+    var parts = [];
+    if (counts.undercut) parts.push(counts.undercut + ' undercut');
+    if (counts.tied) parts.push(counts.tied + ' tied');
+    if (counts.lowest) parts.push(counts.lowest + ' lowest');
+    if (counts.sold) parts.push(counts.sold + ' sold');
+    if (counts.cancelled) parts.push(counts.cancelled + ' cancelled');
+    var next = nextIndex >= 0 ? DATA[nextIndex] : null;
+    var cur = DATA[st.sel];
+    var curStatus = statusOf(cur, st.cancelled[st.sel]);
+    var selDetail;
+    if (curStatus.key === 'undercut') selDetail = 'Someone lists it at ' + money(cur[6]) + '. Cancelling costs ' + money(cur[9]) + '; it comes back by mail, then post it again from the Post tab.';
+    else if (curStatus.key === 'tied') selDetail = 'Others list it at your price. On Forever the newest listing at a price sells first.';
+    else if (curStatus.key === 'lowest') selDetail = 'Yours is the cheapest. Nothing to do.';
+    else if (curStatus.key === 'sold') selDetail = 'The money is in your mailbox.';
+    else selDetail = 'Cancelled. It comes back by mail.';
+    return {
+      rows: rows,
+      summary: DATA.length + ' auctions: ' + parts.join(', '),
+      checked: st.checking ? 'Checking prices, item ' + st.checking + ' of 7...' : 'Prices checked ' + st.checkedAgo + ', about half a second per item',
+      check: function () {
+        clearInterval(self.iv);
+        self.setState({ checking: 1 });
+        self.iv = setInterval(function () {
+          var n = self.state.checking + 1;
+          if (n > 7) { clearInterval(self.iv); self.setState({ checking: 0, checkedAgo: 'just now' }); }
+          else self.setState({ checking: n });
+        }, 450);
+      },
+      nextText: next ? 'Next: ' + next[1] + ', yours ' + money(next[5]) + ', lowest ' + money(next[6]) + ', cancelling costs ' + money(next[9]) : 'None of your auctions is undercut',
+      cancelLabel: next ? 'Cancel undercut (' + counts.undercut + ')' : 'Cancel undercut',
+      cancelStyle: 'height: 40px; padding: 0 18px; border: none; border-radius: 6px; font-size: 16px; font-weight: 700; white-space: nowrap; ' + (next ? 'background: #e3a43b; color: #1a1408' : 'background: #2b2f35; color: #6b675f'),
+      cancelNext: function () {
+        if (nextIndex < 0) return;
+        var c = Object.assign({}, st.cancelled); c[nextIndex] = true;
+        self.setState({ cancelled: c, sel: nextIndex });
+      },
+      selTitle: cur[1] + ', ' + (cur[2] ? '' : cur[3] + ' at ') + money(cur[5]) + (cur[2] ? '' : ' each'),
+      selDetail: selDetail,
+      selDetailStyle: 'font-size: 13px; color: ' + (curStatus.key === 'undercut' ? '#ff8a7a' : '#8e8a81'),
+      canCancelSel: curStatus.key !== 'sold' && curStatus.key !== 'cancelled',
+      cancelSel: function () {
+        var c = Object.assign({}, st.cancelled); c[st.sel] = true;
+        self.setState({ cancelled: c });
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

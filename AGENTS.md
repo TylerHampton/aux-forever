@@ -75,30 +75,33 @@ Tyler owns the project and tests every change in the game. He is not a programme
 
 ## Workflow
 
-### Roles (Tyler, 2026-10-26)
+### Roles (Tyler, 2026-11-19: "Prep this project for a full takeover by Gemini Neon")
 
-"They will be the supportive model where you are going to remain the primary engineer."
+Until 2026-11-19 Claude Code was the primary engineer and Gemini (Gemini 4 Argon) gave second
+opinions (Tyler, 2026-10-26). On 2026-11-19 Tyler handed the project to Gemini Neon and made Claude
+the reviewer. The takeover brief, with everything Claude knew: `docs/takeover-2026-11.md`.
 
-- **Claude Code is the primary engineer.** It plans and builds features and fixes, owns the active
-  build branch, makes the zips and test pages, reads Tyler's test results, and runs releases when
-  Tyler asks.
-- **Gemini (Gemini 4 Argon) gives second opinions.** It reviews Claude's plans, diffs, mockups and
-  facts, checks claims against Blizzard's code and the game, and suggests other ways. It does not
-  rewrite Claude's work on Claude's branch.
+- **Gemini Neon is the primary engineer.** It plans and builds features and fixes, owns the active
+  build branch, makes the zips, writes each build's in-game steps in `TESTING.md`, reads Tyler's
+  test results, and runs releases when Tyler asks.
+- **Claude Code gives second opinions.** It reviews Gemini Neon's plans, diffs, mockups and facts,
+  checks claims against Blizzard's code and the game, and suggests other ways. It does not rewrite
+  Gemini Neon's work on Gemini Neon's branch.
 - **Talking to each other: `docs/handoff.md`** (Tyler, 2026-10-26: make the agent-to-agent
   pipeline "efficient and easy" for him as the liaison). One file on the active branch holds every
   open note between the agents. Tyler's whole part is to say "Check the handoff" to the next agent;
   each agent ends its reply to him naming who goes next. Rules at the top of that file. Never ask
   Tyler to copy, explain or carry anything else between agents.
-- **How a review travels:** Gemini writes it in `docs/reviews/<date>-<topic>.md` (its date, the
-  branch and commit it read, one numbered finding each: what, where, why it matters, how sure) on
-  the active branch, and leaves a handoff note for Claude. Claude treats every finding as a claim
-  to check (in the code, with a test, or in Blizzard's code), fixes the real
-  ones with a test that fails without the fix, and answers each finding in the same file: fixed
+- **How a review travels:** the reviewer writes it in `docs/reviews/<date>-<topic>.md` (its date,
+  the branch and commit it read, one numbered finding each: what, where, why it matters, how sure)
+  on the active branch, and leaves a handoff note for the engineer. The engineer treats every
+  finding as a claim to check (in the code, with a test, or in Blizzard's code), fixes the real ones
+  with a test that fails without the fix, and answers each finding in the same file: fixed
   (commit), not reproduced, or not worth its cost and why. A disagreement that remains goes to
-  Tyler with both positions in plain words; he decides.
-- When Tyler asks Gemini to build something itself, it builds on its own `gemini/<topic>` branch
-  and Claude reviews it before it joins a release branch.
+  Tyler with both positions in plain words; he decides. The six reviews in `docs/reviews/` so far
+  went the other way (Gemini reviewing Claude); the format stays the same.
+- When Tyler asks the reviewer to build something itself, it builds on its own branch
+  (`claude/<topic>` for Claude) and the engineer reviews it before it joins a release branch.
 - The facts rule applies to both: a review that states how Forever's auction house works labels
   its source (Seen, Code, Outside, Unknown).
 
@@ -124,7 +127,8 @@ machine reclaimed at any time after that, so anything not pushed is lost.
 4. Record what was decided during the session where it belongs: rules about how to work in this
    file, player feedback in `docs/feedback.md`, plans in `docs/roadmap.md`, unreleased changes in
    `docs/changelog.md`, the current build's steps in `TESTING.md`.
-5. If he tested a build and has not said "done", read the test page results first.
+5. If he tested a build and has not said "done", ask for his results (screenshots and notes in the
+   chat) and record them under the build in `TESTING.md` first.
 6. Reply in a few lines: what was saved, what is waiting, and what the next session starts with.
 
 Wrapping up never merges, releases or opens a pull request; those wait for Tyler to ask. If
@@ -191,8 +195,10 @@ cd .. && lua5.1 tests/lint_globals.lua  # must end with: lint: 0 unknown names
   call an edit box's `change(self, true)` yourself. Reach a module's internals in a test with
   `loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)`.
 - Tests cannot show layout or how the game reacts. Add the in-game checks for each change to
-  `TESTING.md` ("Current build") so Tyler can verify; Claude also makes a test page per build
-  where Tyler marks each step and Claude reads the results.
+  `TESTING.md` ("Current build") so Tyler can verify. He runs them in game and answers in the chat
+  with Pass or Fail per step, notes and screenshots; the engineer writes them under the build
+  ("Results") in `TESTING.md`. (Until 2026-11-19 Claude made a claude.ai test page per build; its
+  saved answers are exported in `docs/test-results/test-page-results.md`.)
 - Write each step so Tyler can follow it without guessing (Tyler, 2026-11-08, on a step that said
   "Hover that line. Under the total: '<item> sells for' ...": "It was very unclear what you were
   asking"). Name the exact action and where ("point the mouse at the Materials line, without
@@ -203,7 +209,7 @@ cd .. && lua5.1 tests/lint_globals.lua  # must end with: lint: 0 unknown names
 
 Only when Tyler says a version is ready: merge its pull request into `main`, then run the Release
 workflow (`.github/workflows/release.yml`) on `main`: Actions tab, Release, "Run workflow" (or, for
-an agent, trigger the workflow through the GitHub API; Claude's session cannot push tags). It reads
+an agent, trigger the workflow through the GitHub API; Claude's cloud session could not push tags). It reads
 the version from the TOC, runs the tests, builds `auxForever-<version>.zip`, creates the tag
 `v<version>` and publishes a GitHub Release (pre-release while in beta) with the version's notes
 from `docs/changelog.md`. Pushing a matching `v<version>` tag does the same. The same workflow then
@@ -215,7 +221,7 @@ is still pasted by hand by Tyler (see `docs/curseforge.md`).
 ### Packaging
 
 The zip must contain the `auxForever` folder at its top level:
-`zip -qr auxForever.zip auxForever -x '*.git*'` (Windows PowerShell:
+`zip -qr auxForever.zip auxForever -x '*.git*'` (`.gitignore` keeps zips out of commits; Windows PowerShell:
 `Compress-Archive -Path auxForever -DestinationPath auxForever.zip -Force`). Each GitHub Actions run
 also offers it as a download ("auxForever" under Artifacts).
 
@@ -228,7 +234,8 @@ Load order is the TOC (`auxForever/auxForever.toc`).
 - `aux-addon.lua`: events, saved variables (`account_data` defaults), tab switching.
 - `frame.lua`: the main window: top bar (logo, tabs, the settings gear, Full scan, Blizzard UI,
   close), resize grip, credit label. Settings (0.6) is two columns, approved by Tyler from a mockup:
-  Window (background, scale, theme) and Posting (default duration) left, tooltip line switches
+  Window (background, scale, theme), Posting (default duration) and Buying (Confirm before buying,
+  0.8.2.2) left, tooltip line switches
   right (bid prices left Settings in 0.6 build 5; `/aux post bid` remains). A setting that also has a chat command must behave the same from both.
 - `color.lua`: the palettes of the two looks (New, Classic; see Design language). `gui/core.lua`:
   widgets (button, label, editbox, dropdown, checkbox, status bar, square or rounded shapes, button
@@ -343,7 +350,16 @@ aux runs inside the game; every frame it spends time in costs the player frame r
   check on it faded Post with a message about a box the player cannot see (FB-021). A check or
   message about a field applies only while that field is shown.
 - Buying must never spend more than the player saw: the buy bar confirms only server quotes at or
-  below the shown price. Keep that guarantee.
+  below the shown price. Keep that guarantee. One click buys unless "Confirm before buying" is on
+  (`account_data.buy_confirm`, 0.8.2.2, off by default; then Buy turns into Confirm, for trade
+  goods and gear). After any purchase Buy rests `HOLD_SECONDS` (0.25) against a second click
+  (FB-051): a test that buys twice ticks past it first. The bar starts at 1 on Search (FB-050);
+  the Sniper passes `whole_deal` to start at the deal's units.
+- Sniper and Live speed (0.8.2.2, FB-055): a round is almost all waiting on the auction house (the
+  item list comes 500 items per request, about one request every half second; aux's own work is
+  20 to 50 ms for 8,000 items). The Sniper's list asks for common quality and up (grays are never a
+  deal), `ROUND_PAUSE` is 1 s and Live's `LIVE_INTERVAL` 2 s. The fake auction house applies rarity
+  filters to items that state a `quality`.
 - Posting: an item auction's buyout must be above its starting bid, or the server answers
   "Internal auction error"; an equal bid is dropped (`item_post_prices` in `tabs/post/core.lua`).
   Every item takes copper prices since 0.8.2.1 build 7 (FB-044; gear was whole silver before). The auction house cut is the
