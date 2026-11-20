@@ -155,13 +155,13 @@ For whoever fixes or builds from it:
 | [FB-046](#fb-046-posting-says-the-item-is-on-the-mouse-in-the-mail-or-a-trade-when-it-is-not) | 2026-11-16 | karrier_user_slouyac50poxg707 | bug | Post | S2 | Posting says the item is on the mouse, in the mail or a trade when it is not | fixed 0.8.2.1 (released 2026-11-16) |
 | [FB-047](#fb-047-praise-great-addon) | 2026-11-16 | selubangerz | praise | Overall | n/a | Praise: "Great addon" | new |
 | [FB-048](#fb-048-players-do-not-like-the-confirm-click-when-buying-trade-goods) | 2026-11-16 | players, through Tyler | ux | Buy bar | n/a | Players do not like the Confirm click when buying trade goods | built 0.8.2.1 (released 2026-11-16) |
-| [FB-049](#fb-049-confirm-before-buying-back-as-an-option) | 2026-11-17 | Tremulent | request | Buy bar | n/a | Confirm before buying, back as an option | built 0.8.2.2 (build 1, not tested in game) |
-| [FB-050](#fb-050-one-click-bought-far-more-than-the-player-needed) | 2026-11-17 | Tremulent | bug | Buy bar | S1 | One click bought far more than the player needed | fixed 0.8.2.2 (build 1, not tested in game) |
-| [FB-051](#fb-051-sometimes-a-purchase-happens-twice) | 2026-11-17 | Tremulent | bug | Buy bar | S1 | Sometimes a purchase happens twice | fixed 0.8.2.2 (build 1, not tested in game) |
-| [FB-052](#fb-052-aux-post-bid-on-turns-bid-prices-off) | 2026-11-17 | joker2206 | bug | Settings | S3 | `/aux post bid on` turns bid prices off | fixed 0.8.2.2 (build 1, not tested in game) |
+| [FB-049](#fb-049-confirm-before-buying-back-as-an-option) | 2026-11-17 | Tremulent | request | Buy bar | n/a | Confirm before buying, back as an option | built 0.8.2.2 (released 2026-11-20) |
+| [FB-050](#fb-050-one-click-bought-far-more-than-the-player-needed) | 2026-11-17 | Tremulent | bug | Buy bar | S1 | One click bought far more than the player needed | fixed 0.8.2.2 (released 2026-11-20) |
+| [FB-051](#fb-051-sometimes-a-purchase-happens-twice) | 2026-11-17 | Tremulent | bug | Buy bar | S1 | Sometimes a purchase happens twice | fixed 0.8.2.2 (released 2026-11-20) |
+| [FB-052](#fb-052-aux-post-bid-on-turns-bid-prices-off) | 2026-11-17 | joker2206 | bug | Settings | S3 | `/aux post bid on` turns bid prices off | fixed 0.8.2.2 (released 2026-11-20) |
 | [FB-053](#fb-053-a-controller-button-to-refresh-or-search) | 2026-11-17 | user_q6cn8g517mpcvp2f | request | Other | n/a | A controller button to refresh or search | new |
 | [FB-054](#fb-054-bag-searching-cannot-sort-by-bag-slots) | 2026-11-17 | jebbush | request | Post | n/a | Bag searching: cannot sort by bag slots | new |
-| [FB-055](#fb-055-too-slow-to-keep-up-with-quickly-changing-prices-and-snipe-undercuts) | 2026-11-17 | khorrs; Tyler | ux | Sniper | n/a | Too slow to keep up with quickly changing prices and snipe undercuts | built 0.8.2.2 (build 2, not tested in game) |
+| [FB-055](#fb-055-too-slow-to-keep-up-with-quickly-changing-prices-and-snipe-undercuts) | 2026-11-17 | khorrs; Tyler | ux | Sniper | n/a | Too slow to keep up with quickly changing prices and snipe undercuts | built 0.8.2.2 (released 2026-11-20; narrower Sniper planned 0.9) |
 
 ## Players
 
@@ -2486,7 +2486,7 @@ Unknowns: none for the decision.
 - Type: request
 - Area: Buy bar
 - Severity: n/a
-- Status: built 0.8.2.2 (build 1, not tested in game)
+- Status: built 0.8.2.2 (released 2026-11-20; tested in game by Tyler, build 1 passed)
 - Proposed: 0.8.2.2 (Tyler's decision)
 
 Said:
@@ -2519,7 +2519,7 @@ Unknowns: none for the decision.
 - Type: bug
 - Area: Buy bar
 - Severity: S1 (spends money the player did not mean to spend)
-- Status: fixed 0.8.2.2 (build 1, not tested in game)
+- Status: fixed 0.8.2.2 (released 2026-11-20; tested in game by Tyler, build 1 passed)
 - Proposed: 0.8.2.2 (Tyler's decision)
 
 Said:
@@ -2549,7 +2549,7 @@ Unknowns: which item and how many; the fix does not depend on it.
 - Type: bug
 - Area: Buy bar
 - Severity: S1 (spends money the player did not mean to spend)
-- Status: fixed 0.8.2.2 (build 1, not tested in game)
+- Status: fixed 0.8.2.2 (released 2026-11-20; quarter-second rest tested in game by Tyler, build 4 passed)
 - Proposed: 0.8.2.2 (Tyler's decision)
 
 Said:
@@ -2581,7 +2581,7 @@ Unknowns: whether it was trade goods or gear, mouse or Enter. The pause covers a
 - Type: bug
 - Area: Settings
 - Severity: S3
-- Status: fixed 0.8.2.2 (build 1, not tested in game)
+- Status: fixed 0.8.2.2 (released 2026-11-20; tested in game by Tyler, build 1 passed)
 - Proposed: 0.8.2.2
 
 Said:
@@ -2656,7 +2656,7 @@ Unknowns: which screen; what order they expect (bag 1 slot 1 first is the likely
 - Type: ux
 - Area: Sniper (and Live on the Search tab: "snipe undercuts" can mean either)
 - Severity: n/a
-- Status: built 0.8.2.2 (build 2, not tested in game)
+- Status: built 0.8.2.2 (released 2026-11-20; Sniper skips grays, 1 s pause, Live every 2 s passed in build 2; narrower Sniper saved for 0.9 per Tyler, 2026-11-20)
 - Proposed: 0.8.2.2 (Tyler: "Do 1, 2 and 3, half second rest")
 
 Said:

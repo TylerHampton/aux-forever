@@ -29,7 +29,7 @@ From the player feedback logged on 2026-11-08 (FB-024 to FB-034, `docs/feedback.
   round, partly arrived item lists, a faster Full scan read, forgetting prices not seen for 90
   days, the gamepad handed back in a fight, big searches folding auctions per price, one-click
   buying, and copper on gear.
-- **0.8.2.2 (released 2026-11-20):** buying fixes (start at 1 on Search, quarter-second rest after
+- **0.8.2.2 (released 2026-11-20, PR #43):** buying fixes (start at 1 on Search, quarter-second rest after
   buying, optional Confirm before buying for trade goods and gear), faster Sniper and Live (skip
   grays, 1 s Sniper pause, 2 s Live), `/aux post bid on`, gamepad item comparison (PR #41, nokkty),
   and Full scan cooldown/no-answer polish (PR #37, Dragoy).

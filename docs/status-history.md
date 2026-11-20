@@ -9,6 +9,29 @@ logs), "Open after 0.5" (loose ends), "Working in game" and "Open" (what was tes
 0.3 to 0.6 planning notes. The entry of 2026-11-10 below describes the review before its fixes were
 built.
 
+## 0.8.2.2 (released 2026-11-20, PR #43, CurseForge Beta file 9718999): the status file while it was built
+
+Moved here from `docs/status.md` at the release.
+
+Built on `claude/confident-bohr-vctz8g` across four builds (Claude builds 1 to 3; Gemini Neon
+took over as primary engineer on 2026-11-19 and built build 4 and ran the release on 2026-11-20):
+- Build 1 (passed 2026-11-17): FB-050 (Search buy bar starts at 1; Sniper still starts at a deal's
+  units), FB-051 (rest after buying, 1 s in build 1), FB-049 (Settings > Buying > "Confirm before
+  buying" and `/aux buy confirm`, off by default, trade goods and gear), FB-052 (`/aux post bid on`).
+- Build 2 (tested 2026-11-17): FB-055 (Sniper skips grays, 1 s between rounds, Live every 2 s;
+  rest tuned to 0.5 s). Live and deals passed; Tyler found 0.5 s still too long. `/aux debug list`
+  measured 25,706 items in 37.7 s (52 requests; grays 2%), so a whole-house Sniper round cannot go
+  under about 38 s; narrower Sniper saved for 0.9 (Tyler, 2026-11-20).
+- Build 3 (2026-11-19, Claude's last build): rest after buying lowered to 0.25 s (carried into
+  build 4).
+- Build 4 (passed 2026-11-20): quarter-second rest passed; mouse tooltip sanity check passed;
+  PR #41 (nokkty, gamepad item compare; skipped by Tyler, tested by nokkty and automated tests +
+  400 fuzz sessions) and PR #37 (Dragoy, Full scan cooldown and no-answer message polish)
+  integrated and closed; CI test artifacts named `auxForever-<version>-build<n>.zip`.
+- During build 4 testing, Tyler confirmed two Seen facts (`docs/forever-auction-house.md`): the 1c
+  deposit floor is live on Forever, and `Scroll: CHAP BALK WELLES` freezes Blizzard's own Post
+  Auctions window as well as aux (`IsThrottledMessageSystemReady()` stuck `false` until restart).
+
 ## 0.8.2.1 (released 2026-11-16): the status file while it was built
 
 Moved here from `docs/status.md` at the release, as it stood just before it.

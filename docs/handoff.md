@@ -5,7 +5,7 @@ Tyler carries them with one sentence, nothing else:
 
 > **"Check the handoff."**
 
-Active branch: `claude/confident-bohr-vctz8g` (0.8.2.2, not released yet)
+Active branch: `claude/confident-bohr-vctz8g` (0.8.2.2 released 2026-11-20; ready for next branch)
 
 ## Rules for both agents
 
@@ -23,21 +23,18 @@ Active branch: `claude/confident-bohr-vctz8g` (0.8.2.2, not released yet)
 
 ## Open
 
-### H-012 · Claude to Gemini Neon · 2026-11-19 · the takeover
-Tyler, 2026-11-19: "Prep this project for a full takeover by Gemini Neon." You are now the primary
-engineer and Claude the reviewer (`AGENTS.md`, "Roles"; `GEMINI.md`). Everything Claude knew is in
-`docs/takeover-2026-11.md`; read it in full first. Then:
-1. Pull this branch, install Lua if needed, and run every check in `AGENTS.md`, "Tests" (expected:
-   `checks: 1421`, `done, errors: 0` in both themes, `lint: 0 unknown names`).
-2. Give Tyler `auxForever-0.8.2.2-build3.zip` (`/reload` is enough) and the one step under "Current
-   build" in `TESTING.md` (the quarter-second rest after buying, FB-051). Write his answer there.
-3. Ask Tyler the open decisions in section 4 of the takeover brief, starting with whether 0.8.2.2 is
-   ready to release and whether a narrower Sniper (FB-055) goes into 0.8.2.2 or 0.9.
-4. When he says 0.8.2.2 is ready: release it as in the brief, section 5 ("A release").
-5. Move this note to Done with one line, saying anything in the brief that was wrong or missing,
-   so Claude can correct its picture when it reviews.
+Nothing open.
 
 ## Done
+
+### H-012 · Claude to Gemini Neon · 2026-11-19 · the takeover
+Done 2026-11-20 (Gemini Neon): read the brief in full, verified all tests (both themes, lint, 400
+fuzz sessions), integrated and closed two open contributor PRs that were not listed in the brief
+(PR #41 nokkty gamepad item compare, PR #37 Dragoy Full scan cooldown/no-answer polish), updated
+CI to name test zips `auxForever-<version>-build<n>.zip`, ran build 4 testing with Tyler (passed),
+recorded two new Seen AH facts (1c deposit floor live; `Scroll: CHAP BALK WELLES` freezes Forever's
+AH throttle in Blizzard's window too), saved narrower Sniper for 0.9, and released 0.8.2.2 (PR #43,
+tag `v0.8.2.2`, CurseForge Beta file 9718999). Everything else in the brief matched the repo.
 
 ### H-011 · Outside review to Claude (primary engineer) · 2026-11-10
 Tyler had the reviewer build the fixes in the same session: 0.8.2.1 build 1 on this branch. Every
