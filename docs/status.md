@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-20, Tyler's time (0.8.2.2 build 4 built with PR #41 and PR #37; waiting for Tyler's test).
+Last updated 2026-11-20, Tyler's time (0.8.2.2 build 4 passed; ready to release when Tyler says).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-10 is there).
@@ -8,44 +8,33 @@ released, move its notes to `docs/status-history.md` (everything before 2026-11-
 ## Start here (next session)
 
 **Takeover (Tyler, 2026-11-19):** Gemini Neon is now the primary engineer and Claude Code the
-reviewer (`AGENTS.md`, "Roles"). H-012 in `docs/handoff.md` stays open until build 4 is tested and
-0.8.2.2 is released. Claude-only tools are retired: mockups are in `docs/mockups/`, the test page's
-saved answers in `docs/test-results/test-page-results.md`.
+reviewer (`AGENTS.md`, "Roles"). H-012 in `docs/handoff.md` stays open until 0.8.2.2 is released.
+Claude-only tools are retired: mockups are in `docs/mockups/`, the test page's saved answers in
+`docs/test-results/test-page-results.md`.
 
 **Released:** 0.8.2.1 on 2026-11-16 (pull request to `main`, Release workflow: tag `v0.8.2.1`,
 GitHub release, CurseForge Beta file). What it holds: `docs/changelog.md`, "0.8.2.1". How it was
 built and tested, build by build: `docs/status-history.md` (top) and `TESTING.md`.
 
 **Tyler, after the release:** paste `docs/curseforge-description.md` into the CurseForge page (it
-now says a trade good is bought with one click).
+now says a trade good is bought with one click, starts at 1, and mentions Confirm before buying).
 
-**Being built: 0.8.2.2** (branch `claude/confident-bohr-vctz8g`), buying fixes from the
-CurseForge comments on 0.8.2.1 (Tyler, 2026-11-17: "Cover gear too, default off, no mockup, build
-it"). Build 1 passed every step in game (2026-11-17):
-- FB-050: the buy bar starts at 1 on the Search tab (it started at a full stack). The Sniper
-  still starts at a deal's units (`whole_deal`), waiting on Tyler whether he wants 1 there too.
-- FB-051: after any purchase Buy rests (`HOLD_SECONDS`, 0.25 s since build 3) and says what was bought.
-- FB-049: Settings, Buying, "Confirm before buying", and `/aux buy confirm`; off by default; trade
-  goods and gear. Not the Bids tab's Buyout.
-- FB-052: `/aux post bid on` works; an unknown word lists the choices.
+**Ready to release: 0.8.2.2** (branch `claude/confident-bohr-vctz8g`). Every non-gamepad step across
+builds 1, 2 and 4 passed in game:
+- Build 1 (passed 2026-11-17): FB-050 (Search buy bar starts at 1; Sniper still starts at a deal's
+  units), FB-051 (rest after buying, tuned to 0.25 s in build 3), FB-049 (Settings > Buying >
+  "Confirm before buying" and `/aux buy confirm`, off by default, trade goods and gear), FB-052
+  (`/aux post bid on`).
+- Build 2 (passed 2026-11-17): FB-055 (Sniper skips grays, 1 s between rounds, Live every 2 s).
+  The house was 25,706 items (37.7 s, 52 requests for the list alone; grays only 2%), so a
+  whole-house Sniper round cannot go under about 38 s.
+- Build 4 (passed 2026-11-20): quarter-second rest after buying passed; mouse tooltip sanity check
+  passed; PR #41 (nokkty, gamepad item compare; skipped by Tyler, tested by nokkty and automated
+  tests) and PR #37 (Dragoy, Full scan cooldown and no-answer message polish) integrated and closed;
+  CI test artifacts now named `auxForever-<version>-build<n>.zip`.
 
-Build 2 tested (2026-11-17): FB-055 (Sniper skips grays, 1 s between rounds, Live every 2 s) passed;
-the house is now 25,706 items (37.7 s, 52 requests for the list alone; grays only 2%), so a
-whole-house Sniper round cannot go under about 38 s. Build 3 (2026-11-19, Claude's last build) set
-the rest after buying to a quarter second (not tested on its own; carried into build 4).
-
-Build 4 (2026-11-20, Gemini Neon, Tyler asked to take care of PR #41 and PR #37 and cut a new build):
-- PR #41 (nokkty): gamepad focus on a results row shows the item tooltip beside aux's window with
-  the worn item comparison stacked under it (preserving FB-045 `GetItemKeySampleLink`, clearing
-  prior comparison tooltips when scrolling to non-gear, aligning left-side comparisons away from
-  aux, and verified `TooltipComparisonManager.AnchorShoppingTooltips` in Forever's Blizzard UI code).
-- PR #37 (Dragoy): most of PR #37 already shipped in 0.8.2; took the remaining two details (noting
-  in the unanswered Full scan message that another addon's Full scan counts too, and extracting
-  `aux.start_full_scan()` so Sniper's notice button reports cooldown time instead of doing nothing).
-
-Waiting on Tyler: build 4's steps (`TESTING.md`, zip `auxForever-0.8.2.2-build4.zip`, `/reload` is
-enough), whether 0.8.2.2 is ready to release, and whether a narrower Sniper (FB-055, mockup first)
-goes into 0.8.2.2 or 0.9. After that: the pull request and release, when Tyler asks.
+Waiting on Tyler: say the word to release 0.8.2.2 (PR to `main` + Release workflow), and decide
+whether a narrower Sniper (FB-055, mockup first) goes into 0.9.
 
 Next version after that: not chosen; candidates below and in `docs/roadmap.md` (0.9: shopping
 lists and writs, an automatic Full scan option, posting rules; FB-053, a controller button to

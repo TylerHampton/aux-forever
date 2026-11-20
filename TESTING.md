@@ -15,12 +15,12 @@ two contributor pull requests: gamepad item comparison beside aux's window (PR #
 Full scan cooldown/no-answer feedback (PR #37, Dragoy; most of PR #37 already shipped in 0.8.2).
 Zip `auxForever-0.8.2.2-build4.zip`; `/reload` is enough (no new files).
 
-- [ ] 1. The rest after buying (FB-051, carried over from build 3). Search tab: search
+- [x] 1. The rest after buying (FB-051, carried over from build 3). Search tab: search
       `linen cloth/exact`, click the cheapest row, keep `1` picked, click Buy and then at once click
       it again. The bar says "Bought 1 × Linen Cloth", the button is faded only for a blink, and
       chat shows one "You won an auction for Linen Cloth (x1)" line. In your reply: Pass or Fail,
       and does the rest still feel too long?
-- [ ] 2. Mouse tooltip sanity check. On the Search tab, point the mouse at the icon of any gear row
+- [x] 2. Mouse tooltip sanity check. On the Search tab, point the mouse at the icon of any gear row
       (for example `linen belt/exact`). The item's tooltip still shows next to the mouse as before
       (and your equipped comparison tooltip if you wear something in that slot), with no BugSack
       error.
@@ -30,6 +30,12 @@ Zip `auxForever-0.8.2.2-build4.zip`; `/reload` is enough (no new files).
       right edge of the screen), and your worn item's comparison stacks directly under it. Press
       D-pad down past the bottom row to scroll: both tooltips follow each row. Press D-pad left or
       right to leave the list: both tooltips disappear.
+
+### Results (Tyler, 2026-11-20)
+
+1. Pass. 2. Pass (screenshot: Linen Belt tooltip and Equipped comparison tooltip show next to the
+mouse as before, with click hints). 3. Skipped (controller test left to gamepad users; PR #41 was
+tested in game by nokkty and covered by automated tests).
 
 ## 0.8.2.2 build 3 (not tested; superseded by build 4)
 
