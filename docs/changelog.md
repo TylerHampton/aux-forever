@@ -6,10 +6,10 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
-## 0.8.2.2 (not released yet)
+## 0.8.2.2 (2026-11-20)
 
-Buying fixes and a faster Sniper and Live from player comments on 0.8.2.1. Nothing to do when
-updating; `/reload` is enough.
+Buying fixes, a faster Sniper and Live, gamepad item comparison and Full scan feedback polish from
+player comments and contributor pull requests. Nothing to do when updating; `/reload` is enough.
 
 ### Sniper and Live
 

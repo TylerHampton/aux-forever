@@ -24,10 +24,15 @@ From the player feedback logged on 2026-11-08 (FB-024 to FB-034, `docs/feedback.
   (FB-035, deep_structure). Proposed 2026-11-09, Tyler to confirm: the Sniper calling a flat market
   a deal because the usual price lags after launch (FB-036, Swiftwren), and "i cant scan today"
   (FB-037, deep_structure).
-- **0.8.2.1 (built 2026-11-10, in testing):** fixes and speed from the outside review of the code
+- **0.8.2.1 (released 2026-11-16, PR #42):** fixes and speed from the outside review of the code
   (`docs/reviews/2026-11-10-outside-review.md`): the Sniper losing its deals after an unanswered
   round, partly arrived item lists, a faster Full scan read, forgetting prices not seen for 90
-  days, the gamepad handed back in a fight, and smaller fixes. No new features.
+  days, the gamepad handed back in a fight, big searches folding auctions per price, one-click
+  buying, and copper on gear.
+- **0.8.2.2 (released 2026-11-20):** buying fixes (start at 1 on Search, quarter-second rest after
+  buying, optional Confirm before buying for trade goods and gear), faster Sniper and Live (skip
+  grays, 1 s Sniper pause, 2 s Live), `/aux post bid on`, gamepad item comparison (PR #41, nokkty),
+  and Full scan cooldown/no-answer polish (PR #37, Dragoy).
 - **0.9 (features), with the 0.9 list below:** a Settings option to start a full scan when the
   window opens, off by default (FB-032, Chawitsch; Tyler agreed in his reply); posting rules
   based on the usual price, like TSM (FB-031, user_yt0k9lezehn1ukm993387), mockup first.
@@ -69,10 +74,11 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
   that is so valuable to build in that we just save it for 0.9"): each character, when logged in
   with aux, records its bags, bank and mail; the shopping list and tooltips then count them.
   Options and trade-offs: `docs/status.md`, 2026-10-20.
-- **Candidates added 2026-11-19 (not decided by Tyler):** a narrower Sniper (FB-055: the house was
-  25,706 items, so a whole-house round takes about 40 s; watching trade goods only, a category or a
-  saved search would take a few seconds; mockup first; Tyler may want it in 0.8.2.2), and a
-  controller button to search (FB-053; first an experiment: can an addon bind the triggers).
+- **Narrower Sniper** (FB-055; Tyler, 2026-11-20: "Save narrow sniper for .9"): the house was
+  25,706 items, so a whole-house round takes about 38 s; letting the player watch trade goods only,
+  a category or a saved search would take a few seconds (mockup first).
+- **Candidate (not decided by Tyler):** a controller button to search (FB-053; first an experiment:
+  can an addon bind the triggers).
 
 ## After 0.6: candidates for the next version (none decided)
 
