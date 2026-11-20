@@ -1,0 +1,409 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>auxForever 0.5 Mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600&family=Source+Sans+3:wght@400;600&family=Marcellus&display=swap">
+<style>
+/* Layout: one reading column; each mockup sits in an in-game frame, notes beside or under it. Single dark look on purpose: it shows in-game UI. */
+:root {
+  --bg: #121315;
+  --ink: #f3efe6;
+  --muted: #a8a49b;
+  --faint: #6e6b64;
+  --panel: #181a1d;
+  --content: #1d2024;
+  --input: #0f1113;
+  --line: #2f343a;
+  --line2: #3a3f46;
+  --amber: #e3a43b;
+  --amber-dim: #3a2e15;
+  --pos: #6fd39a;
+  --neg: #ff8a7e;
+  --gold: #ffd76a;
+  --silver: #c7c7cf;
+  --copper: #d08a54;
+  --tip: #ffff9a;
+  --blizz-bg: #1b1610;
+  --blizz-edge: #5b4a2c;
+  --f-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-game: "Marcellus", "Friz Quadrata TT", Georgia, serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; margin: 0; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 16px 64px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 600; text-wrap: balance; margin: 0; letter-spacing: .01em; }
+h1 { font-size: 30px; }
+h2 { font-size: 23px; margin-top: 8px; }
+h3 { font-size: 17px; color: var(--muted); font-weight: 500; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font-family: var(--f-display); text-transform: uppercase; letter-spacing: .12em; font-size: 12px; color: var(--amber); }
+.lead { color: var(--muted); }
+section { display: grid; gap: 14px; padding-block: 34px; border-top: 1px solid var(--line); }
+header { display: grid; gap: 10px; padding-bottom: 26px; }
+.asks { display: grid; gap: 6px; margin: 6px 0 0; padding-left: 20px; color: var(--ink); }
+.asks li::marker { color: var(--amber); }
+code { font-size: 13px; background: var(--content); padding: 1px 5px; border-radius: 4px; color: var(--muted); }
+.note { color: var(--muted); font-size: 14px; }
+.tag { display: inline-block; font-size: 12px; font-family: var(--f-display); letter-spacing: .06em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line2); color: var(--muted); }
+.tag.rec { border-color: var(--amber); color: var(--amber); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; background: var(--panel); border: 1px solid var(--line); padding: 4px; border-radius: 8px; }
+.seg button { font: 600 13px var(--f-display); letter-spacing: .03em; background: none; border: 0; color: var(--muted); padding: 6px 12px; border-radius: 5px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--amber); color: #1a1408; }
+.seg button:focus-visible, .chip:focus-visible, input:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.scroll { overflow-x: auto; padding-bottom: 4px; }
+
+/* game look */
+.game { font-family: var(--f-game); color: var(--ink); }
+.m { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.g { color: var(--gold); } .s { color: var(--silver); } .c { color: var(--copper); }
+
+/* buy bar */
+.bar { width: 900px; height: 58px; background: #1b1917; border: 1px solid #3b3326; border-radius: 6px; display: flex; align-items: center; gap: 6px; padding: 0 10px; position: relative; }
+.icon { width: 38px; height: 38px; border-radius: 5px; border: 1px solid var(--line2); background: radial-gradient(circle at 40% 35%, #8bbf63, #2f5a24 70%); flex: none; }
+.who { width: 150px; margin-left: 2px; margin-right: 14px; display: grid; gap: 2px; flex: none; }
+.who .n { color: #1eff00; font-size: 14px; }
+.who .sub { color: var(--muted); font-size: 11px; }
+.chip { width: 54px; height: 42px; background: #1f2125; border: 1px solid #3b4046; border-radius: 6px; color: var(--ink); display: grid; place-items: center; align-content: center; gap: 0; font: 14px var(--f-game); cursor: pointer; padding: 0; flex: none; }
+.chip.wide { width: 76px; }
+.chip .cost { font-size: 11px; }
+.chip.sel { background: #3b2e14; border-color: var(--amber); }
+.chip:hover { background: #2a2d31; }
+.chip.sel:hover { background: #45361a; }
+.lines { flex: 1; min-width: 0; display: grid; gap: 4px; margin-left: 8px; }
+.l1 { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.l2 { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.buy { height: 42px; padding: 0 14px; min-width: 130px; border-radius: 6px; border: 0; background: var(--amber); color: #1a1408; font: 14px var(--f-game); flex: none; }
+.qty { flex: none; position: relative; height: 42px; font-family: var(--f-game); }
+.qty input { font: 15px var(--f-game); color: var(--ink); text-align: center; background: var(--input); border: 1px solid #3b4046; border-radius: 6px; width: 100%; height: 100%; cursor: text; padding: 0 4px; }
+.qty input::placeholder { color: var(--faint); }
+.qty input:hover { border-color: #5a6068; }
+.qty input:focus { border-color: var(--amber); outline: none; }
+/* current */
+.qty.v0 { width: 56px; }
+.qty.v0 input { background: #1f2125; }
+.qty.v0 input::placeholder { color: var(--muted); }
+/* option A */
+.or { font-size: 12px; color: var(--faint); align-self: center; padding: 0 2px; flex: none; }
+.qty.vA { width: 96px; }
+.qty.vA input { font-size: 13px; box-shadow: inset 0 2px 3px rgba(0,0,0,.55); }
+.qty.vA input:placeholder-shown { text-align: left; padding-left: 10px; }
+/* option B */
+.qty.vB { width: 92px; }
+.qty.vB input { padding-top: 14px; font-size: 16px; box-shadow: inset 0 2px 3px rgba(0,0,0,.55); }
+.qty.vB label { position: absolute; top: 4px; left: 0; right: 0; text-align: center; font-size: 10px; letter-spacing: .1em; color: var(--muted); pointer-events: none; text-transform: uppercase; }
+.qty.vB.custom input { border-color: var(--amber); }
+.qty .caret-hint { position: absolute; right: 8px; top: 50%; translate: 0 -50%; width: 1px; height: 16px; background: var(--muted); opacity: .7; pointer-events: none; }
+.qty input:focus ~ .caret-hint { display: none; }
+.optnote { display: grid; gap: 4px; }
+
+/* profession window */
+.prof-row { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.prof { width: 420px; max-width: 100%; background: linear-gradient(#211a12, #17120c); border: 2px solid var(--blizz-edge); border-radius: 6px; padding: 16px 18px 18px; position: relative; font-family: var(--f-game); flex: none; }
+.prof .title { display: flex; gap: 10px; align-items: center; }
+.prof .ricon { width: 40px; height: 40px; border-radius: 4px; border: 1px solid #806a3e; background: radial-gradient(circle at 45% 40%, #6f8fff, #1d2d7a 70%); }
+.prof .rname { color: #ffffff; font-size: 17px; }
+.prof .rsub { color: #c9b98f; font-size: 12px; }
+.prof .desc { color: #d6c8a3; font-size: 12px; margin: 10px 0 12px; }
+.prof .rh { color: #ffd100; font-size: 13px; margin-bottom: 6px; }
+.reag { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+.ri { display: flex; gap: 7px; align-items: center; font-size: 12px; color: #ffffff; }
+.ri .ic { width: 28px; height: 28px; border-radius: 3px; border: 1px solid #806a3e; flex: none; position: relative; }
+.ri .ct { position: absolute; right: 1px; bottom: -1px; font-size: 10px; color: #fff; text-shadow: 0 0 2px #000; }
+.cost-line { margin-top: 12px; font-size: 12px; color: #a8a49b; display: inline-flex; gap: 8px; align-items: baseline; cursor: default; padding: 2px 4px; margin-left: -4px; border-radius: 3px; position: relative; }
+.cost-line:hover, .cost-line:focus-visible { background: rgba(255,255,255,.05); outline: none; }
+.cost-line .plus { color: #7d7a73; }
+.cost-line .none { color: #7d7a73; }
+.prof .aux-btn { position: absolute; right: 16px; bottom: 12px; font-size: 11px; color: #ffd100; border: 1px solid #8a6a2c; background: linear-gradient(#6b1a12, #3c0d09); border-radius: 3px; padding: 3px 10px; }
+.tip { background: rgba(8, 10, 14, .96); border: 1px solid #5f6672; border-radius: 5px; padding: 8px 10px; font-family: var(--f-game); font-size: 12px; min-width: 260px; max-width: 320px; display: grid; gap: 2px; box-shadow: 0 6px 18px rgba(0,0,0,.5); }
+.tip .t { color: #ffffff; font-size: 14px; }
+.tip .gray { color: #9d9d9d; }
+.tip .row { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: baseline; }
+.tip .row .src { color: #9d9d9d; font-size: 11px; margin-left: 6px; }
+.tip .row .old { color: #6e6b64; }
+.tip .sum { border-top: 1px solid #343a44; margin-top: 4px; padding-top: 4px; }
+.tip .yellow { color: var(--tip); }
+.tip .hint { color: #8b8b8b; font-size: 11px; margin-top: 4px; }
+.tip-slot { min-height: 150px; }
+.q-green { color: #1eff00; } .q-white { color: #fff; }
+
+/* click tables */
+table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+th { font-family: var(--f-display); font-weight: 600; color: var(--muted); font-size: 13px; letter-spacing: .04em; text-transform: uppercase; }
+td:first-child { white-space: nowrap; font-weight: 600; }
+tr.chg td { background: rgba(227,164,59,.06); }
+tr.chg td:first-child { box-shadow: inset 3px 0 0 var(--amber); }
+.same { color: var(--faint); }
+.hint-row { display: flex; flex-wrap: wrap; gap: 18px; }
+.mini-row { display: flex; align-items: center; gap: 8px; background: #1d2024; border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; width: 340px; max-width: 100%; font-family: var(--f-game); font-size: 13px; }
+.mini-row.sel { background: rgba(227,164,59,.22); }
+.mini-row .lv { color: var(--muted); width: 22px; }
+.mini-col { display: grid; gap: 8px; align-content: start; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted); align-items: center; }
+.sw { display: inline-block; width: 12px; height: 12px; border-radius: 2px; background: rgba(227,164,59,.25); box-shadow: inset 3px 0 0 var(--amber); vertical-align: -1px; margin-right: 6px; }
+@media (max-width: 560px) { h1 { font-size: 25px; } .reag { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">auxForever 0.5 · for approval</span>
+    <h1>Three things to approve before I build them</h1>
+    <p class="lead">Everything here is a mockup: example items and example prices, drawn to the sizes in the code. The game font is stood in by a similar face. Click and type in the mockups; they react like the real thing would.</p>
+    <ol class="asks">
+      <li><strong>FB-001 quantity box:</strong> pick A or B (or neither).</li>
+      <li><strong>FB-007 recipe cost line:</strong> OK, or what to change.</li>
+      <li><strong>Click standard:</strong> OK the table and the hover hint, or strike rows you do not want.</li>
+    </ol>
+  </header>
+
+  <!-- FB-001 -->
+  <section id="fb001">
+    <span class="eyebrow">FB-001 · Darkhorse · Buy bar</span>
+    <h2>The quantity box should look like a place to type</h2>
+    <p class="note">Today the box is styled like the buttons next to it and shows the gray word "Other", so it reads as a fifth button. Both options make it a recessed field (darker than the panel, like the search bar) with a text cursor on hover. They differ in what the box shows.</p>
+    <div class="seg" role="group" aria-label="Buy bar version">
+      <button type="button" data-v="v0" aria-pressed="false">Today (0.4.1)</button>
+      <button type="button" data-v="vA" aria-pressed="false">A · "or type amount"</button>
+      <button type="button" data-v="vB" aria-pressed="true">B · always shows the quantity</button>
+    </div>
+    <div class="scroll">
+      <div class="bar game" id="bar">
+        <div class="icon" aria-hidden="true"></div>
+        <div class="who"><span class="n">[Mageroyal]</span><span class="sub">192 for sale · stack of 20</span></div>
+        <div id="chips" style="display:flex; gap:6px; flex:none"></div>
+        <span class="or" id="or" hidden>or</span>
+        <div class="qty" id="qty">
+          <label for="qtyIn" id="qtyLabel" hidden>Quantity</label>
+          <input id="qtyIn" inputmode="numeric" autocomplete="off" aria-label="Quantity to buy">
+          <span class="caret-hint" id="caret" hidden></span>
+        </div>
+        <div class="lines"><div class="l1" id="l1"></div><div class="l2" id="l2"></div></div>
+        <button class="buy" type="button" id="buy" tabindex="-1">Buy</button>
+      </div>
+    </div>
+    <div class="optnote" id="optnote"></div>
+  </section>
+
+  <!-- FB-007 -->
+  <section id="fb007">
+    <span class="eyebrow">FB-007 · Garsterson · Profession window</span>
+    <h2>What a recipe's materials cost, anywhere in the world</h2>
+    <p class="note">One line under Blizzard's reagent list, in the label color, at aux's usual prices (or the vendor price when a vendor sells it for less). Hover it for the details. No auction house needed; worked out once when you pick a recipe, never every frame.</p>
+    <div class="seg" role="group" aria-label="Price case">
+      <button type="button" data-case="all" aria-pressed="true">All materials priced</button>
+      <button type="button" data-case="some" aria-pressed="false">One has no price yet</button>
+      <button type="button" data-case="none" aria-pressed="false">None priced</button>
+    </div>
+    <div class="prof-row">
+      <div class="prof">
+        <div class="title"><div class="ricon" aria-hidden="true"></div><div><div class="rname">Lesser Mana Potion</div><div class="rsub">Alchemy · makes 1</div></div></div>
+        <div class="desc">Restores 140 to 180 mana.</div>
+        <div class="rh">Reagents</div>
+        <div class="reag">
+          <div class="ri"><span class="ic" style="background:radial-gradient(circle,#c88be0,#4b2366)"><span class="ct">3/1</span></span>Mageroyal</div>
+          <div class="ri"><span class="ic" style="background:radial-gradient(circle,#79c26b,#24461f)"><span class="ct">0/1</span></span>Stranglekelp</div>
+          <div class="ri"><span class="ic" style="background:radial-gradient(circle,#d7e6ef,#53636e)"><span class="ct">5/1</span></span>Empty Vial</div>
+        </div>
+        <div class="cost-line" id="costLine" tabindex="0"><span>Materials</span><span class="m" id="costVal"></span></div>
+        <div style="height:30px"></div>
+        <span class="aux-btn" title="Shown only while aux is open at the auction house (already in 0.4)">Search in aux</span>
+      </div>
+      <div class="tip-slot">
+        <div class="note" style="margin-bottom:6px">Tooltip when hovering the line:</div>
+        <div class="tip" id="costTip"></div>
+      </div>
+    </div>
+    <p class="note">Ages: "usual, 9 days" is dimmed because its newest price is over 7 days old (the price data change in this build adds the age). The <span class="m">+</span> means "at least this much": the sum of the priced materials, with the unpriced one named in the tooltip. Not done: marking the material's own icon in Blizzard's list (it means hooking Blizzard's buttons, which change between game versions).</p>
+  </section>
+
+  <!-- Clicks -->
+  <section id="clicks">
+    <span class="eyebrow">Click standard · includes FB-002 (Darkhorse)</span>
+    <h2>One meaning per click, in every tab</h2>
+    <p class="note">From <code>docs/clicks.md</code>. Rows with the amber edge change something; the rest stay as they are and are listed so the whole standard is in one place.</p>
+    <div class="legend"><span><span class="sw"></span>changes in 0.5</span><span class="same">gray text: today</span></div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Click</th><th>0.5 (proposed)</th><th>Today (0.4.1)</th></tr></thead>
+        <tbody>
+          <tr class="chg"><td>Right-click a bag item</td><td>Brings it into aux. Post tab: selects it to post. Search tab: searches it. Sniper, Auctions, Bids: switches to Search and searches it.</td><td class="same">Nothing (FB-002).</td></tr>
+          <tr class="chg"><td>Shift- or Alt-click a bag item</td><td>Same as right-click above, in every tab. Shift with a chat box open still links in chat.</td><td class="same">Works on Search and Post only; nothing at all in the other three tabs.</td></tr>
+          <tr class="chg"><td>Left-click a selected row</td><td>Lets go of it, in every table (Search, Sniper, Auctions, Bids, the Post tab's price lists).</td><td class="same">Sniper only. Post price lists use right-click to clear the price.</td></tr>
+          <tr class="chg"><td>Right-click a Post price row</td><td>Searches that item, like every other row in aux.</td><td class="same">Clears the chosen price.</td></tr>
+          <tr class="chg"><td>Double-click a Post price row</td><td>Removed. Double-click means expand, and price rows do not expand.</td><td class="same">Sets your quantity to that listing's quantity.</td></tr>
+          <tr class="chg"><td>Hover any aux row</td><td>One gray line at the bottom of the tooltip with that row's clicks (below).</td><td class="same">Nothing tells a player these clicks exist.</td></tr>
+          <tr><td>Left-click a row</td><td>Select it (the buy bar or the cancel button acts on it).</td><td class="same">Same.</td></tr>
+          <tr><td>Right-click a row</td><td>Search for that item.</td><td class="same">Same.</td></tr>
+          <tr><td>Shift / Ctrl-click a row</td><td>Blizzard: link in chat / preview.</td><td class="same">Same.</td></tr>
+          <tr><td>Double-click a row</td><td>Expand or collapse a grouped row.</td><td class="same">Same.</td></tr>
+          <tr><td>Right-click a text box</td><td>Clears it.</td><td class="same">Same.</td></tr>
+          <tr><td>Alt</td><td>aux's own shortcuts: recipe search, the opt-in buy/bid/cancel shortcuts, favorites' alert and reordering.</td><td class="same">Same.</td></tr>
+          <tr><td>Saved Searches</td><td>Simon's clicks kept, now shown in the hover hint.</td><td class="same">Same clicks, hidden.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin-top:10px">Hover hint</h3>
+    <p class="note">Only on aux's own rows, one line, gray, at the bottom of the tooltip. It lists the clicks for that row in that tab, so it changes with the row.</p>
+    <div class="hint-row">
+      <div class="mini-col">
+        <div class="note">Search results, a grouped row:</div>
+        <div class="mini-row"><span class="lv">15</span><span class="q-white">[Copper Bar]</span><span style="margin-left:auto" class="m">4 <span class="s">s</span> 80 <span class="c">c</span></span></div>
+        <div class="tip">
+          <span class="q-white t">Copper Bar</span>
+          <span class="q-white">Max Stack: 20</span>
+          <span class="yellow">Value: 5s 10c</span>
+          <span class="yellow">Today: 4s 80c (94%)</span>
+          <span class="hint">Click: select · Right-click: search · Double-click: expand</span>
+        </div>
+      </div>
+      <div class="mini-col">
+        <div class="note">Sniper, the selected deal:</div>
+        <div class="mini-row sel"><span class="lv">32</span><span class="q-green">[Tough Hunk of Bread]</span><span style="margin-left:auto" class="m">12 <span class="c">c</span></span></div>
+        <div class="tip">
+          <span class="q-white t">Tough Hunk of Bread</span>
+          <span class="yellow">Value: 1s 4c</span>
+          <span class="hint">Click again: let go · Right-click: search</span>
+        </div>
+      </div>
+      <div class="mini-col">
+        <div class="note">A favorite search:</div>
+        <div class="mini-row"><span class="q-white">copper bar/exact</span></div>
+        <div class="tip">
+          <span class="hint" style="margin-top:0">Click: run · Shift-click: edit · Right-click: remove · Ctrl-right-click: rename · Alt-click: alert</span>
+        </div>
+      </div>
+    </div>
+    <p class="note">Before building right-click from the bags I will read Blizzard's Forever bag click code: aux keeps Blizzard's auction window open but invisible, and today the right-click may be landing there.</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  // money in aux's style: "1g 4s 2c", zero parts dropped
+  function money(c) {
+    c = Math.round(c);
+    var g = Math.floor(c / 10000), s = Math.floor(c / 100) % 100, k = c % 100, out = [];
+    if (g) out.push(g + '<span class="g">g</span>');
+    if (s) out.push(s + '<span class="s">s</span>');
+    if (k || !out.length) out.push(k + '<span class="c">c</span>');
+    return '<span class="m">' + out.join(' ') + '</span>';
+  }
+  function plain(c) { return money(c).replace(/<[^>]+>/g, ''); }
+
+  // FB-001 -------------------------------------------------------------
+  var tiers = [[12, 24], [30, 26], [50, 31], [100, 35]]; // [count, copper each], cheapest first
+  var stock = 192, stack = 20, quantities = [1, 5, 10, 20];
+  var version = 'vB', qty = 20;
+  function estimate(n) {
+    var total = 0, top = 0, left = n;
+    for (var i = 0; i < tiers.length && left > 0; i++) {
+      var take = Math.min(left, tiers[i][0]);
+      total += take * tiers[i][1]; top = tiers[i][1]; left -= take;
+    }
+    return { total: total, top: top, count: n - left };
+  }
+  var chipsEl = document.getElementById('chips'), input = document.getElementById('qtyIn');
+  quantities.forEach(function (n) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip' + (n === stack ? ' wide' : '');
+    b.innerHTML = '<span>' + (n === stack ? n + ' stack' : n) + '</span><span class="cost">' + money(estimate(n).total) + '</span>';
+    b.addEventListener('click', function () {
+      qty = n;
+      input.value = version === 'vB' ? String(n) : '';
+      if (version !== 'vB') input.blur();
+      render();
+    });
+    b.dataset.n = n;
+    chipsEl.appendChild(b);
+  });
+  input.addEventListener('input', function () {
+    input.value = input.value.replace(/\D/g, '').slice(0, 4);
+    if (input.value !== '') qty = parseInt(input.value, 10);
+    render();
+  });
+  var notes = {
+    v0: '<p class="note">Today: a 56 wide box styled like the buttons, with "Other" in gray until clicked.</p>',
+    vA: '<p class="note"><span class="tag">Option A</span> A small "or", then a wider recessed field with "Type amount" written in it. Picking a button leaves it empty. Smallest change; the box is still empty most of the time.</p>',
+    vB: '<p class="note"><span class="tag rec">Option B · recommended</span> A recessed field labeled QUANTITY that always holds the number you are buying. The buttons fill it in; typing changes it. This is how retail\'s auction house and Auctionator work, so players from there (Darkhorse) recognize it, and the bar always says in one place how many you are buying. Typing a number and pressing Enter asks for the price, as today.</p>'
+  };
+  function render() {
+    var e = estimate(qty), custom = quantities.indexOf(qty) < 0;
+    Array.prototype.forEach.call(chipsEl.children, function (b) { b.classList.toggle('sel', +b.dataset.n === qty); });
+    var q = document.getElementById('qty');
+    q.className = 'qty ' + version + (custom ? ' custom' : '');
+    document.getElementById('or').hidden = version !== 'vA';
+    document.getElementById('qtyLabel').hidden = version !== 'vB';
+    document.getElementById('caret').hidden = version === 'v0';
+    input.placeholder = version === 'v0' ? 'Other' : version === 'vA' ? 'Type amount' : '';
+    if (version === 'v0') input.style.borderColor = custom ? 'var(--amber)' : '';
+    else if (version === 'vA') input.style.borderColor = custom && input.value ? 'var(--amber)' : '';
+    else input.style.borderColor = '';
+    var l1 = document.getElementById('l1'), l2 = document.getElementById('l2'), buy = document.getElementById('buy');
+    if (qty < 1) { l1.textContent = 'Choose how many to buy'; l2.textContent = ''; buy.textContent = 'Buy'; }
+    else if (e.count < qty) { l1.textContent = 'Only ' + stock + ' for sale'; l2.innerHTML = '<span style="color:var(--neg)">Choose a smaller quantity</span>'; buy.textContent = 'Buy'; }
+    else {
+      l1.innerHTML = qty + ' × Mageroyal for ' + money(e.total);
+      l2.innerHTML = 'Cheapest first · avg ' + money(Math.ceil(e.total / qty)) + ' · highest ' + money(e.top) + ' each';
+      buy.textContent = 'Buy ' + qty + ' for ' + plain(e.total);
+    }
+    document.getElementById('optnote').innerHTML = notes[version];
+  }
+  document.querySelectorAll('#fb001 .seg button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      version = b.dataset.v;
+      document.querySelectorAll('#fb001 .seg button').forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)); });
+      input.value = version === 'vB' ? String(qty) : (quantities.indexOf(qty) < 0 ? String(qty) : '');
+      render();
+    });
+  });
+  input.value = String(qty);
+  render();
+
+  // FB-007 -------------------------------------------------------------
+  var mats = {
+    all: [
+      { n: 'Mageroyal', k: 1, p: 26, src: 'usual, 1 day' },
+      { n: 'Stranglekelp', k: 1, p: 41, src: 'usual, 9 days', old: true },
+      { n: 'Empty Vial', k: 1, p: 20, src: 'vendor' }
+    ],
+    some: [
+      { n: 'Mageroyal', k: 1, p: 26, src: 'usual, 1 day' },
+      { n: 'Stranglekelp', k: 1, p: null },
+      { n: 'Empty Vial', k: 1, p: 20, src: 'vendor' }
+    ],
+    none: [
+      { n: 'Mageroyal', k: 1, p: null },
+      { n: 'Stranglekelp', k: 1, p: null },
+      { n: 'Empty Vial', k: 1, p: null }
+    ]
+  };
+  function renderCost(which) {
+    var list = mats[which], sum = 0, missing = 0;
+    list.forEach(function (m) { if (m.p == null) missing++; else sum += m.p * m.k; });
+    var val = document.getElementById('costVal');
+    if (missing === list.length) val.innerHTML = '<span class="none">no price yet</span>';
+    else val.innerHTML = money(sum) + (missing ? '<span class="plus">+</span>' : '');
+    var tip = '<span class="t">Materials for 1 craft</span><span class="gray">Usual prices from aux\'s price history</span>';
+    list.forEach(function (m) {
+      tip += '<div class="row"><span>' + m.n + (m.k > 1 ? ' ×' + m.k : '') + '</span><span>' +
+        (m.p == null ? '<span class="gray">no price yet</span>' : money(m.p * m.k) + '<span class="src' + (m.old ? ' old' : '') + '">' + m.src + '</span>') + '</span></div>';
+    });
+    if (missing < list.length) tip += '<div class="row sum"><span>Total' + (missing ? ', without ' + missing + ' unpriced' : '') + '</span><span>' + money(sum) + (missing ? '+' : '') + '</span></div>';
+    else tip += '<span class="hint">Search or scan at the auction house to learn prices.</span>';
+    document.getElementById('costTip').innerHTML = tip;
+  }
+  document.querySelectorAll('#fb007 .seg button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('#fb007 .seg button').forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)); });
+      renderCost(b.dataset['case']);
+    });
+  });
+  renderCost('all');
+})();
+</script>
+
+</body></html>

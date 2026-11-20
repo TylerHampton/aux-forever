@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Settings popup</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#e3a43b}a:hover{color:#f2c46d}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 520px; height: 330px; box-sizing: border-box; padding: 20px; background: #0c0d0f; font-family: 'Arial Narrow', 'PT Sans Narrow', sans-serif; color: #e6e2d8; display: flex; flex-direction: column; align-items: flex-end; gap: 8px">
+<button aria-label="Settings" style="width: 28px; height: 28px; border: 1px solid #e3a43b; border-radius: 5px; background: #3a2e15; color: #f6d48f; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2.3"></circle><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"></path></svg></button>
+<div style="width: 300px; box-sizing: border-box; padding: 12px 14px; display: flex; flex-direction: column; gap: 12px; background: #1b1e22; border: 1px solid #3a3f46; border-radius: 8px">
+<span style="font-size: 13px; color: #e3a43b; text-transform: uppercase; letter-spacing: .8px">Settings</span>
+<div style="display: flex; align-items: center; justify-content: space-between">
+<span style="font-size: 15px; color: #e6e2d8">Background</span>
+<div style="display: flex; align-items: center; gap: 6px">
+<button aria-label="More see-through" style="width: 26px; height: 26px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #e6e2d8">-</button>
+<span style="width: 44px; text-align: center; font-size: 15px">100%</span>
+<button aria-label="Less see-through" style="width: 26px; height: 26px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #e6e2d8; opacity: .35">+</button>
+</div>
+</div>
+<div style="height: 1px; background: #2b2f35"></div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<span style="font-size: 15px; color: #e6e2d8">Auction length</span>
+<div style="display: flex; gap: 3px">
+<button style="height: 26px; padding: 0 9px; border-radius: 5px; font-size: 13.5px; border: 1px solid #2f343a; background: #1d2024; color: #cfcac0">2h</button>
+<button style="height: 26px; padding: 0 9px; border-radius: 5px; font-size: 13.5px; border: 1px solid #e3a43b; background: #3a2e15; color: #f6d48f">8h</button>
+<button style="height: 26px; padding: 0 9px; border-radius: 5px; font-size: 13.5px; border: 1px solid #2f343a; background: #1d2024; color: #cfcac0">24h</button>
+</div>
+</div>
+<span style="font-size: 12.5px; color: #8e8a81; line-height: 1.35">For items you have not posted before. Items you have posted start at the length you used last time.</span>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":520,"height":330}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

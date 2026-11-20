@@ -2689,6 +2689,9 @@ Recorder's notes (Claude, 2026-11-17):
 - The 0.8.2.2 pause after a purchase (FB-051) adds 1 s between purchases, which a player buying
   several undercuts in a row will feel.
 
+The FB-051 rest: 1 s in build 1, half a second in build 2 ("It still feels too long", Tyler), a
+quarter second in build 3 (2026-11-19).
+
 Built in 0.8.2.2 build 2 (Tyler chose all three, and half a second for the FB-051 pause):
 - The Sniper's item list asks for common quality and up (`quality = 1`, the game's rarity filters),
   so grays are not sent at all.

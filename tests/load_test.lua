@@ -284,8 +284,8 @@ try('buy bar', function()
   check('FB-051: a click or Enter just after buying sends nothing', #calls == 0)
   check('FB-051: Buy is faded for that moment', not bar.primary_button:IsEnabled())
   check('FB-051: the bar says what was bought', (bar.lines()):find('^Bought 20') ~= nil)
-  for _ = 1, 6 do tick() end
-  check('FB-051: Buy is lit again after half a second', bar.primary_button:IsEnabled())
+  for _ = 1, 3 do tick() end
+  check('FB-051: Buy is lit again after a quarter second', bar.primary_button:IsEnabled())
 
   -- a server price below the one shown is bought too, at the server's price
   calls = {}
@@ -6799,10 +6799,15 @@ local test_env = {
   dir = (arg and arg[0] or ''):gsub('[^/\\]*$', ''),
   errors = function() return errors end,
 }
+if os.getenv('AUX_BENCH') then
+  -- the Sniper benchmark instead of the timing tests and the random player (tests/tools/sniper_bench.lua)
+  dofile(test_env.dir .. 'tools/sniper_bench.lua')(test_env)
+else
 dofile(test_env.dir .. 'timing_test.lua')(test_env)
 
 -- a player doing random things against the slow auction house (tests/fuzz_test.lua)
 dofile(test_env.dir .. 'fuzz_test.lua')(test_env)
+end
 
 -- how many checks ran, so a block that silently stops running shows as a lower number
 print('checks: ' .. checks)

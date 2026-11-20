@@ -1,11 +1,16 @@
 # Status
 
-Last updated 2026-11-17, Tyler's time (0.8.2.2 build 2 waiting for Tyler's test).
+Last updated 2026-11-19, Tyler's time (handed over to Gemini Neon; 0.8.2.2 build 3 waiting for Tyler's test).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-10 is there).
 
 ## Start here (next session)
+
+**Takeover (Tyler, 2026-11-19):** Gemini Neon is now the primary engineer and Claude Code the
+reviewer (`AGENTS.md`, "Roles"). Gemini Neon: read `docs/takeover-2026-11.md` first, then do H-012
+in `docs/handoff.md`. Claude-only tools are retired: mockups are in `docs/mockups/`, the test page's
+saved answers in `docs/test-results/test-page-results.md`.
 
 **Released:** 0.8.2.1 on 2026-11-16 (pull request to `main`, Release workflow: tag `v0.8.2.1`,
 GitHub release, CurseForge Beta file). What it holds: `docs/changelog.md`, "0.8.2.1". How it was
@@ -33,10 +38,11 @@ the FB-051 rest is half a second (1). A harness measurement showed aux's own wor
 - FB-052: `/aux post bid on` works; an unknown word lists the choices.
 Build 2 tested (2026-11-17): Live and deals pass; the house is now 25,706 items (37.7 s, 52
 requests for the list alone; grays only 2%), so a whole-house Sniper round cannot go under about
-38 s. Waiting on Tyler: the rest after buying (he finds half a second too long; Claude recommends a
-quarter second), and whether a narrower Sniper (a category, trade goods, a saved search; mockup
-first) goes into 0.8.2.2 or 0.9.
-After that: the pull request and release, when Tyler asks.
+38 s. Build 3 (2026-11-19, Claude's last build, Tyler chose it): the rest after buying is a quarter
+second (he found half a second "still feels too long"). Waiting on Tyler: build 3's one step
+(`TESTING.md`, zip `auxForever-0.8.2.2-build3.zip`, `/reload` is enough), and whether a narrower
+Sniper (a category, trade goods, a saved search; mockup first) goes into 0.8.2.2 or 0.9.
+After that: the pull request and release, when Tyler asks (takeover brief, section 5).
 
 Next version after that: not chosen; candidates below and in `docs/roadmap.md` (0.9: shopping
 lists and writs, an automatic Full scan option, posting rules; FB-053, a controller button to
@@ -74,19 +80,18 @@ Protection" tooltips (FB-045, not tried).
 3. Replies to the players of the 2026-11-08 and 2026-11-16 feedback batches are not written; does
    he want them?
 
-**Roles (Tyler, 2026-10-26):** Claude Code is the primary engineer; Gemini (Gemini 4 Argon) gives
-second opinions in `docs/reviews/` (`AGENTS.md`, "Roles"). Agents talk through `docs/handoff.md`;
-Tyler only says "Check the handoff". Nothing is open there.
+**Roles (Tyler, 2026-11-19):** Gemini Neon is the primary engineer; Claude Code gives second
+opinions in `docs/reviews/` (`AGENTS.md`, "Roles"; until 2026-11-19 it was the other way, with
+Gemini 4 Argon reviewing). Agents talk through `docs/handoff.md`; Tyler only says "Check the
+handoff". Open there: H-012, the takeover, for Gemini Neon.
 
-**How Tyler tests:** one test page, https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ. For a new
-build, republish its `index.html` with a new `BUILD` id and the steps in `AREAS` (the same steps as
-`TESTING.md`, "Current build"). Tyler marks Pass, Fail or Skip with notes and screenshots; read
-them with ArtifactData, collection `builds/<build id>/results`, and download each screenshot with
-Artifact read, `path` = the asset id, one at a time. He often uploads screenshots without marking a
-status: read the screenshots. He screenshots with Win+Shift+S, which holds Shift (tooltip prices
-then show the whole stack, "for 3"). Zips are `auxForever-<version>-build<n>.zip`, sent with the
-file tool; always say whether `/reload` is enough.
+**How Tyler tests:** from `TESTING.md` ("Current build"): he runs the steps and answers in the chat
+with Pass or Fail, notes and screenshots; the engineer writes them under the build as "Results".
+He often sends screenshots without saying Pass or Fail (judge from the picture). He screenshots
+with Win+Shift+S, which holds Shift (tooltip prices then show the whole stack, "for 3"). Zips are
+`auxForever-<version>-build<n>.zip`; always say whether `/reload` is enough. (Until 2026-11-19 Claude
+used a claude.ai test page; its answers are in `docs/test-results/test-page-results.md`.)
 
-**Where the rest is:** plans in `docs/roadmap.md` (0.9: shopping lists, an automatic Full scan
+**Where the rest is:** everything Claude knew at the takeover in `docs/takeover-2026-11.md`, plans in `docs/roadmap.md` (0.9: shopping lists, an automatic Full scan
 option, posting rules), player feedback in `docs/feedback.md`, facts about Forever's auction house
 in `docs/forever-auction-house.md`, older status notes in `docs/status-history.md`.

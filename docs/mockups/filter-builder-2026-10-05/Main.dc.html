@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Filter Builder</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#e3a43b}a:hover{color:#f2c46d}
+button{font-family:inherit;cursor:pointer}
+input{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 1100px; height: 660px; box-sizing: border-box; background: #0c0d0f; font-family: 'Arial Narrow', 'PT Sans Narrow', sans-serif; color: #e6e2d8; display: flex; flex-direction: column; border: 1px solid #2b2f35; border-radius: 8px; overflow: hidden">
+
+<div style="height: 40px; flex-shrink: 0; display: flex; align-items: center; gap: 22px; padding: 0 12px 0 14px; background: #16181b; border-bottom: 1px solid #262a2f">
+<span style="font-size: 20px; font-weight: 700"><span style="color: #e3a43b">aux</span><span style="color: #e6e2d8">Forever</span></span>
+<div style="display: flex; gap: 4px">
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: #262a30; color: #f3efe6; font-size: 15px">Search</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 15px">Post</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 15px">Auctions</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 15px">Bids</button>
+</div>
+<div style="flex-grow: 1"></div>
+<button aria-label="Settings" style="width: 28px; height: 28px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #cfcac0; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2.3"></circle><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"></path></svg></button>
+<button style="height: 28px; padding: 0 10px; border: none; border-radius: 5px; background: #2e9d5b; color: #f3efe6; font-size: 15px">Full scan</button>
+<button style="height: 28px; padding: 0 10px; border: 1px solid #2f6f8f; border-radius: 5px; background: #13293a; color: #8fd0f0; font-size: 13px">Blizzard UI</button>
+<button aria-label="Close" style="width: 28px; height: 28px; border: none; background: transparent; color: #a8a49b; font-size: 18px">×</button>
+</div>
+
+<div style="display: flex; align-items: center; gap: 6px; padding: 8px 10px">
+<button aria-label="Previous search" style="width: 30px; height: 30px; border: 1px solid #2f343a; border-radius: 6px; background: #1b1e22; color: #cfcac0; opacity: .35">‹</button>
+<button aria-label="Quick searches" style="width: 44px; height: 30px; border: 1px solid #2f343a; border-radius: 6px; background: #1b1e22; color: #cfcac0; font-size: 12px">◷ ▾</button>
+<button aria-label="Next search" style="width: 30px; height: 30px; border: 1px solid #2f343a; border-radius: 6px; background: #1b1e22; color: #cfcac0; opacity: .35">›</button>
+<div style="flex-grow: 1; height: 30px; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 0 10px; border: 1px solid #8a6a2a; border-radius: 6px; background: #0f1113; font-size: 15px; overflow: hidden; white-space: nowrap">
+<span style="color: #e6e2d8">{{blizzardText}}</span><span style="color: #e3a43b">{{postText}}</span>
+<div style="flex-grow: 1"></div>
+<span style="font-size: 12px; color: #7fbf8f; flex-shrink: 0">synced with the builder</span>
+</div>
+<button style="height: 30px; padding: 0 16px; border: none; border-radius: 6px; background: #e3a43b; color: #1a1408; font-size: 16px; font-weight: 700">Search</button>
+</div>
+
+<div style="display: flex; gap: 5px; padding: 0 10px 8px 10px">
+<button style="flex: 1; height: 26px; border: 1px solid #2f343a; border-radius: 5px; background: #1b1e22; color: #a8a49b; font-size: 16px">Search Results</button>
+<button style="flex: 1; height: 26px; border: 1px solid #2f343a; border-radius: 5px; background: #1b1e22; color: #a8a49b; font-size: 16px">Saved Searches</button>
+<button style="flex: 1; height: 26px; border: 1px solid #e3a43b; border-radius: 5px; background: #3a2e15; color: #f6d48f; font-size: 16px">Filter Builder</button>
+</div>
+
+<div style="flex-grow: 1; min-height: 0; display: flex; gap: 10px; padding: 0 10px 10px 10px">
+
+<div style="width: 300px; flex-shrink: 0; box-sizing: border-box; padding: 12px 14px; background: #16181b; border: 1px solid #262a2f; border-radius: 8px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 13px; color: #e3a43b; text-transform: uppercase; letter-spacing: .8px">Which items</span>
+<span style="font-size: 12.5px; color: #8e8a81">Asked from the auction house. The narrower, the faster.</span>
+</div>
+<label for="fb-name" style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #a8a49b">Name
+<input id="fb-name" placeholder="Any name" style="height: 28px; box-sizing: border-box; padding: 0 8px; border: 1px solid #3a3f46; border-radius: 5px; background: #0f1113; color: #e6e2d8; font-size: 15px">
+</label>
+<label style="display: flex; align-items: center; gap: 6px; font-size: 13.5px; color: #cfcac0"><input type="checkbox" style="margin: 0">Exact name only</label>
+<div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #a8a49b">
+<span style="width: 70px">Level</span>
+<input aria-label="Minimum level" value="20" style="width: 52px; height: 28px; box-sizing: border-box; text-align: center; border: 1px solid #3a3f46; border-radius: 5px; background: #0f1113; color: #e6e2d8; font-size: 15px">
+<span>to</span>
+<input aria-label="Maximum level" value="30" style="width: 52px; height: 28px; box-sizing: border-box; text-align: center; border: 1px solid #3a3f46; border-radius: 5px; background: #0f1113; color: #e6e2d8; font-size: 15px">
+</div>
+<label style="display: flex; align-items: center; gap: 6px; font-size: 13.5px; color: #cfcac0"><input type="checkbox" checked style="margin: 0">Only items I can use</label>
+<div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #a8a49b"><span style="width: 70px">Category</span><button style="flex-grow: 1; height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; border: 1px solid #3a3f46; border-radius: 5px; background: #0f1113; color: #e6e2d8; font-size: 15px">Armor<span style="color: #8e8a81">▾</span></button></div>
+<div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #a8a49b"><span style="width: 70px">Type</span><button style="flex-grow: 1; height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; border: 1px solid #3a3f46; border-radius: 5px; background: #0f1113; color: #e6e2d8; font-size: 15px">Cloth<span style="color: #8e8a81">▾</span></button></div>
+<div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #a8a49b"><span style="width: 70px">Slot</span><button style="flex-grow: 1; height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; border: 1px solid #3a3f46; border-radius: 5px; background: #0f1113; color: #8e8a81; font-size: 15px">Any slot<span style="color: #8e8a81">▾</span></button></div>
+<div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #a8a49b"><span style="width: 70px">Rarity</span><button style="flex-grow: 1; height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; border: 1px solid #3a3f46; border-radius: 5px; background: #0f1113; color: #4fd04f; font-size: 15px">Uncommon or better<span style="color: #8e8a81">▾</span></button></div>
+</div>
+
+<div style="flex-grow: 1; min-width: 0; box-sizing: border-box; padding: 12px 14px; background: #16181b; border: 1px solid #262a2f; border-radius: 8px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 13px; color: #e3a43b; text-transform: uppercase; letter-spacing: .8px">Only show auctions where</span>
+<span style="font-size: 12.5px; color: #8e8a81">Checked on every result as it comes in.</span>
+</div>
+<div style="flex-grow: 1"></div>
+<span style="font-size: 14px; color: #a8a49b">Match</span>
+<div role="group" aria-label="Match all or any" style="display: flex; padding: 2px; gap: 2px; border: 1px solid #2f343a; border-radius: 7px; background: #111315">
+<button aria-pressed="{{rootAll}}" onClick="{{setRootAll}}" style="{{rootAllStyle}}">All</button>
+<button aria-pressed="{{rootAny}}" onClick="{{setRootAny}}" style="{{rootAnyStyle}}">Any</button>
+</div>
+<span style="font-size: 14px; color: #a8a49b">of these</span>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px; flex-grow: 1; min-height: 0">
+<sc-for list="{{rows}}" as="row" hint-placeholder-count="3">
+<sc-if value="{{row.isCond}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 6px; border-radius: 6px; background: #1c1f23">
+<button aria-pressed="{{row.not}}" onClick="{{row.toggleNot}}" style="{{row.notStyle}}">not</button>
+<button style="width: 170px; height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; border: 1px solid #3a3f46; border-radius: 5px; background: #0f1113; color: #e6e2d8; font-size: 15px">{{row.label}}<span style="color: #8e8a81">▾</span></button>
+<span style="width: 58px; font-size: 14px; color: #a8a49b; text-align: center">{{row.op}}</span>
+<div style="width: 120px; height: 28px; box-sizing: border-box; display: flex; align-items: center; justify-content: flex-end; padding: 0 8px; border: 1px solid #3a3f46; border-radius: 5px; background: #0f1113; font-size: 15px; color: #f3efe6">{{row.value}}</div>
+<span style="font-size: 12.5px; color: #8e8a81; flex-grow: 1; padding-left: 6px; white-space: nowrap; overflow: hidden">{{row.hint}}</span>
+<button aria-label="Remove condition" onClick="{{row.remove}}" style="width: 26px; height: 26px; border: none; border-radius: 5px; background: transparent; color: #8e8a81; font-size: 16px">×</button>
+</div>
+</sc-if>
+<sc-if value="{{row.isGroup}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 8px 8px 8px 8px; border: 1px solid #3a3f46; border-radius: 8px; background: #121417">
+<div style="display: flex; align-items: center; gap: 8px">
+<button aria-pressed="{{row.not}}" onClick="{{row.toggleNot}}" style="{{row.notStyle}}">not</button>
+<span style="font-size: 14px; color: #a8a49b">Group: match</span>
+<div role="group" aria-label="Group matches all or any" style="display: flex; padding: 2px; gap: 2px; border: 1px solid #2f343a; border-radius: 7px; background: #0e1012">
+<button aria-pressed="{{row.all}}" onClick="{{row.setAll}}" style="{{row.allStyle}}">All</button>
+<button aria-pressed="{{row.any}}" onClick="{{row.setAny}}" style="{{row.anyStyle}}">Any</button>
+</div>
+<span style="font-size: 14px; color: #a8a49b">of these</span>
+<div style="flex-grow: 1"></div>
+<button aria-label="Remove group" onClick="{{row.remove}}" style="width: 26px; height: 26px; border: none; border-radius: 5px; background: transparent; color: #8e8a81; font-size: 16px">×</button>
+</div>
+<sc-for list="{{row.items}}" as="sub" hint-placeholder-count="2">
+<div style="display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 6px; border-radius: 6px; background: #1c1f23">
+<button aria-pressed="{{sub.not}}" onClick="{{sub.toggleNot}}" style="{{sub.notStyle}}">not</button>
+<button style="width: 150px; height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; border: 1px solid #3a3f46; border-radius: 5px; background: #0f1113; color: #e6e2d8; font-size: 15px">{{sub.label}}<span style="color: #8e8a81">▾</span></button>
+<span style="width: 40px; font-size: 14px; color: #a8a49b; text-align: center">{{sub.op}}</span>
+<div style="width: 120px; height: 28px; box-sizing: border-box; display: flex; align-items: center; padding: 0 8px; border: 1px solid #3a3f46; border-radius: 5px; background: #0f1113; font-size: 15px; color: #f3efe6">{{sub.value}}</div>
+<div style="flex-grow: 1"></div>
+<button aria-label="Remove condition" onClick="{{sub.remove}}" style="width: 26px; height: 26px; border: none; border-radius: 5px; background: transparent; color: #8e8a81; font-size: 16px">×</button>
+</div>
+</sc-for>
+<div style="display: flex; gap: 6px; padding-left: 4px">
+<button style="height: 26px; padding: 0 10px; border: 1px dashed #3a3f46; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 13.5px">+ Condition</button>
+<button style="height: 26px; padding: 0 10px; border: 1px dashed #3a3f46; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 13.5px">+ Group</button>
+</div>
+</div>
+</sc-if>
+</sc-for>
+<div style="display: flex; gap: 6px">
+<button style="height: 30px; padding: 0 12px; border: 1px dashed #5a4a2a; border-radius: 6px; background: transparent; color: #e3c27f; font-size: 14.5px">+ Condition</button>
+<button style="height: 30px; padding: 0 12px; border: 1px dashed #3a3f46; border-radius: 6px; background: transparent; color: #a8a49b; font-size: 14.5px">+ Group</button>
+</div>
+</div>
+
+<div style="display: flex; gap: 8px; padding: 9px 11px; border-radius: 6px; background: #0f1113; border: 1px solid #262a2f; font-size: 14px; line-height: 1.35">
+<span style="color: #8e8a81; flex-shrink: 0">In words:</span>
+<span style="color: #cfcac0">{{words}}</span>
+</div>
+</div>
+</div>
+
+<div style="height: 36px; flex-shrink: 0; display: flex; align-items: center; gap: 6px; padding: 0 10px 8px 10px">
+<div style="width: 270px; height: 26px; box-sizing: border-box; display: flex; align-items: center; padding: 0 10px; border-radius: 5px; background: #23262b; color: #8e8a81; font-size: 13.5px">Ready</div>
+<button style="height: 26px; padding: 0 12px; border: 1px solid #2f343a; border-radius: 5px; background: #1b1e22; color: #cfcac0; font-size: 14.5px">Clear all</button>
+<button style="height: 26px; padding: 0 12px; border: 1px solid #2f343a; border-radius: 5px; background: #1b1e22; color: #cfcac0; font-size: 14.5px">Save to favorites</button>
+<div style="flex-grow: 1"></div>
+<span style="font-size: 12px; color: #8e8a81">aux by shirsig, granted immortality by Tyler</span>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1100,"height":660}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      mode: 'and',
+      items: [
+        { id: 'p', kind: 'cond', not: false, label: 'Price per item', op: 'at most', value: '5g 00s', token: 'price/5g', words: 'price per item is at most 5g', hint: 'buyout for one item' },
+        { id: 'u', kind: 'cond', not: false, label: '% of usual price', op: 'at most', value: '60%', token: 'percent/60', words: 'it costs at most 60% of its usual price', hint: 'from your price history' },
+        { id: 'g', kind: 'group', not: true, mode: 'or', items: [
+          { id: 's', not: false, label: 'Seller', op: 'is', value: 'Bobsmith', token: 'seller/bobsmith', words: 'the seller is Bobsmith' },
+          { id: 't', not: false, label: 'Time left', op: 'is', value: '30m', token: 'left/30m', words: 'it has 30 minutes left' }
+        ] }
+      ]
+    };
+  }
+  pill(on) {
+    return 'height: 26px; padding: 0 12px; border-radius: 5px; font-size: 14px; border: 1px solid ' + (on ? '#e3a43b; background: #3a2e15; color: #f6d48f' : 'transparent; background: transparent; color: #a8a49b');
+  }
+  notStyle(on) {
+    return 'width: 38px; height: 24px; border-radius: 12px; font-size: 12.5px; font-weight: 700; letter-spacing: .4px; border: 1px solid ' + (on ? '#c45a4a; background: #3a1a16; color: #ff9a8a' : '#2f343a; background: transparent; color: #5c5a55');
+  }
+  serial(node) {
+    if (node.kind !== 'group' && !node.items) return (node.not ? 'not/' : '') + node.token;
+    const parts = node.items.map((i) => this.serial(i));
+    let body;
+    if (parts.length === 0) return '';
+    if (parts.length === 1) body = parts[0];
+    else body = node.mode + (parts.length > 2 ? parts.length : '') + '/' + parts.join('/');
+    return (node.not ? 'not/' : '') + body;
+  }
+  say(node, nested) {
+    if (node.kind !== 'group' && !node.items) return (node.not ? 'not: ' : '') + node.words;
+    const parts = node.items.map((i) => this.say(i, true));
+    let body = parts.join(node.mode === 'and' ? ' AND ' : ' OR ');
+    if (nested && parts.length > 1) body = '(' + body + ')';
+    return (node.not ? 'NOT ' : '') + body;
+  }
+  update(fn) {
+    const items = JSON.parse(JSON.stringify(this.state.items));
+    fn(items);
+    this.setState({ items });
+  }
+  renderVals() {
+    const s = this.state;
+    const root = { mode: s.mode, items: s.items, not: false };
+    const post = this.serial(root);
+    const rows = s.items.map((it, i) => {
+      const base = {
+        isCond: it.kind === 'cond', isGroup: it.kind === 'group', not: it.not, notStyle: this.notStyle(it.not),
+        label: it.label, op: it.op, value: it.value, hint: it.hint,
+        toggleNot: () => this.update((items) => { items[i].not = !items[i].not; }),
+        remove: () => this.update((items) => { items.splice(i, 1); })
+      };
+      if (it.kind === 'group') {
+        base.all = it.mode === 'and'; base.any = it.mode === 'or';
+        base.allStyle = this.pill(it.mode === 'and'); base.anyStyle = this.pill(it.mode === 'or');
+        base.setAll = () => this.update((items) => { items[i].mode = 'and'; });
+        base.setAny = () => this.update((items) => { items[i].mode = 'or'; });
+        base.items = it.items.map((sub, j) => ({
+          not: sub.not, notStyle: this.notStyle(sub.not), label: sub.label, op: sub.op, value: sub.value,
+          toggleNot: () => this.update((items) => { items[i].items[j].not = !items[i].items[j].not; }),
+          remove: () => this.update((items) => { items[i].items.splice(j, 1); })
+        }));
+      }
+      return base;
+    });
+    return {
+      rows,
+      blizzardText: '20/30/usable/armor/cloth/uncommon',
+      postText: post ? '/' + post : '',
+      words: 'Uncommon or better cloth armor, level 20 to 30, that you can use' + (post ? ', where ' + this.say(root, false) : '') + '.',
+      rootAll: s.mode === 'and', rootAny: s.mode === 'or',
+      rootAllStyle: this.pill(s.mode === 'and'), rootAnyStyle: this.pill(s.mode === 'or'),
+      setRootAll: () => this.setState({ mode: 'and' }),
+      setRootAny: () => this.setState({ mode: 'or' })
+    };
+  }
+}
+</script>
+</body>
+</html>

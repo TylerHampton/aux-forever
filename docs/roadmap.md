@@ -69,6 +69,10 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
   that is so valuable to build in that we just save it for 0.9"): each character, when logged in
   with aux, records its bags, bank and mail; the shopping list and tooltips then count them.
   Options and trade-offs: `docs/status.md`, 2026-10-20.
+- **Candidates added 2026-11-19 (not decided by Tyler):** a narrower Sniper (FB-055: the house was
+  25,706 items, so a whole-house round takes about 40 s; watching trade goods only, a category or a
+  saved search would take a few seconds; mockup first; Tyler may want it in 0.8.2.2), and a
+  controller button to search (FB-053; first an experiment: can an addon bind the triggers).
 
 ## After 0.6: candidates for the next version (none decided)
 

@@ -27,8 +27,8 @@ updating; `/reload` is enough.
   Buy bought it, so a stray click could buy far more than you meant. The stack and the other
   amounts are still one click away. The Sniper still starts at all the units of a deal, since
   those cheap units are the deal. (reported by Tremulent)
-- After a purchase, Buy rests for half a second and says what was just bought. A second click right
-  after buying, as with the old Buy then Confirm, could buy a second time: on a quick auction
+- After a purchase, Buy rests for a quarter of a second and says what was just bought. A second
+  click right after buying, as with the old Buy then Confirm, could buy a second time: on a quick auction
   house the first purchase was already done and Buy was ready again. The same goes for Enter in
   the quantity box and for gear, where the next auction at the same price is selected after you
   buy one. (reported by Tremulent)

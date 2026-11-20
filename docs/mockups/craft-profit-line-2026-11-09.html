@@ -1,0 +1,268 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Craft Profit Line</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: one column; each option is a slice of Blizzard's Professions window (reagents, aux's line,
+   the optional reagents below) drawn at game scale, with a short verdict beside it. Single dark look,
+   like the game window it imitates. */
+:root {
+  --page: #111316;
+  --panel: #1a1d21;
+  --line: #2e333a;
+  --fg: #ece7dc;
+  --muted: #9a958b;
+  --accent: #e3a43b;
+  --win: #0d0c0a;          /* the profession window's background */
+  --win-edge: #4a3f2a;
+  --slot: #262219;
+  --wow-white: #ffffff;
+  --wow-gold: #ffd100;     /* Blizzard's yellow headings */
+  --label: #a8a8a8;        /* aux's gray label text */
+  --dim: #6e6e6e;
+  --coin-g: #ffd100;
+  --coin-s: #e6e6e6;
+  --coin-c: #c8602c;
+  --profit: #4dcc66;       /* aux "positive" (New theme) */
+  --loss: #e8574a;         /* aux "negative" (New theme) */
+  --display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --game: "Arial Narrow", "Barlow Semi Condensed", Arial, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--page); }
+body { color: var(--fg); font: 15px/1.55 var(--body); }
+.wrap { max-width: 900px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 64px; display: grid; gap: 28px; }
+
+header h1 { font: 700 30px/1.1 var(--display); margin: 0 0 8px; text-wrap: balance; }
+header h1 b { color: var(--accent); }
+header p { margin: 0 0 8px; color: var(--muted); max-width: 68ch; }
+header p strong { color: var(--fg); font-weight: 600; }
+
+h2 { font: 600 13px/1 var(--display); text-transform: uppercase; letter-spacing: .12em; color: var(--accent); margin: 0 0 12px; }
+
+.option { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 18px; display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 20px; align-items: start; }
+.option.pick { border-color: color-mix(in srgb, var(--accent) 60%, var(--line)); }
+.option h3 { font: 600 20px/1.2 var(--display); margin: 0 0 6px; text-wrap: balance; }
+.option h3 .tag { font: 600 12px/1 var(--display); letter-spacing: .08em; text-transform: uppercase; background: var(--accent); color: #1b1406; border-radius: 3px; padding: 3px 6px; margin-left: 8px; vertical-align: 3px; }
+.option .about p { margin: 0 0 8px; max-width: 60ch; }
+.option ul { margin: 0; padding-left: 18px; color: var(--muted); }
+.option li { margin-bottom: 4px; }
+.option li b { color: var(--fg); font-weight: 600; }
+@media (max-width: 720px) { .option { grid-template-columns: minmax(0, 1fr); } }
+
+/* the game window slice */
+.win { background: var(--win); border: 2px solid var(--win-edge); border-radius: 4px; padding: 12px 14px; font: 13px/1.3 var(--game); color: var(--wow-white); max-width: 100%; overflow-x: auto; }
+.win .hd { color: var(--wow-gold); font-size: 13px; margin-bottom: 6px; }
+.reagents { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 10px; }
+.reagent { display: flex; gap: 6px; align-items: center; min-width: 0; }
+.reagent i { flex: none; width: 26px; height: 26px; background: var(--slot); border: 1px solid #5b4d2f; border-radius: 3px; }
+.reagent span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aux { margin-top: 3px; min-height: 14px; font-size: 11.5px; white-space: nowrap; position: relative; }
+.aux.two { line-height: 14px; }
+.aux .lab { color: var(--label); }
+.aux .gap { display: inline-block; width: 12px; }
+.optional { margin-top: 20px; color: var(--wow-gold); }
+.optional.tight { margin-top: 6px; }
+.overlap { outline: 1px dashed var(--loss); outline-offset: 1px; }
+.note-red { color: var(--loss); font: 12px/1.4 var(--body); margin-top: 6px; }
+
+/* money, as aux writes it: white digits, colored coin letters; a tint colors the digits only */
+.m .g { color: var(--coin-g); } .m .s { color: var(--coin-s); } .m .c { color: var(--coin-c); }
+.m.up { color: var(--profit); } .m.down { color: var(--loss); }
+.up-t { color: var(--profit); } .down-t { color: var(--loss); }
+.dimt { color: var(--dim); }
+
+/* the tooltip */
+.tip { background: rgba(9, 10, 22, .96); border: 1px solid #8a8a8a; border-radius: 4px; padding: 8px 10px; font: 12.5px/1.45 var(--game); color: var(--wow-white); max-width: 360px; }
+.tip .row { display: flex; justify-content: space-between; gap: 16px; }
+.tip .row > :first-child { min-width: 0; }
+.tip .t1 { font-size: 14px; }
+.tip .sep { height: 6px; }
+.tip .lab { color: var(--label); }
+
+.states { display: grid; gap: 10px; }
+.state { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 14px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.state .win { padding: 8px 10px; }
+.state p { margin: 0; color: var(--muted); }
+.state p b { color: var(--fg); font-weight: 600; }
+@media (max-width: 640px) { .state { grid-template-columns: minmax(0, 1fr); } }
+
+.facts { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; }
+.facts p, .facts li { max-width: 72ch; }
+.facts ul { margin: 0; padding-left: 18px; }
+.facts li { margin-bottom: 6px; color: var(--muted); }
+.facts li b { color: var(--fg); font-weight: 600; }
+.label { font: 600 11px/1 var(--display); letter-spacing: .08em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 3px; padding: 2px 5px; color: var(--muted); }
+.ask { border-left: 3px solid var(--accent); background: var(--panel); border-radius: 0 8px 8px 0; padding: 14px 18px; }
+.ask ol { margin: 6px 0 0; padding-left: 20px; }
+.ask li { margin-bottom: 6px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Profit on the <b>Materials</b> line</h1>
+    <p>FB-026, deep_structure: "Is it possible to add the feature in crafting where it tells you if a craft is a profit or a loss?" You decided it goes on the line under the reagents in the Professions window (it shows cost only today). Three ways to write it, then what the chosen one says in each situation.</p>
+    <p><strong>All prices on this page are examples</strong>, except the Woolen Bag's materials (13s 84c, from your 0.8 screenshot). Drawn at roughly game size, in the New theme's colors.</p>
+  </header>
+
+  <section>
+    <h2>Today</h2>
+    <div class="option">
+      <div class="win">
+        <div class="hd">Reagents</div>
+        <div class="reagents">
+          <div class="reagent"><i></i><span>4/4 Bolt of Woolen Cloth</span></div>
+          <div class="reagent"><i></i><span>3/3 Fine Thread</span></div>
+        </div>
+        <div class="aux"><span class="lab">Materials&nbsp;&nbsp;</span><span class="m">13<span class="s">s</span> 84<span class="c">c</span></span></div>
+        <div class="optional">Optional Reagents</div>
+      </div>
+      <div class="about">
+        <h3>Cost only</h3>
+        <p>aux's line sits in the 20-pixel gap Blizzard leaves between the reagents and the optional reagents. Hover shows each material's price.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Three ways to add profit</h2>
+    <div style="display:grid;gap:14px">
+
+      <div class="option pick">
+        <div class="win">
+          <div class="hd">Reagents</div>
+          <div class="reagents">
+            <div class="reagent"><i></i><span>4/4 Bolt of Woolen Cloth</span></div>
+            <div class="reagent"><i></i><span>3/3 Fine Thread</span></div>
+          </div>
+          <div class="aux"><span class="lab">Materials&nbsp;&nbsp;</span><span class="m">13<span class="s">s</span> 84<span class="c">c</span></span><span class="gap"></span><span class="up-t">Profit&nbsp;&nbsp;</span><span class="m up">7<span class="s">s</span> 06<span class="c">c</span></span></div>
+          <div class="optional">Optional Reagents</div>
+        </div>
+        <div class="about">
+          <h3>A. Cost and profit <span class="tag">Recommended</span></h3>
+          <p>One line, the answer in green or red. What it sells for is in the hover.</p>
+          <ul>
+            <li><b>Short:</b> fits beside long reagent names, even with gold amounts.</li>
+            <li><b>Same place as today,</b> nothing in Blizzard's window moves.</li>
+            <li>To see the selling price you hover, as you do now for each material's price.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="option">
+        <div class="win">
+          <div class="hd">Reagents</div>
+          <div class="reagents">
+            <div class="reagent"><i></i><span>4/4 Bolt of Woolen Cloth</span></div>
+            <div class="reagent"><i></i><span>3/3 Fine Thread</span></div>
+          </div>
+          <div class="aux"><span class="lab">Materials&nbsp;&nbsp;</span><span class="m">13<span class="s">s</span> 84<span class="c">c</span></span><span class="gap"></span><span class="lab">Sells&nbsp;&nbsp;</span><span class="m">20<span class="s">s</span> 90<span class="c">c</span></span><span class="gap"></span><span class="up-t">Profit&nbsp;&nbsp;</span><span class="m up">7<span class="s">s</span> 06<span class="c">c</span></span></div>
+          <div class="optional">Optional Reagents</div>
+        </div>
+        <div class="about">
+          <h3>B. Cost, selling price and profit</h3>
+          <p>The whole sum on one line, like the bottom bar of a recipe search.</p>
+          <ul>
+            <li>Everything at a glance, no hover needed.</li>
+            <li><b>About twice as long.</b> With gold amounts ("1g 24s 50c" three times) it can run past the reagent column into the right side of the window.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="option">
+        <div class="win">
+          <div class="hd">Reagents</div>
+          <div class="reagents">
+            <div class="reagent"><i></i><span>4/4 Bolt of Woolen Cloth</span></div>
+            <div class="reagent"><i></i><span>3/3 Fine Thread</span></div>
+          </div>
+          <div class="aux two"><span class="lab">Materials&nbsp;&nbsp;</span><span class="m">13<span class="s">s</span> 84<span class="c">c</span></span><br><span class="lab">Sells&nbsp;&nbsp;</span><span class="m">20<span class="s">s</span> 90<span class="c">c</span></span><span class="gap"></span><span class="up-t">Profit&nbsp;&nbsp;</span><span class="m up">7<span class="s">s</span> 06<span class="c">c</span></span></div>
+          <div class="optional tight overlap">Optional Reagents</div>
+          <div class="note-red">The second line needs about 10 more pixels than the gap has.</div>
+        </div>
+        <div class="about">
+          <h3>C. Two lines</h3>
+          <p>Cost on the first line, selling price and profit under it.</p>
+          <ul>
+            <li>Easy to read, each line short.</li>
+            <li><b>Does not fit:</b> on recipes with optional reagents, the second line runs into Blizzard's "Optional Reagents" heading. Fixing that means moving part of Blizzard's window, which aux avoids.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Hover, for A</h2>
+    <div class="option">
+      <div class="tip" role="img" aria-label="Tooltip mockup">
+        <div class="t1">Materials for 1 craft</div>
+        <div class="lab">Prices from your latest scans</div>
+        <div class="row"><span>Bolt of Woolen Cloth ×4</span><span><span class="m">12<span class="s">s</span> 60<span class="c">c</span></span>&nbsp;&nbsp;<span class="lab">seen today</span></span></div>
+        <div class="row"><span>Fine Thread ×3</span><span><span class="m">1<span class="s">s</span> 24<span class="c">c</span></span>&nbsp;&nbsp;<span class="lab">vendor</span></span></div>
+        <div class="row"><span class="lab">Total</span><span class="m">13<span class="s">s</span> 84<span class="c">c</span></span></div>
+        <div class="sep"></div>
+        <div class="row"><span>Woolen Bag sells for</span><span><span class="m">22<span class="s">s</span></span>&nbsp;&nbsp;<span class="lab">seen today</span></span></div>
+        <div class="row"><span class="lab">After the 5% auction house cut</span><span class="m">20<span class="s">s</span> 90<span class="c">c</span></span></div>
+        <div class="row"><span class="up-t">Profit</span><span class="m up">7<span class="s">s</span> 06<span class="c">c</span></span></div>
+      </div>
+      <div class="about">
+        <h3>The sum behind the number</h3>
+        <p>Today's hover, with three lines added under the total: what the made item sells for and how fresh that price is, the price after the cut, and the profit.</p>
+        <ul>
+          <li>A recipe that makes more than one counts them all ("Heavy Wool Bandage ×2 sells for").</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What A says in each case</h2>
+    <div class="states">
+      <div class="state">
+        <div class="win"><div class="aux"><span class="lab">Materials&nbsp;&nbsp;</span><span class="m">13<span class="s">s</span> 84<span class="c">c</span></span><span class="gap"></span><span class="up-t">Profit&nbsp;&nbsp;</span><span class="m up">7<span class="s">s</span> 06<span class="c">c</span></span></div></div>
+        <p><b>Profit.</b> The made item's price after the cut is above the materials.</p>
+      </div>
+      <div class="state">
+        <div class="win"><div class="aux"><span class="lab">Materials&nbsp;&nbsp;</span><span class="m">4<span class="s">s</span> 20<span class="c">c</span></span><span class="gap"></span><span class="down-t">Loss&nbsp;&nbsp;</span><span class="m down">1<span class="s">s</span> 10<span class="c">c</span></span></div></div>
+        <p><b>Loss.</b> Red, the same words as the recipe search's bottom bar.</p>
+      </div>
+      <div class="state">
+        <div class="win"><div class="aux"><span class="lab">Materials&nbsp;&nbsp;</span><span class="m">8<span class="s">s</span> 63<span class="c">c</span></span><span class="lab">+</span><span class="gap"></span><span class="up-t">Profit at most&nbsp;&nbsp;</span><span class="m up">3<span class="s">s</span> 40<span class="c">c</span></span></div></div>
+        <p><b>A material has no price yet</b> (the gray "+", as today). The true cost is higher, so it says "Profit at most" or "Loss at least".</p>
+      </div>
+      <div class="state">
+        <div class="win"><div class="aux"><span class="lab">Materials&nbsp;&nbsp;</span><span class="m">13<span class="s">s</span> 84<span class="c">c</span></span><span class="gap"></span><span class="dimt">no sell price yet</span></div></div>
+        <p><b>The made item has no price yet</b> (never seen at the auction house). Gray, and the hover says to search for it.</p>
+      </div>
+      <div class="state">
+        <div class="win"><div class="aux"><span class="lab">Materials&nbsp;&nbsp;</span><span class="m">2<span class="s">s</span> 15<span class="c">c</span></span></div></div>
+        <p><b>The recipe makes no item</b> (an enchant). Cost only, as today.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="facts">
+    <h2>Where the numbers come from</h2>
+    <ul>
+      <li><b>Made item's price:</b> its latest price, the same number as Value in its tooltip, from saved prices. No auction house request, so it works anywhere in the world, like the cost.</li>
+      <li><b>The cut:</b> 5% of the selling price, the same as aux uses everywhere. <span class="label">Outside</span> Not yet checked on an in-game invoice.</li>
+      <li><b>The deposit is left out:</b> it comes back when the item sells. A craft listed several times before it sells costs a deposit each time; aux cannot know that ahead.</li>
+      <li><b>Materials:</b> unchanged: each at its latest price, or a vendor's when a vendor sells it for less.</li>
+    </ul>
+  </section>
+
+  <section class="ask">
+    <h2>For you to choose</h2>
+    <ol>
+      <li>A, B or C? (I recommend A: short, and nothing in Blizzard's window moves.)</li>
+      <li>Anything in the hover or the five cases you would word differently?</li>
+    </ol>
+  </section>
+</div>
+
+</body></html>

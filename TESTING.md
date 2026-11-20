@@ -1,14 +1,26 @@
 # Testing auxForever in game
 
-Each test build gets a test page from Claude: one card per step with Pass, Fail and Skip, a note
-and screenshots. Answers save by themselves and Claude reads them, so say "done" in the chat when
-finished. The steps below are the same as on the page, for anyone testing without it.
+Each test build has its steps under "Current build" below. Tyler runs them in game and answers in
+the chat: Pass or Fail for each step by its number, a note where something looked wrong, and
+screenshots. The engineer (Gemini Neon since 2026-11-19) writes the answers under the build as
+"Results". Until 2026-11-19 Claude made a claude.ai test page per build; everything those pages
+saved is exported in `docs/test-results/test-page-results.md`.
 
 If BugSack shows an error at any point, copy its full text into that step's note.
 
-Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
+## Current build: 0.8.2.2 build 3
 
-## Current build: 0.8.2.2 build 2
+Built by Claude on 2026-11-19 as the last change before the takeover; checked by Gemini Neon's first
+session with Tyler. The only change from build 2: Buy rests a quarter second after a purchase (half a
+second in build 2, which Tyler found "still feels too long"; FB-051). Zip
+`auxForever-0.8.2.2-build3.zip`; `/reload` is enough (no new files).
+
+- [ ] 1. The rest after buying. Search tab: search `linen cloth/exact`, click the cheapest row, keep
+      1 picked, click Buy and then at once click it again. The bar says "Bought 1 × Linen Cloth",
+      the button is faded only for a blink, and chat shows one "You won an auction for Linen Cloth
+      (x1)" line. In the note: does the rest still feel too long?
+
+## 0.8.2.2 build 2 (tested 2026-11-17)
 
 Build 1 passed every step (Tyler, 2026-11-17). Build 2 makes the Sniper and Live faster (FB-055):
 the Sniper leaves gray items out of its list and waits 1 second between rounds (2.5 before), Live
@@ -927,8 +939,7 @@ release before, and say which.
 
 ## For agents
 
-Add the in-game checks for each change to "Current build" above (and to the build's test page, if
-one exists). One thing per step. If a step needs something the tester may not have (auctions
+Add the in-game checks for each change to "Current build" above. One thing per step. If a step needs something the tester may not have (auctions
 up, a second character, a rare item), say how to set it up or leave the step out (0.6.1 build 2,
 step 6: two checks in one, the second needing auctions; Tyler found it confusing). The
 pre-release check stays at six steps (Tyler's limit); do not move build steps into it. Older

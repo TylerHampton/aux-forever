@@ -1,0 +1,270 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>auxForever Settings Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&family=Roboto+Condensed:wght@400;500&display=swap">
+<style>
+/* Layout: the in-game Settings menu drawn at game size on the left, the full list of /aux chat
+   commands on the right; clicking a "Your call" command adds or removes its row in the menu.
+   Single dark look on purpose: it shows the addon's New look, which has no light version. */
+:root {
+  --page: #0b0b0b;
+  --page-text: #e6e3dc;
+  --page-muted: #9b978e;
+  --page-line: #262626;
+  --card: #141414;
+  /* the New look's palette (color.lua, PALETTES.new) */
+  --panel: rgb(19, 19, 19);
+  --raised: rgb(42, 42, 42);
+  --sunken: rgb(12, 12, 12);
+  --field-edge: rgb(64, 64, 64);
+  --edge: #000;
+  --text: rgb(235, 235, 235);
+  --label: rgb(168, 168, 168);
+  --label-dim: rgb(107, 107, 107);
+  --gold: rgb(229, 190, 91);
+  --gold-dark: rgb(42, 35, 18);
+  --gold-raised: rgb(46, 39, 22);
+  --red: rgb(232, 87, 74);
+  --green: rgb(77, 204, 102);
+  --game: "Roboto Condensed", "Arial Narrow", Arial, sans-serif;
+  --body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --display: "Barlow Semi Condensed", "Arial Narrow", sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--page); }
+body { color: var(--page-text); font: 15px/1.5 var(--body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 64px; }
+h1 { font: 700 26px/1.15 var(--display); margin: 0 0 6px; text-wrap: balance; }
+h1 b { color: var(--gold); }
+.lead { color: var(--page-muted); max-width: 70ch; margin: 0 0 22px; }
+.lead strong { color: var(--page-text); font-weight: 600; }
+.layout { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); gap: 28px; align-items: start; }
+@media (max-width: 1080px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+.stage { overflow-x: auto; padding-bottom: 6px; }
+.stage-note { color: var(--page-muted); font-size: 13px; margin: 8px 0 0; max-width: 60ch; }
+
+/* ---- the in-game menu ---- */
+.menu { width: 600px; background: var(--panel); border: 1px solid var(--edge); font: 15px/1.2 var(--game); color: var(--text); padding: 12px 14px 14px; box-shadow: 0 8px 30px rgba(0,0,0,.6); }
+.menu-title { font: 500 13px/1 var(--game); color: var(--gold); letter-spacing: .06em; margin: 0 0 10px; }
+.cols { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 0 16px; }
+.divider { background: var(--edge); }
+.section { margin-bottom: 14px; }
+.section:last-child { margin-bottom: 0; }
+.section-title { font: 500 12px/1 var(--game); color: var(--gold); letter-spacing: .05em; margin: 0 0 6px; text-transform: uppercase; }
+.section-title span { color: var(--label); text-transform: none; letter-spacing: 0; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 30px; }
+.row[hidden] { display: none; }
+.row .name { min-width: 0; }
+.row .name small { display: block; color: var(--label); font-size: 12px; line-height: 1.25; margin-top: 1px; }
+.row .name small.warn { color: var(--red); }
+.row.added { animation: flash 1.2s ease-out; }
+@keyframes flash { from { background: rgba(229,190,91,.18); } to { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .row.added { animation: none; } }
+
+.btn { font: 15px/1 var(--game); color: var(--gold); background: linear-gradient(to bottom, rgb(42,42,42), rgb(28,28,28)); border: 1px solid var(--edge); height: 24px; min-width: 26px; padding: 0 6px; cursor: pointer; }
+.btn:disabled { color: var(--label-dim); background: rgb(30,30,30); cursor: default; }
+.stepper { display: inline-flex; align-items: center; gap: 2px; }
+.stepper .val { width: 46px; text-align: center; font-variant-numeric: tabular-nums; }
+.seg { display: inline-flex; gap: 3px; }
+.seg button { font: 13px/1 var(--game); height: 24px; padding: 0 8px; min-width: 38px; background: var(--sunken); color: rgb(138,138,138); border: 1px solid var(--field-edge); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--gold-dark); color: var(--gold); border-color: rgba(229,190,91,.55); }
+
+/* the toggle switch: a sunken track with a square knob (New look: square corners) */
+.switch { position: relative; width: 38px; height: 20px; flex: none; background: var(--sunken); border: 1px solid var(--field-edge); cursor: pointer; padding: 0; }
+.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; background: rgb(110,110,110); transition: left .12s; }
+.switch[aria-checked="true"] { background: var(--gold-dark); border-color: var(--gold); }
+.switch[aria-checked="true"]::after { left: 20px; background: var(--gold); }
+@media (prefers-reduced-motion: reduce) { .switch::after { transition: none; } }
+button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+.reload { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--label); font-size: 13px; min-height: 28px; }
+.reload[hidden] { display: none; }
+.reload .btn.primary { background: linear-gradient(to bottom, var(--gold-raised), rgb(30,25,14)); border-color: var(--gold); padding: 0 10px; }
+
+/* ---- the command list ---- */
+.list h2 { font: 700 19px/1.2 var(--display); margin: 0 0 4px; }
+.list > p { color: var(--page-muted); margin: 0 0 14px; max-width: 65ch; }
+.group { margin-bottom: 18px; }
+.group h3 { font: 600 12px/1 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--page-muted); margin: 0 0 8px; display: flex; gap: 8px; align-items: center; }
+.group h3 .chip { letter-spacing: .02em; text-transform: none; font-weight: 600; padding: 2px 8px; border-radius: 3px; font-size: 12px; }
+.chip.in { background: rgba(77,204,102,.14); color: var(--green); }
+.chip.call { background: rgba(229,190,91,.14); color: var(--gold); }
+.chip.out { background: rgba(255,255,255,.07); color: var(--page-muted); }
+.cmd { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 14px; padding: 9px 12px; background: var(--card); border: 1px solid var(--page-line); margin-bottom: 6px; align-items: center; }
+.cmd code { font: 500 13px/1.4 ui-monospace, Consolas, monospace; color: var(--page-text); }
+.cmd .why { grid-column: 1 / -1; color: var(--page-muted); font-size: 14px; }
+.cmd .why b { color: var(--page-text); font-weight: 600; }
+.cmd .where { font-size: 13px; color: var(--page-muted); white-space: nowrap; }
+.try { font: 600 13px/1 var(--body); color: var(--gold); background: transparent; border: 1px solid rgba(229,190,91,.5); padding: 6px 10px; cursor: pointer; white-space: nowrap; }
+.try[aria-pressed="true"] { background: var(--gold); color: #1a1406; }
+.answer { margin-top: 22px; padding: 14px 16px; border: 1px solid var(--page-line); border-left: 3px solid var(--gold); background: var(--card); }
+.answer h3 { margin: 0 0 6px; font: 700 16px/1.2 var(--display); }
+.answer p { margin: 0 0 6px; color: var(--page-muted); }
+.answer p:last-child { margin: 0; }
+.answer strong { color: var(--page-text); }
+</style>
+
+<div class="wrap">
+  <h1><b>aux</b>Forever Settings, redesigned</h1>
+  <p class="lead">A mockup, not the addon. <strong>Left:</strong> the Settings menu as it would look in game (New look), with toggle switches instead of checkboxes, grouped by what they affect. Everything on it can be clicked. <strong>Right:</strong> every <code>/aux</code> command from the CurseForge page and where it would go. Click <strong>Try it</strong> on a "Your call" command to add its row to the menu.</p>
+
+  <div class="layout">
+    <div class="stage">
+      <div class="menu" role="group" aria-label="Settings menu mockup">
+        <p class="menu-title">SETTINGS</p>
+        <div class="cols">
+          <div>
+            <div class="section">
+              <p class="section-title">Window</p>
+              <div class="row"><div class="name">Background</div>
+                <div class="stepper"><button class="btn" type="button" id="bg-minus">-</button><span class="val" id="bg-val">100%</span><button class="btn" type="button" id="bg-plus" disabled>+</button></div></div>
+              <div class="row"><div class="name">Scale</div>
+                <div class="stepper"><button class="btn" type="button" id="sc-minus">-</button><span class="val" id="sc-val">110%</span><button class="btn" type="button" id="sc-plus">+</button></div></div>
+              <div class="row"><div class="name">Look</div>
+                <div class="seg" id="look"><button type="button" data-v="new" aria-pressed="true">New</button><button type="button" data-v="classic" aria-pressed="false">Classic</button></div></div>
+              <div class="reload" id="reload" hidden><span id="reload-text">Classic after a reload</span><button class="btn primary" type="button" id="reload-btn">Reload now</button></div>
+            </div>
+            <div class="section">
+              <p class="section-title">Posting</p>
+              <div class="row"><div class="name">Default duration</div>
+                <div class="seg" id="duration"><button type="button" aria-pressed="true">2h</button><button type="button" aria-pressed="false">8h</button><button type="button" aria-pressed="false">24h</button></div></div>
+              <div class="row" id="row-bid"><div class="name">Bid prices on the Post tab<small>A bid column next to buyouts</small></div>
+                <div class="seg" id="bid"><button type="button" aria-pressed="true">Off</button><button type="button" aria-pressed="false">Item</button><button type="button" aria-pressed="false">Stack</button></div></div>
+            </div>
+            <div class="section" id="sec-search" hidden>
+              <p class="section-title">Searching and buying</p>
+              <div class="row" id="row-owner" hidden><div class="name">One row per seller<small>Off: the same price from different sellers is one row</small></div>
+                <button class="switch" type="button" role="switch" aria-checked="false" aria-label="One row per seller"></button></div>
+              <div class="row" id="row-alt" hidden><div class="name">Alt-click to buy or cancel<small class="warn">Buys gear in one click, a stack in two</small></div>
+                <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Alt-click to buy or cancel"></button></div>
+              <div class="row" id="row-debug" hidden><div class="name">Search timing in chat<small>For bug reports about slow searches</small></div>
+                <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Search timing in chat"></button></div>
+            </div>
+          </div>
+          <div class="divider" aria-hidden="true"></div>
+          <div>
+            <div class="section">
+              <p class="section-title">Tooltip lines <span>(this character)</span></p>
+              <div class="row"><div class="name">Value<small>Price from your latest scan</small></div><button class="switch" type="button" role="switch" aria-checked="true" aria-label="Value"></button></div>
+              <div class="row"><div class="name">Today<small>Today's lowest, against the usual</small></div><button class="switch" type="button" role="switch" aria-checked="false" aria-label="Today"></button></div>
+              <div class="row"><div class="name">Vendor sell price</div><button class="switch" type="button" role="switch" aria-checked="true" aria-label="Vendor sell price"></button></div>
+              <div class="row"><div class="name">Vendor buy price</div><button class="switch" type="button" role="switch" aria-checked="false" aria-label="Vendor buy price"></button></div>
+              <div class="row"><div class="name">Disenchant value</div><button class="switch" type="button" role="switch" aria-checked="false" aria-label="Disenchant value"></button></div>
+              <div class="row"><div class="name">Disenchants into</div><button class="switch" type="button" role="switch" aria-checked="false" aria-label="Disenchants into"></button></div>
+              <div class="row"><div class="name">Coin icons<small>Gold, silver and copper coins</small></div><button class="switch" type="button" role="switch" aria-checked="true" aria-label="Coin icons"></button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="stage-note">In game it uses the game's font. In the Classic look the switches get rounded ends and the amber accent. Hovering any row would still show a tooltip saying what it does.</p>
+    </div>
+
+    <div class="list">
+      <h2>Every /aux command, and where it goes</h2>
+      <p>From the CurseForge page. Every chat command keeps working either way; this is only about which ones also get a switch in the menu.</p>
+
+      <div class="group">
+        <h3><span class="chip in">In the menu</span> on/off settings players change</h3>
+        <div class="cmd"><code>/aux tooltip value, daily, merchant sell, merchant buy, disenchant value, disenchant distribution, money icons</code><span class="where">Tooltip lines</span>
+          <div class="why">Seven switches. Built in build 2 as checkboxes; this turns them into switches.</div></div>
+        <div class="cmd"><code>/aux post bid</code><span class="where">Posting</span>
+          <div class="why"><b>Recommended, new.</b> Off, per item or per stack, so three choices rather than a switch. It only shows a column, so it cannot cost anyone money.</div></div>
+      </div>
+
+      <div class="group">
+        <h3><span class="chip in">Already in the menu</span></h3>
+        <div class="cmd"><code>/aux scale</code><span class="where">Window, Scale</span></div>
+        <div class="cmd"><code>/aux opacity</code><span class="where">Window, Background</span></div>
+        <div class="cmd"><code>/aux post duration</code><span class="where">Posting, Default duration</span></div>
+        <div class="cmd"><code>/aux undercut on|off</code><span class="where">Post tab (goblin switch)</span>
+          <div class="why">Starts off every visit on purpose, so it stays on the Post tab where you use it.</div></div>
+      </div>
+
+      <div class="group">
+        <h3><span class="chip call">Your call</span> click Try it to see the row</h3>
+        <div class="cmd"><code>/aux ignore owner</code><button class="try" type="button" data-row="row-owner" aria-pressed="false">Try it</button>
+          <div class="why">Shows the same price from different sellers as one row (on now) or one row per seller. Forever often hides seller names anyway ("4 sellers"), so turning it off changes little. <b>I'd leave it out.</b></div></div>
+        <div class="cmd"><code>/aux action shortcuts</code><button class="try" type="button" data-row="row-alt" aria-pressed="false">Try it</button>
+          <div class="why">Alt-click buys gear at once and a stack in two clicks. You flagged it as risky. <b>I'd leave it out.</b></div></div>
+        <div class="cmd"><code>/aux debug</code><button class="try" type="button" data-row="row-debug" aria-pressed="false">Try it</button>
+          <div class="why">Prints search timings in chat for bug reports. You said no to debug in the menu. <b>Leave it out.</b></div></div>
+      </div>
+
+      <div class="group">
+        <h3><span class="chip out">Stays in chat only</span> not settings</h3>
+        <div class="cmd"><code>/aux price &lt;item&gt;</code><span class="where">a lookup</span></div>
+        <div class="cmd"><code>/aux memory</code>, <code>/aux debug list</code><span class="where">diagnostics</span></div>
+        <div class="cmd"><code>/aux clear item cache</code>, <code>/aux clear post</code><span class="where">delete saved data</span>
+          <div class="why">A button for these in the menu would be easy to hit by accident.</div></div>
+      </div>
+
+      <div class="answer">
+        <h3>Why it was mostly tooltips</h3>
+        <p>Of the commands on the CurseForge page, the true on/off settings are the seven tooltip lines plus <code>ignore owner</code>, <code>action shortcuts</code> and <code>debug</code>. Scale, background and duration were already in the menu. So the real choices are the three "Your call" rows and the bid prices.</p>
+        <p><strong>My recommendation:</strong> switches for the tooltip lines, add bid prices under Posting, leave the three "Your call" commands as chat only.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  // switches flip
+  document.querySelectorAll(".switch").forEach(function (s) {
+    s.addEventListener("click", function () {
+      s.setAttribute("aria-checked", s.getAttribute("aria-checked") === "true" ? "false" : "true");
+    });
+  });
+  // a row of choices: one lit
+  function segment(id, onChange) {
+    var group = document.getElementById(id);
+    group.querySelectorAll("button").forEach(function (b) {
+      b.addEventListener("click", function () {
+        group.querySelectorAll("button").forEach(function (o) { o.setAttribute("aria-pressed", o === b ? "true" : "false"); });
+        if (onChange) onChange(b);
+      });
+    });
+  }
+  segment("duration");
+  segment("bid");
+  segment("look", function (b) {
+    var classic = b.getAttribute("data-v") === "classic";
+    document.getElementById("reload").hidden = !classic;
+    document.getElementById("reload-text").textContent = "Classic after a reload";
+  });
+  document.getElementById("reload-btn").addEventListener("click", function () {
+    document.getElementById("reload-text").textContent = "In game this reloads the interface";
+  });
+  // steppers, 5% at a time
+  function stepper(prefix, value, min, max) {
+    var minus = document.getElementById(prefix + "-minus"), plus = document.getElementById(prefix + "-plus"), out = document.getElementById(prefix + "-val");
+    function paint() { out.textContent = value + "%"; minus.disabled = value <= min; plus.disabled = value >= max; }
+    minus.addEventListener("click", function () { value = Math.max(min, value - 5); paint(); });
+    plus.addEventListener("click", function () { value = Math.min(max, value + 5); paint(); });
+    paint();
+  }
+  stepper("bg", 100, 50, 100);
+  stepper("sc", 110, 70, 150);
+  // "Try it": show or hide a row in the menu
+  var section = document.getElementById("sec-search");
+  function updateSection() {
+    section.hidden = !["row-owner", "row-alt", "row-debug"].some(function (id) { return !document.getElementById(id).hidden; });
+  }
+  document.querySelectorAll(".try").forEach(function (t) {
+    t.addEventListener("click", function () {
+      var row = document.getElementById(t.getAttribute("data-row"));
+      var on = row.hidden;
+      row.hidden = !on;
+      t.setAttribute("aria-pressed", on ? "true" : "false");
+      t.textContent = on ? "Shown, hide it" : "Try it";
+      row.classList.remove("added");
+      if (on) { void row.offsetWidth; row.classList.add("added"); }
+      updateSection();
+    });
+  });
+})();
+</script>
+
+</body></html>
