@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>aux buy bar states</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#e3a43b}a:hover{color:#f2c46d}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 1100px; height: 600px; box-sizing: border-box; padding: 20px 20px; background: #0c0d0f; font-family: 'Barlow Semi Condensed', 'Arial Narrow', sans-serif; color: #e6e2d8; display: flex; flex-direction: column; gap: 10px">
+
+<div style="font-size: 13px; color: #8e8a81; text-transform: uppercase; letter-spacing: 0.6px">Trade good, stack of 20: buttons 1 · 5 · 10 · 20</div>
+<div style="padding: 12px 14px; border: 1px solid #3b3426; border-radius: 8px; background: #1b1a17; display: flex; align-items: center; gap: 16px">
+<div style="width: 190px; display: flex; flex-direction: column; gap: 2px"><div style="font-size: 16px; font-weight: 600">Light Feather</div><div style="font-size: 13px; color: #8e8a81">6,180 for sale · stack of 20</div></div>
+<div style="display: flex; gap: 6px">
+<button style="height: 44px; min-width: 56px; border-radius: 6px; border: 1px solid #3a3f46; background: #1f2226; color: #e6e2d8; display: flex; flex-direction: column; align-items: center; justify-content: center"><span style="font-size: 17px; font-weight: 700">1</span><span style="font-size: 12px; color: #8e8a81">7c</span></button>
+<button style="height: 44px; min-width: 56px; border-radius: 6px; border: 1px solid #3a3f46; background: #1f2226; color: #e6e2d8; display: flex; flex-direction: column; align-items: center; justify-content: center"><span style="font-size: 17px; font-weight: 700">5</span><span style="font-size: 12px; color: #8e8a81">35c</span></button>
+<button style="height: 44px; min-width: 56px; border-radius: 6px; border: 1px solid #3a3f46; background: #1f2226; color: #e6e2d8; display: flex; flex-direction: column; align-items: center; justify-content: center"><span style="font-size: 17px; font-weight: 700">10</span><span style="font-size: 12px; color: #8e8a81">70c</span></button>
+<button style="height: 44px; min-width: 78px; border-radius: 6px; border: 1px solid #e3a43b; background: #3a2e15; color: #f6d48f; display: flex; flex-direction: column; align-items: center; justify-content: center"><span style="font-size: 17px; font-weight: 700">20 stack</span><span style="font-size: 12px; color: #e3c27f">1s 40c</span></button>
+</div>
+<div style="flex-grow: 1"><div style="font-size: 15px">20 Light Feathers for 1s 40c</div><div style="font-size: 13px; color: #8e8a81">Cheapest first · avg 7c · highest 7c each</div></div>
+<button style="height: 44px; padding: 0 18px; border: none; border-radius: 6px; background: #e3a43b; color: #1a1408; font-size: 16px; font-weight: 700">Buy 20 for 1s 40c</button>
+</div>
+
+<div style="font-size: 13px; color: #8e8a81; text-transform: uppercase; letter-spacing: 0.6px">Stack of 5 (potions): buttons 1 · 5</div>
+<div style="padding: 12px 14px; border: 1px solid #3b3426; border-radius: 8px; background: #1b1a17; display: flex; align-items: center; gap: 16px">
+<div style="width: 190px; display: flex; flex-direction: column; gap: 2px"><div style="font-size: 16px; font-weight: 600">Minor Healing Potion</div><div style="font-size: 13px; color: #8e8a81">[COUNT] for sale · stack of 5</div></div>
+<div style="display: flex; gap: 6px">
+<button style="height: 44px; min-width: 56px; border-radius: 6px; border: 1px solid #3a3f46; background: #1f2226; color: #e6e2d8; display: flex; flex-direction: column; align-items: center; justify-content: center"><span style="font-size: 17px; font-weight: 700">1</span><span style="font-size: 12px; color: #8e8a81">[PRICE]</span></button>
+<button style="height: 44px; min-width: 78px; border-radius: 6px; border: 1px solid #e3a43b; background: #3a2e15; color: #f6d48f; display: flex; flex-direction: column; align-items: center; justify-content: center"><span style="font-size: 17px; font-weight: 700">5 stack</span><span style="font-size: 12px; color: #e3c27f">[PRICE]</span></button>
+</div>
+<div style="flex-grow: 1"><div style="font-size: 15px">5 Minor Healing Potions for [PRICE]</div><div style="font-size: 13px; color: #8e8a81">Cheapest first · avg [PRICE] · highest [PRICE] each</div></div>
+<button style="height: 44px; padding: 0 18px; border: none; border-radius: 6px; background: #e3a43b; color: #1a1408; font-size: 16px; font-weight: 700">Buy 5 for [PRICE]</button>
+</div>
+
+<div style="font-size: 13px; color: #8e8a81; text-transform: uppercase; letter-spacing: 0.6px">Gear and bags: no quantity, one item per click</div>
+<div style="padding: 12px 14px; border: 1px solid #2f343a; border-radius: 8px; background: #191b1e; display: flex; align-items: center; gap: 16px">
+<div style="width: 190px; display: flex; flex-direction: column; gap: 2px"><div style="font-size: 16px; font-weight: 600; color: #f3efe6">Heavy Brown Bag</div><div style="font-size: 13px; color: #8e8a81">6 for sale at this price</div></div>
+<div style="flex-grow: 1"><div style="font-size: 15px">1 Heavy Brown Bag for 2g 10s</div><div style="font-size: 13px; color: #8e8a81">Next one at this price is selected after buying</div></div>
+<button style="height: 44px; padding: 0 16px; border: 1px solid #3a3f46; border-radius: 6px; background: transparent; color: #cfcac0; font-size: 15px">Bid [PRICE]</button>
+<button style="height: 44px; padding: 0 18px; border: none; border-radius: 6px; background: #e3a43b; color: #1a1408; font-size: 16px; font-weight: 700">Buy for 2g 10s</button>
+</div>
+
+<div style="font-size: 13px; color: #8e8a81; text-transform: uppercase; letter-spacing: 0.6px">After Buy: the server's price, nothing spent yet</div>
+<div style="padding: 12px 14px; border: 1px solid #2c5a3d; border-radius: 8px; background: #16201a; display: flex; align-items: center; gap: 16px">
+<div style="width: 190px; display: flex; flex-direction: column; gap: 2px"><div style="font-size: 16px; font-weight: 600">Light Feather</div><div style="font-size: 13px; color: #8e8a81">Price held for 28s</div></div>
+<div style="flex-grow: 1"><div style="font-size: 15px">Server price: 1s 40c for 20</div><div style="font-size: 13px; color: #6fd39a">Matches the estimate. Nothing is bought until you confirm.</div></div>
+<button style="height: 44px; padding: 0 14px; border: 1px solid #3a3f46; border-radius: 6px; background: transparent; color: #cfcac0; font-size: 15px">Cancel</button>
+<button style="height: 44px; padding: 0 18px; border: none; border-radius: 6px; background: #3fae6a; color: #06150c; font-size: 16px; font-weight: 700">Confirm 1s 40c</button>
+</div>
+
+<div style="font-size: 13px; color: #8e8a81; text-transform: uppercase; letter-spacing: 0.6px">Price went up between estimate and server: cancelled automatically</div>
+<div style="padding: 12px 14px; border: 1px solid #5a2f2a; border-radius: 8px; background: #211715; display: flex; align-items: center; gap: 16px">
+<div style="width: 190px; display: flex; flex-direction: column; gap: 2px"><div style="font-size: 16px; font-weight: 600">Light Feather</div><div style="font-size: 13px; color: #8e8a81">Someone bought the cheap ones</div></div>
+<div style="flex-grow: 1"><div style="font-size: 15px">Server asked 2s 10c, more than the 1s 40c shown</div><div style="font-size: 13px; color: #ff8a7e">Nothing was bought. The list refreshes so you can decide again.</div></div>
+<button style="height: 44px; padding: 0 18px; border: none; border-radius: 6px; background: #e3a43b; color: #1a1408; font-size: 16px; font-weight: 700">Buy 20 for 2s 10c</button>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1100,"height":600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

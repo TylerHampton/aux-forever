@@ -1,14 +1,111 @@
 # Testing auxForever in game
 
-Each test build gets a test page from Claude: one card per step with Pass, Fail and Skip, a note
-and screenshots. Answers save by themselves and Claude reads them, so say "done" in the chat when
-finished. The steps below are the same as on the page, for anyone testing without it.
+Each test build has its steps under "Current build" below. Tyler runs them in game and answers in
+the chat: Pass or Fail for each step by its number, a note where something looked wrong, and
+screenshots. The engineer (Gemini Neon since 2026-11-19) writes the answers under the build as
+"Results". Until 2026-11-19 Claude made a claude.ai test page per build; everything those pages
+saved is exported in `docs/test-results/test-page-results.md`.
 
 If BugSack shows an error at any point, copy its full text into that step's note.
 
-Current test page: https://claude.ai/artifact/LUCZVgJV27irizAyKHTjhJ (private to Tyler)
+## Current build: 0.8.2.2 build 4
 
-## Current build: 0.8.2.1 build 7 (released as 0.8.2.1 on 2026-11-16, with the crate heading renamed)
+Built 2026-11-20 (Gemini Neon): adds build 3's quarter-second rest after buying (not tested yet) plus
+two contributor pull requests: gamepad item comparison beside aux's window (PR #41, nokkty) and
+Full scan cooldown/no-answer feedback (PR #37, Dragoy; most of PR #37 already shipped in 0.8.2).
+Zip `auxForever-0.8.2.2-build4.zip`; `/reload` is enough (no new files).
+
+- [x] 1. The rest after buying (FB-051, carried over from build 3). Search tab: search
+      `linen cloth/exact`, click the cheapest row, keep `1` picked, click Buy and then at once click
+      it again. The bar says "Bought 1 × Linen Cloth", the button is faded only for a blink, and
+      chat shows one "You won an auction for Linen Cloth (x1)" line. In your reply: Pass or Fail,
+      and does the rest still feel too long?
+- [x] 2. Mouse tooltip sanity check. On the Search tab, point the mouse at the icon of any gear row
+      (for example `linen belt/exact`). The item's tooltip still shows next to the mouse as before
+      (and your equipped comparison tooltip if you wear something in that slot), with no BugSack
+      error.
+- [ ] 3. Only if you play with a gamepad; otherwise Skip (PR #41, nokkty). Turn on gamepad mode.
+      Search `usable/weapons` (Fast), press D-pad down onto a gear row for a slot where you wear
+      something: the item's tooltip appears to the right of aux's window (or left if aux sits on the
+      right edge of the screen), and your worn item's comparison stacks directly under it. Press
+      D-pad down past the bottom row to scroll: both tooltips follow each row. Press D-pad left or
+      right to leave the list: both tooltips disappear.
+
+### Results (Tyler, 2026-11-20)
+
+1. Pass. 2. Pass (screenshot: Linen Belt tooltip and Equipped comparison tooltip show next to the
+mouse as before, with click hints). 3. Skipped (controller test left to gamepad users; PR #41 was
+tested in game by nokkty and covered by automated tests).
+
+## 0.8.2.2 build 3 (not tested; superseded by build 4)
+
+Built by Claude on 2026-11-19 as the last change before the takeover. The only change from build 2:
+Buy rests a quarter second after a purchase (half a second in build 2, which Tyler found "still
+feels too long"; FB-051). Its check is step 1 of build 4.
+
+## 0.8.2.2 build 2 (tested 2026-11-17)
+
+Build 1 passed every step (Tyler, 2026-11-17). Build 2 makes the Sniper and Live faster (FB-055):
+the Sniper leaves gray items out of its list and waits 1 second between rounds (2.5 before), Live
+waits 2 seconds (5 before), and Buy rests half a second after a purchase (1 in build 1). Zip
+`auxForever-0.8.2.2-build2.zip`; `/reload` is enough (no new files). Test page build id
+`0-8-2-2-build-2`. Step 3 buys one Linen Cloth.
+
+- [ ] 1. Sniper round time. Sniper tab, click Start and let it run until the line under Start says
+      "round 4" or more (the first round after logging in or a Full scan is the longest). Write
+      that line in the note, for example "round 4, 9,812 items in 11.3s".
+- [ ] 2. Live every 2 seconds. Search tab: search `linen cloth/exact`, then click Live. After the
+      first round the button counts "Live 2s", "Live 1s", then "Updating", over and over. Click
+      Live again to stop.
+- [ ] 3. Half a second rest. Click the cheapest Linen Cloth row, keep 1 picked, click Buy and at
+      once click it again. The bar says "Bought 1 × Linen Cloth", the button is faded only very
+      briefly, and one Linen Cloth is bought (one "You won an auction" line in chat).
+- [ ] 4. The Sniper still finds deals. Leave it running a few minutes. If a deal shows, click it:
+      the bar offers it with Buy. Nothing to buy; write whether any deal showed.
+- [ ] 5. A question. Type `/aux debug list` in chat and copy the line it prints ("Item list of the
+      whole auction house: ... items in ..."). It counts gray items too, so with step 1 it tells how
+      much leaving grays out saved.
+
+### Results (Tyler, 2026-11-17, test page `0-8-2-2-build-2`)
+
+1. Round 1: "25187 items in 153.8s" (screenshot taken during round 2; 70 deals listed). 2. Live
+counts from 2s: pass. 3. The half second rest: "It still feels too long". 4. Deals show and offer
+Buy: pass. 5. `/aux debug list`: "25706 items in 37.7s (52 requests)" (it takes the list's whole
+time before it prints).
+
+## 0.8.2.2 build 1 (passed, Tyler, 2026-11-17)
+
+Buying fixes from the CurseForge comments on 0.8.2.1 (FB-049 to FB-052): the buy bar starts at 1,
+Buy rests for a second after a purchase, the new "Confirm before buying" setting (trade goods and
+gear), and `/aux post bid on`. Zip `auxForever-0.8.2.2-build1.zip`; `/reload` is enough (no new
+files). Test page build id `0-8-2-2-build-1`. Steps 2, 4 and 5 spend a few coppers and about 1s.
+
+- [ ] 1. Starts at 1 (FB-050). Search tab: search `linen cloth/exact` and click the cheapest row,
+      nothing else. Look at the bar under the results: the QUANTITY box says 1 and the big button
+      on the right says "Buy 1 for" and a price. Nothing is bought yet. Screenshot the bar.
+- [ ] 2. No double buy (FB-051). Still on that row, with 1 picked, click Buy and then at once click
+      the same button again, as you used to for Confirm. The bar says "Bought 1 × Linen Cloth for"
+      and a price, and the button looks faded for about a second, then lights up again. In the
+      note: did the second click buy another one? (At a mailbox later: how many Linen Cloth came
+      from this step; 1 is right.)
+- [ ] 3. The new setting (FB-049). Click the gear in aux's top bar (Settings). In the left column,
+      under POSTING, there is a BUYING heading with "Confirm before buying" and a switch, off.
+      Turn it on. Screenshot the Settings window (this is the layout check, as there was no
+      mockup).
+- [ ] 4. Confirm with a trade good. Back on `linen cloth/exact`, click the cheapest row, 1 picked,
+      click Buy once. The button turns into "Confirm" and a price, a Cancel button appears to its
+      left, and the line says "Nothing is bought until you confirm". Click Cancel: the bar says
+      "Cancelled" and "Nothing was bought". Click Buy again, then Confirm: "Bought 1 × Linen
+      Cloth".
+- [ ] 5. Confirm with gear. Search `linen belt/exact` (or any cheap gear) and click its cheapest
+      row. Click Buy once: the button turns into "Confirm" and the price, with Cancel next to it.
+      Click Confirm: "Bought 1 × Linen Belt for" and the price. Then type `/aux buy confirm` in
+      chat: it says "buy confirm off", and the switch in Settings is off again.
+- [ ] 6. `/aux post bid on` (FB-052). Type `/aux post bid on` in chat: it says "post bid unit".
+      Type `/aux post bid off`: it says "post bid off". Type `/aux post bid yes`: it changes
+      nothing and lists the choices (on, off, unit or stack).
+
+## 0.8.2.1 build 7 (released as 0.8.2.1 on 2026-11-16, with the crate heading renamed)
 
 Build 6 (a price row of many sellers keeps 20 auctions and counts the rest, review S-08) was not
 tested on its own; build 7 holds it and the fixes from the 2026-11-16 feedback: one click buys a
@@ -865,8 +962,7 @@ release before, and say which.
 
 ## For agents
 
-Add the in-game checks for each change to "Current build" above (and to the build's test page, if
-one exists). One thing per step. If a step needs something the tester may not have (auctions
+Add the in-game checks for each change to "Current build" above. One thing per step. If a step needs something the tester may not have (auctions
 up, a second character, a rare item), say how to set it up or leave the step out (0.6.1 build 2,
 step 6: two checks in one, the second needing auctions; Tyler found it confusing). The
 pre-release check stays at six steps (Tyler's limit); do not move build steps into it. Older

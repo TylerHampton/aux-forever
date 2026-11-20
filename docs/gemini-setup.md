@@ -1,5 +1,9 @@
 # Adding Gemini to the project
 
+(Written 2026-10-04. Since 2026-11-19 Gemini Neon is the primary engineer and works in Antigravity;
+its setup is in `GEMINI.md` and the takeover brief `docs/takeover-2026-11.md`. The steps below for
+Jules and Gemini CLI still work.)
+
 Written for Tyler, 2026-10-04. Gemini (and any other AI) learns the project from `AGENTS.md` at the
 top of the repository; `GEMINI.md` loads it automatically. There are two ways to use Gemini on
 this repository. Both can be used alongside Claude.

@@ -49,12 +49,21 @@ jobs:
           }
 
       - name: Package the addon
+        id: package
         run: |
           mkdir -p dist
           cp -r auxForever dist/auxForever
+          version=$(sed -n 's/^## Version: forever-//p' auxForever/auxForever.toc | tr -d '\r')
+          version_re=$(printf '%s' "$version" | sed 's/\./\\./g')
+          build=$(sed -n "s/^## Current build: ${version_re} build \([0-9][0-9]*\).*/\1/p" TESTING.md | head -n 1 | tr -d '\r')
+          if [ -n "$build" ]; then
+            echo "name=auxForever-${version}-build${build}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=auxForever-${version}" >> "$GITHUB_OUTPUT"
+          fi
 
       # the download holds the auxForever folder, ready to copy into Interface\AddOns
       - uses: actions/upload-artifact@v4
         with:
-          name: auxForever
+          name: ${{ steps.package.outputs.name }}
           path: dist/

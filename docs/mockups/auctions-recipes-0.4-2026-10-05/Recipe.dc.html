@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Recipe search from the profession window</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#e3a43b}a:hover{color:#f2c46d}
+button{font-family:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 1500px; height: 700px; box-sizing: border-box; padding: 20px; background: #2a2622; font-family: 'Arial Narrow', 'PT Sans Narrow', sans-serif; color: #e6e2d8; display: flex; gap: 20px; align-items: flex-start">
+
+<div style="width: 520px; height: 600px; flex-shrink: 0; box-sizing: border-box; border: 2px solid #8a6a2a; border-radius: 6px; background: #1a1714; display: flex; flex-direction: column">
+<div style="height: 30px; display: flex; align-items: center; justify-content: center; background: #3a2a1a; color: #f2d48a; font-size: 16px; border-bottom: 1px solid #6b5524">Tailoring</div>
+<div style="flex-grow: 1; display: flex">
+<div style="width: 190px; padding: 10px; border-right: 1px solid #3a3020; display: flex; flex-direction: column; gap: 4px; font-size: 14px">
+<span style="color: #f2d48a; font-size: 15px">Leggings</span>
+<sc-for list="{{recipes}}" as="r" hint-placeholder-count="4">
+<button onClick="{{r.pick}}" style="{{r.style}}">{{r.name}}</button>
+</sc-for>
+<span style="margin-top: 10px; font-size: 12px; color: #8e8a81">Shift-click a recipe here also searches it in aux.</span>
+</div>
+<div style="flex-grow: 1; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="width: 40px; height: 40px; border-radius: 20px; background: #2f5a2a; border: 2px solid #4fd15c"></span>
+<span style="font-size: 18px; color: #4fd15c">{{recipeName}}</span>
+</div>
+<span style="font-size: 13px; color: #f2d48a">Reagents:</span>
+<sc-for list="{{reagents}}" as="g" hint-placeholder-count="2">
+<div style="display: flex; align-items: center; gap: 8px; font-size: 14px">
+<span style="width: 32px; height: 32px; border-radius: 4px; background: #3a342a; border: 1px solid #6b5524"></span>
+<span>0/{{g.count}} {{g.name}}</span>
+</div>
+</sc-for>
+<button onClick="{{search}}" style="align-self: flex-start; margin-top: 6px; height: 30px; padding: 0 14px; border: 1px solid #e3a43b; border-radius: 6px; background: #3a2e15; color: #f6d48f; font-size: 14px; font-weight: 700">Search in aux</button>
+<span style="font-size: 12px; color: #8e8a81">Only shown while aux is open at the auction house.</span>
+</div>
+</div>
+</div>
+
+<div style="flex-grow: 1; height: 600px; box-sizing: border-box; background: #0c0d0f; border: 1px solid #2b2f35; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden">
+<div style="height: 36px; flex-shrink: 0; display: flex; align-items: center; gap: 16px; padding: 0 12px; background: #16181b; border-bottom: 1px solid #262a2f">
+<span style="font-size: 18px; font-weight: 700"><span style="color: #e3a43b">aux</span>Forever</span>
+<span style="font-size: 14px; padding: 4px 10px; border-radius: 5px; background: #262a30">Search</span>
+<span style="font-size: 14px; color: #a8a49b">Sniper</span><span style="font-size: 14px; color: #a8a49b">Post</span><span style="font-size: 14px; color: #a8a49b">Auctions</span><span style="font-size: 14px; color: #a8a49b">Bids</span>
+</div>
+<div style="padding: 8px 10px">
+<div style="height: 30px; box-sizing: border-box; display: flex; align-items: center; padding: 0 10px; border: 1px solid #3a3f46; border-radius: 6px; background: #0f1113; font-size: 14px; white-space: nowrap; overflow: hidden; color: #f3efe6">{{searchText}}</div>
+</div>
+<div style="display: flex; align-items: center; gap: 5px; padding: 0 10px 8px 10px; font-size: 14px">
+<span style="padding: 3px 10px; border: 1px solid #e3a43b; border-radius: 5px; background: #3a2e15; color: #f6d48f">Search Results</span>
+<span style="padding: 3px 10px; border: 1px solid #2f343a; border-radius: 5px; color: #a8a49b">Saved Searches</span>
+<span style="padding: 3px 10px; border: 1px solid #2f343a; border-radius: 5px; color: #a8a49b">Filter Builder</span>
+</div>
+<sc-if value="{{searched}}" hint-placeholder-val="{{ true }}">
+<div style="margin: 0 10px 8px 10px; padding: 8px 12px; border: 1px solid #3b3426; border-radius: 6px; background: #1b1a17; display: flex; gap: 18px; font-size: 14px">
+<span style="color: #f3efe6">{{recipeLine}}</span>
+<span style="color: #ff8a7a">{{matsLine}}</span>
+<span style="color: #6fd39a">{{sellLine}}</span>
+<span style="{{profitStyle}}">{{profitLine}}</span>
+</div>
+</sc-if>
+<div style="flex-grow: 1; min-height: 0; margin: 0 10px 10px 10px; border: 1px solid #262a2f; border-radius: 8px; overflow: hidden">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 80px 70px 120px; align-items: center; height: 28px; padding: 0 12px; background: #1d2024; color: #8e8a81; font-size: 12px; font-weight: 700; text-transform: uppercase">
+<div>Item</div><div style="text-align: right">For sale</div><div style="text-align: center">Left</div><div style="text-align: right">Price each</div>
+</div>
+<sc-if value="{{searched}}" hint-placeholder-val="{{ true }}">
+<sc-for list="{{rows}}" as="row" hint-placeholder-count="5">
+<div style="{{row.style}}">
+<div style="{{row.nameStyle}}">{{row.name}}</div>
+<div style="text-align: right">{{row.qty}}</div>
+<div style="text-align: center; color: #8e8a81">{{row.left}}</div>
+<div style="text-align: right; color: #f0e2b8">{{row.price}}</div>
+</div>
+</sc-for>
+</sc-if>
+<sc-if value="{{notSearched}}" hint-placeholder-val="{{ false }}">
+<div style="padding: 40px; text-align: center; color: #8e8a81; font-size: 15px">Click "Search in aux" in the profession window.</div>
+</sc-if>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1500,"height":700}}'>
+// name, reagents [name, count, cheapest each, from], sells for (cheapest), result rows [name, qty, left, price]
+var RECIPES = [
+  { name: 'Simple Kilt', sells: 4500, reagents: [['Bolt of Linen Cloth', 4, 140, 'ah'], ['Fine Thread', 1, 100, 'vendor']],
+    rows: [['Simple Kilt', 2, '24h', 4500, true], ['Simple Kilt', 1, '8h', 5200, true], ['Bolt of Linen Cloth', 14, '24h', 140, false], ['Bolt of Linen Cloth', 30, '8h', 155, false], ['Fine Thread', 5, '24h', 180, false]] },
+  { name: 'Handstitched Linen Britches', sells: 2200, reagents: [['Bolt of Linen Cloth', 4, 140, 'ah'], ['Coarse Thread', 1, 10, 'vendor']],
+    rows: [['Handstitched Linen Britches', 3, '24h', 2200, false], ['Bolt of Linen Cloth', 14, '24h', 140, false], ['Bolt of Linen Cloth', 30, '8h', 155, false], ['Coarse Thread', 20, '24h', 15, false]] },
+  { name: 'Colorful Kilt', sells: 9800, reagents: [['Bolt of Woolen Cloth', 5, 450, 'ah'], ['Red Dye', 3, 50, 'vendor'], ['Fine Thread', 1, 100, 'vendor']],
+    rows: [['Colorful Kilt', 1, '24h', 9800, true], ['Bolt of Woolen Cloth', 22, '24h', 450, false], ['Red Dye', 4, '8h', 90, false], ['Fine Thread', 5, '24h', 180, false]] }
+];
+function money(c) {
+  var neg = c < 0; c = Math.abs(c);
+  var g = Math.floor(c / 10000), s = Math.floor((c % 10000) / 100), k = c % 100;
+  var out = [];
+  if (g) out.push(g + 'g');
+  if (s) out.push(s + 's');
+  if (k || !out.length) out.push(k + 'c');
+  return (neg ? '-' : '') + out.join(' ');
+}
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { r: 0, searched: -1 };
+  }
+  renderVals() {
+    var self = this, st = this.state;
+    var rec = RECIPES[st.r];
+    var shown = st.searched >= 0 ? RECIPES[st.searched] : null;
+    var mats = 0;
+    if (shown) shown.reagents.forEach(function (g) { mats += g[1] * g[2]; });
+    var net = shown ? Math.floor(shown.sells * 0.95) : 0;
+    return {
+      recipes: RECIPES.map(function (r, i) {
+        return { name: r.name, pick: function () { self.setState({ r: i }); },
+          style: 'text-align: left; padding: 3px 6px; border: none; border-radius: 3px; font-size: 14px; ' + (i === st.r ? 'background: #4a3a1a; color: #fff2c4' : 'background: transparent; color: #e6e2d8') };
+      }),
+      recipeName: rec.name,
+      reagents: rec.reagents.map(function (g) { return { name: g[0], count: g[1] }; }),
+      search: function () { self.setState({ searched: st.r }); },
+      searched: !!shown, notSearched: !shown,
+      searchText: shown ? [shown.name].concat(shown.reagents.map(function (g) { return g[0]; })).map(function (n) { return n.toLowerCase() + '/exact'; }).join(';') : '',
+      recipeLine: shown ? 'Recipe: ' + shown.name : '',
+      matsLine: shown ? 'Materials ' + money(mats) + ' (' + shown.reagents.map(function (g) { return g[1] + ' x ' + g[0] + (g[3] === 'vendor' ? ' from a vendor' : ''); }).join(', ') + ')' : '',
+      sellLine: shown ? 'Sells for ' + money(net) + ' after the cut' : '',
+      profitLine: shown ? (net - mats >= 0 ? 'Profit ' : 'Loss ') + money(net - mats) : '',
+      profitStyle: 'font-weight: 700; color: ' + (net - mats >= 0 ? '#6fd39a' : '#ff8a7a'),
+      rows: shown ? shown.rows.map(function (r, i) {
+        return { name: r[0], qty: r[1], left: r[2], price: money(r[3]),
+          nameStyle: 'color: ' + (r[4] ? '#4fd15c' : '#e6e2d8'),
+          style: 'display: grid; grid-template-columns: minmax(0, 1fr) 80px 70px 120px; align-items: center; height: 28px; padding: 0 12px; font-size: 14px; border-top: 1px solid #202327; background: ' + (i % 2 ? '#191b1e' : '#16181b') };
+      }) : []
+    };
+  }
+}
+</script>
+</body>
+</html>

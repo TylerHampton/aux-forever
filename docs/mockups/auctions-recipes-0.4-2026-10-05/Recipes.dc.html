@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Recipes sub tab</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#e3a43b}a:hover{color:#f2c46d}
+button{font-family:inherit;cursor:pointer}
+input{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 1100px; height: 700px; box-sizing: border-box; background: #0c0d0f; font-family: 'Arial Narrow', 'PT Sans Narrow', sans-serif; color: #e6e2d8; display: flex; flex-direction: column; border: 1px solid #2b2f35; border-radius: 8px; overflow: hidden">
+
+<div style="height: 40px; flex-shrink: 0; display: flex; align-items: center; gap: 22px; padding: 0 12px 0 14px; background: #16181b; border-bottom: 1px solid #262a2f">
+<span style="font-size: 20px; font-weight: 700"><span style="color: #e3a43b">aux</span><span style="color: #e6e2d8">Forever</span></span>
+<div style="display: flex; gap: 4px">
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: #262a30; color: #f3efe6; font-size: 15px">Search</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 15px">Sniper</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 15px">Post</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 15px">Auctions</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 5px; background: transparent; color: #a8a49b; font-size: 15px">Bids</button>
+</div>
+<div style="flex-grow: 1"></div>
+<button aria-label="Settings" style="width: 28px; height: 28px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #cfcac0; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2.3"></circle><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"></path></svg></button>
+<button style="height: 28px; padding: 0 10px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #cfcac0; font-size: 15px">Full scan</button>
+<button style="height: 28px; padding: 0 10px; border: 1px solid #2f6f8f; border-radius: 5px; background: #13293a; color: #8fd0f0; font-size: 13px">Blizzard UI</button>
+<button aria-label="Close" style="width: 28px; height: 28px; border: none; background: transparent; color: #a8a49b; font-size: 18px">×</button>
+</div>
+
+<div style="display: flex; align-items: center; gap: 6px; padding: 8px 10px">
+<button aria-label="Previous search" style="width: 30px; height: 30px; border: 1px solid #2f343a; border-radius: 6px; background: #1b1e22; color: #cfcac0">‹</button>
+<button aria-label="Quick searches" style="width: 44px; height: 30px; border: 1px solid #2f343a; border-radius: 6px; background: #1b1e22; color: #cfcac0; font-size: 12px">◷ ▾</button>
+<button aria-label="Next search" style="width: 30px; height: 30px; border: 1px solid #2f343a; border-radius: 6px; background: #1b1e22; color: #cfcac0; opacity: .35">›</button>
+<button style="width: 70px; height: 30px; border: 1px solid #2f343a; border-radius: 6px; background: #1b1e22; color: #cfcac0; font-size: 13px">Live</button>
+<div style="flex-grow: 1; height: 30px; box-sizing: border-box; display: flex; align-items: center; padding: 0 10px; border: 1px solid #3a3f46; border-radius: 6px; background: #0f1113; font-size: 15px; color: #f3efe6; white-space: nowrap; overflow: hidden">{{searchText}}</div>
+<div style="height: 30px; display: flex; gap: 2px">
+<button style="width: 42px; height: 30px; border: 1px solid #e3a43b; border-radius: 6px; background: #3a2e15; color: #f6d48f; font-size: 13px">Fast</button>
+<button style="width: 42px; height: 30px; border: 1px solid #2f343a; border-radius: 6px; background: #1b1e22; color: #a8a49b; font-size: 13px">Full</button>
+</div>
+<button style="height: 30px; padding: 0 16px; border: none; border-radius: 6px; background: #e3a43b; color: #1a1408; font-size: 16px; font-weight: 700">Search</button>
+</div>
+
+<div style="display: flex; align-items: center; gap: 5px; padding: 0 10px 8px 10px">
+<button style="width: 150px; height: 26px; border: 1px solid #2f343a; border-radius: 5px; background: #1b1e22; color: #a8a49b; font-size: 15px">Search Results</button>
+<button style="width: 150px; height: 26px; border: 1px solid #2f343a; border-radius: 5px; background: #1b1e22; color: #a8a49b; font-size: 15px">Saved Searches</button>
+<button style="width: 150px; height: 26px; border: 1px solid #2f343a; border-radius: 5px; background: #1b1e22; color: #a8a49b; font-size: 15px">Filter Builder</button>
+<button style="width: 150px; height: 26px; border: 1px solid #e3a43b; border-radius: 5px; background: #3a2e15; color: #f6d48f; font-size: 15px">Recipes</button>
+</div>
+
+<div style="flex-grow: 1; min-height: 0; display: flex; gap: 10px; padding: 0 10px 10px 10px">
+
+<div style="width: 250px; flex-shrink: 0; box-sizing: border-box; padding: 12px; background: #16181b; border: 1px solid #262a2f; border-radius: 8px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; color: #e3a43b; text-transform: uppercase; letter-spacing: .8px">Recipes</span>
+<span style="font-size: 13px; color: #8e8a81">Shift-click or Alt-click a recipe in your profession window to add it here.</span>
+<sc-for list="{{recipes}}" as="r" hint-placeholder-count="4">
+<button onClick="{{r.pick}}" style="{{r.style}}">
+<span style="font-size: 15px">{{r.name}}</span>
+<span style="font-size: 12px; color: #8e8a81">{{r.prof}}</span>
+</button>
+</sc-for>
+</div>
+
+<div style="flex-grow: 1; min-width: 0; box-sizing: border-box; padding: 14px 16px; background: #16181b; border: 1px solid #262a2f; border-radius: 8px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 12px">
+<span style="width: 40px; height: 40px; border-radius: 6px; background: #2a2e34; border: 1px solid #4a4f57"></span>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="{{titleStyle}}">{{title}}</span>
+<span style="font-size: 13px; color: #8e8a81">{{subtitle}}</span>
+</div>
+<div style="flex-grow: 1"></div>
+<span style="font-size: 15px; color: #a8a49b">Make</span>
+<button onClick="{{less}}" aria-label="Fewer" style="width: 28px; height: 28px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #e6e2d8">-</button>
+<span style="width: 34px; text-align: center; font-size: 17px; font-weight: 700">{{count}}</span>
+<button onClick="{{more}}" aria-label="More" style="width: 28px; height: 28px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #e6e2d8">+</button>
+</div>
+
+<div style="display: flex; flex-direction: column; border: 1px solid #262a2f; border-radius: 8px; overflow: hidden">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 70px 80px 120px 110px; align-items: center; height: 30px; padding: 0 12px; background: #1d2024; color: #8e8a81; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px">
+<div>Material</div><div style="text-align: right">Need</div><div style="text-align: right">You have</div><div style="text-align: right; color: #e3a43b">Cheapest each</div><div style="text-align: right">Cost</div>
+</div>
+<sc-for list="{{mats}}" as="m" hint-placeholder-count="3">
+<div style="{{m.style}}">
+<div style="display: flex; align-items: center; gap: 8px; min-width: 0"><span style="width: 20px; height: 20px; flex-shrink: 0; border-radius: 4px; background: #2a2e34; border: 1px solid #4a4f57"></span><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{m.name}}</span></div>
+<div style="text-align: right; font-variant-numeric: tabular-nums">{{m.need}}</div>
+<div style="{{m.haveStyle}}">{{m.have}}</div>
+<div style="text-align: right; font-variant-numeric: tabular-nums; color: #f0e2b8">{{m.each}}</div>
+<div style="text-align: right; font-variant-numeric: tabular-nums">{{m.cost}}</div>
+</div>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid #262a2f; border-radius: 8px; background: #121417; font-size: 15px">
+<div style="display: flex; justify-content: space-between"><span style="color: #a8a49b">Materials to buy</span><span style="color: #ff8a7a; font-variant-numeric: tabular-nums">{{matTotal}}</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #a8a49b">{{sellLabel}}</span><span style="color: #6fd39a; font-variant-numeric: tabular-nums">{{sellTotal}}</span></div>
+<div style="height: 1px; background: #2b2f35"></div>
+<div style="display: flex; justify-content: space-between; font-weight: 700"><span>{{resultLabel}}</span><span style="{{resultStyle}}">{{resultTotal}}</span></div>
+</div>
+
+<div style="flex-grow: 1"></div>
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="flex-grow: 1; font-size: 13px; color: #8e8a81">{{note}}</span>
+<button onClick="{{refresh}}" style="height: 36px; padding: 0 14px; border: 1px solid #3a3f46; border-radius: 6px; background: transparent; color: #cfcac0; font-size: 15px">Refresh prices</button>
+<button onClick="{{searchAll}}" style="height: 36px; padding: 0 16px; border: none; border-radius: 6px; background: #e3a43b; color: #1a1408; font-size: 15px; font-weight: 700">Search all on the auction house</button>
+</div>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1100,"height":700}}'>
+// materials: name, needed per craft, you have, cheapest each (copper), from ('ah' or 'vendor')
+var RECIPES = [
+  { name: 'Linen Bag', prof: 'Tailoring', makes: 1, sells: 250, mats: [['Bolt of Linen Cloth', 3, 2, 120, 'ah'], ['Coarse Thread', 3, 0, 10, 'vendor']] },
+  { name: 'Heavy Linen Gloves', prof: 'Tailoring', makes: 1, sells: 1900, mats: [['Bolt of Linen Cloth', 2, 2, 120, 'ah'], ['Coarse Thread', 1, 0, 10, 'vendor']] },
+  { name: 'Brown Linen Robe', prof: 'Tailoring', makes: 1, sells: 3800, mats: [['Bolt of Linen Cloth', 3, 2, 120, 'ah'], ['Coarse Thread', 2, 0, 10, 'vendor']] },
+  { name: 'Heavy Linen Bandage', prof: 'First Aid', makes: 1, sells: 85, mats: [['Linen Cloth', 2, 37, 9, 'ah']] }
+];
+function money(c) {
+  var neg = c < 0; c = Math.abs(c);
+  var g = Math.floor(c / 10000), s = Math.floor((c % 10000) / 100), k = c % 100;
+  var out = [];
+  if (g) out.push(g + 'g');
+  if (s) out.push(s + 's');
+  if (k || !out.length) out.push(k + 'c');
+  return (neg ? '-' : '') + out.join(' ');
+}
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { r: 0, count: 1, searched: false, refreshed: false };
+  }
+  renderVals() {
+    var self = this, st = this.state;
+    var rec = RECIPES[st.r];
+    var total = 0;
+    var mats = rec.mats.map(function (m, i) {
+      var need = m[1] * st.count;
+      var buy = Math.max(0, need - m[2]);
+      total += buy * m[3];
+      return {
+        name: m[0], need: need, have: m[2],
+        haveStyle: 'text-align: right; font-variant-numeric: tabular-nums; color: ' + (m[2] >= need ? '#6fd39a' : '#a8a49b'),
+        each: money(m[3]) + (m[4] === 'vendor' ? ' (vendor)' : ''),
+        cost: buy ? money(buy * m[3]) : 'have all',
+        style: 'display: grid; grid-template-columns: minmax(0, 1fr) 70px 80px 120px 110px; align-items: center; height: 32px; padding: 0 12px; font-size: 15px; border-top: 1px solid #202327; background: ' + (i % 2 ? '#191b1e' : '#16181b')
+      };
+    });
+    var sells = rec.sells * rec.makes * st.count;
+    var net = Math.floor(sells * 0.95);
+    var result = net - total;
+    var recipes = RECIPES.map(function (r, i) {
+      return {
+        name: r.name, prof: r.prof,
+        pick: function () { self.setState({ r: i, count: 1, searched: false }); },
+        style: 'display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 6px 10px; border-radius: 6px; text-align: left; color: #e6e2d8; ' + (i === st.r ? 'border: 1px solid #e3a43b; background: #3a2e15' : 'border: 1px solid #2f343a; background: #1b1e22')
+      };
+    });
+    var queries = [rec.name.toLowerCase() + '/exact'].concat(rec.mats.map(function (m) { return m[0].toLowerCase() + '/exact'; }));
+    return {
+      recipes: recipes,
+      title: rec.name, titleStyle: 'font-size: 19px; font-weight: 700; color: ' + (rec.sells > 1000 ? '#4fd15c' : '#e6e2d8'),
+      subtitle: rec.prof + ', makes ' + rec.makes,
+      count: st.count,
+      less: function () { self.setState({ count: Math.max(1, st.count - 1) }); },
+      more: function () { self.setState({ count: st.count + 1 }); },
+      mats: mats,
+      matTotal: money(total),
+      sellLabel: (st.count * rec.makes) + ' x ' + rec.name + ' at the cheapest price, after the 5% cut',
+      sellTotal: money(net),
+      resultLabel: result >= 0 ? 'Profit' : 'Loss',
+      resultTotal: money(result),
+      resultStyle: 'font-variant-numeric: tabular-nums; color: ' + (result >= 0 ? '#6fd39a' : '#ff8a7a'),
+      note: st.searched ? 'Search Results now lists every auction of these items.' : (st.refreshed ? 'Prices read just now, one quick request per item.' : 'Prices read 2m ago. Materials you have are not counted.'),
+      refresh: function () { self.setState({ refreshed: true, searched: false }); },
+      searchAll: function () { self.setState({ searched: true }); },
+      searchText: st.searched ? queries.join(';') : ''
+    };
+  }
+}
+</script>
+</body>
+</html>

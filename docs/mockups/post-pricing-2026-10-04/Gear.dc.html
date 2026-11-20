@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Post pricing for gear</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#e3a43b}a:hover{color:#f2c46d}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 1100px; height: 400px; box-sizing: border-box; padding: 20px; background: #0c0d0f; font-family: 'Arial Narrow', 'PT Sans Narrow', sans-serif; color: #e6e2d8; display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 13px; color: #8e8a81; text-transform: uppercase; letter-spacing: 0.6px">Gear has a starting bid and a buyout. Both follow the mode, in whole silver.</div>
+<div style="width: 850px; background: #181a1d; border: 1px solid #262a2f; border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="width: 34px; height: 34px; border-radius: 5px; background: #2a2e34; border: 1px solid #2f6b2f"></span>
+<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 17px; color: #4fd04f">Ritual Bands</span><span style="font-size: 12.5px; color: #8e8a81">1 in your bags</span></div>
+<div style="flex-grow: 1"></div>
+<label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #8e8a81"><input type="checkbox" style="margin: 0">Hide from this list</label>
+</div>
+<div style="display: flex; gap: 14px; align-items: stretch">
+<div style="width: 230px; flex-shrink: 0; display: flex; flex-direction: column; gap: 9px">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<span style="font-size: 13px; color: #a8a49b">Count</span>
+<div style="display: flex; align-items: center; gap: 3px">
+<button aria-label="Fewer" style="width: 26px; height: 26px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #e6e2d8; font-size: 15px">−</button>
+<span style="width: 54px; height: 26px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px solid #3a3f46; border-radius: 5px; background: #0f1113; font-size: 16px">1</span>
+<button aria-label="More" style="width: 26px; height: 26px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #e6e2d8; font-size: 15px">+</button>
+<button style="height: 26px; padding: 0 7px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #a8a49b; font-size: 12px">Max</button>
+</div>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between">
+<span style="font-size: 13px; color: #a8a49b">Duration</span>
+<div style="display: flex; gap: 3px">
+<button style="height: 26px; padding: 0 9px; border-radius: 5px; font-size: 13px; border: 1px solid #2f343a; background: #1d2024; color: #cfcac0">2h</button>
+<button style="height: 26px; padding: 0 9px; border-radius: 5px; font-size: 13px; border: 1px solid #e3a43b; background: #3a2e15; color: #f6d48f">8h</button>
+<button style="height: 26px; padding: 0 9px; border-radius: 5px; font-size: 13px; border: 1px solid #2f343a; background: #1d2024; color: #cfcac0">24h</button>
+</div>
+</div>
+</div>
+<div style="width: 1px; background: #262a2f"></div>
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: center; gap: 8px">
+<span style="font-size: 12px; color: #8e8a81; text-transform: uppercase; letter-spacing: 0.7px">Price per item</span>
+<div style="flex-grow: 1"></div>
+<div role="group" aria-label="Pricing mode" style="display: flex; padding: 2px; gap: 2px; border: 1px solid #2f343a; border-radius: 7px; background: #111315">
+<button aria-pressed="false" style="height: 28px; padding: 0 12px; display: flex; align-items: center; border-radius: 5px; font-size: 14px; border: 1px solid transparent; background: transparent; color: #a8a49b">Match lowest</button>
+<button aria-pressed="true" style="height: 28px; padding: 0 12px; display: flex; align-items: center; gap: 5px; border-radius: 5px; font-size: 14px; border: 1px solid #e3a43b; background: #3a2e15; color: #f6d48f"><img src="/_blob/8ae8da1c07145c378ab8a6290897e059" alt="" style="width: 18px; height: 18px">Undercut</button>
+</div>
+<button aria-label="How undercutting works on Forever" style="width: 22px; height: 22px; border: 1px solid #3a3f46; border-radius: 11px; background: transparent; color: #a8a49b; font-size: 13px; font-weight: 700">?</button>
+</div>
+<div style="display: grid; grid-template-columns: 90px minmax(0, 1fr) 118px; align-items: center; row-gap: 6px; column-gap: 10px">
+<span style="font-size: 13px; color: #a8a49b">Starting bid</span>
+<div style="height: 34px; box-sizing: border-box; display: flex; align-items: center; justify-content: flex-end; padding: 0 12px; border: 1px solid #8a6a2a; border-radius: 6px; background: #0f1113; font-size: 19px"><span style="color: #f3efe6">2</span><span style="color: #c9cdd2">s </span><span style="color: #f3efe6">00</span><span style="color: #c8602c">c</span></div>
+<span style="height: 26px; padding: 0 9px; display: flex; align-items: center; justify-content: center; border-radius: 13px; font-size: 13px; background: #14262a; color: #4fd0c4">67% of usual</span>
+<span style="font-size: 13px; color: #a8a49b">Buyout</span>
+<div style="height: 38px; box-sizing: border-box; display: flex; align-items: center; justify-content: flex-end; padding: 0 12px; border: 1px solid #8a6a2a; border-radius: 6px; background: #0f1113; font-size: 21px"><span style="color: #f3efe6">2</span><span style="color: #c9cdd2">s </span><span style="color: #f3efe6">00</span><span style="color: #c8602c">c</span></div>
+<span style="height: 26px; padding: 0 9px; display: flex; align-items: center; justify-content: center; border-radius: 13px; font-size: 13px; background: #14262a; color: #4fd0c4">67% of usual</span>
+</div>
+<div style="font-size: 12.5px; color: #e3c27f">1 silver below the lowest listing (3s 00c). Gear is priced in whole silver.</div>
+</div>
+</div>
+<div style="height: 1px; background: #262a2f"></div>
+<div style="display: flex; align-items: center; gap: 22px; font-size: 14px">
+<span style="color: #a8a49b">Posting <span style="color: #f3efe6">1 item</span></span>
+<span style="color: #a8a49b">Buyout total <span style="color: #f3efe6">2<span style="color: #c9cdd2">s </span>00<span style="color: #c8602c">c</span></span></span>
+<span style="color: #a8a49b">Deposit <span style="color: #f3efe6">40<span style="color: #c8602c">c</span></span></span>
+<span style="color: #a8a49b">You get <span style="color: #f3efe6">1<span style="color: #c9cdd2">s </span>90<span style="color: #c8602c">c</span></span></span>
+<div style="flex-grow: 1"></div>
+<button style="height: 32px; padding: 0 22px; border: none; border-radius: 6px; background: #e3a43b; color: #1a1408; font-size: 16px; font-weight: 700">Post 1 item</button>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1100,"height":400}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

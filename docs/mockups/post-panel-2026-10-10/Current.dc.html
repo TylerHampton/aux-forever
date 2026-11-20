@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Post panel today</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#1a1a1a}
+a{color:#e5be5b}a:hover{color:#f2d48a}
+.g{color:#ffd70a}.s{color:#c7c7cf}.c{color:#eda55f}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 884px; height: 214px; box-sizing: border-box; background: #131313; border: 1px solid #000; font-family: 'Archivo Narrow', 'Arial Narrow', sans-serif; color: #ebebeb; position: relative;">
+  <div style="position: absolute; left: 14px; top: 8px; display: flex; gap: 10px; align-items: center;">
+    <div style="width: 32px; height: 32px; box-sizing: border-box; border: 1px solid #1eff00; background: linear-gradient(135deg, #5b6f86, #2a3340);" role="img" aria-label="Medicine Staff icon"></div>
+    <div><div style="font-size: 17px; color: #1eff00;">Medicine Staff</div><div style="font-size: 12px; color: #a8a8a8;">1 in your bags</div></div>
+  </div>
+  <label style="position: absolute; right: 30px; top: 18px; display: flex; gap: 6px; align-items: center; font-size: 13px; color: #a8a8a8;"><input type="checkbox" style="margin: 0;">Hide from this list</label>
+
+  <span style="position: absolute; left: 18px; top: 62px; font-size: 13px; color: #a8a8a8;">Count</span>
+  <div style="position: absolute; left: 92px; top: 56px; display: flex; gap: 4px;">
+    <button style="width: 24px; height: 24px; background: #262626; border: 1px solid #000; color: #ebebeb;">-</button>
+    <div style="width: 54px; height: 24px; box-sizing: border-box; background: #0c0c0c; border: 1px solid #404040; text-align: center; font-size: 16px; line-height: 22px;">1</div>
+    <button style="width: 24px; height: 24px; background: #262626; border: 1px solid #000; color: #ebebeb;">+</button>
+    <button style="width: 38px; height: 24px; background: #262626; border: 1px solid #000; color: #e5be5b;">Max</button>
+  </div>
+  <span style="position: absolute; left: 18px; top: 94px; font-size: 13px; color: #a8a8a8;">Duration</span>
+  <div style="position: absolute; left: 92px; top: 88px; display: flex; gap: 4px;">
+    <button style="width: 42px; height: 26px; background: #2a2312; border: 1px solid #e5be5b; color: #e5be5b;">2h</button>
+    <button style="width: 42px; height: 26px; background: #262626; border: 1px solid #000; color: #ebebeb;">8h</button>
+    <button style="width: 42px; height: 26px; background: #262626; border: 1px solid #000; color: #ebebeb;">24h</button>
+  </div>
+
+  <div style="position: absolute; left: 255px; top: 52px; width: 1px; height: 104px; background: #2e2e2e;"></div>
+  <span style="position: absolute; left: 270px; top: 70px; font-size: 13px; color: #ebebeb;">PRICE PER ITEM</span>
+  <div style="position: absolute; right: 42px; top: 60px; display: flex;">
+    <button style="height: 26px; padding: 0 10px; background: #2a2312; border: 1px solid #e5be5b; color: #e5be5b; font-size: 14px;">Match lowest</button>
+    <button style="height: 26px; padding: 0 16px; background: #262626; border: 1px solid #000; color: #a8a8a8; font-size: 14px;">Undercut</button>
+  </div>
+  <button style="position: absolute; right: 12px; top: 60px; width: 24px; height: 26px; background: #262626; border: 1px solid #000; color: #ebebeb;">?</button>
+
+  <span style="position: absolute; left: 285px; top: 100px; font-size: 13px; color: #a8a8a8;">Starting bid</span>
+  <div style="position: absolute; left: 354px; right: 134px; top: 93px; height: 28px; box-sizing: border-box; background: #0c0c0c; border: 1px solid #404040; text-align: right; padding-right: 10px; font-size: 18px; line-height: 26px;">15<span class="s">s</span></div>
+  <div style="position: absolute; right: 12px; top: 95px; width: 112px; height: 24px; box-sizing: border-box; background: #090909; border: 1px solid #404040; text-align: center; font-size: 13px; line-height: 22px;"><span style="color: #f0943c;">125%</span> <span style="color: #a8a8a8;">of usual</span></div>
+  <span style="position: absolute; left: 305px; top: 132px; font-size: 13px; color: #a8a8a8;">Buyout</span>
+  <div style="position: absolute; left: 354px; right: 134px; top: 125px; height: 28px; box-sizing: border-box; background: #0c0c0c; border: 1px solid #404040; text-align: right; padding-right: 10px; font-size: 18px; line-height: 26px;">15<span class="s">s</span></div>
+  <div style="position: absolute; right: 12px; top: 127px; width: 112px; height: 24px; box-sizing: border-box; background: #090909; border: 1px solid #404040; text-align: center; font-size: 13px; line-height: 22px;"><span style="color: #f0943c;">125%</span> <span style="color: #a8a8a8;">of usual</span></div>
+  <span style="position: absolute; left: 270px; top: 158px; font-size: 12px; color: #a8a8a8;">Same as the lowest listing. On Forever the newest listing at a price sells first</span>
+
+  <div style="position: absolute; left: 10px; right: 10px; top: 168px; height: 1px; background: #2e2e2e;"></div>
+  <span style="position: absolute; left: 14px; top: 184px; font-size: 15px; color: #a8a8a8;">Posting <span style="color: #ebebeb;">1 item</span></span>
+  <span style="position: absolute; left: 128px; top: 184px; font-size: 15px; color: #a8a8a8;">Total 15<span class="s">s</span></span>
+  <span style="position: absolute; left: 500px; top: 176px; font-size: 15px; color: #a8a8a8;">Deposit <span style="color: #e8574a;">-74</span><span class="c">c</span></span>
+  <span style="position: absolute; left: 598px; top: 172px; font-size: 18px; color: #a8a8a8;">You get <span style="color: #e8574a;">14</span><span class="s">s</span> <span style="color: #e8574a;">25</span><span class="c">c</span></span>
+  <span style="position: absolute; left: 604px; top: 194px; font-size: 11px; color: #e8574a;">a vendor pays 14<span class="s">s</span> 87<span class="c">c</span></span>
+  <button style="position: absolute; right: 10px; top: 177px; width: 140px; height: 30px; background: #2a2312; border: 1px solid #e5be5b; color: #e5be5b; font-size: 17px;">Post 1 item</button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":884,"height":214}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

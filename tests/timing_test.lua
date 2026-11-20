@@ -189,7 +189,11 @@ return function(env)
     bar.show_commodity{item_id = 2589, name = 'Linen Cloth', max_stack = 20, tiers = tiers,
       on_success = function(n) bought = n end, on_refresh = function() end}
     server:ticks(1)
-    return bar, function() return bought end
+    -- the bar starts at 1 since 0.8.2.2 (FB-050); these tests buy the stack of 20
+    bar.chips[4]:Click()
+    -- and past the second Buy rests after the purchase of the test before
+    server:ticks(11)
+    return bar, function() return bought end, function() bought = nil end
   end
 
   local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
@@ -197,7 +201,7 @@ return function(env)
   try('timing: buying a trade good, answered a second later', function()
     local server = new_server(env)
     local bar, bought = buy_setup(server)
-    check('buy: starts at one stack', bar.primary_label():find('^Buy 20 for') ~= nil)
+    check('buy: the stack button picks 20', bar.primary_label():find('^Buy 20 for') ~= nil)
     bar.primary_click()
     bar.primary_click() -- a second click while the price is asked does nothing
     check('buy: one price request', #server.requests == 1)
@@ -205,6 +209,42 @@ return function(env)
     bar.primary_click() -- clicks while buying buy nothing more
     check('buy: the purchase arrives', server:wait(function() return bought() end, 30))
     check('buy: bought once, 20 for 1s 34c', #server.purchases == 1 and server.purchases[1].quantity == 20 and server.purchases[1].total == 134)
+    server:restore()
+    bar.clear()
+  end)
+
+  -- 0.8.2.2 (FB-051, Tremulent: "sometimes getting double buys"): the habit of Buy, then Confirm.
+  -- On a quick server the first click has bought before the second one lands
+  try('timing: FB-051 a second click just after a purchase', function()
+    local server = new_server(env)
+    server.delay = .2
+    local bar, bought, forget = buy_setup(server)
+    bar.primary_click()
+    check('double: the purchase arrives', server:wait(function() return bought() end, 30))
+    forget()
+    bar.primary_click() -- the second click of the old Buy, Confirm
+    server:ticks(20)
+    check('double: the second click bought nothing', #server.purchases == 1 and not bought())
+    bar.primary_click() -- two seconds later, a purchase the player means
+    check('double: a click a moment later buys again', server:wait(function() return bought() end, 30) and #server.purchases == 2)
+    server:restore()
+    bar.clear()
+  end)
+
+  -- 0.8.2.2 (FB-049, Tyler): with Confirm before buying on, nothing reaches the server until the
+  -- second click, and then only the price the Confirm button showed
+  try('timing: FB-049 Confirm before buying', function()
+    local server = new_server(env)
+    aux.account_data.buy_confirm = true
+    local bar, bought = buy_setup(server)
+    bar.primary_click()
+    check('confirm: Confirm shows the price', server:wait(function() return bar.primary_label():find('^Confirm') end, 30))
+    server:ticks(20)
+    check('confirm: nothing bought while Confirm waits', #server.purchases == 0)
+    bar.primary_click()
+    check('confirm: the second click buys', server:wait(function() return bought() end, 30))
+    check('confirm: 20 for 1s 34c, once', #server.purchases == 1 and server.purchases[1].quantity == 20 and server.purchases[1].total == 134)
+    aux.account_data.buy_confirm = false
     server:restore()
     bar.clear()
   end)
@@ -349,6 +389,27 @@ return function(env)
   -- 0.8.2 build 7 (H-010): the rounds go on while a trade good is selected. Buy clicked in the
   -- middle of a round: the round stops before the price is asked, the purchase is the amount shown
   -- at or below the price shown, and the rounds go on after it.
+  -- 0.8.2.2 (FB-055, Tyler): the Sniper's item list leaves gray items out (they are never a deal),
+  -- so each round asks for fewer pages of the list
+  try('timing: FB-055 the Sniper does not ask for gray items', function()
+    local server = new_server(env)
+    local sniper = module 'aux.tabs.sniper'
+    server.items[9301] = {name = 'Snipe Cloth', commodity = true, vendor = 50, max_stack = 20, quality = 1}
+    server.listings[9301] = {{price = 60, quantity = 5}}
+    server.items[9302] = {name = 'Broken Tooth', commodity = true, vendor = 50, max_stack = 20, quality = 0}
+    server.listings[9302] = {{price = 60, quantity = 5}}
+    server:install()
+    sniper.clear_deals()
+    aux.set_tab(2) -- Search 1, Sniper 2
+    local r0 = sniper.round
+    sniper.start()
+    check('grays: a round ends', server:wait(function() return sniper.round > r0 end, 300))
+    check('grays: the gray item is not on the list, the common one is', sniper.last_count == 1)
+    sniper.stop()
+    aux.set_tab(1)
+    server:restore()
+  end)
+
   try('timing: Sniper buys a selected trade good while a round runs', function()
     local server = new_server(env)
     local sniper = module 'aux.tabs.sniper'

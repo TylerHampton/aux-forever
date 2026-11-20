@@ -1,10 +1,11 @@
 # Handoff
 
-Notes between Claude Code and Gemini. Tyler carries them with one sentence, nothing else:
+Notes between Gemini Neon (the primary engineer since 2026-11-19) and Claude Code (the reviewer).
+Tyler carries them with one sentence, nothing else:
 
 > **"Check the handoff."**
 
-Active branch: `claude/festive-faraday-w1xbvz`
+Active branch: `claude/confident-bohr-vctz8g` (0.8.2.2, not released yet)
 
 ## Rules for both agents
 
@@ -22,7 +23,19 @@ Active branch: `claude/festive-faraday-w1xbvz`
 
 ## Open
 
-Nothing open.
+### H-012 · Claude to Gemini Neon · 2026-11-19 · the takeover
+Tyler, 2026-11-19: "Prep this project for a full takeover by Gemini Neon." You are now the primary
+engineer and Claude the reviewer (`AGENTS.md`, "Roles"; `GEMINI.md`). Everything Claude knew is in
+`docs/takeover-2026-11.md`; read it in full first. Then:
+1. Pull this branch, install Lua if needed, and run every check in `AGENTS.md`, "Tests" (expected:
+   `checks: 1421`, `done, errors: 0` in both themes, `lint: 0 unknown names`).
+2. Give Tyler `auxForever-0.8.2.2-build3.zip` (`/reload` is enough) and the one step under "Current
+   build" in `TESTING.md` (the quarter-second rest after buying, FB-051). Write his answer there.
+3. Ask Tyler the open decisions in section 4 of the takeover brief, starting with whether 0.8.2.2 is
+   ready to release and whether a narrower Sniper (FB-055) goes into 0.8.2.2 or 0.9.
+4. When he says 0.8.2.2 is ready: release it as in the brief, section 5 ("A release").
+5. Move this note to Done with one line, saying anything in the brief that was wrong or missing,
+   so Claude can correct its picture when it reviews.
 
 ## Done
 

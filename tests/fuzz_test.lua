@@ -97,6 +97,11 @@ return function(env)
       aux.set_tab(1)
       search.frame:Show()
     end
+    -- every other player has Confirm before buying on (0.8.2.2, FB-049): Buy shows the price on
+    -- Confirm, and a second press buys
+    local confirm_mode = seed % 2 == 1
+    local old_confirm = aux.account_data.buy_confirm
+    aux.account_data.buy_confirm = confirm_mode
     local function pad(name)
       if not pad_mode or not open then return end
       local button = G['auxForeverPad' .. name]
@@ -129,8 +134,13 @@ return function(env)
     rawset(C, 'ConfirmCommoditiesPurchase', function(id, quantity)
       local start = started
       started = nil
+      -- with Confirm before buying, the confirm comes from a click on Confirm and its price
+      local confirm_label = bar.primary_label() or ''
       real_confirm(id, quantity)
       local cost = server.last_confirm_total
+      if confirm_mode and cost and not (plain(confirm_label):find('^Confirm ') and money_in(confirm_label) and cost <= money_in(confirm_label)) then
+        check('fuzz ' .. seed .. ': with Confirm before buying, a purchase of ' .. tostring(cost) .. ' was confirmed while the button showed "' .. plain(confirm_label) .. '"', false)
+      end
       if not (start and start.shown and start.id == id and start.quantity == quantity) then
         check('fuzz ' .. seed .. ': a purchase was confirmed that no button had started for that item and quantity', false)
       else
@@ -467,6 +477,7 @@ return function(env)
     end
     rawset(post.duration_dropdown, 'GetIndex', nil)
     post.set_undercut_mode(false)
+    aux.account_data.buy_confirm = old_confirm
     aux.account_data.sniper_profit, aux.account_data.sniper_percent = old_profit, old_percent
     search.set_full_search(old_full)
     set_search('auxForever', addon, 'FOLD_KEEP', 20)

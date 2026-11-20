@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Post pricing</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#e3a43b}a:hover{color:#f2c46d}
+button{font-family:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 1100px; height: 660px; box-sizing: border-box; background: #0c0d0f; display: flex; align-items: center; justify-content: center; font-family: 'Arial Narrow', 'PT Sans Narrow', sans-serif; color: #e6e2d8">
+<div style="width: 1080px; height: 640px; background: #16181b; border: 1px solid #2b2f35; border-radius: 10px; display: flex; flex-direction: column; overflow: hidden">
+
+<div style="height: 42px; flex-shrink: 0; display: flex; align-items: center; gap: 18px; padding: 0 14px; border-bottom: 1px solid #262a2f">
+<div style="font-size: 21px; font-weight: 700"><span style="color: #e3a43b">aux</span><span style="color: #f3efe6">Forever</span></div>
+<div style="display: flex; gap: 4px">
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 6px; background: transparent; color: #a8a49b; font-size: 15px">Search</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 6px; background: #262a30; color: #f3efe6; font-size: 15px">Post</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 6px; background: transparent; color: #a8a49b; font-size: 15px">Auctions</button>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 6px; background: transparent; color: #a8a49b; font-size: 15px">Bids</button>
+</div>
+<div style="flex-grow: 1"></div>
+<button style="height: 28px; padding: 0 12px; border: none; border-radius: 6px; background: #3fae6a; color: #f3efe6; font-size: 16px">Full scan</button>
+<button style="height: 28px; padding: 0 12px; border: 1px solid #2f343a; border-radius: 6px; background: #1b1e22; color: #6fb4ff; font-size: 14px">Blizzard UI</button>
+<button aria-label="Close" style="width: 28px; height: 28px; border: none; border-radius: 6px; background: transparent; color: #a8a49b; display: flex; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 2l10 10M12 2L2 12"></path></svg></button>
+</div>
+
+<div style="flex-grow: 1; min-height: 0; display: flex; gap: 6px; padding: 6px">
+
+<div style="width: 210px; flex-shrink: 0; background: #181a1d; border: 1px solid #262a2f; border-radius: 6px; display: flex; flex-direction: column; padding: 6px; gap: 4px">
+<label style="display: flex; align-items: center; justify-content: center; gap: 6px; height: 30px; font-size: 13px; color: #a8a49b"><input type="checkbox" style="margin: 0">Show hidden items</label>
+<div style="display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 6px; border-radius: 5px"><span style="width: 32px; height: 32px; border-radius: 4px; background: #2a2e34; border: 1px solid #4a4f56"></span><span style="font-size: 14px">[Melon Juice]</span></div>
+<div style="display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 6px; border-radius: 5px; background: rgba(227,164,59,0.22)"><span style="width: 32px; height: 32px; border-radius: 4px; background: #2a2e34; border: 1px solid #4a4f56"></span><span style="font-size: 14px">[Minor Mana Potion]</span></div>
+<div style="display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 6px; border-radius: 5px"><span style="width: 32px; height: 32px; border-radius: 4px; background: #2a2e34; border: 1px solid #2f6b2f"></span><span style="font-size: 14px; color: #4fd04f">[Outrunner's Shield]</span></div>
+<div style="display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 6px; border-radius: 5px"><span style="width: 32px; height: 32px; border-radius: 4px; background: #2a2e34; border: 1px solid #4a4f56"></span><span style="font-size: 14px">[Peacebloom]</span></div>
+<div style="display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 6px; border-radius: 5px"><span style="width: 32px; height: 32px; border-radius: 4px; background: #2a2e34; border: 1px solid #2f6b2f"></span><span style="font-size: 14px; color: #4fd04f">[Ritual Bands]</span></div>
+</div>
+
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+
+<div style="background: #181a1d; border: 1px solid #262a2f; border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="width: 34px; height: 34px; border-radius: 5px; background: #2a2e34; border: 1px solid #4a4f56"></span>
+<div style="display: flex; flex-direction: column; gap: 1px"><span style="font-size: 17px; color: #f3efe6">Minor Mana Potion</span><span style="font-size: 12.5px; color: #8e8a81">3 in your bags · stack of 5</span></div>
+<div style="flex-grow: 1"></div>
+<label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #8e8a81"><input type="checkbox" style="margin: 0">Hide from this list</label>
+</div>
+
+<div style="display: flex; gap: 14px; align-items: stretch">
+
+<div style="width: 230px; flex-shrink: 0; display: flex; flex-direction: column; gap: 9px">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<span style="font-size: 13px; color: #a8a49b">Stack size</span>
+<div style="display: flex; align-items: center; gap: 3px">
+<button aria-label="Fewer per stack" style="width: 26px; height: 26px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #e6e2d8; font-size: 15px">−</button>
+<span style="width: 54px; height: 26px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px solid #3a3f46; border-radius: 5px; background: #0f1113; font-size: 16px">3</span>
+<button aria-label="More per stack" style="width: 26px; height: 26px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #e6e2d8; font-size: 15px">+</button>
+<button style="height: 26px; padding: 0 7px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #a8a49b; font-size: 12px">Max</button>
+</div>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between">
+<span style="font-size: 13px; color: #a8a49b">Stacks</span>
+<div style="display: flex; align-items: center; gap: 3px">
+<button aria-label="Fewer stacks" onClick="{{lessStacks}}" style="width: 26px; height: 26px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #e6e2d8; font-size: 15px">−</button>
+<span style="width: 54px; height: 26px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px solid #3a3f46; border-radius: 5px; background: #0f1113; font-size: 16px">{{stacks}}</span>
+<button aria-label="More stacks" onClick="{{moreStacks}}" style="width: 26px; height: 26px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #e6e2d8; font-size: 15px">+</button>
+<button style="height: 26px; padding: 0 7px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #a8a49b; font-size: 12px">Max</button>
+</div>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between">
+<span style="font-size: 13px; color: #a8a49b">Duration</span>
+<div style="display: flex; gap: 3px">
+<sc-for list="{{durations}}" as="d" hint-placeholder-count="3">
+<button onClick="{{d.pick}}" style="{{d.style}}">{{d.label}}</button>
+</sc-for>
+</div>
+</div>
+</div>
+
+<div style="width: 1px; background: #262a2f"></div>
+
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: center; gap: 8px">
+<span style="font-size: 12px; color: #8e8a81; text-transform: uppercase; letter-spacing: 0.7px">Price per item</span>
+<div style="flex-grow: 1"></div>
+<div role="group" aria-label="Pricing mode" style="display: flex; padding: 2px; gap: 2px; border: 1px solid #2f343a; border-radius: 7px; background: #111315">
+<button onClick="{{pickMatch}}" aria-pressed="{{matchPressed}}" style="{{matchStyle}}">Match lowest</button>
+<button onClick="{{pickUndercut}}" aria-pressed="{{undercutPressed}}" style="{{undercutStyle}}"><img src="/_blob/8ae8da1c07145c378ab8a6290897e059" alt="" style="width: 18px; height: 18px">Undercut</button>
+</div>
+<button aria-label="How undercutting works on Forever" title="How undercutting works on Forever: /aux undercut" style="width: 22px; height: 22px; border: 1px solid #3a3f46; border-radius: 11px; background: transparent; color: #a8a49b; font-size: 13px; font-weight: 700">?</button>
+</div>
+<div style="display: flex; align-items: center; gap: 10px">
+<div style="flex-grow: 1; height: 38px; box-sizing: border-box; display: flex; align-items: center; justify-content: flex-end; padding: 0 12px; border: 1px solid {{inputBorder}}; border-radius: 6px; background: #0f1113; font-size: 21px">
+<sc-for list="{{priceParts}}" as="p" hint-placeholder-count="2"><span style="{{p.style}}">{{p.t}}</span></sc-for>
+</div>
+<span style="{{badgeStyle}}">{{pct}}</span>
+</div>
+<div style="{{noteStyle}}">{{note}}</div>
+</div>
+</div>
+
+<div style="height: 1px; background: #262a2f"></div>
+<div style="display: flex; align-items: center; gap: 22px; font-size: 14px">
+<span style="color: #a8a49b">Posting <span style="color: #f3efe6">{{items}}</span></span>
+<span style="color: #a8a49b">Total <span style="color: #f3efe6"><sc-for list="{{totalParts}}" as="p" hint-placeholder-count="2"><span style="{{p.style}}">{{p.t}}</span></sc-for></span></span>
+<span style="color: #a8a49b">Deposit <span style="color: #f3efe6">1<span style="color: #c8602c">c</span></span></span>
+<span style="color: #a8a49b">You get <span style="color: #f3efe6"><sc-for list="{{netParts}}" as="p" hint-placeholder-count="2"><span style="{{p.style}}">{{p.t}}</span></sc-for></span></span>
+<div style="flex-grow: 1"></div>
+<button style="height: 32px; padding: 0 22px; border: none; border-radius: 6px; background: #e3a43b; color: #1a1408; font-size: 16px; font-weight: 700">Post {{items}}</button>
+</div>
+</div>
+
+<div style="flex-grow: 1; min-height: 0; background: #181a1d; border: 1px solid #262a2f; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column">
+<div style="display: grid; grid-template-columns: 90px 90px 90px minmax(0, 1fr) 110px; align-items: center; height: 26px; padding: 0 10px; background: #1d2024; color: #8e8a81; font-size: 12px; text-align: center">
+<div>Auctions</div><div>Time Left</div><div>Stack Size</div><div style="text-align: right">Auction Buyout (per item)</div><div>% Hist. Value</div>
+</div>
+<sc-for list="{{listings}}" as="r" hint-placeholder-count="8">
+<div style="{{r.style}}">
+<div>{{r.n}}</div><div style="{{r.leftStyle}}">{{r.left}}</div><div>{{r.stack}}</div><div style="{{r.priceStyle}}">{{r.price}}</div><div style="{{r.pctStyle}}">{{r.pct}}</div>
+</div>
+</sc-for>
+</div>
+
+</div>
+</div>
+
+<div style="height: 34px; flex-shrink: 0; display: flex; align-items: center; gap: 6px; padding: 0 10px">
+<div style="width: 210px; height: 22px; border-radius: 5px; background: #2a2c30; border: 1px solid #2b2f35"></div>
+<button style="height: 24px; padding: 0 16px; border: 1px solid #2f343a; border-radius: 5px; background: #1d2024; color: #e6e2d8; font-size: 15px">Refresh</button>
+<div style="flex-grow: 1"></div>
+<div style="font-size: 12px; color: #8e8a81">aux by shirsig, granted immortality by Tyler</div>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1100,"height":660}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mode: 'match', stacks: 1, duration: 1 };
+  }
+  money(c) {
+    const g = Math.floor(c / 10000), s = Math.floor((c % 10000) / 100), cc = c % 100;
+    const parts = [];
+    const num = (t) => ({ t: String(t), style: 'color: #f3efe6' });
+    if (g) { parts.push(num(g)); parts.push({ t: 'g ', style: 'color: #ffd100' }); }
+    if (g || s) { parts.push(num(g ? String(s).padStart(2, '0') : s)); parts.push({ t: 's ', style: 'color: #c9cdd2' }); }
+    parts.push(num((g || s) ? String(cc).padStart(2, '0') : cc));
+    parts.push({ t: 'c', style: 'color: #c8602c' });
+    return parts;
+  }
+  renderVals() {
+    const LOWEST = 69, USUAL = 69, STACK = 3;
+    const undercut = this.state.mode === 'undercut';
+    const price = undercut ? LOWEST - 1 : LOWEST;
+    const pct = Math.round(price / USUAL * 100);
+    const items = STACK * this.state.stacks;
+    const seg = (on) => 'height: 28px; padding: 0 12px; display: flex; align-items: center; gap: 5px; border-radius: 5px; font-size: 14px; ' + (on ? 'border: 1px solid #e3a43b; background: #3a2e15; color: #f6d48f' : 'border: 1px solid transparent; background: transparent; color: #a8a49b');
+    const durations = [['2h', 0], ['8h', 1], ['24h', 2]].map(([label, i]) => ({
+      label,
+      pick: () => this.setState({ duration: i }),
+      style: 'height: 26px; padding: 0 9px; border-radius: 5px; font-size: 13px; ' + (this.state.duration === i ? 'border: 1px solid #e3a43b; background: #3a2e15; color: #f6d48f' : 'border: 1px solid #2f343a; background: #1d2024; color: #cfcac0'),
+    }));
+    const rows = [
+      [1, '24h', 19, 69, 100, true], [1, '24h', 124, 78, 113], [1, '24h', 195, 79, 114], [1, '24h', 12, 83, 120],
+      [1, '24h', 2, 85, 123], [1, '12h', 8, 92, 133], [1, '12h', 37, 93, 135], [1, '12h', 68, 100, 145],
+    ];
+    const pctColor = (p) => p <= 105 ? '#ffd100' : (p <= 125 ? '#ff9a3c' : '#ff3b30');
+    const listings = rows.map((r, i) => ({
+      n: r[0], left: r[1], stack: r[2], price: r[3] >= 100 ? '1s ' + String(r[3] - 100).padStart(2, '0') + 'c' : r[3] + 'c', pct: r[4] + '%',
+      style: 'display: grid; grid-template-columns: 90px 90px 90px minmax(0, 1fr) 110px; align-items: center; height: 20px; padding: 0 10px; font-size: 13.5px; text-align: center; background: ' + (r[5] ? 'rgba(227,164,59,0.22)' : (i % 2 ? 'rgba(255,255,255,0.035)' : 'transparent')),
+      leftStyle: 'color: ' + (r[1] === '24h' ? '#3fa2ff' : '#ffd100'),
+      priceStyle: 'text-align: right; color: ' + (r[5] ? '#f3efe6' : '#e6e2d8'),
+      pctStyle: 'color: ' + pctColor(r[4]),
+    }));
+    return {
+      stacks: this.state.stacks,
+      lessStacks: () => this.setState({ stacks: Math.max(1, this.state.stacks - 1) }),
+      moreStacks: () => this.setState({ stacks: Math.min(9, this.state.stacks + 1) }),
+      durations,
+      pickMatch: () => this.setState({ mode: 'match' }),
+      pickUndercut: () => this.setState({ mode: 'undercut' }),
+      matchPressed: undercut ? 'false' : 'true',
+      undercutPressed: undercut ? 'true' : 'false',
+      matchStyle: seg(!undercut),
+      undercutStyle: seg(undercut),
+      inputBorder: undercut ? '#8a6a2a' : '#3a3f46',
+      priceParts: this.money(price),
+      pct: pct + '% of usual',
+      badgeStyle: 'height: 26px; padding: 0 9px; display: flex; align-items: center; border-radius: 13px; font-size: 13px; white-space: nowrap; background: #2a2614; color: ' + pctColor(pct),
+      note: undercut ? '1c below the lowest listing (69c).' : 'Same as the lowest listing. On Forever the newest listing at a price sells first.',
+      noteStyle: 'font-size: 12.5px; color: ' + (undercut ? '#e3c27f' : '#8e8a81'),
+      items: items + (items === 1 ? ' item' : ' items'),
+      totalParts: this.money(price * items),
+      netParts: this.money(Math.floor(price * items * 0.95)),
+      listings,
+    };
+  }
+}
+</script>
+</body>
+</html>

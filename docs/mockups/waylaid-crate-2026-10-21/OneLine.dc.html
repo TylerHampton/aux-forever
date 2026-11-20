@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Crate tooltip, one line</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 460px; height: 520px; box-sizing: border-box; padding: 28px; background: #1a1a1a; font-family: Arial, Helvetica, sans-serif; display: flex; flex-direction: column; gap: 14px;">
+<div style="font-size: 12px; color: #a8a8a8;">Same crate, same example prices.</div>
+<div style="width: 340px; box-sizing: border-box; padding: 10px 12px; background: #0c0c1c; border: 1px solid #9a9a9a; border-radius: 4px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; line-height: 17px; color: #ffffff;">
+<div style="font-size: 15px; color: #ffffff;">Waylaid Crate: Journeyman Textiles</div>
+<div style="color: #1eff00;">Use: Fill the crate with any bundle from the following list:</div>
+<div style="color: #1eff00;">- 20 Wool Cloth</div>
+<div style="color: #1eff00;">- 40 Silk Cloth</div>
+<div style="color: #1eff00;">- 20 Medium Leather</div>
+<div>Requires Level 10</div>
+<div style="height: 8px;"></div>
+<div style="color: #e5be5b;">Value: 60<span style="color: #c7c7cf;">s</span> <span style="color: #a8a8a8;">seen today</span></div>
+<div style="display: flex; justify-content: space-between; gap: 12px; color: #e5be5b;"><span>Fill: 20 Wool Cloth</span><span>2<span style="color: #c7c7cf;">s</span> 56<span style="color: #eda55f;">c</span></span></div>
+</div>
+<div style="font-size: 12px; line-height: 17px; color: #a8a8a8; max-width: 380px;">Only the cheapest bundle, on one line, under Value. The 12 Wool Cloth already in your bags are counted but not named.</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":460,"height":520}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
