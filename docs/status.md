@@ -44,10 +44,10 @@ Everything from the 2026-11-20 CurseForge feedback batch (`FB-056` to `FB-063`) 
   auxForever, saved in `docs/roadmap.md` ("Future ideas") as a potential separate companion addon
   later with `auxForever` as an optional dependency (`AuxForeverAPI`).
 
-**Next session starts with:** kicking off 0.9 planning/order with Tyler (for example, starting a
-`0.9` branch with the non-visual fixes and switches first: `FB-056`, `FB-058`, `FB-061`, `FB-062`,
-`FB-063`, `wait_throttle` timeout, plus mockups for the visual features: `FB-057`, `FB-055`
-narrower Sniper, `FB-059`/`FB-042`, shopping list, posting rules).
+**Next session starts with:** read `docs/plan-0.9.md` (the full 0.9 build handoff, phased plan,
+and branch setup) and confirm build order with Tyler (recommended: Phase 1 non-visual fixes,
+toggles and `Bindings.xml` first, then mockups for `FB-057`, `FB-055` narrower Sniper,
+`FB-059`/`FB-042`, shopping list, and posting rules).
 
 **Takeover complete (2026-11-20):** Gemini Neon is the primary engineer and Claude Code the
 reviewer (`AGENTS.md`, "Roles"). H-012 in `docs/handoff.md` is closed. Claude-only tools are
