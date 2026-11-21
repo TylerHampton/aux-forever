@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-20, Tyler's time (0.8.2.2 released; CurseForge feedback FB-056 to FB-063 logged, waiting on Tyler's direction).
+Last updated 2026-11-20, Tyler's time (0.8.2.2 released; FB-056 to FB-063 decided for 0.9; nothing being built yet).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-20 is there).
@@ -15,28 +15,39 @@ released, move its notes to `docs/status-history.md` (everything before 2026-11-
 **Tyler, after the release:** paste `docs/curseforge-description.md` into the CurseForge page (it
 now says one click buys, the buy bar starts at 1, and mentions the Confirm before buying setting).
 
-**New feedback logged (2026-11-20, waiting on Tyler's decisions):** `FB-056` to `FB-063` in
-`docs/feedback.md` (source: `docs/feedback/sources/2026-11-20-curseforge-comments.md`):
-- **FB-056 (S1 bug):** dungeon "many Lua errors" warning, possibly on conjured water
-  (`user_kc0ds7pqedmptpep`); candidate for a 0.8.2.3 patch hardening `core/tooltip.lua` and
-  `util/info.lua`.
-- **Small settings/UX requests (candidates for 0.8.2.3 or 0.9):** FB-058 (whole-stack tooltip
-  prices by default toggle, `jebbush`), FB-061 (toggle to hide the Professions window Materials and
-  profit line, `LLanwrst`), FB-062 (option for right-click bag item to always open Post,
-  `rokstar8872` and `deep_structure`).
-- **Larger feature requests (candidates for 0.9 or later):** FB-057 (Settings in Options > AddOns
-  and `/aux settings`, `LLanwrst` and `jebbush`, mockup first), FB-059 (Waylaid Crate Merchant's
-  Favor reward, `sarrathsilentstrider`, Tyler replied 0.9, pairs with FB-042), FB-060 (best items
-  to farm like GoldScout, `XtreamCoder`, scope decision needed), FB-063 (keybinds for buying,
-  confirming and declining via `Bindings.xml`, `khorrs`).
+**Nothing is being built yet.** Next version is **0.9** (`docs/roadmap.md`; no 0.8.2.3 planned).
+Everything from the 2026-11-20 CurseForge feedback batch (`FB-056` to `FB-063`) is decided:
+- **Planned for 0.9 (from 2026-11-20 feedback):**
+  - `FB-056` (user_kc0ds7pqedmptpep): dungeon/tooltip Lua error hardening in `core/tooltip.lua` and
+    `util/info.lua`.
+  - `FB-057` (LLanwrst, jebbush): Settings panel in Blizzard's Options > AddOns + `/aux settings`
+    (mockup first).
+  - `FB-058` (jebbush): whole-stack tooltip prices by default toggle (`/aux tooltip stack`, off by
+    default).
+  - `FB-059` (sarrathsilentstrider, paired with `FB-042`): Waylaid Crate Merchant's Favor reward
+    (mockup first; needs an in-game crate turn-in screenshot).
+  - `FB-061` (LLanwrst): toggle to hide the Professions window Materials / profit line (on by
+    default).
+  - `FB-062` (rokstar8872, deep_structure): option for right-clicking a bag item from any tab to
+    open Post and load it (off by default).
+  - `FB-063` (khorrs): keybinds for buying, confirming and declining via `Bindings.xml` (full game
+    restart on first install).
+- **Previously planned for 0.9 (`docs/roadmap.md`):** shopping lists and Craftsman's Writs
+  (`FB-020`, `FB-023`), what other characters hold (`FB-023`), narrower Sniper (`FB-055`, mockup
+  first), automatic Full scan on window open option (`FB-032`), posting rules based on usual price
+  (`FB-031`, mockup first).
+- **Small fix candidate to include in 0.9:** add a timeout to `wait_throttle` in `core/scan.lua`
+  and `tabs/search/results.lua` so if Forever's auction throttle ever locks up
+  (`IsThrottledMessageSystemReady` stuck `false`, Seen 2026-11-20), aux times out with a clear
+  message instead of sitting on `Reading the listings...`.
+- **Not in auxForever (`FB-060`, XtreamCoder):** GoldScout-style farming guide is `wont-fix` for
+  auxForever, saved in `docs/roadmap.md` ("Future ideas") as a potential separate companion addon
+  later with `auxForever` as an optional dependency (`AuxForeverAPI`).
 
-**Nothing is being built yet.** Next minor version is **0.9** (`docs/roadmap.md`): shopping lists
-and Craftsman's Writs, what other characters hold, narrower Sniper (FB-055, Tyler confirmed
-2026-11-20: "Save narrow sniper for .9", mockup first), an automatic Full scan option, posting
-rules. Small fix candidate before or with 0.9: add a timeout to `wait_throttle` in `core/scan.lua`
-and `tabs/search/results.lua` so if Forever's auction throttle ever locks up
-(`IsThrottledMessageSystemReady` stuck `false`, Seen 2026-11-20), aux times out with a clear
-message instead of sitting on `Reading the listings...`.
+**Next session starts with:** kicking off 0.9 planning/order with Tyler (for example, starting a
+`0.9` branch with the non-visual fixes and switches first: `FB-056`, `FB-058`, `FB-061`, `FB-062`,
+`FB-063`, `wait_throttle` timeout, plus mockups for the visual features: `FB-057`, `FB-055`
+narrower Sniper, `FB-059`/`FB-042`, shopping list, posting rules).
 
 **Takeover complete (2026-11-20):** Gemini Neon is the primary engineer and Claude Code the
 reviewer (`AGENTS.md`, "Roles"). H-012 in `docs/handoff.md` is closed. Claude-only tools are
@@ -66,8 +77,6 @@ Protection" tooltips (FB-045, not tried).
   one part each of R-16 and R-20 (review file).
 
 **Open questions for Tyler:**
-0. Decisions on the 2026-11-20 feedback batch (FB-056 to FB-063): which go into a 0.8.2.3 patch vs
-   0.9 vs wont-fix/later.
 1. FB-054 (jebbush, "cannot sort by bag slots"): does he know which screen they meant? Likely the
    Post tab's bag list, sorted by name. FB-053: whether Forever's gamepad mode lets an addon use
    the triggers (an experiment before building). FB-052: a reply for joker2206 is in its entry.

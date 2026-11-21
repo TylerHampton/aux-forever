@@ -162,14 +162,14 @@ For whoever fixes or builds from it:
 | [FB-053](#fb-053-a-controller-button-to-refresh-or-search) | 2026-11-17 | user_q6cn8g517mpcvp2f | request | Other | n/a | A controller button to refresh or search | new |
 | [FB-054](#fb-054-bag-searching-cannot-sort-by-bag-slots) | 2026-11-17 | jebbush | request | Post | n/a | Bag searching: cannot sort by bag slots | new |
 | [FB-055](#fb-055-too-slow-to-keep-up-with-quickly-changing-prices-and-snipe-undercuts) | 2026-11-17 | khorrs; Tyler | ux | Sniper | n/a | Too slow to keep up with quickly changing prices and snipe undercuts | built 0.8.2.2 (released 2026-11-20; narrower Sniper planned 0.9) |
-| [FB-056](#fb-056-many-lua-errors-warning-during-a-dungeon-possibly-on-conjured-water) | 2026-11-20 | user_kc0ds7pqedmptpep | bug | Other | S1 | Many Lua errors warning during a dungeon, possibly when conjured water was created | new |
-| [FB-057](#fb-057-settings-interface-accessible-outside-the-auction-house-options--addons) | 2026-11-20 | LLanwrst, jebbush | request | Settings | n/a | Settings interface accessible outside the auction house (Options > AddOns) | new |
-| [FB-058](#fb-058-toggle-to-show-tooltip-prices-for-the-whole-stack-by-default) | 2026-11-20 | jebbush | request | Settings | n/a | Toggle to show tooltip prices for the whole stack by default (flipping Shift) | new |
-| [FB-059](#fb-059-show-how-much-merchants-favor-a-waylaid-crate-offers) | 2026-11-20 | sarrathsilentstrider | request | Other | n/a | Show how much Merchant's Favor a Waylaid Crate offers in its tooltip | new (Tyler replied 0.9; see FB-042) |
-| [FB-060](#fb-060-show-best-items-to-farm-like-goldscout) | 2026-11-20 | XtreamCoder | request | Other | n/a | Show best items to farm, like GoldScout | new |
-| [FB-061](#fb-061-toggle-to-hide-the-materials-and-profit-line-in-the-professions-window) | 2026-11-20 | LLanwrst | request | Recipe search | n/a | Toggle to hide the Materials and profit line in the Professions window | new |
-| [FB-062](#fb-062-option-for-right-clicking-a-bag-item-to-always-open-the-post-tab) | 2026-11-20 | rokstar8872, deep_structure | request | Post | n/a | Option for right-clicking a bag item to always open the Post tab (like default AH) | new |
-| [FB-063](#fb-063-keybinds-for-buying-confirming-and-declining) | 2026-11-20 | khorrs | request | Buy bar | n/a | Keybinds for buying, confirming and declining | new |
+| [FB-056](#fb-056-many-lua-errors-warning-during-a-dungeon-possibly-on-conjured-water) | 2026-11-20 | user_kc0ds7pqedmptpep | bug | Other | S1 | Many Lua errors warning during a dungeon, possibly when conjured water was created | planned 0.9 |
+| [FB-057](#fb-057-settings-interface-accessible-outside-the-auction-house-options--addons) | 2026-11-20 | LLanwrst, jebbush | request | Settings | n/a | Settings interface accessible outside the auction house (Options > AddOns) | planned 0.9 (mockup first) |
+| [FB-058](#fb-058-toggle-to-show-tooltip-prices-for-the-whole-stack-by-default) | 2026-11-20 | jebbush | request | Settings | n/a | Toggle to show tooltip prices for the whole stack by default (flipping Shift) | planned 0.9 |
+| [FB-059](#fb-059-show-how-much-merchants-favor-a-waylaid-crate-offers) | 2026-11-20 | sarrathsilentstrider | request | Other | n/a | Show how much Merchant's Favor a Waylaid Crate offers in its tooltip | planned 0.9 (with FB-042; mockup first) |
+| [FB-060](#fb-060-show-best-items-to-farm-like-goldscout) | 2026-11-20 | XtreamCoder | request | Other | n/a | Show best items to farm, like GoldScout | wont-fix (not in auxForever; potential separate optional-dependency addon later) |
+| [FB-061](#fb-061-toggle-to-hide-the-materials-and-profit-line-in-the-professions-window) | 2026-11-20 | LLanwrst | request | Recipe search | n/a | Toggle to hide the Materials and profit line in the Professions window | planned 0.9 |
+| [FB-062](#fb-062-option-for-right-clicking-a-bag-item-to-always-open-the-post-tab) | 2026-11-20 | rokstar8872, deep_structure | request | Post | n/a | Option for right-clicking a bag item to always open the Post tab (like default AH) | planned 0.9 |
+| [FB-063](#fb-063-keybinds-for-buying-confirming-and-declining) | 2026-11-20 | khorrs | request | Buy bar | n/a | Keybinds for buying, confirming and declining | planned 0.9 |
 
 ## Players
 
@@ -2744,8 +2744,8 @@ from out-of-date usual prices for gear endings (Tyler asked).
 - Type: bug
 - Area: Other (tooltips / outside auction house)
 - Severity: S1 (repeated Lua errors during normal dungeon play; player had to disable aux)
-- Status: new
-- Proposed: hotfix / next patch (0.8.2.3)
+- Status: planned 0.9 (Tyler, 2026-11-20: "build this into .9")
+- Proposed: hotfix / next patch (0.8.2.3); Tyler chose 0.9
 
 Said:
 > I got a warning during a dungeon that addons cause many lua errors, I turned off Aux and the warning disappeared. Someone created some magic water or smth like that, maybe that caused it. But it was really annoying.
@@ -2754,7 +2754,7 @@ Steps / setup: in a dungeon; Blizzard showed the "addons are experiencing a larg
 warning. Someone created conjured water ("magic water"). Disabling auxForever made the warning go
 away. No BugSack error text was given.
 
-Tyler's notes: none yet.
+Tyler's notes (2026-11-20): "build this into .9".
 
 Recorder's notes (code facts and inferences, none seen in game):
 - Fact (code): outside the auction house, the main aux code that runs during a dungeon is the item
@@ -2807,7 +2807,7 @@ in `auxForever` so we know whether anything else fires there.
 - Type: request (also ux: jebbush did not know the Settings gear inside the auction house exists)
 - Area: Settings
 - Severity: n/a
-- Status: new
+- Status: planned 0.9 (mockup first; Tyler, 2026-11-20: "Build into .9")
 - Proposed: 0.9 (visual panel, mockup first)
 
 Said (jebbush):
@@ -2820,7 +2820,7 @@ Steps / setup: both players wanted to change settings through a menu, including 
 auction house.
 
 Tyler's notes: replied to LLanwrst that aux is in beta and QoL will come later, and pointed to
-`/aux help` for tooltips.
+`/aux help` for tooltips. Decision (2026-11-20): "Build into .9".
 
 Recorder's notes:
 - Fact (code): aux has had a Settings menu since 0.6 (FB-008), behind the small gear button in the
@@ -2840,7 +2840,7 @@ Recorder's notes:
 Unknowns: none that block design; verify `Settings.RegisterCanvasLayoutCategory` in game when
 building.
 
-Ask Tyler: build for 0.9 (mockup first), or sooner?
+Ask Tyler: decided (0.9, mockup first).
 
 ### FB-058: Toggle to show tooltip prices for the whole stack by default
 
@@ -2852,8 +2852,8 @@ Ask Tyler: build for 0.9 (mockup first), or sooner?
 - Type: request
 - Area: Settings (tooltips)
 - Severity: n/a
-- Status: new
-- Proposed: next patch (0.8.2.3) or 0.9 (small switch, same pattern as FB-035 and FB-041)
+- Status: planned 0.9 (Tyler, 2026-11-20: "Build into .9")
+- Proposed: next patch (0.8.2.3) or 0.9; Tyler chose 0.9
 
 Said:
 > and a toggle to make it show ah value for the whole stack, rather than being forced to hold shift. If there is 17 of an item I would like to see ah price for all 17, rather than how it is flipped now.
@@ -2861,8 +2861,9 @@ Said:
 Steps / setup: hovering a stack of 17 items in the bags; wants the tooltip to show the total value
 for all 17 by default without holding Shift (and holding Shift to flip to 1 item).
 
-Tyler's notes: none yet. (On FB-033, Tyler declined putting Shift instructions in tooltips, noting
-Shift already works; this is a new request for a setting to flip the default.)
+Tyler's notes: (On FB-033, Tyler declined putting Shift instructions in tooltips, noting Shift
+already works; this is a new request for a setting to flip the default.) Decision (2026-11-20):
+"Build into .9".
 
 Recorder's notes:
 - Fact (code, `core/tooltip.lua:93`): `quantity = IsShiftKeyDown() and quantity or 1`. The tooltip
@@ -2875,7 +2876,7 @@ Recorder's notes:
 
 Unknowns: none.
 
-Ask Tyler: add this switch (default off)?
+Ask Tyler: decided (0.9).
 
 ### FB-059: Show how much Merchant's Favor a Waylaid Crate offers
 
@@ -2887,7 +2888,7 @@ Ask Tyler: add this switch (default off)?
 - Type: request
 - Area: Other (crate tooltip)
 - Severity: n/a
-- Status: new (Tyler replied: "Will look into adding this in .9")
+- Status: planned 0.9 (with FB-042; mockup first; Tyler, 2026-11-20: "Build into .9")
 - Proposed: 0.9, together with FB-042 and Craftsman's Writs
 
 Said:
@@ -2895,6 +2896,8 @@ Said:
 
 Tyler's notes (his reply on CurseForge):
 > @sarrathsilentstrider Its a great idea, dont be sorry! Will look into adding this in .9
+
+Decision (2026-11-20): "Build into .9".
 
 Recorder's notes:
 - Related: FB-042 (`user_tdsvrjvpe8rufw54`) asked for crate full cost less silver reward and
@@ -2911,8 +2914,7 @@ Recorder's notes:
 Unknowns: how Forever defines each crate's Merchant's Favor reward (still needs the in-game crate
 turn-in screenshot asked in FB-042).
 
-Ask Tyler: confirms 0.9 alongside FB-042 and writs; still need a screenshot of a Waylaid Crate's
-turn-in reward in game.
+Ask Tyler: still need a screenshot of a Waylaid Crate's turn-in reward in game before building.
 
 ### FB-060: Show best items to farm, like GoldScout
 
@@ -2924,14 +2926,17 @@ turn-in reward in game.
 - Type: request
 - Area: Other (new feature)
 - Severity: n/a
-- Status: new
-- Proposed: later (needs Tyler's scope decision; mockup first if built)
+- Status: wont-fix in auxForever (Tyler, 2026-11-20: "Do not build, but remember for potiential in the future, perhaps a seperate add-on we make that is an optional dependency")
+- Proposed: none in auxForever; future separate addon idea using `AuxForeverAPI`
 
 Said:
 > hey man can you maybe make so that aux can look for best items to farm like GoldScout does so ppl dont need to have 2 seprate addons ?
 
 Tyler's notes (his reply on CurseForge):
 > @XtreamCoder Great idea! I will work on seamless way to implement this. Look out for it in a future update.
+
+Decision (2026-11-20): "Do not build, but remember for potiential in the future, perhaps a seperate
+add-on we make that is an optional dependency".
 
 Recorder's notes:
 - Checked what GoldScout does (**Outside**, CurseForge and WoW Forever forums, November 2026):
@@ -2943,20 +2948,13 @@ Recorder's notes:
 - Pushback on full parity: rebuilding a crowdsourced mob drop-rate database, companion app,
   waypoints and nameplate markers inside an auction house addon would be massive scope creep and
   heavy ongoing maintenance outside aux's purpose.
-- Lighter options that fit aux:
-  1. A **Profit / Gathering** view using data aux already has from Full scans (e.g., ranking the
-     player's known crafting recipes by profit via `C_TradeSkillUI`, and/or ranking gathering
-     materials like herbs, ore, cloth and leather by current AH price and % of usual), with no mob
-     drop database or companion app.
-  2. Interoperability: aux already exposes `AuxForeverAPI` (`docs/api.md`, 0.7) so farming addons
-     such as GoldScout can read aux's scanned prices without a second auction house scan.
+- Future direction (Tyler, 2026-11-20): keep auxForever focused on the auction house, and remember
+  this as a potential separate companion addon we could make later with `auxForever` as an optional
+  dependency (reading scanned prices via `AuxForeverAPI`, `docs/api.md`).
 
-Unknowns: whether the player mainly wants gathering/crafting profit rankings or mob-farming spots
-with drop rates.
+Unknowns: none for this decision.
 
-Ask Tyler: how far (if at all) do you want to take this? Option 1 (lightweight crafting/gathering
-profit list using aux's own scan data, mockup first), Option 2 (leave mob farming to GoldScout and
-point to `AuxForeverAPI`), or something else?
+Ask Tyler: nothing (decided).
 
 ### FB-061: Toggle to hide the Materials and profit line in the Professions window
 
@@ -2968,8 +2966,8 @@ point to `AuxForeverAPI`), or something else?
 - Type: request (also ux: turning off all tooltips did not hide it)
 - Area: Recipe search (profession window) / Settings
 - Severity: n/a
-- Status: new
-- Proposed: next patch (0.8.2.3) or 0.9 (very small toggle)
+- Status: planned 0.9 (Tyler, 2026-11-20: "Build into .9")
+- Proposed: next patch (0.8.2.3) or 0.9; Tyler chose 0.9
 
 Said:
 > Now a thing that I havent i figured out yet - when opening my professions it seems this addon adds some info about the profit/prices of the materials, which kinda overlaps with some other addons that im using - so my question - is there any way to turn this off? Ive tried turing off all tooltips but still its there. Not a huge downside, as I can turn the addon.
@@ -2979,7 +2977,7 @@ Steps / setup: opens the Professions window while running another profession add
 options and the line stayed.
 
 Tyler's notes: replied that aux is in beta and QoL will come later, and mentioned `/aux help` for
-tooltips.
+tooltips. Decision (2026-11-20): "Build into .9".
 
 Recorder's notes:
 - Fact (code, `tabs/search/recipe.lua:363-377`): `update_line` always shows the `Materials ...
@@ -2987,14 +2985,12 @@ Recorder's notes:
   setting or chat command to turn it off (unlike the tooltip switches in `core/tooltip.lua`).
 - Proposed fix: add a toggle (default on) in Settings and a matching chat command (e.g.
   `/aux crafting cost` or `/aux tooltip crafting`) that hides the line immediately when turned off
-  and refreshes it when turned back on. Keep the "Search in aux" button at the AH or decide whether
-  to leave that separate (the overlap is specifically the Materials/profit text line).
+  and refreshes it when turned back on. Keep the "Search in aux" button separate since it only
+  appears at the auction house.
 
 Unknowns: which other profession addon overlaps it; a toggle solves it for any overlapping addon.
 
-Ask Tyler: add this toggle (default on), and should it hide only the Materials/profit line or also
-the "Search in aux" button? (Recommend: Materials/profit line only, since the button only appears
-at the auction house.)
+Ask Tyler: decided (0.9).
 
 ### FB-062: Option for right-clicking a bag item to always open the Post tab
 
@@ -3006,8 +3002,8 @@ at the auction house.)
 - Type: request
 - Area: Post / Settings
 - Severity: n/a
-- Status: new
-- Proposed: next patch (0.8.2.3) or 0.9 (small option)
+- Status: planned 0.9 (Tyler, 2026-11-20: "Love it, build into .9")
+- Proposed: next patch (0.8.2.3) or 0.9; Tyler chose 0.9
 
 Said (rokstar8872):
 > is it possible to have an option like with default ah, when u press right click it goes into selling window? thank you.
@@ -3017,6 +3013,8 @@ Said (deep_structure, reply):
 
 Tyler's notes (his reply on CurseForge):
 > @rokstar8872 Currently it depends on which menu you have open when you right click an item in your bag. If you are in search tab it searches the item on right click, and on post page it add its to the window to be sold.
+
+Decision (2026-11-20): "Love it, build into .9".
 
 Recorder's notes:
 - Fact (code, `core/shortcut.lua:18-28,68-88`): `on_post_item` intercepts bag right-clicks (via
@@ -3030,7 +3028,7 @@ Recorder's notes:
 
 Unknowns: none.
 
-Ask Tyler: add this option (default off)?
+Ask Tyler: decided (0.9).
 
 ### FB-063: Keybinds for buying, confirming and declining
 
@@ -3042,7 +3040,7 @@ Ask Tyler: add this option (default off)?
 - Type: request
 - Area: Buy bar / Settings
 - Severity: n/a
-- Status: new
+- Status: planned 0.9 (Tyler, 2026-11-20: "Build into .9")
 - Proposed: 0.9 (new feature; fits with Sniper / fast-buying work)
 
 Said:
@@ -3050,6 +3048,8 @@ Said:
 
 Tyler's notes (his reply on CurseForge):
 > @khorrs I believe there is a way, ill get that added in the future.
+
+Decision (2026-11-20): "Build into .9".
 
 Recorder's notes:
 - Fact (code / Forever API): `C_AuctionHouse.StartCommoditiesPurchase` and `C_AuctionHouse.PlaceBid`
@@ -3070,7 +3070,7 @@ Unknowns: whether khorrs also wants a single combined Buy/Confirm keybind (for m
 or separate ones; offering separate Buy, Confirm and Cancel plus optionally a combined Buy/Confirm
 covers both.
 
-Ask Tyler: save for 0.9?
+Ask Tyler: decided (0.9).
 
 ## Before this log
 

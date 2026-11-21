@@ -77,8 +77,35 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
 - **Narrower Sniper** (FB-055; Tyler, 2026-11-20: "Save narrow sniper for .9"): the house was
   25,706 items, so a whole-house round takes about 38 s; letting the player watch trade goods only,
   a category or a saved search would take a few seconds (mockup first).
+- **Dungeon / tooltip error hardening** (FB-056, user_kc0ds7pqedmptpep; Tyler, 2026-11-20): guard
+  `core/tooltip.lua` and `util/info.lua` against secret tooltip data, remove the redundant
+  `tooltip:Show()` inside `AddTooltipPostCall`, guard `tooltip_quantity` and `settings.daily`, and
+  nil/secret-check `AuxTooltip` font strings and `ITEM_CONJURED`/`ITEM_MIN_LEVEL` on conjured items.
+- **Settings outside the auction house** (FB-057, LLanwrst and jebbush; Tyler, 2026-11-20):
+  register an `auxForever` panel in Blizzard's Options > AddOns (`Settings.RegisterCanvasLayoutCategory`)
+  synced with the auction house Settings popup, add `/aux settings`, and mention it in `/aux` help
+  (mockup first).
+- **Waylaid Crate Merchant's Favor** (FB-059, sarrathsilentstrider, paired with FB-042; Tyler,
+  2026-11-20): show how much Merchant's Favor each crate pays in its tooltip (mockup first; confirm
+  reward source in game first).
+- **Buying, confirming and declining keybinds** (FB-063, khorrs; Tyler, 2026-11-20): add
+  `Bindings.xml` (full game restart on first install) for Buy, Confirm and Cancel/Decline on the
+  active Search or Sniper buy bar through WoW's Options > Keybindings > AddOns > auxForever.
+- **Settings & QoL switches (Tyler, 2026-11-20):**
+  - Whole-stack tooltip prices by default toggle + `/aux tooltip stack`, off by default, Shift flips
+    to 1 item (FB-058, jebbush).
+  - Toggle to hide the Professions window Materials / profit line + chat command, on by default
+    (FB-061, LLanwrst).
+  - Option for right-clicking a bag item from any tab to switch to Post and load it + chat command,
+    off by default (FB-062, rokstar8872 and deep_structure).
 - **Candidate (not decided by Tyler):** a controller button to search (FB-053; first an experiment:
   can an addon bind the triggers).
+
+## Future ideas (outside auxForever)
+
+- **Best items to farm / GoldScout-style companion addon** (FB-060, XtreamCoder; Tyler, 2026-11-20:
+  do not build into auxForever, keep in mind for a potential separate addon later with `auxForever`
+  as an optional dependency reading prices through `AuxForeverAPI`).
 
 ## After 0.6: candidates for the next version (none decided)
 
