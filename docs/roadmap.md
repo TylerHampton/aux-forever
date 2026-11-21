@@ -91,9 +91,12 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
 - **Buying, confirming and declining keybinds** (FB-063, khorrs; Tyler, 2026-11-20): add
   `Bindings.xml` (full game restart on first install) for Buy, Confirm and Cancel/Decline on the
   active Search or Sniper buy bar through WoW's Options > Keybindings > AddOns > auxForever.
-- **Settings & QoL switches (Tyler, 2026-11-20):**
-  - Whole-stack tooltip prices by default toggle + `/aux tooltip stack`, off by default, Shift flips
-    to 1 item (FB-058, jebbush).
+- **Settings & QoL switches (Tyler, 2026-11-20 and 2026-11-21):**
+  - Tooltips show **full stack** prices by default for Vendor and Value, and holding Shift shows 1
+    item, with a toggle (`/aux tooltip stack`, on by default) for anyone who prefers 1-item default
+    (FB-058, jebbush; direction set by Tyler 2026-11-21).
+  - Remove the word `seen` from tooltip age labels (`core/tooltip.lua`, `tabs/search/recipe.lua`)
+    and audit other UI elements for needless wordiness (Tyler, 2026-11-21).
   - Toggle to hide the Professions window Materials / profit line + chat command, on by default
     (FB-061, LLanwrst).
   - Option for right-clicking a bag item from any tab to switch to Post and load it + chat command,

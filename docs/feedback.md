@@ -2863,20 +2863,21 @@ for all 17 by default without holding Shift (and holding Shift to flip to 1 item
 
 Tyler's notes: (On FB-033, Tyler declined putting Shift instructions in tooltips, noting Shift
 already works; this is a new request for a setting to flip the default.) Decision (2026-11-20):
-"Build into .9".
+"Build into .9". Updated (2026-11-21): "the vendor and value should always represent the full stack
+amount, and to see the vendor and value of just 1 is when they hold shift."
 
 Recorder's notes:
 - Fact (code, `core/tooltip.lua:93`): `quantity = IsShiftKeyDown() and quantity or 1`. The tooltip
   already labels multi-item prices with `for 17` (`per` on line 96), so a stack price is never
   mistaken for a unit price.
-- Proposed fix: add a per-character tooltip setting `stack_default` (default `false`, so nothing
-  changes for existing players): one switch in Settings > Tooltip lines ("Stack prices by default",
-  hint "Hold Shift for 1 item") and matching chat command `/aux tooltip stack`. When on, normal
-  hover uses the stack count and holding Shift shows 1 item.
+- Plan for 0.9: flip the default so Vendor, Vendor Buy, Value and Today show the full stack amount
+  by default and holding Shift shows 1 item; keep the `stack_default` toggle in Settings > Tooltip
+  lines (`/aux tooltip stack`), starting **on** by default so players who want 1-item default can
+  still switch it off.
 
 Unknowns: none.
 
-Ask Tyler: decided (0.9).
+Ask Tyler: decided (0.9: full stack by default, Shift for 1).
 
 ### FB-059: Show how much Merchant's Favor a Waylaid Crate offers
 

@@ -47,9 +47,10 @@ All items here fit into existing UI or Blizzard's built-in Keybindings menu:
    - **Seen** 2026-11-20: Forever's AH throttle can freeze (`IsThrottledMessageSystemReady` stuck `false`, even in Blizzard's window). Add a timeout so aux prints a clear message instead of hanging forever on `Reading the listings...`.
    - Test in `tests/timing_test.lua` with `slow_server.lua`.
 
-3. **FB-058 (suggested by `jebbush`): Whole-stack tooltip prices by default**
-   - Per-character tooltip setting `stack_default` (default `false`), switch in Settings > Tooltip lines ("Stack prices by default", hint "Hold Shift for 1 item"), plus `/aux tooltip stack`.
-   - In `core/tooltip.lua:93`, flip the Shift behavior when `settings.stack_default` is on (normal hover uses stack count; Shift shows 1 item). Keep the `for N` label so stack prices are always unambiguous.
+3. **FB-058 (suggested by `jebbush`; direction set by Tyler, 2026-11-21): Full stack by default in tooltips, hold Shift for 1 item**
+   - Vendor, Vendor Buy, Value and Today always show the **full stack** amount by default when hovering a stack of more than 1 item, and **holding Shift shows 1 item** (flipping the old default).
+   - Keep `FB-058`'s switch in Settings > Tooltip lines + `/aux tooltip stack`, starting **on by default** (so players who want 1-item default can still switch it back).
+   - In `core/tooltip.lua:93`, use the stack count by default and `1` when Shift is held (reversed if the toggle is turned off). Keep the `for N` label on stacks (and confirm with Tyler whether holding Shift on a stack should say `each` or stay plain).
 
 4. **FB-061 (suggested by `LLanwrst`): Toggle to hide the Professions window Materials / profit line**
    - Setting (default `true`) + matching chat command (e.g. `/aux crafting cost`), checked in `tabs/search/recipe.lua` (`update_line`). Hides immediately when turned off and refreshes live when turned back on (no `/reload` needed). Keep the "Search in aux" button separate since it only appears at the AH.
@@ -71,7 +72,11 @@ All items here fit into existing UI or Blizzard's built-in Keybindings menu:
      - Optional: **Buy or Confirm** (one-key/scroll-wheel flow for players who want one key to do both)
    - Verify `Bindings.xml` loads cleanly on Forever in game, respects edit-box focus, works with hardware-event restrictions (`StartCommoditiesPurchase`, `PlaceBid`), and does not collide with `gamepad.lua`.
 
-8. **Optional small fix (check with Tyler):** `S-09` (Post tab receipt shows a starting bid for a trade good when no price is typed).
+8. **Remove `seen` and tighten wordy UI copy (Tyler, 2026-11-21)**
+   - Remove the word `seen ` from tooltip age labels in `core/tooltip.lua:88` and `tabs/search/recipe.lua:319,351` (so `Value: 41 (100%)  for 20  1 day ago` instead of `... seen 1 day ago`).
+   - Audit other UI text across auxForever (tooltips, Professions cost tooltip, buy bar messages, status bar, Post tab receipt/hints, Sniper notices, Settings rows/hints, hover click hints) for needless wordiness. Show Tyler a short before/after table of proposed cuts for approval before changing other screens.
+
+9. **Optional small fix (check with Tyler):** `S-09` (Post tab receipt shows a starting bid for a trade good when no price is typed).
 
 ### Phase 2: Settings outside the auction house (mockup first)
 

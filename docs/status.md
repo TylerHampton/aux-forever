@@ -1,6 +1,6 @@
 # Status
 
-Last updated 2026-11-20, Tyler's time (0.8.2.2 released; FB-056 to FB-063 decided for 0.9; nothing being built yet).
+Last updated 2026-11-21, Tyler's time (0.8.2.2 released; 0.9 plan and handoff doc `docs/plan-0.9.md` ready; nothing being built yet).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-20 is there).
@@ -15,15 +15,18 @@ released, move its notes to `docs/status-history.md` (everything before 2026-11-
 **Tyler, after the release:** paste `docs/curseforge-description.md` into the CurseForge page (it
 now says one click buys, the buy bar starts at 1, and mentions the Confirm before buying setting).
 
-**Nothing is being built yet.** Next version is **0.9** (`docs/roadmap.md`; no 0.8.2.3 planned).
-Everything from the 2026-11-20 CurseForge feedback batch (`FB-056` to `FB-063`) is decided:
-- **Planned for 0.9 (from 2026-11-20 feedback):**
+**Nothing is being built yet.** Next version is **0.9** (`docs/roadmap.md`, full build handoff in
+`docs/plan-0.9.md`; no 0.8.2.3 planned). Everything from the 2026-11-20/21 feedback is decided:
+- **Planned for 0.9 (from 2026-11-20 and 2026-11-21 feedback):**
   - `FB-056` (user_kc0ds7pqedmptpep): dungeon/tooltip Lua error hardening in `core/tooltip.lua` and
     `util/info.lua`.
   - `FB-057` (LLanwrst, jebbush): Settings panel in Blizzard's Options > AddOns + `/aux settings`
     (mockup first).
-  - `FB-058` (jebbush): whole-stack tooltip prices by default toggle (`/aux tooltip stack`, off by
-    default).
+  - `FB-058` (jebbush; Tyler 2026-11-21): Vendor and Value tooltips show the **full stack** by
+    default and **hold Shift for 1 item** (with `/aux tooltip stack` toggle, on by default).
+  - Tooltip & UI wordiness cleanup (Tyler 2026-11-21): remove `seen ` from tooltip age labels
+    (`core/tooltip.lua`, `tabs/search/recipe.lua`) and audit other UI elements for needless
+    wordiness (before/after list for Tyler before changing other screens).
   - `FB-059` (sarrathsilentstrider, paired with `FB-042`): Waylaid Crate Merchant's Favor reward
     (mockup first; needs an in-game crate turn-in screenshot).
   - `FB-061` (LLanwrst): toggle to hide the Professions window Materials / profit line (on by
