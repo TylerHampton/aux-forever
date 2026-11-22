@@ -26,7 +26,7 @@ A change that comes from a player's feedback credits them by in-game name at the
 - **Right-click bag item to sell:** Added a "Right-click bag to sell" toggle in Settings (and
   `/aux right click post`, on by default) so right-clicking a bag item from any tab opens the Post
   tab and loads it, matching Blizzard's default auction house. Shift-click and Alt-click stay
-  tab-aware. (suggested by rokstar8872 and deep_structure)
+  tab-aware. (suggested by rokstar8872, deep_structure, and bubbledn42)
 - **Auto Full scan:** Added an "Auto Full scan" toggle in Settings (and `/aux auto scan`, off by
   default) to start a background Full scan automatically when opening the auction house if the
   15-minute cooldown is over. (suggested by Chawitsch)

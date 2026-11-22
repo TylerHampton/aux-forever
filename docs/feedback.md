@@ -168,8 +168,11 @@ For whoever fixes or builds from it:
 | [FB-059](#fb-059-show-how-much-merchants-favor-a-waylaid-crate-offers) | 2026-11-20 | sarrathsilentstrider | request | Other | n/a | Show how much Merchant's Favor a Waylaid Crate offers in its tooltip | planned 0.9 (with FB-042; mockup first) |
 | [FB-060](#fb-060-show-best-items-to-farm-like-goldscout) | 2026-11-20 | XtreamCoder | request | Other | n/a | Show best items to farm, like GoldScout | wont-fix (not in auxForever; potential separate optional-dependency addon later) |
 | [FB-061](#fb-061-toggle-to-hide-the-materials-and-profit-line-in-the-professions-window) | 2026-11-20 | LLanwrst | request | Recipe search | n/a | Toggle to hide the Materials and profit line in the Professions window | built 0.9 (build 2, gemini/0.9) |
-| [FB-062](#fb-062-option-for-right-clicking-a-bag-item-to-always-open-the-post-tab) | 2026-11-20 | rokstar8872, deep_structure | request | Post | n/a | Option for right-clicking a bag item to always open the Post tab (like default AH) | built 0.9 (build 2, gemini/0.9) |
+| [FB-062](#fb-062-option-for-right-clicking-a-bag-item-to-always-open-the-post-tab) | 2026-11-20 | rokstar8872, deep_structure, bubbledn42 | request | Post | n/a | Option for right-clicking a bag item to always open the Post tab (like default AH) | built 0.9 (build 2, default on build 3, gemini/0.9) |
 | [FB-063](#fb-063-keybinds-for-buying-confirming-and-declining) | 2026-11-20 | khorrs | request | Buy bar | n/a | Keybinds for buying, confirming and declining | built 0.9 (build 2, gemini/0.9) |
+| [FB-064](#fb-064-tooltip-word-search-ignores-stats-on-generic-green-random-suffix-gear) | 2026-11-22 | RushJet1 | bug | Search | S2 | Tooltip-word search ignores stats on generic green random-suffix gear ("of the Channeler") | new |
+| [FB-065](#fb-065-sniper-stopped-showing-deals-even-after-changing-thresholds) | 2026-11-22 | marcus4555 | bug | Sniper | S1 | Sniper stopped showing deals even after changing thresholds | new |
+| [FB-066](#fb-066-setting-to-pick-default-buy-quantity-1-vs-full-stack) | 2026-11-22 | user_ivpyccljovcjne72 | request | Buy bar | n/a | Setting to pick default buy quantity (1 vs full stack) | new |
 
 ## Players
 
@@ -202,8 +205,9 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
 - **Kortan**: told Tyler directly (Tyler's retelling, not his own words). Asked for FB-023. Knows
   TSM well, including its alt inventory data. Spelling of the in-game name not yet confirmed.
 - **Harro22**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-020.
-- **RushJet1**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-025.
-  Writes search text by hand (`armor/mail/chest/usable/strength`).
+- **RushJet1**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-025 and
+  FB-064. Writes search text by hand (`armor/mail/chest/usable/strength`,
+  `armor/miscellaneous/finger/spell`).
 - **deep_structure**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for
   FB-026 and FB-035, reported FB-037, seconded FB-062. Uses the Sniper and crafts.
 - **blackmyin**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-038.
@@ -243,6 +247,12 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
 - **LLanwrst**: CurseForge commenter (CurseForge name; in-game name unknown). New player to WoW;
   praised tooltip-text logic search, asked for FB-057 and FB-061. Uses other profession addons.
 - **rokstar8872**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-062.
+- **bubbledn42**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-062
+  (specifically from the Auctions tab).
+- **marcus4555**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-065.
+  Heavy Sniper user (326 ignored items).
+- **user_ivpyccljovcjne72**: CurseForge commenter (a name CurseForge generated; in-game name
+  unknown). Asked for FB-066; closed with "Great addon."
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
   words.
@@ -2995,10 +3005,10 @@ Ask Tyler: decided (0.9).
 
 ### FB-062: Option for right-clicking a bag item to always open the Post tab
 
-- Received: 2026-11-20 (posted 2 days before Tyler's screenshot)
-- From: rokstar8872, deep_structure (2 players)
+- Received: 2026-11-20 (rokstar8872, deep_structure); 2026-11-22 (bubbledn42)
+- From: rokstar8872, deep_structure, bubbledn42 (3 players)
 - Where: CurseForge comments on the auxForever project page
-- Source: [source](feedback/sources/2026-11-20-curseforge-comments.md)
+- Source: [2026-11-20](feedback/sources/2026-11-20-curseforge-comments.md), [2026-11-22](feedback/sources/2026-11-22-curseforge-comments.md)
 - Version: unknown
 - Type: request
 - Area: Post / Settings
@@ -3011,6 +3021,9 @@ Said (rokstar8872):
 
 Said (deep_structure, reply):
 > @rokstar8872 awesome suggestion!
+
+Said (bubbledn42, 2026-11-22):
+> in the auctions tab, right clicking an item in my bag should not search for the item it should list the item
 
 Tyler's notes (his reply on CurseForge):
 > @rokstar8872 Currently it depends on which menu you have open when you right click an item in your bag. If you are in search tab it searches the item on right click, and on post page it add its to the window to be sold.
@@ -3072,6 +3085,135 @@ or separate ones; offering separate Buy, Confirm and Cancel plus optionally a co
 covers both.
 
 Ask Tyler: decided (0.9).
+
+### FB-064: Tooltip-word search ignores stats on generic green random-suffix gear
+
+- Received: 2026-11-22 (posted 11 hours before Tyler's screenshot)
+- From: RushJet1 (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-22-curseforge-comments.md)
+- Version: likely 0.8.2.2 (released 2026-11-20)
+- Type: bug
+- Area: Search
+- Severity: S2 (fast tooltip-word search silently misses matching random-suffix gear; switching to
+  Full mode works around it at the cost of speed)
+- Status: new
+- Proposed: 0.9 (high-value bug fix once `GetItemKeySampleLink` behavior is verified in game)
+
+Said:
+> Aux seems to ignore text in items that are generic greens, like if i type armor/miscellaneous/finger/spell it will ignore "of the channeler" despite that having +2 to spells
+
+Steps / setup: Search `armor/miscellaneous/finger/spell` in Fast mode when generic green rings with
+"of the Channeler" (+2 spell damage/healing) are listed on the auction house.
+
+Tyler's notes: none yet.
+
+Recorder's notes:
+- Fact (code, `util/info.lua:509-515` and `gui/auction_listing.lua:570-577`): in 0.8.2.1 (`FB-045`,
+  where hovering "of Shadow Protection" and "of Healing" missed their stat lines under
+  `SetItemKey`), `gui/auction_listing.lua` was updated to try
+  `C_AuctionHouse.GetItemKeySampleLink(key)` (`SetHyperlink(sample)`) first before `SetItemKey`
+  (matching Blizzard's `Blizzard_AuctionHouseSharedTemplates.lua:119-124`, **Code**). However,
+  `util/info.lua`'s `info.tooltip('item_key', ...)` (used by fast tooltip-word searches, `FB-025`)
+  was NOT updated and still calls only `AuxTooltip:SetItemKey(...)`.
+- Fact (code, `core/scan.lua:760`): fast tooltip-word search only falls back to reading individual
+  auctions (`read_full`) when `has_ending(record) and #record.tooltip <= 1`.
+- Inference (strong): on Forever, `SetItemKey` on random-suffix gear with `Equip:` stats ("of the
+  Channeler", "of Healing", "of Shadow Protection", "of Fire Wrath") renders 4+ lines (name, slot,
+  required level, possibly `<Random enchantment>`) without the `Equip:` stat line. Because
+  `#record.tooltip > 1`, `scan.lua:760` never falls back to `read_full` and silently drops the item.
+  `armor/mail/chest/usable/strength` (`FB-025` build 7 test) still matched "of Strength" only
+  because the word "strength" appears in the item name itself, whereas "spell" does not appear in
+  "of the Channeler".
+- Secondary code edge (`util/info.lua:304,314-315` and `core/scan.lua:640`): if
+  `C_AuctionHouse.GetItemKeyInfo(key)` is not cached yet when `browse_record` runs, `record.name`
+  falls back to the base name, making `has_ending(record)` false even when `key.itemSuffix ~= 0`.
+
+Unknowns: whether `C_AuctionHouse.GetItemKeySampleLink(key)` on Forever returns a link whose
+tooltip includes the suffix's `Equip:` stat text (like "+2 to spells") during a browse list without
+opening the item first (**Unknown**; `FB-045` was not tested in game). If it does, checking
+`GetItemKeySampleLink` in `util/info.lua` fixes this with zero extra requests; if it returns nil
+or omits the stat text, `scan.lua:760` needs a fallback to `read_full` (checking `(record.suffix_id
+or 0) ~= 0` and/or `ITEM_RANDOM_ENCHANT` / missing suffix stats).
+
+Ask Tyler: include in 0.9, and run a quick 0-gold `/run` check on a random-suffix ring at the AH so
+we pick the exact right fix.
+
+### FB-065: Sniper stopped showing deals even after changing thresholds
+
+- Received: 2026-11-22 (posted 19 hours before Tyler's screenshot)
+- From: marcus4555 (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-22-curseforge-comments.md)
+- Version: likely 0.8.2.2 (released 2026-11-20; "as of today")
+- Type: bug
+- Area: Sniper
+- Severity: S1 (Sniper shows zero deals for this player)
+- Status: new (needs diagnostic details from player)
+- Proposed: investigate once player answers; check against 0.9 Build 1 throttle-timeout fix
+
+Said:
+> Recently, as of today, the "Sniper" functionality has broke for me. I have ignore 326 items, but that shouldnt prevent all items to show as deals with different parameters / threshold for "at most" and "profit of at least".
+
+Steps / setup: Sniper running with 326 ignored items; changing "at most" and "profit at least"
+still produces no deals.
+
+Tyler's notes: none yet.
+
+Recorder's notes:
+- Fact (code, `v0.8.2.1..v0.8.2.2` diff): the only Sniper browsing changes in 0.8.2.2 were
+  `queries = {{blizzard_query = {quality = 1}}}` (skipping gray items; tested in game by Tyler in
+  0.8.2.2 build 2, returning 25,187 items and 70 deals) and `ROUND_PAUSE = 1`.
+- Fact (code, `tabs/sniper/core.lua:507-516`): ignored entries are matched by exact version key or
+  exact `price_key` (`itemID:ending`), so 326 entries cannot block unrelated items.
+- Fact (code, `core/scan.lua` in 0.8.2.2 vs 0.9 Build 1): in 0.8.2.2, `wait_throttle()` had no
+  timeout when Forever's `IsThrottledMessageSystemReady()` froze (**Seen** by Tyler on 2026-11-20/21),
+  which left Sniper silently stuck on "first round, reading the item list..." forever with 0 deals
+  even when thresholds were edited. Fixed in 0.9 Build 1 (10-second `THROTTLE_TIMEOUT`).
+- Other possible causes on 0.8.2.2 (inference, unconfirmed without player details): fewer than 3
+  days of Full scans on the current realm/faction (`MIN_DAYS = 3`, though that shows a notice under
+  Start), a Lua error aborting the round, or `AUCTION_HOUSE_BROWSE_FAILURE` / empty browse result.
+
+Unknowns: what Sniper's status line next to Start/Stop says while running, whether any Full-scan
+notice shows under Start, and whether any Lua error appears.
+
+Ask Tyler: reply asking those three quick diagnostic questions and note 0.9 already fixes the AH
+throttle freeze.
+
+### FB-066: Setting to pick default buy quantity (1 vs full stack)
+
+- Received: 2026-11-22 (posted 22 hours before Tyler's screenshot)
+- From: user_ivpyccljovcjne72 (1 request)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-22-curseforge-comments.md)
+- Version: 0.8.2.2 ("The latest update changed the default stack size when buying items to 1")
+- Type: request (also praise: "Great addon.")
+- Area: Buy bar / Settings
+- Severity: n/a
+- Status: new
+- Proposed: 0.9 (small Setting under Buying + `/aux buy quantity 1|stack`)
+
+Said:
+> Hello! The latest update changed the default stack size when buying items to 1, which is quite annoying. Is it possible to change it back to the maximum stack size? Thank you! Great addon.
+
+Steps / setup: Select a trade good on the Search tab; the Buy bar now starts at Quantity 1 (changed
+in 0.8.2.2 for FB-050 so one-click buying does not accidentally buy a full stack).
+
+Tyler's notes (2026-11-22): "People should be able to customize aux to work how they want with
+settings."
+
+Recorder's notes:
+- Fact (code, `gui/buy_bar.lua:524`): `show_commodity` starts at `1` unless `params.whole_deal`
+  (used by Sniper) is true.
+- Proposed fix: add a `Default buy quantity` choice (`1` / `Stack`, default `1`) under **Settings >
+  Buying** (automatically synced across both the AH Settings gear popup and Blizzard Options >
+  AddOns > auxForever via `build_settings_body` in `frame.lua`), plus `/aux buy quantity 1|stack`.
+  When set to `stack`, `show_commodity` starts at `min(max_stack, available())` just as before
+  0.8.2.2. Fits Tyler's rule that players choose how aux behaves without forcing one default.
+
+Unknowns: none.
+
+Ask Tyler: include in 0.9 (next build)?
 
 ## Before this log
 
