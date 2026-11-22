@@ -54,7 +54,10 @@ function SlashCmdList.AUX(command)
 	if not command then return end
 	local arguments = aux.tokenize(command)
     local tooltip_settings = aux.character_data.tooltip
-    if arguments[1] == 'scale' and tonumber(arguments[2]) then
+    if arguments[1] == 'settings' or arguments[1] == 'config' or arguments[1] == 'options' then
+        -- 0.9 (FB-057, LLanwrst, jebbush): open Options > AddOns > auxForever anywhere
+        aux.open_settings()
+    elseif arguments[1] == 'scale' and tonumber(arguments[2]) then
 	    aux.change_window_scale(tonumber(arguments[2]))
 	    aux.print('scale ' .. aux.color.blue(floor(aux.account_data.scale * 100 + .5) .. '%') .. ' (70% to 150%)')
     elseif arguments[1] == 'debug' and arguments[2] == 'list' then
@@ -204,11 +207,7 @@ function SlashCmdList.AUX(command)
         aux.refresh_settings()
         aux.print('tooltip money icons ' .. status(tooltip_settings.money_icons))
     elseif arguments[1] == 'clear' and arguments[2] == 'item' and arguments[3] == 'cache' then
-	    aux.account_data.items = {}
-        aux.account_data.item_ids = {}
-        aux.account_data.unused_item_ids = {}
-        aux.account_data.auctionable_items = {}
-        aux.print('Item cache cleared.')
+	    aux.clear_item_cache()
     elseif arguments[1] == 'opacity' and tonumber(arguments[2]) then
         aux.set_background_opacity(tonumber(arguments[2]) / 100)
         aux.print('background opacity ' .. aux.color.blue(floor(aux.account_data.background_opacity * 100 + .5) .. '%') .. ' (50% to 100%)')
@@ -223,12 +222,10 @@ function SlashCmdList.AUX(command)
         aux.print('For gear, buyers pick the listing themselves.')
         aux.print('Undercut mode [' .. status(aux.account_data.post_undercut) .. '] - /aux undercut on|off (it starts off each time the auction house opens)')
     elseif arguments[1] == 'clear' and arguments[2] == 'post' then
-        -- emptied in place: the Post tab keeps this same table, so a new one left it reading the old
-        -- prices and writing new ones where they were never saved (outside review 2026-11-10, R-06)
-        aux.wipe(aux.faction_data.post)
-        aux.print('Post data cleared.')
+        aux.clear_post_data()
 	else
 		aux.print('Usage:')
+        aux.print('- settings (open Options > AddOns > auxForever; aliases: config, options)')
         aux.print('- scale [' .. aux.color.blue(aux.account_data.scale) .. ']')
 		aux.print('- ignore owner [' .. status(aux.account_data.ignore_owner) .. ']')
         aux.print('- action shortcuts [' .. status(aux.account_data.action_shortcuts) .. ']')

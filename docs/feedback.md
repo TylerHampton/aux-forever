@@ -163,7 +163,7 @@ For whoever fixes or builds from it:
 | [FB-054](#fb-054-bag-searching-cannot-sort-by-bag-slots) | 2026-11-17 | jebbush | request | Post | n/a | Bag searching: cannot sort by bag slots | new |
 | [FB-055](#fb-055-too-slow-to-keep-up-with-quickly-changing-prices-and-snipe-undercuts) | 2026-11-17 | khorrs; Tyler | ux | Sniper | n/a | Too slow to keep up with quickly changing prices and snipe undercuts | built 0.8.2.2 (released 2026-11-20; narrower Sniper planned 0.9) |
 | [FB-056](#fb-056-many-lua-errors-warning-during-a-dungeon-possibly-on-conjured-water) | 2026-11-20 | user_kc0ds7pqedmptpep | bug | Other | S1 | Many Lua errors warning during a dungeon, possibly when conjured water was created | fixed 0.9 (build 1, gemini/0.9) |
-| [FB-057](#fb-057-settings-interface-accessible-outside-the-auction-house-options--addons) | 2026-11-20 | LLanwrst, jebbush | request | Settings | n/a | Settings interface accessible outside the auction house (Options > AddOns) | planned 0.9 (mockup first) |
+| [FB-057](#fb-057-settings-interface-accessible-outside-the-auction-house-options--addons) | 2026-11-20 | LLanwrst, jebbush | request | Settings | n/a | Settings interface accessible outside the auction house (Options > AddOns) | built 0.9 (build 3, gemini/0.9) |
 | [FB-058](#fb-058-toggle-to-show-tooltip-prices-for-the-whole-stack-by-default) | 2026-11-20 | jebbush | request | Settings | n/a | Toggle to show tooltip prices for the whole stack by default (flipping Shift) | built 0.9 (build 2, gemini/0.9) |
 | [FB-059](#fb-059-show-how-much-merchants-favor-a-waylaid-crate-offers) | 2026-11-20 | sarrathsilentstrider | request | Other | n/a | Show how much Merchant's Favor a Waylaid Crate offers in its tooltip | planned 0.9 (with FB-042; mockup first) |
 | [FB-060](#fb-060-show-best-items-to-farm-like-goldscout) | 2026-11-20 | XtreamCoder | request | Other | n/a | Show best items to farm, like GoldScout | wont-fix (not in auxForever; potential separate optional-dependency addon later) |
@@ -2807,7 +2807,7 @@ in `auxForever` so we know whether anything else fires there.
 - Type: request (also ux: jebbush did not know the Settings gear inside the auction house exists)
 - Area: Settings
 - Severity: n/a
-- Status: planned 0.9 (mockup first; Tyler, 2026-11-20: "Build into .9")
+- Status: built 0.9 (build 3, gemini/0.9, 2026-11-22; Tyler approved mockup 2026-11-21)
 - Proposed: 0.9 (visual panel, mockup first)
 
 Said (jebbush):
@@ -3003,7 +3003,7 @@ Ask Tyler: decided (0.9).
 - Type: request
 - Area: Post / Settings
 - Severity: n/a
-- Status: built 0.9 (build 2, gemini/0.9, 2026-11-21)
+- Status: built 0.9 (build 2, gemini/0.9, 2026-11-21; default flipped to on in build 3 per Tyler)
 - Proposed: next patch (0.8.2.3) or 0.9; Tyler chose 0.9
 
 Said (rokstar8872):

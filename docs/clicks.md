@@ -175,10 +175,10 @@ Tyler approved the standard and the hover hint mockup on 2026-10-07 ("Everything
 
 ### Built in 0.9 (2026-11-21)
 
-- Right-click bag item to sell (`FB-062`, optional, off by default, Settings > Posting > "Right-click
-  bag to sell" or `/aux right click post`): when enabled, right-clicking a bag item while aux is
-  open switches to the Post tab (looked up by name) and loads the item, matching Blizzard's default
-  auction house habit. Shift-click and Alt-click stay tab-aware.
+- Right-click bag item to sell (`FB-062`, on by default since 0.9 build 3, Settings > Posting >
+  "Right-click bag to sell" or `/aux right click post`): when enabled, right-clicking a bag item
+  while aux is open switches to the Post tab (looked up by name) and loads the item, matching
+  Blizzard's default auction house habit. Shift-click and Alt-click stay tab-aware.
 - Keybinds (`FB-063`, `auxForever/Bindings.xml`, Options > Keybindings > auxForever): optional
   keyboard or mousewheel bindings for **Buy**, **Confirm purchase**, **Cancel / decline purchase**,
   and **Buy or confirm**. They act on whichever buy bar (Search or Sniper) is visible while aux is

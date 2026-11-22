@@ -8,7 +8,51 @@ saved is exported in `docs/test-results/test-page-results.md`.
 
 If BugSack shows an error at any point, copy its full text into that step's note.
 
-## Current build: 0.9 build 2
+## Current build: 0.9 build 3
+
+Built 2026-11-22 (Gemini Neon): Phase 2 Blizzard **Options > AddOns > auxForever** settings panel
+and `/aux settings` (`FB-057`), plus Build 2's approved visual and UX follow-ups: minimalist Option
+B item tooltips (no `for N`, compact `today` / `3d` / dimmed `9d`), aligned Professions crafting
+hover tooltip (`today` and `(%)` before prices), **Right-click bag to sell** on by default
+(`FB-062`), approved UI wordiness trims (`T1` to `T6`), and extra bottom breathing room in the AH
+Settings gear popup.
+Zip `auxForever-0.9-build3.zip`; **`/reload` is enough** if you already installed Build 2 (a full
+game restart is only needed if upgrading directly from 0.8.2.2 or Build 1 because of
+`Bindings.xml`).
+
+- [ ] 1. Minimalist item tooltips (Option B). Open your bags and point the mouse at a stack of more
+      than 1 item (for example a stack of Elixir of Wisdom or Linen Cloth) without holding Shift.
+      Confirm `for N` is gone from Vendor and Value, Value shows the full stack price with a compact
+      age (`today`, `1d`, `3d`, or darker `9d`), and holding Shift drops Vendor and Value to the
+      plain 1-item price.
+- [ ] 2. Aligned Professions crafting hover tooltip (`T5`). Open a Professions window, pick a recipe
+      that uses multiple materials (for example Elixir of Wisdom or Rough Sharpening Stone), and
+      point the mouse at the **Materials** line under the reagents without clicking. Confirm the
+      subtitle reads `From your latest scans`, the age (`today`, `3d`, or `vendor`) and `(% )` sit
+      in front of each cost so all prices line up down the right edge, the output row shows the item
+      name without `sells for`, and the cut row reads `After 5% AH cut`.
+- [ ] 3. Blizzard Options > AddOns > auxForever and `/aux settings` (`FB-057`). Away from the
+      auction house, type `/aux settings` in chat and press Enter. Confirm Blizzard's Options window
+      opens straight to **AddOns > auxForever** with the two-column layout, **Clear post prices**
+      and **Clear item cache** buttons at the bottom, and the keybinds note on the bottom left. Also
+      try opening it through **Escape > Options > AddOns > auxForever** and flipping a switch (for
+      example **Confirm before buying**): walk to the auction house, click the Settings gear (top
+      right), and confirm that same switch already matches (and that the bottom of the gear popup
+      has clean breathing room).
+- [ ] 4. Maintenance Clear buttons with confirmation (`FB-057`). In **Options > AddOns >
+      auxForever**, click **Clear post prices** (or **Clear item cache**): confirm a Blizzard
+      confirmation popup appears first, click **Cancel**, and confirm nothing was cleared. (Only
+      click **Accept** if you actually want to wipe saved Post prices or the item cache; if you test
+      Accept on Clear item cache, names rebuild automatically as you play.)
+- [ ] 5. Right-click bag to sell default on (`FB-062`) and UI trims (`T1` to `T6`). Check Settings
+      to confirm **Right-click bag to sell** starts on (note: if you toggled it off during Build 2,
+      your saved toggle is preserved; typing `/aux right click post on` turns it on). Glance at the
+      trimmed labels: on the Search tab with nothing selected, the buy bar reads `Gear: one at a
+      time. Trade goods: cheapest first.`; selecting gear reads `N at this price`; on the Post tab
+      the receipt reads `AH cut (5%)` and `Deposit`; on the Sniper tab while watching with no deals,
+      the shorter 2-line message appears.
+
+## 0.9 build 2 (tested 2026-11-21)
 
 Built 2026-11-21 (Gemini Neon): Phase 1 QoL switches, keybinds, cleaner tooltip ages, and S-09.
 Adds full-stack tooltip prices by default with Shift for 1 item (`FB-058`), live Professions cost
@@ -17,29 +61,29 @@ open (`FB-032`), `Bindings.xml` buy/confirm/cancel keybinds (`FB-063`), removes 
 tooltip ages, and hides bogus "Starting bids" totals on trade goods with no buyout (`S-09`).
 Zip `auxForever-0.9-build2.zip`; **full game restart required** (adds new file `auxForever/Bindings.xml`).
 
-- [ ] 1. Full-stack tooltips by default and no `seen ` prefix (`FB-058`). Open your bags and point
+- [x] 1. Full-stack tooltips by default and no `seen ` prefix (`FB-058`). Open your bags and point
       the mouse at a stack of more than 1 item (for example a stack of Linen Cloth) WITHOUT holding
       Shift: Vendor and Value show the stack total with `for N` and an age without `seen ` (for
       example `today` or `1 day ago`). Now hold Shift on that same stack: Vendor and Value drop to
       the plain single-item price (no `for N`).
-- [ ] 2. Settings switches (`FB-061`, `FB-062`, `FB-032`). Open the auction house and click the
+- [x] 2. Settings switches (`FB-061`, `FB-062`, `FB-032`). Open the auction house and click the
       Settings gear (top right). Check that all rows fit cleanly inside the popup with no overlap:
       Right-click bag to sell, Auto Full scan, Professions cost line on the left; Stack prices by
       default on the right. Open a Professions window, flip **Professions cost line** off then back
       on: the Materials and Profit line under reagents disappears and reappears immediately with no
       `/reload`.
-- [ ] 3. Right-click bag item to sell (`FB-062`). Turn **Right-click bag to sell** on in Settings,
+- [x] 3. Right-click bag item to sell (`FB-062`). Turn **Right-click bag to sell** on in Settings,
       click the Search tab, then right-click a sellable item in your bags: aux switches to the Post
       tab and loads that item. Click back to Search and Shift-click a bag item: it still searches
       on the Search tab instead of switching to Post.
-- [ ] 4. Keybinds (`FB-063`, after full game restart). Press Escape > Options > Keybindings and
+- [x] 4. Keybinds (`FB-063`, after full game restart). Press Escape > Options > Keybindings and
       scroll to the **auxForever** section. Confirm all 4 bindings appear: **Buy**, **Confirm
       purchase**, **Cancel / decline purchase**, and **Buy or confirm**. Bind one (for example Buy
       to a spare key, or Confirm/Cancel with "Confirm before buying" on), open Search, search
       `linen cloth/exact`, click the cheapest row, and test pressing your bound key. (If you turn
       on Confirm before buying, pressing Buy twice should NOT confirm; pressing Cancel should
       cancel without spending gold.)
-- [ ] 5. Post receipt with no price (`S-09`). On the Post tab, click a trade good (like Linen
+- [x] 5. Post receipt with no price (`S-09`). On the Post tab, click a trade good (like Linen
       Cloth) in your bags, click the Price box, and delete the price so the box is blank: the
       receipt on the right reads `Total, N items` with `-` for Total, Cut, and You get (never
       `Starting bids` and no red vendor warning).
@@ -57,6 +101,17 @@ Zip `auxForever-0.9-build2.zip`; **full game restart required** (adds new file `
       Wait 3 seconds, paste line 2 and press Enter, and share both `E10 send:` and `E10:` lines (or
       a chat screenshot):
       `/run local r=C_AuctionHouse.GetBrowseResults() print('E10:',#r,C_AuctionHouse.HasFullBrowseResults(),r[1] and r[1].itemKey.itemID,r[1] and r[1].minPrice,r[2] and r[2].itemKey.itemID)`
+
+### Results (Tyler, 2026-11-21)
+
+1. Pass (screenshot: Elixir of Wisdom stack of 13 shows `Vendor: 13  for 13` and `Value: 13 (93%)  for 13  today`; Tyler wants `"for 13"` removed and cleaner minimalist age styling, mockup first).
+2. Pass (2 screenshots: Settings popup fits cleanly, bottom-left row slightly tight to bottom border; Professions hover tooltip works; Tyler wants percentages in front of prices so cost numbers align down the right edge).
+3. Pass (Tyler: invert default to **on** so it welcomes players coming from Blizzard's default AH).
+4. Pass (`Bindings.xml` confirmed working in game after full restart).
+5. Pass (screenshot: Elixir of Minor Defense with `0c` shows `Total, 16 items -`, `Auction house cut 5% -`, `You get -`, `vendor pays 80c`, no `Starting bids`, no red warning).
+6. `E9 send: 4567 true`, `E9: 4567 0 true nil nil` (`HasSearchResults == true` confirmed server answered for item 4567 with 0 listings; still Unknown whether suffixed variants return when listed).
+7. `E10 send: false`, `E10: 0 false nil nil nil` (throttle was still busy right after E9, so E10 was not sent; remains Unknown).
+All 6 UI wordiness trims approved (`T1` to `T6`).
 
 ## 0.9 build 1 (tested 2026-11-21)
 

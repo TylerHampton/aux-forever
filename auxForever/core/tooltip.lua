@@ -139,10 +139,10 @@ function M.is_auctionable(item_id, item_info)
     return known
 end
 
--- auxForever (0.5): how fresh the usual price is, after Value: "  3 days ago", gray, darker when
--- the newest price is a week old or more (0.9, Tyler: "seen " removed)
+-- auxForever (0.5): how fresh the usual price is, after Value: "  today", "  3d", gray, darker when
+-- the newest price is a week old or more (0.9 build 3, Tyler Option B: compact age, no "for N")
 function M.age_suffix(age)
-    local text = history.age_text(age)
+    local text = history.short_age_text(age)
     if not text then
         return ''
     end
@@ -152,13 +152,13 @@ end
 
 function extend_tooltip(tooltip, link, quantity, data)
     local item_id, suffix_id = info.parse_link(link)
-    -- 0.9 (FB-058, jebbush; Tyler): full stack by default, hold Shift for 1 item (plain price).
+    -- 0.9 (FB-058, jebbush; Tyler): full stack by default, hold Shift for 1 item.
     -- Turning /aux tooltip stack off restores 1 item by default and Shift for the stack.
     local stack_default = settings.stack ~= false
     local show_stack = stack_default and not IsShiftKeyDown() or not stack_default and IsShiftKeyDown()
     quantity = show_stack and quantity or 1
-    -- auxForever (0.5): whenever the prices are for a stack of more than 1, say so ("for 3").
-    local per = quantity > 1 and ('  ' .. aux.color.label.enabled('for ' .. quantity)) or ''
+    -- 0.9 build 3 (Tyler): keep tooltip lines minimal with no "for N" suffix
+    local per = ''
     local item_info = info.item(item_id)
     -- auxForever: the disenchant table is only worked out when one of its lines is shown
     if item_info and (settings.disenchant_distribution or settings.disenchant_value) then

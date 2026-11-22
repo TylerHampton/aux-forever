@@ -393,7 +393,7 @@ local function update_item()
     local busy = current.busy()
     -- a row of several sellers at one price holds group_count auctions (0.8, review H-004, finding 5)
     local at_price = record.group_count or record.auction_count or 1
-    sub_label:SetText(at_price .. ' for sale at this price')
+    sub_label:SetText(at_price .. ' at this price')
     for _, chip in ipairs(chips) do chip:Hide() end
     -- a Confirm is only for the auction and price it showed
     if item_confirm and (item_confirm.record ~= record or item_confirm.price ~= record.buyout_price) then
@@ -570,7 +570,7 @@ function M.clear()
     line1:SetText('Select a row to buy it')
     line2:Show()
     line2:SetTextColor(aux.color.label.enabled())
-    line2:SetText('Gear is bought one at a time. Trade goods are bought cheapest first, in the amount you pick.')
+    line2:SetText('Gear: one at a time. Trade goods: cheapest first.')
 end
 
 -- 0.9: clear selection and buttons while keeping a fresh bought/status message visible (used when
@@ -868,7 +868,7 @@ function M.create(parent)
     other_input.formatter = function(text)
         return text == '' and aux.color.label.enabled'type' or text
     end
-    M.other_input, M.chips = other_input, chips
+    M.other_input, M.chips, M.sub_label = other_input, chips, sub_label
     other_input.change = function(self)
         if state == IDLE and self:GetText() ~= '' then
             set_quantity(self:GetNumber())

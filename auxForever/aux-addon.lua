@@ -127,9 +127,9 @@ function event.AUX_LOADED()
         post_undercut = false,
         -- auxForever (0.8.2.2, FB-049): a second click on Confirm before anything is bought
         buy_confirm = false,
-        -- 0.9: Phase 1 switches (FB-061, FB-062, FB-032)
+        -- 0.9: Phase 1 switches (FB-061, FB-062, FB-032; Tyler 2026-11-21: right_click_post on by default)
         crafting_cost = true,
-        right_click_post = false,
+        right_click_post = true,
         auto_full_scan = false,
         full_search = false,
         sniper_percent = 60,
@@ -203,6 +203,21 @@ function M.tab_index_by_name(name)
 			return i
 		end
 	end
+end
+
+-- 0.9 (FB-057): shared by both /aux clear ... and the Options > AddOns > auxForever panel
+function M.clear_item_cache()
+	account_data.items = {}
+	account_data.item_ids = {}
+	account_data.unused_item_ids = {}
+	account_data.auctionable_items = {}
+	print('Item cache cleared.')
+end
+
+function M.clear_post_data()
+	-- emptied in place (outside review R-06): tabs/post keeps this same table reference
+	wipe(faction_data.post)
+	print('Post data cleared.')
 end
 
 do

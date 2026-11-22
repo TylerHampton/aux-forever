@@ -347,17 +347,19 @@ page once carried them as build id `ah-facts-1`.
   back read the late, empty answer as the new item's and said "None for sale". Same test in game:
   post an item, and right away pick a different one in the bag list.
 - **E8 Copper prices on gear (FB-044).** Settled 2026-11-16: gear takes copper prices (section 2).
-- **E9 `SendSellSearchQuery` for gear (2026-11-21, [Code]).** Blizzard's Sell window zeroes
-  `itemLevel` and `itemSuffix` on a gear item key and calls `C_AuctionHouse.SendSellSearchQuery`
-  (`Blizzard_AuctionHouseUtil.lua`, `Blizzard_AuctionHouseItemSellFrame.lua`, passing
-  `separateOwnerItems = false`), returning all versions of that item ID in 1 request (read via the
-  usual `GetNumItemSearchResults` / `GetItemSearchResultInfo`). First try on 2026-11-21 printed
-  `E9: 0 nil nil` while a Full scan and Sniper were active; inconclusive, remains **[Unknown]**
-  until re-tested idle with throttle and item ID diagnostics (0.9 build 2).
+- **E9 `SendSellSearchQuery` for gear (2026-11-21, [Code] / partial [Seen]).** Blizzard's Sell
+  window zeroes `itemLevel` and `itemSuffix` on a gear item key and calls
+  `C_AuctionHouse.SendSellSearchQuery` (`Blizzard_AuctionHouseUtil.lua`,
+  `Blizzard_AuctionHouseItemSellFrame.lua`, passing `separateOwnerItems = false`), returning all
+  versions of that item ID in 1 request (read via `GetNumItemSearchResults` /
+  `GetItemSearchResultInfo`). On 2026-11-21 (0.9 build 2), running idle on item 4567 printed
+  `E9 send: 4567 true` and `E9: 4567 0 true nil nil` (`HasSearchResults == true`, server answered
+  with 0 results for item 4567). Whether it returns suffixed variants when listed remains
+  **[Unknown]** until tested on a gear item ID that currently has suffixed auctions listed.
 - **E10 `SearchForItemKeys` batch browse (2026-11-21, [Code]).** `C_AuctionHouse.SearchForItemKeys(itemKeys, sorts)`
-  is documented on Forever (`AuctionHouseDocumentation.lua`). First try on 2026-11-21 printed
-  `E10: 0 nil nil nil nil` while a Full scan and Sniper were active; inconclusive, remains
-  **[Unknown]** until re-tested idle with throttle diagnostics (0.9 build 2).
+  is documented on Forever (`AuctionHouseDocumentation.lua`). On 2026-11-21 (0.9 build 2),
+  `E10 send: false` / `E10: 0 false nil nil nil` showed the throttle was still busy right after E9,
+  so the request was not sent; remains **[Unknown]** until tested with `IsThrottledMessageSystemReady() == true`.
 - **Note on Blizzard's invisible `AuctionHouseFrame:OnShow` ([Code], 2026-11-21):** when a player
   has Blizzard AH favorites, opening the AH triggers `C_AuctionHouse.SearchForFavorites(sorts)`
   (`Blizzard_AuctionHouseFrame.lua:398-400`), using a throttle slot and firing

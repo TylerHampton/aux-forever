@@ -100,7 +100,8 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
   - Toggle to hide the Professions window Materials / profit line + chat command, on by default
     (FB-061, LLanwrst).
   - Option for right-clicking a bag item from any tab to switch to Post and load it + chat command,
-    off by default (FB-062, rokstar8872 and deep_structure).
+    on by default since build 3 (FB-062, rokstar8872 and deep_structure; Tyler flipped default to on
+    2026-11-21 to welcome players from Blizzard's default AH).
 - **Candidate (not decided by Tyler):** a controller button to search (FB-053; first an experiment:
   can an addon bind the triggers).
 - **2026-11-21 code audit foundation (built first in 0.9 before Phase 2+ features):** fix high-impact
@@ -112,6 +113,9 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
 
 ## 0.10: final beta (deep performance, polish, and 1.0 readiness; agreed with Tyler 2026-11-21)
 
+- **Granular scan-age timestamps and cleaner tooltip presentation (Tyler, 2026-11-21):** replace
+  coarse day-only scan ages (`today`, `3d`, `9d`) with finer intervals (such as minutes and hours
+  from the real scan timestamp) and a cleaner visual presentation in tooltips (mockup first).
 - **Full scan speed and memory pass:** direct history serializer/parser replacing generic
   `persistence.read`/`write` on the hot path, skip per-auction `process_price` during Full scans,
   skip `GetReplicateItemLink` on non-gear, and share the sorted price array with Sniper.

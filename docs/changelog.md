@@ -10,6 +10,11 @@ A change that comes from a player's feedback credits them by in-game name at the
 
 ### New options and keybinds
 
+- **Settings outside the auction house:** Added an **auxForever** settings panel under **Escape >
+  Options > AddOns > auxForever** (also reachable anywhere via `/aux settings`, `/aux config`, or
+  `/aux options`). Stays live-synced with the auction house Settings gear popup and includes
+  **Clear post prices** and **Clear item cache** buttons with confirmation prompts. (suggested by
+  LLanwrst and jebbush)
 - **Full-stack tooltip prices by default:** Vendor, Vendor Buy, Value, and Today lines now show
   the price for the whole stack by default, and holding Shift shows the single-item price. Turn
   off "Stack prices by default" in Settings (or `/aux tooltip stack off`) to restore the old
@@ -19,9 +24,9 @@ A change that comes from a player's feedback credits them by in-game name at the
   the Search and Sniper buy bars, ignores presses while typing in an edit box, and keeps Buy and
   Confirm separate so mashing Buy cannot accidentally confirm. (suggested by khorrs)
 - **Right-click bag item to sell:** Added a "Right-click bag to sell" toggle in Settings (and
-  `/aux right click post`, off by default) so right-clicking a bag item from any tab opens the Post
-  tab and loads it. Shift-click and Alt-click stay tab-aware. (suggested by rokstar8872 and
-  deep_structure)
+  `/aux right click post`, on by default) so right-clicking a bag item from any tab opens the Post
+  tab and loads it, matching Blizzard's default auction house. Shift-click and Alt-click stay
+  tab-aware. (suggested by rokstar8872 and deep_structure)
 - **Auto Full scan:** Added an "Auto Full scan" toggle in Settings (and `/aux auto scan`, off by
   default) to start a background Full scan automatically when opening the auction house if the
   15-minute cooldown is over. (suggested by Chawitsch)
@@ -29,8 +34,10 @@ A change that comes from a player's feedback credits them by in-game name at the
   `/aux crafting cost`, on by default) to hide the Materials and Profit line in the Professions
   window live with no `/reload`, while keeping the "Search in aux" button at the auction house.
   (suggested by LLanwrst)
-- **Cleaner tooltip ages:** Removed the word `seen ` from item and Professions recipe tooltip age
-  labels (for example `today` or `1 day ago`).
+- **Cleaner tooltips and UI labels:** Removed `for N` and `seen ` clutter from item tooltips in
+  favor of compact ages (`today`, `3d`, dimmed `9d`), aligned Professions crafting hover tooltips so
+  ages and percentages sit in front of costs, and tightened wording across the Post receipt, Buy
+  bar, crafting hover, and Sniper empty state.
 
 ### Reliability and bug fixes
 

@@ -30,7 +30,7 @@ return {
   -- Blizzard's Lua: tables and constants its interface code defines
   'AuctionCategories', 'ChatFrameUtil', 'DEFAULT_CHAT_FRAME', 'Enum', 'FONT_COLOR_CODE_CLOSE', 'GRAY_FONT_COLOR_CODE',
   'ITEM_QUALITY_COLORS', 'ItemLocation', 'LIGHTYELLOW_FONT_COLOR_CODE', 'MAXIMUM_BID_PRICE',
-  'NUM_TOTAL_EQUIPPED_BAG_SLOTS', 'SOUNDKIT', 'STATICPOPUP_NUMDIALOGS', 'SlashCmdList', 'StaticPopupDialogs',
+  'NUM_TOTAL_EQUIPPED_BAG_SLOTS', 'SOUNDKIT', 'STATICPOPUP_NUMDIALOGS', 'Settings', 'SlashCmdList', 'StaticPopupDialogs',
   'TooltipDataProcessor', 'UISpecialFrames',
   -- old names Forever no longer has as globals: compat.lua maps them to today's functions
   -- (GetItemCount is tried only as a fallback, tabs/search/crate.lua)
