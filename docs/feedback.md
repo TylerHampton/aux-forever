@@ -2817,7 +2817,7 @@ in `auxForever` so we know whether anything else fires there.
 - Type: request (also ux: jebbush did not know the Settings gear inside the auction house exists)
 - Area: Settings
 - Severity: n/a
-- Status: built 0.9 (build 3, gemini/0.9, 2026-11-22; Tyler approved mockup 2026-11-21)
+- Status: built 0.9 (build 3, gemini/0.9, 2026-11-22; tested and passed in game by Tyler 2026-11-22)
 - Proposed: 0.9 (visual panel, mockup first)
 
 Said (jebbush):
@@ -2839,16 +2839,17 @@ Recorder's notes:
   prints chat commands without mentioning the Settings menu.
 - Under the main rule, a player thinking settings are chat-only is a discoverability finding about
   the addon.
-- Fact (**Code**, `Gethe/wow-ui-source`, branch `forever`,
+- Fact (**Seen** 2026-11-22 in 0.9 build 3; **Code**, `Gethe/wow-ui-source`, branch `forever`,
   `Blizzard_Settings_Shared/Blizzard_Settings.lua`): Forever has the modern Settings API:
   `Settings.RegisterCanvasLayoutCategory(frame, name)`, `Settings.RegisterAddOnCategory(category)`,
-  and `Settings.OpenToCategory(categoryID)`. Not yet tested in game.
-- Proposed fix: register an `auxForever` panel in Blizzard's Options > AddOns sharing the same
-  saved settings and `refresh_settings()` sync as the auction house gear popup; add `/aux settings`
-  to open it anywhere in the world; mention it in `/aux` help. Mockup first before building.
+  and `Settings.OpenToCategory(categoryID)`. Confirmed working in game (both Escape > Options >
+  AddOns > auxForever and `/aux settings`).
+- Built fix: registered an `auxForever` panel in Blizzard's Options > AddOns sharing the same
+  saved settings and `refresh_settings()` sync as the auction house gear popup, added `/aux settings`
+  (aliases `config`, `options`) with combat guard, added Clear post prices and Clear item cache
+  buttons with confirmation prompts, and listed `/aux settings` at the top of `/aux` help.
 
-Unknowns: none that block design; verify `Settings.RegisterCanvasLayoutCategory` in game when
-building.
+Unknowns: none.
 
 Ask Tyler: decided (0.9, mockup first).
 

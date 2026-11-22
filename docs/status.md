@@ -1,52 +1,34 @@
 # Status
 
-Last updated 2026-11-22, Tyler's time (`0.9` build 3 built on branch `gemini/0.9`, ready for
-in-game testing; `/reload` is enough from Build 2; 0.8.2.2 released on `main`).
+Last updated 2026-11-22, Tyler's time (`0.9` build 3 passed 5/5 in game on branch `gemini/0.9`;
+Phase 3 Narrower Sniper mockup ready for Tyler; 0.8.2.2 released on `main`).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-20 is there).
 
 ## Start here (next session)
 
-**Active branch:** `gemini/0.9` (version `forever-0.9`, build 3 ready to test in game; zip
-`auxForever-0.9-build3.zip`, `/reload` is enough if upgrading from Build 2; full game restart only
-if upgrading from 0.8.2.2 or Build 1 because of `Bindings.xml`).
+**Active branch:** `gemini/0.9` (version `forever-0.9`, builds 1 to 3 all tested and passed in
+game; Phase 3 Narrower Sniper mockup prepared for Tyler).
 
-**What is in 0.9 build 3 (2026-11-22, Phase 2 complete + Build 2 polish):**
-- `FB-057` (LLanwrst, jebbush): Blizzard **Options > AddOns > auxForever** canvas settings panel
-  (`Settings.RegisterCanvasLayoutCategory` + `Settings.RegisterAddOnCategory`), `/aux settings`
-  (aliases `/aux config`, `/aux options`) with combat-lockdown guard, live two-way sync with the AH
-  Settings gear popup and `/aux` commands, keybinds note, and **Clear post prices** / **Clear item
-  cache** maintenance buttons with confirmation popups.
-- Minimalist item tooltips (Option B, Tyler): removed `for N` from Vendor and Value lines, compact
-  age labels (`today`, `3d`, dimmed `9d` via `history.short_age_text`), keeping full `age_text` for
-  `/aux price`. (Tyler logged a 0.10 goal in `docs/roadmap.md` for more granular scan-age intervals
-  and presentation.)
-- Aligned Professions crafting hover tooltip (Tyler): moved `today`/`Nd`/`vendor` and `(%)` in
-  front of costs so all prices line up down the right edge; trimmed subtitle/cut/output wording
-  (`T5`).
-- `FB-062` default flipped to **on** (`right_click_post = true`, Tyler: welcomes players coming
-  from Blizzard's default AH).
-- Approved UI wordiness trims `T1` to `T6` (Post `Deposit` / `AH cut (5%)`, Buy bar idle and
-  `N at this price`, crafting hover `T5`, Sniper empty message `T6`).
-- Added +12px bottom breathing room to the AH Settings gear popup (`416` normal / `444` waiting for
-  Theme reload).
+**0.9 build 3 results (Tyler, 2026-11-22):**
+- All 5 steps passed in game: Option B minimalist tooltips, aligned Professions crafting hover,
+  Blizzard **Options > AddOns > auxForever** + `/aux settings` + live sync (`Settings` canvas API
+  now confirmed **Seen** on Forever), Clear buttons with confirmations, `Right-click bag to sell`
+  default on, and UI trims `T1` to `T6`.
+- Logged 4 new CurseForge comments in `docs/feedback.md` (`bubbledn42` joined `FB-062`; new
+  `FB-064` RushJet1 generic green suffix search bug, `FB-065` marcus4555 Sniper report, `FB-066`
+  user_ivpyccljovcjne72 default buy quantity `1` vs `Stack` setting).
+- Minor polish noticed in Build 3 screenshot: right-column Settings row hover tooltips use
+  `ANCHOR_RIGHT` and can clip past the right edge; flip right-column rows to `ANCHOR_LEFT`.
 
-**0.9 build 2 results (Tyler, 2026-11-21):**
-- Steps 1 to 5 all passed in game (including `Bindings.xml` under Options > Keybindings > auxForever
-  after full restart, and `S-09` Post no-price receipt fix).
-- E9 printed `E9 send: 4567 true` and `E9: 4567 0 true nil nil` (`HasSearchResults == true`, server
-  answered for item 4567 with 0 listed; suffixed variants still Unknown). E10 printed `E10 send:
-  false` (throttle busy right after E9; still Unknown, save standalone probe for Phase 3).
-
-**Waiting on Tyler (in `TESTING.md` + side-pane test artifact):**
-1. Test 0.9 build 3 in game (`/reload` is enough from Build 2): Option B tooltips, aligned crafting
-   hover, Blizzard Options > AddOns > auxForever + `/aux settings` + live sync + Clear buttons,
-   `right_click_post` default, and `T1` to `T6` trims.
-2. Next up: Phase 3 (`FB-055` Narrower Sniper mockup + clean standalone E10 probe), then Phase 4
-   (`FB-059`/`FB-042` Waylaid Crate Favor + `FB-020` Craftsman's Writs, needing crate turn-in and
-   writ screenshots), Phase 5 (`FB-023` shopping list + alt inventory), and Phase 6 (`FB-031`
-   posting rules).
+**Waiting on Tyler:**
+1. Approve **Phase 3 (`FB-055` Narrower Sniper)** mockup choices (layout Option A vs B, watch scope
+   style, and whether to bundle `FB-066` default buy quantity setting + `FB-064` generic green
+   suffix search fix + Settings tooltip anchor polish into Build 4).
+2. Next after Phase 3: Phase 4 (`FB-059`/`FB-042` Waylaid Crate Favor + `FB-020` Craftsman's Writs,
+   needing crate turn-in and writ screenshots), Phase 5 (`FB-023` shopping list + alt inventory),
+   and Phase 6 (`FB-031` posting rules).
 
 **Released:** 0.8.2.2 on 2026-11-20 (PR #43 squash-merged to `main`, Release workflow run
 44779865723: tag `v0.8.2.2`, GitHub pre-release, CurseForge Beta file `9718999`). What it holds:

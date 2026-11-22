@@ -20,18 +20,18 @@ Zip `auxForever-0.9-build3.zip`; **`/reload` is enough** if you already installe
 game restart is only needed if upgrading directly from 0.8.2.2 or Build 1 because of
 `Bindings.xml`).
 
-- [ ] 1. Minimalist item tooltips (Option B). Open your bags and point the mouse at a stack of more
+- [x] 1. Minimalist item tooltips (Option B). Open your bags and point the mouse at a stack of more
       than 1 item (for example a stack of Elixir of Wisdom or Linen Cloth) without holding Shift.
       Confirm `for N` is gone from Vendor and Value, Value shows the full stack price with a compact
       age (`today`, `1d`, `3d`, or darker `9d`), and holding Shift drops Vendor and Value to the
       plain 1-item price.
-- [ ] 2. Aligned Professions crafting hover tooltip (`T5`). Open a Professions window, pick a recipe
+- [x] 2. Aligned Professions crafting hover tooltip (`T5`). Open a Professions window, pick a recipe
       that uses multiple materials (for example Elixir of Wisdom or Rough Sharpening Stone), and
       point the mouse at the **Materials** line under the reagents without clicking. Confirm the
       subtitle reads `From your latest scans`, the age (`today`, `3d`, or `vendor`) and `(% )` sit
       in front of each cost so all prices line up down the right edge, the output row shows the item
       name without `sells for`, and the cut row reads `After 5% AH cut`.
-- [ ] 3. Blizzard Options > AddOns > auxForever and `/aux settings` (`FB-057`). Away from the
+- [x] 3. Blizzard Options > AddOns > auxForever and `/aux settings` (`FB-057`). Away from the
       auction house, type `/aux settings` in chat and press Enter. Confirm Blizzard's Options window
       opens straight to **AddOns > auxForever** with the two-column layout, **Clear post prices**
       and **Clear item cache** buttons at the bottom, and the keybinds note on the bottom left. Also
@@ -39,18 +39,31 @@ game restart is only needed if upgrading directly from 0.8.2.2 or Build 1 becaus
       example **Confirm before buying**): walk to the auction house, click the Settings gear (top
       right), and confirm that same switch already matches (and that the bottom of the gear popup
       has clean breathing room).
-- [ ] 4. Maintenance Clear buttons with confirmation (`FB-057`). In **Options > AddOns >
+- [x] 4. Maintenance Clear buttons with confirmation (`FB-057`). In **Options > AddOns >
       auxForever**, click **Clear post prices** (or **Clear item cache**): confirm a Blizzard
       confirmation popup appears first, click **Cancel**, and confirm nothing was cleared. (Only
       click **Accept** if you actually want to wipe saved Post prices or the item cache; if you test
       Accept on Clear item cache, names rebuild automatically as you play.)
-- [ ] 5. Right-click bag to sell default on (`FB-062`) and UI trims (`T1` to `T6`). Check Settings
+- [x] 5. Right-click bag to sell default on (`FB-062`) and UI trims (`T1` to `T6`). Check Settings
       to confirm **Right-click bag to sell** starts on (note: if you toggled it off during Build 2,
       your saved toggle is preserved; typing `/aux right click post on` turns it on). Glance at the
       trimmed labels: on the Search tab with nothing selected, the buy bar reads `Gear: one at a
       time. Trade goods: cheapest first.`; selecting gear reads `N at this price`; on the Post tab
       the receipt reads `AH cut (5%)` and `Deposit`; on the Sniper tab while watching with no deals,
       the shorter 2-line message appears.
+
+### Results (Tyler, 2026-11-22)
+
+All 5 steps passed in game:
+1. Minimalist item tooltips (Option B): Pass.
+2. Aligned Professions crafting hover tooltip: Pass.
+3. Blizzard Options > AddOns > auxForever and `/aux settings`: Pass (screenshot confirmed clean
+   two-column layout inside Blizzard Options, `auxForever 0.9` header, synced switches, keybinds
+   note, and Clear buttons; `Settings.RegisterCanvasLayoutCategory` / `Settings.OpenToCategory` now
+   confirmed **Seen** on Forever; noticed right-column hover tooltip uses `ANCHOR_RIGHT` and can
+   clip near the right edge of the window, worth flipping right-column rows to `ANCHOR_LEFT`).
+4. Maintenance Clear buttons with confirmation: Pass.
+5. Right-click bag to sell default on and UI trims `T1` to `T6`: Pass.
 
 ## 0.9 build 2 (tested 2026-11-21)
 
