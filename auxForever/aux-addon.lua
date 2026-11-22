@@ -127,6 +127,8 @@ function event.AUX_LOADED()
         post_undercut = false,
         -- auxForever (0.8.2.2, FB-049): a second click on Confirm before anything is bought
         buy_confirm = false,
+        -- 0.9 build 4 (FB-066, user_ivpyccljovcjne72): Search buy bar starting quantity ('1' or 'stack')
+        buy_default = '1',
         -- 0.9: Phase 1 switches (FB-061, FB-062, FB-032; Tyler 2026-11-21: right_click_post on by default)
         crafting_cost = true,
         right_click_post = true,
@@ -135,6 +137,9 @@ function event.AUX_LOADED()
         sniper_percent = 60,
         sniper_profit = 500,
         sniper_sound = true,
+        -- 0.9 build 4 (FB-055, khorrs; Tyler): narrower Sniper scope and minimum quality
+        sniper_scope = {kind = 'all'},
+        sniper_quality = 1,
         sniper_ignored = {},
         replicate_time = 0,
         window = {},

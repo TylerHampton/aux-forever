@@ -748,16 +748,40 @@ function scan_item_list(results)
         -- it was redrawn only every 100 items of the list, and a full read takes a request
         do (state.params.on_page_scanned or pass)() end
     end
+    -- 0.9 build 4 (FB-064, RushJet1): random-suffix greens with Equip: stats ("of the Channeler",
+    -- "of Healing", "of Shadow Protection") can come back from SetItemKey with 4+ lines (name, slot,
+    -- required level) and no stat line. Only fall back to read_full when a suffixed item has no + or
+    -- Equip: stat line (or shows <Random enchantment>) and has not already matched the validator.
+    local function needs_suffix_tooltip(record)
+        if (record.suffix_id or 0) == 0 and not has_ending(record) then
+            return false
+        end
+        local lines = record.tooltip
+        if not lines or #lines <= 1 then
+            return true
+        end
+        local equip = ITEM_SPELL_TRIGGER_ONEQUIP or 'Equip:'
+        local random_text = _G.ITEM_RANDOM_ENCHANT
+        local has_stat = false
+        for i = 2, #lines do
+            local line = lines[i]
+            if (random_text and strfind(line, random_text, 1, true)) or strfind(line, 'Random enchantment', 1, true) then
+                return true
+            end
+            if strfind(line, '+', 1, true) or strfind(line, equip, 1, true) then
+                has_stat = true
+            end
+        end
+        return not has_stat
+    end
     local function add(result)
         local record = info.browse_record(result)
         if not record then
             return false
         end
-        -- 0.8.2 (FB-025): tooltip text is checked on the fast row's own tooltip. Gear with an
-        -- ending gets it from its item key (build 6, record_mt in util/info.lua); only when the game
-        -- gives no more than the name there are its auctions read (build 1 read all of them: a
-        -- request each, so chest armor, mostly with endings, stayed slow)
-        if tooltip_text and has_ending(record) and #record.tooltip <= 1 then
+        -- 0.8.2 (FB-025) and 0.9 build 4 (FB-064): check tooltip text on the fast row first; only
+        -- read individual auctions for suffixed gear whose fast tooltip is missing suffix stats.
+        if tooltip_text and needs_suffix_tooltip(record) and not (validator and validator(record)) then
             read_full(result.itemKey)
             return true
         end
@@ -996,7 +1020,7 @@ function scan()
             if not results then
                 -- said by note_list
             elseif state.params.on_item_list then
-                state.params.on_item_list(results)
+                state.params.on_item_list(results, get_query())
             else
                 scan_item_list(results)
             end

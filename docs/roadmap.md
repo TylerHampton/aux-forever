@@ -74,42 +74,50 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
   that is so valuable to build in that we just save it for 0.9"): each character, when logged in
   with aux, records its bags, bank and mail; the shopping list and tooltips then count them.
   Options and trade-offs: `docs/status.md`, 2026-10-20.
-- **Narrower Sniper** (FB-055; Tyler, 2026-11-20: "Save narrow sniper for .9"): the house was
-  25,706 items, so a whole-house round takes about 38 s; letting the player watch trade goods only,
-  a category or a saved search would take a few seconds (mockup first).
-- **Dungeon / tooltip error hardening** (FB-056, user_kc0ds7pqedmptpep; Tyler, 2026-11-20): guard
-  `core/tooltip.lua` and `util/info.lua` against secret tooltip data, remove the redundant
-  `tooltip:Show()` inside `AddTooltipPostCall`, guard `tooltip_quantity` and `settings.daily`, and
-  nil/secret-check `AuxTooltip` font strings and `ITEM_CONJURED`/`ITEM_MIN_LEVEL` on conjured items.
-- **Settings outside the auction house** (FB-057, LLanwrst and jebbush; Tyler, 2026-11-20):
-  register an `auxForever` panel in Blizzard's Options > AddOns (`Settings.RegisterCanvasLayoutCategory`)
-  synced with the auction house Settings popup, add `/aux settings`, and mention it in `/aux` help
-  (mockup first).
+- **Narrower Sniper** (FB-055, built 0.9 build 4; Tyler, 2026-11-20: "Save narrow sniper for .9"):
+  slim Watch bar (Option A) with quick chips (All, Trade Goods, Consumables, Recipes), More... menu
+  with Forever Categories + pinned Search Favorites, and minimum Quality picker, restarting
+  immediately on mid-round scope switch.
+- **Dungeon / tooltip error hardening** (FB-056, user_kc0ds7pqedmptpep, built 0.9 build 1; Tyler,
+  2026-11-20): guard `core/tooltip.lua` and `util/info.lua` against secret tooltip data, remove the
+  redundant `tooltip:Show()` inside `AddTooltipPostCall`, guard `tooltip_quantity` and
+  `settings.daily`, and nil/secret-check `AuxTooltip` font strings and `ITEM_CONJURED`/`ITEM_MIN_LEVEL`
+  on conjured items.
+- **Settings outside the auction house** (FB-057, LLanwrst and jebbush, built & tested 0.9 build 3;
+  Tyler, 2026-11-20): registered an `auxForever` panel in Blizzard's Options > AddOns
+  (`Settings.RegisterCanvasLayoutCategory`) synced with the auction house Settings popup, added
+  `/aux settings` and Clear post prices / Clear item cache buttons with confirmation, and listed
+  `/aux settings` in `/aux` help.
 - **Waylaid Crate Merchant's Favor** (FB-059, sarrathsilentstrider, paired with FB-042; Tyler,
   2026-11-20): show how much Merchant's Favor each crate pays in its tooltip (mockup first; confirm
   reward source in game first).
-- **Buying, confirming and declining keybinds** (FB-063, khorrs; Tyler, 2026-11-20): add
-  `Bindings.xml` (full game restart on first install) for Buy, Confirm and Cancel/Decline on the
-  active Search or Sniper buy bar through WoW's Options > Keybindings > AddOns > auxForever.
-- **Settings & QoL switches (Tyler, 2026-11-20 and 2026-11-21):**
+- **Buying, confirming and declining keybinds** (FB-063, khorrs, built & tested 0.9 build 2; Tyler,
+  2026-11-20): added `Bindings.xml` (full game restart on first install) for Buy, Confirm,
+  Cancel/Decline, and Buy or confirm on the active Search or Sniper buy bar through WoW's Options >
+  Keybindings > AddOns > auxForever.
+- **Settings & QoL switches (built in 0.9 builds 2 to 4):**
   - Tooltips show **full stack** prices by default for Vendor and Value, and holding Shift shows 1
     item, with a toggle (`/aux tooltip stack`, on by default) for anyone who prefers 1-item default
-    (FB-058, jebbush; direction set by Tyler 2026-11-21).
-  - Remove the word `seen` from tooltip age labels (`core/tooltip.lua`, `tabs/search/recipe.lua`)
-    and audit other UI elements for needless wordiness (Tyler, 2026-11-21).
-  - Toggle to hide the Professions window Materials / profit line + chat command, on by default
-    (FB-061, LLanwrst).
-  - Option for right-clicking a bag item from any tab to switch to Post and load it + chat command,
-    on by default since build 3 (FB-062, rokstar8872 and deep_structure; Tyler flipped default to on
-    2026-11-21 to welcome players from Blizzard's default AH).
+    (FB-058, jebbush; built build 2, refined Option B build 3).
+  - Removed `seen` and `for N` from tooltip age/price labels, aligned Professions crafting hover
+    tooltips, and trimmed needless UI wording across tabs (T1 to T6, built & tested build 3).
+  - Toggle to hide the Professions window Materials / profit line + `/aux crafting cost`, on by
+    default (FB-061, LLanwrst; built build 2).
+  - Option for right-clicking a bag item from any tab to switch to Post and load it + `/aux right
+    click post`, on by default since build 3 (FB-062, rokstar8872, deep_structure, bubbledn42; built
+    build 2, default on in build 3).
+  - Default buy quantity (`1` or `Stack`, default `1`) under Settings > Buying + `/aux buy quantity`
+    (FB-066, user_ivpyccljovcjne72; built build 4).
+  - Fast tooltip-word search fix for generic green random-suffix gear with `Equip:` stats (FB-064,
+    RushJet1; built build 4).
 - **Candidate (not decided by Tyler):** a controller button to search (FB-053; first an experiment:
   can an addon bind the triggers).
-- **2026-11-21 code audit foundation (built first in 0.9 before Phase 2+ features):** fix high-impact
-  bugs (Sniper multi-version K^2 requests, Search split gear-ending rows, Sniper bought message
-  wipe, synchronous Buy/Post/Cancel events, timeout wipes, `sync_bucket` close/throttle leak, crate
-  caching on Equip/proc gear), add scan priority coordinator and unified Post state machine, add
-  the 7 missing tooltip stack-count getters, and adopt `SendSellSearchQuery` / `SearchForItemKeys`
-  once confirmed in game (experiments E9 and E10).
+- **2026-11-21 code audit foundation (built 0.9 build 1 & 2):** fixed high-impact bugs (Sniper
+  multi-version K^2 requests, Search split gear-ending rows, Sniper bought message wipe, synchronous
+  Buy/Post/Cancel events, timeout wipes, `sync_bucket` close/throttle leak, crate caching on
+  Equip/proc gear, S-09 trade-good receipt cleanup), added scan priority coordinator and unified Post
+  state machine, added the 7 missing tooltip stack-count getters, and ran E9/E10 probes (E10 clean
+  re-test in build 4).
 
 ## 0.10: final beta (deep performance, polish, and 1.0 readiness; agreed with Tyler 2026-11-21)
 

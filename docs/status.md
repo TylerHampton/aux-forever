@@ -1,34 +1,45 @@
 # Status
 
-Last updated 2026-11-22, Tyler's time (`0.9` build 3 passed 5/5 in game on branch `gemini/0.9`;
-Phase 3 Narrower Sniper mockup ready for Tyler; 0.8.2.2 released on `main`).
+Last updated 2026-11-22, Tyler's time (`0.9` build 4 built on branch `gemini/0.9`, ready for
+in-game testing; `/reload` is enough from Build 2 or 3; 0.8.2.2 released on `main`).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-20 is there).
 
 ## Start here (next session)
 
-**Active branch:** `gemini/0.9` (version `forever-0.9`, builds 1 to 3 all tested and passed in
-game; Phase 3 Narrower Sniper mockup prepared for Tyler).
+**Active branch:** `gemini/0.9` (version `forever-0.9`, build 4 ready to test in game; zip
+`auxForever-0.9-build4.zip`, `/reload` is enough from Build 2 or 3; full game restart only if
+upgrading from before Build 2 because of `Bindings.xml`).
+
+**What is in 0.9 build 4 (2026-11-22, Phase 3 complete + FB-066 + FB-064):**
+- `FB-055` (khorrs; Tyler): **Narrower Sniper** (approved Option A layout). Slim Watch bar with
+  quick chips (**All**, **Trade Goods**, **Consumables**, **Recipes**), **More...** grouped menu
+  (Forever Categories + pinned Search Favorites), and **Quality** picker (**Common+**,
+  **Uncommon+**, **Rare+**, **Epic+**). Multi-query Favorites pass each query's post-filter
+  validator, `mark_gone` stays scoped so narrowing does not falsely mark deals from another scope
+  gone, and changing scope/quality mid-round aborts and restarts immediately.
+- `FB-066` (user_ivpyccljovcjne72; Tyler): **Default quantity** (`1` / `Stack`, default `1`) under
+  **Settings > Buying** (synced across AH gear popup and Blizzard Options > AddOns > auxForever)
+  plus `/aux buy quantity 1|stack`. Sniper still starts at the deal's full units.
+- `FB-064` (RushJet1): Fast tooltip-word searches now check `C_AuctionHouse.GetItemKeySampleLink`
+  first in `util/info.lua`, and `core/scan.lua` falls back to `read_full` only for random-suffix
+  gear whose fast tooltip has no `+` or `Equip:` stat line (keeping plain stat suffixes like
+  `"of Strength"` instant while finding `"of the Channeler"`).
+- Settings polish (from Build 3 screenshot): right-column Settings row hover tooltips now anchor to
+  `ANCHOR_LEFT` so they stay inside the window.
 
 **0.9 build 3 results (Tyler, 2026-11-22):**
-- All 5 steps passed in game: Option B minimalist tooltips, aligned Professions crafting hover,
-  Blizzard **Options > AddOns > auxForever** + `/aux settings` + live sync (`Settings` canvas API
-  now confirmed **Seen** on Forever), Clear buttons with confirmations, `Right-click bag to sell`
-  default on, and UI trims `T1` to `T6`.
-- Logged 4 new CurseForge comments in `docs/feedback.md` (`bubbledn42` joined `FB-062`; new
-  `FB-064` RushJet1 generic green suffix search bug, `FB-065` marcus4555 Sniper report, `FB-066`
-  user_ivpyccljovcjne72 default buy quantity `1` vs `Stack` setting).
-- Minor polish noticed in Build 3 screenshot: right-column Settings row hover tooltips use
-  `ANCHOR_RIGHT` and can clip past the right edge; flip right-column rows to `ANCHOR_LEFT`.
+- All 5 steps passed in game (`Settings.RegisterCanvasLayoutCategory` / `OpenToCategory` confirmed
+  **Seen** on Forever).
 
-**Waiting on Tyler:**
-1. Approve **Phase 3 (`FB-055` Narrower Sniper)** mockup choices (layout Option A vs B, watch scope
-   style, and whether to bundle `FB-066` default buy quantity setting + `FB-064` generic green
-   suffix search fix + Settings tooltip anchor polish into Build 4).
-2. Next after Phase 3: Phase 4 (`FB-059`/`FB-042` Waylaid Crate Favor + `FB-020` Craftsman's Writs,
-   needing crate turn-in and writ screenshots), Phase 5 (`FB-023` shopping list + alt inventory),
-   and Phase 6 (`FB-031` posting rules).
+**Waiting on Tyler (in `TESTING.md` + side-pane test artifact):**
+1. Test 0.9 build 4 in game (`/reload` is enough): Narrower Sniper Watch bar + Favorites + Quality,
+   Default buy quantity (`1` / `Stack`) + right-column Settings tooltip anchor, `FB-064` green ring
+   search, plus optional `FB-064` diagnostic and clean standalone E10 probe.
+2. Screenshots of a **Waylaid Crate** turn-in reward window and a **Craftsman's Writ** tooltip when
+   convenient to unblock Phase 4 (`FB-059`/`FB-042`/`FB-020`), followed by Phase 5 (`FB-023`
+   shopping list + alt inventory) and Phase 6 (`FB-031` posting rules).
 
 **Released:** 0.8.2.2 on 2026-11-20 (PR #43 squash-merged to `main`, Release workflow run
 44779865723: tag `v0.8.2.2`, GitHub pre-release, CurseForge Beta file `9718999`). What it holds:

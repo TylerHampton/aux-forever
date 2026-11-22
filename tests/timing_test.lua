@@ -1592,4 +1592,62 @@ return function(env)
     aux.set_tab(1)
     server:restore()
   end)
+
+  -- 0.9 build 4 (FB-055): switching Sniper scope mid-round aborts the old Everything browse
+  -- immediately, sends the narrowed category browse filters to the server, and does not falsely
+  -- mark deals from another scope gone.
+  try('timing: 0.9 build 4 Narrower Sniper mid-round scope switch and scope-safe mark_gone', function()
+    local server = new_server(env)
+    local sniper = module 'aux.tabs.sniper'
+    local al = module 'aux.gui.auction_listing'
+    local queries_sent = {}
+    local real_browse = G.C_AuctionHouse.SendBrowseQuery
+    rawset(G.C_AuctionHouse, 'SendBrowseQuery', function(q)
+      tinsert(queries_sent, q)
+      return real_browse(q)
+    end)
+
+    aux.set_tab(2)
+    sniper.frame:Show()
+    sniper.clear_deals()
+    -- Seed an earlier Armor deal belonging to cat:armor:1
+    local armor_deal = {
+      item_id = 7001, suffix_id = 0, item_key = '7001:0', price_key = '7001:0', deal_key = '7001:0',
+      deal_scope = 'cat:armor:1',
+      name = 'Armor Deal', link = '[Armor Deal]', texture = 'icon', quality = 2, commodity = false,
+      buyout_price = 100, unit_buyout_price = 100, bid_price = 100, count = 1, auction_count = 1,
+      duration = 3, search_signature = '7001:0:armor',
+      deal_item_key = {itemID = 7001, itemLevel = 20, itemSuffix = 0},
+      deal_read_at = G.GetTime(), deal_profit = 500, deal_percent = 20, deal_reason = 'usual',
+      deal_history = 1000, deal_vendor = 10, deal_days = 3, deal_found = G.GetTime(),
+    }
+    armor_deal.price_group = al.price_group(armor_deal)
+    tinsert(sniper.deals, armor_deal)
+
+    -- Start Sniper on Everything; while round 1 browse is in flight, switch to Trade Goods!
+    sniper.set_scope({kind = 'all'})
+    sniper.set_quality(1)
+    sniper.start()
+    server:ticks(3)
+    check('FB-055 timing: first round sends unfiltered Everything query',
+      #queries_sent >= 1 and #(queries_sent[1].itemClassFilters or {}) == 0)
+
+    local before_switch = #queries_sent
+    sniper.set_scope({kind = 'category', name = 'Trade Goods'})
+    server:wait(function() return #queries_sent > before_switch and not sniper.active end, 60)
+    local narrowed = queries_sent[before_switch + 1]
+    check('FB-055 timing: switching scope mid-round restarts immediately with Trade Goods class filters',
+      narrowed ~= nil and #(narrowed.itemClassFilters or {}) > 0 and narrowed.itemClassFilters[1].classID == 7)
+    check('FB-055 timing: Trade Goods round does not falsely mark earlier Armor deal gone',
+      not armor_deal.deal_gone)
+
+    sniper.stop()
+    sniper.clear_deals()
+    sniper.set_scope({kind = 'all'})
+    sniper.set_quality(1)
+    sniper.frame:Hide()
+    rawset(G.C_AuctionHouse, 'SendBrowseQuery', real_browse)
+    aux.set_tab(1)
+    server:restore()
+  end)
 end

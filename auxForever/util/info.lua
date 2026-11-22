@@ -507,10 +507,13 @@ function M.tooltip(setter, arg1, arg2)
     elseif setter == 'link' then
 	    AuxTooltip:SetHyperlink(arg1)
     elseif setter == 'item_key' then
-        -- 0.8.2 build 6: an auction house item key (arg2: required level), as Blizzard's item list
-        -- shows a row with no link of its own, its ending's stats included (Code: Blizzard's
-        -- Blizzard_AuctionHouseSharedTemplates.lua, branch forever; aux's own row hover since 0.3)
-        if AuxTooltip.SetItemKey then
+        -- 0.9 build 4 (FB-064, RushJet1): try Blizzard's sample link first (same as auction_listing.lua
+        -- and Blizzard_AuctionHouseSharedTemplates.lua, Code) so random-suffix Equip: stats ("of the
+        -- Channeler") appear when Forever provides a sample link, falling back to SetItemKey.
+        local sample = arg1 and C_AuctionHouse.GetItemKeySampleLink and C_AuctionHouse.GetItemKeySampleLink(arg1)
+        if type(sample) == 'string' and sample ~= '' then
+            AuxTooltip:SetHyperlink(sample)
+        elseif AuxTooltip.SetItemKey then
             AuxTooltip:SetItemKey(arg1.itemID, arg1.itemLevel or 0, arg1.itemSuffix or 0, arg2 or 0)
         end
     end

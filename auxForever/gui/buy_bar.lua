@@ -518,10 +518,11 @@ function M.show_commodity(params)
     local last_chip = chips[max(1, min(#chips, #current.quantities))]
     other_input:ClearAllPoints()
     other_input:SetPoint('LEFT', last_chip, 'RIGHT', 6, 0)
-    -- 1 to start (0.8.2.2, FB-050): a full stack was one click away from being bought by mistake.
-    -- The Sniper offers only a deal's own units (params.whole_deal), and starts at all of them, up
-    -- to a stack: those units are what the deal is.
-    local start = params.whole_deal and max(1, min(params.max_stack or 1, available())) or 1
+    -- 1 by default (0.8.2.2, FB-050), or full stack when Settings > Buying > Default quantity is
+    -- set to 'stack' (0.9 build 4, FB-066, user_ivpyccljovcjne72). The Sniper always starts at the
+    -- deal's own units (params.whole_deal), up to a stack.
+    local want_stack = params.whole_deal or (aux.account_data and aux.account_data.buy_default == 'stack')
+    local start = want_stack and max(1, min(params.max_stack or 1, available())) or 1
     current.quantity = start
     other_input:Show()
     other_input:SetText(tostring(start))

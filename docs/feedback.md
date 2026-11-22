@@ -161,7 +161,7 @@ For whoever fixes or builds from it:
 | [FB-052](#fb-052-aux-post-bid-on-turns-bid-prices-off) | 2026-11-17 | joker2206 | bug | Settings | S3 | `/aux post bid on` turns bid prices off | fixed 0.8.2.2 (released 2026-11-20) |
 | [FB-053](#fb-053-a-controller-button-to-refresh-or-search) | 2026-11-17 | user_q6cn8g517mpcvp2f | request | Other | n/a | A controller button to refresh or search | new |
 | [FB-054](#fb-054-bag-searching-cannot-sort-by-bag-slots) | 2026-11-17 | jebbush | request | Post | n/a | Bag searching: cannot sort by bag slots | new |
-| [FB-055](#fb-055-too-slow-to-keep-up-with-quickly-changing-prices-and-snipe-undercuts) | 2026-11-17 | khorrs; Tyler | ux | Sniper | n/a | Too slow to keep up with quickly changing prices and snipe undercuts | built 0.8.2.2 (released 2026-11-20; narrower Sniper planned 0.9) |
+| [FB-055](#fb-055-too-slow-to-keep-up-with-quickly-changing-prices-and-snipe-undercuts) | 2026-11-17 | khorrs; Tyler | ux | Sniper | n/a | Too slow to keep up with quickly changing prices and snipe undercuts | built 0.8.2.2 (narrower Sniper built 0.9 build 4, gemini/0.9) |
 | [FB-056](#fb-056-many-lua-errors-warning-during-a-dungeon-possibly-on-conjured-water) | 2026-11-20 | user_kc0ds7pqedmptpep | bug | Other | S1 | Many Lua errors warning during a dungeon, possibly when conjured water was created | fixed 0.9 (build 1, gemini/0.9) |
 | [FB-057](#fb-057-settings-interface-accessible-outside-the-auction-house-options--addons) | 2026-11-20 | LLanwrst, jebbush | request | Settings | n/a | Settings interface accessible outside the auction house (Options > AddOns) | built 0.9 (build 3, gemini/0.9) |
 | [FB-058](#fb-058-toggle-to-show-tooltip-prices-for-the-whole-stack-by-default) | 2026-11-20 | jebbush | request | Settings | n/a | Toggle to show tooltip prices for the whole stack by default (flipping Shift) | built 0.9 (build 2, gemini/0.9) |
@@ -170,9 +170,9 @@ For whoever fixes or builds from it:
 | [FB-061](#fb-061-toggle-to-hide-the-materials-and-profit-line-in-the-professions-window) | 2026-11-20 | LLanwrst | request | Recipe search | n/a | Toggle to hide the Materials and profit line in the Professions window | built 0.9 (build 2, gemini/0.9) |
 | [FB-062](#fb-062-option-for-right-clicking-a-bag-item-to-always-open-the-post-tab) | 2026-11-20 | rokstar8872, deep_structure, bubbledn42 | request | Post | n/a | Option for right-clicking a bag item to always open the Post tab (like default AH) | built 0.9 (build 2, default on build 3, gemini/0.9) |
 | [FB-063](#fb-063-keybinds-for-buying-confirming-and-declining) | 2026-11-20 | khorrs | request | Buy bar | n/a | Keybinds for buying, confirming and declining | built 0.9 (build 2, gemini/0.9) |
-| [FB-064](#fb-064-tooltip-word-search-ignores-stats-on-generic-green-random-suffix-gear) | 2026-11-22 | RushJet1 | bug | Search | S2 | Tooltip-word search ignores stats on generic green random-suffix gear ("of the Channeler") | new |
+| [FB-064](#fb-064-tooltip-word-search-ignores-stats-on-generic-green-random-suffix-gear) | 2026-11-22 | RushJet1 | bug | Search | S2 | Tooltip-word search ignores stats on generic green random-suffix gear ("of the Channeler") | fixed 0.9 (build 4, gemini/0.9) |
 | [FB-065](#fb-065-sniper-stopped-showing-deals-even-after-changing-thresholds) | 2026-11-22 | marcus4555 | bug | Sniper | S1 | Sniper stopped showing deals even after changing thresholds | new |
-| [FB-066](#fb-066-setting-to-pick-default-buy-quantity-1-vs-full-stack) | 2026-11-22 | user_ivpyccljovcjne72 | request | Buy bar | n/a | Setting to pick default buy quantity (1 vs full stack) | new |
+| [FB-066](#fb-066-setting-to-pick-default-buy-quantity-1-vs-full-stack) | 2026-11-22 | user_ivpyccljovcjne72 | request | Buy bar | n/a | Setting to pick default buy quantity (1 vs full stack) | built 0.9 (build 4, gemini/0.9) |
 
 ## Players
 
@@ -2682,7 +2682,7 @@ Unknowns: which screen; what order they expect (bag 1 slot 1 first is the likely
 - Type: ux
 - Area: Sniper (and Live on the Search tab: "snipe undercuts" can mean either)
 - Severity: n/a
-- Status: built 0.8.2.2 (released 2026-11-20; Sniper skips grays, 1 s pause, Live every 2 s passed in build 2; narrower Sniper saved for 0.9 per Tyler, 2026-11-20)
+- Status: built 0.8.2.2 (released 2026-11-20; Sniper skips grays, 1 s pause, Live every 2 s passed in build 2) + Narrower Sniper built 0.9 (build 4, gemini/0.9, 2026-11-22: Watch bar with quick chips, More... categories & Search Favorites, and Quality picker; awaiting in-game test)
 - Proposed: 0.8.2.2 (Tyler: "Do 1, 2 and 3, half second rest")
 
 Said:
@@ -3098,7 +3098,9 @@ Ask Tyler: decided (0.9).
 - Area: Search
 - Severity: S2 (fast tooltip-word search silently misses matching random-suffix gear; switching to
   Full mode works around it at the cost of speed)
-- Status: new
+- Status: fixed 0.9 (build 4, gemini/0.9, 2026-11-22: `info.tooltip('item_key', ...)` now checks
+  `C_AuctionHouse.GetItemKeySampleLink` first and `core/scan.lua` falls back to `read_full` when a
+  random-suffix fast tooltip has no `+` or `Equip:` stat line; awaiting in-game test)
 - Proposed: 0.9 (high-value bug fix once `GetItemKeySampleLink` behavior is verified in game)
 
 Said:
@@ -3107,7 +3109,7 @@ Said:
 Steps / setup: Search `armor/miscellaneous/finger/spell` in Fast mode when generic green rings with
 "of the Channeler" (+2 spell damage/healing) are listed on the auction house.
 
-Tyler's notes: none yet.
+Tyler's notes: approved for 0.9 build 4 (2026-11-22).
 
 Recorder's notes:
 - Fact (code, `util/info.lua:509-515` and `gui/auction_listing.lua:570-577`): in 0.8.2.1 (`FB-045`,
@@ -3129,16 +3131,19 @@ Recorder's notes:
 - Secondary code edge (`util/info.lua:304,314-315` and `core/scan.lua:640`): if
   `C_AuctionHouse.GetItemKeyInfo(key)` is not cached yet when `browse_record` runs, `record.name`
   falls back to the base name, making `has_ending(record)` false even when `key.itemSuffix ~= 0`.
+- Built fix (0.9 build 4): `info.tooltip('item_key', ...)` tries `C_AuctionHouse.GetItemKeySampleLink`
+  first (`SetHyperlink`) before `SetItemKey`; `needs_suffix_tooltip(record)` in `core/scan.lua`
+  falls back to `read_full` when a suffixed item (`suffix_id ~= 0 or has_ending`) has `<= 1` lines,
+  shows `<Random enchantment>`, or lacks both `+` and `ITEM_SPELL_TRIGGER_ONEQUIP` (`Equip:`) on
+  lines `2..N` and has not already matched `validator`.
 
 Unknowns: whether `C_AuctionHouse.GetItemKeySampleLink(key)` on Forever returns a link whose
 tooltip includes the suffix's `Equip:` stat text (like "+2 to spells") during a browse list without
-opening the item first (**Unknown**; `FB-045` was not tested in game). If it does, checking
-`GetItemKeySampleLink` in `util/info.lua` fixes this with zero extra requests; if it returns nil
-or omits the stat text, `scan.lua:760` needs a fallback to `read_full` (checking `(record.suffix_id
-or 0) ~= 0` and/or `ITEM_RANDOM_ENCHANT` / missing suffix stats).
+opening the item first (**Unknown**; Build 4 step 5 tests this). Either way the fix works: sample
+link handles it with zero extra requests when populated, and `needs_suffix_tooltip` falls back to
+`read_full` when omitted.
 
-Ask Tyler: include in 0.9, and run a quick 0-gold `/run` check on a random-suffix ring at the AH so
-we pick the exact right fix.
+Ask Tyler: test Build 4 steps 4 and 5 in game.
 
 ### FB-065: Sniper stopped showing deals even after changing thresholds
 
@@ -3191,7 +3196,9 @@ throttle freeze.
 - Type: request (also praise: "Great addon.")
 - Area: Buy bar / Settings
 - Severity: n/a
-- Status: new
+- Status: built 0.9 (build 4, gemini/0.9, 2026-11-22: Default quantity 1 / Stack choice under
+  Settings > Buying synced across AH gear popup and Blizzard Options > AddOns > auxForever, plus
+  `/aux buy quantity 1|stack`; awaiting in-game test)
 - Proposed: 0.9 (small Setting under Buying + `/aux buy quantity 1|stack`)
 
 Said:
@@ -3201,20 +3208,21 @@ Steps / setup: Select a trade good on the Search tab; the Buy bar now starts at 
 in 0.8.2.2 for FB-050 so one-click buying does not accidentally buy a full stack).
 
 Tyler's notes (2026-11-22): "People should be able to customize aux to work how they want with
-settings."
+settings." Approved for 0.9 build 4 (2026-11-22).
 
 Recorder's notes:
 - Fact (code, `gui/buy_bar.lua:524`): `show_commodity` starts at `1` unless `params.whole_deal`
   (used by Sniper) is true.
-- Proposed fix: add a `Default buy quantity` choice (`1` / `Stack`, default `1`) under **Settings >
-  Buying** (automatically synced across both the AH Settings gear popup and Blizzard Options >
-  AddOns > auxForever via `build_settings_body` in `frame.lua`), plus `/aux buy quantity 1|stack`.
-  When set to `stack`, `show_commodity` starts at `min(max_stack, available())` just as before
-  0.8.2.2. Fits Tyler's rule that players choose how aux behaves without forcing one default.
+- Built fix (0.9 build 4): added a `Default quantity` choice (`1` / `Stack`, default `1`) under
+  **Settings > Buying** (automatically synced across both the AH Settings gear popup and Blizzard
+  Options > AddOns > auxForever via `build_settings_body` in `frame.lua`), plus
+  `/aux buy quantity 1|stack`. When set to `stack`, `show_commodity` starts at
+  `min(max_stack, available())` just as before 0.8.2.2. Fits Tyler's rule that players choose how
+  aux behaves without forcing one default.
 
 Unknowns: none.
 
-Ask Tyler: include in 0.9 (next build)?
+Ask Tyler: test Build 4 step 3 in game.
 
 ## Before this log
 

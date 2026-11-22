@@ -10,11 +10,21 @@ A change that comes from a player's feedback credits them by in-game name at the
 
 ### New options and keybinds
 
+- **Narrower Sniper:** Added a slim **Watch** bar on the Sniper tab with quick chips
+  (**All**, **Trade Goods**, **Consumables**, **Recipes**), a **More...** menu with every auction
+  house category plus your pinned **Search Favorites**, and a minimum **Quality** picker
+  (**Common+**, **Uncommon+**, **Rare+**, **Epic+**). Narrowing to a category or Favorite drops
+  rounds from ~38s+ down to a few seconds and restarts immediately when switched mid-round.
+  (reported by khorrs)
 - **Settings outside the auction house:** Added an **auxForever** settings panel under **Escape >
   Options > AddOns > auxForever** (also reachable anywhere via `/aux settings`, `/aux config`, or
   `/aux options`). Stays live-synced with the auction house Settings gear popup and includes
   **Clear post prices** and **Clear item cache** buttons with confirmation prompts. (suggested by
   LLanwrst and jebbush)
+- **Default buy quantity:** Added a "Default quantity" choice (**1** or **Stack**, default **1**)
+  under **Settings > Buying** (and `/aux buy quantity 1|stack`) so players can choose whether the
+  Search buy bar starts at 1 unit or a full stack. The Sniper always starts at the deal's units.
+  (suggested by user_ivpyccljovcjne72)
 - **Full-stack tooltip prices by default:** Vendor, Vendor Buy, Value, and Today lines now show
   the price for the whole stack by default, and holding Shift shows the single-item price. Turn
   off "Stack prices by default" in Settings (or `/aux tooltip stack off`) to restore the old
@@ -36,11 +46,16 @@ A change that comes from a player's feedback credits them by in-game name at the
   (suggested by LLanwrst)
 - **Cleaner tooltips and UI labels:** Removed `for N` and `seen ` clutter from item tooltips in
   favor of compact ages (`today`, `3d`, dimmed `9d`), aligned Professions crafting hover tooltips so
-  ages and percentages sit in front of costs, and tightened wording across the Post receipt, Buy
-  bar, crafting hover, and Sniper empty state.
+  ages and percentages sit in front of costs, anchored right-column Settings hover tooltips inside
+  the window, and tightened wording across the Post receipt, Buy bar, crafting hover, and Sniper
+  empty state.
 
 ### Reliability and bug fixes
 
+- Fixed Fast tooltip-word searches (such as `armor/miscellaneous/finger/spell`) missing random-suffix
+  green gear whose stats are `Equip:` lines (like `"of the Channeler"`). Fast searches now check
+  Blizzard's sample auction link first and fall back to reading the item's listings only when suffix
+  stats are still missing. (reported by RushJet1)
 - Hardened item tooltips and tooltip scanning against Blizzard secret values, missing font strings,
   nil conjured-item globals, nil usual values in Today lines, and redundant `tooltip:Show()` calls
   inside post-calls during dungeons and combat. Also added stack-count readers for mail, guild

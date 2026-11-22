@@ -8,7 +8,51 @@ saved is exported in `docs/test-results/test-page-results.md`.
 
 If BugSack shows an error at any point, copy its full text into that step's note.
 
-## Current build: 0.9 build 3
+## Current build: 0.9 build 4
+
+Built 2026-11-22 (Gemini Neon): Phase 3 **Narrower Sniper** (`FB-055`: Option A slim Watch bar with
+quick chips, **More...** menu for Forever Categories + Search Favorites, and **Quality** picker),
+**Default buy quantity** (`FB-066`: `1` vs `Stack` under Settings > Buying + `/aux buy quantity`),
+Fast tooltip-word search fix on random-suffix greens (`FB-064`, RushJet1), and right-column
+Settings hover tooltips anchored to the left so they stay inside the window.
+Zip `auxForever-0.9-build4.zip`; **`/reload` is enough** if you already installed Build 2 or 3 (a
+full game restart is only needed if upgrading from before Build 2 because of `Bindings.xml`).
+
+- [ ] 1. Narrower Sniper Watch bar and fast category rounds (`FB-055`). Open the **Sniper** tab and
+      check that the new slim **Watch** bar sits cleanly below Start/Stop with **All**, **Trade
+      Goods**, **Consumables**, **Recipes**, **More... v**, and **Quality: Common+ v** (no overlap
+      with the Deals row or Buy bar). Click **Trade Goods** and click **Start**: confirm round 1
+      finishes in a few seconds instead of ~38s+. While Sniper is still running, click
+      **Consumables** (or pick **Rare+** under Quality): confirm it restarts right away instead of
+      waiting for the old round to finish.
+- [ ] 2. Narrower Sniper with Search Favorites (`FB-055`). On the Search tab, make sure you have at
+      least one Favorite pinned (for example search `linen cloth/exact;copper ore/exact` and star/pin
+      it). Switch to the **Sniper** tab, click **More... v**, confirm both **CATEGORIES** and
+      **SEARCH FAVORITES** appear cleanly, click your Favorite, and confirm the button shows its
+      name and Sniper watches just that search.
+- [ ] 3. Default buy quantity (`FB-066`) and right-column tooltip anchor. Open **Escape > Options >
+      AddOns > auxForever** (or type `/aux settings`). Point the mouse at **Stack prices by default**
+      on the right column: confirm the hover tooltip now opens to the left inside the window. Under
+      **BUYING**, confirm **Default quantity** shows `1` and `Stack` (`1` highlighted). Click
+      **Stack**, go to Search, search `linen cloth/exact`, click the row, and confirm the buy bar
+      starts at `20` (full stack). Click **1** in Settings (or type `/aux buy quantity 1`) and
+      confirm selecting another trade good starts at `1` again.
+- [ ] 4. Fast tooltip-word search on generic green rings (`FB-064`). On the **Search** tab in
+      **Fast** mode, run `armor/miscellaneous/finger/spell` (or `armor/miscellaneous/finger/healing`).
+      Confirm generic green rings with `Equip:` spell/healing stats (such as `"of the Channeler"` or
+      `"of Healing"`) now appear in Fast mode.
+- [ ] 5. Optional 0-gold `FB-064` sample-link diagnostic. Right after running
+      `armor/miscellaneous/finger` in Fast mode, paste this line in chat and share what `FB64:`
+      prints (checks the first random-suffix ring to tell us whether Forever populated
+      `GetItemKeySampleLink` or used our fallback):
+      `/run local C=C_AuctionHouse for _,x in ipairs(C.GetBrowseResults())do local k=x.itemKey if(k.itemSuffix or 0)~=0 then local i=C.GetItemKeyInfo(k)print('FB64:',i and i.itemName,C.GetItemKeySampleLink(k)~=nil)break end end`
+- [ ] 6. Clean standalone E10 probe (0 gold, idle at AH). Make sure Sniper is **stopped** and no
+      Full scan is running, wait 2 seconds, paste Line 1 and press Enter:
+      `/run local C=C_AuctionHouse print('E10 send:',C.IsThrottledMessageSystemReady()) C.SearchForItemKeys({C.MakeItemKey(2589),C.MakeItemKey(2770),C.MakeItemKey(2447),C.MakeItemKey(2835)},{{sortOrder=0,reverseSort=false}})`
+      Wait 3 seconds, paste Line 2 and press Enter, and share `E10 send:` and `E10:`:
+      `/run local r=C_AuctionHouse.GetBrowseResults() print('E10:',#r,C_AuctionHouse.HasFullBrowseResults(),r[1] and r[1].itemKey.itemID,r[1] and r[1].minPrice,r[2] and r[2].itemKey.itemID)`
+
+## 0.9 build 3 (tested 2026-11-22)
 
 Built 2026-11-22 (Gemini Neon): Phase 2 Blizzard **Options > AddOns > auxForever** settings panel
 and `/aux settings` (`FB-057`), plus Build 2's approved visual and UX follow-ups: minimalist Option

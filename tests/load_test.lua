@@ -7739,16 +7739,16 @@ try('0.9 build 3: Option B tooltips, aligned crafting hover, and T1-T6 wording',
   check('0.9b3: T4 buy bar sub_label', plain(bar.sub_label.__text) == '3 at this price')
   bar.clear()
   local sniper_src = io.open('tabs/sniper/frame.lua'):read('*a')
-  check('0.9b3: T6 Sniper empty message trimmed', sniper_src:find('No deals yet. Watching the auction house (gray items skipped).', 1, true) ~= nil)
+  check('0.9b3: T6 Sniper empty message trimmed', sniper_src:find('No deals yet. Watching ', 1, true) ~= nil and sniper_src:find('the auction house (gray items skipped)', 1, true) ~= nil)
 
-  -- Settings gear popup height: 416 normal, 444 when Theme reload is waiting
+  -- Settings gear popup height: 446 normal, 474 when Theme reload is waiting (0.9 build 4 adds Default quantity row)
   local other = THEME == 'new' and 'classic' or 'new'
   local popup_h
   rawset(a.settings_popup, 'SetHeight', function(_, v) popup_h = v end)
   a.refresh_settings()
-  check('0.9b3: AH Settings popup height is 416 normally', popup_h == 416)
+  check('0.9b3: AH Settings popup height is 446 normally', popup_h == 446)
   a.look_buttons[other].__scripts.OnClick(a.look_buttons[other])
-  check('0.9b3: AH Settings popup height is 444 with Theme reload waiting', popup_h == 444)
+  check('0.9b3: AH Settings popup height is 474 with Theme reload waiting', popup_h == 474)
   a.look_buttons[THEME].__scripts.OnClick(a.look_buttons[THEME])
   rawset(a.settings_popup, 'SetHeight', nil)
 end)
@@ -7863,6 +7863,252 @@ try('0.9 build 3: FB-057 Blizzard Options > AddOns > auxForever and /aux setting
   G.InCombatLockdown = real_combat
   G.StaticPopup_Show = real_popup
   rawset(a, 'print', real_print)
+end)
+
+-- 0.9 build 4: Phase 3 Narrower Sniper (FB-055), Default buy quantity (FB-066),
+-- generic green random-suffix tooltip search fix (FB-064), and Settings ANCHOR_LEFT polish.
+try('0.9 build 4: FB-055 Narrower Sniper scopes, favorites, quality, and UI', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+
+  -- Defaults: Everything, Common+
+  check('FB-055: default scope is all and quality is 1',
+    sniper.get_scope().kind == 'all' and sniper.get_quality() == 1 and sniper.quality_label() == 'Common+')
+  local qs, sid = sniper.scope_queries()
+  check('FB-055: default scope_queries sends quality 1 with no class',
+    #qs == 1 and qs[1].blizzard_query.quality == 1 and qs[1].blizzard_query.class == nil and sid == 'all:1')
+
+  -- Category scope resolves Forever AuctionCategories by name
+  local tg_qs, tg_sid = sniper.scope_queries({kind = 'category', name = 'Trade Goods'}, 2)
+  check('FB-055: Trade Goods resolves class index 5 and quality 2',
+    #tg_qs == 1 and tg_qs[1].blizzard_query.class == 5 and tg_qs[1].blizzard_query.quality == 2 and tg_sid == 'cat:trade goods:2')
+
+  -- Unknown category falls back cleanly to all
+  local bad_qs, bad_sid = sniper.scope_queries({kind = 'category', name = 'Nonexistent Category'}, 3)
+  check('FB-055: unknown category falls back to all with quality preserved',
+    #bad_qs == 1 and bad_qs[1].blizzard_query.class == nil and bad_qs[1].blizzard_query.quality == 3 and bad_sid == 'all:3')
+
+  -- Multi-query Favorite scope parses multiple queries and clamps quality >= sniper_quality
+  local fav_qs, fav_sid = sniper.scope_queries({kind = 'favorite', name = 'Mats', filter_string = 'linen cloth/exact;copper ore/exact'}, 3)
+  check('FB-055: multi-query favorite produces 2 queries with quality clamped to 3',
+    #fav_qs == 2 and fav_qs[1].blizzard_query.name == 'linen cloth' and fav_qs[2].blizzard_query.name == 'copper ore'
+    and fav_qs[1].blizzard_query.quality == 3 and fav_qs[2].blizzard_query.quality == 3
+    and type(fav_qs[1].validator) == 'function' and fav_sid:find('^fav:', 1) ~= nil)
+
+  -- Favorite post-filter validator filters candidate records in check_item while preserving real market_now
+  local scan_exports = loadstring("select(2, ...) 'aux.test.fb055'; return require 'aux.core.scan'")('auxForever', addon)
+  local real_read = scan_exports.read_item
+  local real_info = G.GetItemInfo
+  local d = h.today()
+  h.write_record('8501:0', {day = d, points = {{day = d - 1, value = 5000, units = 10}, {day = d - 2, value = 5000, units = 10}, {day = d - 3, value = 5000, units = 10}}})
+  G.GetItemInfo = function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id == 8501 then return 'Test Blade', '|cff0070dd|Hitem:8501::::::0:0|h[Test Blade]|h|r', 3, 55, 50, 'Weapon', 'Sword', 1, 'INVTYPE_WEAPON', 1, 10 end
+    return real_info(x)
+  end
+  local a_unusable = {item_id = 8501, price_key = '8501:0', item_key = '8501:0', name = 'Test Blade', quality = 3, texture = 1,
+    buyout_price = 1000, unit_buyout_price = 1000, count = 1, auction_count = 1, seller_count = 1, usable = false,
+    link = '|cff0070dd|Hitem:8501::::::0:0|h[Test Blade]|h|r'}
+  local a_usable = {item_id = 8501, price_key = '8501:0', item_key = '8501:0', name = 'Test Blade', quality = 3, texture = 1,
+    buyout_price = 1200, unit_buyout_price = 1200, count = 1, auction_count = 1, seller_count = 1, usable = true,
+    link = '|cff0070dd|Hitem:8501::::::0:0|h[Test Blade]|h|r'}
+  rawset(scan_exports, 'read_item', function() return {a_unusable, a_usable} end)
+  sniper.clear_deals()
+  local usable_only = function(rec) return rec.usable == true end
+  sniper.check_item({itemID = 8501, itemLevel = 55, itemSuffix = 0}, '8501:0', 1000, nil, nil, usable_only, 'fav:usable:1')
+  check('FB-055: Favorite validator skips non-matching auction and tags deal_scope',
+    #sniper.deals == 1 and sniper.deals[1].buyout_price == 1200 and sniper.deals[1].deal_scope == 'fav:usable:1')
+  rawset(scan_exports, 'read_item', real_read)
+  G.GetItemInfo = real_info
+  h.data['8501:0'] = nil
+
+  -- Watch chips, More... grouped menu (Categories + Search Favorites), and Quality menu UI
+  sniper.watch_chips[2]:Click()
+  check('FB-055: clicking Trade Goods chip updates scope, hint, and More button',
+    sniper.get_scope().kind == 'category' and sniper.get_scope().name == 'Trade Goods'
+    and sniper.more_button.__text == 'More... v'
+    and sniper.scope_hint_label.__text:find('Trade Goods', 1, true) ~= nil)
+
+  local saved_favs = a.realm_data.favorite_searches
+  a.realm_data.favorite_searches = {{filter_string = 'linen cloth/exact', prettified = '|cff00ff00Linen Watch|r'}}
+  sniper.more_button:Click()
+  check('FB-055: More menu opens with categories and Search Favorites', sniper.watch_menu.__shown == true and #sniper.watch_menu_buttons >= 2)
+  -- Click the last shown menu button (our Linen Watch favorite)
+  local fav_btn
+  for _, b in ipairs(sniper.watch_menu_buttons) do
+    if b.__shown and b.__text == 'Linen Watch' then fav_btn = b end
+  end
+  check('FB-055: Search Favorite appears in More menu without color codes', fav_btn ~= nil)
+  if fav_btn then fav_btn:Click() end
+  check('FB-055: picking Favorite updates scope, More button label, and closes menu',
+    sniper.get_scope().kind == 'favorite' and sniper.get_scope().filter_string == 'linen cloth/exact'
+    and sniper.more_button.__text == 'Linen Watch v' and sniper.watch_menu.__shown == false)
+
+  sniper.quality_button:Click()
+  check('FB-055: Quality menu opens', sniper.quality_menu.__shown == true)
+  sniper.quality_menu_buttons[3]:Click()
+  check('FB-055: picking Rare+ updates quality, button text, and closes menu',
+    sniper.get_quality() == 3 and sniper.quality_button.__text == 'Rare+ v' and sniper.quality_menu.__shown == false)
+
+  -- Restore clean defaults
+  a.realm_data.favorite_searches = saved_favs
+  sniper.clear_deals()
+  sniper.set_scope({kind = 'all'})
+  sniper.set_quality(1)
+end)
+
+try('0.9 build 4: FB-066 Default buy quantity (1 vs Stack) and Settings ANCHOR_LEFT', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local bar = loadstring("select(2, ...) 'aux.gui.buy_bar'; return _M")('auxForever', addon)
+  local tiers = {{count = 6, commodity_unit_price = 10}, {count = 50, commodity_unit_price = 12}}
+  local short_tiers = {{count = 7, commodity_unit_price = 10}}
+
+  check('FB-066: buy_default defaults to 1', a.account_data.buy_default == '1')
+  bar.clear()
+  bar.show_commodity{item_id = 321, name = 'Mageroyal', max_stack = 20, tiers = function() return tiers end}
+  check('FB-066: default 1 starts Search buy bar at 1', bar.other_input:GetText() == '1')
+
+  -- Click Stack in Blizzard Options panel -> syncs saved state and AH Settings popup
+  a.options_view.buy_default_buttons.stack:Click()
+  check('FB-066: Options Stack button saves stack mode', a.account_data.buy_default == 'stack')
+  bar.clear()
+  bar.show_commodity{item_id = 321, name = 'Mageroyal', max_stack = 20, tiers = function() return tiers end}
+  check('FB-066: stack mode starts Search buy bar at full stack (20)', bar.other_input:GetText() == '20')
+  bar.clear()
+  bar.show_commodity{item_id = 322, name = 'Rare Herb', max_stack = 20, tiers = function() return short_tiers end}
+  check('FB-066: stack mode caps at available stock when fewer than a stack are listed', bar.other_input:GetText() == '7')
+
+  -- Slash commands stay in sync
+  SlashCmdList.AUX('buy quantity 1')
+  check('FB-066: /aux buy quantity 1 restores 1', a.account_data.buy_default == '1')
+  bar.clear()
+  bar.show_commodity{item_id = 321, name = 'Mageroyal', max_stack = 20, tiers = function() return tiers end}
+  check('FB-066: back to 1 starts Search buy bar at 1', bar.other_input:GetText() == '1')
+
+  -- Sniper whole_deal still starts at deal's full stack even when buy_default is 1
+  bar.clear()
+  bar.show_commodity{item_id = 321, name = 'Mageroyal', max_stack = 20, whole_deal = true, tiers = function() return tiers end}
+  check('FB-066: Sniper whole_deal still starts at stack even when buy_default is 1', bar.other_input:GetText() == '20')
+  bar.clear()
+
+  -- Right-column tooltip rows anchor LEFT in both Settings gear popup and Options > AddOns panel
+  local all_left = true
+  for _, box in ipairs(a.tooltip_boxes) do
+    if not (box.row and box.row.tip_anchor == 'ANCHOR_LEFT') then all_left = false end
+  end
+  for _, box in ipairs(a.options_view.tooltip_boxes) do
+    if not (box.row and box.row.tip_anchor == 'ANCHOR_LEFT') then all_left = false end
+  end
+  check('0.9b4: right-column Settings hover tooltips use ANCHOR_LEFT', all_left)
+end)
+
+try('0.9 build 4: FB-064 Fast tooltip-word search on generic green random-suffix gear', function()
+  local info = loadstring("select(2, ...) 'aux.util.info'; return _M")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.test.fb064'; return require 'aux.core.scan'")('auxForever', addon)
+  local filter_util = loadstring("select(2, ...) 'aux.test.fb064f'; return require 'aux.util.filter'")('auxForever', addon)
+
+  local ring_id, chest_id = 8601, 8602
+  local ring_base_link = '|cff1eff00|Hitem:8601::::::0:0|h[Silver Ring]|h|r'
+  local ring_sample_link = '|cff1eff00|Hitem:8601::::::14320:0|h[Silver Ring of the Channeler]|h|r'
+  local chest_base_link = '|cff1eff00|Hitem:8602::::::0:0|h[Mail Chest]|h|r'
+
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  set(G, 'GetItemInfo', function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id == ring_id then return 'Silver Ring', ring_base_link, 2, 20, 15, 'Armor', 'Miscellaneous', 1, 'INVTYPE_FINGER', 1, 50 end
+    if id == chest_id then return 'Mail Chest', chest_base_link, 2, 20, 15, 'Armor', 'Mail', 1, 'INVTYPE_CHEST', 1, 50 end
+  end)
+  set(C_Item, 'IsItemDataCachedByID', function() return true end)
+
+  -- Stub AuxTooltip lines for SetHyperlink vs SetItemKey
+  local tip_lines = {}
+  set(AuxTooltip, 'ClearLines', function() tip_lines = {} end)
+  set(AuxTooltip, 'SetHyperlink', function(_, link)
+    if link == ring_sample_link then
+      tip_lines = {'Silver Ring of the Channeler', 'Binds when equipped', 'Finger', 'Equip: Increases damage and healing done by magical spells and effects by up to 2.', 'Requires Level 15'}
+    else
+      tip_lines = {'Silver Ring', 'Binds when equipped', 'Finger'}
+    end
+  end)
+  set(AuxTooltip, 'SetItemKey', function(_, id)
+    if id == ring_id then
+      -- Simulates Forever SetItemKey omitting Equip: stat line on "of the Channeler" (4 lines, no + or Equip:)
+      tip_lines = {'Silver Ring of the Channeler', 'Binds when equipped', 'Finger', 'Requires Level 15'}
+    elseif id == chest_id then
+      -- Plain stat suffix where SetItemKey includes +5 Strength
+      tip_lines = {'Mail Chest of Strength', 'Binds when equipped', 'Chest', '+5 Strength', 'Requires Level 15'}
+    end
+  end)
+  set(AuxTooltip, 'NumLines', function() return #tip_lines end)
+  local real_left = {}
+  for i = 1, 6 do
+    real_left[i] = rawget(G, 'AuxTooltipTextLeft' .. i)
+    G['AuxTooltipTextLeft' .. i] = {GetText = function() return tip_lines[i] end}
+  end
+  local real_right = {}
+  for i = 1, 6 do
+    real_right[i] = rawget(G, 'AuxTooltipTextRight' .. i)
+    G['AuxTooltipTextRight' .. i] = {GetText = function() return nil end}
+  end
+
+  local browse_rows = {
+    {itemKey = {itemID = ring_id, itemLevel = 20, itemSuffix = 14320}, totalQuantity = 1, minPrice = 500},
+    {itemKey = {itemID = chest_id, itemLevel = 20, itemSuffix = 14321}, totalQuantity = 1, minPrice = 600},
+  }
+  local search_queries_sent = 0
+  set(C_AuctionHouse, 'GetItemKeyInfo', function(k)
+    if k.itemID == ring_id then return {itemID = ring_id, itemName = 'Silver Ring of the Channeler', quality = 2, iconFileID = 1} end
+    if k.itemID == chest_id then return {itemID = chest_id, itemName = 'Mail Chest of Strength', quality = 2, iconFileID = 1} end
+  end)
+  set(C_AuctionHouse, 'SendBrowseQuery', function() fire('AUCTION_HOUSE_BROWSE_RESULTS_UPDATED') end)
+  set(C_AuctionHouse, 'HasFullBrowseResults', function() return true end)
+  set(C_AuctionHouse, 'GetBrowseResults', function() return browse_rows end)
+  set(C_AuctionHouse, 'SendSearchQuery', function(k)
+    search_queries_sent = search_queries_sent + 1
+    fire('ITEM_SEARCH_RESULTS_UPDATED', k)
+  end)
+  set(C_AuctionHouse, 'HasSearchResults', function() return true end)
+  set(C_AuctionHouse, 'HasFullItemSearchResults', function() return true end)
+  set(C_AuctionHouse, 'GetNumItemSearchResults', function(k) return k.itemID == ring_id and 1 or 0 end)
+  set(C_AuctionHouse, 'GetItemSearchResultInfo', function(k, i)
+    if k.itemID == ring_id and i == 1 then
+      return {itemKey = k, itemLink = ring_sample_link, auctionID = 9001, quantity = 1, buyoutAmount = 500, minBid = 500, owners = {'Seller'}, timeLeft = 2}
+    end
+  end)
+
+  local parsed = filter_util.queries('armor/miscellaneous/finger/spell')
+  check('FB-064: armor/miscellaneous/finger/spell sets tooltip_text', parsed and #parsed == 1 and parsed[1].tooltip_text == true)
+
+  -- Case A: GetItemKeySampleLink returns sample link -> instant match with 0 extra SendSearchQuery requests!
+  set(C_AuctionHouse, 'GetItemKeySampleLink', function(k) return k.itemID == ring_id and ring_sample_link or nil end)
+  local found, done = {}, false
+  search_queries_sent = 0
+  scan.start{type = 'list', fast = true, quiet = true, queries = parsed,
+    on_auction = function(rec) tinsert(found, rec) end,
+    on_complete = function() done = true end}
+  for _ = 1, 20 do tick(); if done then break end end
+  check('FB-064 Case A: GetItemKeySampleLink matches of the Channeler in Fast mode with 0 extra requests',
+    done and #found == 1 and found[1].item_id == ring_id and search_queries_sent == 0)
+
+  -- Case B: GetItemKeySampleLink returns nil and SetItemKey drops Equip: line -> falls back to read_full ONLY for ring, NOT for +5 Strength chest!
+  rawset(C_AuctionHouse, 'GetItemKeySampleLink', function() return nil end)
+  found, done = {}, false
+  search_queries_sent = 0
+  scan.start{type = 'list', fast = true, quiet = true, queries = parsed,
+    on_auction = function(rec) tinsert(found, rec) end,
+    on_complete = function() done = true end}
+  for _ = 1, 30 do tick(); if done then break end end
+  check('FB-064 Case B: missing Equip: stats falls back to read_full for ring only (1 request, skips +5 Strength chest)',
+    done and #found == 1 and found[1].item_id == ring_id and search_queries_sent == 1)
+
+  -- Restore everything cleanly
+  for i = 1, 6 do
+    G['AuxTooltipTextLeft' .. i] = real_left[i]
+    G['AuxTooltipTextRight' .. i] = real_right[i]
+  end
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
 end)
 
 -- what players do while the auction house is still answering: a slow auction house that answers

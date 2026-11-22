@@ -128,6 +128,18 @@ function SlashCmdList.AUX(command)
             aux.set_buy_confirm(not aux.account_data.buy_confirm)
         end
         aux.print('buy confirm ' .. status(aux.account_data.buy_confirm) .. (aux.account_data.buy_confirm and ': Buy shows the price, a second click on Confirm buys' or ': one click on Buy buys'))
+    elseif arguments[1] == 'buy' and arguments[2] == 'quantity' then
+        -- 0.9 build 4 (FB-066, user_ivpyccljovcjne72): default Search buy bar quantity (1 or stack)
+        local word = strlower(arguments[3] or '')
+        if word == '1' or word == 'one' or word == 'single' then
+            aux.set_buy_default('1')
+        elseif word == 'stack' or word == 'max' or word == 'full' then
+            aux.set_buy_default('stack')
+        else
+            aux.print('buy quantity [' .. aux.color.blue(aux.account_data.buy_default == 'stack' and 'stack' or '1') .. ']: type /aux buy quantity 1 or /aux buy quantity stack')
+            return
+        end
+        aux.print('buy quantity ' .. aux.color.blue(aux.account_data.buy_default == 'stack' and 'stack' or '1') .. (aux.account_data.buy_default == 'stack' and ': Search buy bar starts at a full stack' or ': Search buy bar starts at 1'))
     elseif arguments[1] == 'right' and arguments[2] == 'click' and arguments[3] == 'post' then
         -- 0.9 (FB-062, rokstar8872, deep_structure): right-click bag item always opens Post
         local word = strlower(arguments[4] or '')
@@ -232,6 +244,7 @@ function SlashCmdList.AUX(command)
         aux.print('- post full scan [' .. status(aux.account_data.post_full_scan) .. ']')
         aux.print('- post bid [' .. aux.color.blue(aux.account_data.post_bid or 'off') .. '] (on, off, unit or stack)')
         aux.print('- buy confirm [' .. status(aux.account_data.buy_confirm) .. ']')
+        aux.print('- buy quantity [' .. aux.color.blue(aux.account_data.buy_default == 'stack' and 'stack' or '1') .. '] (1 or stack)')
         aux.print('- right click post [' .. status(aux.account_data.right_click_post) .. ']')
         aux.print('- auto scan [' .. status(aux.account_data.auto_full_scan) .. ']')
         aux.print('- crafting cost [' .. status(aux.account_data.crafting_cost) .. ']')

@@ -432,6 +432,10 @@ do
         account_data.buy_confirm = on and true or false
         refresh()
     end
+    function M.set_buy_default(mode)
+        account_data.buy_default = mode == 'stack' and 'stack' or '1'
+        refresh()
+    end
     function M.set_right_click_post(on)
         account_data.right_click_post = on and true or false
         refresh()
@@ -468,7 +472,7 @@ do
             return label
         end
 
-        local function row(p, x, y, height, name, hint, tip)
+        local function row(p, x, y, height, name, hint, tip, tip_anchor)
             local r = CreateFrame('Frame', nil, p)
             r:SetPoint('TOPLEFT', x, y)
             gui.set_size(r, column, height)
@@ -487,8 +491,10 @@ do
             end
             r.label = label
             if tip then
+                local anchor = tip_anchor or 'ANCHOR_RIGHT'
+                r.tip_anchor = anchor
                 r:SetScript('OnEnter', function(self)
-                    GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+                    GameTooltip:SetOwner(self, anchor)
                     GameTooltip:AddLine(name)
                     GameTooltip:AddLine(tip[1], 1, 1, 1, true)
                     if tip[2] then GameTooltip:AddLine(tip[2], .6, .6, .6) end
@@ -569,7 +575,7 @@ do
 
         -- left column: Posting, Buying and General. Moves up when no reload is waiting (see refresh).
         local posting = CreateFrame('Frame', nil, parent)
-        gui.set_size(posting, column, 246)
+        gui.set_size(posting, column, 276)
         section(posting, 0, 0, 'POSTING')
         local length_row = row(posting, 0, -16, 30, 'Default duration',
             nil, {'How long new auctions last unless you pick another length on the Post tab.', '/aux post duration'})
@@ -585,7 +591,7 @@ do
             end
         end
 
-        -- 0.9 (FB-062, rokstar8872, deep_structure; Tyler: on by default): right-click bag opens Post
+        -- 0.9 (FB-062, rokstar8872, deep_structure, bubbledn42; Tyler: on by default): right-click bag opens Post
         local right_click_row = row(posting, 0, -46, 36, 'Right-click bag to sell', 'Always opens Post tab',
             {'Right-clicking an item in your bags switches to the Post tab and loads it, even from Search or Sniper. Shift-click and Alt-click still use the current tab.', '/aux right click post'})
         local right_click_switch = gui.switch(right_click_row)
@@ -594,7 +600,7 @@ do
             set_right_click_post(not account_data.right_click_post)
         end
 
-        -- Buying (0.8.2.2, FB-049, Tyler: Confirm back as an option, off unless turned on, gear too)
+        -- Buying (0.8.2.2, FB-049 Confirm before buying; 0.9 build 4, FB-066 Default quantity)
         section(posting, 0, -92, 'BUYING')
         local confirm_row = row(posting, 0, -108, 36, 'Confirm before buying', 'A second click on Confirm',
             {'Buy first shows the price on a Confirm button, and a second click buys. Off: one click on Buy buys. For trade goods and gear, on the Search and Sniper tabs.', '/aux buy confirm'})
@@ -604,9 +610,18 @@ do
             set_buy_confirm(not account_data.buy_confirm)
         end
 
+        local buy_default_row = row(posting, 0, -144, 30, 'Default quantity',
+            nil, {'Starting quantity on the Search tab buy bar for trade goods: 1 (safer for one-click buying) or Stack (a full stack, capped by what is for sale). The Sniper always starts at the deal\'s units.', '/aux buy quantity'})
+        local buy_default_buttons = choices(buy_default_row, {{'1', '1'}, {'stack', 'Stack'}}, 48)
+        for mode, b in pairs(buy_default_buttons) do
+            b:SetScript('OnClick', function()
+                set_buy_default(mode)
+            end)
+        end
+
         -- 0.9: General (FB-032 Auto Full scan, FB-061 Professions cost line)
-        section(posting, 0, -154, 'GENERAL')
-        local auto_scan_row = row(posting, 0, -170, 36, 'Auto Full scan', 'When auction house opens',
+        section(posting, 0, -184, 'GENERAL')
+        local auto_scan_row = row(posting, 0, -200, 36, 'Auto Full scan', 'When auction house opens',
             {'Starts a Full scan automatically when you open the auction house, if the 15-minute cooldown is over. Starting your own search or Post scan takes priority.', '/aux auto scan'})
         local auto_scan_switch = gui.switch(auto_scan_row)
         auto_scan_switch:SetPoint('RIGHT', 0, 0)
@@ -614,7 +629,7 @@ do
             set_auto_full_scan(not account_data.auto_full_scan)
         end
 
-        local crafting_row = row(posting, 0, -206, 36, 'Professions cost line', 'Materials and profit on recipes',
+        local crafting_row = row(posting, 0, -236, 36, 'Professions cost line', 'Materials and profit on recipes',
             {'Shows the Materials and Profit line under reagents in the Professions window. Turn off to hide it while keeping Search in aux at the auction house.', '/aux crafting cost'})
         local crafting_switch = gui.switch(crafting_row)
         crafting_switch:SetPoint('RIGHT', 0, 0)
@@ -622,7 +637,7 @@ do
             set_crafting_cost(not account_data.crafting_cost)
         end
 
-        -- right column: tooltip lines (per character)
+        -- right column: tooltip lines (per character; ANCHOR_LEFT keeps hover tooltips inside the window)
         local tooltip_title = section(parent, right_x, top_y, 'TOOLTIP LINES')
         local character_note = gui.label(parent, gui.font_size.small)
         character_note:SetPoint('LEFT', tooltip_title, 'RIGHT', 4, 0)
@@ -632,11 +647,12 @@ do
         for i, line in ipairs(TOOLTIP_LINES) do
             local key = line[1]
             local height = line[3] and 36 or 30
-            local r = row(parent, right_x, y, height, line[2], line[3], {line[4], '/aux tooltip'})
+            local r = row(parent, right_x, y, height, line[2], line[3], {line[4], '/aux tooltip'}, 'ANCHOR_LEFT')
             y = y - height
             local switch = gui.switch(r)
             switch:SetPoint('RIGHT', 0, 0)
             switch.key = key
+            switch.row = r
             switch.on_click = function()
                 character_data.tooltip[key] = not character_data.tooltip[key]
                 refresh_settings()
@@ -658,6 +674,10 @@ do
                 b:SetText(info.duration_hours(i) .. 'h')
                 gui.style_choice(b, account_data.post_duration == i)
             end
+            local buy_mode = account_data.buy_default == 'stack' and 'stack' or '1'
+            for mode, b in pairs(buy_default_buttons) do
+                gui.style_choice(b, buy_mode == mode)
+            end
             local chosen = account_data.theme == 'classic' and 'classic' or 'new'
             for name, b in pairs(look_buttons) do
                 gui.style_choice(b, chosen == name)
@@ -672,7 +692,7 @@ do
             end
             if pending then reload_button:Show() else reload_button:Hide() end
             if resize_popup then
-                parent:SetHeight(pending and 444 or 416)
+                parent:SetHeight(pending and 474 or 446)
             end
             posting:ClearAllPoints()
             posting:SetPoint('TOPLEFT', left_x, pending and (top_y - 142) or (top_y - 114))
@@ -694,6 +714,7 @@ do
             reload_note = reload_note,
             auction_length_buttons = length_buttons,
             buy_confirm_switch = confirm_switch,
+            buy_default_buttons = buy_default_buttons,
             right_click_post_switch = right_click_switch,
             auto_full_scan_switch = auto_scan_switch,
             crafting_cost_switch = crafting_switch,
@@ -706,8 +727,8 @@ do
     local popup = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
     gui.set_panel_style(popup)
     popup:SetFrameStrata('DIALOG')
-    -- 416 normally (444 when Theme reload is waiting): clean bottom margin inside MIN_HEIGHT = 549
-    gui.set_size(popup, WIDTH, 416)
+    -- 446 normally (474 when Theme reload is waiting): clean bottom margin inside MIN_HEIGHT = 549
+    gui.set_size(popup, WIDTH, 446)
     popup:SetPoint('TOPRIGHT', btn, 'BOTTOMRIGHT', 0, -4)
     popup:EnableMouse(true)
     popup:Hide()
@@ -732,6 +753,7 @@ do
     M.reload_note = ah_view.reload_note
     M.auction_length_buttons = ah_view.auction_length_buttons
     M.buy_confirm_switch = ah_view.buy_confirm_switch
+    M.buy_default_buttons = ah_view.buy_default_buttons
     M.right_click_post_switch = ah_view.right_click_post_switch
     M.auto_full_scan_switch = ah_view.auto_full_scan_switch
     M.crafting_cost_switch = ah_view.crafting_cost_switch
@@ -811,7 +833,7 @@ do
 
     local opt_divider = options_panel:CreateTexture(nil, 'ARTWORK')
     opt_divider:SetWidth(1)
-    opt_divider:SetHeight(400)
+    opt_divider:SetHeight(430)
     opt_divider:SetPoint('TOPLEFT', OPT_WIDTH / 2, -56)
     gui.texture_color(opt_divider, color.window.border)
 
@@ -820,17 +842,17 @@ do
     local bottom_rule = options_panel:CreateTexture(nil, 'ARTWORK')
     bottom_rule:SetHeight(1)
     bottom_rule:SetWidth(OPT_WIDTH - OPT_PAD * 2)
-    bottom_rule:SetPoint('TOPLEFT', OPT_PAD, -468)
+    bottom_rule:SetPoint('TOPLEFT', OPT_PAD, -496)
     gui.texture_color(bottom_rule, color.window.border)
 
     local keybind_note = gui.label(options_panel, gui.font_size.small)
-    keybind_note:SetPoint('TOPLEFT', OPT_PAD, -486)
+    keybind_note:SetPoint('TOPLEFT', OPT_PAD, -514)
     keybind_note:SetText('Keybinds: Options > Keybindings > auxForever')
     gui.text_color(keybind_note, color.label.enabled)
 
     local clear_cache_btn = gui.button(options_panel, gui.font_size.small)
     gui.set_size(clear_cache_btn, 114, 24)
-    clear_cache_btn:SetPoint('TOPRIGHT', options_panel, 'TOPLEFT', OPT_WIDTH - OPT_PAD, -478)
+    clear_cache_btn:SetPoint('TOPRIGHT', options_panel, 'TOPLEFT', OPT_WIDTH - OPT_PAD, -506)
     clear_cache_btn:SetText('Clear item cache')
     clear_cache_btn:SetScript('OnClick', function()
         (show_popup or StaticPopup_Show)('AUX_CLEAR_CACHE_CONFIRM')
