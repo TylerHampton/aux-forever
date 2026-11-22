@@ -1,56 +1,58 @@
 # Status
 
-Last updated 2026-11-21, Tyler's time (0.8.2.2 released; 0.9 plan and handoff doc `docs/plan-0.9.md` ready; nothing being built yet).
+Last updated 2026-11-21, Tyler's time (`0.9` build 1 built on branch `gemini/0.9`, ready for
+in-game testing; 0.8.2.2 released on `main`).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-20 is there).
 
 ## Start here (next session)
 
+**Active branch:** `gemini/0.9` (version `forever-0.9`, build 1 ready to test in game; zip
+`auxForever-0.9-build1.zip`, `/reload` is enough).
+
+**What is in 0.9 build 1 (2026-11-21, foundation and high-impact fixes before new UI features):**
+- `FB-056` (user_kc0ds7pqedmptpep): dungeon/tooltip Lua error hardening in `core/tooltip.lua` and
+  `util/info.lua`, plus 7 missing Forever tooltip stack-count getters (mail, guild bank, trade,
+  quest) and `daily` nil/color fixes.
+- `wait_throttle` timeout (`THROTTLE_TIMEOUT = 10s`) in `core/scan.lua` and `tabs/search/results.lua`
+  `sync_bucket` (also stops cleanly on `AUCTION_HOUSE_CLOSED`).
+- High-impact code audit fixes: Sniper per-round version read cache (fixes K^2 duplicate AH
+  requests on multi-version gear) and preserved green "Bought ..." message on auto-deselect;
+  Search `UpdateRowInfo` grouping fix (stops bid-only + buyout mixing from splitting one gear
+  ending into 2 rows); synchronous API event fixes in `aux.place_bid`, `post_auction`, and
+  `cancel_auction`; multi-item Post `AUCTION_MULTISELL_UPDATE` race fix and cache-miss guard;
+  stopped gear buyouts from polluting `bid_auction_ids`; timeout guards on `refresh_commodity`,
+  fast `open_item`, and Sniper `refresh_deal`; scan priority coordinator (`PRIORITY_BACKGROUND`,
+  `PRIORITY_WATCH`, `PRIORITY_USER`); Buy bar chip/anchor/empty-Enter/instant-refresh fixes;
+  Waylaid Crate Equip/proc gear caching fix.
+- `docs/roadmap.md` updated with the agreed 0.9 / 0.10 / 1.0 split (exit beta after 0.10).
+- `docs/forever-auction-house.md` updated with `[Code]` notes and experiments `E9`
+  (`SendSellSearchQuery`) and `E10` (`SearchForItemKeys`).
+
+**Waiting on Tyler (in `TESTING.md`):**
+1. Test 0.9 build 1 in game (steps 1-3) and run the two 0-gold `/run` probes (steps 4-5: E9
+   `SendSellSearchQuery` and E10 `SearchForItemKeys`).
+2. Next build (0.9 build 2): Phase 1 QoL switches (`FB-058` full-stack tooltip default, `FB-061`
+   hide Professions line, `FB-062` right-click bag to Post, `FB-032` Auto Full Scan, `FB-063`
+   `Bindings.xml` keybinds [full game restart], remove `seen ` + UI wordiness audit), plus wire
+   in `SendSellSearchQuery` / `SearchForItemKeys` once E9/E10 are confirmed.
+
 **Released:** 0.8.2.2 on 2026-11-20 (PR #43 squash-merged to `main`, Release workflow run
 44779865723: tag `v0.8.2.2`, GitHub pre-release, CurseForge Beta file `9718999`). What it holds:
 `docs/changelog.md`, "0.8.2.2". Build-by-build history: `docs/status-history.md` (top) and
 `TESTING.md`.
 
-**Tyler, after the release:** paste `docs/curseforge-description.md` into the CurseForge page (it
-now says one click buys, the buy bar starts at 1, and mentions the Confirm before buying setting).
+**Tyler, after the 0.8.2.2 release:** paste `docs/curseforge-description.md` into the CurseForge
+page if not done yet.
 
-**Nothing is being built yet.** Next version is **0.9** (`docs/roadmap.md`, full build handoff in
-`docs/plan-0.9.md`; no 0.8.2.3 planned). Everything from the 2026-11-20/21 feedback is decided:
-- **Planned for 0.9 (from 2026-11-20 and 2026-11-21 feedback):**
-  - `FB-056` (user_kc0ds7pqedmptpep): dungeon/tooltip Lua error hardening in `core/tooltip.lua` and
-    `util/info.lua`.
-  - `FB-057` (LLanwrst, jebbush): Settings panel in Blizzard's Options > AddOns + `/aux settings`
-    (mockup first).
-  - `FB-058` (jebbush; Tyler 2026-11-21): Vendor and Value tooltips show the **full stack** by
-    default and **hold Shift for 1 item** (with `/aux tooltip stack` toggle, on by default).
-  - Tooltip & UI wordiness cleanup (Tyler 2026-11-21): remove `seen ` from tooltip age labels
-    (`core/tooltip.lua`, `tabs/search/recipe.lua`) and audit other UI elements for needless
-    wordiness (before/after list for Tyler before changing other screens).
-  - `FB-059` (sarrathsilentstrider, paired with `FB-042`): Waylaid Crate Merchant's Favor reward
-    (mockup first; needs an in-game crate turn-in screenshot).
-  - `FB-061` (LLanwrst): toggle to hide the Professions window Materials / profit line (on by
-    default).
-  - `FB-062` (rokstar8872, deep_structure): option for right-clicking a bag item from any tab to
-    open Post and load it (off by default).
-  - `FB-063` (khorrs): keybinds for buying, confirming and declining via `Bindings.xml` (full game
-    restart on first install).
-- **Previously planned for 0.9 (`docs/roadmap.md`):** shopping lists and Craftsman's Writs
-  (`FB-020`, `FB-023`), what other characters hold (`FB-023`), narrower Sniper (`FB-055`, mockup
-  first), automatic Full scan on window open option (`FB-032`), posting rules based on usual price
-  (`FB-031`, mockup first).
-- **Small fix candidate to include in 0.9:** add a timeout to `wait_throttle` in `core/scan.lua`
-  and `tabs/search/results.lua` so if Forever's auction throttle ever locks up
-  (`IsThrottledMessageSystemReady` stuck `false`, Seen 2026-11-20), aux times out with a clear
-  message instead of sitting on `Reading the listings...`.
-- **Not in auxForever (`FB-060`, XtreamCoder):** GoldScout-style farming guide is `wont-fix` for
-  auxForever, saved in `docs/roadmap.md` ("Future ideas") as a potential separate companion addon
-  later with `auxForever` as an optional dependency (`AuxForeverAPI`).
-
-**Next session starts with:** read `docs/plan-0.9.md` (the full 0.9 build handoff, phased plan,
-and branch setup) and confirm build order with Tyler (recommended: Phase 1 non-visual fixes,
-toggles and `Bindings.xml` first, then mockups for `FB-057`, `FB-055` narrower Sniper,
-`FB-059`/`FB-042`, shopping list, and posting rules).
+**Remaining 0.9 scope (after build 2; mockups first, details in `docs/plan-0.9.md`):**
+- Phase 2: `FB-057` Settings panel in Options > AddOns + `/aux settings`.
+- Phase 3: `FB-055` Narrower Sniper (using `SearchForItemKeys` if E10 confirms).
+- Phase 4: `FB-059` / `FB-042` Waylaid Crate Merchant's Favor + `FB-020` Craftsman's Writs (needs
+  crate turn-in and writ tooltip screenshots from Tyler).
+- Phase 5: `FB-023` Crafting shopping list + alt inventory tracking.
+- Phase 6: `FB-031` Posting rules based on usual price.
 
 **Takeover complete (2026-11-20):** Gemini Neon is the primary engineer and Claude Code the
 reviewer (`AGENTS.md`, "Roles"). H-012 in `docs/handoff.md` is closed. Claude-only tools are

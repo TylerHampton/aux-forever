@@ -8,7 +8,45 @@ saved is exported in `docs/test-results/test-page-results.md`.
 
 If BugSack shows an error at any point, copy its full text into that step's note.
 
-## Current build: 0.8.2.2 build 4
+## Current build: 0.9 build 1
+
+Built 2026-11-21 (Gemini Neon): 0.9 foundation pass. Fixes FB-056 (dungeon/tooltip Lua error
+hardening and 7 missing tooltip stack-count readers), adds a timeout for Forever's frozen AH
+throttle (`wait_throttle`), fixes Sniper duplicate K^2 gear requests and its wiped "Bought ..."
+message, fixes Search splitting one gear ending into two rows, fixes synchronous Buy/Post/Cancel
+events and multi-item Post hangs, prevents scan timeouts from wiping rows or marking Sniper deals
+"Sold", adds scan priority rules, and fixes Buy bar and Waylaid Crate caching quirks.
+Zip `auxForever-0.9-build1.zip`; `/reload` is enough (no new files).
+
+- [ ] 1. Tooltip stack counts and no errors (FB-056). Open your mailbox (if you have mail with a
+      stacked item) or a vendor window, hold Shift, and point the mouse at a stack of items (for
+      example a stack of Linen Cloth). The tooltip shows Vendor and Value with `for N` (matching
+      the stack size), with no BugSack error. Also watch for any Lua errors if you run a dungeon
+      where someone makes conjured water.
+- [ ] 2. Buy bar guard and Post check. On the Search tab, search `linen cloth/exact`, click the
+      cheapest row, click the QUANTITY box, delete the `1` so the box is empty, and press Enter:
+      nothing is bought. Then switch to the Post tab, pick an item you want to sell, and post one:
+      it posts cleanly with no 5-second hang.
+- [ ] 3. Sniper bought confirmation (optional: only if you see a cheap deal worth buying). On the
+      Sniper tab, click Start, click a deal you want, and click Buy. After the purchase finishes,
+      the bottom bar keeps the green "Bought 1 x ..." message on screen instead of immediately
+      flipping back to "Select a row to buy it", and the Buy button hides.
+- [ ] 4. Experiment E9: 1-request gear lookup (spends 0 gold). Put any piece of green gear with a
+      random ending (for example Merc Sword of the Owl or Ritual Belt of Healing) into the very
+      first slot of your backpack (top-left slot of bag 0). Open the auction house, paste line 1
+      into chat and press Enter:
+      `/run local C=C_AuctionHouse C.SendSellSearchQuery(C.MakeItemKey(C_Container.GetContainerItemID(0,1)),{{sortOrder=0,reverseSort=false}},true)`
+      Wait 2 seconds, paste line 2 into chat and press Enter, and copy the `E9:` line into your
+      reply:
+      `/run local C=C_AuctionHouse local k=C.MakeItemKey(C_Container.GetContainerItemID(0,1)) local n=C.GetNumItemSearchResults(k) local r=C.GetItemSearchResultInfo(k,1) print('E9:',n,r and r.itemLink,r and r.auctionID)`
+- [ ] 5. Experiment E10: 1-request batch watch list (spends 0 gold). Still at the auction house,
+      paste line 1 into chat and press Enter:
+      `/run local C=C_AuctionHouse C.SearchForItemKeys({C.MakeItemKey(2589),C.MakeItemKey(2770),C.MakeItemKey(2447),C.MakeItemKey(2835)},{{sortOrder=0,reverseSort=false}})`
+      Wait 2 seconds, paste line 2 into chat and press Enter, and copy the `E10:` line into your
+      reply:
+      `/run local r=C_AuctionHouse.GetBrowseResults() print('E10:',#r,r[1] and r[1].itemKey.itemID,r[1] and r[1].minPrice,r[2] and r[2].itemKey.itemID,r[2] and r[2].minPrice)`
+
+## 0.8.2.2 build 4 (passed, Tyler, 2026-11-20)
 
 Built 2026-11-20 (Gemini Neon): adds build 3's quarter-second rest after buying (not tested yet) plus
 two contributor pull requests: gamepad item comparison beside aux's window (PR #41, nokkty) and

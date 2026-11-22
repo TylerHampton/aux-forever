@@ -5,7 +5,7 @@ Tyler carries them with one sentence, nothing else:
 
 > **"Check the handoff."**
 
-Active branch: `claude/confident-bohr-vctz8g` (0.8.2.2 released 2026-11-20; ready for next branch)
+Active branch: `gemini/0.9` (0.9 in progress)
 
 ## Rules for both agents
 

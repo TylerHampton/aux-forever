@@ -6,6 +6,37 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.9 (unreleased)
+
+### Reliability and bug fixes
+
+- Hardened item tooltips and tooltip scanning against Blizzard secret values, missing font strings,
+  nil conjured-item globals, nil usual values in Today lines, and redundant `tooltip:Show()` calls
+  inside post-calls during dungeons and combat. Also added stack-count readers for mail, guild
+  bank, trade, and quest tooltips. (reported by user_kc0ds7pqedmptpep)
+- Added a timeout when Forever's auction house throttle freezes (`IsThrottledMessageSystemReady`
+  stuck false) so scans and post-buy bucket refreshes end cleanly with a chat message instead of
+  hanging forever. Post-buy refreshes now also stop cleanly when the auction house closes.
+- Fixed the Sniper sending duplicate requests on multi-version gear (K versions of one gear ending
+  now take K requests per round instead of K*K) and fixed its green "Bought ..." confirmation
+  being wiped on the next frame after auto-deselecting a bought deal.
+- Fixed Search splitting one gear ending into two separate top-level rows when mixing bid-only and
+  buyout auctions.
+- Fixed Buy, Post, and Cancel missing instant errors or cancellations from the game (which caused
+  5-second false timeouts or rows stuck on "Cancelling..." for 10 seconds), fixed multi-item Post
+  hanging 5 seconds when bag updates arrive before the final multisell event, fixed Post cache
+  misses claiming "None for sale", and stopped gear buyouts from filling the Bids tab's saved bid
+  ID list.
+- Timed-out refreshes no longer wipe Search commodity rows, delete unopened fast rows, or falsely
+  mark Sniper deals as "Sold before you could buy it".
+- Added scan priority rules so background refreshes and watch rounds never cancel an active user
+  search or Full scan.
+- Fixed the Buy bar ignoring chip clicks while Confirm or Buying is active, anchoring the Quantity
+  box next to the last shown chip on small-stack items, updating immediately on purchase events,
+  and ignoring Enter in an emptied Quantity box.
+- Fixed the Waylaid Crate detector caching Equip and Chance-on-hit gear instead of re-scanning
+  their tooltips on every hover.
+
 ## 0.8.2.2 (2026-11-20)
 
 Buying fixes, a faster Sniper and Live, gamepad item comparison and Full scan feedback polish from

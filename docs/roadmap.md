@@ -103,6 +103,35 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
     off by default (FB-062, rokstar8872 and deep_structure).
 - **Candidate (not decided by Tyler):** a controller button to search (FB-053; first an experiment:
   can an addon bind the triggers).
+- **2026-11-21 code audit foundation (built first in 0.9 before Phase 2+ features):** fix high-impact
+  bugs (Sniper multi-version K^2 requests, Search split gear-ending rows, Sniper bought message
+  wipe, synchronous Buy/Post/Cancel events, timeout wipes, `sync_bucket` close/throttle leak, crate
+  caching on Equip/proc gear), add scan priority coordinator and unified Post state machine, add
+  the 7 missing tooltip stack-count getters, and adopt `SendSellSearchQuery` / `SearchForItemKeys`
+  once confirmed in game (experiments E9 and E10).
+
+## 0.10: final beta (deep performance, polish, and 1.0 readiness; agreed with Tyler 2026-11-21)
+
+- **Full scan speed and memory pass:** direct history serializer/parser replacing generic
+  `persistence.read`/`write` on the hot path, skip per-auction `process_price` during Full scans,
+  skip `GetReplicateItemLink` on non-gear, and share the sorted price array with Sniper.
+- **Zero-cost idle UI and combat/background cleanup:** dirty-flag Search results summary and cached
+  `GetSelection()`, dirty-flag Post validation and skip bag tooltip scans when the AH is open,
+  skip empty midnight rollovers in `core/history.lua`, table-chain `libs/package.lua` `__index`,
+  unregister `GLOBAL_MOUSE_DOWN` on hidden popups, bucket event dispatch in `control.lua`, cache
+  gamepad popup lookup, and compact the 30,000-entry SavedVariables item cache.
+- **Remaining Tier 2 polish fixes:** vendor scan `hasExtendedCost`/0c guard, `gui/listing.lua` stale
+  rows on shortened scrolled lists, `gui/core.lua` unfocused right-click `block_focus`, `color.lua`
+  `|cFF` alpha byte, slash commands refreshing Settings, tab lookup by name instead of index,
+  Auctions tab `"Sold, money in the mail"` text, and splitting the monolithic `tests/load_test.lua`.
+- **Settle remaining Forever AH unknowns** (especially E1: exact 5% cut and sale mail delay; E4:
+  expired auction deposit).
+
+## 1.0: exit beta (agreed with Tyler 2026-11-21)
+
+- Bug fixes only from 0.10 testing, update `.github/workflows/release.yml` and
+  `.github/scripts/curseforge.sh` from prerelease/beta to full release, refresh CurseForge page
+  copy and screenshots, and ship 1.0.
 
 ## Future ideas (outside auxForever)
 

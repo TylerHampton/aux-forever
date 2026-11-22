@@ -232,12 +232,15 @@ do
 			UIErrorsFrame:AddExternalErrorMessage(ERR_NOT_ENOUGH_MONEY)
 			return
 		end
-		C_AuctionHouse.PlaceBid(auction_id, amount)
 		locked = true
 		local result
+		local purchased = false
 		local listeners = {
 			event_listener('AUCTION_HOUSE_PURCHASE_COMPLETED', function(id)
-				if id == auction_id then result = true end
+				if id == auction_id then
+					result = true
+					purchased = true
+				end
 			end),
 			event_listener('BID_ADDED', function()
 				result = true
@@ -248,12 +251,17 @@ do
 			event_listener('AUCTION_HOUSE_SHOW_ERROR', function(error)
 				result = result or error
 			end),
+			event_listener('AUCTION_HOUSE_THROTTLED_MESSAGE_DROPPED', function()
+				result = result or 'throttled'
+			end),
+			event_listener('AUCTION_HOUSE_CLOSED', function()
+				result = result or 'closed'
+			end),
 		}
-		coro_thread(function()
-			local t0 = GetTime()
-			while result == nil and GetTime() - t0 < 5 do
-				coro_wait()
-			end
+		-- 0.9: register listeners and lock before calling PlaceBid so synchronous errors or
+		-- completions are captured instead of hanging 5s for a timeout.
+		C_AuctionHouse.PlaceBid(auction_id, amount)
+		local function finish()
 			for _, listener_id in ipairs(listeners) do
 				kill_listener(listener_id)
 			end
@@ -265,14 +273,29 @@ do
 				print('No answer from the auction house yet. The purchase may still go through: check your mail before buying again.')
 			end
 			if result == true then
-				tinsert(character_data.bid_auction_ids, auction_id)
-				while #character_data.bid_auction_ids > 200 do
-					tremove(character_data.bid_auction_ids, 1)
+				-- 0.9: only real bids belong in bid_auction_ids; gear buyouts end immediately and
+				-- used to push active bids out of the 200-entry list.
+				if not purchased then
+					tinsert(character_data.bid_auction_ids, auction_id)
+					while #character_data.bid_auction_ids > 200 do
+						tremove(character_data.bid_auction_ids, 1)
+					end
 				end
 				do (on_success or pass)() end
 			else
 				do (on_failure or pass)(result) end
 			end
+		end
+		if result ~= nil then
+			finish()
+			return
+		end
+		coro_thread(function()
+			local t0 = GetTime()
+			while result == nil and GetTime() - t0 < 5 do
+				coro_wait()
+			end
+			finish()
 		end)
 	end
 end

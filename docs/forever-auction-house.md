@@ -347,3 +347,17 @@ page once carried them as build id `ah-facts-1`.
   back read the late, empty answer as the new item's and said "None for sale". Same test in game:
   post an item, and right away pick a different one in the bag list.
 - **E8 Copper prices on gear (FB-044).** Settled 2026-11-16: gear takes copper prices (section 2).
+- **E9 `SendSellSearchQuery` for gear (2026-11-21, [Code]).** Blizzard's Sell window zeroes
+  `itemLevel` and `itemSuffix` on a gear item key and calls `C_AuctionHouse.SendSellSearchQuery`
+  (`Blizzard_AuctionHouseUtil.lua`, `Blizzard_AuctionHouseItemSellFrame.lua`), returning all
+  versions of that item ID in 1 request (read via the usual `GetNumItemSearchResults` /
+  `GetItemSearchResultInfo`). Not yet tested in game from aux: confirm it returns all endings in
+  one call on Forever and whether its returned `auctionID`s can be passed to `PlaceBid`.
+- **E10 `SearchForItemKeys` batch browse (2026-11-21, [Code]).** `C_AuctionHouse.SearchForItemKeys(itemKeys, sorts)`
+  is documented on Forever (`AuctionHouseDocumentation.lua`). Not yet tested in game: confirm it
+  returns browse rows for a list of item keys in 1 request, and whether there is a key-count limit.
+- **Note on Blizzard's invisible `AuctionHouseFrame:OnShow` ([Code], 2026-11-21):** when a player
+  has Blizzard AH favorites, opening the AH triggers `C_AuctionHouse.SearchForFavorites(sorts)`
+  (`Blizzard_AuctionHouseFrame.lua:398-400`), using a throttle slot and firing
+  `AUCTION_HOUSE_BROWSE_RESULTS_UPDATED` right at `AUCTION_HOUSE_SHOW`. Keep in mind for Auto Full
+  Scan (FB-032) and initial searches.

@@ -291,8 +291,23 @@ end
 
 -- Open one item (inside the round) and keep its cheapest auction when it is a deal. price: its
 -- lowest price on the list, which counts as judged once the item is open.
-function check_item(item_key, key, price, other_keys)
-    local records = scan.read_item(item_key)
+-- 0.9: round_reads caches each version read during the round so K versions of the same gear ending
+-- take K requests instead of K*K.
+function check_item(item_key, key, price, other_keys, round_reads)
+    local function read_cached(ik)
+        if not round_reads then
+            return scan.read_item(ik)
+        end
+        local k = scan.item_key_string(ik)
+        local cached = round_reads[k]
+        if cached ~= nil then
+            return cached or nil
+        end
+        local recs = scan.read_item(ik)
+        round_reads[k] = recs or false
+        return recs
+    end
+    local records = read_cached(item_key)
     if not records then
         known[key] = nil -- no answer: try again next round
         return
@@ -306,7 +321,16 @@ function check_item(item_key, key, price, other_keys)
         listed = {}
         for _, record in ipairs(records) do tinsert(listed, record) end
         for _, other_key in ipairs(other_keys) do
-            for _, record in ipairs(scan.read_item(other_key) or empty) do
+            if scan.is_throttled() then
+                known[key] = nil
+                return
+            end
+            local other_records = read_cached(other_key)
+            if scan.is_throttled() then
+                known[key] = nil
+                return
+            end
+            for _, record in ipairs(other_records or empty) do
                 tinsert(listed, record)
             end
         end
@@ -514,11 +538,15 @@ function check_list(results, seen)
     -- each one is a request (and one per other version of a gear name): shown as "checking 12
     -- possible deals (3 done)" while it runs
     checking = {done = 0, total = #candidates}
+    local round_reads = {}
     for i, result in ipairs(candidates) do
+        if scan.is_throttled() then
+            break
+        end
         local key = scan.item_key_string(result.itemKey)
         -- selected while the round opened the ones before it
         if key ~= selected_live_key() then
-            check_item(result.itemKey, key, result.minPrice, other_versions(result, candidate_keys[i]))
+            check_item(result.itemKey, key, result.minPrice, other_versions(result, candidate_keys[i]), round_reads)
         end
         checking.done = checking.done + 1
     end
@@ -561,6 +589,7 @@ function start_round()
     local got_list
     scan.start{
         type = 'list',
+        priority = scan.PRIORITY_WATCH,
         quiet = true,
         -- 0.8.2.2 (FB-055, Tyler): common quality and up. Gray items are never a deal (item_facts),
         -- and leaving them out of the item list makes every round shorter by their share of it (the
@@ -820,7 +849,7 @@ local function refresh_deal(record)
                 tinsert(fresh, auction)
             end
         end,
-        on_complete = function()
+        on_complete = function(result)
             if refreshing ~= record then return end
             refreshing = nil
             if record.commodity then
@@ -873,6 +902,13 @@ local function refresh_deal(record)
                     return
                 end
             end
+            -- 0.9: a timed-out or throttled read did not prove the deal sold; leave it clickable
+            if not scan.saw_everything(result) then
+                if checked == record then
+                    buy_bar.show_note(record.name, 'The auction house did not answer in time. Click the row to try again.', aux.color.red)
+                end
+                return
+            end
             set_gone(record)
             if checked == record then
                 buy_bar.show_note(record.name, 'Sold before you could buy it', aux.color.red)
@@ -885,6 +921,8 @@ local function refresh_deal(record)
         end,
     }
 end
+
+local keep_bought_message
 
 function show_deal(record)
     if record.deal_gone then
@@ -923,6 +961,7 @@ function show_commodity_bar(record)
                     record.deal_bought = true
                     set_gone(record)
                     if checked == record then
+                        keep_bought_message = true
                         listing:SetSelectedRecord()
                     end
                 end
@@ -954,8 +993,9 @@ function show_item_bar(record)
                     known[record.deal_key] = nil
                     set_gone(record)
                     update_deals()
-                    -- bought: the rounds go on
+                    -- bought: the rounds go on, without wiping the green "Bought ..." message
                     if checked == record then
+                        keep_bought_message = true
                         listing:SetSelectedRecord()
                     end
                 end, function(error)
@@ -1006,6 +1046,7 @@ end
 function update_selection()
     local selection = listing:GetSelection()
     if selection and selection.record ~= checked then
+        keep_bought_message = nil
         checked = selection.record
         pin_rows(checked)
         show_deal(checked)
@@ -1013,7 +1054,12 @@ function update_selection()
         checked = nil
         pin_rows()
         deals_changed = true
-        buy_bar.clear()
+        if keep_bought_message then
+            keep_bought_message = nil
+            buy_bar.clear_keeping_message()
+        else
+            buy_bar.clear()
+        end
     end
 end
 

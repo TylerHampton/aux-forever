@@ -449,16 +449,25 @@ function M.set_tooltip(itemstring, owner, anchor)
     GameTooltip:SetHyperlink(itemstring)
 end
 
+local TOOLTIP_SIDES = {'Left', 'Right'}
+
 function M.tooltip_match(entry, tooltip)
+    if type(entry) ~= 'string' then
+        return false
+    end
+    local target = strupper(entry)
     return aux.any(tooltip, function(text)
-        return strupper(entry) == strupper(text)
+        return type(text) == 'string' and target == strupper(text)
     end)
 end
 
 function M.tooltip_find(pattern, tooltip)
+    if type(pattern) ~= 'string' then
+        return 0
+    end
     local count = 0
     for _, entry in pairs(tooltip) do
-        if strfind(entry, pattern) then
+        if type(entry) == 'string' and strfind(entry, pattern) then
             count = count + 1
         end
     end
@@ -485,7 +494,7 @@ function M.auctionable(tooltip, quality)
             and status ~= ITEM_BIND_ON_PICKUP
             and status ~= ITEM_BIND_QUEST
             and status ~= ITEM_SOULBOUND
-            and (not tooltip_match(ITEM_CONJURED, tooltip) or tooltip_find(ITEM_MIN_LEVEL, tooltip) > 1)
+            and (not ITEM_CONJURED or not tooltip_match(ITEM_CONJURED, tooltip) or (ITEM_MIN_LEVEL ~= nil and tooltip_find(ITEM_MIN_LEVEL, tooltip) > 1))
 end
 
 function M.tooltip(setter, arg1, arg2)
@@ -506,10 +515,11 @@ function M.tooltip(setter, arg1, arg2)
         end
     end
     local tooltip = {}
-    for i = 1, AuxTooltip:NumLines() do
-        for side in aux.iter('Left', 'Right') do
-            local text = _G['AuxTooltipText' .. side .. i]:GetText()
-            if text then
+    for i = 1, AuxTooltip:NumLines() or 0 do
+        for _, side in ipairs(TOOLTIP_SIDES) do
+            local line = _G['AuxTooltipText' .. side .. i]
+            local text = line and line:GetText()
+            if type(text) == 'string' and not (issecretvalue and issecretvalue(text)) then
                 tinsert(tooltip, text)
             end
         end

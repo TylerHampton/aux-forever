@@ -1402,4 +1402,194 @@ return function(env)
     aux.set_tab(1)
     server:restore()
   end)
+
+  -- 0.9 build 1: Forever's AH throttle can freeze (IsThrottledMessageSystemReady stuck false,
+  -- Seen 2026-11-20). wait_throttle times out cleanly with a message instead of hanging forever.
+  try('timing: 0.9 wait_throttle timeout ends scan cleanly instead of hanging', function()
+    local server = new_server(env)
+    local scan = loadstring("select(2, ...) 'aux.test.t_throttle'; return require 'aux.core.scan'")('auxForever', addon)
+    local post = module 'aux.tabs.post'
+    server.items[2835] = {name = 'Rough Stone', commodity = true, vendor = 1}
+    server.listings[2835] = {{price = 7, quantity = 10}}
+    server.bag = {{id = 2835, count = 5}}
+    server:install()
+    local real_ready = G.C_AuctionHouse.IsThrottledMessageSystemReady
+    rawset(G.C_AuctionHouse, 'IsThrottledMessageSystemReady', function() return false end)
+    local orig_timeout = scan.THROTTLE_TIMEOUT
+    local scan_mod = module 'aux.core.scan'
+    scan_mod.THROTTLE_TIMEOUT = 1
+    local printed, real_print = {}, aux.print
+    rawset(aux, 'print', function(msg) tinsert(printed, tostring(msg)) end)
+    local got_result
+    scan.start{
+      type = 'list',
+      queries = {{blizzard_query = {name = 'rough stone'}}},
+      on_complete = function(r) got_result = r end,
+    }
+    check('0.9 throttle: scan finishes after THROTTLE_TIMEOUT', server:wait(function() return got_result ~= nil end, 30))
+    check('0.9 throttle: result marks throttled and saw_everything is false', got_result and got_result.throttled == true and not scan.saw_everything(got_result))
+    local saw_msg = false
+    for _, line in ipairs(printed) do
+      if line == scan.THROTTLE_TEXT then saw_msg = true end
+    end
+    check('0.9 throttle: clear chat message printed', saw_msg)
+    rawset(aux, 'print', real_print)
+    scan_mod.THROTTLE_TIMEOUT = orig_timeout
+    rawset(G.C_AuctionHouse, 'IsThrottledMessageSystemReady', real_ready)
+    server:restore()
+  end)
+
+  -- 0.9 build 1: sync_bucket stops when the AH closes and times out if the throttle freezes
+  try('timing: 0.9 sync_bucket stops on AH close and throttle freeze', function()
+    local server = new_server(env)
+    local search = module 'aux.tabs.search'
+    local scan_mod = module 'aux.core.scan'
+    local bar = module 'aux.gui.buy_bar'
+    server.items[7010] = {name = 'Bucket Sword', commodity = false, vendor = 100}
+    server.listings[7010] = {{price = 500, quantity = 1}, {price = 500, quantity = 1}}
+    server:install()
+    aux.set_tab(1)
+    search.frame:Show()
+    search.update_mode(search.NORMAL_MODE)
+    local was_full = aux.account_data.full_search
+    search.set_full_search(true)
+    search.search_box:SetText('bucket sword')
+    search.execute(nil, false)
+    local s = search.current_search()
+    check('0.9 sync_bucket: search finds bucket sword', server:wait(function() return s.complete end, 100) and #s.records >= 1)
+    local rec = s.records[1]
+    rec.auction_count = 2
+    s.table:SetSelectedRecord(rec)
+    server:ticks(5)
+    -- Prevent cached bucket hit so sync_bucket enters its 1.5s wait + SendSearchQuery fallback
+    local sent_after_close = 0
+    local real_send = G.C_AuctionHouse.SendSearchQuery
+    local real_num = G.C_AuctionHouse.GetNumItemSearchResults
+    rawset(G.C_AuctionHouse, 'GetNumItemSearchResults', function() return 0 end)
+    rawset(G.C_AuctionHouse, 'SendSearchQuery', function(...)
+      sent_after_close = sent_after_close + 1
+      return real_send(...)
+    end)
+    -- Buy one, wait for purchase completion, then immediately close AH before 1.5s sync fallback
+    local prev_confirm = aux.account_data.buy_confirm
+    aux.account_data.buy_confirm = false
+    bar.primary_click()
+    check('0.9 sync_bucket: purchase lands and syncing starts', server:wait(function() return rec.syncing == true end, 50))
+    sent_after_close = 0
+    env.fire('AUCTION_HOUSE_CLOSED')
+    server:ticks(30)
+    check('0.9 sync_bucket: AH close clears syncing and sends no query after close', not rec.syncing and sent_after_close == 0)
+    -- Now test throttle freeze during sync_bucket
+    env.fire('AUCTION_HOUSE_SHOW')
+    aux.set_tab(1)
+    search.frame:Show()
+    rec.auction_count = 2
+    rec.auction_id = rec.auction_id + 100
+    local real_ready = G.C_AuctionHouse.IsThrottledMessageSystemReady
+    local real_bid = G.C_AuctionHouse.PlaceBid
+    local scan_exports = loadstring("select(2, ...) 'aux.test.t_sync'; return require 'aux.core.scan'")('auxForever', addon)
+    rawset(G.C_AuctionHouse, 'IsThrottledMessageSystemReady', function() return false end)
+    local orig_timeout = scan_mod.THROTTLE_TIMEOUT
+    scan_mod.THROTTLE_TIMEOUT = 1
+    rawset(scan_exports, 'THROTTLE_TIMEOUT', 1)
+    -- Trigger sync_bucket by running a second buy
+    rawset(G.C_AuctionHouse, 'PlaceBid', function(id) env.fire('AUCTION_HOUSE_PURCHASE_COMPLETED', id) end)
+    s.table:SetSelectedRecord()
+    server:ticks(1)
+    s.table:SetSelectedRecord(rec)
+    server:ticks(5) -- clear buy hold and show bar
+    bar.primary_click()
+    check('0.9 sync_bucket throttle: syncing starts', rec.syncing == true)
+    check('0.9 sync_bucket throttle: clears syncing after throttle timeout without calling SendSearchQuery',
+      server:wait(function() return not rec.syncing end, 60) and sent_after_close == 0)
+    scan_mod.THROTTLE_TIMEOUT = orig_timeout
+    rawset(scan_exports, 'THROTTLE_TIMEOUT', orig_timeout)
+    rawset(G.C_AuctionHouse, 'IsThrottledMessageSystemReady', real_ready)
+    rawset(G.C_AuctionHouse, 'GetNumItemSearchResults', real_num)
+    rawset(G.C_AuctionHouse, 'SendSearchQuery', real_send)
+    rawset(G.C_AuctionHouse, 'PlaceBid', real_bid)
+    aux.account_data.buy_confirm = prev_confirm
+    search.set_full_search(was_full)
+    s.records = {}
+    s.table:SetDatabase({})
+    bar.clear()
+    search.frame:Hide()
+    server:restore()
+  end)
+
+  -- 0.9 build 1: timed-out refresh_commodity, fast open_item, and Sniper refresh_deal keep rows intact
+  try('timing: 0.9 scan timeouts do not wipe Search rows or mark Sniper deals Sold', function()
+    local server = new_server(env)
+    local search = module 'aux.tabs.search'
+    local sniper = module 'aux.tabs.sniper'
+    local scan_mod = module 'aux.core.scan'
+    local scan_exports = loadstring("select(2, ...) 'aux.test.t_to'; return require 'aux.core.scan'")('auxForever', addon)
+    local bar = module 'aux.gui.buy_bar'
+    local al = module 'aux.gui.auction_listing'
+    server.items[2835] = {name = 'Rough Stone', commodity = true, vendor = 1000}
+    server.listings[2835] = {{price = 10, quantity = 20}}
+    server:install()
+    local orig_timeout = scan_mod.THROTTLE_TIMEOUT
+    scan_mod.THROTTLE_TIMEOUT = 0.5
+    rawset(scan_exports, 'THROTTLE_TIMEOUT', 0.5)
+    -- Freeze throttle so every read fails with result.throttled = true
+    local real_ready = G.C_AuctionHouse.IsThrottledMessageSystemReady
+    rawset(G.C_AuctionHouse, 'IsThrottledMessageSystemReady', function() return false end)
+
+    -- 1. Fast open_item timeout keeps fast row instead of deleting it and saying "Nothing left to buy"
+    aux.set_tab(1)
+    search.frame:Show()
+    local s = search.current_search()
+    local fast_rec = {
+      fast = true, item_id = 2835, suffix_id = 0, item_key = '2835:0', price_key = '2835:0',
+      name = 'Rough Stone', link = '[Rough Stone]', buyout_price = 10, unit_buyout_price = 10, bid_price = 10, count = 20,
+      auction_count = 1, duration = 3, search_signature = '2835:0:fast',
+      browse_key = {itemID = 2835, itemLevel = 0, itemSuffix = 0, battlePetSpeciesID = 0},
+    }
+    fast_rec.price_group = al.price_group(fast_rec)
+    s.records = {fast_rec}
+    s.table:SetDatabase(s.records)
+    search.open_item(s, fast_rec)
+    server:ticks(20)
+    check('0.9 timeout open_item: fast row kept intact', #s.records == 1 and s.records[1] == fast_rec)
+    check('0.9 timeout open_item: open flag cleared for retry', not (s.open and s.open['2835:0']))
+    local _, l2 = bar.lines()
+    check('0.9 timeout open_item: shows retry message, not sold', (l2 or ''):find('try again', 1, true) ~= nil)
+
+    -- 2. Sniper refresh_deal timeout keeps deal clickable instead of marking deal_gone / Sold
+    aux.set_tab(2)
+    local deal = {
+      item_id = 2835, suffix_id = 0, item_key = '2835:0', price_key = '2835:0', deal_key = '2835:0',
+      name = 'Rough Stone', link = '[Rough Stone]', texture = 'icon', quality = 1, commodity = true,
+      buyout_price = 10, unit_buyout_price = 10, commodity_unit_price = 10, bid_price = 10,
+      vendor_price = 1000, count = 20, auction_count = 1, duration = 3, search_signature = '2835:0:deal',
+      deal_item_key = {itemID = 2835, itemLevel = 0, itemSuffix = 0, battlePetSpeciesID = 0},
+      deal_read_at = 0, deal_profit = 500, deal_percent = 20, deal_reason = 'below usual', deal_found = G.GetTime(),
+    }
+    deal.price_group = al.price_group(deal)
+    sniper.clear_deals()
+    tinsert(sniper.deals, deal)
+    sniper.listing:SetDatabase(sniper.deals)
+    sniper.listing:SetSelectedRecord(deal)
+    sniper.update_selection()
+    server:ticks(20)
+    check('0.9 timeout refresh_deal: deal is NOT marked gone', not deal.deal_gone)
+    local _, sl2 = bar.lines()
+    check('0.9 timeout refresh_deal: bar asks to try again instead of Sold', (sl2 or ''):find('try again', 1, true) ~= nil)
+
+    sniper.listing:SetSelectedRecord()
+    sniper.update_selection()
+    sniper.clear_deals()
+    sniper.listing:SetDatabase({})
+    s.records = {}
+    s.table:SetDatabase({})
+    bar.clear()
+    scan_exports.abort()
+    scan_mod.THROTTLE_TIMEOUT = orig_timeout
+    rawset(scan_exports, 'THROTTLE_TIMEOUT', orig_timeout)
+    rawset(G.C_AuctionHouse, 'IsThrottledMessageSystemReady', real_ready)
+    search.frame:Hide()
+    aux.set_tab(1)
+    server:restore()
+  end)
 end
