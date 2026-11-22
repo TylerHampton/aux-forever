@@ -648,6 +648,77 @@ function M.bid_click()
     update()
 end
 
+function M.cancel_click()
+    if cancel_button and cancel_button:IsShown() and cancel_button:IsEnabled() then
+        reset({'Cancelled', 'Nothing was bought'}, aux.color.label.enabled)
+        update()
+        return true
+    end
+    return false
+end
+
+-- 0.9 (FB-063, khorrs): keybinds registered in auxForever/Bindings.xml (Options > Keybindings >
+-- auxForever). Acts on whichever buy bar (Search or Sniper) is visible while aux is open, ignores
+-- presses while typing in an edit box, and keeps Buy and Confirm separate so mashing Buy never
+-- accidentally confirms when "Confirm before buying" is on.
+_G.BINDING_HEADER_AUXFOREVER = 'auxForever'
+_G.BINDING_NAME_AUXFOREVER_BUY = 'Buy'
+_G.BINDING_NAME_AUXFOREVER_CONFIRM = 'Confirm purchase'
+_G.BINDING_NAME_AUXFOREVER_CANCEL = 'Cancel / decline purchase'
+_G.BINDING_NAME_AUXFOREVER_BUY_OR_CONFIRM = 'Buy or confirm'
+
+local function binding_bar_active()
+    if not (aux.frame and aux.frame:IsShown() and bar and bar:IsVisible()) then
+        return false
+    end
+    local p = bar:GetParent()
+    while p and p ~= aux.frame do
+        if p.IsShown and not p:IsShown() then
+            return false
+        end
+        p = p.GetParent and p:GetParent()
+    end
+    if GetCurrentKeyBoardFocus and GetCurrentKeyBoardFocus() then
+        return false
+    end
+    return true
+end
+
+function M.run_binding(action)
+    if not binding_bar_active() then
+        return false
+    end
+    if action == 'cancel' then
+        return cancel_click()
+    end
+    if not (primary_button and primary_button:IsShown() and primary_button:IsEnabled()) then
+        return false
+    end
+    local in_confirm = (mode == COMMODITY and state == QUOTED) or (mode == ITEM and item_confirm ~= nil)
+    if action == 'buy' then
+        if in_confirm then
+            return false
+        end
+        if (mode == COMMODITY and state == IDLE) or (mode == ITEM and not item_confirm) then
+            primary_click()
+            return true
+        end
+    elseif action == 'confirm' then
+        if in_confirm then
+            primary_click()
+            return true
+        end
+    elseif action == 'buy_or_confirm' then
+        primary_click()
+        return true
+    end
+    return false
+end
+
+_G.AuxForever_RunBinding = function(action)
+    return run_binding(action)
+end
+
 function M.primary_label()
     return primary_button:GetText()
 end

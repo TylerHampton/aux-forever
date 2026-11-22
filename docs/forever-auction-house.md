@@ -349,13 +349,15 @@ page once carried them as build id `ah-facts-1`.
 - **E8 Copper prices on gear (FB-044).** Settled 2026-11-16: gear takes copper prices (section 2).
 - **E9 `SendSellSearchQuery` for gear (2026-11-21, [Code]).** Blizzard's Sell window zeroes
   `itemLevel` and `itemSuffix` on a gear item key and calls `C_AuctionHouse.SendSellSearchQuery`
-  (`Blizzard_AuctionHouseUtil.lua`, `Blizzard_AuctionHouseItemSellFrame.lua`), returning all
-  versions of that item ID in 1 request (read via the usual `GetNumItemSearchResults` /
-  `GetItemSearchResultInfo`). Not yet tested in game from aux: confirm it returns all endings in
-  one call on Forever and whether its returned `auctionID`s can be passed to `PlaceBid`.
+  (`Blizzard_AuctionHouseUtil.lua`, `Blizzard_AuctionHouseItemSellFrame.lua`, passing
+  `separateOwnerItems = false`), returning all versions of that item ID in 1 request (read via the
+  usual `GetNumItemSearchResults` / `GetItemSearchResultInfo`). First try on 2026-11-21 printed
+  `E9: 0 nil nil` while a Full scan and Sniper were active; inconclusive, remains **[Unknown]**
+  until re-tested idle with throttle and item ID diagnostics (0.9 build 2).
 - **E10 `SearchForItemKeys` batch browse (2026-11-21, [Code]).** `C_AuctionHouse.SearchForItemKeys(itemKeys, sorts)`
-  is documented on Forever (`AuctionHouseDocumentation.lua`). Not yet tested in game: confirm it
-  returns browse rows for a list of item keys in 1 request, and whether there is a key-count limit.
+  is documented on Forever (`AuctionHouseDocumentation.lua`). First try on 2026-11-21 printed
+  `E10: 0 nil nil nil nil` while a Full scan and Sniper were active; inconclusive, remains
+  **[Unknown]** until re-tested idle with throttle diagnostics (0.9 build 2).
 - **Note on Blizzard's invisible `AuctionHouseFrame:OnShow` ([Code], 2026-11-21):** when a player
   has Blizzard AH favorites, opening the AH triggers `C_AuctionHouse.SearchForFavorites(sorts)`
   (`Blizzard_AuctionHouseFrame.lua:398-400`), using a throttle slot and firing

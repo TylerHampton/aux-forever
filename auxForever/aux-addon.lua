@@ -94,6 +94,8 @@ TOOLTIP_DEFAULTS = {
     value = true,
     usually = true,
     crate = true, -- 0.8.2.1 build 7 (FB-041): the Waylaid Crate lines, now with a switch
+    -- 0.9 (FB-058, jebbush; Tyler): full stack by default, hold Shift for 1 item
+    stack = true,
     merchant_sell = true,
     merchant_buy = false,
     daily = false,
@@ -125,6 +127,10 @@ function event.AUX_LOADED()
         post_undercut = false,
         -- auxForever (0.8.2.2, FB-049): a second click on Confirm before anything is bought
         buy_confirm = false,
+        -- 0.9: Phase 1 switches (FB-061, FB-062, FB-032)
+        crafting_cost = true,
+        right_click_post = false,
+        auto_full_scan = false,
         full_search = false,
         sniper_percent = 60,
         sniper_profit = 500,
@@ -189,6 +195,14 @@ function M.tab(name)
 	}
 	tinsert(tab_info, tab)
 	return setmetatable({}, {__metatable=false, __newindex=function(_, k, v) tab_event[k](v) end})
+end
+
+function M.tab_index_by_name(name)
+	for i, tab in ipairs(tab_info) do
+		if tab.name == name then
+			return i
+		end
+	end
 end
 
 do
@@ -447,6 +461,11 @@ function AUCTION_HOUSE_SHOW()
     post.set_undercut_mode(false)
     query_owned_auctions()
     query_bids()
+    -- 0.9 (FB-032, Chawitsch): optional automatic Full scan when the auction house opens.
+    -- Quietly skipped if the 15-minute cooldown or another scan is already active.
+    if account_data.auto_full_scan and start_full_scan then
+        start_full_scan(true)
+    end
 end
 
 function M.query_owned_auctions()

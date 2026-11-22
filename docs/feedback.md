@@ -138,7 +138,7 @@ For whoever fixes or builds from it:
 | [FB-029](#fb-029-price-gear-with-a-random-ending-of-the-eagle-of-the-bear-separately) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Other | n/a | Price gear with a random ending ("of the Eagle", "of the Bear") separately | built 0.8 (released 2026-11-08) |
 | [FB-030](#fb-030-how-the--of-historical-value-works-keep-more-price-history) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | question | Other | n/a | How the % of historical value works; keep more price history | new |
 | [FB-031](#fb-031-posting-rules-based-on-historical-value-like-tsm) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Post | n/a | Posting rules based on historical value, like TSM | planned 0.9 |
-| [FB-032](#fb-032-start-a-full-scan-when-the-window-opens-if-the-15-minute-wait-is-over) | 2026-11-08 | Chawitsch | request | Settings | n/a | Start a full scan when the window opens, if the 15 minute wait is over | planned 0.9 (Tyler: option, off by default) |
+| [FB-032](#fb-032-start-a-full-scan-when-the-window-opens-if-the-15-minute-wait-is-over) | 2026-11-08 | Chawitsch | request | Settings | n/a | Start a full scan when the window opens, if the 15 minute wait is over | built 0.9 (build 2, gemini/0.9) |
 | [FB-033](#fb-033-tooltip-prices-for-the-whole-stack-not-one-item) | 2026-11-08 | Chawitsch | ux | Other | n/a | Tooltip prices for the whole stack, not one item | wont-fix (Tyler: no Shift instructions in tooltips; Shift already works) |
 | [FB-034](#fb-034-opening-aux-moves-blizzards-professions-window-to-the-right) | 2026-11-08 | Chawitsch | bug | Window | S3 | Opening aux moves Blizzard's Professions window to the right | fixed 0.8.1 (released 2026-11-09) |
 | [FB-035](#fb-035-a-setting-to-hide-the-usually-price-line-in-tooltips) | 2026-11-09 | deep_structure | request | Settings | n/a | A setting to hide the "usually" price line in tooltips | built 0.8.2 (released 2026-11-09) |
@@ -164,12 +164,12 @@ For whoever fixes or builds from it:
 | [FB-055](#fb-055-too-slow-to-keep-up-with-quickly-changing-prices-and-snipe-undercuts) | 2026-11-17 | khorrs; Tyler | ux | Sniper | n/a | Too slow to keep up with quickly changing prices and snipe undercuts | built 0.8.2.2 (released 2026-11-20; narrower Sniper planned 0.9) |
 | [FB-056](#fb-056-many-lua-errors-warning-during-a-dungeon-possibly-on-conjured-water) | 2026-11-20 | user_kc0ds7pqedmptpep | bug | Other | S1 | Many Lua errors warning during a dungeon, possibly when conjured water was created | fixed 0.9 (build 1, gemini/0.9) |
 | [FB-057](#fb-057-settings-interface-accessible-outside-the-auction-house-options--addons) | 2026-11-20 | LLanwrst, jebbush | request | Settings | n/a | Settings interface accessible outside the auction house (Options > AddOns) | planned 0.9 (mockup first) |
-| [FB-058](#fb-058-toggle-to-show-tooltip-prices-for-the-whole-stack-by-default) | 2026-11-20 | jebbush | request | Settings | n/a | Toggle to show tooltip prices for the whole stack by default (flipping Shift) | planned 0.9 |
+| [FB-058](#fb-058-toggle-to-show-tooltip-prices-for-the-whole-stack-by-default) | 2026-11-20 | jebbush | request | Settings | n/a | Toggle to show tooltip prices for the whole stack by default (flipping Shift) | built 0.9 (build 2, gemini/0.9) |
 | [FB-059](#fb-059-show-how-much-merchants-favor-a-waylaid-crate-offers) | 2026-11-20 | sarrathsilentstrider | request | Other | n/a | Show how much Merchant's Favor a Waylaid Crate offers in its tooltip | planned 0.9 (with FB-042; mockup first) |
 | [FB-060](#fb-060-show-best-items-to-farm-like-goldscout) | 2026-11-20 | XtreamCoder | request | Other | n/a | Show best items to farm, like GoldScout | wont-fix (not in auxForever; potential separate optional-dependency addon later) |
-| [FB-061](#fb-061-toggle-to-hide-the-materials-and-profit-line-in-the-professions-window) | 2026-11-20 | LLanwrst | request | Recipe search | n/a | Toggle to hide the Materials and profit line in the Professions window | planned 0.9 |
-| [FB-062](#fb-062-option-for-right-clicking-a-bag-item-to-always-open-the-post-tab) | 2026-11-20 | rokstar8872, deep_structure | request | Post | n/a | Option for right-clicking a bag item to always open the Post tab (like default AH) | planned 0.9 |
-| [FB-063](#fb-063-keybinds-for-buying-confirming-and-declining) | 2026-11-20 | khorrs | request | Buy bar | n/a | Keybinds for buying, confirming and declining | planned 0.9 |
+| [FB-061](#fb-061-toggle-to-hide-the-materials-and-profit-line-in-the-professions-window) | 2026-11-20 | LLanwrst | request | Recipe search | n/a | Toggle to hide the Materials and profit line in the Professions window | built 0.9 (build 2, gemini/0.9) |
+| [FB-062](#fb-062-option-for-right-clicking-a-bag-item-to-always-open-the-post-tab) | 2026-11-20 | rokstar8872, deep_structure | request | Post | n/a | Option for right-clicking a bag item to always open the Post tab (like default AH) | built 0.9 (build 2, gemini/0.9) |
+| [FB-063](#fb-063-keybinds-for-buying-confirming-and-declining) | 2026-11-20 | khorrs | request | Buy bar | n/a | Keybinds for buying, confirming and declining | built 0.9 (build 2, gemini/0.9) |
 
 ## Players
 
@@ -1739,7 +1739,7 @@ FB-018.
 - Type: request
 - Area: Settings (Full scan)
 - Severity: n/a
-- Status: planned 0.9 (Tyler, in his reply: an option in Settings, off by default; version from the plan he approved 2026-11-08)
+- Status: built 0.9 (build 2, gemini/0.9, 2026-11-21)
 - Proposed: 0.9 (a new setting is a feature)
 
 Said:
@@ -2852,7 +2852,7 @@ Ask Tyler: decided (0.9, mockup first).
 - Type: request
 - Area: Settings (tooltips)
 - Severity: n/a
-- Status: planned 0.9 (Tyler, 2026-11-20: "Build into .9")
+- Status: built 0.9 (build 2, gemini/0.9, 2026-11-21)
 - Proposed: next patch (0.8.2.3) or 0.9; Tyler chose 0.9
 
 Said:
@@ -2967,7 +2967,7 @@ Ask Tyler: nothing (decided).
 - Type: request (also ux: turning off all tooltips did not hide it)
 - Area: Recipe search (profession window) / Settings
 - Severity: n/a
-- Status: planned 0.9 (Tyler, 2026-11-20: "Build into .9")
+- Status: built 0.9 (build 2, gemini/0.9, 2026-11-21)
 - Proposed: next patch (0.8.2.3) or 0.9; Tyler chose 0.9
 
 Said:
@@ -3003,7 +3003,7 @@ Ask Tyler: decided (0.9).
 - Type: request
 - Area: Post / Settings
 - Severity: n/a
-- Status: planned 0.9 (Tyler, 2026-11-20: "Love it, build into .9")
+- Status: built 0.9 (build 2, gemini/0.9, 2026-11-21)
 - Proposed: next patch (0.8.2.3) or 0.9; Tyler chose 0.9
 
 Said (rokstar8872):
@@ -3041,7 +3041,7 @@ Ask Tyler: decided (0.9).
 - Type: request
 - Area: Buy bar / Settings
 - Severity: n/a
-- Status: planned 0.9 (Tyler, 2026-11-20: "Build into .9")
+- Status: built 0.9 (build 2, gemini/0.9, 2026-11-21)
 - Proposed: 0.9 (new feature; fits with Sniper / fast-buying work)
 
 Said:

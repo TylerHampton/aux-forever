@@ -8,12 +8,38 @@ A change that comes from a player's feedback credits them by in-game name at the
 
 ## 0.9 (unreleased)
 
+### New options and keybinds
+
+- **Full-stack tooltip prices by default:** Vendor, Vendor Buy, Value, and Today lines now show
+  the price for the whole stack by default, and holding Shift shows the single-item price. Turn
+  off "Stack prices by default" in Settings (or `/aux tooltip stack off`) to restore the old
+  behavior. (suggested by jebbush)
+- **Keybinds for buying:** Added optional bindings under **Options > Keybindings > auxForever** for
+  **Buy**, **Confirm purchase**, **Cancel / decline purchase**, and **Buy or confirm**. Works on
+  the Search and Sniper buy bars, ignores presses while typing in an edit box, and keeps Buy and
+  Confirm separate so mashing Buy cannot accidentally confirm. (suggested by khorrs)
+- **Right-click bag item to sell:** Added a "Right-click bag to sell" toggle in Settings (and
+  `/aux right click post`, off by default) so right-clicking a bag item from any tab opens the Post
+  tab and loads it. Shift-click and Alt-click stay tab-aware. (suggested by rokstar8872 and
+  deep_structure)
+- **Auto Full scan:** Added an "Auto Full scan" toggle in Settings (and `/aux auto scan`, off by
+  default) to start a background Full scan automatically when opening the auction house if the
+  15-minute cooldown is over. (suggested by Chawitsch)
+- **Hide Professions cost line:** Added a "Professions cost line" toggle in Settings (and
+  `/aux crafting cost`, on by default) to hide the Materials and Profit line in the Professions
+  window live with no `/reload`, while keeping the "Search in aux" button at the auction house.
+  (suggested by LLanwrst)
+- **Cleaner tooltip ages:** Removed the word `seen ` from item and Professions recipe tooltip age
+  labels (for example `today` or `1 day ago`).
+
 ### Reliability and bug fixes
 
 - Hardened item tooltips and tooltip scanning against Blizzard secret values, missing font strings,
   nil conjured-item globals, nil usual values in Today lines, and redundant `tooltip:Show()` calls
   inside post-calls during dungeons and combat. Also added stack-count readers for mail, guild
   bank, trade, and quest tooltips. (reported by user_kc0ds7pqedmptpep)
+- Fixed the Post tab receipt showing "Starting bids" and a leftover bid total when a trade good
+  has no valid buyout price typed yet.
 - Added a timeout when Forever's auction house throttle freezes (`IsThrottledMessageSystemReady`
   stuck false) so scans and post-buy bucket refreshes end cleanly with a chat message instead of
   hanging forever. Post-buy refreshes now also stop cleanly when the auction house closes.

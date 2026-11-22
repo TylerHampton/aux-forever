@@ -31,9 +31,13 @@ The shared guide for every AI agent on this project is AGENTS.md, loaded here:
   push also builds one on GitHub Actions (the run's "auxForever" artifact), which Tyler can
   download. Always say whether `/reload` is enough or a full game restart is needed (any new file).
 - **Testing with Tyler:** put the steps under "Current build" in `TESTING.md` (rules in `AGENTS.md`,
-  "Tests", and at the bottom of `TESTING.md`). Tyler answers in the chat with Pass or Fail per step,
-  notes and screenshots; write them under the build as "Results". Claude's claude.ai test page is
-  not available to you; its history is in `docs/test-results/test-page-results.md`.
+  "Tests", and at the bottom of `TESTING.md`), and also create an interactive side-pane HTML test
+  checklist artifact (Pass/Fail/Skip toggles, one-click Copy buttons for queries/`/run` commands,
+  per-step Ctrl+V screenshot pasting, and Copy results text + Copy/Download stitched screenshots
+  sheet buttons; Tyler, 2026-11-21: "testing against a block of text is not as neat"). Tyler pastes
+  the copied summary and stitched PNG back in chat; write his answers under the build as "Results".
+  Claude's claude.ai test page is not available to you; its history is in
+  `docs/test-results/test-page-results.md`.
 - Before starting: `git fetch origin '+refs/heads/*:refs/remotes/origin/*'` and `git pull` on the
   active branch (named in `docs/handoff.md`).
 - **"Check the handoff"** from Tyler means: pull the active branch named in `docs/handoff.md`, do

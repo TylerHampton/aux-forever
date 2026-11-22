@@ -139,22 +139,25 @@ function M.is_auctionable(item_id, item_info)
     return known
 end
 
--- auxForever (0.5): how fresh the usual price is, after Value: "  seen 3 days ago", gray, darker when
--- the newest price is a week old or more
+-- auxForever (0.5): how fresh the usual price is, after Value: "  3 days ago", gray, darker when
+-- the newest price is a week old or more (0.9, Tyler: "seen " removed)
 function M.age_suffix(age)
     local text = history.age_text(age)
     if not text then
         return ''
     end
     local color = age >= history.OLD_DAYS and aux.color.label.disabled or aux.color.label.enabled
-    return '  ' .. color('seen ' .. text)
+    return '  ' .. color(text)
 end
 
 function extend_tooltip(tooltip, link, quantity, data)
     local item_id, suffix_id = info.parse_link(link)
-    quantity = IsShiftKeyDown() and quantity or 1
-    -- auxForever (0.5): with Shift held the prices are for the whole stack; say so ("for 3"). In build
-    -- 1 a stack's Value read as a far too high price per item (Windows' screenshot keys hold Shift).
+    -- 0.9 (FB-058, jebbush; Tyler): full stack by default, hold Shift for 1 item (plain price).
+    -- Turning /aux tooltip stack off restores 1 item by default and Shift for the stack.
+    local stack_default = settings.stack ~= false
+    local show_stack = stack_default and not IsShiftKeyDown() or not stack_default and IsShiftKeyDown()
+    quantity = show_stack and quantity or 1
+    -- auxForever (0.5): whenever the prices are for a stack of more than 1, say so ("for 3").
     local per = quantity > 1 and ('  ' .. aux.color.label.enabled('for ' .. quantity)) or ''
     local item_info = info.item(item_id)
     -- auxForever: the disenchant table is only worked out when one of its lines is shown

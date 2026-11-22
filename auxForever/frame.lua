@@ -311,18 +311,21 @@ do
     -- this; if clicked while on cooldown, it says when the next one is allowed instead of silently
     -- doing nothing.
     M.full_scan_button = btn
-    function M.start_full_scan()
-        if scan.is_full_scan() then
+    function M.start_full_scan(auto)
+        if scan.is_full_scan() or (auto and scan.is_scanning()) then
             return
         end
         local seconds = seconds_until_scan()
         if seconds > 0 then
-            print(format('Full scan is available again in %d:%02d. The game allows one every 15 minutes.', floor(seconds / 60), seconds % 60))
+            if not auto then
+                print(format('Full scan is available again in %d:%02d. The game allows one every 15 minutes.', floor(seconds / 60), seconds % 60))
+            end
             return
         end
         local count, shown_percent = 0
         scan.start{
             type = 'list',
+            priority = auto and scan.PRIORITY_BACKGROUND or scan.PRIORITY_USER,
             queries = {{blizzard_query = {}}},
             get_all = true,
             on_scan_start = function()
@@ -398,8 +401,8 @@ do
     local popup = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
     gui.set_panel_style(popup)
     popup:SetFrameStrata('DIALOG')
-    -- 322: the tooltip column's rows (Usually added in 0.8.2) plus the padding
-    gui.set_size(popup, WIDTH, 358) -- 322 until the crate switch (build 7)
+    -- 404 normally (432 when Theme reload is waiting): fits all rows cleanly inside MIN_HEIGHT = 549
+    gui.set_size(popup, WIDTH, 404)
     popup:SetPoint('TOPRIGHT', btn, 'BOTTOMRIGHT', 0, -4)
     popup:EnableMouse(true)
     popup:Hide()
@@ -528,9 +531,9 @@ do
     reload_button:SetScript('OnClick', function() ReloadUI() end)
     M.look_buttons, M.reload_button, M.reload_note = look_buttons, reload_button, reload_note
 
-    -- left column: Posting and Buying. They move up when no reload is waiting (see refresh).
+    -- left column: Posting, Buying and General. Moves up when no reload is waiting (see refresh).
     local posting = CreateFrame('Frame', nil, popup)
-    gui.set_size(posting, COLUMN, 120)
+    gui.set_size(posting, COLUMN, 246)
     section(posting, 0, 0, 'POSTING')
     local length_row = row(posting, 0, -16, 30, 'Default duration',
         nil, {'How long new auctions last unless you pick another length on the Post tab.', '/aux post duration'})
@@ -541,13 +544,22 @@ do
         for i = 1, 3 do length_buttons[i] = by_code[i] end
     end
     M.auction_length_buttons = length_buttons
+    -- 0.9 (FB-062, rokstar8872, deep_structure): right-click bag item always opens Post
+    local right_click_row = row(posting, 0, -46, 36, 'Right-click bag to sell', 'Always opens Post tab',
+        {'Right-clicking an item in your bags switches to the Post tab and loads it, even from Search or Sniper. Shift-click and Alt-click still use the current tab.', '/aux right click post'})
+    local right_click_switch = gui.switch(right_click_row)
+    right_click_switch:SetPoint('RIGHT', 0, 0)
+    right_click_switch.on_click = function()
+        set_right_click_post(not account_data.right_click_post)
+    end
+    M.right_click_post_switch = right_click_switch
     -- Bid prices (/aux post bid) was here in build 3 and taken out in build 4: on Forever only gear
     -- can have bids, few sellers set one, and gear is one item per auction, so "per stack" means
     -- nothing (Tyler: "does the stack option even make any sense?"). The chat command stays.
 
     -- Buying (0.8.2.2, FB-049, Tyler: Confirm back as an option, off unless turned on, gear too)
-    section(posting, 0, -60, 'BUYING')
-    local confirm_row = row(posting, 0, -76, 36, 'Confirm before buying', 'A second click on Confirm',
+    section(posting, 0, -92, 'BUYING')
+    local confirm_row = row(posting, 0, -108, 36, 'Confirm before buying', 'A second click on Confirm',
         {'Buy first shows the price on a Confirm button, and a second click buys. Off: one click on Buy buys. For trade goods and gear, on the Search and Sniper tabs.', '/aux buy confirm'})
     local confirm_switch = gui.switch(confirm_row)
     confirm_switch:SetPoint('RIGHT', 0, 0)
@@ -555,6 +567,26 @@ do
         set_buy_confirm(not account_data.buy_confirm)
     end
     M.buy_confirm_switch = confirm_switch
+
+    -- 0.9: General (FB-032 Auto Full scan, FB-061 Professions cost line)
+    section(posting, 0, -154, 'GENERAL')
+    local auto_scan_row = row(posting, 0, -170, 36, 'Auto Full scan', 'When auction house opens',
+        {'Starts a Full scan automatically when you open the auction house, if the 15-minute cooldown is over. Starting your own search or Post scan takes priority.', '/aux auto scan'})
+    local auto_scan_switch = gui.switch(auto_scan_row)
+    auto_scan_switch:SetPoint('RIGHT', 0, 0)
+    auto_scan_switch.on_click = function()
+        set_auto_full_scan(not account_data.auto_full_scan)
+    end
+    M.auto_full_scan_switch = auto_scan_switch
+
+    local crafting_row = row(posting, 0, -206, 36, 'Professions cost line', 'Materials and profit on recipes',
+        {'Shows the Materials and Profit line under reagents in the Professions window. Turn off to hide it while keeping Search in aux at the auction house.', '/aux crafting cost'})
+    local crafting_switch = gui.switch(crafting_row)
+    crafting_switch:SetPoint('RIGHT', 0, 0)
+    crafting_switch.on_click = function()
+        set_crafting_cost(not account_data.crafting_cost)
+    end
+    M.crafting_cost_switch = crafting_switch
 
     -- right column: the tooltip lines, also /aux tooltip ... (a player on CurseForge asked for the
     -- chat settings in this menu, FB-008). Kept per character, like the chat commands.
@@ -570,6 +602,8 @@ do
         {'disenchant_distribution', 'Disenchants into', nil, 'Which materials it can give, and how likely each is.'},
         -- 0.8.2.1 build 7 (FB-041, suggested by user_tdsvrjvpe8rufw54): the crate lines had no switch
         {'crate', 'Waylaid Crates', 'Cheapest fill price', 'Under a Waylaid Crate: what each bundle it asks for costs, the cheapest in gold, and how many you already have.'},
+        -- 0.9 (FB-058, suggested by jebbush; Tyler): full stack by default, hold Shift for 1 item
+        {'stack', 'Stack prices by default', 'Hold Shift for 1 item', 'Show Vendor, Value and Today prices for the whole stack by default, and hold Shift for 1 item. Off: show 1 item by default and hold Shift for the stack.'},
         {'money_icons', 'Coin icons', 'Gold, silver and copper coins', 'Show prices in tooltips with gold, silver and copper coins instead of text.'},
     }
     local tooltip_title = section(popup, RIGHT_X, -34, 'TOOLTIP LINES')
@@ -621,17 +655,36 @@ do
             reload_row:Hide()
         end
         if pending then reload_button:Show() else reload_button:Hide() end
+        popup:SetHeight(pending and 432 or 404)
         posting:ClearAllPoints()
         posting:SetPoint('TOPLEFT', LEFT_X, pending and -176 or -148)
         for _, switch in ipairs(tooltip_switches) do
             switch:SetChecked(character_data.tooltip[switch.key] and true or false)
         end
         confirm_switch:SetChecked(account_data.buy_confirm and true or false)
+        right_click_switch:SetChecked(account_data.right_click_post and true or false)
+        auto_scan_switch:SetChecked(account_data.auto_full_scan and true or false)
+        crafting_switch:SetChecked(account_data.crafting_cost ~= false)
     end
     M.refresh_settings = refresh
-    -- the switch and /aux buy confirm both come here, so they behave the same
+    -- the switches and chat commands both come here, so they behave the same
     function M.set_buy_confirm(on)
         account_data.buy_confirm = on and true or false
+        refresh()
+    end
+    function M.set_right_click_post(on)
+        account_data.right_click_post = on and true or false
+        refresh()
+    end
+    function M.set_auto_full_scan(on)
+        account_data.auto_full_scan = on and true or false
+        refresh()
+    end
+    function M.set_crafting_cost(on)
+        account_data.crafting_cost = on and true or false
+        if search.refresh_cost_line then
+            search.refresh_cost_line()
+        end
         refresh()
     end
     function M.set_background_opacity(opacity)

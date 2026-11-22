@@ -8,7 +8,57 @@ saved is exported in `docs/test-results/test-page-results.md`.
 
 If BugSack shows an error at any point, copy its full text into that step's note.
 
-## Current build: 0.9 build 1
+## Current build: 0.9 build 2
+
+Built 2026-11-21 (Gemini Neon): Phase 1 QoL switches, keybinds, cleaner tooltip ages, and S-09.
+Adds full-stack tooltip prices by default with Shift for 1 item (`FB-058`), live Professions cost
+line toggle (`FB-061`), right-click bag item to always open Post (`FB-062`), Auto Full scan on AH
+open (`FB-032`), `Bindings.xml` buy/confirm/cancel keybinds (`FB-063`), removes `seen ` from
+tooltip ages, and hides bogus "Starting bids" totals on trade goods with no buyout (`S-09`).
+Zip `auxForever-0.9-build2.zip`; **full game restart required** (adds new file `auxForever/Bindings.xml`).
+
+- [ ] 1. Full-stack tooltips by default and no `seen ` prefix (`FB-058`). Open your bags and point
+      the mouse at a stack of more than 1 item (for example a stack of Linen Cloth) WITHOUT holding
+      Shift: Vendor and Value show the stack total with `for N` and an age without `seen ` (for
+      example `today` or `1 day ago`). Now hold Shift on that same stack: Vendor and Value drop to
+      the plain single-item price (no `for N`).
+- [ ] 2. Settings switches (`FB-061`, `FB-062`, `FB-032`). Open the auction house and click the
+      Settings gear (top right). Check that all rows fit cleanly inside the popup with no overlap:
+      Right-click bag to sell, Auto Full scan, Professions cost line on the left; Stack prices by
+      default on the right. Open a Professions window, flip **Professions cost line** off then back
+      on: the Materials and Profit line under reagents disappears and reappears immediately with no
+      `/reload`.
+- [ ] 3. Right-click bag item to sell (`FB-062`). Turn **Right-click bag to sell** on in Settings,
+      click the Search tab, then right-click a sellable item in your bags: aux switches to the Post
+      tab and loads that item. Click back to Search and Shift-click a bag item: it still searches
+      on the Search tab instead of switching to Post.
+- [ ] 4. Keybinds (`FB-063`, after full game restart). Press Escape > Options > Keybindings and
+      scroll to the **auxForever** section. Confirm all 4 bindings appear: **Buy**, **Confirm
+      purchase**, **Cancel / decline purchase**, and **Buy or confirm**. Bind one (for example Buy
+      to a spare key, or Confirm/Cancel with "Confirm before buying" on), open Search, search
+      `linen cloth/exact`, click the cheapest row, and test pressing your bound key. (If you turn
+      on Confirm before buying, pressing Buy twice should NOT confirm; pressing Cancel should
+      cancel without spending gold.)
+- [ ] 5. Post receipt with no price (`S-09`). On the Post tab, click a trade good (like Linen
+      Cloth) in your bags, click the Price box, and delete the price so the box is blank: the
+      receipt on the right reads `Total, N items` with `-` for Total, Cut, and You get (never
+      `Starting bids` and no red vendor warning).
+- [ ] 6. Clean re-test of E9: 1-request gear lookup (0 gold). **Make sure Sniper is stopped and no
+      Full scan is running.** Put any piece of green gear with a random ending into the very first
+      slot of your backpack (top-left slot of bag 0). At the auction house, paste line 1 and press
+      Enter:
+      `/run local C=C_AuctionHouse local id=C_Container.GetContainerItemID(0,1) _G.E9=id and C.MakeItemKey(id) print('E9 send:',id,C.IsThrottledMessageSystemReady()) if E9 then C.SendSellSearchQuery(E9,{{sortOrder=0,reverseSort=false}},false) end`
+      Wait 3 seconds, paste line 2 and press Enter, and share both `E9 send:` and `E9:` lines (or
+      a chat screenshot):
+      `/run local C=C_AuctionHouse local n=C.GetNumItemSearchResults(E9) local r=C.GetItemSearchResultInfo(E9,1) print('E9:',E9.itemID,n,C.HasSearchResults(E9),r and r.itemLink,r and r.auctionID)`
+- [ ] 7. Clean re-test of E10: 1-request batch watch list (0 gold). Still idle at the auction house
+      (no Sniper, no Full scan), paste line 1 and press Enter:
+      `/run local C=C_AuctionHouse print('E10 send:',C.IsThrottledMessageSystemReady()) C.SearchForItemKeys({C.MakeItemKey(2589),C.MakeItemKey(2770),C.MakeItemKey(2447),C.MakeItemKey(2835)},{{sortOrder=0,reverseSort=false}})`
+      Wait 3 seconds, paste line 2 and press Enter, and share both `E10 send:` and `E10:` lines (or
+      a chat screenshot):
+      `/run local r=C_AuctionHouse.GetBrowseResults() print('E10:',#r,C_AuctionHouse.HasFullBrowseResults(),r[1] and r[1].itemKey.itemID,r[1] and r[1].minPrice,r[2] and r[2].itemKey.itemID)`
+
+## 0.9 build 1 (tested 2026-11-21)
 
 Built 2026-11-21 (Gemini Neon): 0.9 foundation pass. Fixes FB-056 (dungeon/tooltip Lua error
 hardening and 7 missing tooltip stack-count readers), adds a timeout for Forever's frozen AH
@@ -18,12 +68,12 @@ events and multi-item Post hangs, prevents scan timeouts from wiping rows or mar
 "Sold", adds scan priority rules, and fixes Buy bar and Waylaid Crate caching quirks.
 Zip `auxForever-0.9-build1.zip`; `/reload` is enough (no new files).
 
-- [ ] 1. Tooltip stack counts and no errors (FB-056). Open your mailbox (if you have mail with a
+- [x] 1. Tooltip stack counts and no errors (FB-056). Open your mailbox (if you have mail with a
       stacked item) or a vendor window, hold Shift, and point the mouse at a stack of items (for
       example a stack of Linen Cloth). The tooltip shows Vendor and Value with `for N` (matching
       the stack size), with no BugSack error. Also watch for any Lua errors if you run a dungeon
       where someone makes conjured water.
-- [ ] 2. Buy bar guard and Post check. On the Search tab, search `linen cloth/exact`, click the
+- [x] 2. Buy bar guard and Post check. On the Search tab, search `linen cloth/exact`, click the
       cheapest row, click the QUANTITY box, delete the `1` so the box is empty, and press Enter:
       nothing is bought. Then switch to the Post tab, pick an item you want to sell, and post one:
       it posts cleanly with no 5-second hang.
@@ -45,6 +95,14 @@ Zip `auxForever-0.9-build1.zip`; `/reload` is enough (no new files).
       Wait 2 seconds, paste line 2 into chat and press Enter, and copy the `E10:` line into your
       reply:
       `/run local r=C_AuctionHouse.GetBrowseResults() print('E10:',#r,r[1] and r[1].itemKey.itemID,r[1] and r[1].minPrice,r[2] and r[2].itemKey.itemID,r[2] and r[2].minPrice)`
+
+### Results (Tyler, 2026-11-21)
+
+1. Pass (stack counts show; asked for FB-058 full-stack default next). 2. Pass (empty Quantity box
++ Enter buys nothing). 3. Not tested (2 of 3 Full scan days recorded so far; screenshot confirmed
+scan priority kept an active Full scan running while Sniper stayed on Watching). 4 & 5. Both printed
+`0 nil nil` while Full scan and Sniper were active; inconclusive, carried to build 2 idle probes.
+Build 2 preferences chosen: FB-058 Shift label plain (`Value: 5s`), include `S-09` in build 2.
 
 ## 0.8.2.2 build 4 (passed, Tyler, 2026-11-20)
 

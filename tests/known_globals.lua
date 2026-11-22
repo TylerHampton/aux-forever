@@ -7,7 +7,7 @@
 -- Add a name here only after checking that Forever has it.
 return {
   -- GlobalAPI: functions of the game
-  'ClearOverrideBindings', 'CreateFrame', 'GetBuybackItemInfo', 'GetGuildBankItemInfo', 'GetInboxItem',
+  'ClearOverrideBindings', 'CreateFrame', 'GetBuybackItemInfo', 'GetCurrentKeyBoardFocus', 'GetGuildBankItemInfo', 'GetInboxItem',
   'GetInventoryItemCount', 'GetLootSlotInfo', 'GetMerchantItemLink', 'GetMerchantNumItems', 'GetQuestItemInfo',
   'GetQuestLogChoiceInfo', 'GetQuestLogRewardInfo', 'GetSendMailItem', 'GetTradePlayerItemInfo',
   'GetTradeTargetItemInfo', 'InCombatLockdown', 'IsModifiedClick', 'PlaySound',

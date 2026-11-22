@@ -749,12 +749,23 @@ function update_item_configuration()
         item_detail:SetText(selected_item.count .. ' in your bags')
 
         local quantity = post_quantity()
-        local unit_price = get_unit_buyout_price() > 0 and get_unit_buyout_price() or get_unit_start_price()
+        local buyout = get_unit_buyout_price()
+        local start_price = get_unit_start_price()
+        -- 0.9 (S-09): trade goods have no bids, so when no valid buyout price is entered do not
+        -- fall back to the hidden starting-bid box or show "Starting bids" / a vendor warning.
+        local no_price = (selected_item.commodity and buyout <= 0) or (buyout <= 0 and start_price <= 0)
+        local unit_price = no_price and 0 or (buyout > 0 and buyout or start_price)
         local total = unit_price * quantity
         local items = quantity .. (quantity == 1 and ' item' or ' items')
-        posting_summary:SetText((get_unit_buyout_price() > 0 and 'Total, ' or 'Starting bids, ') .. items)
-        total_summary:SetText(money.to_string(total, true))
-        cut_summary:SetText(aux.color.negative('-') .. money.to_string(total - floor(total * (1 - AUCTION_CUT)), true, nil, aux.color.negative))
+        if no_price then
+            posting_summary:SetText('Total, ' .. items)
+            total_summary:SetText('-')
+            cut_summary:SetText('-')
+        else
+            posting_summary:SetText((buyout > 0 and 'Total, ' or 'Starting bids, ') .. items)
+            total_summary:SetText(money.to_string(total, true))
+            cut_summary:SetText(aux.color.negative('-') .. money.to_string(total - floor(total * (1 - AUCTION_CUT)), true, nil, aux.color.negative))
+        end
         do
             -- money going out in red (bright red when it is more than the player has), coming in green
             local amount = deposit_amount()
@@ -763,25 +774,31 @@ function update_item_configuration()
             deposit:SetText(amount > 0 and (out('-') .. money.to_string(amount, true, nil, out)) or money.to_string(0, true))
         end
         do
-            -- what the sale brings in; red, with the warning box, when a vendor would pay more
-            local net = floor(total * (1 - AUCTION_CUT))
             local vendor = (selected_item.unit_vendor_price or 0) * quantity
-            local below_vendor = vendor > 0 and net < vendor
-            local color = below_vendor and aux.color.red or aux.color.positive
-            net_summary:SetText(money.to_string(net, true, nil, color))
-            local parts = {}
-            if quantity > 1 then
-                tinsert(parts, money.to_string(floor(unit_price * (1 - AUCTION_CUT)), true) .. ' each')
-            end
-            if below_vendor then
-                vendor_warning.amount:SetText(money.to_string(vendor, true))
-            elseif vendor > 0 then
-                tinsert(parts, 'vendor pays ' .. money.to_string(vendor, true))
-            end
-            net_detail:SetText(table.concat(parts, ', '))
-            -- shown or hidden only when it changes (AGENTS.md: never hide and show every frame)
-            if below_vendor ~= vendor_warning:IsShown() then
-                if below_vendor then vendor_warning:Show() else vendor_warning:Hide() end
+            if no_price then
+                net_summary:SetText('-')
+                net_detail:SetText(vendor > 0 and ('vendor pays ' .. money.to_string(vendor, true)) or '')
+                if vendor_warning:IsShown() then vendor_warning:Hide() end
+            else
+                -- what the sale brings in; red, with the warning box, when a vendor would pay more
+                local net = floor(total * (1 - AUCTION_CUT))
+                local below_vendor = vendor > 0 and net < vendor
+                local color = below_vendor and aux.color.red or aux.color.positive
+                net_summary:SetText(money.to_string(net, true, nil, color))
+                local parts = {}
+                if quantity > 1 then
+                    tinsert(parts, money.to_string(floor(unit_price * (1 - AUCTION_CUT)), true) .. ' each')
+                end
+                if below_vendor then
+                    vendor_warning.amount:SetText(money.to_string(vendor, true))
+                elseif vendor > 0 then
+                    tinsert(parts, 'vendor pays ' .. money.to_string(vendor, true))
+                end
+                net_detail:SetText(table.concat(parts, ', '))
+                -- shown or hidden only when it changes (AGENTS.md: never hide and show every frame)
+                if below_vendor ~= vendor_warning:IsShown() then
+                    if below_vendor then vendor_warning:Show() else vendor_warning:Hide() end
+                end
             end
         end
         post_button:SetText('Post ' .. quantity .. (quantity == 1 and ' item' or ' items'))
