@@ -95,13 +95,13 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
     (FB-066, user_ivpyccljovcjne72; build 4).
 - **Bug fixes and reliability foundation (builds 1, 2, 4):**
   - Fast tooltip-word search fix for generic green random-suffix gear with `Equip:` stats (FB-064,
-    RushJet1; build 4; confirmed `GetItemKeySampleLink` returns sample links on Forever browse).
+    RushJet1; build 4).
   - Dungeon / tooltip error hardening against secret values and conjured items (FB-056,
     user_kc0ds7pqedmptpep; build 1).
   - Sniper multi-version K^2 fix, Search split gear-ending rows fix, Sniper bought confirmation fix,
     synchronous Buy/Post/Cancel events, throttle-freeze timeouts, timeout-safe refreshes, scan
     priority coordinator, unified Post state machine, S-09 trade-good receipt cleanup, crate
-    Equip/proc caching fix, 7 missing tooltip stack-count getters, and E10 settled (Seen).
+    Equip/proc caching fix, and 7 missing tooltip stack-count getters.
 
 ## 0.9.1: planned (pushed from 0.9 by Tyler, 2026-11-22)
 

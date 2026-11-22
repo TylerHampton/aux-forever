@@ -151,7 +151,7 @@ For whoever fixes or builds from it:
 | [FB-042](#fb-042-crate-tooltip-full-cost-less-the-quest-reward-favor-and-reputation-per-gold) | 2026-11-16 | user_tdsvrjvpe8rufw54 | request | Other | n/a | Crate tooltip: full cost less the quest reward, favor and reputation per gold | planned 0.9.1 (with FB-059) |
 | [FB-043](#fb-043-a-window-listing-every-crate-and-writ-by-favor-and-reputation-per-gold) | 2026-11-16 | user_tdsvrjvpe8rufw54 | request | Other | n/a | A window listing every crate and writ by favor and reputation per gold | new |
 | [FB-044](#fb-044-gear-can-be-priced-in-copper-but-aux-rounds-it-to-whole-silver) | 2026-11-16 | sarrathsilentstrider, user_mezgz2zh1g3sbu1v | bug | Post | S2 | Gear can be priced in copper, but aux rounds it to whole silver | fixed 0.8.2.1 (released 2026-11-16) |
-| [FB-045](#fb-045-some-gear-endings-of-shadow-protection-of-healing-do-not-show-their-stat-in-search) | 2026-11-16 | karrier_user_slouyac50poxg707 | bug | Search | S3 | Some gear endings (of Shadow Protection, of Healing) do not show their stat in search | fixed 0.8.2.1 (confirmed 2026-11-22) |
+| [FB-045](#fb-045-some-gear-endings-of-shadow-protection-of-healing-do-not-show-their-stat-in-search) | 2026-11-16 | karrier_user_slouyac50poxg707 | bug | Search | S3 | Some gear endings (of Shadow Protection, of Healing) do not show their stat in search | fixed 0.8.2.1 (provisional) |
 | [FB-046](#fb-046-posting-says-the-item-is-on-the-mouse-in-the-mail-or-a-trade-when-it-is-not) | 2026-11-16 | karrier_user_slouyac50poxg707 | bug | Post | S2 | Posting says the item is on the mouse, in the mail or a trade when it is not | fixed 0.8.2.1 (released 2026-11-16) |
 | [FB-047](#fb-047-praise-great-addon) | 2026-11-16 | selubangerz | praise | Overall | n/a | Praise: "Great addon" | new |
 | [FB-048](#fb-048-players-do-not-like-the-confirm-click-when-buying-trade-goods) | 2026-11-16 | players, through Tyler | ux | Buy bar | n/a | Players do not like the Confirm click when buying trade goods | built 0.8.2.1 (released 2026-11-16) |
@@ -3097,9 +3097,9 @@ Ask Tyler: decided (0.9).
 - Area: Search
 - Severity: S2 (fast tooltip-word search silently misses matching random-suffix gear; switching to
   Full mode works around it at the cost of speed)
-- Status: fixed 0.9 (build 4, commit 79e40dc; tested and passed in game by Tyler 2026-11-22:
-  Fast mode returned 30+ generic green rings with `Equip:` spell stats including `"of the
-  Channeler"` and `"of the Prophet"`, and `GetItemKeySampleLink` returned `true` on browse)
+- Status: fixed 0.9 (build 4, commit 79e40dc, released 2026-11-22; tested and passed in game by
+  Tyler 2026-11-22: Fast mode returned 30+ generic green rings with `Equip:` spell stats including
+  `"of the Channeler"` and `"of the Prophet"`)
 - Proposed: 0.9 (high-value bug fix once `GetItemKeySampleLink` behavior is verified in game)
 
 Said:
@@ -3137,9 +3137,10 @@ Recorder's notes:
   and `ITEM_SPELL_TRIGGER_ONEQUIP` (`Equip:`) on lines `2..N` and has not already matched
   `validator`.
 
-Unknowns: none (settled **[Seen]** 2026-11-22: `FB64: Marble Ring of Fire Protection true` confirmed
-`C_AuctionHouse.GetItemKeySampleLink` returns a real sample link during browse on Forever, so Fast
-searches match with 0 extra requests while keeping `needs_suffix_tooltip` as a safety fallback).
+Unknowns: whether Forever returned a sample link via `GetItemKeySampleLink` or used our
+`needs_suffix_tooltip` fallback in Build 4 Step 5 remains **[Unknown]** (the 6-panel stitched
+screenshot was downscaled too far to read `true` vs `false` reliably). Either way, Step 4
+confirmed the fix works in game.
 
 Ask Tyler: none (passed in game).
 

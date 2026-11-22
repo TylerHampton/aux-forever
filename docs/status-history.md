@@ -31,13 +31,12 @@ game by Tyler with 0 Lua errors and verified with 400 fuzz sessions:
   B item tooltips (no `for N`, compact `today` / `3d` / dimmed `9d`), aligned Professions crafting
   hover tooltip, Right-click bag to sell flipped on by default (`FB-062`), and UI wording trims
   `T1` to `T6`.
-- Build 4 (`79e40dc`, passed 6/6 2026-11-22): Phase 3 **Narrower Sniper** (`FB-055`, Option A slim
+- Build 4 (`79e40dc`, passed 2026-11-22): Phase 3 **Narrower Sniper** (`FB-055`, Option A slim
   Watch bar with quick chips, `More...` Forever Categories + Search Favorites, and Quality picker;
   Trade Goods verified at `491 items in 0.1s` to `0.2s`), **Default buy quantity** (`1` / `Stack`,
-  `FB-066`), Fast tooltip-word search fix on generic green random-suffix gear (`FB-064`, RushJet1;
-  confirmed `C_AuctionHouse.GetItemKeySampleLink` returns sample links on browse **Seen**),
-  right-column Settings `ANCHOR_LEFT` polish, and Experiment E10 settled **Seen**
-  (`SearchForItemKeys` returns 0 results on Forever).
+  `FB-066`), Fast tooltip-word search fix on generic green random-suffix gear (`FB-064`, RushJet1),
+  and right-column Settings `ANCHOR_LEFT` polish. (Diagnostic screenshots for `GetItemKeySampleLink`
+  and E10 were downscaled to 299px wide; E10 printed `false` / throttle busy and remains Unknown.)
 - Remaining 0.9 features (Waylaid Crate Favor + Craftsman's Writs, Shopping List + Alt Inventory,
   and Posting Rules) were moved to **0.9.1** per Tyler (2026-11-22).
 

@@ -9,10 +9,14 @@ build-by-build log are there).
 
 ## Start here (next session)
 
-**Released:** **0.9** on 2026-11-22 on `main` (tag `v0.9`, GitHub pre-release, CurseForge Beta
-upload). Full build-by-build log (builds 1 to 4, all tested in game by Tyler): `docs/status-history.md`
-and `TESTING.md`. Release notes: `docs/changelog.md` ("0.9"). Updating from 0.8.2.2 needs a **full
-game restart** for `Bindings.xml`.
+**Released:** **0.9** on 2026-11-22 on `main` (PR #44 squash-merged at `4c4d3a9`, Release
+workflow run `45005966056`: tag `v0.9`, GitHub pre-release, CurseForge Beta file `9747981`). Full
+build-by-build log (builds 1 to 4, all tested in game by Tyler): `docs/status-history.md` and
+`TESTING.md`. Release notes: `docs/changelog.md` ("0.9"). Updating from 0.8.2.2 needs a **full game
+restart** for `Bindings.xml`.
+
+**Active branch:** `gemini/0.9.1` (branched from `main`; currently holds doc corrections for Build 4
+Steps 5 and 6 so `E10` and `GetItemKeySampleLink` stay marked `Unknown` until cleanly read).
 
 **Tyler, after the 0.9 release:** paste `docs/curseforge-description.md` into the CurseForge
 project page when convenient (updated for 0.9's Options > AddOns panel, Narrower Sniper, keybinds,

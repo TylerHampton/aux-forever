@@ -259,10 +259,11 @@ Other mails **[Code]**: "Auction expired: X" (item back), "Auction canceled: X",
   153.8 s in all, most of it opening possible deals. Narrowing Sniper to **Trade Goods** (Tyler,
   2026-11-22, 0.9 build 4) returned **491 items in 0.1 s to 0.2 s** (1 request per round)
   **[Seen]**.
-- `C_AuctionHouse.GetItemKeySampleLink(key)` returns a non-nil sample item link with suffix stats
-  during browse on Forever (Tyler, 2026-11-22, 0.9 build 4: `FB64: Marble Ring of Fire Protection
-  true`, and Fast search `armor/miscellaneous/finger/spell` immediately returned `"of the Channeler"`
-  and `"of the Prophet"` rings with `Equip:` spell stats) **[Seen]**.
+- Whether `C_AuctionHouse.GetItemKeySampleLink(key)` returns a non-nil sample link during browse on
+  Forever remains **[Unknown]**: the Build 4 Step 5 chat screenshot was downscaled too far to read
+  `true` vs `false` reliably (though Step 4 confirmed Fast search `armor/miscellaneous/finger/spell`
+  now finds `"of the Channeler"` and `"of the Prophet"` rings with `Equip:` spell stats **[Seen]**,
+  via either sample links or the `needs_suffix_tooltip` fallback).
 - Measured: the whole house's item list, 7,718 items in 8.5 seconds over 16 requests
   (2026-10-04); item searches about one every 0.4 seconds because of the game's request limit
   (`IsThrottledMessageSystemReady`), 335 items in 3m 13s (0.4). **[Seen]**
@@ -362,11 +363,12 @@ page once carried them as build id `ah-facts-1`.
   `E9 send: 4567 true` and `E9: 4567 0 true nil nil` (`HasSearchResults == true`, server answered
   with 0 results for item 4567). Whether it returns suffixed variants when listed remains
   **[Unknown]** until tested on a gear item ID that currently has suffixed auctions listed.
-- **E10 `SearchForItemKeys` batch browse.** Settled 2026-11-22 **[Seen]** (0.9 build 4, Tyler):
-  with throttle ready (`E10 send: true`), `C_AuctionHouse.SearchForItemKeys` for Linen Cloth
-  (2589), Copper Ore (2770), Peacebloom (2447), and Rough Stone (2835) returned `0` results with
-  `HasFullBrowseResults() == true` (`E10: 0 true nil nil nil`). Forever does not return results for
-  `SearchForItemKeys`; do not use it for watch lists or Favorites (keep using `SendBrowseQuery`).
+- **E10 `SearchForItemKeys` batch browse (2026-11-21, [Code]).** `C_AuctionHouse.SearchForItemKeys(itemKeys, sorts)`
+  is documented on Forever (`AuctionHouseDocumentation.lua`). Both the 2026-11-21 (build 2) and
+  2026-11-22 (build 4) probes printed `E10 send: false` and `E10: 0 false nil nil nil` (the build 4
+  screenshot was initially misread as `true` due to chat image downscaling; corrected 2026-11-22
+  after Tyler caught it). Because the throttle was not ready when Line 1 ran, `SearchForItemKeys`
+  remains **[Unknown]** until tested with `IsThrottledMessageSystemReady() == true`.
 - **Note on Blizzard's invisible `AuctionHouseFrame:OnShow` ([Code], 2026-11-21):** when a player
   has Blizzard AH favorites, opening the AH triggers `C_AuctionHouse.SearchForFavorites(sorts)`
   (`Blizzard_AuctionHouseFrame.lua:398-400`), using a throttle slot and firing

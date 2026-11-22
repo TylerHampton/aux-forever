@@ -69,14 +69,14 @@ All 6 steps verified from Tyler's notes and screenshots (0 Lua errors):
    Fast mode returned 30+ generic green rings with `Equip:` spell stats, including multiple
    `"of the Channeler"`, `"of the Prophet"`, `"of the Sorcerer"`, and `"of the Hierophant"` rings,
    with `Equip: Increases healing done by spells and effects...` visible in hover tooltips).
-5. Optional `FB-064` sample-link diagnostic: **Settled [Seen]** (chat printed
-   `FB64: Marble Ring of Fire Protection true`, confirming `C_AuctionHouse.GetItemKeySampleLink`
-   returns a real sample link during browse on Forever so Fast tooltip-word searches match with 0
-   extra requests).
-6. Clean standalone E10 probe (`SearchForItemKeys`): **Settled [Seen]** (chat printed
-   `E10 send: true` while idle, followed 3 seconds later by `E10: 0 true nil nil nil`. Confirmed
-   Forever's `C_AuctionHouse.SearchForItemKeys` answers cleanly with 0 results even for common trade
-   goods; keep using `SendBrowseQuery`).
+5. Optional `FB-064` sample-link diagnostic: **Unconfirmed (screenshot too compressed)** (chat
+   printed `FB64: Marble Ring of Fire Protection ...`, but the 6-panel stitched PNG was downscaled
+   to 299px wide by chat, too blurry to read `true` vs `false` reliably; Step 4 confirmed the
+   user-facing `FB-064` fix works either way).
+6. Clean standalone E10 probe (`SearchForItemKeys`): **Inconclusive (still Unknown)** (pixel check
+   after Tyler caught the misread confirmed chat printed `E10 send: false` and `E10: 0 false nil
+   nil nil`, meaning the throttle was busy so `SearchForItemKeys` did not send; remains
+   **[Unknown]**).
 
 ## 0.9 build 3 (tested 2026-11-22)
 
