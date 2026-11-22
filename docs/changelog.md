@@ -6,6 +6,91 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.9 (2026-11-22)
+
+Narrower Sniper (quick category chips, Search Favorites, and minimum quality), Blizzard Options >
+AddOns > auxForever settings panel, buying keybinds, customizable defaults (full-stack tooltips,
+default buy quantity, right-click bag to sell, Auto Full scan, Professions cost line toggle), and
+reliability and search fixes. **Full game restart required** when updating from 0.8.2.2 so the game
+loads the new `Bindings.xml` keybinds.
+
+### New options and keybinds
+
+- **Narrower Sniper:** Added a slim **Watch** bar on the Sniper tab with quick chips
+  (**All**, **Trade Goods**, **Consumables**, **Recipes**), a **More...** menu with every auction
+  house category plus your pinned **Search Favorites**, and a minimum **Quality** picker
+  (**Common+**, **Uncommon+**, **Rare+**, **Epic+**). Narrowing to a category or Favorite drops
+  rounds from ~38s+ down to a few seconds and restarts immediately when switched mid-round.
+  (reported by khorrs)
+- **Settings outside the auction house:** Added an **auxForever** settings panel under **Escape >
+  Options > AddOns > auxForever** (also reachable anywhere via `/aux settings`, `/aux config`, or
+  `/aux options`). Stays live-synced with the auction house Settings gear popup and includes
+  **Clear post prices** and **Clear item cache** buttons with confirmation prompts. (suggested by
+  LLanwrst and jebbush)
+- **Default buy quantity:** Added a "Default quantity" choice (**1** or **Stack**, default **1**)
+  under **Settings > Buying** (and `/aux buy quantity 1|stack`) so players can choose whether the
+  Search buy bar starts at 1 unit or a full stack. The Sniper always starts at the deal's units.
+  (suggested by user_ivpyccljovcjne72)
+- **Full-stack tooltip prices by default:** Vendor, Vendor Buy, Value, and Today lines now show
+  the price for the whole stack by default, and holding Shift shows the single-item price. Turn
+  off "Stack prices by default" in Settings (or `/aux tooltip stack off`) to restore the old
+  behavior. (suggested by jebbush)
+- **Keybinds for buying:** Added optional bindings under **Options > Keybindings > auxForever** for
+  **Buy**, **Confirm purchase**, **Cancel / decline purchase**, and **Buy or confirm**. Works on
+  the Search and Sniper buy bars, ignores presses while typing in an edit box, and keeps Buy and
+  Confirm separate so mashing Buy cannot accidentally confirm. (suggested by khorrs)
+- **Right-click bag item to sell:** Added a "Right-click bag to sell" toggle in Settings (and
+  `/aux right click post`, on by default) so right-clicking a bag item from any tab opens the Post
+  tab and loads it, matching Blizzard's default auction house. Shift-click and Alt-click stay
+  tab-aware. (suggested by rokstar8872, deep_structure, and bubbledn42)
+- **Auto Full scan:** Added an "Auto Full scan" toggle in Settings (and `/aux auto scan`, off by
+  default) to start a background Full scan automatically when opening the auction house if the
+  15-minute cooldown is over. (suggested by Chawitsch)
+- **Hide Professions cost line:** Added a "Professions cost line" toggle in Settings (and
+  `/aux crafting cost`, on by default) to hide the Materials and Profit line in the Professions
+  window live with no `/reload`, while keeping the "Search in aux" button at the auction house.
+  (suggested by LLanwrst)
+- **Cleaner tooltips and UI labels:** Removed `for N` and `seen ` clutter from item tooltips in
+  favor of compact ages (`today`, `3d`, dimmed `9d`), aligned Professions crafting hover tooltips so
+  ages and percentages sit in front of costs, anchored right-column Settings hover tooltips inside
+  the window, and tightened wording across the Post receipt, Buy bar, crafting hover, and Sniper
+  empty state.
+
+### Reliability and bug fixes
+
+- Fixed Fast tooltip-word searches (such as `armor/miscellaneous/finger/spell`) missing random-suffix
+  green gear whose stats are `Equip:` lines (like `"of the Channeler"`). Fast searches now check
+  Blizzard's sample auction link first and fall back to reading the item's listings only when suffix
+  stats are still missing. (reported by RushJet1)
+- Hardened item tooltips and tooltip scanning against Blizzard secret values, missing font strings,
+  nil conjured-item globals, nil usual values in Today lines, and redundant `tooltip:Show()` calls
+  inside post-calls during dungeons and combat. Also added stack-count readers for mail, guild
+  bank, trade, and quest tooltips. (reported by user_kc0ds7pqedmptpep)
+- Fixed the Post tab receipt showing "Starting bids" and a leftover bid total when a trade good
+  has no valid buyout price typed yet.
+- Added a timeout when Forever's auction house throttle freezes (`IsThrottledMessageSystemReady`
+  stuck false) so scans and post-buy bucket refreshes end cleanly with a chat message instead of
+  hanging forever. Post-buy refreshes now also stop cleanly when the auction house closes.
+- Fixed the Sniper sending duplicate requests on multi-version gear (K versions of one gear ending
+  now take K requests per round instead of K*K) and fixed its green "Bought ..." confirmation
+  being wiped on the next frame after auto-deselecting a bought deal.
+- Fixed Search splitting one gear ending into two separate top-level rows when mixing bid-only and
+  buyout auctions.
+- Fixed Buy, Post, and Cancel missing instant errors or cancellations from the game (which caused
+  5-second false timeouts or rows stuck on "Cancelling..." for 10 seconds), fixed multi-item Post
+  hanging 5 seconds when bag updates arrive before the final multisell event, fixed Post cache
+  misses claiming "None for sale", and stopped gear buyouts from filling the Bids tab's saved bid
+  ID list.
+- Timed-out refreshes no longer wipe Search commodity rows, delete unopened fast rows, or falsely
+  mark Sniper deals as "Sold before you could buy it".
+- Added scan priority rules so background refreshes and watch rounds never cancel an active user
+  search or Full scan.
+- Fixed the Buy bar ignoring chip clicks while Confirm or Buying is active, anchoring the Quantity
+  box next to the last shown chip on small-stack items, updating immediately on purchase events,
+  and ignoring Enter in an emptied Quantity box.
+- Fixed the Waylaid Crate detector caching Equip and Chance-on-hit gear instead of re-scanning
+  their tooltips on every hover.
+
 ## 0.8.2.2 (2026-11-20)
 
 Buying fixes, a faster Sniper and Live, gamepad item comparison and Full scan feedback polish from

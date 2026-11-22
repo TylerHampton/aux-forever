@@ -139,6 +139,8 @@ G.Enum = setmetatable({}, {__index=function(t, k)
 end})
 for _, n in ipairs{'C_Item','C_Container','C_CurrencyInfo','C_Sound','C_AddOns','C_MerchantFrame','C_PlayerInfo'} do G[n] = api(nil, n) end
 for _, n in ipairs{'TooltipDataProcessor','ItemLocation','ChatFrameUtil'} do G[n] = api() end
+local tooltip_post_calls = {}
+G.TooltipDataProcessor.AddTooltipPostCall = function(kind, fn) tooltip_post_calls[kind] = fn end
 G.C_Container.GetContainerNumSlots = function() return 0 end
 G.C_Item.GetItemQualityColor = function() return 1, 1, 1, 'ffffffff' end -- r, g, b and the color code, as in the game
 G.ITEM_QUALITY_COLORS = setmetatable({}, {__index=function() return {r=1,g=1,b=1} end})
@@ -889,7 +891,7 @@ try('post panel', function()
   check('item name without brackets', text(post.item.name) == 'Minor Mana Potion')
   check('bags shown, no stacks for trade goods', plain(text(post.item_detail)):find('3 in your bags') ~= nil and plain(text(post.item_detail)):find('stack of') == nil)
   check('receipt: total line names the items', plain(text(post.posting_summary)) == 'Total, 6 items' and plain(text(post.total_summary)) == '4s 14c')
-  check('receipt: the auction house cut, going out', plain(text(post.cut_summary)) == '-21c' and plain(text(post.cut_label)) == 'Auction house cut 5%')
+  check('receipt: the auction house cut, going out', plain(text(post.cut_summary)) == '-21c' and plain(text(post.cut_label)) == 'AH cut (5%)')
   check('post button says what it posts', text(post.post_button) == 'Post 6 items')
   check('what you get is shown', text(post.net_label) == 'You get' and plain(text(post.net_summary)) == '3s 93c')
   check('the cut is 5%', post.AUCTION_CUT == .05)
@@ -1936,7 +1938,7 @@ try('sniper history notice', function()
   text, kind = sniper.history_notice(now, 0, 0, false)
   check('notice: never scanned says so at once', kind == 'thin')
   local src = io.open('tabs/sniper/frame.lua'):read('*a')
-  check('empty message: the Sniper works best with fresh Full scan data (Tyler, build 9)', src:find('Sniper works best with fresh Full scan data.', 1, true) ~= nil)
+  check('empty message: the Sniper notes Full scans requirement (T6)', src:find('Usual-price deals need ', 1, true) ~= nil and src:find(' days of Full scans.', 1, true) ~= nil)
 end)
 
 try('sniper round', function()
@@ -3242,8 +3244,8 @@ try('price data 0.5: tooltip age', function()
   rawset(AuxTooltip, 'NumLines', function() return 0 end)
   local fresh, old = value_line(9301) or '', value_line(9302) or ''
   rawset(AuxTooltip, 'NumLines', nil)
-  check('tooltip: Value says when it was seen', fresh:find('seen 3 days ago', 1, true) ~= nil)
-  check('tooltip: an old price is dimmed', old:find('seen 9 days ago', 1, true) ~= nil and old ~= fresh:gsub('3 days', '9 days'))
+  check('tooltip: Value says when it was seen', fresh:find('3d', 1, true) ~= nil and fresh:find('seen ', 1, true) == nil)
+  check('tooltip: an old price is dimmed', old:find('9d', 1, true) ~= nil and old ~= fresh:gsub('3d', '9d'))
 end)
 
 
@@ -3441,11 +3443,14 @@ try('clicks 0.5', function()
   check('FB-002: only a right-click', used == nil)
   button = 'RightButton'
   post_tab.USE_ITEM = real_post_use
-  -- on the Auctions tab a right-click searches it
+  -- on the Auctions tab a right-click searches it when right_click_post is off
+  local prev_rcp = aux.account_data.right_click_post
+  aux.account_data.right_click_post = false
   aux.set_tab(4) -- Auctions
   executed = 0
   shortcut.on_post_item(location)
   check('FB-002: right-click a bag item on another tab searches it', aux.get_tab().name == 'Search' and executed == 1)
+  aux.account_data.right_click_post = prev_rcp
 
   -- click the selected row again to let go of it, in every table
   local rt = al.new(new_frame(), 19, al.search_columns)
@@ -3550,8 +3555,8 @@ try('FB-007: recipe cost line', function()
   rawset(tip, 'AddDoubleLine', function(_, a, b) tinsert(lines, plain(a) .. ' | ' .. plain(b)) end)
   search.recipe_cost_tooltip(tip, parts)
   local all = table.concat(lines, '\n')
-  check('FB-007: tooltip explains the prices', all:find('Prices from your latest scans', 1, true) ~= nil)
-  check('FB-007: tooltip shows sources and ages', all:find('seen 1 day ago', 1, true) and all:find('seen 9 days ago', 1, true) and all:find('vendor', 1, true))
+  check('FB-007: tooltip explains the prices', all:find('From your latest scans', 1, true) ~= nil)
+  check('FB-007: tooltip shows sources and ages', all:find('1d ', 1, true) and all:find('9d ', 1, true) and all:find('vendor  ', 1, true) and all:find('seen ', 1, true) == nil)
   lines = {}
   search.recipe_cost_tooltip(tip, some)
   all = table.concat(lines, '\n')
@@ -3622,9 +3627,9 @@ try('0.5 build 1 fixes', function()
   check('build 2: each material\'s price is white, not the game\'s gold', row_args and row_args[1] == 1 and row_args[2] == 1 and row_args[3] == 1)
   check('build 2: the locked message fits in two lines', #post.NOT_POSTED.locked <= 80)
 
-  -- with Shift held, tooltip prices are for the stack and say so
+  -- 0.9 (FB-058): by default, tooltip prices are for the stack and say so (hold Shift for 1 item)
   rawset(AuxTooltip, 'NumLines', function() return 0 end)
-  set(G, 'IsShiftKeyDown', function() return true end)
+  set(G, 'IsShiftKeyDown', function() return false end)
   local lines = {}
   local tip3 = new_frame()
   rawset(tip3, 'AddLine', function(_, t) tinsert(lines, plain(t)) end)
@@ -3632,7 +3637,7 @@ try('0.5 build 1 fixes', function()
   rawset(AuxTooltip, 'NumLines', nil)
   local value_line
   for _, l in ipairs(lines) do if l:find('^Value') then value_line = l end end
-  check('build 1: a stack\'s Value says it is for the stack', value_line and value_line:find('for 3', 1, true) ~= nil)
+  check('build 1: a stack\'s Value multiplies for the stack without for 3', value_line and value_line:find('1.50', 1, true) ~= nil and value_line:find('for 3', 1, true) == nil)
   rawset(G, 'IsShiftKeyDown', nil); G.IsShiftKeyDown = function() return false end
 
   -- /aux price shows what aux recorded
@@ -3677,8 +3682,8 @@ try('0.5 build 3: latest price in tooltips', function()
     return table.concat(lines, '\n')
   end
   local banana = tip_lines(7501)
-  -- 0.8.2 build 4 (Tyler): the usual price is a percent on the Value line, no "usually" line
-  check('build 3: tooltip Value is the latest price', banana:find('Value: 0.39 (45%)  seen today', 1, true) ~= nil)
+  -- 0.8.2 build 4 (Tyler): the usual price is a percent on the Value line; 0.9: no "seen " prefix
+  check('build 3: tooltip Value is the latest price', banana:find('Value: 0.39 (45%)  today', 1, true) ~= nil)
   check('0.8.2: the usual price is a percent on the Value line, not a line of its own', banana:find('usually', 1, true) == nil)
   local steady = tip_lines(7502)
   check('build 3: no "usually" line when the two are close either', steady:find('usually', 1, true) == nil and steady:find('%)', 1, true) ~= nil)
@@ -3885,7 +3890,7 @@ try('0.6: settings', function()
   check('settings: and offers a reload', a.reload_button.__shown == true and a.reload_note.__text:find('theme after a reload', 1, true) ~= nil)
   -- Tyler, build 4: players see it as the Theme, not the Look
   local src = io.open('frame.lua'):read('*a')
-  check('settings: the row is called Theme', src:find("row(popup, LEFT_X, -110, 30, 'Theme',", 1, true) ~= nil and not src:find("30, 'Look',", 1, true))
+  check('settings: the row is called Theme', src:find("30, 'Theme',", 1, true) ~= nil and not src:find("30, 'Look',", 1, true))
   local reloaded
   G.ReloadUI = function() reloaded = true end
   a.reload_button.__scripts.OnClick(a.reload_button)
@@ -3897,10 +3902,10 @@ try('0.6: settings', function()
   local keys = {}
   for _, box in ipairs(a.tooltip_boxes) do keys[box.key] = true end
   local all = true
-  for _, k in ipairs{'value', 'usually', 'daily', 'merchant_sell', 'merchant_buy', 'disenchant_value', 'disenchant_distribution', 'money_icons'} do
+  for _, k in ipairs{'value', 'usually', 'daily', 'merchant_sell', 'merchant_buy', 'disenchant_value', 'disenchant_distribution', 'crate', 'stack', 'money_icons'} do
     if not keys[k] then all = false end
   end
-  check('settings: every /aux tooltip line has a box', all and #a.tooltip_boxes == 9)
+  check('settings: every /aux tooltip line has a box', all and #a.tooltip_boxes == 10)
   local box = a.tooltip_boxes[1]
   local checked
   local own_set_checked = rawget(box, 'SetChecked')
@@ -5524,7 +5529,7 @@ try('0.8.1: profit or loss on the Materials line', function()
   rawset(tip, 'AddDoubleLine', function(_, a, b) tinsert(lines, plain(a) .. ' | ' .. plain(b)) end)
   search.recipe_cost_tooltip(tip, recipe(7610))
   local all = table.concat(lines, '\n')
-  check('fb026: the hover shows the selling price, the cut and the profit', all:find('sells for | 2s', 1, true) and all:find('After the 5% auction house cut | 1s 90c', 1, true) and all:find('Profit | 1s 38c', 1, true) ~= nil)
+  check('fb026: the hover shows the selling price, the cut and the profit', all:find('  2s', 1, true) and all:find('After 5% AH cut | 1s 90c', 1, true) and all:find('Profit | 1s 38c', 1, true) ~= nil)
   lines = {}
   search.recipe_cost_tooltip(tip, recipe(7612))
   all = table.concat(lines, '\n')
@@ -5907,11 +5912,11 @@ try('0.8.2: Usually switch and the Shift hint', function()
   end
   local settings = a.character_data.tooltip
   check('fb035: the switch is on by default', settings.usually == true)
-  -- build 4 (Tyler): "Value: 0.39 (45%)  seen today", 39c being 45% of the usual 87c
-  check('fb035: on, the percent of usual follows the price', tip_lines():find('Value: 0.39 (45%)  seen today', 1, true) ~= nil)
+  -- build 4 (Tyler): "Value: 0.39 (45%)  today" (0.9: "seen " removed)
+  check('fb035: on, the percent of usual follows the price', tip_lines():find('Value: 0.39 (45%)  today', 1, true) ~= nil)
   SlashCmdList.AUX('tooltip percent')
   check('fb035: /aux tooltip percent turns it off', settings.usually == false and tip_lines():find('%', 1, true) == nil)
-  check('fb035: Value stays', tip_lines():find('Value: 0.39  seen today', 1, true) ~= nil)
+  check('fb035: Value stays', tip_lines():find('Value: 0.39  today', 1, true) ~= nil)
   SlashCmdList.AUX('tooltip usually')
   check('fb035: /aux tooltip usually still works', settings.usually == true)
   SlashCmdList.AUX('tooltip usually')
@@ -5930,14 +5935,13 @@ try('0.8.2: Usually switch and the Shift hint', function()
   local fresh = a.character_settings({})
   check('fb035: a new character gets every default', fresh.tooltip.value == true and fresh.tooltip.usually == true and fresh.tooltip.daily == false and type(fresh.bid_auction_ids) == 'table')
 
-  -- the Shift hint
+  -- 0.9 build 3 (Option B): full stack by default with no 'for 20', hold Shift for 1 item, no Shift hint
   local stack = tip_lines(20)
-  -- build 6 (Tyler): no Shift instructions in the tooltip
-  check('fb033: a stack shows no Shift hint', stack:find('Value: 0.39 (45%)  seen today', 1, true) ~= nil and stack:find('Shift', 1, true) == nil)
+  check('fb033: a stack shows no Shift hint', stack:find('Value: 7.80 (45%)  today', 1, true) ~= nil and stack:find('for 20', 1, true) == nil and stack:find('Shift', 1, true) == nil)
   check('fb033: one item says nothing either', tip_lines(1):find('Shift', 1, true) == nil)
   shift = true
   stack = tip_lines(20)
-  check('fb033: with Shift held, the stack price', stack:find('Value: 7.80 (45%)  for 20  seen today', 1, true) ~= nil)
+  check('fb033: with Shift held, 1-item plain price', stack:find('Value: 0.39 (45%)  today', 1, true) ~= nil and stack:find('for 20', 1, true) == nil)
   G.IsShiftKeyDown = real_shift
   h.data['7601:0'] = nil
 end)
@@ -6174,8 +6178,8 @@ try('0.8.2 build 6: Full scan button and % of usual in crafting', function()
   rawset(tip, 'AddDoubleLine', function(_, l, r) tinsert(lines, plain(l) .. ' | ' .. plain(r)) end)
   search.recipe_cost_tooltip(tip, {reagents = {{item_id = 7701, count = 2}}, output = {item_id = 7702, count = 1}})
   local all = table.concat(lines, '\n')
-  check('b6: a material\'s price says its share of usual', all:find('78c (45%)  seen today', 1, true) ~= nil)
-  check('b6: the made item\'s price says its share of usual', all:find('2s (50%)  seen today', 1, true) ~= nil)
+  check('b6: a material\'s price says its share of usual', all:find('today (45%)  78c', 1, true) ~= nil)
+  check('b6: the made item\'s price says its share of usual', all:find('today (50%)  2s', 1, true) ~= nil)
   a.character_data.tooltip.usually = false
   lines = {}
   search.recipe_cost_tooltip(tip, {reagents = {{item_id = 7701, count = 2}}, output = {item_id = 7702, count = 1}})
@@ -6939,6 +6943,1172 @@ try('FB-045: a fast row shows a real auction of its item key first', function()
   rawset(GameTooltip, 'SetHyperlink', nil)
   rawset(GameTooltip, 'SetItemKey', nil)
   rawset(C_AuctionHouse, 'GetItemKeySampleLink', nil)
+end)
+
+-- 0.9 build 1 (FB-056, user_kc0ds7pqedmptpep): dungeon/tooltip Lua error hardening, missing stack
+-- getters, daily nil division & color, no tooltip:Show() inside AddTooltipPostCall, and info.lua
+-- tooltip/auctionable guards
+try('0.9 FB-056: tooltip hardening, stack getters, and info.lua guards', function()
+  local aux = loadstring("select(2, ...) 'aux.test.fb056'; return require 'aux'")('auxForever', addon)
+  local info = loadstring("select(2, ...) 'aux.test.fb056'; return require 'aux.util.info'")('auxForever', addon)
+  local history = loadstring("select(2, ...) 'aux.test.fb056'; return require 'aux.core.history'")('auxForever', addon)
+  local post_cb = tooltip_post_calls[Enum.TooltipDataType.Item]
+  check('FB-056: item tooltip post-call registered', type(post_cb) == 'function')
+
+  local added, show_calls, get_item_calls = {}, 0, 0
+  local real_add, real_show, real_get = GameTooltip.AddLine, GameTooltip.Show, GameTooltip.GetItem
+  rawset(GameTooltip, 'AddLine', function(_, text, r, g, b) tinsert(added, {text = text, r = r, g = g, b = b}) end)
+  rawset(GameTooltip, 'Show', function() show_calls = show_calls + 1 end)
+  rawset(GameTooltip, 'GetItem', function() get_item_calls = get_item_calls + 1; return 'Test', '|Hitem:2835|h[Rough Stone]|h' end)
+
+  -- 1. Secret data.hyperlink and secret data.guid return safely without calling tooltip:GetItem()
+  local real_secret = G.issecretvalue
+  G.issecretvalue = function(v) return v == 'SECRET_VAL' end
+  post_cb(GameTooltip, {hyperlink = 'SECRET_VAL'})
+  post_cb(GameTooltip, {guid = 'SECRET_VAL'})
+  check('FB-056: secret hyperlink/guid skips GetItem and adds no lines', get_item_calls == 0 and #added == 0 and show_calls == 0)
+
+  -- 2. Valid data.guid resolves via C_Item.GetItemLinkByGUID without tooltip:GetItem()
+  local link_2835 = '|cffffffff|Hitem:2835::::::::1:::::::|h[Rough Stone]|h|r'
+  rawset(C_Item, 'GetItemLinkByGUID', function(guid) if guid == 'GUID-1' then return link_2835 end end)
+  local real_shift = G.IsShiftKeyDown
+  G.IsShiftKeyDown = function() return true end
+  -- Secret quantity falls back cleanly to 1
+  rawset(G, 'GetInboxItem', function() return 'Rough Stone', 2835, 1, 'SECRET_VAL' end)
+  GameTooltip.processingInfo = {getterName = 'GetInboxItem', getterArgs = {1, 1}}
+  local prev_daily, prev_icons = aux.character_data.tooltip.daily, aux.character_data.tooltip.money_icons
+  aux.character_data.tooltip.daily = true
+  aux.character_data.tooltip.money_icons = true
+  local history_mod = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  -- Today has a market price, but usual value (past days) is nil: must not divide by nil!
+  local today = history.today()
+  history_mod.write_record('2835:0', {day = today, low = 50, market = 60, units = 10, points = {}})
+  post_cb(GameTooltip, {guid = 'GUID-1'})
+  check('FB-056: guid resolved without GetItem and tooltip:Show() never called', get_item_calls == 0 and show_calls == 0)
+  local today_line
+  for _, line in ipairs(added) do
+    if type(line.text) == 'string' and line.text:find('^Today:') then today_line = line end
+  end
+  check('FB-056: daily with nil usual value adds Today line with color and no error',
+    today_line ~= nil and today_line.r ~= nil and not today_line.text:find('for ', 1, true))
+
+  -- 3. New Forever stack-count getters work by default (without Shift under FB-058)
+  G.IsShiftKeyDown = function() return false end
+  aux.character_data.tooltip.money_icons = false
+  local money = loadstring("select(2, ...) 'aux.test.getters_money'; return require 'aux.util.money'")('auxForever', addon)
+  local getters_to_check = {
+    {name = 'GetInboxItem', args = {1, 1}, fn = 'GetInboxItem', ret = {'X', 2835, 1, 7}},
+    {name = 'GetSendMailItem', args = {1}, fn = 'GetSendMailItem', ret = {'X', 2835, 1, 8}},
+    {name = 'GetGuildBankItem', args = {1, 1}, fn = 'GetGuildBankItemInfo', ret = {1, 9}},
+    {name = 'GetTradePlayerItem', args = {1}, fn = 'GetTradePlayerItemInfo', ret = {'X', 1, 11}},
+    {name = 'GetTradeTargetItem', args = {1}, fn = 'GetTradeTargetItemInfo', ret = {'X', 1, 12}},
+    {name = 'GetQuestItem', args = {'reward', 1}, fn = 'GetQuestItemInfo', ret = {'X', 1, 13}},
+    {name = 'GetQuestLogItem', args = {'choice', 1}, fn = 'GetQuestLogChoiceInfo', ret = {'X', 1, 14}},
+    {name = 'GetQuestLogItem', args = {'reward', 1}, fn = 'GetQuestLogRewardInfo', ret = {'X', 1, 15}},
+  }
+  local all_getters_ok = true
+  for _, g in ipairs(getters_to_check) do
+    added = {}
+    local saved_fn = G[g.fn]
+    G[g.fn] = function() return unpack(g.ret) end
+    GameTooltip.processingInfo = {getterName = g.name, getterArgs = g.args}
+    post_cb(GameTooltip, {hyperlink = link_2835})
+    local expected = money.to_string2(60 * g.ret[#g.ret])
+    local found = false
+    for _, line in ipairs(added) do
+      if type(line.text) == 'string' and line.text:find('^Value:') and line.text:find(expected, 1, true) then found = true end
+    end
+    if not found then all_getters_ok = false end
+    G[g.fn] = saved_fn
+  end
+  check('0.9 tooltip getters: inbox, send mail, guild bank, trade, quest stack counts all read', all_getters_ok)
+
+  -- 4. util/info.lua: nil font string, secret string, deterministic Left-then-Right, nil conjured globals
+  rawset(AuxTooltip, 'NumLines', function() return 2 end)
+  local real_l1, real_r1, real_l2, real_r2 = G.AuxTooltipTextLeft1, G.AuxTooltipTextRight1, G.AuxTooltipTextLeft2, G.AuxTooltipTextRight2
+  G.AuxTooltipTextLeft1 = {GetText = function() return 'Line1Left' end}
+  G.AuxTooltipTextRight1 = {GetText = function() return 'Line1Right' end}
+  G.AuxTooltipTextLeft2 = false -- missing font string (bypasses G.__index stub) must not error
+  G.AuxTooltipTextRight2 = {GetText = function() return 'SECRET_VAL' end}
+  local lines = info.tooltip('link', link_2835)
+  check('FB-056 info.tooltip: skips nil/secret lines and keeps Left before Right', #lines == 2 and lines[1] == 'Line1Left' and lines[2] == 'Line1Right')
+  G.AuxTooltipTextLeft1, G.AuxTooltipTextRight1, G.AuxTooltipTextLeft2, G.AuxTooltipTextRight2 = real_l1, real_r1, real_l2, real_r2
+  rawset(AuxTooltip, 'NumLines', nil)
+
+  local real_conj, real_min = G.ITEM_CONJURED, G.ITEM_MIN_LEVEL
+  G.ITEM_CONJURED, G.ITEM_MIN_LEVEL = 'Conjured Item', nil
+  check('FB-056 info.auctionable: conjured item with nil ITEM_MIN_LEVEL does not error', info.auctionable({'Conjured Water', 'Conjured Item'}, 1) == false)
+  G.ITEM_CONJURED, G.ITEM_MIN_LEVEL = nil, nil
+  check('FB-056 info.auctionable: nil ITEM_CONJURED does not error', info.auctionable({'Plain Item', 'Use: Drink'}, 1) == true)
+  G.ITEM_CONJURED, G.ITEM_MIN_LEVEL = real_conj, real_min
+
+  GameTooltip.processingInfo = nil
+  aux.character_data.tooltip.daily, aux.character_data.tooltip.money_icons = prev_daily, prev_icons
+  G.IsShiftKeyDown = real_shift
+  G.issecretvalue = real_secret
+  rawset(C_Item, 'GetItemLinkByGUID', nil)
+  rawset(GameTooltip, 'AddLine', real_add)
+  rawset(GameTooltip, 'Show', real_show)
+  rawset(GameTooltip, 'GetItem', real_get)
+end)
+
+-- 0.9 build 1: Waylaid Crate detector caches Equip/Chance-on-hit gear and passive-spell items
+try('0.9 crate.lua: Equip/proc gear and passive spells are cached', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local info = loadstring("select(2, ...) 'aux.test.cratecache'; return require 'aux.util.info'")('auxForever', addon)
+  local scans_proc, scans_passive = 0, 0
+  local real_spell, real_c_spell, real_item = C_Item.GetItemSpell, G.C_Spell, info.item
+  rawset(C_Item, 'GetItemSpell', function(id)
+    if id == 991901 or id == 991902 then return 'Proc', 55555 end
+  end)
+  G.C_Spell = {IsSpellDataCached = function() return true end, RequestLoadSpellData = function() end}
+  rawset(info, 'item', function(id)
+    if id == 991901 or id == 991902 then return {name = 'Proc Blade', quality = 4, max_stack = 1} end
+    return real_item(id)
+  end)
+  for _ = 1, 4 do
+    search.crate_bundles(991901, function()
+      scans_proc = scans_proc + 1
+      return {'Proc Blade', 'Binds when picked up', 'Chance on hit: Deals 100 damage'}
+    end)
+    search.crate_bundles(991902, function()
+      scans_passive = scans_passive + 1
+      return {'Passive Charm', 'Binds when picked up'}
+    end)
+  end
+  rawset(C_Item, 'GetItemSpell', real_spell)
+  G.C_Spell = real_c_spell
+  rawset(info, 'item', real_item)
+  check('0.9 crate cache: Chance on hit weapon scanned once and cached', scans_proc == 1)
+  check('0.9 crate cache: passive-spell item cached after one retry', scans_passive == 2)
+end)
+
+-- 0.9 build 1: Search table does not split one gear ending into two top-level rows when mixing bid-only and buyout
+try('0.9 auction_listing: bid-only and buyout of same gear ending stay in one row', function()
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local al = loadstring("select(2, ...) 'aux.gui.auction_listing'; return _M")('auxForever', addon)
+  local t = search.current_search().table
+  local function mk(ending, suffix, bid, buyout, id)
+    local r = {
+      item_id = 4570, suffix_id = suffix, item_key = '4570:' .. suffix,
+      price_key = '4570:' .. ending, name = 'Merc Sword ' .. ending,
+      bid_price = bid, buyout_price = buyout, unit_bid_price = bid, unit_buyout_price = buyout,
+      count = 1, auction_count = 1, duration = 3, owner = 'S' .. id,
+      search_signature = table.concat({4570, 4570, ending, 1, 0, bid, buyout, 0, 3, 'S' .. id}, ':'),
+      auction_id = id,
+    }
+    r.price_group = al.price_group(r)
+    return r
+  end
+  t:SetDatabase({
+    mk('of the owl', 10, 1000, 0, 1),
+    mk('of the bear', 11, 2000, 5000, 2),
+    mk('of the owl', 12, 2000, 6000, 3),
+  })
+  check('0.9 split rows: two endings stay two top-level rows', #t.rowInfo == 2)
+  local owl_children = 0
+  for _, row in ipairs(t.rowInfo) do
+    if row.expandKey == '4570:of the owl' then owl_children = #row.children end
+  end
+  check('0.9 split rows: owl row merges both its bid-only and buyout listings', owl_children == 2)
+  t:SetDatabase({})
+end)
+
+-- 0.9 build 1: Sniper O(K^2) per-round read cache and bought message preservation
+try('0.9 Sniper: per-round read cache avoids K^2 requests and bought message stays visible', function()
+  local aux = loadstring("select(2, ...) 'aux.test.sniper09'; return require 'aux'")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.test.sniper09'; return require 'aux.core.scan'")('auxForever', addon)
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local bar = loadstring("select(2, ...) 'aux.gui.buy_bar'; return _M")('auxForever', addon)
+  local al = loadstring("select(2, ...) 'aux.gui.auction_listing'; return _M")('auxForever', addon)
+
+  -- 1. 4 versions of one gear ending checked in one round -> 4 read_item calls, not 16
+  local keys = {}
+  for i = 1, 4 do keys[i] = {itemID = 14114, itemLevel = 25, itemSuffix = 200 + i, battlePetSpeciesID = 0} end
+  local calls, real_read = 0, scan.read_item
+  rawset(scan, 'read_item', function(ik)
+    calls = calls + 1
+    return {{
+      item_id = ik.itemID, suffix_id = ik.itemSuffix, item_key = '14114:of arcane protection',
+      price_key = '14114:of arcane protection', name = 'Ritual Belt of Arcane Protection',
+      unit_buyout_price = 10000, buyout_price = 10000, bid_price = 10000,
+      count = 1, own = false, auction_id = 600 + ik.itemSuffix,
+      vendor_price = 500, quality = 2, item_level = 25, level = 20, duration = 3, browse_key = ik,
+    }}
+  end)
+  local round_reads = {}
+  for i = 1, 4 do
+    local others = {}
+    for j = 1, 4 do if j ~= i then tinsert(others, keys[j]) end end
+    sniper.check_item(keys[i], '14114:25:' .. keys[i].itemSuffix, 10000, others, round_reads)
+  end
+  rawset(scan, 'read_item', real_read)
+  check('0.9 Sniper K^2 fix: 4 gear versions take 4 reads instead of 16', calls == 4)
+
+  -- 1b. If throttle freezes mid-sibling read, check_item aborts without judging partial data
+  local throttled_now = false
+  local real_throttled = scan.is_throttled
+  local sibling_reads = 0
+  sniper.clear_deals()
+  rawset(scan, 'is_throttled', function() return throttled_now end)
+  rawset(scan, 'read_item', function(ik)
+    sibling_reads = sibling_reads + 1
+    if sibling_reads == 2 then
+      throttled_now = true
+      return nil
+    end
+    return {{
+      item_id = ik.itemID, suffix_id = ik.itemSuffix, item_key = '14114:of arcane protection',
+      price_key = '14114:of arcane protection', name = 'Ritual Belt of Arcane Protection',
+      unit_buyout_price = 100, buyout_price = 100, bid_price = 100,
+      count = 1, own = false, auction_id = 700 + ik.itemSuffix,
+      vendor_price = 5000, quality = 2, item_level = 25, level = 20, duration = 3, browse_key = ik,
+    }}
+  end)
+  sniper.check_item(keys[1], '14114:25:201', 100, {keys[2], keys[3], keys[4]}, {})
+  rawset(scan, 'read_item', real_read)
+  rawset(scan, 'is_throttled', real_throttled)
+  check('0.9 Sniper sibling throttle: stops reading siblings and does not judge partial data',
+    sibling_reads == 2 and #sniper.deals == 0)
+
+  -- 2. Bought message stays visible on the frame after auto-deselect
+  aux.set_tab(2)
+  local deal = {
+    item_id = 4570, suffix_id = 0, item_key = '4570:0', price_key = '4570:0', deal_key = '4570:0:0',
+    name = 'Shiny Sword', link = '[Shiny Sword]', texture = 'icon', quality = 2, buyout_price = 1000, unit_buyout_price = 1000,
+    bid_price = 500, count = 1, auction_count = 1, auction_id = 9992, duration = 3,
+    search_signature = '4570:0:1:0:500:1000:0:3:S', deal_reason = 'below usual', deal_profit = 9000, deal_percent = 10, deal_found = 0,
+  }
+  deal.price_group = al.price_group(deal)
+  sniper.listing:SetDatabase({deal})
+  sniper.listing:SetSelectedRecord(deal)
+  sniper.update_selection()
+  local real_bid, prev_confirm = aux.place_bid, aux.account_data.buy_confirm
+  aux.account_data.buy_confirm = false
+  rawset(aux, 'place_bid', function(_, _, on_ok) on_ok() end)
+  for _ = 1, 4 do tick() end
+  bar.primary_click()
+  sniper.update_selection()
+  local l1 = bar.lines()
+  check('0.9 Sniper bought msg: stays visible after auto-deselect instead of Select a row',
+    type(l1) == 'string' and l1:find('Bought 1 × Shiny Sword', 1, true) ~= nil and not bar.primary_button:IsShown())
+  aux.account_data.buy_confirm = prev_confirm
+  rawset(aux, 'place_bid', real_bid)
+  sniper.clear_deals()
+  bar.clear()
+  aux.set_tab(1)
+end)
+
+-- 0.9 build 1: Synchronous API errors/cancels, bid_auction_ids pollution, Post multisell race & cache-miss
+try('0.9 sync events, bid_auction_ids, and Post state machine', function()
+  local aux = loadstring("select(2, ...) 'aux.test.sync09'; return require 'aux'")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.test.sync09'; return require 'aux.core.scan'")('auxForever', addon)
+  local auctions = loadstring("select(2, ...) 'aux.tabs.auctions'; return _M")('auxForever', addon)
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local scan_util = loadstring("select(2, ...) 'aux.test.sync09'; return require 'aux.util.scan'")('auxForever', addon)
+
+  -- 1. aux.place_bid catches synchronous error immediately (no 5s timeout)
+  local err_seen
+  rawset(C_AuctionHouse, 'PlaceBid', function() fire('AUCTION_HOUSE_SHOW_ERROR', 7) end)
+  aux.place_bid(55501, 100, function() err_seen = 'ok' end, function(e) err_seen = e end)
+  check('0.9 place_bid sync error: fails immediately without 5s lock', err_seen == 7 and not aux.bid_in_progress())
+
+  -- 2. Gear buyout (AUCTION_HOUSE_PURCHASE_COMPLETED) does not pollute bid_auction_ids; real bid does
+  local before_ids = #aux.character_data.bid_auction_ids
+  rawset(C_AuctionHouse, 'PlaceBid', function(id) fire('AUCTION_HOUSE_PURCHASE_COMPLETED', id) end)
+  aux.place_bid(55502, 100)
+  check('0.9 place_bid: gear buyout not appended to bid_auction_ids', #aux.character_data.bid_auction_ids == before_ids)
+  rawset(C_AuctionHouse, 'PlaceBid', function() fire('BID_ADDED') end)
+  aux.place_bid(55503, 100)
+  check('0.9 place_bid: real bid IS appended to bid_auction_ids', #aux.character_data.bid_auction_ids == before_ids + 1 and aux.character_data.bid_auction_ids[before_ids + 1] == 55503)
+  tremove(aux.character_data.bid_auction_ids)
+  rawset(C_AuctionHouse, 'PlaceBid', nil)
+
+  -- 3. auctions.cancel_auction catches synchronous AUCTION_CANCELED immediately
+  rawset(C_AuctionHouse, 'CanCancelAuction', function() return true end)
+  rawset(C_AuctionHouse, 'GetCancelCost', function() return 0 end)
+  rawset(C_AuctionHouse, 'CancelAuction', function(id) fire('AUCTION_CANCELED', id) end)
+  auctions.cancel_auction({auction_id = 55504, name = 'Test'})
+  check('0.9 cancel_auction sync: row not stuck in cancelling', auctions.cancelling[55504] == nil)
+  rawset(C_AuctionHouse, 'CanCancelAuction', nil)
+  rawset(C_AuctionHouse, 'GetCancelCost', nil)
+  rawset(C_AuctionHouse, 'CancelAuction', nil)
+
+  -- 4. post.post_auction catches synchronous error immediately AND handles multi-item BAG_UPDATE race
+  fire('AUCTION_HOUSE_SHOW')
+  local bag_qty = 5
+  local stone_link = '|cffffffff|Hitem:2835::::::::1:::::::|h[Rough Stone]|h|r'
+  local real_get_info = G.GetItemInfo
+  rawset(C_Container, 'GetContainerNumSlots', function(b) return b == 0 and 1 or 0 end)
+  rawset(C_Container, 'GetContainerItemInfo', function(b, s)
+    if b == 0 and s == 1 and bag_qty > 0 then return {itemID = 2835, stackCount = bag_qty, hyperlink = stone_link, iconFileID = 1, quality = 1, isLocked = false} end
+  end)
+  rawset(C_Container, 'GetContainerItemLink', function(b, s) if b == 0 and s == 1 and bag_qty > 0 then return stone_link end end)
+  rawset(C_Item, 'GetItemInfo', function() return 'Rough Stone', stone_link, 1, 1, 1, 'Trade Goods', 'Stone', 20, '', 1, 1, 7, 7 end)
+  G.GetItemInfo = C_Item.GetItemInfo
+  rawset(C_AuctionHouse, 'IsSellItemValid', function() return true end)
+  rawset(C_Item, 'GetItemMaxStackSize', function() return 20 end)
+  rawset(AuxTooltip, 'NumLines', function() return 0 end)
+  rawset(ItemLocation, 'CreateFromBagAndSlot', function(_, b, s) return {bag = b, slot = s, IsValid = function() return true end} end)
+  rawset(post.stack_size_input, 'GetNumber', function() return 1 end)
+  rawset(post.stack_count_input, 'GetNumber', function() return 1 end)
+  rawset(post.duration_dropdown, 'GetIndex', function() return 2 end)
+  local post_commodity_called = false
+  rawset(C_AuctionHouse, 'PostCommodity', function() post_commodity_called = true; fire('AUCTION_HOUSE_SHOW_ERROR', 5); return false end)
+  post.selected_item = {item_id = 2835, suffix_id = 0, key = '2835:0', name = 'Rough Stone', commodity = true, count = 5, max_stack = 20, texture = 1, quality = 1}
+  post.set_unit_start_price(0)
+  post.set_unit_buyout_price(100)
+  post.keep_player_price()
+  post.post_auction()
+  check('0.9 post sync error: PostCommodity called and posting clears immediately without 5s hang', post_commodity_called and post.posting == nil)
+  scan.abort()
+
+  -- Multi-item Post where BAG_UPDATE drops bag count BEFORE AUCTION_MULTISELL_UPDATE(2, 2)
+  rawset(post.stack_count_input, 'GetNumber', function() return 2 end)
+  local post_item_called = false
+  rawset(C_AuctionHouse, 'PostItem', function() post_item_called = true; return false end)
+  post.selected_item = {item_id = 2835, suffix_id = 0, key = '2835:0', name = 'Rough Stone', commodity = false, count = 5, max_stack = 1, texture = 1, quality = 1}
+  post.set_unit_start_price(0)
+  post.set_unit_buyout_price(100)
+  post.keep_player_price()
+  post.post_auction()
+  check('0.9 post multisell: PostItem called and starts in multi mode', post_item_called and post.posting == 'multi')
+  bag_qty = 3
+  fire('BAG_UPDATE') -- arrives before final multisell update
+  fire('AUCTION_MULTISELL_UPDATE', 2, 2)
+  tick()
+  check('0.9 post multisell race: finishes immediately when bags already dropped', post.posting == nil)
+  scan.abort()
+
+  -- Post cache-miss with nil item_query AND empty name stops cleanly instead of saying "None for sale"
+  local real_item_query = scan_util.item_query
+  rawset(scan_util, 'item_query', function() return nil end)
+  post.selected_item = {item_id = 99999, suffix_id = 0, key = '99999:0', name = '', commodity = false, count = 1, max_stack = 1, texture = 1, quality = 2}
+  post.set_unit_buyout_price(0)
+  post.set_unit_start_price(0)
+  post.refresh_entries()
+  check('0.9 post cache-miss: stops reading instead of claiming None for sale', post.disabled_reason() == 'Reading stopped. Press Refresh, or type a price.')
+
+  scan.abort()
+  rawset(scan_util, 'item_query', real_item_query)
+  rawset(post.stack_size_input, 'GetNumber', nil)
+  rawset(post.stack_count_input, 'GetNumber', nil)
+  rawset(post.duration_dropdown, 'GetIndex', nil)
+  rawset(C_AuctionHouse, 'PostCommodity', nil)
+  rawset(C_AuctionHouse, 'PostItem', nil)
+  rawset(C_Container, 'GetContainerNumSlots', nil)
+  rawset(C_Container, 'GetContainerItemInfo', nil)
+  rawset(C_Container, 'GetContainerItemLink', nil)
+  rawset(C_Item, 'GetItemInfo', nil)
+  G.GetItemInfo = real_get_info
+  rawset(C_AuctionHouse, 'IsSellItemValid', nil)
+  rawset(C_Item, 'GetItemMaxStackSize', nil)
+  rawset(AuxTooltip, 'NumLines', nil)
+  rawset(ItemLocation, 'CreateFromBagAndSlot', nil)
+  post.selected_item = nil
+end)
+
+-- 0.9 build 1: Scan priority coordinator and Buy bar state fixes
+try('0.9 scan priority coordinator and Buy bar guards', function()
+  local aux = loadstring("select(2, ...) 'aux.test.prio09'; return require 'aux'")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.test.prio09'; return require 'aux.core.scan'")('auxForever', addon)
+  local bar = loadstring("select(2, ...) 'aux.gui.buy_bar'; return _M")('auxForever', addon)
+
+  -- 1. Lower-priority scan does not kill a running higher-priority scan
+  local user_aborted, watch_aborted, bg_aborted = false, false, false
+  scan.start{
+    type = 'list',
+    priority = scan.PRIORITY_USER,
+    queries = {{blizzard_query = {name = 'test'}}},
+    on_abort = function() user_aborted = true end,
+  }
+  local watch_ok = scan.start{
+    type = 'list',
+    priority = scan.PRIORITY_WATCH,
+    queries = {{blizzard_query = {name = 'watch'}}},
+    on_abort = function() watch_aborted = true end,
+  }
+  local bg_ok = scan.start{
+    type = 'list',
+    priority = scan.PRIORITY_BACKGROUND,
+    queries = {{blizzard_query = {name = 'bg'}}},
+    on_abort = function() bg_aborted = true end,
+  }
+  check('0.9 scan priority: lower-priority scans rejected without aborting user scan',
+    watch_ok == false and watch_aborted and bg_ok == false and bg_aborted and not user_aborted and scan.is_scanning())
+  scan.abort()
+  -- Higher-priority scan DOES preempt lower-priority scan
+  watch_aborted = false
+  scan.start{
+    type = 'list',
+    priority = scan.PRIORITY_WATCH,
+    queries = {{blizzard_query = {name = 'watch'}}},
+    on_abort = function() watch_aborted = true end,
+  }
+  local user_ok = scan.start{
+    type = 'list',
+    priority = scan.PRIORITY_USER,
+    queries = {{blizzard_query = {name = 'user'}}},
+  }
+  check('0.9 scan priority: user scan preempts watch scan', user_ok == true and watch_aborted)
+  scan.abort()
+
+  -- 2. Buy bar: chip click while QUOTED/BUYING does not overwrite Quantity box; empty Enter does not buy
+  local started_purchases = 0
+  rawset(C_AuctionHouse, 'StartCommoditiesPurchase', function() started_purchases = started_purchases + 1 end)
+  local prev_confirm = aux.account_data.buy_confirm
+  aux.account_data.buy_confirm = true
+  for _ = 1, 4 do tick() end
+  bar.show_commodity{
+    item_id = 2835, name = 'Rough Stone', texture = 'icon', quality = 1, max_stack = 20,
+    tiers = function() return {{commodity_unit_price = 100, unit_buyout_price = 100, count = 50, own = false}} end,
+    on_refresh = function() end,
+  }
+  -- Empty Enter while idle does not start a purchase
+  bar.other_input:SetText('')
+  bar.other_input.enter()
+  check('0.9 buy_bar: empty Quantity box Enter does not start purchase', started_purchases == 0)
+  bar.other_input:SetText('1')
+  bar.primary_click()
+  fire('COMMODITY_PRICE_UPDATED', 100, 100)
+  check('0.9 buy_bar: event updates Confirm button immediately without waiting 100ms', (bar.primary_label() or ''):find('^Confirm') ~= nil)
+  bar.chips[3]:Click()
+  check('0.9 buy_bar: chip click while Confirm showing leaves Quantity box at 1', bar.other_input:GetText() == '1')
+  aux.account_data.buy_confirm = prev_confirm
+  bar.clear()
+  rawset(C_AuctionHouse, 'StartCommoditiesPurchase', nil)
+end)
+
+-- 0.9 build 2 (Phase 1): FB-058, FB-061, FB-062, FB-032, FB-063 (Bindings.xml), and S-09
+try('0.9 build 2: FB-058 stack default toggle and removed seen prefix', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local tooltip = loadstring("select(2, ...) 'aux.core.tooltip'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  local d = h.today()
+  h.write_record('7609:0', {day = d, low = 51, market = 51, units = 10, points = {{day = d - 1, value = 51}}})
+  local real_shift = G.IsShiftKeyDown
+  local shift = false
+  G.IsShiftKeyDown = function() return shift end
+  local function run_tip(qty)
+    local lines = {}
+    local tip = new_frame()
+    rawset(tip, 'AddLine', function(_, t) tinsert(lines, plain(t)) end)
+    rawset(AuxTooltip, 'NumLines', function() return 0 end)
+    tooltip.extend_tooltip(tip, '|cffffffff|Hitem:7609::::::0:0|h[X]|h|r', qty)
+    rawset(AuxTooltip, 'NumLines', nil)
+    return table.concat(lines, '\n')
+  end
+  local settings = a.character_data.tooltip
+  check('FB-058: tooltip.stack starts true and migrates older characters', settings.stack == true and a.character_settings({tooltip = {value = true}}).tooltip.stack == true)
+  local def_stack = run_tip(20)
+  check('FB-058: default shows full stack price without for 20 or seen prefix', def_stack:find('Value: 10.20 (100%)  today', 1, true) ~= nil and def_stack:find('for 20', 1, true) == nil and def_stack:find('seen ', 1, true) == nil)
+  shift = true
+  local shift_single = run_tip(20)
+  check('FB-058: holding Shift shows plain 1-item price without for 20 or each', shift_single:find('Value: 0.51 (100%)  today', 1, true) ~= nil and shift_single:find('for 20', 1, true) == nil and shift_single:find('each', 1, true) == nil)
+  -- Turning /aux tooltip stack off reverses back to 1-item default and Shift for stack
+  SlashCmdList.AUX('tooltip stack off')
+  local stack_box
+  for _, b in ipairs(a.tooltip_boxes) do if b.key == 'stack' then stack_box = b end end
+  check('FB-058: /aux tooltip stack off flips setting and refreshes Settings switch', settings.stack == false and stack_box and stack_box:GetChecked() == false)
+  shift = false
+  check('FB-058: with stack off, no Shift shows 1 item', run_tip(20):find('Value: 0.51 (100%)  today', 1, true) ~= nil)
+  shift = true
+  check('FB-058: with stack off, Shift shows full stack', run_tip(20):find('Value: 10.20 (100%)  today', 1, true) ~= nil)
+  SlashCmdList.AUX('tooltip stack on')
+  check('FB-058: /aux tooltip stack on restores default', settings.stack == true and stack_box:GetChecked() == true)
+  G.IsShiftKeyDown = real_shift
+  h.data['7609:0'] = nil
+end)
+
+try('0.9 build 2: FB-061 Professions cost line toggle (live without reload)', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local real_pf = G.ProfessionsFrame
+  local real_ts = G.C_TradeSkillUI
+  local form = new_frame()
+  form.GetRecipeInfo = function() return {recipeID = 888} end
+  form:Show()
+  G.ProfessionsFrame = {CraftingPage = {SchematicForm = form}}
+  G.C_TradeSkillUI = {GetRecipeSchematic = function()
+    return {name = 'Test Potion', outputItemID = 7210, quantityMin = 1, reagentSlotSchematics = {{reagents = {{itemID = 7201}}, quantityRequired = 2}}}
+  end}
+  search.update_cost_line(form)
+  check('FB-061: crafting_cost defaults on and line shows', a.account_data.crafting_cost == true and search.recipe_cost_line.__shown == true)
+  SlashCmdList.AUX('crafting cost off')
+  check('FB-061: /aux crafting cost off hides line live and updates Settings switch',
+    a.account_data.crafting_cost == false and search.recipe_cost_line.__shown == false and a.crafting_cost_switch:GetChecked() == false)
+  search.update_cost_line(form)
+  check('FB-061: switching recipes while off keeps line hidden', search.recipe_cost_line.__shown == false)
+  a.crafting_cost_switch.__scripts.OnClick(a.crafting_cost_switch)
+  check('FB-061: Settings switch restores line live without reload',
+    a.account_data.crafting_cost == true and search.recipe_cost_line.__shown == true)
+  G.ProfessionsFrame = real_pf
+  G.C_TradeSkillUI = real_ts
+end)
+
+try('0.9 build 2: FB-062 right-click bag item to Post (and tab_index_by_name)', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local shortcut = loadstring("select(2, ...) 'aux.core.shortcut'; return _M")('auxForever', addon)
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  check('FB-062: tab_index_by_name finds Post and Search', a.tab_index_by_name('Search') == 1 and a.tab_index_by_name('Post') == 3)
+  local was_shown = a.frame.__shown
+  a.frame.__shown = true
+  local real_btn = G.GetMouseButtonClicked
+  local real_link = C_Item.GetItemLink
+  local real_shift, real_alt = G.IsShiftKeyDown, G.IsAltKeyDown
+  local real_mod = G.IsModifiedClick
+  G.GetMouseButtonClicked = function() return 'RightButton' end
+  rawset(C_Item, 'GetItemLink', function() return '|cffffffff|Hitem:2589::::::0:0|h[Linen Cloth]|h|r' end)
+  local loc = {IsValid = function() return true end}
+  local post_used, search_used = 0, 0
+  local post_tab_obj = a.tab_info[a.tab_index_by_name('Post')]
+  local search_tab_obj = a.tab_info[a.tab_index_by_name('Search')]
+  local orig_post_use, orig_search_use = post_tab_obj.USE_ITEM, search_tab_obj.USE_ITEM
+  post_tab_obj.USE_ITEM = function() post_used = post_used + 1 end
+  search_tab_obj.USE_ITEM = function() search_used = search_used + 1 end
+
+  -- Default on (0.9 build 3, Tyler): right-click from Search or Sniper switches to Post and loads it
+  a.set_tab(2) -- Sniper tab
+  check('FB-062: right_click_post defaults true', a.account_data.right_click_post == true and a.right_click_post_switch:GetChecked() == true)
+  shortcut.on_post_item(loc)
+  check('FB-062: on switches from Sniper to Post and loads item', a.get_tab().name == 'Post' and post_used == 1)
+
+  -- Alt-click still stays tab-aware (searches on Search tab, does not switch to Post)
+  a.set_tab(1)
+  G.IsAltKeyDown = function() return true end
+  G.IsModifiedClick = function() return false end
+  shortcut.on_modified_click('|cffffffff|Hitem:2589::::::0:0|h[Linen Cloth]|h|r')
+  check('FB-062: Alt-click stays on Search tab even when right_click_post is on', a.get_tab().name == 'Search' and search_used == 1 and post_used == 1)
+  G.IsAltKeyDown = function() return false end
+
+  -- Off via slash command: right-click on Search tab stays on Search tab
+  SlashCmdList.AUX('right click post off')
+  check('FB-062: slash turns off and updates Settings switch', a.account_data.right_click_post == false and a.right_click_post_switch:GetChecked() == false)
+  shortcut.on_post_item(loc)
+  check('FB-062: off keeps right-click on Search tab', a.get_tab().name == 'Search' and search_used == 2 and post_used == 1)
+
+  SlashCmdList.AUX('right click post on')
+  post_tab_obj.USE_ITEM, search_tab_obj.USE_ITEM = orig_post_use, orig_search_use
+  rawset(C_Item, 'GetItemLink', real_link)
+  G.GetMouseButtonClicked, G.IsShiftKeyDown, G.IsAltKeyDown, G.IsModifiedClick = real_btn, real_shift, real_alt, real_mod
+  a.frame.__shown = was_shown
+  a.set_tab(1)
+end)
+
+try('0.9 build 2: FB-032 Auto Full scan on AH open', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.core.scan'; return _M")('auxForever', addon)
+  local scan_exports = loadstring("select(2, ...) 'aux.test.fb032'; return require 'aux.core.scan'")('auxForever', addon)
+  local real_start = scan_exports.start
+  local started_params = {}
+  rawset(scan_exports, 'start', function(p) tinsert(started_params, p); return true end)
+  local printed = {}
+  local real_print = a.print
+  rawset(a, 'print', function(msg) tinsert(printed, tostring(msg)) end)
+  local prev_rep = a.account_data.replicate_time
+
+  -- Off by default: opening AH starts no Full scan
+  a.account_data.replicate_time = 0
+  check('FB-032: auto_full_scan defaults false', a.account_data.auto_full_scan == false)
+  fire('AUCTION_HOUSE_SHOW')
+  check('FB-032: off does not start Full scan on AH open', #started_params == 0)
+
+  -- On + ready: opening AH starts Full scan at PRIORITY_BACKGROUND
+  SlashCmdList.AUX('auto scan on')
+  printed = {}
+  check('FB-032: /aux auto scan on updates Settings switch', a.account_data.auto_full_scan == true and a.auto_full_scan_switch:GetChecked() == true)
+  fire('AUCTION_HOUSE_SHOW')
+  check('FB-032: on + ready starts background Full scan on AH open',
+    #started_params == 1 and started_params[1].get_all == true and started_params[1].priority == scan.PRIORITY_BACKGROUND)
+
+  -- On + on cooldown: opening AH skips silently (no cooldown chat spam)
+  started_params = {}
+  printed = {}
+  a.account_data.replicate_time = os.time()
+  fire('AUCTION_HOUSE_SHOW')
+  check('FB-032: on cooldown skips silently with no chat spam', #started_params == 0 and #printed == 0)
+
+  -- Manual click on cooldown still informs the player
+  a.start_full_scan()
+  check('FB-032: manual click on cooldown still prints wait message', #printed == 1 and printed[1]:find('available again', 1, true) ~= nil)
+
+  SlashCmdList.AUX('auto scan off')
+  a.account_data.replicate_time = prev_rep
+  rawset(a, 'print', real_print)
+  rawset(scan_exports, 'start', real_start)
+  fire('AUCTION_HOUSE_CLOSED')
+end)
+
+try('0.9 build 2: FB-063 Bindings.xml and buy_bar keybinds', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local bar = loadstring("select(2, ...) 'aux.gui.buy_bar'; return _M")('auxForever', addon)
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+
+  -- Verify Bindings.xml file contents and WoW global labels
+  local xml = io.open('Bindings.xml'):read('*a')
+  local expected_bindings = {'AUXFOREVER_BUY', 'AUXFOREVER_CONFIRM', 'AUXFOREVER_CANCEL', 'AUXFOREVER_BUY_OR_CONFIRM'}
+  local xml_ok = xml:find('category="BINDING_HEADER_AUXFOREVER"', 1, true) ~= nil and G.BINDING_HEADER_AUXFOREVER == 'auxForever'
+  for _, name in ipairs(expected_bindings) do
+    if not xml:find('name="' .. name .. '"', 1, true) or type(G['BINDING_NAME_' .. name]) ~= 'string' then
+      xml_ok = false
+    end
+  end
+  check('FB-063: Bindings.xml and BINDING_NAME globals define all 4 bindings', xml_ok and type(G.AuxForever_RunBinding) == 'function')
+
+  -- Set up commodity with Confirm before buying enabled
+  local started, confirmed, placed = 0, 0, 0
+  local real_start, real_confirm, real_bid = C_AuctionHouse.StartCommoditiesPurchase, C_AuctionHouse.ConfirmCommoditiesPurchase, C_AuctionHouse.PlaceBid
+  rawset(C_AuctionHouse, 'StartCommoditiesPurchase', function() started = started + 1 end)
+  rawset(C_AuctionHouse, 'ConfirmCommoditiesPurchase', function() confirmed = confirmed + 1 end)
+  rawset(C_AuctionHouse, 'PlaceBid', function() placed = placed + 1 end)
+  local prev_confirm = a.account_data.buy_confirm
+  a.account_data.buy_confirm = true
+  local was_shown = a.frame.__shown
+  a.frame.__shown = true
+  a.set_tab(1)
+  search.frame:Show()
+  bar.attach(search.frame)
+  for _ = 1, 5 do tick() end
+  bar.show_commodity{
+    item_id = 2835, name = 'Rough Stone', texture = 'icon', quality = 1, max_stack = 20,
+    tiers = function() return {{commodity_unit_price = 100, unit_buyout_price = 100, count = 50, own = false}} end,
+    on_refresh = function() end,
+  }
+  tick()
+
+  -- 1. Confirm does nothing in Buy state; Buy starts quote; mashing Buy in Confirm state does NOT confirm!
+  check('FB-063: Confirm keybind ignored while in Buy state', G.AuxForever_RunBinding('confirm') == false and started == 0)
+  check('FB-063: Buy keybind starts commodity quote', G.AuxForever_RunBinding('buy') == true and started == 1)
+  fire('COMMODITY_PRICE_UPDATED', 100, 100)
+  check('FB-063: mashing Buy while Confirm showing never confirms', G.AuxForever_RunBinding('buy') == false and confirmed == 0)
+  check('FB-063: Cancel keybind declines pending Confirm', G.AuxForever_RunBinding('cancel') == true and confirmed == 0 and (bar.lines() or ''):find('Cancelled', 1, true) ~= nil)
+
+  -- 2. Re-quote and Confirm keybind completes purchase
+  bar.show_commodity{
+    item_id = 2835, name = 'Rough Stone', texture = 'icon', quality = 1, max_stack = 20,
+    tiers = function() return {{commodity_unit_price = 100, unit_buyout_price = 100, count = 50, own = false}} end,
+    on_refresh = function() end,
+  }
+  tick()
+  G.AuxForever_RunBinding('buy')
+  fire('COMMODITY_PRICE_UPDATED', 100, 100)
+  check('FB-063: Confirm keybind confirms pending purchase', G.AuxForever_RunBinding('confirm') == true and confirmed == 1)
+
+  -- 3. Gear with Buy or Confirm one-key flow + focus/visibility guards
+  local rec = {
+    item_id = 4570, suffix_id = 0, item_key = '4570:0', name = 'Shiny Sword', texture = 'icon', quality = 2,
+    buyout_price = 1000, unit_buyout_price = 1000, bid_price = 0, count = 1, auction_id = 8881, own = false,
+  }
+  bar.show_item{
+    record = rec, name = rec.name, texture = rec.texture, quality = rec.quality,
+    on_buy = function() C_AuctionHouse.PlaceBid(rec.auction_id, rec.buyout_price) end,
+    on_bid = function() end,
+    busy = function() return false end,
+  }
+  for _ = 1, 5 do tick() end
+  -- EditBox focus guard
+  local real_focus = G.GetCurrentKeyBoardFocus
+  G.GetCurrentKeyBoardFocus = function() return search.search_box end
+  check('FB-063: keybind ignored while typing in an edit box', G.AuxForever_RunBinding('buy_or_confirm') == false and placed == 0)
+  G.GetCurrentKeyBoardFocus = real_focus
+  -- Hidden tab guard
+  search.frame:Hide()
+  check('FB-063: keybind ignored when buy bar tab is not shown', G.AuxForever_RunBinding('buy_or_confirm') == false and placed == 0)
+  search.frame:Show()
+  -- Buy or Confirm enters Confirm on press 1, buys on press 2
+  check('FB-063: buy_or_confirm press 1 enters Confirm', G.AuxForever_RunBinding('buy_or_confirm') == true and placed == 0 and (bar.primary_label() or ''):find('^Confirm') ~= nil)
+  check('FB-063: buy_or_confirm press 2 buys gear', G.AuxForever_RunBinding('buy_or_confirm') == true and placed == 1)
+
+  a.account_data.buy_confirm = prev_confirm
+  a.frame.__shown = was_shown
+  bar.clear()
+  bar.attach_default()
+  rawset(C_AuctionHouse, 'StartCommoditiesPurchase', real_start)
+  rawset(C_AuctionHouse, 'ConfirmCommoditiesPurchase', real_confirm)
+  rawset(C_AuctionHouse, 'PlaceBid', real_bid)
+end)
+
+try('0.9 build 2: S-09 Post receipt hides Starting bids and totals when trade good has no price', function()
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+  rawset(post.stack_size_input, 'GetNumber', function() return 1 end)
+  rawset(post.stack_count_input, 'GetNumber', function() return 1 end)
+  -- Commodity with leftover hidden start price (51c) and no buyout (0)
+  post.selected_item = {
+    key = '2589:0', item_id = 2589, name = 'Linen Cloth', texture = 'icon', quality = 1,
+    count = 10, max_stack = 20, commodity = true, unit_vendor_price = 13,
+  }
+  post.set_unit_start_price(51)
+  post.set_unit_buyout_price(0)
+  post.update_item_configuration()
+  check('S-09: trade good with no buyout never says Starting bids and shows dashes',
+    plain(post.posting_summary.__text) == 'Total, 1 item'
+    and plain(post.total_summary.__text) == '-'
+    and plain(post.cut_summary.__text) == '-'
+    and plain(post.net_summary.__text) == '-'
+    and post.vendor_warning.__shown ~= true)
+  -- Gear with starting bid (51c) and no buyout (0) still shows Starting bids
+  post.selected_item = {
+    key = '4570:0', item_id = 4570, name = 'Shiny Sword', texture = 'icon', quality = 2,
+    count = 1, max_stack = 1, commodity = false, unit_vendor_price = 10,
+  }
+  post.set_unit_start_price(51)
+  post.set_unit_buyout_price(0)
+  post.update_item_configuration()
+  check('S-09: gear with bid-only still shows Starting bids and real total',
+    plain(post.posting_summary.__text) == 'Starting bids, 1 item'
+    and plain(post.total_summary.__text) == '51c')
+  post.selected_item = nil
+  post.update_item_configuration()
+  rawset(post.stack_size_input, 'GetNumber', nil)
+  rawset(post.stack_count_input, 'GetNumber', nil)
+end)
+
+-- 0.9 build 3: Option B tooltips, aligned crafting tooltip, T1-T6 wording trims, Settings padding,
+-- and Phase 2 (FB-057 Blizzard Options > AddOns > auxForever + /aux settings)
+try('0.9 build 3: Option B tooltips, aligned crafting hover, and T1-T6 wording', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+  local tooltip = loadstring("select(2, ...) 'aux.core.tooltip'; return _M")('auxForever', addon)
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local bar = loadstring("select(2, ...) 'aux.gui.buy_bar'; return _M")('auxForever', addon)
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+
+  -- short_age_text vs full age_text
+  check('0.9b3: short_age_text returns today and Nd', h.short_age_text(0) == 'today' and h.short_age_text(1) == '1d' and h.short_age_text(3) == '3d' and h.short_age_text(9) == '9d')
+  check('0.9b3: full age_text unchanged for /aux price', h.age_text(0) == 'today' and h.age_text(1) == '1 day ago' and h.age_text(3) == '3 days ago')
+
+  -- Option B tooltip: no "for N", compact age, old dimmed
+  local d = h.today()
+  h.write_record('7901:0', {day = d, points = {{day = d - 3, value = 1000}}})
+  h.write_record('7902:0', {day = d, points = {{day = d - 9, value = 1000}}})
+  local function run_tip(id, qty)
+    local lines = {}
+    local tip = new_frame()
+    rawset(tip, 'AddLine', function(_, t) tinsert(lines, t) end)
+    rawset(AuxTooltip, 'NumLines', function() return 0 end)
+    tooltip.extend_tooltip(tip, '|cffffffff|Hitem:' .. id .. '::::::0:0|h[X]|h|r', qty)
+    rawset(AuxTooltip, 'NumLines', nil)
+    for _, l in ipairs(lines) do if plain(l):find('^Value') then return l end end
+    return ''
+  end
+  local fresh_raw, old_raw = run_tip(7901, 5), run_tip(7902, 5)
+  local fresh_plain, old_plain = plain(fresh_raw), plain(old_raw)
+  check('0.9b3: Option B shows multiplied stack price with compact 3d and no for 5',
+    fresh_plain:find('Value: 50', 1, true) ~= nil and fresh_plain:find('  3d', 1, true) ~= nil and fresh_plain:find('for 5', 1, true) == nil)
+  check('0.9b3: old compact 9d is dimmed differently from 3d',
+    old_plain:find('  9d', 1, true) ~= nil and old_raw ~= fresh_raw:gsub('3d', '9d'))
+
+  -- Aligned crafting tooltip: source/age and (%) BEFORE price, plus T5 labels
+  h.write_record('7903:0', {day = d, low = 50, market = 50, units = 20, points = {{day = d - 2, value = 100}, {day = d - 3, value = 100}}})
+  h.write_record('7904:0', {day = d, low = 400, market = 400, units = 10, points = {{day = d - 2, value = 500}, {day = d - 3, value = 500}}})
+  a.account_data.merchant_buy[7905] = '20#0'
+  local clines = {}
+  local ctip = new_frame()
+  rawset(ctip, 'AddLine', function(_, t) tinsert(clines, plain(t)) end)
+  rawset(ctip, 'AddDoubleLine', function(_, l, r) tinsert(clines, plain(l) .. ' | ' .. plain(r)) end)
+  search.recipe_cost_tooltip(ctip, {
+    reagents = {{item_id = 7903, count = 2}, {item_id = 7905, count = 1}},
+    output = {item_id = 7904, count = 1},
+  })
+  local call = table.concat(clines, '\n')
+  check('0.9b3: crafting hover puts age and % before price', call:find('today (50%)  1s', 1, true) ~= nil and call:find('vendor  20c', 1, true) ~= nil)
+  check('0.9b3: crafting hover puts output age and % before price and uses T5 labels',
+    call:find('From your latest scans', 1, true) ~= nil
+    and call:find('today (80%)  4s', 1, true) ~= nil
+    and call:find('After 5% AH cut | 3s 80c', 1, true) ~= nil
+    and call:find('sells for', 1, true) == nil)
+  a.account_data.merchant_buy[7905] = nil
+  for _, k in ipairs{'7901:0', '7902:0', '7903:0', '7904:0'} do h.data[k] = nil end
+
+  -- T1, T2, T3, T4, T6 wording trims and Settings popup +12px breathing room
+  check('0.9b3: T1 Deposit and T2 AH cut (5%)', plain(post.deposit_label.__text) == 'Deposit' and plain(post.cut_label.__text) == 'AH cut (5%)')
+  bar.clear()
+  local _, idle_line2 = bar.lines()
+  check('0.9b3: T3 buy bar idle text', plain(idle_line2) == 'Gear: one at a time. Trade goods: cheapest first.')
+  bar.show_item{
+    name = 'Test Helm', quality = 2,
+    record = {name = 'Test Helm', quality = 2, item_id = 4567, buyout_price = 1000, bid_price = 0, group_count = 3, auction_count = 3, auction_id = 1},
+    busy = function() return false end,
+    on_buy = function() end,
+  }
+  check('0.9b3: T4 buy bar sub_label', plain(bar.sub_label.__text) == '3 at this price')
+  bar.clear()
+  local sniper_src = io.open('tabs/sniper/frame.lua'):read('*a')
+  check('0.9b3: T6 Sniper empty message trimmed', sniper_src:find('No deals yet. Watching ', 1, true) ~= nil and sniper_src:find('the auction house (gray items skipped)', 1, true) ~= nil)
+
+  -- Settings gear popup height: 446 normal, 474 when Theme reload is waiting (0.9 build 4 adds Default quantity row)
+  local other = THEME == 'new' and 'classic' or 'new'
+  local popup_h
+  rawset(a.settings_popup, 'SetHeight', function(_, v) popup_h = v end)
+  a.refresh_settings()
+  check('0.9b3: AH Settings popup height is 446 normally', popup_h == 446)
+  a.look_buttons[other].__scripts.OnClick(a.look_buttons[other])
+  check('0.9b3: AH Settings popup height is 474 with Theme reload waiting', popup_h == 474)
+  a.look_buttons[THEME].__scripts.OnClick(a.look_buttons[THEME])
+  rawset(a.settings_popup, 'SetHeight', nil)
+end)
+
+try('0.9 build 3: FB-057 Blizzard Options > AddOns > auxForever and /aux settings', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  check('FB-057: options panel and controls exist',
+    a.options_panel ~= nil and a.options_panel.name == 'auxForever'
+    and a.options_view ~= nil and a.options_clear_post_button ~= nil and a.options_clear_cache_button ~= nil)
+
+  -- Mock Forever Blizzard Settings API with a taint-guard category
+  local real_settings = G.Settings
+  local real_combat = G.InCombatLockdown
+  local real_popup = G.StaticPopup_Show
+  local real_print = a.print
+  local registered_canvas, registered_addon, opened_ids, category_mutated = 0, 0, {}, false
+  local fake_cat = setmetatable({
+    GetID = function() return 4242 end,
+  }, {
+    __newindex = function() category_mutated = true end,
+  })
+  G.Settings = {
+    RegisterCanvasLayoutCategory = function(frame, name)
+      if frame == a.options_panel and name == 'auxForever' then registered_canvas = registered_canvas + 1 end
+      return fake_cat
+    end,
+    RegisterAddOnCategory = function(cat)
+      if cat == fake_cat then registered_addon = registered_addon + 1 end
+    end,
+    OpenToCategory = function(id)
+      tinsert(opened_ids, id)
+    end,
+  }
+  local printed = {}
+  rawset(a, 'print', function(msg) tinsert(printed, tostring(msg)) end)
+  local in_combat = false
+  G.InCombatLockdown = function() return in_combat end
+
+  -- Registration is clean, idempotent, and does not mutate Blizzard's category object
+  a.register_options_panel()
+  a.register_options_panel()
+  check('FB-057: registers canvas category once without mutating category object',
+    registered_canvas == 1 and registered_addon == 1 and not category_mutated)
+
+  -- /aux settings, /aux config, /aux options all open our category
+  SlashCmdList.AUX('settings')
+  SlashCmdList.AUX('config')
+  SlashCmdList.AUX('options')
+  check('FB-057: /aux settings, config, options open category 4242',
+    #opened_ids == 3 and opened_ids[1] == 4242 and opened_ids[2] == 4242 and opened_ids[3] == 4242)
+
+  -- Combat lockdown blocks OpenToCategory and prints exactly one clear message
+  in_combat = true
+  printed = {}
+  SlashCmdList.AUX('settings')
+  check('FB-057: combat lockdown blocks open_settings with a single message',
+    #opened_ids == 3 and #printed == 1 and printed[1]:find('combat', 1, true) ~= nil)
+  in_combat = false
+
+  -- Two-way live sync between Options panel, AH gear popup, and slash commands
+  a.options_panel:OnRefresh()
+  local before_confirm = a.account_data.buy_confirm
+  a.options_view.buy_confirm_switch.__scripts.OnClick(a.options_view.buy_confirm_switch)
+  check('FB-057: Options switch updates saved state and AH gear popup live',
+    a.account_data.buy_confirm == (not before_confirm)
+    and a.buy_confirm_switch:GetChecked() == a.account_data.buy_confirm
+    and a.options_view.buy_confirm_switch:GetChecked() == a.account_data.buy_confirm)
+  SlashCmdList.AUX('buy confirm off')
+  check('FB-057: slash command updates both Options panel and AH gear popup',
+    a.account_data.buy_confirm == false
+    and a.buy_confirm_switch:GetChecked() == false
+    and a.options_view.buy_confirm_switch:GetChecked() == false)
+
+  local before_tt = a.character_data.tooltip.daily
+  a.options_view.tooltip_boxes[3].__scripts.OnClick(a.options_view.tooltip_boxes[3])
+  check('FB-057: tooltip switch in Options syncs with AH popup',
+    a.character_data.tooltip.daily == (not before_tt)
+    and a.tooltip_boxes[3]:GetChecked() == a.character_data.tooltip.daily)
+  a.options_view.tooltip_boxes[3].__scripts.OnClick(a.options_view.tooltip_boxes[3])
+
+  local other = THEME == 'new' and 'classic' or 'new'
+  a.options_view.look_buttons[other].__scripts.OnClick(a.options_view.look_buttons[other])
+  check('FB-057: Theme pick in Options shows Reload now in both views',
+    a.options_view.reload_button.__shown == true and a.reload_button.__shown == true)
+  a.options_view.look_buttons[THEME].__scripts.OnClick(a.options_view.look_buttons[THEME])
+  check('FB-057: reverting Theme hides Reload now in both views',
+    a.options_view.reload_button.__shown == false and a.reload_button.__shown == false)
+
+  -- Maintenance Clear buttons require confirmation popup and clear cleanly on Accept
+  local shown_popups = {}
+  G.StaticPopup_Show = function(name) tinsert(shown_popups, name) end
+  local post_ref = a.faction_data.post
+  post_ref['9999:0'] = '1#2#3'
+  a.options_clear_post_button:Click()
+  check('FB-057: Clear post prices opens confirmation before clearing',
+    shown_popups[1] == 'AUX_CLEAR_POST_CONFIRM' and post_ref['9999:0'] == '1#2#3')
+  StaticPopupDialogs.AUX_CLEAR_POST_CONFIRM.OnAccept()
+  check('FB-057: confirming Clear post prices wipes post data in place',
+    a.faction_data.post == post_ref and next(post_ref) == nil)
+
+  a.account_data.items[88888] = 'dummy'
+  a.account_data.item_ids['dummy'] = 88888
+  a.options_clear_cache_button:Click()
+  check('FB-057: Clear item cache opens confirmation before clearing',
+    shown_popups[2] == 'AUX_CLEAR_CACHE_CONFIRM' and a.account_data.items[88888] == 'dummy')
+  StaticPopupDialogs.AUX_CLEAR_CACHE_CONFIRM.OnAccept()
+  check('FB-057: confirming Clear item cache empties cached items',
+    next(a.account_data.items) == nil and next(a.account_data.item_ids) == nil)
+
+  -- Restore globals
+  G.Settings = real_settings
+  G.InCombatLockdown = real_combat
+  G.StaticPopup_Show = real_popup
+  rawset(a, 'print', real_print)
+end)
+
+-- 0.9 build 4: Phase 3 Narrower Sniper (FB-055), Default buy quantity (FB-066),
+-- generic green random-suffix tooltip search fix (FB-064), and Settings ANCHOR_LEFT polish.
+try('0.9 build 4: FB-055 Narrower Sniper scopes, favorites, quality, and UI', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local sniper = loadstring("select(2, ...) 'aux.tabs.sniper'; return _M")('auxForever', addon)
+  local h = loadstring("select(2, ...) 'aux.core.history'; return _M")('auxForever', addon)
+
+  -- Defaults: Everything, Common+
+  check('FB-055: default scope is all and quality is 1',
+    sniper.get_scope().kind == 'all' and sniper.get_quality() == 1 and sniper.quality_label() == 'Common+')
+  local qs, sid = sniper.scope_queries()
+  check('FB-055: default scope_queries sends quality 1 with no class',
+    #qs == 1 and qs[1].blizzard_query.quality == 1 and qs[1].blizzard_query.class == nil and sid == 'all:1')
+
+  -- Category scope resolves Forever AuctionCategories by name
+  local tg_qs, tg_sid = sniper.scope_queries({kind = 'category', name = 'Trade Goods'}, 2)
+  check('FB-055: Trade Goods resolves class index 5 and quality 2',
+    #tg_qs == 1 and tg_qs[1].blizzard_query.class == 5 and tg_qs[1].blizzard_query.quality == 2 and tg_sid == 'cat:trade goods:2')
+
+  -- Unknown category falls back cleanly to all
+  local bad_qs, bad_sid = sniper.scope_queries({kind = 'category', name = 'Nonexistent Category'}, 3)
+  check('FB-055: unknown category falls back to all with quality preserved',
+    #bad_qs == 1 and bad_qs[1].blizzard_query.class == nil and bad_qs[1].blizzard_query.quality == 3 and bad_sid == 'all:3')
+
+  -- Multi-query Favorite scope parses multiple queries and clamps quality >= sniper_quality
+  local fav_qs, fav_sid = sniper.scope_queries({kind = 'favorite', name = 'Mats', filter_string = 'linen cloth/exact;copper ore/exact'}, 3)
+  check('FB-055: multi-query favorite produces 2 queries with quality clamped to 3',
+    #fav_qs == 2 and fav_qs[1].blizzard_query.name == 'linen cloth' and fav_qs[2].blizzard_query.name == 'copper ore'
+    and fav_qs[1].blizzard_query.quality == 3 and fav_qs[2].blizzard_query.quality == 3
+    and type(fav_qs[1].validator) == 'function' and fav_sid:find('^fav:', 1) ~= nil)
+
+  -- Favorite post-filter validator filters candidate records in check_item while preserving real market_now
+  local scan_exports = loadstring("select(2, ...) 'aux.test.fb055'; return require 'aux.core.scan'")('auxForever', addon)
+  local real_read = scan_exports.read_item
+  local real_info = G.GetItemInfo
+  local d = h.today()
+  h.write_record('8501:0', {day = d, points = {{day = d - 1, value = 5000, units = 10}, {day = d - 2, value = 5000, units = 10}, {day = d - 3, value = 5000, units = 10}}})
+  G.GetItemInfo = function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id == 8501 then return 'Test Blade', '|cff0070dd|Hitem:8501::::::0:0|h[Test Blade]|h|r', 3, 55, 50, 'Weapon', 'Sword', 1, 'INVTYPE_WEAPON', 1, 10 end
+    return real_info(x)
+  end
+  local a_unusable = {item_id = 8501, price_key = '8501:0', item_key = '8501:0', name = 'Test Blade', quality = 3, texture = 1,
+    buyout_price = 1000, unit_buyout_price = 1000, count = 1, auction_count = 1, seller_count = 1, usable = false,
+    link = '|cff0070dd|Hitem:8501::::::0:0|h[Test Blade]|h|r'}
+  local a_usable = {item_id = 8501, price_key = '8501:0', item_key = '8501:0', name = 'Test Blade', quality = 3, texture = 1,
+    buyout_price = 1200, unit_buyout_price = 1200, count = 1, auction_count = 1, seller_count = 1, usable = true,
+    link = '|cff0070dd|Hitem:8501::::::0:0|h[Test Blade]|h|r'}
+  rawset(scan_exports, 'read_item', function() return {a_unusable, a_usable} end)
+  sniper.clear_deals()
+  local usable_only = function(rec) return rec.usable == true end
+  sniper.check_item({itemID = 8501, itemLevel = 55, itemSuffix = 0}, '8501:0', 1000, nil, nil, usable_only, 'fav:usable:1')
+  check('FB-055: Favorite validator skips non-matching auction and tags deal_scope',
+    #sniper.deals == 1 and sniper.deals[1].buyout_price == 1200 and sniper.deals[1].deal_scope == 'fav:usable:1')
+  rawset(scan_exports, 'read_item', real_read)
+  G.GetItemInfo = real_info
+  h.data['8501:0'] = nil
+
+  -- Watch chips, More... grouped menu (Categories + Search Favorites), and Quality menu UI
+  sniper.watch_chips[2]:Click()
+  check('FB-055: clicking Trade Goods chip updates scope, hint, and More button',
+    sniper.get_scope().kind == 'category' and sniper.get_scope().name == 'Trade Goods'
+    and sniper.more_button.__text == 'More... v'
+    and sniper.scope_hint_label.__text:find('Trade Goods', 1, true) ~= nil)
+
+  local saved_favs = a.realm_data.favorite_searches
+  a.realm_data.favorite_searches = {{filter_string = 'linen cloth/exact', prettified = '|cff00ff00Linen Watch|r'}}
+  sniper.more_button:Click()
+  check('FB-055: More menu opens with categories and Search Favorites', sniper.watch_menu.__shown == true and #sniper.watch_menu_buttons >= 2)
+  -- Click the last shown menu button (our Linen Watch favorite)
+  local fav_btn
+  for _, b in ipairs(sniper.watch_menu_buttons) do
+    if b.__shown and b.__text == 'Linen Watch' then fav_btn = b end
+  end
+  check('FB-055: Search Favorite appears in More menu without color codes', fav_btn ~= nil)
+  if fav_btn then fav_btn:Click() end
+  check('FB-055: picking Favorite updates scope, More button label, and closes menu',
+    sniper.get_scope().kind == 'favorite' and sniper.get_scope().filter_string == 'linen cloth/exact'
+    and sniper.more_button.__text == 'Linen Watch v' and sniper.watch_menu.__shown == false)
+
+  sniper.quality_button:Click()
+  check('FB-055: Quality menu opens', sniper.quality_menu.__shown == true)
+  sniper.quality_menu_buttons[3]:Click()
+  check('FB-055: picking Rare+ updates quality, button text, and closes menu',
+    sniper.get_quality() == 3 and sniper.quality_button.__text == 'Rare+ v' and sniper.quality_menu.__shown == false)
+
+  -- Restore clean defaults
+  a.realm_data.favorite_searches = saved_favs
+  sniper.clear_deals()
+  sniper.set_scope({kind = 'all'})
+  sniper.set_quality(1)
+end)
+
+try('0.9 build 4: FB-066 Default buy quantity (1 vs Stack) and Settings ANCHOR_LEFT', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local bar = loadstring("select(2, ...) 'aux.gui.buy_bar'; return _M")('auxForever', addon)
+  local tiers = {{count = 6, commodity_unit_price = 10}, {count = 50, commodity_unit_price = 12}}
+  local short_tiers = {{count = 7, commodity_unit_price = 10}}
+
+  check('FB-066: buy_default defaults to 1', a.account_data.buy_default == '1')
+  bar.clear()
+  bar.show_commodity{item_id = 321, name = 'Mageroyal', max_stack = 20, tiers = function() return tiers end}
+  check('FB-066: default 1 starts Search buy bar at 1', bar.other_input:GetText() == '1')
+
+  -- Click Stack in Blizzard Options panel -> syncs saved state and AH Settings popup
+  a.options_view.buy_default_buttons.stack:Click()
+  check('FB-066: Options Stack button saves stack mode', a.account_data.buy_default == 'stack')
+  bar.clear()
+  bar.show_commodity{item_id = 321, name = 'Mageroyal', max_stack = 20, tiers = function() return tiers end}
+  check('FB-066: stack mode starts Search buy bar at full stack (20)', bar.other_input:GetText() == '20')
+  bar.clear()
+  bar.show_commodity{item_id = 322, name = 'Rare Herb', max_stack = 20, tiers = function() return short_tiers end}
+  check('FB-066: stack mode caps at available stock when fewer than a stack are listed', bar.other_input:GetText() == '7')
+
+  -- Slash commands stay in sync
+  SlashCmdList.AUX('buy quantity 1')
+  check('FB-066: /aux buy quantity 1 restores 1', a.account_data.buy_default == '1')
+  bar.clear()
+  bar.show_commodity{item_id = 321, name = 'Mageroyal', max_stack = 20, tiers = function() return tiers end}
+  check('FB-066: back to 1 starts Search buy bar at 1', bar.other_input:GetText() == '1')
+
+  -- Sniper whole_deal still starts at deal's full stack even when buy_default is 1
+  bar.clear()
+  bar.show_commodity{item_id = 321, name = 'Mageroyal', max_stack = 20, whole_deal = true, tiers = function() return tiers end}
+  check('FB-066: Sniper whole_deal still starts at stack even when buy_default is 1', bar.other_input:GetText() == '20')
+  bar.clear()
+
+  -- Right-column tooltip rows anchor LEFT in both Settings gear popup and Options > AddOns panel
+  local all_left = true
+  for _, box in ipairs(a.tooltip_boxes) do
+    if not (box.row and box.row.tip_anchor == 'ANCHOR_LEFT') then all_left = false end
+  end
+  for _, box in ipairs(a.options_view.tooltip_boxes) do
+    if not (box.row and box.row.tip_anchor == 'ANCHOR_LEFT') then all_left = false end
+  end
+  check('0.9b4: right-column Settings hover tooltips use ANCHOR_LEFT', all_left)
+end)
+
+try('0.9 build 4: FB-064 Fast tooltip-word search on generic green random-suffix gear', function()
+  local info = loadstring("select(2, ...) 'aux.util.info'; return _M")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.test.fb064'; return require 'aux.core.scan'")('auxForever', addon)
+  local filter_util = loadstring("select(2, ...) 'aux.test.fb064f'; return require 'aux.util.filter'")('auxForever', addon)
+
+  local ring_id, chest_id = 8601, 8602
+  local ring_base_link = '|cff1eff00|Hitem:8601::::::0:0|h[Silver Ring]|h|r'
+  local ring_sample_link = '|cff1eff00|Hitem:8601::::::14320:0|h[Silver Ring of the Channeler]|h|r'
+  local chest_base_link = '|cff1eff00|Hitem:8602::::::0:0|h[Mail Chest]|h|r'
+
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  set(G, 'GetItemInfo', function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id == ring_id then return 'Silver Ring', ring_base_link, 2, 20, 15, 'Armor', 'Miscellaneous', 1, 'INVTYPE_FINGER', 1, 50 end
+    if id == chest_id then return 'Mail Chest', chest_base_link, 2, 20, 15, 'Armor', 'Mail', 1, 'INVTYPE_CHEST', 1, 50 end
+  end)
+  set(C_Item, 'IsItemDataCachedByID', function() return true end)
+
+  -- Stub AuxTooltip lines for SetHyperlink vs SetItemKey
+  local tip_lines = {}
+  set(AuxTooltip, 'ClearLines', function() tip_lines = {} end)
+  set(AuxTooltip, 'SetHyperlink', function(_, link)
+    if link == ring_sample_link then
+      tip_lines = {'Silver Ring of the Channeler', 'Binds when equipped', 'Finger', 'Equip: Increases damage and healing done by magical spells and effects by up to 2.', 'Requires Level 15'}
+    else
+      tip_lines = {'Silver Ring', 'Binds when equipped', 'Finger'}
+    end
+  end)
+  set(AuxTooltip, 'SetItemKey', function(_, id)
+    if id == ring_id then
+      -- Simulates Forever SetItemKey omitting Equip: stat line on "of the Channeler" (4 lines, no + or Equip:)
+      tip_lines = {'Silver Ring of the Channeler', 'Binds when equipped', 'Finger', 'Requires Level 15'}
+    elseif id == chest_id then
+      -- Plain stat suffix where SetItemKey includes +5 Strength
+      tip_lines = {'Mail Chest of Strength', 'Binds when equipped', 'Chest', '+5 Strength', 'Requires Level 15'}
+    end
+  end)
+  set(AuxTooltip, 'NumLines', function() return #tip_lines end)
+  local real_left = {}
+  for i = 1, 6 do
+    real_left[i] = rawget(G, 'AuxTooltipTextLeft' .. i)
+    G['AuxTooltipTextLeft' .. i] = {GetText = function() return tip_lines[i] end}
+  end
+  local real_right = {}
+  for i = 1, 6 do
+    real_right[i] = rawget(G, 'AuxTooltipTextRight' .. i)
+    G['AuxTooltipTextRight' .. i] = {GetText = function() return nil end}
+  end
+
+  local browse_rows = {
+    {itemKey = {itemID = ring_id, itemLevel = 20, itemSuffix = 14320}, totalQuantity = 1, minPrice = 500},
+    {itemKey = {itemID = chest_id, itemLevel = 20, itemSuffix = 14321}, totalQuantity = 1, minPrice = 600},
+  }
+  local search_queries_sent = 0
+  set(C_AuctionHouse, 'GetItemKeyInfo', function(k)
+    if k.itemID == ring_id then return {itemID = ring_id, itemName = 'Silver Ring of the Channeler', quality = 2, iconFileID = 1} end
+    if k.itemID == chest_id then return {itemID = chest_id, itemName = 'Mail Chest of Strength', quality = 2, iconFileID = 1} end
+  end)
+  set(C_AuctionHouse, 'SendBrowseQuery', function() fire('AUCTION_HOUSE_BROWSE_RESULTS_UPDATED') end)
+  set(C_AuctionHouse, 'HasFullBrowseResults', function() return true end)
+  set(C_AuctionHouse, 'GetBrowseResults', function() return browse_rows end)
+  set(C_AuctionHouse, 'SendSearchQuery', function(k)
+    search_queries_sent = search_queries_sent + 1
+    fire('ITEM_SEARCH_RESULTS_UPDATED', k)
+  end)
+  set(C_AuctionHouse, 'HasSearchResults', function() return true end)
+  set(C_AuctionHouse, 'HasFullItemSearchResults', function() return true end)
+  set(C_AuctionHouse, 'GetNumItemSearchResults', function(k) return k.itemID == ring_id and 1 or 0 end)
+  set(C_AuctionHouse, 'GetItemSearchResultInfo', function(k, i)
+    if k.itemID == ring_id and i == 1 then
+      return {itemKey = k, itemLink = ring_sample_link, auctionID = 9001, quantity = 1, buyoutAmount = 500, minBid = 500, owners = {'Seller'}, timeLeft = 2}
+    end
+  end)
+
+  local parsed = filter_util.queries('armor/miscellaneous/finger/spell')
+  check('FB-064: armor/miscellaneous/finger/spell sets tooltip_text', parsed and #parsed == 1 and parsed[1].tooltip_text == true)
+
+  -- Case A: GetItemKeySampleLink returns sample link -> instant match with 0 extra SendSearchQuery requests!
+  set(C_AuctionHouse, 'GetItemKeySampleLink', function(k) return k.itemID == ring_id and ring_sample_link or nil end)
+  local found, done = {}, false
+  search_queries_sent = 0
+  scan.start{type = 'list', fast = true, quiet = true, queries = parsed,
+    on_auction = function(rec) tinsert(found, rec) end,
+    on_complete = function() done = true end}
+  for _ = 1, 20 do tick(); if done then break end end
+  check('FB-064 Case A: GetItemKeySampleLink matches of the Channeler in Fast mode with 0 extra requests',
+    done and #found == 1 and found[1].item_id == ring_id and search_queries_sent == 0)
+
+  -- Case B: GetItemKeySampleLink returns nil and SetItemKey drops Equip: line -> falls back to read_full ONLY for ring, NOT for +5 Strength chest!
+  rawset(C_AuctionHouse, 'GetItemKeySampleLink', function() return nil end)
+  found, done = {}, false
+  search_queries_sent = 0
+  scan.start{type = 'list', fast = true, quiet = true, queries = parsed,
+    on_auction = function(rec) tinsert(found, rec) end,
+    on_complete = function() done = true end}
+  for _ = 1, 30 do tick(); if done then break end end
+  check('FB-064 Case B: missing Equip: stats falls back to read_full for ring only (1 request, skips +5 Strength chest)',
+    done and #found == 1 and found[1].item_id == ring_id and search_queries_sent == 1)
+
+  -- Restore everything cleanly
+  for i = 1, 6 do
+    G['AuxTooltipTextLeft' .. i] = real_left[i]
+    G['AuxTooltipTextRight' .. i] = real_right[i]
+  end
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
 end)
 
 -- what players do while the auction house is still answering: a slow auction house that answers

@@ -9,6 +9,61 @@ logs), "Open after 0.5" (loose ends), "Working in game" and "Open" (what was tes
 0.3 to 0.6 planning notes. The entry of 2026-11-10 below describes the review before its fixes were
 built.
 
+## 0.9 (released 2026-11-22): the status file while it was built
+
+Moved here from `docs/status.md` at the release.
+
+Built on `gemini/0.9` by Gemini Neon across four builds (2026-11-21 to 2026-11-22), all tested in
+game by Tyler with 0 Lua errors and verified with 400 fuzz sessions:
+- Build 1 (`ed68f42`, tested 2026-11-21): reliability foundation (Sniper multi-version K^2 fix,
+  Search split gear-ending rows fix, Sniper bought message wipe fix, synchronous Buy/Post/Cancel
+  events, throttle-freeze timeout `THROTTLE_TIMEOUT`, timeout-safe refreshes, scan priority
+  coordinator, unified Post state machine, crate Equip/proc caching fix, 7 missing tooltip
+  stack-count getters, Buy bar empty-Enter guard) plus dungeon/tooltip secret-value hardening
+  (`FB-056`).
+- Build 2 (`ef0fb02`, tested 2026-11-21): Phase 1 QoL switches and keybinds (`FB-058` full-stack
+  tooltip prices by default, `FB-061` Professions cost line toggle, `FB-062` Right-click bag to
+  sell, `FB-032` Auto Full scan, `FB-063` `Bindings.xml` buying keybinds), removed `seen ` prefix,
+  and `S-09` trade-good Post receipt cleanup.
+- Build 3 (`15836d2`, passed 5/5 2026-11-22): Phase 2 Blizzard **Options > AddOns > auxForever**
+  panel + `/aux settings` + Clear buttons with confirmation (`FB-057`, confirmed
+  `Settings.RegisterCanvasLayoutCategory` / `OpenToCategory` **Seen** on Forever), minimalist Option
+  B item tooltips (no `for N`, compact `today` / `3d` / dimmed `9d`), aligned Professions crafting
+  hover tooltip, Right-click bag to sell flipped on by default (`FB-062`), and UI wording trims
+  `T1` to `T6`.
+- Build 4 (`79e40dc`, passed 6/6 2026-11-22): Phase 3 **Narrower Sniper** (`FB-055`, Option A slim
+  Watch bar with quick chips, `More...` Forever Categories + Search Favorites, and Quality picker;
+  Trade Goods verified at `491 items in 0.1s` to `0.2s`), **Default buy quantity** (`1` / `Stack`,
+  `FB-066`), Fast tooltip-word search fix on generic green random-suffix gear (`FB-064`, RushJet1;
+  confirmed `C_AuctionHouse.GetItemKeySampleLink` returns sample links on browse **Seen**),
+  right-column Settings `ANCHOR_LEFT` polish, and Experiment E10 settled **Seen**
+  (`SearchForItemKeys` returns 0 results on Forever).
+- Remaining 0.9 features (Waylaid Crate Favor + Craftsman's Writs, Shopping List + Alt Inventory,
+  and Posting Rules) were moved to **0.9.1** per Tyler (2026-11-22).
+
+## 0.8.2.2 (released 2026-11-20, PR #43, CurseForge Beta file 9718999): the status file while it was built
+
+Moved here from `docs/status.md` at the release.
+
+Built on `claude/confident-bohr-vctz8g` across four builds (Claude builds 1 to 3; Gemini Neon
+took over as primary engineer on 2026-11-19 and built build 4 and ran the release on 2026-11-20):
+- Build 1 (passed 2026-11-17): FB-050 (Search buy bar starts at 1; Sniper still starts at a deal's
+  units), FB-051 (rest after buying, 1 s in build 1), FB-049 (Settings > Buying > "Confirm before
+  buying" and `/aux buy confirm`, off by default, trade goods and gear), FB-052 (`/aux post bid on`).
+- Build 2 (tested 2026-11-17): FB-055 (Sniper skips grays, 1 s between rounds, Live every 2 s;
+  rest tuned to 0.5 s). Live and deals passed; Tyler found 0.5 s still too long. `/aux debug list`
+  measured 25,706 items in 37.7 s (52 requests; grays 2%), so a whole-house Sniper round cannot go
+  under about 38 s; narrower Sniper saved for 0.9 (Tyler, 2026-11-20).
+- Build 3 (2026-11-19, Claude's last build): rest after buying lowered to 0.25 s (carried into
+  build 4).
+- Build 4 (passed 2026-11-20): quarter-second rest passed; mouse tooltip sanity check passed;
+  PR #41 (nokkty, gamepad item compare; skipped by Tyler, tested by nokkty and automated tests +
+  400 fuzz sessions) and PR #37 (Dragoy, Full scan cooldown and no-answer message polish)
+  integrated and closed; CI test artifacts named `auxForever-<version>-build<n>.zip`.
+- During build 4 testing, Tyler confirmed two Seen facts (`docs/forever-auction-house.md`): the 1c
+  deposit floor is live on Forever, and `Scroll: CHAP BALK WELLES` freezes Blizzard's own Post
+  Auctions window as well as aux (`IsThrottledMessageSystemReady()` stuck `false` until restart).
+
 ## 0.8.2.1 (released 2026-11-16): the status file while it was built
 
 Moved here from `docs/status.md` at the release, as it stood just before it.

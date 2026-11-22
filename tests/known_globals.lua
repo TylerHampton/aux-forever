@@ -7,8 +7,10 @@
 -- Add a name here only after checking that Forever has it.
 return {
   -- GlobalAPI: functions of the game
-  'ClearOverrideBindings', 'CreateFrame', 'GetBuybackItemInfo', 'GetInventoryItemCount', 'GetLootSlotInfo',
-  'GetMerchantItemLink', 'GetMerchantNumItems', 'InCombatLockdown', 'IsModifiedClick', 'PlaySound',
+  'ClearOverrideBindings', 'CreateFrame', 'GetBuybackItemInfo', 'GetCurrentKeyBoardFocus', 'GetGuildBankItemInfo', 'GetInboxItem',
+  'GetInventoryItemCount', 'GetLootSlotInfo', 'GetMerchantItemLink', 'GetMerchantNumItems', 'GetQuestItemInfo',
+  'GetQuestLogChoiceInfo', 'GetQuestLogRewardInfo', 'GetSendMailItem', 'GetTradePlayerItemInfo',
+  'GetTradeTargetItemInfo', 'InCombatLockdown', 'IsModifiedClick', 'PlaySound',
   'SetOverrideBindingClick', 'hooksecurefunc',
   -- GlobalAPI: the game's short names for Lua's own functions
   'abs', 'ceil', 'floor', 'format', 'gsub', 'max', 'min', 'mod', 'sin', 'sort', 'strfind', 'strlen', 'strlower',
@@ -23,11 +25,12 @@ return {
   -- GlobalStrings: the game's text
   'ACCEPT', 'ALL', 'AUCTION_POSTING_ERROR_TEXT', 'CANCEL', 'CONFIRM_AUCTION_POSTING_TEXT', 'ERR_AUCTION_BID_PLACED',
   'ERR_NOT_ENOUGH_MONEY', 'HOURS', 'ITEM_BIND_ON_PICKUP', 'ITEM_BIND_QUEST', 'ITEM_CONJURED', 'ITEM_MIN_LEVEL',
-  'ITEM_SOULBOUND', 'ITEM_SPELL_CHARGES', 'ITEM_SPELL_KNOWN', 'ITEM_SPELL_TRIGGER_ONUSE', 'OKAY',
+  'ITEM_SOULBOUND', 'ITEM_SPELL_CHARGES', 'ITEM_SPELL_KNOWN', 'ITEM_SPELL_TRIGGER_ONEQUIP',
+  'ITEM_SPELL_TRIGGER_ONPROC', 'ITEM_SPELL_TRIGGER_ONUSE', 'OKAY',
   -- Blizzard's Lua: tables and constants its interface code defines
   'AuctionCategories', 'ChatFrameUtil', 'DEFAULT_CHAT_FRAME', 'Enum', 'FONT_COLOR_CODE_CLOSE', 'GRAY_FONT_COLOR_CODE',
   'ITEM_QUALITY_COLORS', 'ItemLocation', 'LIGHTYELLOW_FONT_COLOR_CODE', 'MAXIMUM_BID_PRICE',
-  'NUM_TOTAL_EQUIPPED_BAG_SLOTS', 'SOUNDKIT', 'STATICPOPUP_NUMDIALOGS', 'SlashCmdList', 'StaticPopupDialogs',
+  'NUM_TOTAL_EQUIPPED_BAG_SLOTS', 'SOUNDKIT', 'STATICPOPUP_NUMDIALOGS', 'Settings', 'SlashCmdList', 'StaticPopupDialogs',
   'TooltipDataProcessor', 'UISpecialFrames',
   -- old names Forever no longer has as globals: compat.lua maps them to today's functions
   -- (GetItemCount is tried only as a fallback, tabs/search/crate.lua)

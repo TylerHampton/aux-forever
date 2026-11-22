@@ -126,10 +126,10 @@ For whoever fixes or builds from it:
 | [FB-017](#fb-017-the-deposit-aux-shows-is-lower-than-the-1-silver-the-game-charges) | 2026-10-17 | sarrathsilentstrider | bug | Post | S3 | The deposit aux shows is lower than the 1 silver the game charges | not reproduced (aux matched the game in Tyler's test) |
 | [FB-018](#fb-018-a-setting-for-whether-the-post-tab-starts-on-match-lowest-or-undercut) | 2026-10-17 | sarrathsilentstrider | request | Settings | n/a | A setting for whether the Post tab starts on Match lowest or Undercut | wont-fix (Tyler: keep as is) |
 | [FB-019](#fb-019-praise-everything-is-shte-in-comparison) | 2026-10-17 | sarrathsilentstrider | praise | Overall | n/a | Praise: "everything is SH!TE in comparison" | new |
-| [FB-020](#fb-020-find-the-cheapest-way-to-fill-waylaid-crates-and-writs) | 2026-10-17 | Harro22 | request | Search | n/a | Find the cheapest way to fill Waylaid crates and writs | built 0.8 build 2 (crates; writs planned 0.9) |
+| [FB-020](#fb-020-find-the-cheapest-way-to-fill-waylaid-crates-and-writs) | 2026-10-17 | Harro22 | request | Search | n/a | Find the cheapest way to fill Waylaid crates and writs | built 0.8 build 2 (crates; writs planned 0.9.1) |
 | [FB-021](#fb-021-a-typed-price-below-the-lowest-listing-cannot-be-posted-rough-stone-5c) | 2026-10-18 | sarrathsilentstrider | bug | Post | S2 | A typed price below the lowest listing cannot be posted (Rough Stone, 5c) | fixed 0.7.1.1 (released 2026-10-19) |
 | [FB-022](#fb-022-the-player-did-not-know-the-newest-listing-at-a-price-sells-first) | 2026-10-18 | sarrathsilentstrider | ux | Post | n/a | The player did not know the newest listing at a price sells first | new |
-| [FB-023](#fb-023-a-shopping-list-for-crafting-n-of-a-recipe) | 2026-10-20 | Kortan | request | Search | n/a | A shopping list for crafting N of a recipe | planned 0.9 |
+| [FB-023](#fb-023-a-shopping-list-for-crafting-n-of-a-recipe) | 2026-10-20 | Kortan | request | Search | n/a | A shopping list for crafting N of a recipe | planned 0.9.1 |
 | [FB-024](#fb-024-an-exact-search-for-hillmans-cloak-finds-nothing-a-search-for-hillmans-finds-many) | 2026-11-08 | GregoryWW | bug | Search | S2 | An exact search for Hillman's Cloak finds nothing; a search for Hillman's finds many | fixed 0.8.1 (released 2026-11-09) |
 | [FB-025](#fb-025-adding-a-tooltip-word-strength-turns-an-instant-search-into-a-2-minute-one) | 2026-11-08 | RushJet1 | bug | Performance | S2 | Adding a tooltip word (strength) turns an instant search into a 2 minute one | fixed 0.8.2 (released 2026-11-09) |
 | [FB-026](#fb-026-show-whether-a-craft-makes-a-profit-or-a-loss) | 2026-11-08 | deep_structure | request | Recipe search | n/a | Show whether a craft makes a profit or a loss | built 0.8.1 (released 2026-11-09) |
@@ -137,8 +137,8 @@ For whoever fixes or builds from it:
 | [FB-028](#fb-028-the-sniper-takes-over-30-seconds-from-its-sound-to-the-purchase) | 2026-11-08 | user_ayzkr6rhvrlna3ya | bug | Sniper | S2 | The Sniper takes over 30 seconds from its sound to the purchase | fixed 0.8.2 (released 2026-11-09) |
 | [FB-029](#fb-029-price-gear-with-a-random-ending-of-the-eagle-of-the-bear-separately) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Other | n/a | Price gear with a random ending ("of the Eagle", "of the Bear") separately | built 0.8 (released 2026-11-08) |
 | [FB-030](#fb-030-how-the--of-historical-value-works-keep-more-price-history) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | question | Other | n/a | How the % of historical value works; keep more price history | new |
-| [FB-031](#fb-031-posting-rules-based-on-historical-value-like-tsm) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Post | n/a | Posting rules based on historical value, like TSM | planned 0.9 |
-| [FB-032](#fb-032-start-a-full-scan-when-the-window-opens-if-the-15-minute-wait-is-over) | 2026-11-08 | Chawitsch | request | Settings | n/a | Start a full scan when the window opens, if the 15 minute wait is over | planned 0.9 (Tyler: option, off by default) |
+| [FB-031](#fb-031-posting-rules-based-on-historical-value-like-tsm) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Post | n/a | Posting rules based on historical value, like TSM | planned 0.9.1 |
+| [FB-032](#fb-032-start-a-full-scan-when-the-window-opens-if-the-15-minute-wait-is-over) | 2026-11-08 | Chawitsch | request | Settings | n/a | Start a full scan when the window opens, if the 15 minute wait is over | built 0.9 (released 2026-11-22) |
 | [FB-033](#fb-033-tooltip-prices-for-the-whole-stack-not-one-item) | 2026-11-08 | Chawitsch | ux | Other | n/a | Tooltip prices for the whole stack, not one item | wont-fix (Tyler: no Shift instructions in tooltips; Shift already works) |
 | [FB-034](#fb-034-opening-aux-moves-blizzards-professions-window-to-the-right) | 2026-11-08 | Chawitsch | bug | Window | S3 | Opening aux moves Blizzard's Professions window to the right | fixed 0.8.1 (released 2026-11-09) |
 | [FB-035](#fb-035-a-setting-to-hide-the-usually-price-line-in-tooltips) | 2026-11-09 | deep_structure | request | Settings | n/a | A setting to hide the "usually" price line in tooltips | built 0.8.2 (released 2026-11-09) |
@@ -148,20 +148,31 @@ For whoever fixes or builds from it:
 | [FB-039](#fb-039-full-scan-not-working-for-a-player-tyler-knows) | 2026-11-09 | a player Tyler knows (name not given) | bug | Full scan | S2 | Full scan "wasnt working" | fixed 0.8.2 (released 2026-11-09) |
 | [FB-040](#fb-040-tab-does-not-complete-in-the-search-bar) | 2026-11-11 | Tyler | bug | Search | S3 | Tab does not complete in the search bar | wont-fix (works as built, seen 2026-11-16) |
 | [FB-041](#fb-041-a-switch-to-turn-off-the-crate-lines-in-tooltips) | 2026-11-16 | user_tdsvrjvpe8rufw54 | request | Settings | n/a | A switch to turn off the crate lines in tooltips | built 0.8.2.1 (released 2026-11-16) |
-| [FB-042](#fb-042-crate-tooltip-full-cost-less-the-quest-reward-favor-and-reputation-per-gold) | 2026-11-16 | user_tdsvrjvpe8rufw54 | request | Other | n/a | Crate tooltip: full cost less the quest reward, favor and reputation per gold | new |
+| [FB-042](#fb-042-crate-tooltip-full-cost-less-the-quest-reward-favor-and-reputation-per-gold) | 2026-11-16 | user_tdsvrjvpe8rufw54 | request | Other | n/a | Crate tooltip: full cost less the quest reward, favor and reputation per gold | planned 0.9.1 (with FB-059) |
 | [FB-043](#fb-043-a-window-listing-every-crate-and-writ-by-favor-and-reputation-per-gold) | 2026-11-16 | user_tdsvrjvpe8rufw54 | request | Other | n/a | A window listing every crate and writ by favor and reputation per gold | new |
 | [FB-044](#fb-044-gear-can-be-priced-in-copper-but-aux-rounds-it-to-whole-silver) | 2026-11-16 | sarrathsilentstrider, user_mezgz2zh1g3sbu1v | bug | Post | S2 | Gear can be priced in copper, but aux rounds it to whole silver | fixed 0.8.2.1 (released 2026-11-16) |
-| [FB-045](#fb-045-some-gear-endings-of-shadow-protection-of-healing-do-not-show-their-stat-in-search) | 2026-11-16 | karrier_user_slouyac50poxg707 | bug | Search | S3 | Some gear endings (of Shadow Protection, of Healing) do not show their stat in search | fixed 0.8.2.1 (provisional) |
+| [FB-045](#fb-045-some-gear-endings-of-shadow-protection-of-healing-do-not-show-their-stat-in-search) | 2026-11-16 | karrier_user_slouyac50poxg707 | bug | Search | S3 | Some gear endings (of Shadow Protection, of Healing) do not show their stat in search | fixed 0.8.2.1 (confirmed 2026-11-22) |
 | [FB-046](#fb-046-posting-says-the-item-is-on-the-mouse-in-the-mail-or-a-trade-when-it-is-not) | 2026-11-16 | karrier_user_slouyac50poxg707 | bug | Post | S2 | Posting says the item is on the mouse, in the mail or a trade when it is not | fixed 0.8.2.1 (released 2026-11-16) |
 | [FB-047](#fb-047-praise-great-addon) | 2026-11-16 | selubangerz | praise | Overall | n/a | Praise: "Great addon" | new |
 | [FB-048](#fb-048-players-do-not-like-the-confirm-click-when-buying-trade-goods) | 2026-11-16 | players, through Tyler | ux | Buy bar | n/a | Players do not like the Confirm click when buying trade goods | built 0.8.2.1 (released 2026-11-16) |
-| [FB-049](#fb-049-confirm-before-buying-back-as-an-option) | 2026-11-17 | Tremulent | request | Buy bar | n/a | Confirm before buying, back as an option | built 0.8.2.2 (build 1, not tested in game) |
-| [FB-050](#fb-050-one-click-bought-far-more-than-the-player-needed) | 2026-11-17 | Tremulent | bug | Buy bar | S1 | One click bought far more than the player needed | fixed 0.8.2.2 (build 1, not tested in game) |
-| [FB-051](#fb-051-sometimes-a-purchase-happens-twice) | 2026-11-17 | Tremulent | bug | Buy bar | S1 | Sometimes a purchase happens twice | fixed 0.8.2.2 (build 1, not tested in game) |
-| [FB-052](#fb-052-aux-post-bid-on-turns-bid-prices-off) | 2026-11-17 | joker2206 | bug | Settings | S3 | `/aux post bid on` turns bid prices off | fixed 0.8.2.2 (build 1, not tested in game) |
+| [FB-049](#fb-049-confirm-before-buying-back-as-an-option) | 2026-11-17 | Tremulent | request | Buy bar | n/a | Confirm before buying, back as an option | built 0.8.2.2 (released 2026-11-20) |
+| [FB-050](#fb-050-one-click-bought-far-more-than-the-player-needed) | 2026-11-17 | Tremulent | bug | Buy bar | S1 | One click bought far more than the player needed | fixed 0.8.2.2 (released 2026-11-20) |
+| [FB-051](#fb-051-sometimes-a-purchase-happens-twice) | 2026-11-17 | Tremulent | bug | Buy bar | S1 | Sometimes a purchase happens twice | fixed 0.8.2.2 (released 2026-11-20) |
+| [FB-052](#fb-052-aux-post-bid-on-turns-bid-prices-off) | 2026-11-17 | joker2206 | bug | Settings | S3 | `/aux post bid on` turns bid prices off | fixed 0.8.2.2 (released 2026-11-20) |
 | [FB-053](#fb-053-a-controller-button-to-refresh-or-search) | 2026-11-17 | user_q6cn8g517mpcvp2f | request | Other | n/a | A controller button to refresh or search | new |
 | [FB-054](#fb-054-bag-searching-cannot-sort-by-bag-slots) | 2026-11-17 | jebbush | request | Post | n/a | Bag searching: cannot sort by bag slots | new |
-| [FB-055](#fb-055-too-slow-to-keep-up-with-quickly-changing-prices-and-snipe-undercuts) | 2026-11-17 | khorrs; Tyler | ux | Sniper | n/a | Too slow to keep up with quickly changing prices and snipe undercuts | built 0.8.2.2 (build 2, not tested in game) |
+| [FB-055](#fb-055-too-slow-to-keep-up-with-quickly-changing-prices-and-snipe-undercuts) | 2026-11-17 | khorrs; Tyler | ux | Sniper | n/a | Too slow to keep up with quickly changing prices and snipe undercuts | built 0.8.2.2 + Narrower Sniper 0.9 (released 2026-11-22) |
+| [FB-056](#fb-056-many-lua-errors-warning-during-a-dungeon-possibly-on-conjured-water) | 2026-11-20 | user_kc0ds7pqedmptpep | bug | Other | S1 | Many Lua errors warning during a dungeon, possibly when conjured water was created | fixed 0.9 (released 2026-11-22) |
+| [FB-057](#fb-057-settings-interface-accessible-outside-the-auction-house-options--addons) | 2026-11-20 | LLanwrst, jebbush | request | Settings | n/a | Settings interface accessible outside the auction house (Options > AddOns) | built 0.9 (released 2026-11-22) |
+| [FB-058](#fb-058-toggle-to-show-tooltip-prices-for-the-whole-stack-by-default) | 2026-11-20 | jebbush | request | Settings | n/a | Toggle to show tooltip prices for the whole stack by default (flipping Shift) | built 0.9 (released 2026-11-22) |
+| [FB-059](#fb-059-show-how-much-merchants-favor-a-waylaid-crate-offers) | 2026-11-20 | sarrathsilentstrider | request | Other | n/a | Show how much Merchant's Favor a Waylaid Crate offers in its tooltip | planned 0.9.1 (with FB-042; mockup first) |
+| [FB-060](#fb-060-show-best-items-to-farm-like-goldscout) | 2026-11-20 | XtreamCoder | request | Other | n/a | Show best items to farm, like GoldScout | wont-fix (not in auxForever; potential separate optional-dependency addon later) |
+| [FB-061](#fb-061-toggle-to-hide-the-materials-and-profit-line-in-the-professions-window) | 2026-11-20 | LLanwrst | request | Recipe search | n/a | Toggle to hide the Materials and profit line in the Professions window | built 0.9 (released 2026-11-22) |
+| [FB-062](#fb-062-option-for-right-clicking-a-bag-item-to-always-open-the-post-tab) | 2026-11-20 | rokstar8872, deep_structure, bubbledn42 | request | Post | n/a | Option for right-clicking a bag item to always open the Post tab (like default AH) | built 0.9 (released 2026-11-22) |
+| [FB-063](#fb-063-keybinds-for-buying-confirming-and-declining) | 2026-11-20 | khorrs | request | Buy bar | n/a | Keybinds for buying, confirming and declining | built 0.9 (released 2026-11-22) |
+| [FB-064](#fb-064-tooltip-word-search-ignores-stats-on-generic-green-random-suffix-gear) | 2026-11-22 | RushJet1 | bug | Search | S2 | Tooltip-word search ignores stats on generic green random-suffix gear ("of the Channeler") | fixed 0.9 (released 2026-11-22) |
+| [FB-065](#fb-065-sniper-stopped-showing-deals-even-after-changing-thresholds) | 2026-11-22 | marcus4555 | bug | Sniper | S1 | Sniper stopped showing deals even after changing thresholds | new |
+| [FB-066](#fb-066-setting-to-pick-default-buy-quantity-1-vs-full-stack) | 2026-11-22 | user_ivpyccljovcjne72 | request | Buy bar | n/a | Setting to pick default buy quantity (1 vs full stack) | built 0.9 (released 2026-11-22) |
 
 ## Players
 
@@ -189,15 +200,16 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
 - **daland**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-014, FB-015
   and FB-016 in three comments the same day. Also uses Auctionator and compares aux with it.
 - **sarrathsilentstrider**: CurseForge commenter (CurseForge name; in-game name unknown).
-  Reported FB-017, asked for FB-018, praised in FB-019, reported FB-021, FB-022 and FB-044. Plays in the
-  Classic theme.
+  Reported FB-017, asked for FB-018, praised in FB-019, reported FB-021, FB-022 and FB-044, asked
+  for FB-059. Plays in the Classic theme.
 - **Kortan**: told Tyler directly (Tyler's retelling, not his own words). Asked for FB-023. Knows
   TSM well, including its alt inventory data. Spelling of the in-game name not yet confirmed.
 - **Harro22**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-020.
-- **RushJet1**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-025.
-  Writes search text by hand (`armor/mail/chest/usable/strength`).
+- **RushJet1**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-025 and
+  FB-064. Writes search text by hand (`armor/mail/chest/usable/strength`,
+  `armor/miscellaneous/finger/spell`).
 - **deep_structure**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for
-  FB-026 and FB-035, reported FB-037. Uses the Sniper and crafts.
+  FB-026 and FB-035, reported FB-037, seconded FB-062. Uses the Sniper and crafts.
 - **blackmyin**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-038.
 - **Swiftwren**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-036
   (two comments, the second with an example: Invoker's Cord). Uses the Sniper, buys deals and
@@ -224,9 +236,23 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
   opened with "love the addon". Uses the chat commands.
 - **user_q6cn8g517mpcvp2f**: CurseForge commenter (a name CurseForge generated; in-game name
   unknown). Asked for FB-053. Plays with a controller.
-- **jebbush**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-054.
-- **khorrs**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-055, a
-  reply under Tremulent's comment. Used aux before Forever to snipe undercuts.
+- **jebbush**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-054,
+  FB-057 and FB-058.
+- **khorrs**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-055 (a
+  reply under Tremulent's comment) and asked for FB-063. Used aux before Forever to snipe undercuts.
+- **user_kc0ds7pqedmptpep**: CurseForge commenter (a name CurseForge generated; in-game name
+  unknown). Reported FB-056.
+- **XtreamCoder**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-060.
+  Also uses GoldScout.
+- **LLanwrst**: CurseForge commenter (CurseForge name; in-game name unknown). New player to WoW;
+  praised tooltip-text logic search, asked for FB-057 and FB-061. Uses other profession addons.
+- **rokstar8872**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-062.
+- **bubbledn42**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-062
+  (specifically from the Auctions tab).
+- **marcus4555**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-065.
+  Heavy Sniper user (326 ignored items).
+- **user_ivpyccljovcjne72**: CurseForge commenter (a name CurseForge generated; in-game name
+  unknown). Asked for FB-066; closed with "Great addon."
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
   words.
@@ -1202,7 +1228,7 @@ has users.
 - Type: request
 - Area: Search (new)
 - Severity: n/a
-- Status: built 0.8 build 2 (crates, 2026-10-20: tooltip option A and Alt-click search C of the mockup, chosen by Tyler); writs planned 0.9
+- Status: built 0.8 build 2 (crates, 2026-10-20: tooltip option A and Alt-click search C of the mockup, chosen by Tyler); writs planned 0.9.1 (moved from 0.9 by Tyler, 2026-11-22)
 - Proposed: 0.8
 
 Said:
@@ -1353,8 +1379,7 @@ Ask Tyler: should the Post tab say why it matches (a line or a hint on the switc
 - Type: request
 - Area: Search (recipe search)
 - Severity: n/a
-- Status: planned 0.9 (Tyler, 2026-10-20: first "add a feature to this update", then "Any of the
-  shopping lists, list stuff I talked about, we'll save that for 0.9")
+- Status: planned 0.9.1 (moved from 0.9 by Tyler, 2026-11-22; originally planned 0.9 on 2026-10-20)
 - Proposed: 0.9
 
 Said (Tyler's retelling):
@@ -1678,7 +1703,7 @@ to keep? (Keeping more days costs memory per item; aux keeps one short line of t
 - Type: request
 - Area: Post
 - Severity: n/a
-- Status: planned 0.9 (Tyler, 2026-11-08: "go with your version plan"; mockup first)
+- Status: planned 0.9.1 (moved from 0.9 by Tyler, 2026-11-22; mockup first)
 - Proposed: a later minor version (0.9 or after), mockup first
 
 Said:
@@ -1723,7 +1748,7 @@ FB-018.
 - Type: request
 - Area: Settings (Full scan)
 - Severity: n/a
-- Status: planned 0.9 (Tyler, in his reply: an option in Settings, off by default; version from the plan he approved 2026-11-08)
+- Status: built 0.9 (build 2, gemini/0.9, 2026-11-21)
 - Proposed: 0.9 (a new setting is a feature)
 
 Said:
@@ -2486,7 +2511,7 @@ Unknowns: none for the decision.
 - Type: request
 - Area: Buy bar
 - Severity: n/a
-- Status: built 0.8.2.2 (build 1, not tested in game)
+- Status: built 0.8.2.2 (released 2026-11-20; tested in game by Tyler, build 1 passed)
 - Proposed: 0.8.2.2 (Tyler's decision)
 
 Said:
@@ -2519,7 +2544,7 @@ Unknowns: none for the decision.
 - Type: bug
 - Area: Buy bar
 - Severity: S1 (spends money the player did not mean to spend)
-- Status: fixed 0.8.2.2 (build 1, not tested in game)
+- Status: fixed 0.8.2.2 (released 2026-11-20; tested in game by Tyler, build 1 passed)
 - Proposed: 0.8.2.2 (Tyler's decision)
 
 Said:
@@ -2549,7 +2574,7 @@ Unknowns: which item and how many; the fix does not depend on it.
 - Type: bug
 - Area: Buy bar
 - Severity: S1 (spends money the player did not mean to spend)
-- Status: fixed 0.8.2.2 (build 1, not tested in game)
+- Status: fixed 0.8.2.2 (released 2026-11-20; quarter-second rest tested in game by Tyler, build 4 passed)
 - Proposed: 0.8.2.2 (Tyler's decision)
 
 Said:
@@ -2581,7 +2606,7 @@ Unknowns: whether it was trade goods or gear, mouse or Enter. The pause covers a
 - Type: bug
 - Area: Settings
 - Severity: S3
-- Status: fixed 0.8.2.2 (build 1, not tested in game)
+- Status: fixed 0.8.2.2 (released 2026-11-20; tested in game by Tyler, build 1 passed)
 - Proposed: 0.8.2.2
 
 Said:
@@ -2656,7 +2681,7 @@ Unknowns: which screen; what order they expect (bag 1 slot 1 first is the likely
 - Type: ux
 - Area: Sniper (and Live on the Search tab: "snipe undercuts" can mean either)
 - Severity: n/a
-- Status: built 0.8.2.2 (build 2, not tested in game)
+- Status: built 0.8.2.2 (released 2026-11-20; Sniper skips grays, 1 s pause, Live every 2 s passed in build 2) + Narrower Sniper built 0.9 (build 4, commit 79e40dc, tested and passed in game by Tyler 2026-11-22: Trade Goods 491 items in 0.1s to 0.2s, clean Watch bar & More... Categories + Search Favorites)
 - Proposed: 0.8.2.2 (Tyler: "Do 1, 2 and 3, half second rest")
 
 Said:
@@ -2717,6 +2742,485 @@ Tyler's test of build 2 (2026-11-17), Seen:
 
 Unknowns: how long rounds after the first take now; whether the 70 gear deals are real or come
 from out-of-date usual prices for gear endings (Tyler asked).
+
+### FB-056: Many Lua errors warning during a dungeon, possibly on conjured water
+
+- Received: 2026-11-20 (posted 3 minutes before Tyler's screenshot)
+- From: user_kc0ds7pqedmptpep (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-20-curseforge-comments.md)
+- Version: unknown (0.8.2.2 was released earlier the same day; likely 0.8.2.1 or 0.8.2.2)
+- Type: bug
+- Area: Other (tooltips / outside auction house)
+- Severity: S1 (repeated Lua errors during normal dungeon play; player had to disable aux)
+- Status: fixed 0.9 (build 1, gemini/0.9, 2026-11-21)
+- Proposed: hotfix / next patch (0.8.2.3); Tyler chose 0.9
+
+Said:
+> I got a warning during a dungeon that addons cause many lua errors, I turned off Aux and the warning disappeared. Someone created some magic water or smth like that, maybe that caused it. But it was really annoying.
+
+Steps / setup: in a dungeon; Blizzard showed the "addons are experiencing a large number of errors"
+warning. Someone created conjured water ("magic water"). Disabling auxForever made the warning go
+away. No BugSack error text was given.
+
+Tyler's notes (2026-11-20): "build this into .9".
+
+Recorder's notes (code facts and inferences, none seen in game):
+- Fact (code): outside the auction house, the main aux code that runs during a dungeon is the item
+  tooltip post-call (`core/tooltip.lua`, `TooltipDataProcessor.AddTooltipPostCall`), the hidden
+  tooltip check (`util/info.lua`, `M.tooltip` and `M.auctionable`), and `GET_ITEM_INFO_RECEIVED`
+  (`core/cache.lua`, `process_item`, only for item IDs aux has never seen).
+- Fact (code, `Gethe/wow-ui-source`, branch `forever`):
+  1. `Blizzard_SharedXMLGame/Tooltip/TooltipUtil.lua` (`TooltipUtil.GetDisplayedItem`, called by
+     `tooltip:GetItem()` at `core/tooltip.lua:57`) reads `tooltipData.guid` and calls
+     `C_Item.GetItemLinkByGUID` and `C_Item.GetItemInfo` with no `issecretvalue` check. In a
+     dungeon or combat, if `tooltipData` holds a secret value, `tooltip:GetItem()` can error before
+     aux's `issecretvalue(link)` check on line 59 ever runs.
+  2. `Blizzard_SharedXMLGame/Tooltip/TooltipDataHandler.lua:300` already calls `self:Show()` right
+     after `ProcessTooltipPostCalls`. `core/tooltip.lua:183` calls `tooltip:Show()` again from
+     insecure addon code inside the post-call. `Blizzard_GameTooltip/Mainline/GameTooltip.lua`
+     notes that addon taint on `GameTooltip` can fail repeatedly in `OnUpdate` when dungeon/combat
+     data is secret.
+  3. `core/tooltip.lua:41` (`tooltip_quantity`) checks `quantity > 0` without checking
+     `issecretvalue(quantity)`.
+  4. `core/tooltip.lua:165,167` (`settings.daily`, off by default) computes `market_value / value`
+     without checking that `value` is non-nil and positive.
+  5. `util/info.lua:488` (`auctionable`): `not tooltip_match(ITEM_CONJURED, tooltip) or
+     tooltip_find(ITEM_MIN_LEVEL, tooltip) > 1`. The right-hand side (`tooltip_find(ITEM_MIN_LEVEL,
+     tooltip)`) runs ONLY on conjured items (such as conjured water). Neither `ITEM_CONJURED` nor
+     `ITEM_MIN_LEVEL` is nil-checked before `strupper`/`strfind`, and `util/info.lua:511` reads
+     `_G['AuxTooltipText' .. side .. i]:GetText()` with no nil check and no `issecretvalue` check.
+- Inference: because `GameTooltip` refreshes every 0.2 s while hovering an item (and its `OnUpdate`
+  runs every frame), any error or taint triggered on an item tooltip in a dungeon will fire rapidly
+  enough to trigger Blizzard's "many Lua errors" warning.
+- Proposed fix (works without knowing which exact line threw): harden all five spots above
+  (`pcall` / `issecretvalue` around reading tooltip data and quantity, remove redundant
+  `tooltip:Show()` in `extend_tooltip`, guard `settings.daily` against missing `value`, nil-check
+  and secret-check `AuxTooltip` font strings and `ITEM_CONJURED`/`ITEM_MIN_LEVEL` in `info.lua`),
+  with unit tests for each case.
+
+Unknowns: the exact Lua error text, whether the player was in combat, whether they hovered the
+conjured water or opened a trade, and what other addons were installed. Hardening every dungeon /
+tooltip / conjured-item path works without knowing the exact stack trace.
+
+Ask Tyler: if you run a dungeon or hover conjured water with BugSack installed, watch for any error
+in `auxForever` so we know whether anything else fires there.
+
+### FB-057: Settings interface accessible outside the auction house (Options > AddOns)
+
+- Received: 2026-11-20 (LLanwrst posted 1 day before; jebbush 2 hours before)
+- From: LLanwrst, jebbush (2 players)
+- Where: CurseForge comments on the auxForever project page
+- Source: [source](feedback/sources/2026-11-20-curseforge-comments.md)
+- Version: unknown
+- Type: request (also ux: jebbush did not know the Settings gear inside the auction house exists)
+- Area: Settings
+- Severity: n/a
+- Status: built 0.9 (build 3, gemini/0.9, 2026-11-22; tested and passed in game by Tyler 2026-11-22)
+- Proposed: 0.9 (visual panel, mockup first)
+
+Said (jebbush):
+> Feature request, an actual interface for the addon to choose settings instead of only using chatbox
+
+Said (LLanwrst):
+> Also is there a way to access the settings without being in the AH? Ive seen other addons to be present in the Options > AddOns tab.
+
+Steps / setup: both players wanted to change settings through a menu, including away from the
+auction house.
+
+Tyler's notes: replied to LLanwrst that aux is in beta and QoL will come later, and pointed to
+`/aux help` for tooltips. Decision (2026-11-20): "Build into .9".
+
+Recorder's notes:
+- Fact (code): aux has had a Settings menu since 0.6 (FB-008), behind the small gear button in the
+  top bar of aux's auction house window (`frame.lua:377`). It cannot be opened when the auction
+  house is closed, aux is not registered in Blizzard's Options > AddOns list, and `/aux` only
+  prints chat commands without mentioning the Settings menu.
+- Under the main rule, a player thinking settings are chat-only is a discoverability finding about
+  the addon.
+- Fact (**Seen** 2026-11-22 in 0.9 build 3; **Code**, `Gethe/wow-ui-source`, branch `forever`,
+  `Blizzard_Settings_Shared/Blizzard_Settings.lua`): Forever has the modern Settings API:
+  `Settings.RegisterCanvasLayoutCategory(frame, name)`, `Settings.RegisterAddOnCategory(category)`,
+  and `Settings.OpenToCategory(categoryID)`. Confirmed working in game (both Escape > Options >
+  AddOns > auxForever and `/aux settings`).
+- Built fix: registered an `auxForever` panel in Blizzard's Options > AddOns sharing the same
+  saved settings and `refresh_settings()` sync as the auction house gear popup, added `/aux settings`
+  (aliases `config`, `options`) with combat guard, added Clear post prices and Clear item cache
+  buttons with confirmation prompts, and listed `/aux settings` at the top of `/aux` help.
+
+Unknowns: none.
+
+Ask Tyler: decided (0.9, mockup first).
+
+### FB-058: Toggle to show tooltip prices for the whole stack by default
+
+- Received: 2026-11-20 (posted 2 hours before Tyler's screenshot)
+- From: jebbush (1 request for a toggle; related to FB-033 from Chawitsch)
+- Where: CurseForge comment on the auxForever project page (same comment as FB-057)
+- Source: [source](feedback/sources/2026-11-20-curseforge-comments.md)
+- Version: unknown
+- Type: request
+- Area: Settings (tooltips)
+- Severity: n/a
+- Status: built 0.9 (build 2, gemini/0.9, 2026-11-21)
+- Proposed: next patch (0.8.2.3) or 0.9; Tyler chose 0.9
+
+Said:
+> and a toggle to make it show ah value for the whole stack, rather than being forced to hold shift. If there is 17 of an item I would like to see ah price for all 17, rather than how it is flipped now.
+
+Steps / setup: hovering a stack of 17 items in the bags; wants the tooltip to show the total value
+for all 17 by default without holding Shift (and holding Shift to flip to 1 item).
+
+Tyler's notes: (On FB-033, Tyler declined putting Shift instructions in tooltips, noting Shift
+already works; this is a new request for a setting to flip the default.) Decision (2026-11-20):
+"Build into .9". Updated (2026-11-21): "the vendor and value should always represent the full stack
+amount, and to see the vendor and value of just 1 is when they hold shift."
+
+Recorder's notes:
+- Fact (code, `core/tooltip.lua:93`): `quantity = IsShiftKeyDown() and quantity or 1`. The tooltip
+  already labels multi-item prices with `for 17` (`per` on line 96), so a stack price is never
+  mistaken for a unit price.
+- Plan for 0.9: flip the default so Vendor, Vendor Buy, Value and Today show the full stack amount
+  by default and holding Shift shows 1 item; keep the `stack_default` toggle in Settings > Tooltip
+  lines (`/aux tooltip stack`), starting **on** by default so players who want 1-item default can
+  still switch it off.
+
+Unknowns: none.
+
+Ask Tyler: decided (0.9: full stack by default, Shift for 1).
+
+### FB-059: Show how much Merchant's Favor a Waylaid Crate offers
+
+- Received: 2026-11-20 (posted 4 hours before Tyler's screenshot)
+- From: sarrathsilentstrider (second player asking for crate reward info; see FB-042)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-20-curseforge-comments.md)
+- Version: unknown
+- Type: request
+- Area: Other (crate tooltip)
+- Severity: n/a
+- Status: planned 0.9.1 (with FB-042; mockup first; moved from 0.9 by Tyler, 2026-11-22)
+- Proposed: 0.9, together with FB-042 and Craftsman's Writs
+
+Said:
+> @tyehampton One thing I noticed, the other addon did that Aux doesn't is show the amount of merchant favor the waylaid crates will offer. Adding this will definitely help make a decision based on the values provided by Aux.  Sorry to tack on one more request :(
+
+Tyler's notes (his reply on CurseForge):
+> @sarrathsilentstrider Its a great idea, dont be sorry! Will look into adding this in .9
+
+Decision (2026-11-20): "Build into .9".
+
+Recorder's notes:
+- Related: FB-042 (`user_tdsvrjvpe8rufw54`) asked for crate full cost less silver reward and
+  favor/gold. This is a second player asking for the Merchant's Favor reward in the crate tooltip.
+- Fact (code, `tabs/search/crate.lua`): aux reads a crate's bundles from its tooltip text, and does
+  not know what Merchant's Favor or silver a crate pays.
+- Unknown: whether Forever exposes a crate's Merchant's Favor reward through any game API (or in
+  its tooltip text), or whether it requires a lookup table per crate item ID (**Outside**, guides
+  list fixed Favor and silver per crate tier, see FB-042).
+- Proposed fix: once confirmed in game how Favor is determined (API vs lookup table), show the
+  crate's Favor reward (and optional cost per Favor, FB-042) in `add_crate_lines`, mockup first
+  for 0.9.
+
+Unknowns: how Forever defines each crate's Merchant's Favor reward (still needs the in-game crate
+turn-in screenshot asked in FB-042).
+
+Ask Tyler: still need a screenshot of a Waylaid Crate's turn-in reward in game before building.
+
+### FB-060: Show best items to farm, like GoldScout
+
+- Received: 2026-11-20 (posted 10 hours before Tyler's screenshot)
+- From: XtreamCoder (1 request)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-20-curseforge-comments.md)
+- Version: unknown
+- Type: request
+- Area: Other (new feature)
+- Severity: n/a
+- Status: wont-fix in auxForever (Tyler, 2026-11-20: "Do not build, but remember for potiential in the future, perhaps a seperate add-on we make that is an optional dependency")
+- Proposed: none in auxForever; future separate addon idea using `AuxForeverAPI`
+
+Said:
+> hey man can you maybe make so that aux can look for best items to farm like GoldScout does so ppl dont need to have 2 seprate addons ?
+
+Tyler's notes (his reply on CurseForge):
+> @XtreamCoder Great idea! I will work on seamless way to implement this. Look out for it in a future update.
+
+Decision (2026-11-20): "Do not build, but remember for potiential in the future, perhaps a seperate
+add-on we make that is an optional dependency".
+
+Recorder's notes:
+- Checked what GoldScout does (**Outside**, CurseForge and WoW Forever forums, November 2026):
+  GoldScout is a dedicated farming addon for WoW Forever built around a crowdsourced mob drop-rate
+  database (20,000+ player kills collected through a desktop companion app and website), plus a
+  Farm tab (mobs, cloth, herbs, ore, leather ranked by gold per hour for the character's level and
+  professions), a Craft tab (known recipes ranked by profit), and a Hunt mode (map waypoints,
+  nameplate markers, kill/loot tracker).
+- Pushback on full parity: rebuilding a crowdsourced mob drop-rate database, companion app,
+  waypoints and nameplate markers inside an auction house addon would be massive scope creep and
+  heavy ongoing maintenance outside aux's purpose.
+- Future direction (Tyler, 2026-11-20): keep auxForever focused on the auction house, and remember
+  this as a potential separate companion addon we could make later with `auxForever` as an optional
+  dependency (reading scanned prices via `AuxForeverAPI`, `docs/api.md`).
+
+Unknowns: none for this decision.
+
+Ask Tyler: nothing (decided).
+
+### FB-061: Toggle to hide the Materials and profit line in the Professions window
+
+- Received: 2026-11-20 (posted 1 day before Tyler's screenshot)
+- From: LLanwrst (1 request; same comment also praises tooltip-text logic search and asks FB-057)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-20-curseforge-comments.md)
+- Version: unknown (0.8.1 or later: mentions profit/prices in professions)
+- Type: request (also ux: turning off all tooltips did not hide it)
+- Area: Recipe search (profession window) / Settings
+- Severity: n/a
+- Status: built 0.9 (build 2, gemini/0.9, 2026-11-21)
+- Proposed: next patch (0.8.2.3) or 0.9; Tyler chose 0.9
+
+Said:
+> Now a thing that I havent i figured out yet - when opening my professions it seems this addon adds some info about the profit/prices of the materials, which kinda overlaps with some other addons that im using - so my question - is there any way to turn this off? Ive tried turing off all tooltips but still its there. Not a huge downside, as I can turn the addon.
+
+Steps / setup: opens the Professions window while running another profession addon; aux's
+`Materials ... Profit ...` line overlaps the other addon's text. Tried turning off all tooltip
+options and the line stayed.
+
+Tyler's notes: replied that aux is in beta and QoL will come later, and mentioned `/aux help` for
+tooltips. Decision (2026-11-20): "Build into .9".
+
+Recorder's notes:
+- Fact (code, `tabs/search/recipe.lua:363-377`): `update_line` always shows the `Materials ...
+  Profit ...` line under the reagents list whenever a recipe has reagents. There is currently no
+  setting or chat command to turn it off (unlike the tooltip switches in `core/tooltip.lua`).
+- Proposed fix: add a toggle (default on) in Settings and a matching chat command (e.g.
+  `/aux crafting cost` or `/aux tooltip crafting`) that hides the line immediately when turned off
+  and refreshes it when turned back on. Keep the "Search in aux" button separate since it only
+  appears at the auction house.
+
+Unknowns: which other profession addon overlaps it; a toggle solves it for any overlapping addon.
+
+Ask Tyler: decided (0.9).
+
+### FB-062: Option for right-clicking a bag item to always open the Post tab
+
+- Received: 2026-11-20 (rokstar8872, deep_structure); 2026-11-22 (bubbledn42)
+- From: rokstar8872, deep_structure, bubbledn42 (3 players)
+- Where: CurseForge comments on the auxForever project page
+- Source: [2026-11-20](feedback/sources/2026-11-20-curseforge-comments.md), [2026-11-22](feedback/sources/2026-11-22-curseforge-comments.md)
+- Version: unknown
+- Type: request
+- Area: Post / Settings
+- Severity: n/a
+- Status: built 0.9 (build 2, gemini/0.9, 2026-11-21; default flipped to on in build 3 per Tyler)
+- Proposed: next patch (0.8.2.3) or 0.9; Tyler chose 0.9
+
+Said (rokstar8872):
+> is it possible to have an option like with default ah, when u press right click it goes into selling window? thank you.
+
+Said (deep_structure, reply):
+> @rokstar8872 awesome suggestion!
+
+Said (bubbledn42, 2026-11-22):
+> in the auctions tab, right clicking an item in my bag should not search for the item it should list the item
+
+Tyler's notes (his reply on CurseForge):
+> @rokstar8872 Currently it depends on which menu you have open when you right click an item in your bag. If you are in search tab it searches the item on right click, and on post page it add its to the window to be sold.
+
+Decision (2026-11-20): "Love it, build into .9".
+
+Recorder's notes:
+- Fact (code, `core/shortcut.lua:18-28,68-88`): `on_post_item` intercepts bag right-clicks (via
+  `AuctionHouseFrame:SetPostItem`) and calls `use_item`, which uses the current tab if it handles
+  items (Search searches it, Post loads it; other tabs switch to Search). In Blizzard's default
+  auction house, right-clicking a bag item from any tab switches straight to the Sell tab.
+- Proposed fix: add an opt-in setting under Settings > Posting (e.g. "Right-click bag item to sell",
+  default off so existing behavior is unchanged) and a matching chat command. When on,
+  `on_post_item` switches to the Post tab and loads the item there; Shift-click and Alt-click keep
+  their current tab-aware behavior (`docs/clicks.md`).
+
+Unknowns: none.
+
+Ask Tyler: decided (0.9).
+
+### FB-063: Keybinds for buying, confirming and declining
+
+- Received: 2026-11-20 (posted 2 days before Tyler's screenshot)
+- From: khorrs (1 request)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-20-curseforge-comments.md)
+- Version: unknown
+- Type: request
+- Area: Buy bar / Settings
+- Severity: n/a
+- Status: built 0.9 (build 2, gemini/0.9, 2026-11-21)
+- Proposed: 0.9 (new feature; fits with Sniper / fast-buying work)
+
+Said:
+> Also is it possible to set keybinds for buying, confirming and declineing?
+
+Tyler's notes (his reply on CurseForge):
+> @khorrs I believe there is a way, ill get that added in the future.
+
+Decision (2026-11-20): "Build into .9".
+
+Recorder's notes:
+- Fact (code / Forever API): `C_AuctionHouse.StartCommoditiesPurchase` and `C_AuctionHouse.PlaceBid`
+  require a hardware event (**Code** / **Seen**). Standard WoW keybindings defined in `Bindings.xml`
+  (bound by the player under WoW's Options > Keybindings > AddOns > auxForever, including mouse
+  wheel up/down) fire from hardware input, just like `gamepad.lua`'s override bindings do.
+- Proposed fix: add a `Bindings.xml` file (requires a full game restart on first install) with
+  three bindings that act on whichever buy bar (Search or Sniper) is active while aux is open:
+  1. **Buy** (clicks Buy when the bar is in Buy state, so mashing it cannot accidentally Confirm
+     when Confirm before buying is on),
+  2. **Confirm** (clicks Confirm when a quote or gear confirmation is waiting),
+  3. **Cancel / Decline** (clicks Cancel on a pending quote or confirmation).
+  Using Blizzard's built-in Keybindings menu avoids building a custom keybind UI, automatically
+  respects edit-box focus, and stays clear of `gamepad.lua` override bindings and combat lockdown.
+  Verify `Bindings.xml` registration on Forever in game when building.
+
+Unknowns: whether khorrs also wants a single combined Buy/Confirm keybind (for mouse-wheel spam)
+or separate ones; offering separate Buy, Confirm and Cancel plus optionally a combined Buy/Confirm
+covers both.
+
+Ask Tyler: decided (0.9).
+
+### FB-064: Tooltip-word search ignores stats on generic green random-suffix gear
+
+- Received: 2026-11-22 (posted 11 hours before Tyler's screenshot)
+- From: RushJet1 (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-22-curseforge-comments.md)
+- Version: likely 0.8.2.2 (released 2026-11-20)
+- Type: bug
+- Area: Search
+- Severity: S2 (fast tooltip-word search silently misses matching random-suffix gear; switching to
+  Full mode works around it at the cost of speed)
+- Status: fixed 0.9 (build 4, commit 79e40dc; tested and passed in game by Tyler 2026-11-22:
+  Fast mode returned 30+ generic green rings with `Equip:` spell stats including `"of the
+  Channeler"` and `"of the Prophet"`, and `GetItemKeySampleLink` returned `true` on browse)
+- Proposed: 0.9 (high-value bug fix once `GetItemKeySampleLink` behavior is verified in game)
+
+Said:
+> Aux seems to ignore text in items that are generic greens, like if i type armor/miscellaneous/finger/spell it will ignore "of the channeler" despite that having +2 to spells
+
+Steps / setup: Search `armor/miscellaneous/finger/spell` in Fast mode when generic green rings with
+"of the Channeler" (+2 spell damage/healing) are listed on the auction house.
+
+Tyler's notes: approved for 0.9 build 4 (2026-11-22); tested and passed in game 2026-11-22.
+
+Recorder's notes:
+- Fact (code, `util/info.lua:509-515` and `gui/auction_listing.lua:570-577`): in 0.8.2.1 (`FB-045`,
+  where hovering "of Shadow Protection" and "of Healing" missed their stat lines under
+  `SetItemKey`), `gui/auction_listing.lua` was updated to try
+  `C_AuctionHouse.GetItemKeySampleLink(key)` (`SetHyperlink(sample)`) first before `SetItemKey`
+  (matching Blizzard's `Blizzard_AuctionHouseSharedTemplates.lua:119-124`, **Code**). However,
+  `util/info.lua`'s `info.tooltip('item_key', ...)` (used by fast tooltip-word searches, `FB-025`)
+  was NOT updated and still calls only `AuxTooltip:SetItemKey(...)`.
+- Fact (code, `core/scan.lua:760`): fast tooltip-word search only falls back to reading individual
+  auctions (`read_full`) when `has_ending(record) and #record.tooltip <= 1`.
+- Inference (strong): on Forever, `SetItemKey` on random-suffix gear with `Equip:` stats ("of the
+  Channeler", "of Healing", "of Shadow Protection", "of Fire Wrath") renders 4+ lines (name, slot,
+  required level, possibly `<Random enchantment>`) without the `Equip:` stat line. Because
+  `#record.tooltip > 1`, `scan.lua:760` never falls back to `read_full` and silently drops the item.
+  `armor/mail/chest/usable/strength` (`FB-025` build 7 test) still matched "of Strength" only
+  because the word "strength" appears in the item name itself, whereas "spell" does not appear in
+  "of the Channeler".
+- Secondary code edge (`util/info.lua:304,314-315` and `core/scan.lua:640`): if
+  `C_AuctionHouse.GetItemKeyInfo(key)` is not cached yet when `browse_record` runs, `record.name`
+  falls back to the base name, making `has_ending(record)` false even when `key.itemSuffix ~= 0`.
+- Built fix (0.9 build 4, `79e40dc`): `info.tooltip('item_key', ...)` tries
+  `C_AuctionHouse.GetItemKeySampleLink` first (`SetHyperlink`) before `SetItemKey`;
+  `needs_suffix_tooltip(record)` in `core/scan.lua` falls back to `read_full` when a suffixed item
+  (`suffix_id ~= 0 or has_ending`) has `<= 1` lines, shows `<Random enchantment>`, or lacks both `+`
+  and `ITEM_SPELL_TRIGGER_ONEQUIP` (`Equip:`) on lines `2..N` and has not already matched
+  `validator`.
+
+Unknowns: none (settled **[Seen]** 2026-11-22: `FB64: Marble Ring of Fire Protection true` confirmed
+`C_AuctionHouse.GetItemKeySampleLink` returns a real sample link during browse on Forever, so Fast
+searches match with 0 extra requests while keeping `needs_suffix_tooltip` as a safety fallback).
+
+Ask Tyler: none (passed in game).
+
+### FB-065: Sniper stopped showing deals even after changing thresholds
+
+- Received: 2026-11-22 (posted 19 hours before Tyler's screenshot)
+- From: marcus4555 (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-22-curseforge-comments.md)
+- Version: likely 0.8.2.2 (released 2026-11-20; "as of today")
+- Type: bug
+- Area: Sniper
+- Severity: S1 (Sniper shows zero deals for this player)
+- Status: new (needs diagnostic details from player)
+- Proposed: investigate once player answers; check against 0.9 Build 1 throttle-timeout fix
+
+Said:
+> Recently, as of today, the "Sniper" functionality has broke for me. I have ignore 326 items, but that shouldnt prevent all items to show as deals with different parameters / threshold for "at most" and "profit of at least".
+
+Steps / setup: Sniper running with 326 ignored items; changing "at most" and "profit at least"
+still produces no deals.
+
+Tyler's notes: none yet.
+
+Recorder's notes:
+- Fact (code, `v0.8.2.1..v0.8.2.2` diff): the only Sniper browsing changes in 0.8.2.2 were
+  `queries = {{blizzard_query = {quality = 1}}}` (skipping gray items; tested in game by Tyler in
+  0.8.2.2 build 2, returning 25,187 items and 70 deals) and `ROUND_PAUSE = 1`.
+- Fact (code, `tabs/sniper/core.lua:507-516`): ignored entries are matched by exact version key or
+  exact `price_key` (`itemID:ending`), so 326 entries cannot block unrelated items.
+- Fact (code, `core/scan.lua` in 0.8.2.2 vs 0.9 Build 1): in 0.8.2.2, `wait_throttle()` had no
+  timeout when Forever's `IsThrottledMessageSystemReady()` froze (**Seen** by Tyler on 2026-11-20/21),
+  which left Sniper silently stuck on "first round, reading the item list..." forever with 0 deals
+  even when thresholds were edited. Fixed in 0.9 Build 1 (10-second `THROTTLE_TIMEOUT`).
+- Other possible causes on 0.8.2.2 (inference, unconfirmed without player details): fewer than 3
+  days of Full scans on the current realm/faction (`MIN_DAYS = 3`, though that shows a notice under
+  Start), a Lua error aborting the round, or `AUCTION_HOUSE_BROWSE_FAILURE` / empty browse result.
+
+Unknowns: what Sniper's status line next to Start/Stop says while running, whether any Full-scan
+notice shows under Start, and whether any Lua error appears.
+
+Ask Tyler: reply asking those three quick diagnostic questions and note 0.9 already fixes the AH
+throttle freeze.
+
+### FB-066: Setting to pick default buy quantity (1 vs full stack)
+
+- Received: 2026-11-22 (posted 22 hours before Tyler's screenshot)
+- From: user_ivpyccljovcjne72 (1 request)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-22-curseforge-comments.md)
+- Version: 0.8.2.2 ("The latest update changed the default stack size when buying items to 1")
+- Type: request (also praise: "Great addon.")
+- Area: Buy bar / Settings
+- Severity: n/a
+- Status: built 0.9 (build 4, commit 79e40dc; tested and passed in game by Tyler 2026-11-22:
+  Default quantity 1 / Stack choice under Settings > Buying synced across AH gear popup and
+  Blizzard Options > AddOns > auxForever, plus `/aux buy quantity 1|stack`)
+- Proposed: 0.9 (small Setting under Buying + `/aux buy quantity 1|stack`)
+
+Said:
+> Hello! The latest update changed the default stack size when buying items to 1, which is quite annoying. Is it possible to change it back to the maximum stack size? Thank you! Great addon.
+
+Steps / setup: Select a trade good on the Search tab; the Buy bar now starts at Quantity 1 (changed
+in 0.8.2.2 for FB-050 so one-click buying does not accidentally buy a full stack).
+
+Tyler's notes (2026-11-22): "People should be able to customize aux to work how they want with
+settings." Approved for 0.9 build 4 (2026-11-22); tested and passed in game 2026-11-22.
+
+Recorder's notes:
+- Fact (code, `gui/buy_bar.lua:524`): `show_commodity` starts at `1` unless `params.whole_deal`
+  (used by Sniper) is true.
+- Built fix (0.9 build 4, `79e40dc`): added a `Default quantity` choice (`1` / `Stack`, default `1`)
+  under **Settings > Buying** (automatically synced across both the AH Settings gear popup and
+  Blizzard Options > AddOns > auxForever via `build_settings_body` in `frame.lua`), plus
+  `/aux buy quantity 1|stack`. When set to `stack`, `show_commodity` starts at
+  `min(max_stack, available())` just as before 0.8.2.2. Fits Tyler's rule that players choose how
+  aux behaves without forcing one default.
+
+Unknowns: none.
+
+Ask Tyler: none (passed in game).
 
 ## Before this log
 
