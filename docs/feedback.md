@@ -126,10 +126,10 @@ For whoever fixes or builds from it:
 | [FB-017](#fb-017-the-deposit-aux-shows-is-lower-than-the-1-silver-the-game-charges) | 2026-10-17 | sarrathsilentstrider | bug | Post | S3 | The deposit aux shows is lower than the 1 silver the game charges | not reproduced (aux matched the game in Tyler's test) |
 | [FB-018](#fb-018-a-setting-for-whether-the-post-tab-starts-on-match-lowest-or-undercut) | 2026-10-17 | sarrathsilentstrider | request | Settings | n/a | A setting for whether the Post tab starts on Match lowest or Undercut | wont-fix (Tyler: keep as is) |
 | [FB-019](#fb-019-praise-everything-is-shte-in-comparison) | 2026-10-17 | sarrathsilentstrider | praise | Overall | n/a | Praise: "everything is SH!TE in comparison" | new |
-| [FB-020](#fb-020-find-the-cheapest-way-to-fill-waylaid-crates-and-writs) | 2026-10-17 | Harro22 | request | Search | n/a | Find the cheapest way to fill Waylaid crates and writs | built 0.8 build 2 (crates; writs planned 0.9) |
+| [FB-020](#fb-020-find-the-cheapest-way-to-fill-waylaid-crates-and-writs) | 2026-10-17 | Harro22 | request | Search | n/a | Find the cheapest way to fill Waylaid crates and writs | built 0.8 build 2 (crates; writs planned 0.9.1) |
 | [FB-021](#fb-021-a-typed-price-below-the-lowest-listing-cannot-be-posted-rough-stone-5c) | 2026-10-18 | sarrathsilentstrider | bug | Post | S2 | A typed price below the lowest listing cannot be posted (Rough Stone, 5c) | fixed 0.7.1.1 (released 2026-10-19) |
 | [FB-022](#fb-022-the-player-did-not-know-the-newest-listing-at-a-price-sells-first) | 2026-10-18 | sarrathsilentstrider | ux | Post | n/a | The player did not know the newest listing at a price sells first | new |
-| [FB-023](#fb-023-a-shopping-list-for-crafting-n-of-a-recipe) | 2026-10-20 | Kortan | request | Search | n/a | A shopping list for crafting N of a recipe | planned 0.9 |
+| [FB-023](#fb-023-a-shopping-list-for-crafting-n-of-a-recipe) | 2026-10-20 | Kortan | request | Search | n/a | A shopping list for crafting N of a recipe | planned 0.9.1 |
 | [FB-024](#fb-024-an-exact-search-for-hillmans-cloak-finds-nothing-a-search-for-hillmans-finds-many) | 2026-11-08 | GregoryWW | bug | Search | S2 | An exact search for Hillman's Cloak finds nothing; a search for Hillman's finds many | fixed 0.8.1 (released 2026-11-09) |
 | [FB-025](#fb-025-adding-a-tooltip-word-strength-turns-an-instant-search-into-a-2-minute-one) | 2026-11-08 | RushJet1 | bug | Performance | S2 | Adding a tooltip word (strength) turns an instant search into a 2 minute one | fixed 0.8.2 (released 2026-11-09) |
 | [FB-026](#fb-026-show-whether-a-craft-makes-a-profit-or-a-loss) | 2026-11-08 | deep_structure | request | Recipe search | n/a | Show whether a craft makes a profit or a loss | built 0.8.1 (released 2026-11-09) |
@@ -137,8 +137,8 @@ For whoever fixes or builds from it:
 | [FB-028](#fb-028-the-sniper-takes-over-30-seconds-from-its-sound-to-the-purchase) | 2026-11-08 | user_ayzkr6rhvrlna3ya | bug | Sniper | S2 | The Sniper takes over 30 seconds from its sound to the purchase | fixed 0.8.2 (released 2026-11-09) |
 | [FB-029](#fb-029-price-gear-with-a-random-ending-of-the-eagle-of-the-bear-separately) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Other | n/a | Price gear with a random ending ("of the Eagle", "of the Bear") separately | built 0.8 (released 2026-11-08) |
 | [FB-030](#fb-030-how-the--of-historical-value-works-keep-more-price-history) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | question | Other | n/a | How the % of historical value works; keep more price history | new |
-| [FB-031](#fb-031-posting-rules-based-on-historical-value-like-tsm) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Post | n/a | Posting rules based on historical value, like TSM | planned 0.9 |
-| [FB-032](#fb-032-start-a-full-scan-when-the-window-opens-if-the-15-minute-wait-is-over) | 2026-11-08 | Chawitsch | request | Settings | n/a | Start a full scan when the window opens, if the 15 minute wait is over | built 0.9 (build 2, gemini/0.9) |
+| [FB-031](#fb-031-posting-rules-based-on-historical-value-like-tsm) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Post | n/a | Posting rules based on historical value, like TSM | planned 0.9.1 |
+| [FB-032](#fb-032-start-a-full-scan-when-the-window-opens-if-the-15-minute-wait-is-over) | 2026-11-08 | Chawitsch | request | Settings | n/a | Start a full scan when the window opens, if the 15 minute wait is over | built 0.9 (released 2026-11-22) |
 | [FB-033](#fb-033-tooltip-prices-for-the-whole-stack-not-one-item) | 2026-11-08 | Chawitsch | ux | Other | n/a | Tooltip prices for the whole stack, not one item | wont-fix (Tyler: no Shift instructions in tooltips; Shift already works) |
 | [FB-034](#fb-034-opening-aux-moves-blizzards-professions-window-to-the-right) | 2026-11-08 | Chawitsch | bug | Window | S3 | Opening aux moves Blizzard's Professions window to the right | fixed 0.8.1 (released 2026-11-09) |
 | [FB-035](#fb-035-a-setting-to-hide-the-usually-price-line-in-tooltips) | 2026-11-09 | deep_structure | request | Settings | n/a | A setting to hide the "usually" price line in tooltips | built 0.8.2 (released 2026-11-09) |
@@ -148,10 +148,10 @@ For whoever fixes or builds from it:
 | [FB-039](#fb-039-full-scan-not-working-for-a-player-tyler-knows) | 2026-11-09 | a player Tyler knows (name not given) | bug | Full scan | S2 | Full scan "wasnt working" | fixed 0.8.2 (released 2026-11-09) |
 | [FB-040](#fb-040-tab-does-not-complete-in-the-search-bar) | 2026-11-11 | Tyler | bug | Search | S3 | Tab does not complete in the search bar | wont-fix (works as built, seen 2026-11-16) |
 | [FB-041](#fb-041-a-switch-to-turn-off-the-crate-lines-in-tooltips) | 2026-11-16 | user_tdsvrjvpe8rufw54 | request | Settings | n/a | A switch to turn off the crate lines in tooltips | built 0.8.2.1 (released 2026-11-16) |
-| [FB-042](#fb-042-crate-tooltip-full-cost-less-the-quest-reward-favor-and-reputation-per-gold) | 2026-11-16 | user_tdsvrjvpe8rufw54 | request | Other | n/a | Crate tooltip: full cost less the quest reward, favor and reputation per gold | new |
+| [FB-042](#fb-042-crate-tooltip-full-cost-less-the-quest-reward-favor-and-reputation-per-gold) | 2026-11-16 | user_tdsvrjvpe8rufw54 | request | Other | n/a | Crate tooltip: full cost less the quest reward, favor and reputation per gold | planned 0.9.1 (with FB-059) |
 | [FB-043](#fb-043-a-window-listing-every-crate-and-writ-by-favor-and-reputation-per-gold) | 2026-11-16 | user_tdsvrjvpe8rufw54 | request | Other | n/a | A window listing every crate and writ by favor and reputation per gold | new |
 | [FB-044](#fb-044-gear-can-be-priced-in-copper-but-aux-rounds-it-to-whole-silver) | 2026-11-16 | sarrathsilentstrider, user_mezgz2zh1g3sbu1v | bug | Post | S2 | Gear can be priced in copper, but aux rounds it to whole silver | fixed 0.8.2.1 (released 2026-11-16) |
-| [FB-045](#fb-045-some-gear-endings-of-shadow-protection-of-healing-do-not-show-their-stat-in-search) | 2026-11-16 | karrier_user_slouyac50poxg707 | bug | Search | S3 | Some gear endings (of Shadow Protection, of Healing) do not show their stat in search | fixed 0.8.2.1 (provisional) |
+| [FB-045](#fb-045-some-gear-endings-of-shadow-protection-of-healing-do-not-show-their-stat-in-search) | 2026-11-16 | karrier_user_slouyac50poxg707 | bug | Search | S3 | Some gear endings (of Shadow Protection, of Healing) do not show their stat in search | fixed 0.8.2.1 (confirmed 2026-11-22) |
 | [FB-046](#fb-046-posting-says-the-item-is-on-the-mouse-in-the-mail-or-a-trade-when-it-is-not) | 2026-11-16 | karrier_user_slouyac50poxg707 | bug | Post | S2 | Posting says the item is on the mouse, in the mail or a trade when it is not | fixed 0.8.2.1 (released 2026-11-16) |
 | [FB-047](#fb-047-praise-great-addon) | 2026-11-16 | selubangerz | praise | Overall | n/a | Praise: "Great addon" | new |
 | [FB-048](#fb-048-players-do-not-like-the-confirm-click-when-buying-trade-goods) | 2026-11-16 | players, through Tyler | ux | Buy bar | n/a | Players do not like the Confirm click when buying trade goods | built 0.8.2.1 (released 2026-11-16) |
@@ -161,18 +161,18 @@ For whoever fixes or builds from it:
 | [FB-052](#fb-052-aux-post-bid-on-turns-bid-prices-off) | 2026-11-17 | joker2206 | bug | Settings | S3 | `/aux post bid on` turns bid prices off | fixed 0.8.2.2 (released 2026-11-20) |
 | [FB-053](#fb-053-a-controller-button-to-refresh-or-search) | 2026-11-17 | user_q6cn8g517mpcvp2f | request | Other | n/a | A controller button to refresh or search | new |
 | [FB-054](#fb-054-bag-searching-cannot-sort-by-bag-slots) | 2026-11-17 | jebbush | request | Post | n/a | Bag searching: cannot sort by bag slots | new |
-| [FB-055](#fb-055-too-slow-to-keep-up-with-quickly-changing-prices-and-snipe-undercuts) | 2026-11-17 | khorrs; Tyler | ux | Sniper | n/a | Too slow to keep up with quickly changing prices and snipe undercuts | built 0.8.2.2 (narrower Sniper built 0.9 build 4, gemini/0.9) |
-| [FB-056](#fb-056-many-lua-errors-warning-during-a-dungeon-possibly-on-conjured-water) | 2026-11-20 | user_kc0ds7pqedmptpep | bug | Other | S1 | Many Lua errors warning during a dungeon, possibly when conjured water was created | fixed 0.9 (build 1, gemini/0.9) |
-| [FB-057](#fb-057-settings-interface-accessible-outside-the-auction-house-options--addons) | 2026-11-20 | LLanwrst, jebbush | request | Settings | n/a | Settings interface accessible outside the auction house (Options > AddOns) | built 0.9 (build 3, gemini/0.9) |
-| [FB-058](#fb-058-toggle-to-show-tooltip-prices-for-the-whole-stack-by-default) | 2026-11-20 | jebbush | request | Settings | n/a | Toggle to show tooltip prices for the whole stack by default (flipping Shift) | built 0.9 (build 2, gemini/0.9) |
-| [FB-059](#fb-059-show-how-much-merchants-favor-a-waylaid-crate-offers) | 2026-11-20 | sarrathsilentstrider | request | Other | n/a | Show how much Merchant's Favor a Waylaid Crate offers in its tooltip | planned 0.9 (with FB-042; mockup first) |
+| [FB-055](#fb-055-too-slow-to-keep-up-with-quickly-changing-prices-and-snipe-undercuts) | 2026-11-17 | khorrs; Tyler | ux | Sniper | n/a | Too slow to keep up with quickly changing prices and snipe undercuts | built 0.8.2.2 + Narrower Sniper 0.9 (released 2026-11-22) |
+| [FB-056](#fb-056-many-lua-errors-warning-during-a-dungeon-possibly-on-conjured-water) | 2026-11-20 | user_kc0ds7pqedmptpep | bug | Other | S1 | Many Lua errors warning during a dungeon, possibly when conjured water was created | fixed 0.9 (released 2026-11-22) |
+| [FB-057](#fb-057-settings-interface-accessible-outside-the-auction-house-options--addons) | 2026-11-20 | LLanwrst, jebbush | request | Settings | n/a | Settings interface accessible outside the auction house (Options > AddOns) | built 0.9 (released 2026-11-22) |
+| [FB-058](#fb-058-toggle-to-show-tooltip-prices-for-the-whole-stack-by-default) | 2026-11-20 | jebbush | request | Settings | n/a | Toggle to show tooltip prices for the whole stack by default (flipping Shift) | built 0.9 (released 2026-11-22) |
+| [FB-059](#fb-059-show-how-much-merchants-favor-a-waylaid-crate-offers) | 2026-11-20 | sarrathsilentstrider | request | Other | n/a | Show how much Merchant's Favor a Waylaid Crate offers in its tooltip | planned 0.9.1 (with FB-042; mockup first) |
 | [FB-060](#fb-060-show-best-items-to-farm-like-goldscout) | 2026-11-20 | XtreamCoder | request | Other | n/a | Show best items to farm, like GoldScout | wont-fix (not in auxForever; potential separate optional-dependency addon later) |
-| [FB-061](#fb-061-toggle-to-hide-the-materials-and-profit-line-in-the-professions-window) | 2026-11-20 | LLanwrst | request | Recipe search | n/a | Toggle to hide the Materials and profit line in the Professions window | built 0.9 (build 2, gemini/0.9) |
-| [FB-062](#fb-062-option-for-right-clicking-a-bag-item-to-always-open-the-post-tab) | 2026-11-20 | rokstar8872, deep_structure, bubbledn42 | request | Post | n/a | Option for right-clicking a bag item to always open the Post tab (like default AH) | built 0.9 (build 2, default on build 3, gemini/0.9) |
-| [FB-063](#fb-063-keybinds-for-buying-confirming-and-declining) | 2026-11-20 | khorrs | request | Buy bar | n/a | Keybinds for buying, confirming and declining | built 0.9 (build 2, gemini/0.9) |
-| [FB-064](#fb-064-tooltip-word-search-ignores-stats-on-generic-green-random-suffix-gear) | 2026-11-22 | RushJet1 | bug | Search | S2 | Tooltip-word search ignores stats on generic green random-suffix gear ("of the Channeler") | fixed 0.9 (build 4, gemini/0.9) |
+| [FB-061](#fb-061-toggle-to-hide-the-materials-and-profit-line-in-the-professions-window) | 2026-11-20 | LLanwrst | request | Recipe search | n/a | Toggle to hide the Materials and profit line in the Professions window | built 0.9 (released 2026-11-22) |
+| [FB-062](#fb-062-option-for-right-clicking-a-bag-item-to-always-open-the-post-tab) | 2026-11-20 | rokstar8872, deep_structure, bubbledn42 | request | Post | n/a | Option for right-clicking a bag item to always open the Post tab (like default AH) | built 0.9 (released 2026-11-22) |
+| [FB-063](#fb-063-keybinds-for-buying-confirming-and-declining) | 2026-11-20 | khorrs | request | Buy bar | n/a | Keybinds for buying, confirming and declining | built 0.9 (released 2026-11-22) |
+| [FB-064](#fb-064-tooltip-word-search-ignores-stats-on-generic-green-random-suffix-gear) | 2026-11-22 | RushJet1 | bug | Search | S2 | Tooltip-word search ignores stats on generic green random-suffix gear ("of the Channeler") | fixed 0.9 (released 2026-11-22) |
 | [FB-065](#fb-065-sniper-stopped-showing-deals-even-after-changing-thresholds) | 2026-11-22 | marcus4555 | bug | Sniper | S1 | Sniper stopped showing deals even after changing thresholds | new |
-| [FB-066](#fb-066-setting-to-pick-default-buy-quantity-1-vs-full-stack) | 2026-11-22 | user_ivpyccljovcjne72 | request | Buy bar | n/a | Setting to pick default buy quantity (1 vs full stack) | built 0.9 (build 4, gemini/0.9) |
+| [FB-066](#fb-066-setting-to-pick-default-buy-quantity-1-vs-full-stack) | 2026-11-22 | user_ivpyccljovcjne72 | request | Buy bar | n/a | Setting to pick default buy quantity (1 vs full stack) | built 0.9 (released 2026-11-22) |
 
 ## Players
 
@@ -1228,7 +1228,7 @@ has users.
 - Type: request
 - Area: Search (new)
 - Severity: n/a
-- Status: built 0.8 build 2 (crates, 2026-10-20: tooltip option A and Alt-click search C of the mockup, chosen by Tyler); writs planned 0.9
+- Status: built 0.8 build 2 (crates, 2026-10-20: tooltip option A and Alt-click search C of the mockup, chosen by Tyler); writs planned 0.9.1 (moved from 0.9 by Tyler, 2026-11-22)
 - Proposed: 0.8
 
 Said:
@@ -1379,8 +1379,7 @@ Ask Tyler: should the Post tab say why it matches (a line or a hint on the switc
 - Type: request
 - Area: Search (recipe search)
 - Severity: n/a
-- Status: planned 0.9 (Tyler, 2026-10-20: first "add a feature to this update", then "Any of the
-  shopping lists, list stuff I talked about, we'll save that for 0.9")
+- Status: planned 0.9.1 (moved from 0.9 by Tyler, 2026-11-22; originally planned 0.9 on 2026-10-20)
 - Proposed: 0.9
 
 Said (Tyler's retelling):
@@ -1704,7 +1703,7 @@ to keep? (Keeping more days costs memory per item; aux keeps one short line of t
 - Type: request
 - Area: Post
 - Severity: n/a
-- Status: planned 0.9 (Tyler, 2026-11-08: "go with your version plan"; mockup first)
+- Status: planned 0.9.1 (moved from 0.9 by Tyler, 2026-11-22; mockup first)
 - Proposed: a later minor version (0.9 or after), mockup first
 
 Said:
@@ -2900,7 +2899,7 @@ Ask Tyler: decided (0.9: full stack by default, Shift for 1).
 - Type: request
 - Area: Other (crate tooltip)
 - Severity: n/a
-- Status: planned 0.9 (with FB-042; mockup first; Tyler, 2026-11-20: "Build into .9")
+- Status: planned 0.9.1 (with FB-042; mockup first; moved from 0.9 by Tyler, 2026-11-22)
 - Proposed: 0.9, together with FB-042 and Craftsman's Writs
 
 Said:

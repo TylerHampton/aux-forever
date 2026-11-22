@@ -1,51 +1,35 @@
 # Status
 
-Last updated 2026-11-22, Tyler's time (`0.9` build 4 passed in game on branch `gemini/0.9`, commit
-`79e40dc`; Phase 1 to Phase 3 complete; 0.8.2.2 released on `main`).
+Last updated 2026-11-22, Tyler's time (`0.9` released on `main`, 2026-11-22; next version `0.9.1`
+holds the remaining Waylaid Crate Favor/Writs, Shopping List + Alt Inventory, and Posting Rules).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
-released, move its notes to `docs/status-history.md` (everything before 2026-11-20 is there).
+released, move its notes to `docs/status-history.md` (everything before 2026-11-20 and 0.9's
+build-by-build log are there).
 
 ## Start here (next session)
 
-**Active branch:** `gemini/0.9` (version `forever-0.9`; builds 1 to 4 all built, verified, and
-tested in game with 0 Lua errors).
+**Released:** **0.9** on 2026-11-22 on `main` (tag `v0.9`, GitHub pre-release, CurseForge Beta
+upload). Full build-by-build log (builds 1 to 4, all tested in game by Tyler): `docs/status-history.md`
+and `TESTING.md`. Release notes: `docs/changelog.md` ("0.9"). Updating from 0.8.2.2 needs a **full
+game restart** for `Bindings.xml`.
 
-**0.9 build 4 results (Tyler, 2026-11-22, commit `79e40dc`):**
-- `FB-055` **Narrower Sniper** (Option A slim Watch bar + `More...` Categories & Search Favorites +
-  Quality picker): **Pass.** Trade Goods rounds ran `491 items in 0.1s` to `0.2s` (vs `37.7s` whole
-  AH), cleanly reaching round 52 with zero UI overlap. `More...` popup rendered all 9 Forever
-  categories and pinned Search Favorites cleanly. Zero usual-price deals showed only because
-  Tyler's saved scan history currently has 2 of the 3 required days after his earlier wipe.
-- `FB-066` **Default buy quantity** (`1` / `Stack`) + right-column Settings `ANCHOR_LEFT`: **Pass.**
-- `FB-064` **Fast tooltip-word search on generic green rings**: **Pass.** Fast mode immediately
-  returned 30+ generic green rings with `Equip:` spell stats (`"of the Channeler"`, `"of the
-  Prophet"`, `"of the Sorcerer"`, `"of the Hierophant"`). Diagnostic confirmed
-  `C_AuctionHouse.GetItemKeySampleLink` returns a real sample link during browse on Forever
-  (`FB64: Marble Ring of Fire Protection true`) **[Seen]**, so Fast searches match with 0 extra
-  requests.
-- **Experiment E10 (`C_AuctionHouse.SearchForItemKeys`):** **Settled [Seen].** Clean idle send
-  (`E10 send: true`) for Linen Cloth, Copper Ore, Peacebloom, and Rough Stone returned `0` results
-  with `HasFullBrowseResults() == true` (`E10: 0 true nil nil nil`). Do not use `SearchForItemKeys`
-  on Forever; keep using `SendBrowseQuery`.
+**Tyler, after the 0.9 release:** paste `docs/curseforge-description.md` into the CurseForge
+project page when convenient (updated for 0.9's Options > AddOns panel, Narrower Sniper, keybinds,
+and settings).
 
-**Waiting on Tyler (next step for 0.9):**
-1. Choose what to build next for 0.9:
-   - **Phase 4 (`FB-059` / `FB-042` / `FB-020`):** Waylaid Crate Merchant's Favor + Craftsman's
-     Writs (needs a screenshot of a Waylaid Crate turn-in reward window and a Craftsman's Writ
-     tooltip first).
-   - **Phase 5 (`FB-023`):** Crafting Shopping List + Alt Inventory tracking (ready to design a
-     mockup right away while waiting on crate/writ screenshots).
-   - **Phase 6 (`FB-031`):** Posting rules based on usual price (mockup first).
-   - Or polish and ship 0.9 early with Phases 1 to 3 and move remaining items to 0.10.
+**Next up: 0.9.1 (branch `gemini/0.9.1` from `main`, mockup first for each):**
+1. **Waylaid Crate Merchant's Favor & reward silver (`FB-059`, `FB-042`, `FB-043`) + Craftsman's
+   Writs (`FB-020`):** waiting on in-game screenshots of a Waylaid Crate turn-in reward window and a
+   Craftsman's Writ tooltip from Tyler before mocking up.
+2. **Crafting Shopping List + Alt Inventory tracking (`FB-023`, Kortan):** ready to design a mockup
+   at the start of the next session even before crate/writ screenshots arrive.
+3. **Posting rules based on usual price (`FB-031`, user_yt0k9lezehn1ukm993387):** TSM-style
+   floor/normal/ceiling rules for the Post tab (mockup first).
+4. **Watch `FB-065`** (marcus4555 Sniper 0 deals report) if the player replies with diagnostic info.
 
-**Released:** 0.8.2.2 on 2026-11-20 (PR #43 squash-merged to `main`, Release workflow run
-44779865723: tag `v0.8.2.2`, GitHub pre-release, CurseForge Beta file `9718999`). What it holds:
-`docs/changelog.md`, "0.8.2.2". Build-by-build history: `docs/status-history.md` (top) and
-`TESTING.md`.
-
-**Tyler, after the 0.8.2.2 release:** paste `docs/curseforge-description.md` into the CurseForge
-page if not done yet.
+**Planned for 0.10 (final beta):** granular scan-age timestamps & cleaner tooltip presentation
+(Tyler, 2026-11-21), Full scan speed/memory pass, and 1.0 readiness (`docs/roadmap.md`).
 
 **Takeover complete (2026-11-20):** Gemini Neon is the primary engineer and Claude Code the
 reviewer (`AGENTS.md`, "Roles"). H-012 in `docs/handoff.md` is closed. Claude-only tools are
@@ -69,7 +53,7 @@ Protection" tooltips (FB-045, not tried).
   550 Linen Belts in build 7's test). Since 0.8. A fix needs every seller's name, which the game
   may not give (not checked).
 - FB-042, FB-043, FB-059: crate cost with Merchant's Favor and reward silver, and a list of every
-  crate and writ; 0.9 with writs. Crates pay Favor and silver, writs reputation (Outside, guides).
+  crate and writ; 0.9.1 with writs. Crates pay Favor and silver, writs reputation (Outside, guides).
 - Not built from the outside review: R-27 (needs a sale in game), R-28 (structure), R-23, R-25, and
   one part each of R-16 and R-20 (review file).
 
@@ -77,7 +61,8 @@ Protection" tooltips (FB-045, not tried).
 1. FB-054 (jebbush, "cannot sort by bag slots"): does he know which screen they meant? Likely the
    Post tab's bag list, sorted by name. FB-053: whether Forever's gamepad mode lets an addon use
    the triggers (an experiment before building). FB-052: a reply for joker2206 is in its entry.
-2. FB-046: does he use Bagnon? FB-042 / FB-059: a screenshot of a Waylaid Crate's turn-in reward.
+2. FB-046: does he use Bagnon? FB-042 / FB-059: a screenshot of a Waylaid Crate's turn-in reward and
+   a Craftsman's Writ tooltip.
 3. R-27: one sale and a screenshot of its "Auction successful" mail (experiment E1) settles the 5%
    cut aux shows as fact; one auction left to expire (E4) settles "kept if the auction expires".
 4. Replies to the players of the 2026-11-08 and 2026-11-16 feedback batches are not written; does
@@ -88,13 +73,16 @@ opinions in `docs/reviews/` (`AGENTS.md`, "Roles"; until 2026-11-19 it was the o
 Gemini 4 Argon reviewing). Agents talk through `docs/handoff.md`; Tyler only says "Check the
 handoff". Nothing currently open in `docs/handoff.md`.
 
-**How Tyler tests:** from `TESTING.md` ("Current build"): he runs the steps and answers in the chat
-with Pass or Fail, notes and screenshots; the engineer writes them under the build as "Results".
-He often sends screenshots without saying Pass or Fail (judge from the picture). He screenshots
-with Win+Shift+S, which holds Shift (tooltip prices then show the whole stack, "for 3"). Zips are
+**How Tyler tests:** from `TESTING.md` ("Current build") plus an interactive side-pane HTML test
+checklist artifact: he runs the steps and answers in the chat with Pass or Fail, notes and
+screenshots; the engineer writes them under the build as "Results". He often sends screenshots
+without saying Pass or Fail (judge from the picture). He screenshots with Win+Shift+S, which holds
+Shift (since 0.9, tooltips show the full stack by default and Shift shows 1 item). Zips are
 `auxForever-<version>-build<n>.zip`; always say whether `/reload` is enough. (Until 2026-11-19 Claude
 used a claude.ai test page; its answers are in `docs/test-results/test-page-results.md`.)
 
-**Where the rest is:** everything Claude knew at the takeover in `docs/takeover-2026-11.md`, plans in `docs/roadmap.md` (0.9: shopping lists, an automatic Full scan
-option, posting rules), player feedback in `docs/feedback.md`, facts about Forever's auction house
-in `docs/forever-auction-house.md`, older status notes in `docs/status-history.md`.
+**Where the rest is:** everything Claude knew at the takeover in `docs/takeover-2026-11.md`, plans in
+`docs/roadmap.md` (0.9.1: Waylaid Crate Favor/Writs, shopping list + alt inventory, posting rules;
+0.10: granular scan ages & performance), player feedback in `docs/feedback.md`, facts about
+Forever's auction house in `docs/forever-auction-house.md`, older status notes in
+`docs/status-history.md`.

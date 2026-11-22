@@ -6,7 +6,13 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
-## 0.9 (unreleased)
+## 0.9 (2026-11-22)
+
+Narrower Sniper (quick category chips, Search Favorites, and minimum quality), Blizzard Options >
+AddOns > auxForever settings panel, buying keybinds, customizable defaults (full-stack tooltips,
+default buy quantity, right-click bag to sell, Auto Full scan, Professions cost line toggle), and
+reliability and search fixes. **Full game restart required** when updating from 0.8.2.2 so the game
+loads the new `Bindings.xml` keybinds.
 
 ### New options and keybinds
 
