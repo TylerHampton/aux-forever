@@ -6,7 +6,7 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
-## 0.9.0.1 (not released yet)
+## 0.9.0.1 (2026-11-23)
 
 Hotfix for multi-item gear posting on the Post tab. No new files; **`/reload` is enough** when
 updating from 0.9.

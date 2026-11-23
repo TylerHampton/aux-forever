@@ -1,7 +1,7 @@
 # Status
 
-Last updated 2026-11-23, Tyler's time (`0.9.0.1` build 1 hotfix for `FB-067` tested and passed in
-game on `gemini/0.9.0.1`; ready to merge and release on Tyler's go-ahead).
+Last updated 2026-11-23, Tyler's time (`0.9.0.1` hotfix for `FB-067` released on `main`,
+2026-11-23; active development resumes on `gemini/0.9.1`).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-20 and 0.9's
@@ -9,38 +9,28 @@ build-by-build log are there).
 
 ## Start here (next session)
 
-**Active branch:** `gemini/0.9.0.1` (hotfix branched from `main` at `4c4d3a9`; `auxForever.toc`
-bumped to `forever-0.9.0.1`). `gemini/0.9.1` also exists with 0.9.1 build 1 (Shopping List +
-opt-in Alt Inventory) and will pick up 0.9.0.1 once this hotfix merges to `main`.
+**Released:** **0.9.0.1** on 2026-11-23 on `main` (hotfix for `FB-067` multi-item gear posting on
+the Post tab: fixes off-by-1 `Posted (N-1) of N` and ghost item rows, resets the 5-second silence
+timer on each multisell step for 8+ item batches, and syncs the Post tab bag list on
+`BAG_UPDATE_DELAYED`). Tested in game by Tyler on 2026-11-23 (`TESTING.md`). Release notes:
+`docs/changelog.md` ("0.9.0.1"). Updating from 0.9 only needs **`/reload`** (no new files; updating
+from 0.8.2.2 or earlier still needs a full game restart for 0.9's `Bindings.xml`).
 
-**Tested and ready to release (0.9.0.1 build 1, `f851108`, tested 2026-11-23):**
-- **Multi-item gear posting hotfix (`FB-067`, Tyler):** Steps 1 (2 or 3 copies of gear) and 3
-  (single gear + partial trade good) passed in game on 2026-11-23; Steps 2 and 4 were not tested
-  in game and are covered by automated unit and slow-server tests. Fixes three bugs in
-  `tabs/post/core.lua`: (1) `AUCTION_MULTISELL_UPDATE` and `BAG_UPDATE` wait until
-  `bag_count <= bags_before - wanted` instead of `< bags_before`; (2) intermediate multisell
-  progress events reset the 5-second silence timer; (3) `BAG_UPDATE_DELAYED` syncs the Post tab
-  bag list while open and idle (zero scans while closed), and `'gone'` posts refresh the bag list.
-  No new files; **`/reload` is enough** from 0.9. Waiting on Tyler's go-ahead to merge and release
-  `0.9.0.1`.
-
-**Released:** **0.9** on 2026-11-22 on `main` (tag `v0.9`, GitHub pre-release, CurseForge Beta
-upload). Full build-by-build log (builds 1 to 4, all tested in game by Tyler): `docs/status-history.md`
-and `TESTING.md`. Release notes: `docs/changelog.md` ("0.9"). Updating from 0.8.2.2 needs a **full
-game restart** for `Bindings.xml`.
+**Earlier release:** **0.9** on 2026-11-22 on `main` (tag `v0.9`, GitHub pre-release, CurseForge
+Beta file `9747981`).
 
 **Tyler, after the 0.9 release:** paste `docs/curseforge-description.md` into the CurseForge
 project page when convenient (updated for 0.9's Options > AddOns panel, Narrower Sniper, keybinds,
 and settings).
 
-**Next up after 0.9.0.1 ships (on `gemini/0.9.1`):**
-1. **Waylaid Crate Merchant's Favor & reward silver (`FB-059`, `FB-042`, `FB-043`) + Craftsman's
-   Writs (`FB-020`):** waiting on in-game screenshots of a Waylaid Crate turn-in reward window and a
-   Craftsman's Writ tooltip from Tyler before mocking up.
-2. **Crafting Shopping List + Alt Inventory tracking (`FB-023`, Kortan):** built on `gemini/0.9.1`
-   as 0.9.1 build 1, awaiting in-game test after 0.9.0.1 ships.
-3. **Posting rules based on usual price (`FB-031`, user_yt0k9lezehn1ukm993387):** TSM-style
-   floor/normal/ceiling rules for the Post tab (mockup first).
+**Active branch next (`gemini/0.9.1`):**
+1. **Crafting Shopping List + opt-in Alt Inventory (`FB-023`, Kortan):** built on `gemini/0.9.1`
+   as 0.9.1 build 1, awaiting Tyler's in-game test.
+2. **Posting rules based on usual price (`FB-031`, user_yt0k9lezehn1ukm993387):** TSM-style
+   floor/normal/ceiling rules for the Post tab (mockup shown, awaiting Tyler's approval).
+3. **Waylaid Crate Merchant's Favor & reward silver (`FB-059`, `FB-042`, `FB-043`) + Craftsman's
+   Writs (`FB-020`):** awaiting Tyler's in-game screenshots of a Waylaid Crate turn-in reward window
+   and a Craftsman's Writ tooltip before mocking up.
 4. **Watch `FB-065`** (marcus4555 Sniper 0 deals report) if the player replies with diagnostic info.
 
 **Planned for 0.10 (final beta):** granular scan-age timestamps & cleaner tooltip presentation

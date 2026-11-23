@@ -173,7 +173,7 @@ For whoever fixes or builds from it:
 | [FB-064](#fb-064-tooltip-word-search-ignores-stats-on-generic-green-random-suffix-gear) | 2026-11-22 | RushJet1 | bug | Search | S2 | Tooltip-word search ignores stats on generic green random-suffix gear ("of the Channeler") | fixed 0.9 (released 2026-11-22) |
 | [FB-065](#fb-065-sniper-stopped-showing-deals-even-after-changing-thresholds) | 2026-11-22 | marcus4555 | bug | Sniper | S1 | Sniper stopped showing deals even after changing thresholds | new |
 | [FB-066](#fb-066-setting-to-pick-default-buy-quantity-1-vs-full-stack) | 2026-11-22 | user_ivpyccljovcjne72 | request | Buy bar | n/a | Setting to pick default buy quantity (1 vs full stack) | built 0.9 (released 2026-11-22) |
-| [FB-067](#fb-067-posting-2-gear-items-lists-both-but-aux-reports-posted-1-of-2-and-leaves-1-in-the-post-tab) | 2026-11-23 | Tyler | bug | Post | S2 | Posting 2+ gear items lists all of them but aux reports "Posted (N-1) of N" and leaves 1 in the Post tab | fixed 0.9.0.1 f851108 (tested in game 2026-11-23) |
+| [FB-067](#fb-067-posting-2-gear-items-lists-both-but-aux-reports-posted-1-of-2-and-leaves-1-in-the-post-tab) | 2026-11-23 | Tyler | bug | Post | S2 | Posting 2+ gear items lists all of them but aux reports "Posted (N-1) of N" and leaves 1 in the Post tab | fixed 0.9.0.1 (released 2026-11-23) |
 
 ## Players
 
@@ -3233,8 +3233,8 @@ Ask Tyler: none (passed in game).
 - Type: bug
 - Area: Post
 - Severity: S2 (every auction posts at the right price and no money is lost, but 100% of multi-item gear posts of N items report "Posted (N-1) of N" and leave a ghost item in the Post tab whose next Post click fails)
-- Status: fixed 0.9.0.1 `f851108` (tested and passed in game by Tyler 2026-11-23: Steps 1 and 3
-  passed on `0.9.0.1 build 1`; ready to release on Tyler's go-ahead)
+- Status: fixed 0.9.0.1 (released 2026-11-23; build 1 `f851108`, tested and passed in game by
+  Tyler 2026-11-23)
 - Proposed: 0.9.0.1 hotfix (approved by Tyler 2026-11-23: "Just build the bug fix into version .9.0.1 that will ship asap.")
 
 Said:
@@ -3263,7 +3263,7 @@ Recorder's notes:
 
 Unknowns: none.
 
-Ask Tyler: test `0.9.0.1 build 1` in game (`TESTING.md`) and say when ready to release `0.9.0.1`.
+Ask Tyler: none (passed in game and released in 0.9.0.1).
 
 ## Before this log
 

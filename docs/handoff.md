@@ -5,7 +5,7 @@ Tyler carries them with one sentence, nothing else:
 
 > **"Check the handoff."**
 
-Active branch: `gemini/0.9.0.1` (hotfix for FB-067 multi-item gear posting, branched from `main`; `gemini/0.9.1` holds 0.9.1 build 1 Shopping List + Alt Inventory waiting after 0.9.0.1 ships)
+Active branch: `gemini/0.9.1` (0.9.0.1 hotfix released 2026-11-23; back on 0.9.1 branch)
 
 ## Rules for both agents
 
