@@ -8,8 +8,8 @@ A change that comes from a player's feedback credits them by in-game name at the
 
 ## 0.9.1 (unreleased)
 
-**Full game restart required** when updating from 0.9 so the game loads the new Shopping List and
-opt-in Alt Inventory Lua files.
+**Full game restart required** when updating from 0.9 or 0.9.0.1 so the game loads the new Shopping
+List and opt-in Alt Inventory Lua files.
 
 ### Crafting Shopping List and opt-in Alt Inventory
 
@@ -30,6 +30,26 @@ opt-in Alt Inventory Lua files.
   characters' stock from `Need`), or run `/aux inventory on`. Added `/aux tooltip inventory on|off`,
   `/aux clear inventory`, and a **Clear inventory** button with confirmation in **Options > AddOns
   > auxForever**. (suggested by Kortan)
+
+## 0.9.0.1 (2026-11-23)
+
+Hotfix for multi-item gear posting on the Post tab. No new files; **`/reload` is enough** when
+updating from 0.9.
+
+### Post tab fixes
+
+- **Fixed multi-item gear posting reporting 1 item short and leaving a ghost item:** Posting 2 or
+  more copies of a piece of gear listed every auction, but aux finished waiting before the last
+  item cleared your bags, printed `Posted 1 of 2` (or `7 of 8`, `2 of 3`), and left a stale
+  `1 in your bags` row in the Post tab whose next click failed with `Not posted: the item is no
+  longer in your bags.` aux now waits until all posted units leave your bags (also fixing trade
+  goods posted across multiple bag stacks).
+- **Fixed multi-item gear batches timing out after 5 seconds total:** Posting 8 or more pieces of
+  gear now resets the 5-second silence timer as each auction creates instead of capping the whole
+  batch at 5 seconds.
+- **Kept the Post tab bag list synced with your bags:** The Post tab now refreshes its bag list
+  when your bags change while the tab is open (and removes vanished items right away), with zero
+  extra work while the Post tab is closed.
 
 ## 0.9 (2026-11-22)
 

@@ -1755,4 +1755,65 @@ return function(env)
     G.C_TradeSkillUI = orig_ts
     server:restore()
   end)
+
+  -- 0.9.0.1 (FB-067, Tyler): multi-item gear posts (2 bracers and 8 gauntlets) must wait for
+  -- every item to leave the bags (not finish on item 1) and must not hit the 5-second timeout
+  -- mid-batch on 8+ items.
+  try('timing: 0.9.0.1 FB-067 multi-item gear posting (2 and 8 items) waits for all items without timeout', function()
+    local server = new_server(env)
+    local post = module 'aux.tabs.post'
+    server.items[2853] = {name = 'Runed Copper Bracers', commodity = false, quality = 2, vendor = 100}
+    server.items[2854] = {name = 'Runed Copper Gauntlets', commodity = false, quality = 2, vendor = 100}
+    server.items[2855] = {name = 'Silver Ring', commodity = false, quality = 2, vendor = 100}
+    server.listings[2853] = {{price = 317, quantity = 1}}
+    server.listings[2854] = {{price = 450, quantity = 1}}
+    server.listings[2855] = {{price = 600, quantity = 1}}
+    server.bag = {
+      {id = 2853, count = 1}, {id = 2853, count = 1},
+      {id = 2854, count = 1}, {id = 2854, count = 1}, {id = 2854, count = 1}, {id = 2854, count = 1},
+      {id = 2854, count = 1}, {id = 2854, count = 1}, {id = 2854, count = 1}, {id = 2854, count = 1},
+      {id = 2855, count = 1},
+    }
+    server:install()
+    for _, box in ipairs{post.stack_size_input, post.stack_count_input} do
+      local n = 1
+      rawset(box, 'SetNumber', function(self, v) n = math.max(0, math.min(v, self.max_value or v)) end)
+      rawset(box, 'GetNumber', function() return n end)
+    end
+    rawset(post.duration_dropdown, 'GetIndex', function() return 1 end)
+    post.set_undercut_mode(false)
+    aux.set_tab(3)
+    local function ready_for(key)
+      return function() return aux.status_bar.done and post.selected_item and post.selected_item.key == key end
+    end
+    post.select_item('2853:0')
+    check('FB-067 timing: bracers listings arrive', server:wait(ready_for('2853:0'), 80))
+    server:ticks(3)
+    check('FB-067 timing: bracers count defaults to 2', post.post_quantity() == 2)
+    check('FB-067 timing: Post 2 bracers clicked', click_post(post))
+    check('FB-067 timing: bracers post finishes after both leave bags', server:wait(function() return post.posting == nil and server:pending() == 0 end, 80))
+    server:ticks(3)
+    post.validate_parameters()
+    local msg1 = plain(post.post_message.__text)
+    check('FB-067 timing: 2 bracers reports Posted 2 (not 1 of 2), bags empty, advances to gauntlets',
+      msg1:find('Posted 2 × Runed Copper Bracers', 1, true) ~= nil
+      and server:bag_count(2853) == 0
+      and post.selected_item and post.selected_item.key == '2854:0')
+
+    -- Now post all 8 Runed Copper Gauntlets (takes ~6.8s > 5s total timeout!)
+    check('FB-067 timing: gauntlets listings arrive', server:wait(ready_for('2854:0'), 80))
+    server:ticks(3)
+    check('FB-067 timing: gauntlets count defaults to 8', post.post_quantity() == 8)
+    check('FB-067 timing: Post 8 gauntlets clicked', click_post(post))
+    check('FB-067 timing: gauntlets post finishes all 8 without 5s timeout', server:wait(function() return post.posting == nil and server:pending() == 0 end, 150))
+    server:ticks(3)
+    post.validate_parameters()
+    local msg2 = plain(post.post_message.__text)
+    check('FB-067 timing: 8 gauntlets reports Posted 8 (not 7 of 8), bags empty, advances to Silver Ring',
+      msg2:find('Posted 8 × Runed Copper Gauntlets', 1, true) ~= nil
+      and server:bag_count(2854) == 0
+      and post.selected_item and post.selected_item.key == '2855:0')
+
+    post_teardown(server, post)
+  end)
 end

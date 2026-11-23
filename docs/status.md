@@ -1,7 +1,7 @@
 # Status
 
-Last updated 2026-11-23, Tyler's time (`0.9` released on `main`, 2026-11-22; `0.9.1` branch active;
-`FB-067` multi-item gear posting bug logged 2026-11-23 with root cause found).
+Last updated 2026-11-23, Tyler's time (`0.9.0.1` hotfix for `FB-067` released on `main`,
+2026-11-23; `gemini/0.9.1` active with `0.9.0.1` merged in).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-20 and 0.9's
@@ -9,43 +9,38 @@ build-by-build log are there).
 
 ## Start here (next session)
 
-**Released:** **0.9** on 2026-11-22 on `main` (PR #44 squash-merged at `4c4d3a9`, Release
-workflow run `45005966056`: tag `v0.9`, GitHub pre-release, CurseForge Beta file `9747981`). Full
-build-by-build log (builds 1 to 4, all tested in game by Tyler): `docs/status-history.md` and
-`TESTING.md`. Release notes: `docs/changelog.md` ("0.9"). Updating from 0.8.2.2 needs a **full game
-restart** for `Bindings.xml`.
+**Released:** **0.9.0.1** on 2026-11-23 on `main` (PR #45 squash-merged at `94100dd`, Release
+workflow run `45156197742`: tag `v0.9.0.1`, GitHub pre-release, CurseForge Beta file `9771064`).
+Hotfix for `FB-067` multi-item gear posting on the Post tab; tested in game by Tyler on 2026-11-23
+(`TESTING.md`). Release notes: `docs/changelog.md` ("0.9.0.1"). Updating from 0.9 only needs
+**`/reload`** (no new files; updating from 0.8.2.2 or earlier needs a full game restart for 0.9's
+`Bindings.xml`).
 
-**Active branch:** `gemini/0.9.1` (branched from `main`; `auxForever.toc` bumped to
+**Earlier release:** **0.9** on 2026-11-22 on `main` (PR #44 squash-merged at `4c4d3a9`, tag
+`v0.9`, GitHub pre-release, CurseForge Beta file `9747981`).
+
+**Active branch:** `gemini/0.9.1` (`main` merged in with `0.9.0.1`; `auxForever.toc` at
 `forever-0.9.1`).
 
-**Built, awaiting Tyler's in-game test (0.9.1 build 1, 2026-11-22):**
+**Built, awaiting Tyler's in-game test (0.9.1 build 1, 2026-11-22, updated with 0.9.0.1 fix):**
 - **Crafting Shopping List + opt-in Alt Inventory (`FB-023`, Kortan):** Approved Option A mockup
-  (`docs/mockups/shopping-list-alt-inventory-2026-11-22.html`) built and verified with 1,623
-  checks (New + Classic), 0 unknown globals, and 400 fuzz sessions (200 seeds x 250 steps in both
-  New and Classic themes, 0 errors). Requires a **full game restart** (`core/inventory.lua`,
-  `tabs/search/shopping.lua` are new files). In-game steps are under "Current build: 0.9.1 build
-  1" in `TESTING.md`.
+  (`docs/mockups/shopping-list-alt-inventory-2026-11-22.html`) built and verified with tests in
+  both looks, 0 unknown globals, and 400 fuzz sessions. Requires a **full game restart**
+  (`core/inventory.lua`, `tabs/search/shopping.lua` are new files). In-game steps are under
+  "Current build: 0.9.1 build 1" in `TESTING.md`.
 
 **Tyler, after the 0.9 release:** paste `docs/curseforge-description.md` into the CurseForge
 project page when convenient (updated for 0.9's Options > AddOns panel, Narrower Sniper, keybinds,
 and settings).
 
 **Next up for 0.9.1 build 2 (waiting on Tyler's picks):**
-1. **Multi-item gear posting bug (`FB-067`, Tyler, 2026-11-23):** Happens on 100% of multi-item
-   gear posts (`N >= 2`, reproduced 3 for 3: 1 of 2, 7 of 8, 2 of 3). Three bugs in
-   `tabs/post/core.lua`: (a) 0.9 `AUCTION_MULTISELL_UPDATE` checks `bag_count < bags_before`
-   instead of `<= bags_before - wanted` and finishes before the Nth item clears the bags; (b)
-   `post_state.updated_at` is never refreshed on intermediate multisell steps, capping an entire
-   batch at 5 seconds total (cutting off larger 8+ item posts on the last few); (c) the Post tab
-   bag list never refreshes on `BAG_UPDATE_DELAYED` or `'gone'`. Ready to fix in a 0.9.0.1 hotfix
-   or 0.9.1 build 2 (Tyler's call).
-2. **Posting rules based on usual price (`FB-031`, user_yt0k9lezehn1ukm993387):** interactive
+1. **Posting rules based on usual price (`FB-031`, user_yt0k9lezehn1ukm993387):** interactive
    mockup shown in session; awaiting Tyler's approval on default percentages, layout, and fallback
    behavior.
-3. **Waylaid Crate Merchant's Favor & reward silver (`FB-059`, `FB-042`, `FB-043`) + Craftsman's
+2. **Waylaid Crate Merchant's Favor & reward silver (`FB-059`, `FB-042`, `FB-043`) + Craftsman's
    Writs (`FB-020`):** web research (`[Outside]`, Forever guides) completed on 2026-11-22; awaiting
    Tyler's in-game confirmation (especially Artisan crate Favor/silver) before mocking up.
-4. **Watch `FB-065`** (marcus4555 Sniper 0 deals report) if the player replies with diagnostic info.
+3. **Watch `FB-065`** (marcus4555 Sniper 0 deals report) if the player replies with diagnostic info.
 
 **Planned for 0.10 (final beta):** granular scan-age timestamps & cleaner tooltip presentation
 (Tyler, 2026-11-21), Full scan speed/memory pass, and 1.0 readiness (`docs/roadmap.md`).

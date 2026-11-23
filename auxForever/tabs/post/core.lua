@@ -105,29 +105,85 @@ function aux.event.AUX_LOADED()
             finish_post_state('refused')
         end
     end)
-    -- only a bag change that took the posted item ends the wait: any other (loot, a quest item)
-    -- ended it before the answer, said "Not posted" and let Post be clicked again (found with the
-    -- slow test auction house)
-    aux.event_listener('BAG_UPDATE', function()
-        if post_state and post_state.mode == 'single' and bag_count(post_state.item_key) < post_state.bags_before then
-            finish_post_state()
+    local function check_post_bags()
+        if post_state and not post_state.done then
+            local remaining = bag_count(post_state.item_key)
+            if post_state.mode == 'single' and remaining <= post_state.expected_bags then
+                finish_post_state()
+            elseif remaining < post_state.last_bags then
+                post_state.last_bags = remaining
+                post_state.updated_at = GetTime()
+            end
+        end
+    end
+    local function sync_inventory()
+        update_inventory_records(false, true)
+        if selected_item then
+            local found
+            for _, record in pairs(inventory_records) do
+                if record.key == selected_item.key then
+                    found = record
+                    break
+                end
+            end
+            if found then
+                if selected_item ~= found then
+                    selected_item.count = found.count
+                    selected_item.item_location = found.item_location
+                end
+                quantity_update(false)
+            else
+                local next_item = next_item_after(selected_item.name, selected_item.key)
+                selected_item = nil
+                if next_item then
+                    update_item(next_item)
+                end
+            end
+        end
+        refresh = true
+    end
+    -- only a bag change that removed all posted units ends the wait: an unrelated bag change
+    -- (loot, a quest item) or an earlier slot of a multi-item post must not end it early (FB-067)
+    aux.event_listener('BAG_UPDATE', check_post_bags)
+    aux.event_listener('BAG_UPDATE_DELAYED', function()
+        if post_state then
+            if not post_state.done then
+                check_post_bags()
+            end
+        elseif frame and frame:IsShown() then
+            sync_inventory()
+        end
+    end)
+    aux.event_listener('AUCTION_MULTISELL_START', function()
+        if post_state and post_state.mode == 'multi' then
+            post_state.updated_at = GetTime()
+        end
+    end)
+    aux.event_listener('AUCTION_HOUSE_AUCTION_CREATED', function()
+        if post_state and not post_state.done then
+            post_state.updated_at = GetTime()
         end
     end)
     aux.event_listener('AUCTION_MULTISELL_FAILURE', function()
-        if post_state and post_state.mode == 'multi' then
+        if post_state and not post_state.done then
             finish_post_state()
         end
     end)
     aux.event_listener('AUCTION_MULTISELL_UPDATE', function(count, total)
-        if post_state and post_state.mode == 'multi' and count == total then
-            -- 0.9: if the final BAG_UPDATE already arrived before AUCTION_MULTISELL_UPDATE,
-            -- finish right away instead of hanging 5 seconds for another bag event.
-            if bag_count(post_state.item_key) < post_state.bags_before then
-                finish_post_state()
-            else
-                post_state.mode = 'single'
-                posting = 'single'
-                post_state.updated_at = GetTime()
+        if post_state and post_state.mode == 'multi' then
+            -- 0.9.0.1 (FB-067): reset the silence timer on every step so posting 8+ gear items
+            -- does not hit the 5-second timeout mid-batch.
+            post_state.updated_at = GetTime()
+            if total and total > 0 and count == total then
+                post_state.expected_bags = max(0, post_state.bags_before - total)
+                -- Only finish immediately if ALL posted items have already left the bags; checking
+                -- < bags_before fired early on every 2+ item post as soon as item 1 left (FB-067).
+                if bag_count(post_state.item_key) <= post_state.expected_bags then
+                    finish_post_state()
+                else
+                    post_state.mode = 'single'
+                    posting = 'single'
+                end
             end
         end
     end)
@@ -490,6 +546,8 @@ function post_auction()
         if reason == 'locked' then
             -- the reasons in chat: the Post tab's message has room for two short lines
             aux.print(LOCKED_DETAIL)
+        elseif reason == 'gone' then
+            update_inventory_records()
         end
         return
     end
@@ -528,6 +586,8 @@ function post_auction()
         pending = post,
         item_key = item_key,
         bags_before = bags_before,
+        expected_bags = max(0, bags_before - wanted),
+        last_bags = bags_before,
         updated_at = GetTime(),
     }
     set_post_state(current_post)
@@ -862,7 +922,7 @@ function quantity_update(maximize_count)
             max_stack_count = min(max_stack_count, max(1, C_AuctionHouse.GetAvailablePostCount(location)))
         end
         stack_count_input.max_value = max_stack_count
-        if maximize_count then
+        if maximize_count or stack_count_input:GetNumber() > max_stack_count then
             stack_count_input:SetNumber(max_stack_count)
         end
     end
@@ -909,7 +969,7 @@ function update_item(item)
     refresh = true
 end
 
-function update_inventory_records(reset)
+function update_inventory_records(reset, add_new)
     local auctionable_map = {}
     for slot in info.inventory() do
 	    local item_info = info.container_item(unpack(slot))
@@ -941,14 +1001,24 @@ function update_inventory_records(reset)
     if reset then
         inventory_records = aux.values(auctionable_map)
     else
+        local seen = {}
         for i = #inventory_records, 1, -1 do
-            local new_record = auctionable_map[inventory_records[i].key]
+            local key = inventory_records[i].key
+            local new_record = auctionable_map[key]
             if new_record then
+                seen[key] = true
                 for k in pairs(new_record) do
                     inventory_records[i][k] = new_record[k]
                 end
             else
                 tremove(inventory_records, i)
+            end
+        end
+        if add_new then
+            for key, new_record in pairs(auctionable_map) do
+                if not seen[key] then
+                    tinsert(inventory_records, new_record)
+                end
             end
         end
     end

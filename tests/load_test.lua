@@ -8436,6 +8436,184 @@ try('0.9.1: FB-023 Crafting Shopping List', function()
   for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
 end)
 
+-- 0.9.0.1 (FB-067, Tyler): multi-item gear posts (2+ items) waited only for bag_count < bags_before
+-- (true as soon as item 1 left), capped an entire batch at 5 seconds total because intermediate
+-- AUCTION_MULTISELL_UPDATE events never reset updated_at, and never synced the Post tab bag list
+-- on BAG_UPDATE_DELAYED.
+try('0.9.0.1 FB-067: multisell bag count, >5s batch timer, two-slot commodity, and bag-list sync', function()
+  local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
+  local scan = loadstring("select(2, ...) 'aux.core.scan'; return _M")('auxForever', addon)
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+
+  local bag = {}
+  local info_calls = 0
+  local function bracer_link() return '|cff1eff00|Hitem:2853::::::::1:::::::|h[Runed Copper Bracers]|h|r' end
+  local function stone_link() return '|cffffffff|Hitem:2835::::::::1:::::::|h[Rough Stone]|h|r' end
+  set(C_Container, 'GetContainerNumSlots', function(b) return b == 0 and #bag or 0 end)
+  set(C_Container, 'GetContainerItemLink', function(b, s)
+    local it = b == 0 and bag[s]
+    return it and (it.id == 2853 and bracer_link() or stone_link()) or nil
+  end)
+  set(C_Container, 'GetContainerItemInfo', function(b, s)
+    info_calls = info_calls + 1
+    local it = b == 0 and bag[s]
+    if not it then return nil end
+    return {
+      itemID = it.id,
+      stackCount = it.count or 1,
+      hyperlink = it.id == 2853 and bracer_link() or stone_link(),
+      iconFileID = 1,
+      quality = it.id == 2853 and 2 or 1,
+      isLocked = false,
+    }
+  end)
+  set(C_Item, 'GetItemInfo', function(x)
+    local id = tonumber(tostring(x):match('item:(%d+)') or x)
+    if id == 2853 then return 'Runed Copper Bracers', bracer_link(), 2, 10, 5, 'Armor', 'Mail', 1, 'INVTYPE_WRIST', 1, 100, 4, 3 end
+    if id == 2835 then return 'Rough Stone', stone_link(), 1, 1, 1, 'Trade Goods', 'Stone', 20, '', 1, 1, 7, 7 end
+  end)
+  set(G, 'GetItemInfo', C_Item.GetItemInfo)
+  set(C_AuctionHouse, 'IsSellItemValid', function() return true end)
+  set(C_AuctionHouse, 'GetItemCommodityStatus', function(loc)
+    local it = bag[loc.slot]
+    return (it and it.id == 2835) and Enum.ItemCommodityStatus.Commodity or Enum.ItemCommodityStatus.Item
+  end)
+  set(C_AuctionHouse, 'GetAvailablePostCount', function(loc)
+    local it = bag[loc.slot]
+    if not it then return 0 end
+    local n = 0
+    for _, slot in ipairs(bag) do if slot.id == it.id then n = n + (slot.count or 1) end end
+    return n
+  end)
+  set(C_Item, 'DoesItemExist', function(loc) return loc and bag[loc.slot] ~= nil or false end)
+  set(C_Item, 'GetItemMaxStackSize', function(loc) local it = bag[loc.slot]; return (it and it.id == 2835) and 20 or 1 end)
+  set(AuxTooltip, 'NumLines', function() return 0 end)
+  set(ItemLocation, 'CreateFromBagAndSlot', function(_, b, s) return {bag = b, slot = s, IsValid = function() return true end} end)
+  set(C_AuctionHouse, 'PostItem', function() return false end)
+  set(C_AuctionHouse, 'PostCommodity', function() return false end)
+  local stack_count_num = 1
+  set(post.stack_size_input, 'GetNumber', function() return 1 end)
+  set(post.stack_count_input, 'SetNumber', function(self, v) stack_count_num = math.max(0, math.min(v, self.max_value or v)) end)
+  set(post.stack_count_input, 'GetNumber', function() return stack_count_num end)
+  set(post.duration_dropdown, 'GetIndex', function() return 1 end)
+
+  local shown = ''
+  set(post.post_message, 'SetText', function(_, t) shown = t end)
+  local function msg() post.validate_parameters(); return plain(shown) end
+
+  fire('AUCTION_HOUSE_SHOW')
+  post.frame:Show()
+
+  -- 1. Staggered 2-item multisell: item 1 leaves before AUCTION_MULTISELL_UPDATE(2, 2), item 2 leaves after
+  bag = {{id = 2853, count = 1}, {id = 2853, count = 1}}
+  post.update_inventory_records(true)
+  post.select_item('2853:0')
+  scan.abort()
+  post.stack_count_input:SetNumber(2)
+  post.set_unit_start_price(317)
+  post.set_unit_buyout_price(317)
+  post.keep_player_price()
+  post.post_auction()
+  check('FB-067 Case 1: starts in multi mode', post.posting == 'multi')
+  fire('AUCTION_MULTISELL_START', 2)
+  fire('AUCTION_MULTISELL_UPDATE', 1, 2)
+  bag = {{id = 2853, count = 1}} -- item 1 left, item 2 still in bag
+  fire('BAG_UPDATE', 0)
+  fire('AUCTION_HOUSE_AUCTION_CREATED', 102)
+  fire('AUCTION_MULTISELL_UPDATE', 2, 2) -- arrives BEFORE item 2's BAG_UPDATE!
+  tick(); tick()
+  check('FB-067 Case 1: does NOT finish early while item 2 is still in bags', post.posting == 'single')
+  -- Unrelated BAG_UPDATE while item 2 is still in bags must also NOT finish early
+  fire('BAG_UPDATE', 1)
+  tick()
+  check('FB-067 Case 1: unrelated BAG_UPDATE while item 2 still in bag does not finish early', post.posting == 'single')
+  bag = {} -- item 2 now leaves bags
+  fire('BAG_UPDATE', 0)
+  tick(); tick()
+  check('FB-067 Case 1: finishes cleanly once item 2 leaves and reports Posted 2 (not 1 of 2)',
+    post.posting == nil and msg():find('Posted 2 × Runed Copper Bracers', 1, true) ~= nil)
+
+  -- 2. 8-item multisell taking > 5s total: intermediate AUCTION_MULTISELL_UPDATE refreshes updated_at
+  bag = {}
+  for i = 1, 8 do bag[i] = {id = 2853, count = 1} end
+  post.update_inventory_records(true)
+  post.select_item('2853:0')
+  scan.abort()
+  post.stack_count_input:SetNumber(8)
+  post.set_unit_start_price(317)
+  post.set_unit_buyout_price(317)
+  post.keep_player_price()
+  post.post_auction()
+  fire('AUCTION_MULTISELL_START', 8)
+  for i = 1, 7 do
+    for _ = 1, 8 do tick() end -- 0.8s per item -> 5.6s elapsed by item 7!
+    fire('AUCTION_HOUSE_AUCTION_CREATED', 200 + i)
+    fire('AUCTION_MULTISELL_UPDATE', i, 8)
+    tremove(bag)
+    fire('BAG_UPDATE', 0)
+  end
+  check('FB-067 Case 2: 8-item multisell past 5.6s does NOT time out mid-batch', post.posting == 'multi')
+  for _ = 1, 8 do tick() end -- 6.4s total
+  fire('AUCTION_HOUSE_AUCTION_CREATED', 208)
+  fire('AUCTION_MULTISELL_UPDATE', 8, 8)
+  tick()
+  check('FB-067 Case 2: waits for 8th item BAG_UPDATE', post.posting == 'single')
+  bag = {}
+  fire('BAG_UPDATE', 0)
+  tick(); tick()
+  check('FB-067 Case 2: completes all 8 after 6.4s and reports Posted 8',
+    post.posting == nil and msg():find('Posted 8 × Runed Copper Bracers', 1, true) ~= nil)
+
+  -- 3. Two-slot commodity post (20 + 20 = 40, posting 25): first slot clearing to 20 does not finish early
+  bag = {{id = 2835, count = 20}, {id = 2835, count = 20}}
+  post.update_inventory_records(true)
+  post.select_item('2835:0')
+  scan.abort()
+  post.stack_count_input:SetNumber(25)
+  post.set_unit_buyout_price(10)
+  post.keep_player_price()
+  post.post_auction()
+  check('FB-067 Case 3: commodity post starts in single mode', post.posting == 'single')
+  bag = {{id = 2835, count = 20}} -- slot 1 cleared (20 left, still > expected 15)
+  fire('BAG_UPDATE', 0)
+  tick()
+  check('FB-067 Case 3: first bag slot drop does not finish early at 20 of 25', post.posting == 'single')
+  bag = {{id = 2835, count = 15}} -- slot 2 drops by 5 -> 15 left == expected 15
+  fire('BAG_UPDATE', 0)
+  tick(); tick()
+  check('FB-067 Case 3: finishes once all 25 units left bags',
+    post.posting == nil and msg():find('Posted 25 × Rough Stone', 1, true) ~= nil)
+
+  -- 4. BAG_UPDATE_DELAYED syncs Post tab inventory when open and does zero container scans when closed
+  bag = {{id = 2853, count = 1}, {id = 2853, count = 1}, {id = 2835, count = 10}}
+  post.update_inventory_records(true)
+  post.select_item('2853:0')
+  scan.abort()
+  post.set_unit_buyout_price(317)
+  post.keep_player_price()
+  check('FB-067 Case 4: starts with 2 bracers selected', post.selected_item and post.selected_item.count == 2 and post.stack_count_input:GetNumber() == 2)
+  bag = {{id = 2853, count = 1}, {id = 2835, count = 10}}
+  fire('BAG_UPDATE_DELAYED')
+  check('FB-067 Case 4: BAG_UPDATE_DELAYED updates count to 1, clamps input, keeps typed price',
+    post.selected_item and post.selected_item.count == 1 and post.stack_count_input:GetNumber() == 1 and post.get_unit_buyout_price() == 317)
+  bag = {{id = 2835, count = 10}}
+  fire('BAG_UPDATE_DELAYED')
+  scan.abort()
+  local vis = post.visible_inventory()
+  check('FB-067 Case 4: when selected item hits 0, removes ghost row and advances off it',
+    #vis == 1 and vis[1].key == '2835:0' and (not post.selected_item or post.selected_item.key ~= '2853:0'))
+  post.frame:Hide()
+  info_calls = 0
+  fire('BAG_UPDATE_DELAYED')
+  check('FB-067 Case 4: BAG_UPDATE_DELAYED does zero bag scans while Post tab is closed', info_calls == 0)
+
+  scan.abort()
+  post.selected_item = nil
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+end)
+
 -- what players do while the auction house is still answering: a slow auction house that answers
 -- a second later (tests/timing_test.lua, tests/slow_server.lua; FB-021)
 local test_env = {

@@ -5,7 +5,7 @@ Tyler carries them with one sentence, nothing else:
 
 > **"Check the handoff."**
 
-Active branch: `gemini/0.9.1` (0.9 released 2026-11-22; 0.9.1 branch opened)
+Active branch: `gemini/0.9.1` (0.9.0.1 hotfix released 2026-11-23; back on 0.9.1 branch)
 
 ## Rules for both agents
 

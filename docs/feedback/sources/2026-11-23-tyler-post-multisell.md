@@ -1,6 +1,6 @@
-# Source: Tyler's bug report on posting 2 gear items, 2026-11-23
+# Source: Tyler's bug report on posting multi-item gear, 2026-11-23
 
-- Channel: chat with Gemini Neon (with an in-game screenshot).
+- Channel: chat with Gemini Neon (with two in-game screenshots).
 - Received: 2026-11-23 (Tyler's date, UTC-7).
 - Transcribed word for word.
 - Entry from this report: FB-067 in `docs/feedback.md`.
@@ -9,8 +9,8 @@
 log this bug I found. Aux sold both my bracers I was selling (2) but acted like it only sold one
 ```
 
-Screenshot description (auxForever Post tab and the four relevant chat lines; unrelated chat lines
-and character UI omitted):
+First screenshot description (auxForever Post tab and the four relevant chat lines; unrelated chat
+lines and character UI omitted):
 
 - Chat lines in order:
   - `Auction created.`
@@ -21,15 +21,25 @@ and character UI omitted):
   - Left bag list still shows `[Runed Copper Bracers]` selected (no stack count badge).
   - Item header reads `Runed Copper Bracers` and `1 in your bags`.
   - Count is `1`, Duration is `2h`, Starting bid `3s 17c` (`98% of usual`), Buyout `3s 17c`
-    (`98% of usual`), Match lowest active, button reads `Post 1 item`.
+    (`98% of usual`), Match lowest active, Deposit `0c`, button reads `Post 1 item`.
   - Red message under Duration reads: `Not posted: the item is no longer in your bags.`
   - Auction Buyout (per item) table row 2 shows the player's own listing in green: For sale `2`,
     Time Left `2h`, Buyout `3s 17c`, % of usual `98%`.
 
-Follow-up message (same date, with a second in-game screenshot):
+Follow-up messages (same date, with a second in-game screenshot):
 
 ```
 it just did it again
+```
+
+```
+I was posting 8 auctions and it got through most, but on the last few it did this.
+```
+
+(Tyler confirmed this message referred to the `"it just did it again"` screenshot above.)
+
+```
+Just build the bug fix into version .9.0.1 that will ship asap.
 ```
 
 Second screenshot description (auxForever Post tab, relevant chat lines, and open bag grid;
@@ -50,9 +60,3 @@ unrelated chat lines, character/bag title, gold, and action bars omitted):
   - Auction Buyout (per item) table row 2 shows the player's own listing in green: For sale `3`,
     Time Left `2h`, Buyout `3s 00c`, % of usual `95%`.
 - Open bag window: shows zero Rough Bronze Boots remaining in the bags.
-
-Third message (same date, no screenshot attached):
-
-```
-I was posting 8 auctions and it got through most, but on the last few it did this.
-```

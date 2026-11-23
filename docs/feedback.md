@@ -173,7 +173,7 @@ For whoever fixes or builds from it:
 | [FB-064](#fb-064-tooltip-word-search-ignores-stats-on-generic-green-random-suffix-gear) | 2026-11-22 | RushJet1 | bug | Search | S2 | Tooltip-word search ignores stats on generic green random-suffix gear ("of the Channeler") | fixed 0.9 (released 2026-11-22) |
 | [FB-065](#fb-065-sniper-stopped-showing-deals-even-after-changing-thresholds) | 2026-11-22 | marcus4555 | bug | Sniper | S1 | Sniper stopped showing deals even after changing thresholds | new |
 | [FB-066](#fb-066-setting-to-pick-default-buy-quantity-1-vs-full-stack) | 2026-11-22 | user_ivpyccljovcjne72 | request | Buy bar | n/a | Setting to pick default buy quantity (1 vs full stack) | built 0.9 (released 2026-11-22) |
-| [FB-067](#fb-067-posting-2-gear-items-lists-both-but-aux-reports-posted-1-of-2-and-leaves-1-in-the-post-tab) | 2026-11-23 | Tyler | bug | Post | S2 | Posting 2 gear items lists both but aux reports "Posted 1 of 2" and leaves 1 in the Post tab | confirmed (root cause found in 0.9 multisell handler) |
+| [FB-067](#fb-067-posting-2-gear-items-lists-both-but-aux-reports-posted-1-of-2-and-leaves-1-in-the-post-tab) | 2026-11-23 | Tyler | bug | Post | S2 | Posting 2+ gear items lists all of them but aux reports "Posted (N-1) of N" and leaves 1 in the Post tab | fixed 0.9.0.1 (released 2026-11-23) |
 
 ## Players
 
@@ -3225,12 +3225,13 @@ Ask Tyler: none (passed in game).
 - From: Tyler (1 report, 3 consecutive reproductions in one session)
 - Where: chat with Gemini Neon (with 2 screenshots)
 - Source: [source](feedback/sources/2026-11-23-tyler-post-multisell.md)
-- Version: 0.9 or 0.9.1 build 1 (not stated; the bug was introduced in 0.9 commit `4c4d3a9` and is unchanged in 0.9.1 build 1)
+- Version: 0.9 (bug introduced in 0.9 commit `4c4d3a9`)
 - Type: bug
 - Area: Post
 - Severity: S2 (every auction posts at the right price and no money is lost, but 100% of multi-item gear posts of N items report "Posted (N-1) of N" and leave a ghost item in the Post tab whose next Post click fails)
-- Status: confirmed (root cause identified in `auxForever/tabs/post/core.lua`; reproduced 3 for 3 in game)
-- Proposed: fix in 0.9.0.1 hotfix or 0.9.1 build 2 (every multi-item gear post on 0.9 hits this)
+- Status: fixed 0.9.0.1 (released 2026-11-23; build 1 `f851108`, tested and passed in game by
+  Tyler 2026-11-23)
+- Proposed: 0.9.0.1 hotfix (approved by Tyler 2026-11-23: "Just build the bug fix into version .9.0.1 that will ship asap.")
 
 Said:
 > log this bug I found. Aux sold both my bracers I was selling (2) but acted like it only sold one
@@ -3244,29 +3245,21 @@ Steps / setup (from Tyler's two screenshots, `[Seen]` 2026-11-23):
 2. Posting 8 Runed Copper Gauntlets: chat printed 8 `Auction created.` lines, then `<auxForever> Posted 7 of 8 × Runed Copper Gauntlets`.
 3. Posting 3 Rough Bronze Boots at 3s (2h): chat printed 3 `Auction created.` lines, then `<auxForever> Posted 2 of 3 × Rough Bronze Boots`. Market table showed `3` own auctions in green at 3s 00c, open bag window showed 0 Rough Bronze Boots left in bags, while Post tab showed `[Rough Bronze Boots]` (`1 in your bags`, Deposit `0c`, `Post 1 item`, gold line `Posted 2 of 3 × Rough Bronze Boots`). The previous stale `[Runed Copper Gauntlets]` row disappeared only after posting the boots forced another `update_inventory_records()`.
 
-Tyler's notes: reproduced on all three multi-item gear posts in a row (2, 8, and 3 items); on the 8-item post it got through most and then broke on the last few (no screenshot attached to the third message).
+Tyler's notes (2026-11-23): reproduced 3 for 3 (2, 8, and 3 items); confirmed the 8-auction message referred to the second screenshot and asked to build the fix into `0.9.0.1` to ship asap.
 
 Recorder's notes:
-- Fact (`[Code]`, `auxForever/tabs/post/core.lua:121-133`, introduced in 0.9 commit `4c4d3a9`): on `AUCTION_MULTISELL_UPDATE(count, total)`, when `count == total`, aux checks `if bag_count(post_state.item_key) < post_state.bags_before then finish_post_state() end`. For any multi-item post (`wanted >= 2`), checking `< bags_before` only tests whether at least 1 item has left the bags, not whether all `wanted` items have left (`<= bags_before - wanted`).
-- Fact (`[Code]`, `auxForever/tabs/post/core.lua:111-115`): the `'single'` mode `BAG_UPDATE` listener uses the same `bag_count(post_state.item_key) < post_state.bags_before` check, so even if `AUCTION_MULTISELL_UPDATE` falls into the `else` branch (`post_state.mode = 'single'`), any `BAG_UPDATE` while fewer than `wanted` items have left still finishes the post early.
-- Fact (`[Code]`, `auxForever/tabs/post/core.lua:121-133, 531, 581`): `post_state.updated_at` is NEVER refreshed on intermediate `AUCTION_MULTISELL_UPDATE(count, total)` events (`count < total`) or `AUCTION_MULTISELL_START` or `AUCTION_HOUSE_AUCTION_CREATED`. Because `current_post.pending` is cleared once `PostItem` returns `false`, line 581 enforces a hard **5-second total timeout for the entire multi-item batch** (not 5 seconds since the last item). When posting 8+ gear items takes longer than 5 seconds total, aux hits `finish_post_state('timeout')` partway through ("on the last few"), prints `Posted M of N` (because `posted > 0` hides the timeout text in `post_result_text`), and leaves the remaining items posting in the background!
-- Fact (`[Code]`, `auxForever/tabs/post/core.lua:173, 551, 912`): `update_inventory_records()` is only called in `tab.OPEN()` and inside `complete_post()`. Neither `BAG_UPDATE` / `BAG_UPDATE_DELAYED` while the Post tab is open nor the `'gone'` early return in `post_auction()` (`core.lua:487-495`) refreshes `inventory_records`.
-- Fact (`[Code]`, `auxForever/tabs/post/core.lua:816-820`): `deposit_amount()` returns `0` once `C_Item.DoesItemExist(location)` is false, which explains why both screenshots show `Deposit 0c` on the stale `1 in your bags` row after the final item has actually left the bag.
-- Fact (`[Code]`, `Blizzard_AuctionHouseItemSellFrame.lua`, Forever UI source): Blizzard's Sell frame listens to `AUCTION_MULTISELL_START`, `AUCTION_MULTISELL_UPDATE(numPosted, total)`, and `AUCTION_MULTISELL_FAILURE`, clearing `multisellInProgress` when `numPosted == total`.
-- Fact (`[Code]`, `tests/load_test.lua:7266-7280` and `tests/slow_server.lua:309-334`): existing multisell tests dropped all units from the bags at once before `AUCTION_MULTISELL_UPDATE(2, 2)`, never simulating staggered per-item bag removal or a multi-item batch lasting longer than 5 seconds total.
-- Inference (confirmed by 3 of 3 cases: 1 of 2, 7 of 8, 2 of 3, plus Tyler's "got through most, but on the last few" report):
-  1. For every multi-item gear post of `N >= 2` items that finishes in under 5 seconds, items `1..(N-1)` have already left the bags when `AUCTION_MULTISELL_UPDATE(N, N)` fires while item `N`'s `BAG_UPDATE` has not cleared the final slot yet. Because `bags_before - (N - 1) < bags_before` is true, aux finishes early, prints `Posted (N-1) of N`, and leaves 1 ghost item (`Deposit 0c`).
-  2. For larger batches (8+ gear items) taking more than 5 seconds total, the unrefreshed `updated_at` timer ALSO times out mid-batch at 5.0 seconds, ending the wait while the last few auctions are still posting.
-  3. Once the trailing `BAG_UPDATE` events arrive moments later, nothing refreshes `inventory_records`, leaving stale items in the Post tab until reopening it or posting something else.
-- Proposed fix:
-  1. Store `expected_bags = max(0, bags_before - wanted)` on `post_state`, and finish in both `AUCTION_MULTISELL_UPDATE(count == total)` and `'single'` `BAG_UPDATE` only once `bag_count(post_state.item_key) <= post_state.expected_bags` (partial failures still end immediately on `AUCTION_MULTISELL_FAILURE` or `AUCTION_HOUSE_SHOW_ERROR`).
-  2. Refresh `post_state.updated_at = GetTime()` on `AUCTION_MULTISELL_START`, on EVERY `AUCTION_MULTISELL_UPDATE` (including `count < total`), and on `AUCTION_HOUSE_AUCTION_CREATED` so the 5-second timeout measures silence rather than capping an entire multi-item batch at 5 seconds.
-  3. Refresh `inventory_records` on `BAG_UPDATE_DELAYED` while the Post tab is shown and not mid-post (and when `post_auction()` hits `'gone'`), clearing or advancing `selected_item` if its bag count dropped to 0, so the bag list cannot stay out of sync with the player's bags.
-  4. Add unit and slow-server tests for: (a) staggered per-item bag removal during a 2+ item multisell (items `1..(N-1)` removed -> `AUCTION_MULTISELL_UPDATE(N, N)` -> item `N` removed on later `BAG_UPDATE`), (b) an 8-item multisell taking > 5 seconds total with progress events every ~1s that completes all 8 without timing out, and (c) bag-list sync on `BAG_UPDATE_DELAYED` and `'gone'`, all verified to fail without the fix.
+- Fact (`[Code]`, `auxForever/tabs/post/core.lua:111-133`, introduced in 0.9 commit `4c4d3a9`): on `AUCTION_MULTISELL_UPDATE(count, total)`, when `count == total`, aux checked `bag_count(post_state.item_key) < post_state.bags_before`. For any multi-item post (`wanted >= 2`), that was already true as soon as item 1 left the bags, before the Nth item's `BAG_UPDATE` arrived. The `'single'` `BAG_UPDATE` handler used the same `< bags_before` check.
+- Fact (`[Code]`, `auxForever/tabs/post/core.lua:121-133, 531, 581`): `post_state.updated_at` was never refreshed on `AUCTION_MULTISELL_START`, intermediate `AUCTION_MULTISELL_UPDATE` (`count < total`), or `AUCTION_HOUSE_AUCTION_CREATED`, capping an entire multi-item batch at 5 seconds total instead of 5 seconds of silence.
+- Fact (`[Code]`, `auxForever/tabs/post/core.lua:173, 551, 912`): `update_inventory_records()` never ran on `BAG_UPDATE_DELAYED` while the Post tab was open or when `post_auction()` hit `'gone'`, leaving stale ghost items stuck in the Post tab.
+- Built fix (`0.9.0.1` build 1 on `gemini/0.9.0.1`):
+  1. Track `expected_bags = max(0, bags_before - wanted)` and `last_bags` on `post_state`; finish on `AUCTION_MULTISELL_UPDATE(count == total)` or `'single'` `BAG_UPDATE`/`BAG_UPDATE_DELAYED` only once `bag_count <= expected_bags` (also fixing multi-slot commodity posts).
+  2. Reset `post_state.updated_at` on `AUCTION_MULTISELL_START`, every `AUCTION_MULTISELL_UPDATE`, `AUCTION_HOUSE_AUCTION_CREATED`, and each bag-count drop so 8+ item batches do not hit the 5-second timeout mid-batch.
+  3. Sync `inventory_records` (and clamp or advance `selected_item`) on `BAG_UPDATE_DELAYED` while the Post tab is open and idle (zero bag scans while closed), and refresh `inventory_records` if `post_auction()` hits `'gone'`.
+  4. Added 25 unit and slow-server checks (verified to fail without the fix) and upgraded `tests/slow_server.lua` to simulate realistic staggered multi-item `PostItem` events with `needsConfirmation = false`.
 
-Unknowns: whether Tyler meant to attach a third screenshot on the 8-auction message (none was attached) and which exact build he had loaded (0.9 vs 0.9.1 build 1); neither blocks the fix since all three code bugs exist in both builds.
+Unknowns: none.
 
-Ask Tyler: did you mean to attach another screenshot for the 8-auction post (nothing came through on that message), and would you like a quick 0.9.0.1 hotfix or the fix in 0.9.1 build 2?
+Ask Tyler: none (passed in game and released in 0.9.0.1).
 
 ## Before this log
 
