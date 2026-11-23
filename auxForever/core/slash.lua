@@ -44,6 +44,10 @@ function M.memory_detail()
         format('Search: %d searches kept, %d result rows', searches, records),
         format('Post: listings kept for %d items', require('aux.tabs.post').memory_counts()),
         format('Tooltips: %d items checked', require('aux.core.tooltip').memory_counts()),
+        (function()
+            local chars, inv_items = require('aux.core.inventory').memory_counts()
+            return format('Inventory: %d characters tracked, %d item entries', chars, inv_items)
+        end)(),
         format('Events: %d listeners, %d running tasks', aux.listener_count(), aux.thread_count()),
     }
 end
@@ -167,6 +171,15 @@ function SlashCmdList.AUX(command)
             aux.set_crafting_cost(not aux.account_data.crafting_cost)
         end
         aux.print('crafting cost ' .. status(aux.account_data.crafting_cost))
+    elseif arguments[1] == 'inventory' then
+        -- 0.9.1 (FB-023, Kortan; Tyler 2026-11-22): opt-in alt inventory tracking (off by default)
+        local word = strlower(arguments[2] or '')
+        if word == 'on' or word == 'off' then
+            aux.set_alt_inventory(word == 'on')
+        else
+            aux.set_alt_inventory(not aux.account_data.alt_inventory)
+        end
+        aux.print('alt inventory tracking ' .. status(aux.account_data.alt_inventory) .. (aux.account_data.alt_inventory and ': records bags, bank (once opened), and mail (once opened) per character' or ''))
     elseif arguments[1] == 'post' and arguments[2] == 'duration' and post_duration_code(arguments[3]) then
         -- Forever: accepts the hours of the auction house's options (e.g. 12, 24, 48)
         aux.account_data.post_duration = post_duration_code(arguments[3])
@@ -184,6 +197,15 @@ function SlashCmdList.AUX(command)
 	    tooltip_settings.crate = not tooltip_settings.crate
         aux.refresh_settings()
         aux.print('tooltip crate ' .. status(tooltip_settings.crate))
+    elseif arguments[1] == 'tooltip' and arguments[2] == 'inventory' then
+        -- 0.9.1 (FB-023, Kortan; Tyler 2026-11-22): per-character Owned block in tooltips (opt-in, starts off)
+        local word = strlower(arguments[3] or '')
+        if word == 'on' or word == 'off' then
+            aux.set_tooltip_inventory(word == 'on')
+        else
+            aux.set_tooltip_inventory(not tooltip_settings.inventory)
+        end
+        aux.print('tooltip inventory ' .. status(tooltip_settings.inventory))
     elseif arguments[1] == 'tooltip' and arguments[2] == 'stack' then
         -- 0.9 (FB-058, jebbush; Tyler): full stack prices by default, hold Shift for 1 item
         local word = strlower(arguments[3] or '')
@@ -220,6 +242,8 @@ function SlashCmdList.AUX(command)
         aux.print('tooltip money icons ' .. status(tooltip_settings.money_icons))
     elseif arguments[1] == 'clear' and arguments[2] == 'item' and arguments[3] == 'cache' then
 	    aux.clear_item_cache()
+    elseif arguments[1] == 'clear' and arguments[2] == 'inventory' then
+        aux.clear_inventory_data()
     elseif arguments[1] == 'opacity' and tonumber(arguments[2]) then
         aux.set_background_opacity(tonumber(arguments[2]) / 100)
         aux.print('background opacity ' .. aux.color.blue(floor(aux.account_data.background_opacity * 100 + .5) .. '%') .. ' (50% to 100%)')
@@ -248,6 +272,7 @@ function SlashCmdList.AUX(command)
         aux.print('- right click post [' .. status(aux.account_data.right_click_post) .. ']')
         aux.print('- auto scan [' .. status(aux.account_data.auto_full_scan) .. ']')
         aux.print('- crafting cost [' .. status(aux.account_data.crafting_cost) .. ']')
+        aux.print('- inventory [' .. status(aux.account_data.alt_inventory) .. '] (opt-in cross-character inventory tracking)')
         aux.print('- post duration [' .. aux.color.blue(info.duration_hours(aux.account_data.post_duration) .. 'h') .. ']')
         aux.print('- undercut [' .. status(aux.account_data.post_undercut) .. ']')
         aux.print('- opacity [' .. aux.color.blue(floor(aux.account_data.background_opacity * 100 + .5) .. '%') .. ']')
@@ -255,6 +280,7 @@ function SlashCmdList.AUX(command)
 		aux.print('- tooltip percent [' .. status(tooltip_settings.usually) .. ']')
 		aux.print('- tooltip daily [' .. status(tooltip_settings.daily) .. ']')
 		aux.print('- tooltip crate [' .. status(tooltip_settings.crate) .. ']')
+		aux.print('- tooltip inventory [' .. status(tooltip_settings.inventory) .. ']')
 		aux.print('- tooltip stack [' .. status(tooltip_settings.stack) .. ']')
 		aux.print('- tooltip merchant buy [' .. status(tooltip_settings.merchant_buy) .. ']')
 		aux.print('- tooltip merchant sell [' .. status(tooltip_settings.merchant_sell) .. ']')
@@ -262,6 +288,7 @@ function SlashCmdList.AUX(command)
 		aux.print('- tooltip disenchant distribution [' .. status(tooltip_settings.disenchant_distribution) .. ']')
         aux.print('- tooltip money icons [' .. status(tooltip_settings.money_icons) .. ']')
 		aux.print('- clear item cache')
+		aux.print('- clear inventory')
 		aux.print('- debug [' .. status(aux.account_data.debug_timing) .. '] (search timing log)')
 		aux.print('- debug list (times the item list of the whole auction house)')
 		aux.print('- memory (how much memory aux uses)')

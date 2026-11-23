@@ -6,6 +6,31 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## 0.9.1 (unreleased)
+
+**Full game restart required** when updating from 0.9 so the game loads the new Shopping List and
+opt-in Alt Inventory Lua files.
+
+### Crafting Shopping List and opt-in Alt Inventory
+
+- **Crafting Shopping List (`Shopping List` Search sub-tab):** Clicking **Search in aux** in the
+  Professions window or Alt-clicking a recipe now opens a dedicated **Shopping List** sub-tab with
+  a **Craft** count stepper (`-` / `+` / numeric input), live **Have** and **Need** counts,
+  **Best source** (**AH** vs cheaper unlimited **Vendor**, or **Not listed**), multi-tier commodity
+  totals, full batch cost and profit, and 1-click buying through the shared buy bar that pre-fills
+  the exact remaining quantity and auto-advances to the next unbought auction house material.
+  Clicking a vendor-cheaper material still lets you buy it on the auction house if you prefer, and
+  right-clicking any material inspects its full listings on **Search Results** without losing your
+  Shopping List. (suggested by Kortan)
+- **Opt-in Alt Inventory tracking (off by default):** Added optional per-character inventory
+  snapshots (bags, character bank and account bank once opened, and mailbox attachments once
+  opened, per realm and faction). Starts completely off with zero active event listeners until you
+  turn on **Settings > Tooltip Lines > Inventory counts** (shows a per-character `Owned` breakdown
+  in item tooltips), flip **Count alts** on the Shopping List (subtracts your bank, mail, and other
+  characters' stock from `Need`), or run `/aux inventory on`. Added `/aux tooltip inventory on|off`,
+  `/aux clear inventory`, and a **Clear inventory** button with confirmation in **Options > AddOns
+  > auxForever**. (suggested by Kortan)
+
 ## 0.9 (2026-11-22)
 
 Narrower Sniper (quick category chips, Search Favorites, and minimum quality), Blizzard Options >

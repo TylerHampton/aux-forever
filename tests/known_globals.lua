@@ -8,7 +8,7 @@
 return {
   -- GlobalAPI: functions of the game
   'ClearOverrideBindings', 'CreateFrame', 'GetBuybackItemInfo', 'GetCurrentKeyBoardFocus', 'GetGuildBankItemInfo', 'GetInboxItem',
-  'GetInventoryItemCount', 'GetLootSlotInfo', 'GetMerchantItemLink', 'GetMerchantNumItems', 'GetQuestItemInfo',
+  'GetInboxNumItems', 'GetInventoryItemCount', 'GetLootSlotInfo', 'GetMerchantItemLink', 'GetMerchantNumItems', 'GetQuestItemInfo',
   'GetQuestLogChoiceInfo', 'GetQuestLogRewardInfo', 'GetSendMailItem', 'GetTradePlayerItemInfo',
   'GetTradeTargetItemInfo', 'InCombatLockdown', 'IsModifiedClick', 'PlaySound',
   'SetOverrideBindingClick', 'hooksecurefunc',
@@ -28,7 +28,7 @@ return {
   'ITEM_SOULBOUND', 'ITEM_SPELL_CHARGES', 'ITEM_SPELL_KNOWN', 'ITEM_SPELL_TRIGGER_ONEQUIP',
   'ITEM_SPELL_TRIGGER_ONPROC', 'ITEM_SPELL_TRIGGER_ONUSE', 'OKAY',
   -- Blizzard's Lua: tables and constants its interface code defines
-  'AuctionCategories', 'ChatFrameUtil', 'DEFAULT_CHAT_FRAME', 'Enum', 'FONT_COLOR_CODE_CLOSE', 'GRAY_FONT_COLOR_CODE',
+  'ATTACHMENTS_MAX_RECEIVE', 'AuctionCategories', 'ChatFrameUtil', 'DEFAULT_CHAT_FRAME', 'Enum', 'FONT_COLOR_CODE_CLOSE', 'GRAY_FONT_COLOR_CODE',
   'ITEM_QUALITY_COLORS', 'ItemLocation', 'LIGHTYELLOW_FONT_COLOR_CODE', 'MAXIMUM_BID_PRICE',
   'NUM_TOTAL_EQUIPPED_BAG_SLOTS', 'SOUNDKIT', 'STATICPOPUP_NUMDIALOGS', 'Settings', 'SlashCmdList', 'StaticPopupDialogs',
   'TooltipDataProcessor', 'UISpecialFrames',

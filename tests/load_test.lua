@@ -2302,7 +2302,7 @@ try('/aux memory', function()
   check('memory report in MB with the history size', report:find('uses 3.5 MB of memory; price history for %d+ items') ~= nil)
   check('memory report says what is left after a cleanup', report:find('After a cleanup: 3.5 MB', 1, true) ~= nil)
   local detail = slash.memory_detail()
-  check('memory detail: one line per store', #detail == 6 and detail[1]:find('^Sniper: %d+ items known') ~= nil and detail[6]:find('^Events: %d+ listeners') ~= nil)
+  check('memory detail: one line per store', #detail == 7 and detail[1]:find('^Sniper: %d+ items known') ~= nil and detail[6]:find('^Inventory: %d+ characters') ~= nil and detail[7]:find('^Events: %d+ listeners') ~= nil)
   G.UpdateAddOnMemoryUsage, G.GetAddOnMemoryUsage = nil, nil
 end)
 
@@ -3849,11 +3849,11 @@ try('0.6: coin colors everywhere', function()
   bar.clear()
   -- no money is ever written without its coin colors outside typing fields and search text
   local plain = 0
-  for _, file in ipairs{'gui/buy_bar.lua', 'tabs/search/recipe.lua', 'tabs/sniper/frame.lua'} do
+  for _, file in ipairs{'gui/buy_bar.lua', 'tabs/search/recipe.lua', 'tabs/search/shopping.lua', 'tabs/sniper/frame.lua'} do
     local src = io.open(file):read('*a')
     for _ in src:gmatch('to_string%([^\n]-, *nil, *nil, *true%)') do plain = plain + 1 end
   end
-  check('coins: no money without coin colors on buttons, the recipe line or the Sniper', plain == 0)
+  check('coins: no money without coin colors on buttons, the recipe line, Shopping List or the Sniper', plain == 0)
 end)
 
 -- 0.6, Tyler 2026-10-08: zebra rows, every second row dark gray, under hover and selection
@@ -3902,10 +3902,10 @@ try('0.6: settings', function()
   local keys = {}
   for _, box in ipairs(a.tooltip_boxes) do keys[box.key] = true end
   local all = true
-  for _, k in ipairs{'value', 'usually', 'daily', 'merchant_sell', 'merchant_buy', 'disenchant_value', 'disenchant_distribution', 'crate', 'stack', 'money_icons'} do
+  for _, k in ipairs{'value', 'usually', 'daily', 'merchant_sell', 'merchant_buy', 'disenchant_value', 'disenchant_distribution', 'crate', 'stack', 'inventory', 'money_icons'} do
     if not keys[k] then all = false end
   end
-  check('settings: every /aux tooltip line has a box', all and #a.tooltip_boxes == 10)
+  check('settings: every /aux tooltip line has a box', all and #a.tooltip_boxes == 11)
   local box = a.tooltip_boxes[1]
   local checked
   local own_set_checked = rawget(box, 'SetChecked')
@@ -8108,6 +8108,331 @@ try('0.9 build 4: FB-064 Fast tooltip-word search on generic green random-suffix
     G['AuxTooltipTextLeft' .. i] = real_left[i]
     G['AuxTooltipTextRight' .. i] = real_right[i]
   end
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+end)
+
+-- 0.9.1 (FB-023, Kortan; Tyler 2026-11-22): opt-in per-character Alt Inventory tracking
+try('0.9.1: FB-023 opt-in alt inventory', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local inv = loadstring("select(2, ...) 'aux.core.inventory'; return _M")('auxForever', addon)
+  local slash = loadstring("select(2, ...) 'aux.core.slash'; return _M")('auxForever', addon)
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+
+  -- 1. Opt-in default state: completely off at fresh load with zero background listeners
+  check('inv: alt_inventory starts off by default', a.account_data.alt_inventory == false and inv.is_enabled() == false)
+  check('inv: shopping_count_alts starts off by default', a.account_data.shopping_count_alts == false)
+  check('inv: tooltip.inventory starts off by default', a.character_data.tooltip.inventory == false)
+  local base_listeners = a.listener_count()
+
+  -- Stub bags, bank, mail, player identity, and live item counts
+  local bag_slots = {[0] = {{itemID = 2589, stackCount = 12}}}
+  local bank_slots = {[6] = {{itemID = 2589, stackCount = 20}}, [15] = {{itemID = 2589, stackCount = 5}}}
+  local bank_accessible = false
+  local inbox = {
+    {{id = 2589, count = 7, isCurrency = false}, {id = 9999, count = 50, isCurrency = true}},
+  }
+  set(G, 'UnitName', function() return 'Hero' end)
+  set(G, 'UnitClass', function() return 'Warrior', 'WARRIOR' end)
+  set(C_Item, 'GetItemCount', function(id) return id == 2589 and 12 or 0 end)
+  set(C_Container, 'GetContainerNumSlots', function(bag)
+    if bag_slots[bag] then return #bag_slots[bag] end
+    if bank_accessible and bank_slots[bag] then return #bank_slots[bag] end
+    return 0
+  end)
+  set(C_Container, 'GetContainerItemInfo', function(bag, slot)
+    if bag_slots[bag] then return bag_slots[bag][slot] end
+    if bank_accessible and bank_slots[bag] then return bank_slots[bag][slot] end
+  end)
+  set(G, 'GetInboxNumItems', function() return #inbox end)
+  set(G, 'GetInboxItem', function(m, i)
+    local att = inbox[m] and inbox[m][i]
+    if att then return 'Item', att.id, 'tex', att.count, 1, true, att.isCurrency end
+  end)
+
+  -- While opted out, firing bag/bank/mail events records nothing, while live_bag_count still works
+  fire('BAG_UPDATE_DELAYED')
+  fire('BANKFRAME_OPENED')
+  fire('MAIL_SHOW')
+  check('inv: opted out records zero characters on bag/bank/mail events', inv.character_count() == 0)
+  check('inv: live_bag_count still works while opted out', inv.live_bag_count(2589) == 12)
+
+  -- Tooltip adds no Owned lines when tooltip.inventory is off
+  local tip_lines = {}
+  local tip = new_frame()
+  rawset(tip, 'AddLine', function(_, text) tinsert(tip_lines, {kind = 'line', text = text}) end)
+  rawset(tip, 'AddDoubleLine', function(_, left, right, r1, g1, b1, r2, g2, b2)
+    tinsert(tip_lines, {kind = 'double', left = left, right = right, colors = {r1, g1, b1, r2, g2, b2}})
+  end)
+  local tooltip_mod = loadstring("select(2, ...) 'aux.core.tooltip'; return _M")('auxForever', addon)
+  tooltip_mod.extend_tooltip(tip, '|cffffffff|Hitem:2589::::::0:0|h[Linen Cloth]|h|r', 1)
+  local has_owned = false
+  for _, l in ipairs(tip_lines) do if (l.text or ''):find('^Owned:') then has_owned = true end end
+  check('inv: tooltip adds no Owned lines while off', not has_owned)
+
+  -- 2. Opting in via Settings > Tooltip Lines > Inventory counts activates listeners and scans bags
+  local inv_box
+  for _, box in ipairs(a.tooltip_boxes) do if box.key == 'inventory' then inv_box = box end end
+  check('inv: Inventory counts switch exists in Settings', inv_box ~= nil and inv_box:GetChecked() == false)
+  inv_box.__scripts.OnClick(inv_box)
+  check('inv: clicking Inventory counts turns on tooltip + alt tracking and registers listeners',
+    a.character_data.tooltip.inventory == true and inv.is_enabled() == true and a.listener_count() > base_listeners)
+  check('inv: bags scanned immediately on opt-in',
+    a.faction_data.inventory.chars.Hero and a.faction_data.inventory.chars.Hero.bags[2589] == 12)
+
+  -- 3. Bank scan only while open; closing bank and firing BAG_UPDATE_DELAYED keeps saved bank snapshot
+  bank_accessible = true
+  fire('BANKFRAME_OPENED')
+  check('inv: open bank records character bank tab and account bank tab',
+    a.faction_data.inventory.chars.Hero.bank[2589] == 20 and a.faction_data.inventory.account_bank[2589] == 5)
+  bank_accessible = false
+  fire('BANKFRAME_CLOSED')
+  fire('BAG_UPDATE_DELAYED')
+  inv.scan_bank()
+  fire('BANKFRAME_OPENED') -- bank opens momentarily with 0 slots reported yet
+  fire('BANKFRAME_CLOSED')
+  check('inv: closed or 0-slot bank never wipes saved bank snapshot',
+    a.faction_data.inventory.chars.Hero.bank[2589] == 20 and a.faction_data.inventory.account_bank[2589] == 5)
+
+  -- 4. Mail scan records items and skips currency attachments; closed mail keeps snapshot
+  fire('MAIL_SHOW')
+  check('inv: open mail records item attachments and skips isCurrency',
+    a.faction_data.inventory.chars.Hero.mail[2589] == 7 and a.faction_data.inventory.chars.Hero.mail[9999] == nil)
+  fire('MAIL_CLOSED')
+  inbox = {}
+  inv.scan_mail()
+  check('inv: closed mail never wipes saved mail snapshot', a.faction_data.inventory.chars.Hero.mail[2589] == 7)
+
+  -- 5. Per-character breakdown sorted (current character first, then alts alphabetically) + tooltip
+  a.faction_data.inventory.chars.Zed = {class = 'ROGUE', bags = {[2589] = 3}, bank = {}, mail = {}}
+  a.faction_data.inventory.chars.Alice = {class = 'MAGE', bags = {[2589] = 4}, bank = {[2589] = 6}, mail = {}}
+  local total, entries, acc_bank = inv.item_breakdown(2589)
+  check('inv: item_breakdown sums self + alts + account bank',
+    total == (12 + 20 + 7 + 4 + 6 + 3 + 5) and acc_bank == 5 and #entries == 3)
+  check('inv: entries ordered Hero (You), Alice, Zed',
+    entries[1].name == 'Hero' and entries[1].is_self == true and entries[2].name == 'Alice' and entries[3].name == 'Zed')
+
+  tip_lines = {}
+  inv.add_tooltip_lines(tip, 2589)
+  check('inv: tooltip prints Owned total + per-character 6-arg lines + Account Bank',
+    tip_lines[1] and tip_lines[1].text == 'Owned: 57 total'
+    and tip_lines[2] and tip_lines[2].left == '  Hero (You)' and tip_lines[2].right == '12 bags, 20 bank, 7 mail'
+    and tip_lines[2].colors[6] ~= nil
+    and tip_lines[3] and tip_lines[3].left == '  Alice' and tip_lines[3].right == '4 bags, 6 bank'
+    and tip_lines[5] and tip_lines[5].left == '  Account Bank' and tip_lines[5].right == '5')
+
+  -- 6. Unified opt-out lifecycle: turning off tooltip while Count alts is off stops listeners
+  inv_box.__scripts.OnClick(inv_box)
+  tick() -- control.lua sweeps killed listeners on next tick
+  check('inv: turning off Inventory counts with Count alts off removes all listeners',
+    a.character_data.tooltip.inventory == false and inv.is_enabled() == false and a.listener_count() == base_listeners)
+
+  -- Turning on Count alts keeps tracking alive even if tooltip toggles on then off
+  a.set_shopping_count_alts(true)
+  check('inv: turning on Count alts activates tracking', inv.is_enabled() == true)
+  a.set_tooltip_inventory(true)
+  a.set_tooltip_inventory(false)
+  check('inv: turning off tooltip keeps tracking alive while Count alts is on', inv.is_enabled() == true)
+  a.set_shopping_count_alts(false)
+  tick()
+  check('inv: turning off both stops all listeners again', inv.is_enabled() == false and a.listener_count() == base_listeners)
+
+  -- 7. Slash commands & Options Clear inventory button
+  SlashCmdList.AUX('inventory on')
+  check('inv: /aux inventory on enables tracking', inv.is_enabled() == true)
+  SlashCmdList.AUX('clear inventory')
+  check('inv: /aux clear inventory clears alt entries and keeps current char bags while enabled',
+    a.faction_data.inventory.chars.Alice == nil and a.faction_data.inventory.account_bank[2589] == nil and inv.character_count() == 1)
+  SlashCmdList.AUX('tooltip inventory on')
+  check('inv: /aux tooltip inventory on enables tooltip lines', a.character_data.tooltip.inventory == true)
+  SlashCmdList.AUX('tooltip inventory off')
+  check('inv: /aux tooltip inventory off disables tooltip lines', a.character_data.tooltip.inventory == false)
+  local popped
+  local orig_popup = a.show_popup
+  a.show_popup = function(name) popped = name end
+  a.options_clear_inventory_button.__scripts.OnClick(a.options_clear_inventory_button)
+  a.show_popup = orig_popup
+  check('inv: Options Clear inventory opens confirmation popup', popped == 'AUX_CLEAR_INVENTORY_CONFIRM')
+
+  -- Restore clean default off state
+  a.set_alt_inventory(false)
+  inv.clear()
+  tick()
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+end)
+
+-- 0.9.1 (FB-023, Kortan; Tyler 2026-11-22): Crafting Shopping List (Option A 4th sub-tab)
+try('0.9.1: FB-023 Crafting Shopping List', function()
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local inv = loadstring("select(2, ...) 'aux.core.inventory'; return _M")('auxForever', addon)
+  local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
+  local bar = loadstring("select(2, ...) 'aux.gui.buy_bar'; return _M")('auxForever', addon)
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+
+  -- 1. Pure shopping_tier_cost across multiple commodity tiers
+  local tiers = {
+    {count = 5, commodity_unit_price = 100},
+    {count = 10, commodity_unit_price = 150},
+  }
+  local tot, cov, avail, min_u, max_u = search.shopping_tier_cost(tiers, 8)
+  check('shop: shopping_tier_cost spans 2 tiers accurately (5x100 + 3x150 = 950)',
+    tot == 950 and cov == 8 and avail == 15 and min_u == 100 and max_u == 150)
+  local tot2, cov2 = search.shopping_tier_cost(tiers, 20)
+  check('shop: shopping_tier_cost reports short stock when need exceeds available',
+    tot2 == 2000 and cov2 == 15)
+
+  -- 2. Pure shopping_plan: duplicates merged, bags/alts/bought, vendor vs AH, limited vendor ignored, missing
+  set(G, 'UnitName', function() return 'Hero' end)
+  set(G, 'UnitClass', function() return 'Warrior', 'WARRIOR' end)
+  local bag_counts = {[501] = 2, [502] = 0, [503] = 0, [504] = 0, [505] = 0}
+  set(C_Item, 'GetItemCount', function(id) return bag_counts[id] or 0 end)
+  local old_mb = {
+    [502] = a.account_data.merchant_buy[502],
+    [503] = a.account_data.merchant_buy[503],
+    [103] = a.account_data.merchant_buy[103],
+  }
+  -- Real persisted merchant_buy entries: unit_price#limited (0 = unlimited, 1 = limited)
+  a.account_data.merchant_buy[502] = '25#0'
+  a.account_data.merchant_buy[503] = '10#1'
+
+  local fake_search = {
+    records = {
+      {item_id = 500, name = 'Test Bag', commodity = false, buyout_price = 5000, unit_buyout_price = 5000, auction_count = 1, count = 1},
+      {item_id = 501, name = 'Bolt Cloth', commodity = true, count = 5, commodity_unit_price = 100, unit_buyout_price = 100, buyout_price = 500},
+      {item_id = 501, name = 'Bolt Cloth', commodity = true, count = 10, commodity_unit_price = 150, unit_buyout_price = 150, buyout_price = 1500},
+      {item_id = 502, name = 'Rune Thread', commodity = true, count = 20, commodity_unit_price = 100, unit_buyout_price = 100, buyout_price = 2000},
+      {item_id = 503, name = 'Limited Herb', commodity = true, count = 10, commodity_unit_price = 80, unit_buyout_price = 80, buyout_price = 800},
+      {item_id = 505, name = 'Gear Piece', commodity = false, buyout_price = 300, unit_buyout_price = 300, auction_count = 1, count = 1, auction_id = 8801},
+    },
+  }
+  local parts = {
+    recipe_id = 7777,
+    name = 'Test Bag',
+    output = {item_id = 500, count = 1},
+    reagents = {
+      {item_id = 501, count = 3},
+      {item_id = 501, count = 2}, -- duplicate slot merged to 5 per craft
+      {item_id = 502, count = 2},
+      {item_id = 503, count = 2},
+      {item_id = 504, count = 1},
+      {item_id = 505, count = 1},
+    },
+  }
+  -- Seed alt with 6 Bolt Cloth, while alt tracking is off -> must NOT be counted
+  a.faction_data.inventory.chars.Alt = {class = 'MAGE', bags = {[501] = 6}, bank = {}, mail = {}}
+  local plan = search.shopping_plan(parts, fake_search, 2, false, {})
+  check('shop: duplicate reagent merged (5 per craft x 2 = 10)', #plan.rows == 5 and plan.rows[1].required == 10)
+  check('shop: Have uses bags only when include_alts is false (ignores alt 6)', plan.rows[1].have == 2 and plan.rows[1].need == 8)
+  check('shop: multi-tier AH total for 8 Bolt Cloth is 950c', plan.rows[1].best_source == 'ah' and plan.rows[1].buy_total == 950)
+  check('shop: unlimited vendor beats AH and computes vendor_saves', plan.rows[2].best_source == 'vendor' and plan.rows[2].buy_total == 100 and plan.rows[2].vendor_saves == 300)
+  check('shop: limited vendor ignored in favor of AH', plan.rows[3].best_source == 'ah' and plan.rows[3].buy_total == 320)
+  check('shop: missing reagent marked not listed', plan.rows[4].best_source == 'missing' and plan.missing_count == 1)
+  check('shop: non-commodity gear reagent priced from cheapest available auction (1 listed @ 300c, short)',
+    plan.rows[5].best_source == 'ah' and plan.rows[5].buy_total == 300 and plan.rows[5].ah_covered == 1 and plan.rows[5].short == true)
+  check('shop: summary totals separate AH and Vendor costs', plan.ah_cost == (950 + 320 + 300) and plan.vendor_cost == 100 and plan.still_to_buy == 1670)
+
+  -- Enable alt tracking + include_alts -> alt's 6 Bolt Cloth subtracted!
+  a.set_shopping_count_alts(true)
+  local plan_alts = search.shopping_plan(parts, fake_search, 2, true, {[501] = 2})
+  check('shop: include_alts + bought_map covers Bolt Cloth to Done',
+    plan_alts.rows[1].have == 10 and plan_alts.rows[1].need == 0 and plan_alts.rows[1].best_source == 'done')
+  a.set_shopping_count_alts(false)
+
+  -- 3. UI flow: empty state, Professions recipe search opens SHOPPING sub-tab directly, craft stepper,
+  --    vendor-cheaper still buyable on AH (inform, never refuse), right-click preserves shopping list
+  search.clear_shopping_list()
+  search.set_subtab(search.SHOPPING)
+  check('shop: empty state shown when no recipe loaded', search.shopping_empty_panel.__shown == true)
+  check('shop: frame.shopping has zero OnUpdate handlers', search.frame.shopping.__scripts.OnUpdate == nil)
+
+  local items = ROBES()
+  local run, restore = fake_ah(items)
+  G.C_TradeSkillUI = {
+    GetRecipeSchematic = function(id)
+      if id == 12046 then
+        return {
+          name = 'Robe Kit',
+          outputItemID = 101,
+          quantityMin = 1,
+          reagentSlotSchematics = {
+            {required = true, quantityRequired = 3, reagents = {{itemID = 102}}},
+            {required = true, quantityRequired = 1, reagents = {{itemID = 103}}},
+          },
+        }
+      end
+    end,
+  }
+  a.account_data.merchant_buy[103] = '500#0' -- vendor 5s beats AH 2g 20s
+  search.search_recipe(12046)
+  run(120)
+  check('shop: recipe search opens Shopping List 4th sub-tab directly',
+    search.frame.shopping.__shown == true and search.frame.results.__shown == false)
+  check('shop: title and sub-tab badge populated for loaded recipe',
+    plain(search.shopping_title_label.__text):find('Robe Kit', 1, true) ~= nil
+    and plain(search.shopping_list_button.__text):find('Shopping List  1', 1, true) ~= nil)
+
+  -- Craft stepper + updates craft_count, header column "For 2", and required quantities
+  search.shopping_plus_button.__scripts.OnClick(search.shopping_plus_button)
+  local _, craft_n, _, live_plan = search.shopping_state()
+  check('shop: plus button increments craft count to 2 and doubles required',
+    craft_n == 2 and live_plan.rows[1].required == 6 and search.shopping_listing.colInfo[2].name == 'For 2')
+  search.shopping_minus_button.__scripts.OnClick(search.shopping_minus_button)
+  _, craft_n = search.shopping_state()
+  check('shop: minus button decrements craft count back to 1', craft_n == 1)
+
+  -- Inform, never refuse: clicking vendor-cheaper row (item 103, vendor 5s vs AH 2g 20s) still loads AH buy bar
+  local vendor_row_data = search.shopping_listing.rowData[2]
+  search.shopping_listing.handlers.OnClick(search.shopping_listing, vendor_row_data, nil, 'LeftButton')
+  local l1 = bar.lines()
+  check('shop: clicking vendor-cheaper row warns in buy bar while keeping AH Buy enabled',
+    plain(l1):find('Cheaper at a vendor', 1, true) ~= nil and bar.primary_button:IsEnabled() == true)
+
+  -- Right-clicking a material searches that item in Search Results without clobbering Shopping List
+  search.shopping_listing.handlers.OnClick(search.shopping_listing, search.shopping_listing.rowData[1], nil, 'RightButton')
+  run(60)
+  check('shop: right-click jumps to Search Results for exact item',
+    search.frame.results.__shown == true and search.search_box:GetText() == 'greenweave robe/exact')
+  search.set_subtab(search.SHOPPING)
+  local kept_search = search.shopping_state()
+  check('shop: returning to Shopping List keeps the loaded recipe intact',
+    kept_search ~= nil and kept_search.recipe and kept_search.recipe.name == 'Robe Kit')
+
+  -- Hover tooltip emits Shopping List breakdown and click hint
+  local tip_added = {}
+  local real_owner, real_link, real_line, real_dbl, real_show = rawget(GameTooltip, 'SetOwner'), rawget(GameTooltip, 'SetHyperlink'), rawget(GameTooltip, 'AddLine'), rawget(GameTooltip, 'AddDoubleLine'), rawget(GameTooltip, 'Show')
+  rawset(GameTooltip, 'SetOwner', function() end)
+  rawset(GameTooltip, 'SetHyperlink', function(_, l) tinsert(tip_added, 'link:' .. tostring(l)) end)
+  rawset(GameTooltip, 'AddLine', function(_, t) tinsert(tip_added, tostring(t)) end)
+  rawset(GameTooltip, 'AddDoubleLine', function(_, a1, a2) tinsert(tip_added, tostring(a1) .. '=' .. tostring(a2)) end)
+  rawset(GameTooltip, 'Show', function() end)
+  search.shopping_listing.handlers.OnEnter(search.shopping_listing, search.shopping_listing.rowData[1], new_frame())
+  rawset(GameTooltip, 'SetOwner', real_owner)
+  rawset(GameTooltip, 'SetHyperlink', real_link)
+  rawset(GameTooltip, 'AddLine', real_line)
+  rawset(GameTooltip, 'AddDoubleLine', real_dbl)
+  rawset(GameTooltip, 'Show', real_show)
+  local tip_blob = table.concat(tip_added, '\n')
+  check('shop: hovering row sets item hyperlink, Shopping List counts, and click hint',
+    tip_blob:find('item:102', 1, true) ~= nil and tip_blob:find('Shopping List', 1, true) ~= nil and tip_blob:find('Right-click=search listings', 1, true) ~= nil)
+
+  -- AUCTION_HOUSE_CLOSED wipes shopping_bought
+  local _, _, _, _, bought_tbl = search.shopping_state()
+  bought_tbl[102] = 5
+  fire('AUCTION_HOUSE_CLOSED')
+  check('shop: closing the auction house clears per-visit bought counts', bought_tbl[102] == nil)
+
+  -- Restore everything cleanly
+  search.clear_shopping_list()
+  search.set_subtab(search.RESULTS)
+  for k, v in pairs(old_mb) do a.account_data.merchant_buy[k] = v end
+  if old_mb[502] == nil then a.account_data.merchant_buy[502] = nil end
+  if old_mb[503] == nil then a.account_data.merchant_buy[503] = nil end
+  if old_mb[103] == nil then a.account_data.merchant_buy[103] = nil end
+  G.C_TradeSkillUI = nil
+  inv.clear()
+  restore()
   for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
 end)
 

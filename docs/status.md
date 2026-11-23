@@ -15,22 +15,29 @@ build-by-build log (builds 1 to 4, all tested in game by Tyler): `docs/status-hi
 `TESTING.md`. Release notes: `docs/changelog.md` ("0.9"). Updating from 0.8.2.2 needs a **full game
 restart** for `Bindings.xml`.
 
-**Active branch:** `gemini/0.9.1` (branched from `main`; currently holds doc corrections for Build 4
-Steps 5 and 6 so `E10` and `GetItemKeySampleLink` stay marked `Unknown` until cleanly read).
+**Active branch:** `gemini/0.9.1` (branched from `main`; `auxForever.toc` bumped to
+`forever-0.9.1`).
+
+**Built, awaiting Tyler's in-game test (0.9.1 build 1, 2026-11-22):**
+- **Crafting Shopping List + opt-in Alt Inventory (`FB-023`, Kortan):** Approved Option A mockup
+  (`docs/mockups/shopping-list-alt-inventory-2026-11-22.html`) built and verified with 1,623
+  checks (New + Classic), 0 unknown globals, and 400 fuzz sessions (200 seeds x 250 steps in both
+  New and Classic themes, 0 errors). Requires a **full game restart** (`core/inventory.lua`,
+  `tabs/search/shopping.lua` are new files). In-game steps are under "Current build: 0.9.1 build
+  1" in `TESTING.md`.
 
 **Tyler, after the 0.9 release:** paste `docs/curseforge-description.md` into the CurseForge
 project page when convenient (updated for 0.9's Options > AddOns panel, Narrower Sniper, keybinds,
 and settings).
 
-**Next up: 0.9.1 (branch `gemini/0.9.1` from `main`, mockup first for each):**
-1. **Waylaid Crate Merchant's Favor & reward silver (`FB-059`, `FB-042`, `FB-043`) + Craftsman's
-   Writs (`FB-020`):** waiting on in-game screenshots of a Waylaid Crate turn-in reward window and a
-   Craftsman's Writ tooltip from Tyler before mocking up.
-2. **Crafting Shopping List + Alt Inventory tracking (`FB-023`, Kortan):** ready to design a mockup
-   at the start of the next session even before crate/writ screenshots arrive.
-3. **Posting rules based on usual price (`FB-031`, user_yt0k9lezehn1ukm993387):** TSM-style
-   floor/normal/ceiling rules for the Post tab (mockup first).
-4. **Watch `FB-065`** (marcus4555 Sniper 0 deals report) if the player replies with diagnostic info.
+**Next up for 0.9.1 build 2 (waiting on Tyler's picks):**
+1. **Posting rules based on usual price (`FB-031`, user_yt0k9lezehn1ukm993387):** interactive
+   mockup shown in session; awaiting Tyler's approval on default percentages, layout, and fallback
+   behavior.
+2. **Waylaid Crate Merchant's Favor & reward silver (`FB-059`, `FB-042`, `FB-043`) + Craftsman's
+   Writs (`FB-020`):** web research (`[Outside]`, Forever guides) completed on 2026-11-22; awaiting
+   Tyler's in-game confirmation (especially Artisan crate Favor/silver) before mocking up.
+3. **Watch `FB-065`** (marcus4555 Sniper 0 deals report) if the player replies with diagnostic info.
 
 **Planned for 0.10 (final beta):** granular scan-age timestamps & cleaner tooltip presentation
 (Tyler, 2026-11-21), Full scan speed/memory pass, and 1.0 readiness (`docs/roadmap.md`).

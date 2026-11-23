@@ -101,6 +101,8 @@ TOOLTIP_DEFAULTS = {
     daily = false,
     disenchant_value = false,
     disenchant_distribution = false,
+    -- 0.9.1 (FB-023, Kortan; Tyler 2026-11-22): per-character alt inventory lines, opt-in and off by default
+    inventory = false,
     money_icons = false,
 }
 function M.character_settings(saved)
@@ -133,6 +135,9 @@ function event.AUX_LOADED()
         crafting_cost = true,
         right_click_post = true,
         auto_full_scan = false,
+        -- 0.9.1 (FB-023, Kortan; Tyler 2026-11-22): opt-in cross-character inventory tracking (starts off)
+        alt_inventory = false,
+        shopping_count_alts = false,
         full_search = false,
         sniper_percent = 60,
         sniper_profit = 500,
@@ -173,6 +178,7 @@ function event.AUX_LOADED()
         M.faction_data = assign(aux.faction[key], {
             history = {},
             post = {},
+            inventory = {chars = {}, account_bank = {}},
         })
         -- Forever: the first test version recorded item prices divided by the number of auctions
         -- in a search row, which made recorded values far too low. Start the price history over.
@@ -223,6 +229,11 @@ function M.clear_post_data()
 	-- emptied in place (outside review R-06): tabs/post keeps this same table reference
 	wipe(faction_data.post)
 	print('Post data cleared.')
+end
+
+function M.clear_inventory_data()
+	require('aux.core.inventory').clear()
+	print('Saved alt inventory cleared.')
 end
 
 do

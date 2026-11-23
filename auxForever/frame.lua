@@ -414,6 +414,8 @@ do
         {'crate', 'Waylaid Crates', 'Cheapest fill price', 'Under a Waylaid Crate: what each bundle it asks for costs, the cheapest in gold, and how many you already have.'},
         -- 0.9 (FB-058, suggested by jebbush; Tyler): full stack by default, hold Shift for 1 item
         {'stack', 'Stack prices by default', 'Hold Shift for 1 item', 'Show Vendor, Value and Today prices for the whole stack by default, and hold Shift for 1 item. Off: show 1 item by default and hold Shift for the stack.'},
+        -- 0.9.1 (FB-023, Kortan; Tyler 2026-11-22): per-character alt inventory lines, opt-in and off by default
+        {'inventory', 'Inventory counts', 'Per-character bags, bank, mail', 'Shows how many of an item each character on this realm and faction holds in bags, bank (once opened), and mail (once opened). Off by default.'},
         {'money_icons', 'Coin icons', 'Gold, silver and copper coins', 'Show prices in tooltips with gold, silver and copper coins instead of text.'},
     }
 
@@ -448,6 +450,51 @@ do
         account_data.crafting_cost = on and true or false
         if search.refresh_cost_line then
             search.refresh_cost_line()
+        end
+        refresh()
+    end
+    -- 0.9.1 (FB-023, Kortan; Tyler 2026-11-22): opt-in alt inventory tracking (starts off).
+    -- Enabling either Tooltip Inventory counts or Shopping List Count alts activates tracking;
+    -- turning both off stops all background listeners again.
+    function M.set_alt_inventory(on)
+        on = on and true or false
+        require('aux.core.inventory').set_enabled(on)
+        if not on then
+            account_data.shopping_count_alts = false
+            if character_data and character_data.tooltip then
+                character_data.tooltip.inventory = false
+            end
+        end
+        if search.refresh_shopping_list then
+            search.refresh_shopping_list()
+        end
+        refresh()
+    end
+    function M.set_tooltip_inventory(on)
+        on = on and true or false
+        if character_data and character_data.tooltip then
+            character_data.tooltip.inventory = on
+        end
+        if on then
+            require('aux.core.inventory').set_enabled(true)
+        elseif not account_data.shopping_count_alts then
+            require('aux.core.inventory').set_enabled(false)
+        end
+        if search.refresh_shopping_list then
+            search.refresh_shopping_list()
+        end
+        refresh()
+    end
+    function M.set_shopping_count_alts(on)
+        on = on and true or false
+        account_data.shopping_count_alts = on
+        if on then
+            require('aux.core.inventory').set_enabled(true)
+        elseif not (character_data and character_data.tooltip and character_data.tooltip.inventory) then
+            require('aux.core.inventory').set_enabled(false)
+        end
+        if search.refresh_shopping_list then
+            search.refresh_shopping_list()
         end
         refresh()
     end
@@ -654,8 +701,12 @@ do
             switch.key = key
             switch.row = r
             switch.on_click = function()
-                character_data.tooltip[key] = not character_data.tooltip[key]
-                refresh_settings()
+                if key == 'inventory' then
+                    set_tooltip_inventory(not character_data.tooltip.inventory)
+                else
+                    character_data.tooltip[key] = not character_data.tooltip[key]
+                    refresh_settings()
+                end
             end
             tooltip_switches[i] = switch
         end
@@ -803,6 +854,18 @@ do
         hideOnEscape = true,
         preferredIndex = 3,
     }
+    StaticPopupDialogs.AUX_CLEAR_INVENTORY_CONFIRM = {
+        text = 'Clear all saved character bag, bank, and mail counts for this realm and faction?',
+        button1 = ACCEPT,
+        button2 = CANCEL,
+        OnAccept = function()
+            clear_inventory_data()
+        end,
+        timeout = 0,
+        whileDead = true,
+        hideOnEscape = true,
+        preferredIndex = 3,
+    }
 
     local OPT_WIDTH, OPT_PAD, OPT_COLUMN = 632, 16, 286
     local options_panel = CreateFrame('Frame')
@@ -851,7 +914,7 @@ do
     gui.text_color(keybind_note, color.label.enabled)
 
     local clear_cache_btn = gui.button(options_panel, gui.font_size.small)
-    gui.set_size(clear_cache_btn, 114, 24)
+    gui.set_size(clear_cache_btn, 108, 24)
     clear_cache_btn:SetPoint('TOPRIGHT', options_panel, 'TOPLEFT', OPT_WIDTH - OPT_PAD, -506)
     clear_cache_btn:SetText('Clear item cache')
     clear_cache_btn:SetScript('OnClick', function()
@@ -859,11 +922,19 @@ do
     end)
 
     local clear_post_btn = gui.button(options_panel, gui.font_size.small)
-    gui.set_size(clear_post_btn, 118, 24)
-    clear_post_btn:SetPoint('RIGHT', clear_cache_btn, 'LEFT', -8, 0)
+    gui.set_size(clear_post_btn, 112, 24)
+    clear_post_btn:SetPoint('RIGHT', clear_cache_btn, 'LEFT', -6, 0)
     clear_post_btn:SetText('Clear post prices')
     clear_post_btn:SetScript('OnClick', function()
         (show_popup or StaticPopup_Show)('AUX_CLEAR_POST_CONFIRM')
+    end)
+
+    local clear_inventory_btn = gui.button(options_panel, gui.font_size.small)
+    gui.set_size(clear_inventory_btn, 100, 24)
+    clear_inventory_btn:SetPoint('RIGHT', clear_post_btn, 'LEFT', -6, 0)
+    clear_inventory_btn:SetText('Clear inventory')
+    clear_inventory_btn:SetScript('OnClick', function()
+        (show_popup or StaticPopup_Show)('AUX_CLEAR_INVENTORY_CONFIRM')
     end)
 
     options_panel.OnRefresh = function() refresh() end
@@ -873,6 +944,7 @@ do
     M.options_view = blizz_view
     M.options_clear_post_button = clear_post_btn
     M.options_clear_cache_button = clear_cache_btn
+    M.options_clear_inventory_button = clear_inventory_btn
 
     local settings_category_id
     function register_options_panel()

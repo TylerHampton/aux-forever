@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>auxForever 0.9.1 Mockup: Crafting Shopping List & Alt Inventory (FB-023)</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* auxForever real palettes from auxForever/color.lua */
+    .aux-theme[data-theme="new"] {
+      --aux-win-bg: rgba(26, 26, 26, 0.97);
+      --aux-win-border: #000000;
+      --aux-band: #101010;
+      --aux-panel-bg: #131313;
+      --aux-panel-border: #000000;
+      --aux-btn-bg: linear-gradient(180deg, #2e2e2e 0%, #232323 100%);
+      --aux-btn-border: #000000;
+      --aux-input-bg: #0c0c0c;
+      --aux-input-border: #404040;
+      --aux-header-bg: #222222;
+      --aux-header-text: #cfcfcf;
+      --aux-text: #ebebeb;
+      --aux-label: #a8a8a8;
+      --aux-dim: #6b6b6b;
+      --aux-accent: #e5be5b;
+      --aux-accent-bg: #2a2312;
+      --aux-selected: rgba(229, 190, 91, 0.14);
+      --aux-stripe: rgba(255, 255, 255, 0.04);
+      --aux-hover: rgba(255, 255, 255, 0.07);
+      --aux-pos: #4dcc66;
+      --aux-neg: #e8574a;
+      --aux-warn: #f0943c;
+      --aux-blue: #5aa9ff;
+      --aux-radius: 0px;
+      --aux-btn-radius: 0px;
+    }
+    .aux-theme[data-theme="classic"] {
+      --aux-win-bg: rgba(22, 24, 27, 0.97);
+      --aux-win-border: #2b2f35;
+      --aux-band: rgba(22, 24, 27, 0.97);
+      --aux-panel-bg: #181a1d;
+      --aux-panel-border: #262a2f;
+      --aux-btn-bg: #1d2024;
+      --aux-btn-border: #2f343a;
+      --aux-input-bg: #0f1113;
+      --aux-input-border: #3a3f46;
+      --aux-header-bg: #1d2024;
+      --aux-header-text: #8e8a81;
+      --aux-text: #f3efe6;
+      --aux-label: #a8a49b;
+      --aux-dim: #7d7a73;
+      --aux-accent: #e3a43b;
+      --aux-accent-bg: #3a2e15;
+      --aux-selected: rgba(227, 164, 59, 0.22);
+      --aux-stripe: rgba(255, 255, 255, 0.035);
+      --aux-hover: rgba(255, 255, 255, 0.08);
+      --aux-pos: #6fd39a;
+      --aux-neg: #ff8a7e;
+      --aux-warn: #ff9218;
+      --aux-blue: #2992ff;
+      --aux-radius: 6px;
+      --aux-btn-radius: 4px;
+    }
+
+    .aux-win {
+      background: var(--aux-win-bg);
+      border: 1px solid var(--aux-win-border);
+      border-radius: var(--aux-radius);
+      color: var(--aux-text);
+      font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+      box-shadow: 0 14px 36px rgba(0,0,0,0.45);
+    }
+    .aux-band {
+      background: var(--aux-band);
+      border-bottom: 1px solid var(--aux-panel-border);
+    }
+    .aux-band-bottom {
+      background: var(--aux-band);
+      border-top: 1px solid var(--aux-panel-border);
+    }
+    .aux-panel {
+      background: var(--aux-panel-bg);
+      border: 1px solid var(--aux-panel-border);
+      border-radius: var(--aux-btn-radius);
+    }
+    .aux-btn {
+      background: var(--aux-btn-bg);
+      border: 1px solid var(--aux-btn-border);
+      border-radius: var(--aux-btn-radius);
+      color: var(--aux-text);
+      cursor: pointer;
+      transition: filter 0.1s;
+    }
+    .aux-btn:hover:not(:disabled) { filter: brightness(1.18); }
+    .aux-btn:disabled { opacity: 0.42; cursor: not-allowed; }
+    .aux-btn-primary {
+      background: var(--aux-accent-bg);
+      border: 1px solid var(--aux-accent);
+      color: var(--aux-accent);
+      border-radius: var(--aux-btn-radius);
+      cursor: pointer;
+    }
+    .aux-btn-primary:hover:not(:disabled) { filter: brightness(1.16); }
+    .aux-btn-primary:disabled { opacity: 0.42; cursor: not-allowed; }
+    .aux-btn-confirm {
+      background: #14321c;
+      border: 1px solid var(--aux-pos);
+      color: var(--aux-pos);
+      border-radius: var(--aux-btn-radius);
+      cursor: pointer;
+    }
+    .aux-btn-selected {
+      background: var(--aux-accent-bg);
+      border: 1px solid var(--aux-accent);
+      color: var(--aux-accent);
+      border-radius: var(--aux-btn-radius);
+    }
+    .aux-input {
+      background: var(--aux-input-bg);
+      border: 1px solid var(--aux-input-border);
+      border-radius: var(--aux-btn-radius);
+      color: var(--aux-text);
+    }
+    .aux-input:focus {
+      outline: none;
+      border-color: var(--aux-accent);
+    }
+    .aux-row-stripe { background: var(--aux-stripe); }
+    .aux-row-sel { background: var(--aux-selected) !important; }
+    .aux-row:hover { background: var(--aux-hover); }
+
+    /* Coin letter styling matching money.to_string */
+    .coin-g { color: #ffd100; font-weight: 600; }
+    .coin-s { color: #e6e6e6; font-weight: 600; }
+    .coin-c { color: #c8602c; font-weight: 600; }
+
+    /* WoW Tooltip styling */
+    .wow-tip {
+      background: rgba(9, 10, 22, 0.97);
+      border: 1px solid #8a8a8a;
+      border-radius: 4px;
+      color: #ffffff;
+      font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.55);
+    }
+    .wow-prof {
+      background: #12100d;
+      border: 2px solid #5a4a2e;
+      border-radius: 4px;
+      color: #ffffff;
+      font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+    }
+    .wow-blizz-btn {
+      background: linear-gradient(180deg, #8b1e16 0%, #5c100b 100%);
+      border: 1px solid #b59449;
+      border-radius: 3px;
+      color: #ffd100;
+      font-weight: 600;
+    }
+    .wow-blizz-btn:hover { filter: brightness(1.15); }
+    .switch-track {
+      width: 34px; height: 18px; border-radius: 999px;
+      position: relative; transition: background 0.15s; cursor: pointer;
+    }
+    .switch-knob {
+      width: 14px; height: 14px; border-radius: 999px;
+      position: absolute; top: 2px; transition: left 0.15s;
+    }
+  </style>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased p-0 m-0">
+  <div class="max-w-[1160px] mx-auto px-5 py-6 space-y-6">
+
+    <!-- Header & Controls -->
+    <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-[var(--border)]">
+      <div class="space-y-1 max-w-2xl">
+        <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[var(--primary)]">
+          <span>auxForever 0.9.1 Mockup</span>
+          <span class="text-[var(--muted-foreground)]">/</span>
+          <span>FB-023 (Kortan)</span>
+        </div>
+        <h1 class="text-2xl font-bold tracking-tight">Crafting Shopping List &amp; Alt Inventory</h1>
+        <p class="text-sm text-[var(--muted-foreground)]">
+          Pick a recipe, enter how many to craft, see what you and your alts already hold, spot when a vendor beats the AH, and click down the list to buy. All prices below are examples.
+        </p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="inline-flex rounded-md border border-[var(--border)] bg-[var(--card)] p-0.5 text-xs">
+          <button id="btn-opt-a" class="px-3 py-1.5 rounded font-medium bg-[var(--primary)] text-[var(--primary-foreground)]">Option A: Sub-tab (Recommended)</button>
+          <button id="btn-opt-b" class="px-3 py-1.5 rounded font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]">Option B: Strip over Results</button>
+        </div>
+        <div class="inline-flex rounded-md border border-[var(--border)] bg-[var(--card)] p-0.5 text-xs">
+          <button id="btn-theme-new" class="px-2.5 py-1.5 rounded font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)]">New Theme</button>
+          <button id="btn-theme-classic" class="px-2.5 py-1.5 rounded font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]">Classic</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Playground Bar -->
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-lg p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="font-semibold text-[var(--muted-foreground)]">Try a recipe:</span>
+        <button data-recipe="runecloth_bag" class="recipe-pill px-2.5 py-1 rounded border border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)] font-medium">Runecloth Bag (4 mats, 1 vendor)</button>
+        <button data-recipe="mongoose" class="recipe-pill px-2.5 py-1 rounded border border-[var(--border)] bg-[var(--background)] hover:border-[var(--primary)]">Elixir of Mongoose (3 mats, 1 vendor)</button>
+        <button data-recipe="bronze_fw" class="recipe-pill px-2.5 py-1 rounded border border-[var(--border)] bg-[var(--background)] hover:border-[var(--primary)]">Bronze Framework (all AH)</button>
+      </div>
+      <div class="flex items-center gap-3">
+        <label class="flex items-center gap-1.5 cursor-pointer select-none">
+          <input id="chk-confirm" type="checkbox" class="accent-[var(--primary)]" />
+          <span class="text-[var(--muted-foreground)]">Simulate "Confirm before buying"</span>
+        </label>
+        <button id="btn-reset-sim" class="px-2.5 py-1 rounded border border-[var(--border)] hover:bg-[var(--secondary)] font-medium">Reset demo buys</button>
+      </div>
+    </div>
+
+    <!-- Main Interactive auxForever Window -->
+    <div id="aux-root" class="aux-theme" data-theme="new">
+      <div class="aux-win overflow-hidden">
+        <!-- Top Bar -->
+        <div class="aux-band h-10 px-3 flex items-center justify-between gap-2 text-xs">
+          <div class="flex items-center gap-4">
+            <span class="text-base font-bold tracking-tight"><span style="color:var(--aux-text)">aux</span><span style="color:var(--aux-accent)">Forever</span></span>
+            <div class="flex items-center gap-1">
+              <span class="aux-btn-selected px-3 py-1 font-semibold">Search</span>
+              <span class="aux-btn px-3 py-1" style="color:var(--aux-label)">Sniper</span>
+              <span class="aux-btn px-3 py-1" style="color:var(--aux-label)">Post</span>
+              <span class="aux-btn px-3 py-1" style="color:var(--aux-label)">Auctions</span>
+              <span class="aux-btn px-3 py-1" style="color:var(--aux-label)">Bids</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="aux-btn px-2 py-1" title="Settings">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="inline"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </span>
+            <span class="aux-btn px-2.5 py-1">Full scan</span>
+            <span class="aux-btn px-2.5 py-1" style="color:#00b4ff">Blizzard UI</span>
+            <span class="px-2 py-1 text-base leading-none" style="color:var(--aux-label)">&times;</span>
+          </div>
+        </div>
+
+        <!-- Search Bar Row -->
+        <div class="px-2.5 pt-2 pb-2 flex items-center gap-1.5 border-b" style="border-color:var(--aux-panel-border)">
+          <span class="aux-btn px-2 py-1 text-xs">&lt;</span>
+          <span class="aux-btn px-2.5 py-1 text-xs" style="color:var(--aux-label)">Recent</span>
+          <span class="aux-btn px-2 py-1 text-xs">&gt;</span>
+          <span class="aux-btn px-2.5 py-1 text-xs">Live</span>
+          <div class="aux-input flex-1 h-7 px-2.5 flex items-center text-xs truncate" id="search-bar-text" style="color:var(--aux-label)">
+            bolt of runecloth/exact;rugged leather/exact;rune thread/exact
+          </div>
+          <span class="aux-btn-selected px-2 py-1 text-xs">Fast</span>
+          <span class="aux-btn px-2 py-1 text-xs" style="color:var(--aux-label)">Full</span>
+          <span class="aux-btn-primary px-3 py-1 text-xs font-semibold">Search</span>
+        </div>
+
+        <!-- Sub-tabs Row -->
+        <div class="px-3 pt-2 flex items-center justify-between gap-2 text-xs">
+          <div class="flex items-center gap-1" id="subtabs-bar">
+            <span id="subtab-results" class="aux-btn px-4 py-1.5 font-medium" style="color:var(--aux-label)">Search Results</span>
+            <span class="aux-btn px-4 py-1.5 font-medium" style="color:var(--aux-label)">Saved Searches</span>
+            <span class="aux-btn px-4 py-1.5 font-medium" style="color:var(--aux-label)">Filter Builder</span>
+            <span id="subtab-shop" class="aux-btn-selected px-4 py-1.5 font-semibold">Shopping List</span>
+          </div>
+          <div id="subtab-status" class="text-xs" style="color:var(--aux-label)">Live AH prices read just now</div>
+        </div>
+
+        <!-- OPTION A: Shopping List Sub-tab Body -->
+        <div id="view-opt-a" class="p-2">
+          <div class="aux-panel overflow-hidden">
+            <!-- Recipe Header Bar -->
+            <div class="px-3.5 py-2.5 border-b flex flex-wrap items-center justify-between gap-3" style="border-color:var(--aux-panel-border); background: rgba(255,255,255,0.02)">
+              <div class="flex items-center gap-3">
+                <div id="recipe-icon" class="w-9 h-9 rounded flex items-center justify-center text-xs font-bold border" style="background:#262018; border-color:var(--aux-accent); color:var(--aux-accent)">BAG</div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span id="recipe-title" class="text-sm font-bold" style="color:#ffffff">Runecloth Bag</span>
+                    <span id="recipe-makes" class="text-xs" style="color:var(--aux-label)">Tailoring (makes 1 per craft)</span>
+                  </div>
+                  <div class="flex items-center gap-3 mt-0.5 text-xs" id="recipe-profit-line"></div>
+                </div>
+              </div>
+
+              <!-- Craft Count + Count Alts + Refresh -->
+              <div class="flex flex-wrap items-center gap-3 text-xs">
+                <div class="flex items-center gap-1.5">
+                  <span style="color:var(--aux-label)">Craft</span>
+                  <button id="qty-minus" class="aux-btn w-6 h-7 font-bold">-</button>
+                  <input id="qty-input" type="number" min="1" max="200" value="5" class="aux-input w-12 h-7 text-center font-semibold text-sm" />
+                  <button id="qty-plus" class="aux-btn w-6 h-7 font-bold">+</button>
+                </div>
+
+                <div class="h-5 w-px" style="background:var(--aux-input-border)"></div>
+
+                <label class="flex items-center gap-2 cursor-pointer select-none" title="Subtract items held in your other characters' bags, bank, and mail">
+                  <div id="alt-switch" class="switch-track" style="background:var(--aux-pos)">
+                    <div id="alt-knob" class="switch-knob bg-white" style="left:18px"></div>
+                  </div>
+                  <span style="color:var(--aux-text)">Count alts</span>
+                  <span id="alt-chars-hint" style="color:var(--aux-dim)">(3 chars)</span>
+                </label>
+
+                <button id="btn-refresh-prices" class="aux-btn px-2.5 py-1.5">Refresh prices</button>
+              </div>
+            </div>
+
+            <!-- Materials Table -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs border-collapse">
+                <thead>
+                  <tr style="background:var(--aux-header-bg); color:var(--aux-header-text); border-bottom:1px solid var(--aux-panel-border)">
+                    <th class="text-left py-2 px-3 font-semibold">Material</th>
+                    <th class="text-right py-2 px-3 font-semibold">For <span id="col-craft-n">5</span></th>
+                    <th class="text-right py-2 px-3 font-semibold">Have</th>
+                    <th class="text-right py-2 px-3 font-semibold">Need</th>
+                    <th class="text-center py-2 px-3 font-semibold">Best source</th>
+                    <th class="text-right py-2 px-3 font-semibold">Unit price</th>
+                    <th class="text-right py-2 px-3 font-semibold">Total to buy</th>
+                  </tr>
+                </thead>
+                <tbody id="shop-tbody"></tbody>
+              </table>
+            </div>
+
+            <!-- Summary Strip above Buy Bar -->
+            <div class="px-3.5 py-2 border-t flex flex-wrap items-center justify-between gap-2 text-xs" style="border-color:var(--aux-panel-border); background:rgba(255,255,255,0.015)">
+              <div id="shop-totals-left" class="flex flex-wrap items-center gap-4"></div>
+              <div id="shop-progress-right" style="color:var(--aux-label)"></div>
+            </div>
+
+            <!-- Docked Buy Bar (reuses existing auxForever Buy Bar) -->
+            <div id="shop-buy-bar" class="px-3.5 py-2.5 border-t flex flex-wrap items-center justify-between gap-3" style="border-color:var(--aux-panel-border); background:var(--aux-band)">
+              <!-- Populated by JS based on selected row -->
+            </div>
+          </div>
+        </div>
+
+        <!-- OPTION B: Compact Strip over Search Results -->
+        <div id="view-opt-b" class="p-2 hidden">
+          <div class="aux-panel overflow-hidden">
+            <div class="px-3 py-2 border-b flex flex-wrap items-center justify-between gap-2 text-xs" style="border-color:var(--aux-panel-border); background: rgba(229,190,91,0.06)">
+              <div class="flex items-center gap-2.5">
+                <span class="font-bold" style="color:var(--aux-accent)">Shopping:</span>
+                <span id="optb-title" class="font-semibold">Runecloth Bag</span>
+                <span style="color:var(--aux-label)">&times;</span>
+                <span id="optb-qty" class="aux-input px-2 py-0.5 font-semibold">5</span>
+                <span class="text-xs" style="color:var(--aux-label)" id="optb-pills"></span>
+              </div>
+              <span style="color:var(--aux-dim)">Compact bar above normal Search Results table</span>
+            </div>
+            <!-- Compact material chips -->
+            <div id="optb-chips" class="px-3 py-2 border-b flex flex-wrap gap-2 text-xs" style="border-color:var(--aux-panel-border)"></div>
+            <!-- Normal Search Results table underneath -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs border-collapse">
+                <thead>
+                  <tr style="background:var(--aux-header-bg); color:var(--aux-header-text); border-bottom:1px solid var(--aux-panel-border)">
+                    <th class="text-center py-1.5 px-2">Req</th>
+                    <th class="text-center py-1.5 px-2">iLvl</th>
+                    <th class="text-left py-1.5 px-2">Item</th>
+                    <th class="text-center py-1.5 px-2">For sale</th>
+                    <th class="text-center py-1.5 px-2">Time Left</th>
+                    <th class="text-right py-1.5 px-2">Unit Buyout</th>
+                    <th class="text-center py-1.5 px-2">% of usual</th>
+                  </tr>
+                </thead>
+                <tbody id="optb-results-tbody"></tbody>
+              </table>
+            </div>
+            <div class="px-3 py-2 border-t text-xs flex items-center justify-between" style="border-color:var(--aux-panel-border); background:var(--aux-band)">
+              <span style="color:var(--aux-label)">Normal auxForever Buy Bar sits here (tight vertical space at 549px min height)</span>
+              <span class="aux-btn-primary px-3 py-1 font-semibold">Buy 21 for 3g 88s 50c</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Status Band -->
+        <div class="aux-band-bottom h-9 px-3 flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2">
+            <div class="w-48 h-4 aux-input overflow-hidden flex items-center px-2" style="border-color:var(--aux-accent)">
+              <span class="text-[11px]" style="color:var(--aux-accent)">Ready</span>
+            </div>
+            <span class="aux-btn px-2.5 py-0.5">Clear</span>
+          </div>
+          <span style="color:var(--aux-dim)">aux by shirsig, re-imagined by a fan</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Option A vs Option B Comparison -->
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="bg-[var(--card)] border-2 border-[var(--primary)] rounded-lg p-4 space-y-2">
+        <div class="flex items-center justify-between">
+          <h2 class="font-bold">Option A: 4th Search sub-tab (Recommended)</h2>
+          <span class="text-xs font-semibold px-2 py-0.5 rounded bg-[var(--primary)] text-[var(--primary-foreground)]">Recommended</span>
+        </div>
+        <ul class="text-xs text-[var(--muted-foreground)] space-y-1.5 list-disc pl-4">
+          <li><strong class="text-[var(--foreground)]">Zero clutter on normal searches:</strong> Search Results stays clean for regular shopping.</li>
+          <li><strong class="text-[var(--foreground)]">Full room for columns:</strong> Shows Required, Have (with alt hover breakdown), Need, Best Source (AH vs Vendor), Unit Price, and multi-tier Total Cost cleanly even at the 1000x549 minimum window.</li>
+          <li><strong class="text-[var(--foreground)]">1-click buy loop:</strong> Buy Bar pre-fills <code class="text-[var(--foreground)]">Need</code> and auto-advances to the next unbought AH material after each purchase.</li>
+          <li><strong class="text-[var(--foreground)]">Grows naturally:</strong> Craftsman's Writs and Waylaid Crates can open straight into the same Shopping List later.</li>
+        </ul>
+      </div>
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4 space-y-2">
+        <h2 class="font-bold">Option B: Compact strip over Search Results</h2>
+        <ul class="text-xs text-[var(--muted-foreground)] space-y-1.5 list-disc pl-4">
+          <li><strong class="text-[var(--foreground)]">Pros:</strong> Lets you see every individual auction price tier underneath without switching sub-tabs.</li>
+          <li><strong class="text-[var(--foreground)]">Cons:</strong> Squeezes the table height on 1000x549 windows, hides per-material cost/alt breakdown inside hover chips, and makes vendor-cheaper items harder to read at a glance.</li>
+          <li><strong class="text-[var(--foreground)]">Note:</strong> In Option A, right-clicking any material row jumps straight to its full listings in Search Results anyway (matching <code class="text-[var(--foreground)]">docs/clicks.md</code>).</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Part 2: Entry Points, Alt Inventory Tooltips, and Settings -->
+    <div class="grid lg:grid-cols-3 gap-4">
+      <!-- Professions Window Entry -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4 space-y-3">
+        <div class="text-xs font-semibold uppercase tracking-wider text-[var(--primary)]">1. Professions Window Entry</div>
+        <div class="wow-prof p-3 space-y-2.5 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-sm" style="color:#ffd100">Runecloth Bag</span>
+            <span style="color:#a8a8a8">Tailoring</span>
+          </div>
+          <div class="text-[11px]" style="color:#ffd100">Reagents</div>
+          <div class="grid grid-cols-2 gap-1.5 text-[11px]">
+            <div class="flex items-center gap-1.5"><span class="w-5 h-5 rounded border border-[#5b4d2f] bg-[#262219] inline-block"></span><span>4/5 Bolt of Runecloth</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-5 h-5 rounded border border-[#5b4d2f] bg-[#262219] inline-block"></span><span>0/2 Rugged Leather</span></div>
+            <div class="flex items-center gap-1.5"><span class="w-5 h-5 rounded border border-[#5b4d2f] bg-[#262219] inline-block"></span><span>1/1 Rune Thread</span></div>
+          </div>
+          <div class="pt-0.5 text-[11px]">
+            <span style="color:#a8a8a8">Materials</span> 1<span class="coin-g">g</span> 62<span class="coin-s">s</span>
+            <span class="ml-2" style="color:#4dcc66">Profit</span> <span style="color:#4dcc66">24</span><span class="coin-s">s</span>
+          </div>
+          <div class="pt-2 border-t border-[#3b3120] flex items-center justify-end gap-1.5">
+            <button class="wow-blizz-btn px-2.5 py-1 text-[11px]">Shop in aux</button>
+            <label class="flex items-center gap-1 text-[11px]" style="color:#ffd100"><input type="checkbox" disabled /> Track Recipe</label>
+          </div>
+        </div>
+        <p class="text-xs text-[var(--muted-foreground)]">
+          While the AH is open, clicking the button on Blizzard's Professions window (or Alt-clicking a recipe in the list) opens the Shopping List for that recipe and reads live prices in one search.
+        </p>
+      </div>
+
+      <!-- Alt Inventory Tooltip -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4 space-y-3">
+        <div class="flex items-center justify-between gap-2">
+          <div class="text-xs font-semibold uppercase tracking-wider text-[var(--primary)]">2. Alt Inventory Tooltip</div>
+          <div class="inline-flex rounded border border-[var(--border)] text-[11px] overflow-hidden">
+            <button id="tip-detailed" class="px-2 py-0.5 bg-[var(--primary)] text-[var(--primary-foreground)] font-medium">Per character</button>
+            <button id="tip-compact" class="px-2 py-0.5 text-[var(--muted-foreground)]">Compact</button>
+          </div>
+        </div>
+        <div class="wow-tip p-3 text-xs space-y-1">
+          <div class="text-sm font-semibold">Bolt of Runecloth</div>
+          <div style="color:#a8a8a8">Trade Goods</div>
+          <div class="pt-1" style="color:#ffff9a">Value: 18<span class="coin-s">s</span> 50<span class="coin-c">c</span> (<span style="color:#4dcc66">96%</span>)  <span style="color:#a8a8a8">today</span></div>
+          <div style="color:#cc7f19">Vendor: 1<span class="coin-s">s</span></div>
+          <div class="pt-1.5 border-t border-[#2c2e3b]" id="tip-inv-block"></div>
+        </div>
+        <p class="text-xs text-[var(--muted-foreground)]">
+          Each character on the same realm and faction records its bags automatically, bank once opened, and mailbox once opened. No extra addon needed (works standalone like Syndicator).
+        </p>
+      </div>
+
+      <!-- Settings & Data Honesty -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-lg p-4 space-y-3">
+        <div class="text-xs font-semibold uppercase tracking-wider text-[var(--primary)]">3. Settings &amp; Forever Data Rules</div>
+        <div class="space-y-2 text-xs">
+          <div class="p-2.5 rounded bg-[var(--background)] border border-[var(--border)] space-y-1.5">
+            <div class="font-semibold text-[var(--foreground)]">New Settings toggle (Tooltip Lines):</div>
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-medium">Inventory counts</div>
+                <div class="text-[var(--muted-foreground)]">Bags, bank and mail across characters</div>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[11px] font-semibold" style="background:#14321c; color:#4dcc66">ON</span>
+            </div>
+            <div class="text-[var(--muted-foreground)] pt-1 border-t border-[var(--border)]">
+              Slash command: <code class="text-[var(--foreground)]">/aux tooltip inventory</code>. Plus a "Forget alt" / "Clear inventory data" button in Options &gt; AddOns.
+            </div>
+          </div>
+          <div class="p-2.5 rounded bg-[var(--background)] border border-[var(--border)] space-y-1 text-[var(--muted-foreground)]">
+            <div class="font-semibold text-[var(--foreground)]">How Forever tracks each location:</div>
+            <div><span class="font-semibold text-[var(--foreground)]">[Seen]</span> Bags (0-5 incl. Reagent Bag): updated live.</div>
+            <div><span class="font-semibold text-[var(--foreground)]">[Code]</span> Character Bank &amp; Mail: snapshotted whenever you open the bank or mailbox on that character.</div>
+            <div><span class="font-semibold text-[var(--foreground)]">[Code]</span> Active AH listings: snapshotted when you open your Auctions tab (optional).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Decisions for Tyler -->
+    <div class="bg-[var(--card)] border-l-4 border-[var(--primary)] border border-[var(--border)] rounded-r-lg p-4 space-y-2">
+      <h2 class="font-bold text-sm">Questions for you before building FB-023</h2>
+      <ol class="text-xs text-[var(--muted-foreground)] list-decimal pl-5 space-y-1.5">
+        <li><strong class="text-[var(--foreground)]">Layout:</strong> Do you prefer <strong class="text-[var(--foreground)]">Option A (4th "Shopping List" sub-tab)</strong> or Option B (compact strip over Search Results)?</li>
+        <li><strong class="text-[var(--foreground)]">Professions button:</strong> Should the existing <code class="text-[var(--foreground)]">Search in aux</code> button (and Alt-click on a recipe) open the <strong class="text-[var(--foreground)]">Shopping List</strong> directly (recommended, since right-clicking any row opens full Search Results), or should we keep both a Search button and a separate Shop button?</li>
+        <li><strong class="text-[var(--foreground)]">Tooltip style:</strong> For Alt Inventory in item tooltips, do you prefer <strong class="text-[var(--foreground)]">Per character</strong> (1 line per alt holding the item) or <strong class="text-[var(--foreground)]">Compact</strong> (single total line)?</li>
+        <li><strong class="text-[var(--foreground)]">Sub-crafts (e.g. Runecloth into Bolts):</strong> OK to keep v1 to the recipe's direct materials (fast, simple, matches Kortan's request) and revisit crafting sub-materials later if players ask?</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    const RECIPES = {
+      runecloth_bag: {
+        name: 'Runecloth Bag',
+        icon: 'BAG',
+        prof: 'Tailoring (makes 1 per craft)',
+        sellEach: 19500, // 1g 95s
+        defaultQty: 5,
+        mats: [
+          {
+            id: 'bolt_runecloth', name: 'Bolt of Runecloth', perCraft: 5,
+            selfBags: 4, selfBank: 0,
+            alts: [{ name: 'Bankalt', bags: 0, bank: 8, mail: 4 }],
+            ahTiers: [{ price: 1850, qty: 18 }, { price: 1920, qty: 40 }, { price: 2100, qty: 120 }],
+            usual: 1925, vendor: null, bought: 0
+          },
+          {
+            id: 'rugged_leather', name: 'Rugged Leather', perCraft: 2,
+            selfBags: 2, selfBank: 0,
+            alts: [{ name: 'Skinneralt', bags: 6, bank: 0, mail: 0 }],
+            ahTiers: [{ price: 1680, qty: 30 }, { price: 1750, qty: 80 }],
+            usual: 1700, vendor: null, bought: 0
+          },
+          {
+            id: 'rune_thread', name: 'Rune Thread', perCraft: 1,
+            selfBags: 1, selfBank: 0,
+            alts: [],
+            ahTiers: [{ price: 6800, qty: 25 }],
+            usual: 6500, vendor: 5000, bought: 0
+          },
+          {
+            id: 'ironweb', name: 'Heavy Silken Thread', perCraft: 1,
+            selfBags: 5, selfBank: 0,
+            alts: [],
+            ahTiers: [{ price: 2200, qty: 50 }],
+            usual: 2100, vendor: 2000, bought: 0
+          }
+        ]
+      },
+      mongoose: {
+        name: 'Elixir of Mongoose',
+        icon: 'ELX',
+        prof: 'Alchemy (makes 1 per craft)',
+        sellEach: 14500,
+        defaultQty: 10,
+        mats: [
+          {
+            id: 'silversage', name: 'Mountain Silversage', perCraft: 2,
+            selfBags: 6, selfBank: 0,
+            alts: [{ name: 'Herbalist', bags: 4, bank: 6, mail: 0 }],
+            ahTiers: [{ price: 1800, qty: 15 }, { price: 1950, qty: 50 }],
+            usual: 2100, vendor: null, bought: 0
+          },
+          {
+            id: 'plaguebloom', name: 'Plaguebloom', perCraft: 2,
+            selfBags: 0, selfBank: 4,
+            alts: [{ name: 'Bankalt', bags: 0, bank: 4, mail: 0 }],
+            ahTiers: [{ price: 2950, qty: 10 }, { price: 3100, qty: 40 }],
+            usual: 3000, vendor: null, bought: 0
+          },
+          {
+            id: 'crystal_vial', name: 'Crystal Vial', perCraft: 1,
+            selfBags: 2, selfBank: 0,
+            alts: [],
+            ahTiers: [{ price: 750, qty: 100 }],
+            usual: 600, vendor: 500, bought: 0
+          }
+        ]
+      },
+      bronze_fw: {
+        name: 'Bronze Framework',
+        icon: 'ENG',
+        prof: 'Engineering (makes 1 per craft)',
+        sellEach: 760,
+        defaultQty: 4,
+        mats: [
+          {
+            id: 'bronze_bar', name: 'Bronze Bar', perCraft: 2,
+            selfBags: 2, selfBank: 0,
+            alts: [{ name: 'Mineralt', bags: 0, bank: 4, mail: 0 }],
+            ahTiers: [{ price: 180, qty: 400 }],
+            usual: 185, vendor: null, bought: 0
+          },
+          {
+            id: 'med_leather', name: 'Medium Leather', perCraft: 1,
+            selfBags: 0, selfBank: 0,
+            alts: [],
+            ahTiers: [{ price: 97, qty: 120 }],
+            usual: 105, vendor: null, bought: 0
+          },
+          {
+            id: 'wool_cloth', name: 'Wool Cloth', perCraft: 1,
+            selfBags: 0, selfBank: 0,
+            alts: [{ name: 'Bankalt', bags: 0, bank: 2, mail: 0 }],
+            ahTiers: [{ price: 130, qty: 200 }],
+            usual: 140, vendor: null, bought: 0
+          }
+        ]
+      }
+    };
+
+    let state = {
+      recipeKey: 'runecloth_bag',
+      qty: 5,
+      countAlts: true,
+      selectedIdx: 0,
+      option: 'a',
+      theme: 'new',
+      tipMode: 'detailed',
+      confirmBeforeBuy: false,
+      awaitingConfirm: false,
+      statusMsg: '',
+      statusTone: 'pos'
+    };
+
+    function fmtMoney(copper, tintClass = '') {
+      const neg = copper < 0;
+      const c = Math.abs(Math.round(copper));
+      const g = Math.floor(c / 10000);
+      const s = Math.floor((c % 10000) / 100);
+      const cp = c % 100;
+      const parts = [];
+      if (g > 0) parts.push(`<span class="${tintClass}">${g}</span><span class="coin-g">g</span>`);
+      if (s > 0 || (g > 0 && cp > 0)) parts.push(`<span class="${tintClass}">${s}</span><span class="coin-s">s</span>`);
+      if (cp > 0 || parts.length === 0) parts.push(`<span class="${tintClass}">${cp}</span><span class="coin-c">c</span>`);
+      return (neg ? `<span class="${tintClass}">-</span>` : '') + parts.join(' ');
+    }
+
+    function pctColor(pct) {
+      if (pct <= 50) return 'var(--aux-blue)';
+      if (pct <= 80) return 'var(--aux-pos)';
+      if (pct <= 110) return '#e8d44d';
+      if (pct <= 135) return 'var(--aux-warn)';
+      return 'var(--aux-neg)';
+    }
+
+    function tierCost(tiers, need) {
+      let left = need, cost = 0;
+      for (const t of tiers) {
+        if (left <= 0) break;
+        const take = Math.min(left, t.qty);
+        cost += take * t.price;
+        left -= take;
+      }
+      return { cost, short: left, firstUnit: tiers[0]?.price || 0 };
+    }
+
+    function getMatCalc(mat) {
+      const req = mat.perCraft * state.qty;
+      const selfHave = mat.selfBags + mat.selfBank + mat.bought;
+      const altHave = mat.alts.reduce((sum, a) => sum + a.bags + a.bank + a.mail, 0);
+      const have = selfHave + (state.countAlts ? altHave : 0);
+      const need = Math.max(0, req - have);
+      const ah = tierCost(mat.ahTiers, Math.max(1, need));
+      const ahUnit = ah.firstUnit;
+      const vendorBetter = mat.vendor != null && mat.vendor < ahUnit;
+      const source = need === 0 ? 'done' : (vendorBetter ? 'vendor' : 'ah');
+      const unitPrice = vendorBetter ? mat.vendor : ahUnit;
+      const totalBuy = need === 0 ? 0 : (vendorBetter ? mat.vendor * need : ah.cost);
+      const ahTotal = need === 0 ? 0 : ah.cost;
+      const pct = mat.usual ? Math.round((ahUnit / mat.usual) * 100) : null;
+      return { req, selfHave, altHave, have, need, source, vendorBetter, unitPrice, ahUnit, totalBuy, ahTotal, pct };
+    }
+
+    function renderTooltipPreview() {
+      const el = document.getElementById('tip-inv-block');
+      if (state.tipMode === 'detailed') {
+        el.innerHTML = `
+          <div style="color:#ffd100; font-weight:600">Owned: 22 total</div>
+          <div class="flex justify-between pl-2"><span style="color:#a8a8a8">You</span><span>4 bags &middot; 6 bank</span></div>
+          <div class="flex justify-between pl-2"><span style="color:#5aa9ff">Bankalt</span><span>8 bank &middot; 4 mail</span></div>
+        `;
+      } else {
+        el.innerHTML = `
+          <div class="flex justify-between">
+            <span style="color:#ffd100; font-weight:600">Owned: 22</span>
+            <span style="color:#a8a8a8">4 bags, 6 bank, 12 on alts</span>
+          </div>
+        `;
+      }
+    }
+
+    function render() {
+      const rec = RECIPES[state.recipeKey];
+      document.getElementById('recipe-icon').textContent = rec.icon;
+      document.getElementById('recipe-title').textContent = rec.name;
+      document.getElementById('recipe-makes').textContent = rec.prof;
+      document.getElementById('col-craft-n').textContent = state.qty;
+      document.getElementById('qty-input').value = state.qty;
+      document.getElementById('search-bar-text').textContent = rec.mats.map(m => m.name.toLowerCase() + '/exact').join(';');
+
+      // Alt toggle styling
+      const altTrack = document.getElementById('alt-switch');
+      const altKnob = document.getElementById('alt-knob');
+      altTrack.style.background = state.countAlts ? 'var(--aux-pos)' : 'var(--aux-dim)';
+      altKnob.style.left = state.countAlts ? '18px' : '2px';
+
+      let totalAh = 0, totalVendor = 0, fullCraftCost = 0, remainingAhRows = 0, doneRows = 0;
+      const calcs = rec.mats.map(m => getMatCalc(m));
+
+      calcs.forEach((c, idx) => {
+        const m = rec.mats[idx];
+        const unit = (m.vendor != null && m.vendor < m.ahTiers[0].price) ? m.vendor : m.ahTiers[0].price;
+        fullCraftCost += unit * c.req;
+        if (c.source === 'ah') { totalAh += c.totalBuy; remainingAhRows++; }
+        else if (c.source === 'vendor') { totalVendor += c.totalBuy; }
+        else { doneRows++; }
+      });
+
+      const netSell = Math.floor(rec.sellEach * state.qty * 0.95);
+      const profit = netSell - fullCraftCost;
+      const profitEl = document.getElementById('recipe-profit-line');
+      profitEl.innerHTML = `
+        <span style="color:var(--aux-label)">Full materials (${state.qty}): ${fmtMoney(fullCraftCost)}</span>
+        <span style="color:var(--aux-label)">Sells after 5% cut: ${fmtMoney(netSell)}</span>
+        <span style="color:${profit >= 0 ? 'var(--aux-pos)' : 'var(--aux-neg)'}; font-weight:600">
+          ${profit >= 0 ? 'Profit' : 'Loss'} ${fmtMoney(Math.abs(profit))}
+        </span>
+      `;
+
+      // Table rows
+      const tbody = document.getElementById('shop-tbody');
+      tbody.innerHTML = '';
+      rec.mats.forEach((m, idx) => {
+        const c = calcs[idx];
+        const tr = document.createElement('tr');
+        tr.className = 'aux-row cursor-pointer border-b ' + (idx % 2 === 1 ? 'aux-row-stripe ' : '') + (idx === state.selectedIdx ? 'aux-row-sel' : '');
+        tr.style.borderColor = 'var(--aux-panel-border)';
+
+        const altNote = c.altHave > 0
+          ? `<span style="color:${state.countAlts ? 'var(--aux-blue)' : 'var(--aux-dim)'}" title="Held on alts: ${m.alts.map(a => `${a.name} (${[a.bags && a.bags+' bags', a.bank && a.bank+' bank', a.mail && a.mail+' mail'].filter(Boolean).join(', ')})`).join('; ')}">(${c.altHave} alt${state.countAlts ? '' : ' off'})</span>`
+          : '';
+
+        let sourceBadge = '';
+        if (c.source === 'done') {
+          sourceBadge = `<span class="px-2 py-0.5 rounded font-semibold" style="background:rgba(77,204,102,0.14); color:var(--aux-pos)">In stock</span>`;
+        } else if (c.source === 'vendor') {
+          const save = (c.ahUnit - m.vendor) * c.need;
+          sourceBadge = `<span class="px-2 py-0.5 rounded font-semibold" style="background:rgba(240,148,60,0.16); color:var(--aux-warn)" title="AH is ${fmtMoney(c.ahUnit)} each">Vendor (saves ${fmtMoney(save)})</span>`;
+        } else {
+          sourceBadge = `<span class="px-2 py-0.5 rounded font-semibold" style="background:rgba(229,190,91,0.14); color:var(--aux-accent)">Auction House</span>`;
+        }
+
+        const pctBadge = (c.source === 'ah' && c.pct != null)
+          ? ` <span style="color:${pctColor(c.pct)}">(${c.pct}%)</span>`
+          : '';
+
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 font-medium">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-sm inline-flex items-center justify-center text-[10px] border" style="background:#1c1c1c; border-color:var(--aux-input-border); color:var(--aux-label)">${m.name.slice(0,2).toUpperCase()}</span>
+              <span style="color:${c.source === 'done' ? 'var(--aux-dim)' : 'var(--aux-text)'}">${m.name}</span>
+              ${m.bought > 0 ? `<span class="text-[11px]" style="color:var(--aux-pos)">+${m.bought} bought</span>` : ''}
+            </div>
+          </td>
+          <td class="py-2.5 px-3 text-right tabular-nums" style="color:var(--aux-label)">${c.req}</td>
+          <td class="py-2.5 px-3 text-right tabular-nums">${c.have} ${altNote}</td>
+          <td class="py-2.5 px-3 text-right tabular-nums font-bold" style="color:${c.need === 0 ? 'var(--aux-pos)' : 'var(--aux-text)'}">${c.need === 0 ? '0' : c.need}</td>
+          <td class="py-2.5 px-3 text-center">${sourceBadge}</td>
+          <td class="py-2.5 px-3 text-right tabular-nums">${fmtMoney(c.unitPrice)}${pctBadge}</td>
+          <td class="py-2.5 px-3 text-right tabular-nums font-semibold">${c.need === 0 ? `<span style="color:var(--aux-pos)">Done</span>` : fmtMoney(c.totalBuy)}</td>
+        `;
+        tr.addEventListener('click', () => {
+          state.selectedIdx = idx;
+          state.awaitingConfirm = false;
+          state.statusMsg = '';
+          render();
+        });
+        tbody.appendChild(tr);
+      });
+
+      // Totals strip
+      document.getElementById('shop-totals-left').innerHTML = `
+        <span><span style="color:var(--aux-label)">Still to buy:</span> <strong class="text-sm">${fmtMoney(totalAh + totalVendor)}</strong></span>
+        <span style="color:var(--aux-label)">AH: ${fmtMoney(totalAh)}</span>
+        ${totalVendor > 0 ? `<span style="color:var(--aux-warn)">Vendor: ${fmtMoney(totalVendor)}</span>` : ''}
+      `;
+      document.getElementById('shop-progress-right').textContent =
+        remainingAhRows === 0
+          ? 'All AH materials ready! Grab any vendor items and craft.'
+          : `${remainingAhRows} AH material${remainingAhRows === 1 ? '' : 's'} left to buy`;
+
+      // Buy bar
+      const selMat = rec.mats[state.selectedIdx] || rec.mats[0];
+      const selCalc = calcs[state.selectedIdx] || calcs[0];
+      const buyBar = document.getElementById('shop-buy-bar');
+
+      if (selCalc.need === 0) {
+        buyBar.innerHTML = `
+          <div class="flex items-center gap-3 text-xs">
+            <span class="font-bold" style="color:var(--aux-pos)">${selMat.name}: you already have all ${selCalc.req} needed.</span>
+            ${state.statusMsg ? `<span style="color:var(--aux-pos)">${state.statusMsg}</span>` : ''}
+          </div>
+          <div class="text-xs" style="color:var(--aux-label)">Pick another row above to buy</div>
+        `;
+      } else if (selCalc.source === 'vendor') {
+        buyBar.innerHTML = `
+          <div class="space-y-0.5 text-xs">
+            <div class="font-semibold" style="color:var(--aux-warn)">${selMat.name} (${selCalc.need} needed) is cheaper at a vendor: ${fmtMoney(selMat.vendor)} each (${fmtMoney(selCalc.totalBuy)} total)</div>
+            <div style="color:var(--aux-label)">Auction house starts at ${fmtMoney(selCalc.ahUnit)} each (${fmtMoney(selCalc.ahTotal)} total). aux never blocks you if you prefer to buy it here.</div>
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            <button id="btn-buy-anyway" class="aux-btn px-3 py-1.5 font-medium">Buy ${selCalc.need} on AH anyway (${fmtMoney(selCalc.ahTotal)})</button>
+          </div>
+        `;
+        document.getElementById('btn-buy-anyway').addEventListener('click', () => executeBuy(state.selectedIdx));
+      } else {
+        const confirmStep = state.confirmBeforeBuy && state.awaitingConfirm;
+        buyBar.innerHTML = `
+          <div class="flex items-center gap-3 text-xs">
+            <div>
+              <div class="font-bold text-sm" style="color:var(--aux-text)">${selMat.name}</div>
+              <div style="color:var(--aux-label)">
+                ${state.statusMsg ? `<span style="color:var(--aux-pos)">${state.statusMsg}</span>` : `Quantity pre-filled to your needed ${selCalc.need} (cheapest tiers first)`}
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            <span style="color:var(--aux-label)">Qty</span>
+            <span class="aux-input px-2.5 py-1.5 font-semibold tabular-nums">${selCalc.need}</span>
+            ${confirmStep ? `<button id="btn-cancel-confirm" class="aux-btn px-3 py-1.5">Cancel</button>` : ''}
+            <button id="btn-buy-now" class="${confirmStep ? 'aux-btn-confirm' : 'aux-btn-primary'} px-4 py-1.5 font-semibold">
+              ${confirmStep ? `Confirm ${selCalc.need} for ${fmtMoney(selCalc.ahTotal)}` : `Buy ${selCalc.need} for ${fmtMoney(selCalc.ahTotal)}`}
+            </button>
+          </div>
+        `;
+        if (confirmStep) {
+          document.getElementById('btn-cancel-confirm').addEventListener('click', () => {
+            state.awaitingConfirm = false;
+            render();
+          });
+        }
+        document.getElementById('btn-buy-now').addEventListener('click', () => {
+          if (state.confirmBeforeBuy && !state.awaitingConfirm) {
+            state.awaitingConfirm = true;
+            render();
+          } else {
+            executeBuy(state.selectedIdx);
+          }
+        });
+      }
+
+      // Option B sync
+      document.getElementById('optb-title').textContent = rec.name;
+      document.getElementById('optb-qty').textContent = state.qty;
+      document.getElementById('optb-chips').innerHTML = rec.mats.map((m, i) => {
+        const c = calcs[i];
+        const border = c.need === 0 ? 'var(--aux-pos)' : (c.source === 'vendor' ? 'var(--aux-warn)' : 'var(--aux-accent)');
+        return `<span class="px-2 py-1 rounded border" style="border-color:${border}; background:var(--aux-input-bg)">
+          <strong>${m.name}</strong>: ${c.need === 0 ? '<span style="color:var(--aux-pos)">Done</span>' : `need ${c.need} (${c.source === 'vendor' ? 'Vendor' : 'AH'})`}
+        </span>`;
+      }).join('');
+      document.getElementById('optb-results-tbody').innerHTML = rec.mats.flatMap(m =>
+        m.ahTiers.slice(0, 2).map((t, ti) => `
+          <tr class="border-b ${ti % 2 ? 'aux-row-stripe' : ''}" style="border-color:var(--aux-panel-border)">
+            <td class="py-1.5 px-2 text-center" style="color:var(--aux-dim)">-</td>
+            <td class="py-1.5 px-2 text-center" style="color:var(--aux-dim)">-</td>
+            <td class="py-1.5 px-2">${m.name}</td>
+            <td class="py-1.5 px-2 text-center tabular-nums">${t.qty}</td>
+            <td class="py-1.5 px-2 text-center" style="color:var(--aux-label)">Long</td>
+            <td class="py-1.5 px-2 text-right tabular-nums">${fmtMoney(t.price)}</td>
+            <td class="py-1.5 px-2 text-center" style="color:${pctColor(Math.round(t.price / m.usual * 100))}">${Math.round(t.price / m.usual * 100)}%</td>
+          </tr>
+        `)
+      ).join('');
+
+      renderTooltipPreview();
+    }
+
+    function executeBuy(idx) {
+      const rec = RECIPES[state.recipeKey];
+      const mat = rec.mats[idx];
+      const calc = getMatCalc(mat);
+      if (calc.need <= 0) return;
+      mat.bought += calc.need;
+      state.awaitingConfirm = false;
+      state.statusMsg = `Bought ${calc.need} x ${mat.name}!`;
+      // Auto-advance to next unbought AH row
+      const nextAh = rec.mats.findIndex((m, i) => i !== idx && getMatCalc(m).source === 'ah');
+      if (nextAh !== -1) {
+        state.selectedIdx = nextAh;
+      }
+      render();
+    }
+
+    // Event bindings
+    document.querySelectorAll('.recipe-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.recipeKey = btn.dataset.recipe;
+        state.qty = RECIPES[state.recipeKey].defaultQty;
+        state.selectedIdx = 0;
+        state.awaitingConfirm = false;
+        state.statusMsg = '';
+        document.querySelectorAll('.recipe-pill').forEach(b => {
+          const active = b.dataset.recipe === state.recipeKey;
+          b.className = active
+            ? 'recipe-pill px-2.5 py-1 rounded border border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)] font-medium'
+            : 'recipe-pill px-2.5 py-1 rounded border border-[var(--border)] bg-[var(--background)] hover:border-[var(--primary)]';
+        });
+        render();
+      });
+    });
+
+    document.getElementById('qty-minus').addEventListener('click', () => {
+      state.qty = Math.max(1, state.qty - 1);
+      state.awaitingConfirm = false;
+      render();
+    });
+    document.getElementById('qty-plus').addEventListener('click', () => {
+      state.qty = Math.min(200, state.qty + 1);
+      state.awaitingConfirm = false;
+      render();
+    });
+    document.getElementById('qty-input').addEventListener('input', (e) => {
+      const v = parseInt(e.target.value, 10);
+      if (v >= 1 && v <= 200) { state.qty = v; state.awaitingConfirm = false; render(); }
+    });
+    document.getElementById('alt-switch').parentElement.addEventListener('click', () => {
+      state.countAlts = !state.countAlts;
+      state.awaitingConfirm = false;
+      render();
+    });
+    document.getElementById('chk-confirm').addEventListener('change', (e) => {
+      state.confirmBeforeBuy = e.target.checked;
+      state.awaitingConfirm = false;
+      render();
+    });
+    document.getElementById('btn-reset-sim').addEventListener('click', () => {
+      Object.values(RECIPES).forEach(r => r.mats.forEach(m => m.bought = 0));
+      state.selectedIdx = 0;
+      state.awaitingConfirm = false;
+      state.statusMsg = '';
+      render();
+    });
+    document.getElementById('btn-refresh-prices').addEventListener('click', () => {
+      document.getElementById('subtab-status').textContent = 'Refreshed live AH prices just now';
+    });
+
+    // Option switcher
+    function setOption(opt) {
+      state.option = opt;
+      document.getElementById('view-opt-a').classList.toggle('hidden', opt !== 'a');
+      document.getElementById('view-opt-b').classList.toggle('hidden', opt !== 'b');
+      document.getElementById('subtab-shop').classList.toggle('hidden', opt !== 'a');
+      document.getElementById('subtab-results').className = opt === 'b' ? 'aux-btn-selected px-4 py-1.5 font-semibold' : 'aux-btn px-4 py-1.5 font-medium';
+      document.getElementById('subtab-results').style.color = opt === 'b' ? 'var(--aux-accent)' : 'var(--aux-label)';
+      document.getElementById('btn-opt-a').className = opt === 'a'
+        ? 'px-3 py-1.5 rounded font-medium bg-[var(--primary)] text-[var(--primary-foreground)]'
+        : 'px-3 py-1.5 rounded font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]';
+      document.getElementById('btn-opt-b').className = opt === 'b'
+        ? 'px-3 py-1.5 rounded font-medium bg-[var(--primary)] text-[var(--primary-foreground)]'
+        : 'px-3 py-1.5 rounded font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]';
+    }
+    document.getElementById('btn-opt-a').addEventListener('click', () => setOption('a'));
+    document.getElementById('btn-opt-b').addEventListener('click', () => setOption('b'));
+
+    // Theme switcher
+    function setTheme(t) {
+      state.theme = t;
+      document.getElementById('aux-root').dataset.theme = t;
+      document.getElementById('btn-theme-new').className = t === 'new'
+        ? 'px-2.5 py-1.5 rounded font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)]'
+        : 'px-2.5 py-1.5 rounded font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]';
+      document.getElementById('btn-theme-classic').className = t === 'classic'
+        ? 'px-2.5 py-1.5 rounded font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)]'
+        : 'px-2.5 py-1.5 rounded font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]';
+    }
+    document.getElementById('btn-theme-new').addEventListener('click', () => setTheme('new'));
+    document.getElementById('btn-theme-classic').addEventListener('click', () => setTheme('classic'));
+
+    // Tooltip mode switcher
+    document.getElementById('tip-detailed').addEventListener('click', () => {
+      state.tipMode = 'detailed';
+      document.getElementById('tip-detailed').className = 'px-2 py-0.5 bg-[var(--primary)] text-[var(--primary-foreground)] font-medium';
+      document.getElementById('tip-compact').className = 'px-2 py-0.5 text-[var(--muted-foreground)]';
+      renderTooltipPreview();
+    });
+    document.getElementById('tip-compact').addEventListener('click', () => {
+      state.tipMode = 'compact';
+      document.getElementById('tip-compact').className = 'px-2 py-0.5 bg-[var(--primary)] text-[var(--primary-foreground)] font-medium';
+      document.getElementById('tip-detailed').className = 'px-2 py-0.5 text-[var(--muted-foreground)]';
+      renderTooltipPreview();
+    });
+
+    render();
+  </script>
+</body>
+</html>

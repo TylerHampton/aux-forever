@@ -578,7 +578,9 @@ end
 -- back to normal on a new search, another search in the history, Clear, another sub tab or tab.
 function M.update_done()
     local search = current_search()
-    aux.status_bar:set_done(frame:IsShown() and frame.results:IsShown() and search and search.complete)
+    local on_results = frame.results:IsShown() and search and search.complete
+    local on_shopping = frame.shopping and frame.shopping:IsShown() and shopping_search_complete and shopping_search_complete()
+    aux.status_bar:set_done(frame:IsShown() and (on_results or on_shopping) and true or false)
 end
 
 -- auxForever: "Search Results 37" on the sub tab, and next to the sub tabs what the results hold:
@@ -673,7 +675,9 @@ do
             last_count = count
             search_results_button:SetText(count > 0 and 'Search Results  ' .. aux.color.accent.background(thousands(count)) or 'Search Results')
         end
-        local summary = frame.results:IsShown() and results_summary(search) or ''
+        local summary = frame.results:IsShown() and results_summary(search)
+            or (frame.shopping and frame.shopping:IsShown() and shopping_status_text and shopping_status_text())
+            or ''
         if summary ~= last_summary then
             last_summary = summary
             results_summary_label:SetText(summary)
@@ -737,6 +741,9 @@ function start_search(queries, continuation)
                 search.next_redraw = GetTime() + .25
                 search.redraw_due = nil
                 search.table:SetDatabase()
+                if on_shopping_search_update then
+                    on_shopping_search_update(search, false)
+                end
             else
                 search.redraw_due = true
             end
@@ -783,6 +790,10 @@ function start_search(queries, continuation)
             search.active = false
             update_start_stop()
 
+            if on_shopping_search_update then
+                on_shopping_search_update(search, true)
+            end
+
             -- fast mode: an item clicked while the list was loading, or the only item found
             if search.fast then
                 local pending = search.pending_open
@@ -813,6 +824,10 @@ function start_search(queries, continuation)
 
             search.active = false
             update_start_stop()
+
+            if on_shopping_search_update then
+                on_shopping_search_update(search, true)
+            end
         end,
     }
 end
@@ -930,7 +945,13 @@ function M.execute(_, resume, mode)
     current_search().active = true
     update_start_stop()
     search_box:ClearFocus()
-    set_subtab(RESULTS)
+    -- 0.9.1 (FB-023, Kortan; Tyler 2026-11-22): recipe searches open directly in the Shopping List
+    if search.recipe and not search.recipe.crate and load_shopping_search then
+        load_shopping_search(search)
+        set_subtab(SHOPPING)
+    else
+        set_subtab(RESULTS)
+    end
     if mode == LIVE_MODE then
         start_live_scan(queries[1])
     else
@@ -1092,6 +1113,9 @@ do
         if i and #kept < REFILL_AT and search.folded[row] then
             refill(search, record)
         end
+        if on_shopping_search_update then
+            on_shopping_search_update(search, false)
+        end
     end
 
     local function same_bucket(result, record)
@@ -1181,6 +1205,9 @@ do
                 record.auction_id = bucket.auctionID
                 record.auction_count = max(1, bucket.quantity or 1)
                 search.table:SetDatabase()
+                if on_shopping_search_update then
+                    on_shopping_search_update(search, false)
+                end
             else
                 remove_record(search, record)
             end
@@ -1239,9 +1266,21 @@ do
                     tinsert(search.records, record)
                 end
                 search.table:SetDatabase()
+                if on_shopping_search_update then
+                    on_shopping_search_update(search, true)
+                end
             end,
         }
     end
+
+    -- 0.9.1 (FB-023): shared by shopping.lua so Shopping List buys through the exact same
+    -- commodity and item purchase helpers without duplicating auction state updates
+    M.commodity_tiers_of = commodity_tiers
+    M.consume_commodity_of = consume_commodity
+    M.refresh_commodity_of = refresh_commodity
+    M.sync_bucket_of = sync_bucket
+    M.remove_record_of = remove_record
+    M.purchase_failure_of = failure
 
     local function show_commodity(search, record)
         local item_info = info.item(record.item_id)
@@ -1382,6 +1421,10 @@ do
     function on_update()
         update_live()
         update_results_summary()
+        if not frame.results:IsShown() then
+            checked = nil
+            return
+        end
         local selection = current_search().table:GetSelection()
         if selection and selection.record ~= checked then
             find_auction(selection.record)

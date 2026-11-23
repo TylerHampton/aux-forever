@@ -1650,4 +1650,109 @@ return function(env)
     aux.set_tab(1)
     server:restore()
   end)
+
+  -- 0.9.1 (FB-023, Kortan; Tyler 2026-11-22): Crafting Shopping List against the slow auction
+  -- house: recipe scan opens Shopping List, Craft count pre-fills exact Need across multiple
+  -- price tiers, buying verifies server.purchases, marks material Done, keeps "Bought ..." visible,
+  -- and auto-advances to the next unbought AH material.
+  try('timing: 0.9.1 FB-023 Shopping List 1-click buy loop and auto-advance', function()
+    local server = new_server(env)
+    local search = module 'aux.tabs.search'
+    local info = module 'aux.util.info'
+    local bar = module 'aux.gui.buy_bar'
+    local aux_frame = module('aux').frame
+    local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+
+    -- Recipe: Runecloth Bag (output 14046) needing 6x Bolt (14048), 2x Leather (8170), 1x Thread (14341)
+    server.items[14046] = {name = 'Runecloth Bag', commodity = false, quality = 1, max_stack = 1}
+    server.items[14048] = {name = 'Bolt of Runecloth', commodity = true, quality = 1, max_stack = 20}
+    server.items[8170] = {name = 'Rugged Leather', commodity = true, quality = 1, max_stack = 20}
+    server.items[14341] = {name = 'Rune Thread', commodity = true, quality = 1, max_stack = 20}
+    server.listings[14046] = {{price = 50000, quantity = 1}}
+    server.listings[14048] = {{price = 100, quantity = 10}, {price = 150, quantity = 20}}
+    server.listings[8170] = {{price = 200, quantity = 20}}
+    server.listings[14341] = {{price = 1000, quantity = 20}}
+    server.bag = {{id = 14048, count = 4}} -- player already holds 4 Bolt of Runecloth in bags
+    server:install()
+
+    local aux_mod = module 'aux'
+    local old_mb = aux_mod.account_data.merchant_buy[14341]
+    aux_mod.account_data.merchant_buy[14341] = '500#0'
+    local orig_ts = rawget(G, 'C_TradeSkillUI')
+    G.C_TradeSkillUI = {
+      GetRecipeSchematic = function(id)
+        if id == 18445 then
+          return {
+            name = 'Runecloth Bag',
+            outputItemID = 14046,
+            quantityMin = 1,
+            reagentSlotSchematics = {
+              {required = true, quantityRequired = 6, reagents = {{itemID = 14048}}},
+              {required = true, quantityRequired = 2, reagents = {{itemID = 8170}}},
+              {required = true, quantityRequired = 1, reagents = {{itemID = 14341}}},
+            },
+          }
+        end
+      end,
+    }
+    local was_shown = aux_frame.__shown
+    aux_frame.__shown = true
+    aux.set_tab(1)
+    search.frame:Show()
+    search.update_mode(search.NORMAL_MODE)
+
+    search.search_recipe(18445)
+    local loaded = server:wait(function()
+      local s = search.shopping_state()
+      return s and s.complete and s.recipe and s.recipe.recipe_id == 18445
+    end, 200)
+    check('FB-023 timing: recipe search finishes and opens Shopping List',
+      loaded and search.frame.shopping.__shown == true)
+
+    -- Set Craft = 3: need 18 - 4 = 14 Bolt (10@100 + 4@150 = 1600c), 6 Leather (6@200 = 1200c), 3 Thread (vendor 5s)
+    search.set_shopping_craft_count(3)
+    local _, _, sel_id, plan = search.shopping_state()
+    check('FB-023 timing: auto-selected first AH material with pre-filled Need=14 and exact multi-tier price',
+      sel_id == 14048 and bar.other_input:GetText() == '14'
+      and plain(bar.primary_label()) == 'Buy 14 for 16s'
+      and plan.ah_remaining == 2 and plan.vendor_remaining == 1)
+
+    -- Click Buy (through enabled check) for Bolt of Runecloth
+    check('FB-023 timing: Buy button is enabled', bar.primary_button:IsEnabled() == true)
+    bar.primary_button:Click()
+    local bought_bolt = server:wait(function() return #server.purchases >= 1 end, 60)
+    check('FB-023 timing: server received exact 14x Bolt purchase for 16s',
+      bought_bolt and server.purchases[1].id == 14048 and server.purchases[1].quantity == 14 and server.purchases[1].total == 1600)
+
+    -- Verify Bolt is Done, selection auto-advanced to Rugged Leather (Need=6), and Bought banner stayed visible
+    _, _, sel_id, plan = search.shopping_state()
+    local l1 = bar.lines()
+    check('FB-023 timing: auto-advanced to Rugged Leather with Need=6 and kept Bought banner',
+      sel_id == 8170 and bar.other_input:GetText() == '6'
+      and plan.rows[1].best_source == 'done' and plan.ah_remaining == 1
+      and plain(l1):find('Bought 14', 1, true) ~= nil)
+
+    -- Wait past HOLD_SECONDS so Buy re-enables, then buy 6x Rugged Leather
+    server:ticks(5)
+    check('FB-023 timing: Buy re-enables for Rugged Leather at 12s',
+      bar.primary_button:IsEnabled() == true and plain(bar.primary_label()) == 'Buy 6 for 12s')
+    bar.primary_button:Click()
+    local bought_leather = server:wait(function() return #server.purchases >= 2 end, 60)
+    check('FB-023 timing: server received 6x Rugged Leather purchase for 12s',
+      bought_leather and server.purchases[2].id == 8170 and server.purchases[2].quantity == 6 and server.purchases[2].total == 1200)
+
+    _, _, _, plan = search.shopping_state()
+    check('FB-023 timing: all AH materials done, only 1 vendor material remains',
+      plan.ah_remaining == 0 and plan.vendor_remaining == 1
+      and plain(search.shopping_totals_right.__text):find('All AH materials ready', 1, true) ~= nil)
+
+    -- Cleanup
+    search.clear_shopping_list()
+    search.set_subtab(search.RESULTS)
+    search.frame:Hide()
+    aux_frame.__shown = was_shown
+    aux_mod.account_data.merchant_buy[14341] = old_mb
+    G.C_TradeSkillUI = orig_ts
+    server:restore()
+  end)
 end

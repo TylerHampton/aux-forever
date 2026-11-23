@@ -3,10 +3,11 @@ select(2, ...) 'aux.tabs.search'
 local aux = require 'aux'
 local info = require 'aux.util.info'
 local gui = require 'aux.gui'
+local buy_bar = require 'aux.gui.buy_bar'
 
 local tab = aux.tab 'Search'
 
-RESULTS, SAVED, FILTER = aux.enum(3)
+RESULTS, SAVED, FILTER, SHOPPING = aux.enum(4)
 
 function aux.event.AUX_LOADED()
 	set_subtab(SAVED)
@@ -14,6 +15,14 @@ end
 
 function tab.OPEN()
     frame:Show()
+    if frame.shopping and frame.shopping:IsShown() then
+        buy_bar.attach(frame.shopping)
+        if refresh_shopping_list then
+            refresh_shopping_list(true)
+        end
+    else
+        buy_bar.attach_default()
+    end
     update_search_listings()
     update_done()
     update_fast_switch()
@@ -50,17 +59,31 @@ function set_subtab(tab)
     gui.apply_look(search_results_button, tab == RESULTS and 'selected' or 'tab')
     gui.apply_look(saved_searches_button, tab == SAVED and 'selected' or 'tab')
     gui.apply_look(new_filter_button, tab == FILTER and 'selected' or 'tab')
+    if shopping_list_button then
+        gui.apply_look(shopping_list_button, tab == SHOPPING and 'selected' or 'tab')
+    end
     frame.results:Hide()
     frame.saved:Hide()
     frame.filter:Hide()
+    if frame.shopping then
+        frame.shopping:Hide()
+    end
 
     if tab == RESULTS then
+        buy_bar.attach_default()
         frame.results:Show()
     elseif tab == SAVED then
         frame.saved:Show()
     elseif tab == FILTER then
         frame.filter:Show()
         load_builder()
+    elseif tab == SHOPPING and frame.shopping then
+        clear_selection()
+        buy_bar.attach(frame.shopping)
+        frame.shopping:Show()
+        if refresh_shopping_list then
+            refresh_shopping_list(true)
+        end
     end
     update_done()
     update_results_summary(true)

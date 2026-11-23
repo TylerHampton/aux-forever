@@ -185,8 +185,9 @@ return function(env)
     set(G.C_Container, 'GetContainerItemLink', function(b, i) local s = b == 0 and server.bag[i]; return s and server:link(s.id, s.version) end)
     set(G.C_Container, 'GetContainerItemInfo', function(b, i)
       local s = b == 0 and server.bag[i]
-      return s and {stackCount = s.count, isLocked = s.locked or false, iconFileID = 1, hasLoot = false}
+      return s and {itemID = s.id, stackCount = s.count, isLocked = s.locked or false, iconFileID = 1, hasLoot = false}
     end)
+    set(G.C_Item, 'GetItemCount', function(id) return server:bag_count(item_id_of(id)) end)
     set(G.C_Container, 'GetContainerItemDurability', function() end)
     set(G.ItemLocation, 'CreateFromBagAndSlot', function(_, b, i)
       return {bag = b, slot = i, IsValid = function() return b == 0 and server.bag[i] ~= nil end}

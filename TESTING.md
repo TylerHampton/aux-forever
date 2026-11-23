@@ -8,7 +8,58 @@ saved is exported in `docs/test-results/test-page-results.md`.
 
 If BugSack shows an error at any point, copy its full text into that step's note.
 
-## Current build: 0.9 build 4 (tested 2026-11-22)
+## Current build: 0.9.1 build 1 (testing)
+
+Built 2026-11-22 (Gemini Neon): **Crafting Shopping List** (`FB-023`, Kortan: Option A 4th Search
+sub-tab, Craft count stepper, Vendor vs AH comparison, multi-tier pricing, 1-click buy loop with
+auto-advance) and **opt-in Alt Inventory tracking** (starts completely off by default; per-character
+`Owned` tooltips, `Count alts` switch, bank/account bank/mail snapshots, and **Clear inventory**
+button in Options).
+Zip `auxForever-0.9.1-build1.zip`; **full game restart required** (two new Lua files:
+`core/inventory.lua` and `tabs/search/shopping.lua`).
+
+- [ ] 1. Opt-in default state check (before turning anything on). After restarting the game and
+      logging in, open your bags and point the mouse at any item you own (without clicking). Confirm
+      there is **no** `Owned:` block in the tooltip yet. Then type `/aux settings` (or click the
+      Settings gear at the auction house) and look at the right column under **TOOLTIP LINES**:
+      confirm **Inventory counts** is present and switched **off**.
+- [ ] 2. Open Shopping List from Professions (`FB-023`). At the auction house, open your
+      Professions window, pick a craftable recipe with at least 2 materials (ideally one that uses
+      a vendor item like thread, dye, or vial if you have visited a vendor that sells it), and
+      click **Search in aux** (or Alt-click a recipe link). Confirm auxForever switches straight to
+      the new 4th **Shopping List** sub-tab, shows the recipe title, profit line, and all materials
+      cleanly without overlapping the Craft stepper, Count alts switch, or Refresh prices button.
+- [ ] 3. Craft count stepper and vendor vs AH check. On the Shopping List header, click **+** (or
+      type `3` into the Craft box and press Enter). Confirm the second column header updates to
+      `For 3`, **Need** subtracts what is already in your bags, and the buy bar at the bottom
+      pre-fills the exact **Need** quantity for the selected AH material. If the recipe has a
+      material marked **Vendor** (green), left-click that row: confirm the buy bar warns that it is
+      cheaper at a vendor while still leaving the **Buy** button clickable if AH listings exist.
+- [ ] 4. Right-click to inspect listings and return. Right-click any material row on the Shopping
+      List. Confirm it jumps to **Search Results** showing that item's exact listings. Then click
+      the **Shopping List** sub-tab button again and confirm your recipe and Craft count are still
+      intact.
+- [ ] 5. Buy loop and auto-advance (cheap test craft). Pick a cheap recipe where you need at least
+      2 AH materials (for example a Linen or Copper recipe, or 1 cheap reagent), make sure the
+      first AH material row is selected, and click **Buy** on the buy bar. Confirm the purchase
+      goes through, that row flips to green **Done** (`Ready`), the `"Bought ..."` message stays
+      visible in the buy bar, and the selection automatically moves to the next unbought AH
+      material with its exact **Need** pre-filled.
+- [ ] 6. Opt-in Alt Inventory tooltips, bank, and mail. Turn on **Count alts** on the Shopping List
+      (or turn on **Settings > Tooltip Lines > Inventory counts**). Point the mouse at an item in
+      your bags and confirm the per-character `Owned:` block appears showing `<Character> (You)`
+      with your bag count. Visit your bank once and your mailbox once (if you have any mail), then
+      close both and hover an item that sits in your bank or mail: confirm the tooltip now shows
+      `bags, bank, mail` accurately and keeps the bank/mail count after closing them. (Optional:
+      log onto an alt on the same realm and faction, log back, and confirm both characters appear
+      on separate class-colored lines and **Count alts** subtracts the alt's stock from **Need**.)
+- [ ] 7. Turning off + Clear inventory check. Open **Escape > Options > AddOns > auxForever** (or
+      `/aux settings`), click **Clear inventory** at the bottom, confirm the confirmation popup
+      appears, and click **Cancel** (or **Accept** if you want to wipe saved snapshots). Then turn
+      both **Inventory counts** and **Count alts** back off (if you want them off) and confirm the
+      `Owned:` lines disappear from tooltips right away.
+
+## 0.9 build 4 (tested 2026-11-22)
 
 Built 2026-11-22 (Gemini Neon, commit `79e40dc`): Phase 3 **Narrower Sniper** (`FB-055`: Option A
 slim Watch bar with quick chips, **More...** menu for Forever Categories + Search Favorites, and

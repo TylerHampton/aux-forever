@@ -11,7 +11,7 @@ local auction_listing = require 'aux.gui.auction_listing'
 local buy_bar = require 'aux.gui.buy_bar'
 
 FILTER_SPACING = 27
-SUBTAB_WIDTH = 150
+SUBTAB_WIDTH = 140
 
 frame = CreateFrame('Frame', nil, aux.frame)
 frame:SetAllPoints(aux.frame.body)
@@ -20,6 +20,10 @@ frame:Hide()
 
 frame.filter = gui.panel(frame)
 frame.filter:SetAllPoints(aux.frame.content)
+
+frame.shopping = gui.panel(frame)
+frame.shopping:SetAllPoints(aux.frame.content)
+frame.shopping:Hide()
 
 frame.results = gui.panel(frame)
 frame.results:SetAllPoints(aux.frame.content)
@@ -252,9 +256,18 @@ do
     new_filter_button = btn
 end
 do
+    local btn = gui.button(frame, gui.font_size.medium)
+    btn:SetPoint('TOPLEFT', new_filter_button, 'TOPRIGHT', 2, 0)
+    btn:SetWidth(SUBTAB_WIDTH)
+    btn:SetHeight(26)
+    btn:SetText('Shopping List')
+    btn:SetScript('OnClick', function() set_subtab(SHOPPING) end)
+    shopping_list_button = btn
+end
+do
     -- auxForever: what the shown results hold, e.g. "11 price levels, 6,180 for sale, searched 2m ago"
     local label = gui.label(frame, gui.font_size.small)
-    label:SetPoint('TOPLEFT', new_filter_button, 'TOPRIGHT', 12, 0)
+    label:SetPoint('TOPLEFT', shopping_list_button, 'TOPRIGHT', 12, 0)
     label:SetPoint('BOTTOMRIGHT', aux.frame.content, 'TOPRIGHT', -10, 8)
     label:SetJustifyH('RIGHT')
     gui.text_color(label, aux.color.label.enabled)

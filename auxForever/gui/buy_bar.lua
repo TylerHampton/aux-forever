@@ -259,6 +259,8 @@ local function update_commodity()
             set_lines('Choose how many to buy')
         elseif count < n then
             set_lines('Only ' .. count .. ' for sale', 'Choose a smaller quantity', aux.color.red)
+        elseif current.note then
+            set_lines(current.note[1], current.note[2], current.note[3])
         else
             set_lines(n .. ' × ' .. current.name .. ' for ' .. money.to_string(total, true), 'Cheapest first · avg ' .. money.to_string(ceil(total / n), true) .. ' · highest ' .. money.to_string(max_unit, true) .. ' each')
         end
@@ -412,6 +414,8 @@ local function update_item()
         set_lines(message[1], message[2], message_color)
     elseif record.own or current.own then
         set_lines('This is your own auction', 'It cannot be bought or bid on')
+    elseif current.note then
+        set_lines(current.note[1], current.note[2], current.note[3])
     elseif record.buyout_price > 0 then
         set_lines('1 × ' .. current.name .. ' for ' .. money.to_string(record.buyout_price, true), at_price > 1 and 'The next one at this price is selected after buying' or 'The last one at this price')
     else
@@ -500,17 +504,29 @@ local function show_common(params)
 end
 
 -- params: item_id, name, texture, quality, max_stack, tiers() (the tiers the player can buy,
--- cheapest first), on_success(n), on_refresh(), whole_deal (start at all units offered, up to a stack)
+-- cheapest first), on_success(n), on_refresh(), whole_deal (start at all units offered, up to a stack),
+-- start_quantity (0.9.1 Shopping List: start at exact quantity needed, capped by available),
+-- note ({line1, line2, color} shown while idle), keep_message (keep fresh bought banner on auto-advance)
 function M.show_commodity(params)
     if mode == COMMODITY and current and current.item_id == params.item_id then
-        -- same item (e.g. the table refreshed after a purchase): keep the quantity and any message
-        current.tiers, current.on_success, current.on_refresh = params.tiers, params.on_success, params.on_refresh
+        -- same item (e.g. the table refreshed after a purchase): keep the quantity and any message,
+        -- unless a caller (Shopping List craft count change) explicitly requests a new start_quantity
+        current.tiers, current.on_success, current.on_refresh, current.note = params.tiers, params.on_success, params.on_refresh, params.note
         current.tier_list = params.tiers()
+        if params.start_quantity and state == IDLE then
+            local cap = available()
+            local start = cap > 0 and max(1, min(params.start_quantity, cap)) or max(1, params.start_quantity)
+            current.quantity = start
+            other_input:SetText(tostring(start))
+            other_input.overlay:SetText(other_input.formatter(other_input:GetText()))
+        end
         update()
         return
     end
     reset()
-    message = nil
+    if not params.keep_message then
+        message = nil
+    end
     mode = COMMODITY
     current = params
     current.tier_list = params.tiers()
@@ -520,9 +536,15 @@ function M.show_commodity(params)
     other_input:SetPoint('LEFT', last_chip, 'RIGHT', 6, 0)
     -- 1 by default (0.8.2.2, FB-050), or full stack when Settings > Buying > Default quantity is
     -- set to 'stack' (0.9 build 4, FB-066, user_ivpyccljovcjne72). The Sniper always starts at the
-    -- deal's own units (params.whole_deal), up to a stack.
-    local want_stack = params.whole_deal or (aux.account_data and aux.account_data.buy_default == 'stack')
-    local start = want_stack and max(1, min(params.max_stack or 1, available())) or 1
+    -- deal's own units (params.whole_deal), up to a stack; Shopping List passes start_quantity.
+    local start
+    if params.start_quantity then
+        local cap = available()
+        start = cap > 0 and max(1, min(params.start_quantity, cap)) or max(1, params.start_quantity)
+    else
+        local want_stack = params.whole_deal or (aux.account_data and aux.account_data.buy_default == 'stack')
+        start = want_stack and max(1, min(params.max_stack or 1, available())) or 1
+    end
     current.quantity = start
     other_input:Show()
     other_input:SetText(tostring(start))
@@ -532,7 +554,7 @@ function M.show_commodity(params)
     update()
 end
 
--- params: record, name, texture, quality, own, busy(), on_buy(), on_bid()
+-- params: record, name, texture, quality, own, busy(), on_buy(), on_bid(), note, keep_message
 function M.show_item(params)
     if mode == COMMODITY then
         reset()
@@ -540,7 +562,7 @@ function M.show_item(params)
     if not (mode == ITEM and current and current.record == params.record) then
         item_confirm = nil
         -- "Bought ..." stays when the next auction of the same item is selected after a purchase
-        if not (message_item and message_item == params.name) then
+        if not params.keep_message and not (message_item and message_item == params.name) then
             message = nil
         end
     end

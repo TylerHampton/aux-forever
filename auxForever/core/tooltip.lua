@@ -245,6 +245,10 @@ function extend_tooltip(tooltip, link, quantity, data)
     if bundles then
         search_tab.add_crate_lines(tooltip, bundles, settings.money_icons)
     end
+    -- 0.9.1 (FB-023, Kortan; Tyler 2026-11-22): per-character Owned block, opt-in and off by default
+    if settings.inventory then
+        require('aux.core.inventory').add_tooltip_lines(tooltip, item_id)
+    end
     -- 0.9 (FB-056): Blizzard's TooltipDataHandler calls tooltip:Show() right after post-calls
     -- finish; calling it here risks tainting GameTooltip during combat or dungeons.
 end
