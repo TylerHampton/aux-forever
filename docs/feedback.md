@@ -174,6 +174,7 @@ For whoever fixes or builds from it:
 | [FB-065](#fb-065-sniper-stopped-showing-deals-even-after-changing-thresholds) | 2026-11-22 | marcus4555 | bug | Sniper | S1 | Sniper stopped showing deals even after changing thresholds | new |
 | [FB-066](#fb-066-setting-to-pick-default-buy-quantity-1-vs-full-stack) | 2026-11-22 | user_ivpyccljovcjne72 | request | Buy bar | n/a | Setting to pick default buy quantity (1 vs full stack) | built 0.9 (released 2026-11-22) |
 | [FB-067](#fb-067-posting-2-gear-items-lists-both-but-aux-reports-posted-1-of-2-and-leaves-1-in-the-post-tab) | 2026-11-23 | Tyler | bug | Post | S2 | Posting 2+ gear items lists all of them but aux reports "Posted (N-1) of N" and leaves 1 in the Post tab | fixed 0.9.0.1 (released 2026-11-23) |
+| [FB-068](#fb-068-is-one-button-buy-compatible-with-point-blank-sniper) | 2026-11-23 | potado_guy_99 | question | Sniper | n/a | Is the "one-button-buy" feature compatible with Point Blank Sniper? | new (reply drafted; Sniper research logged) |
 
 ## Players
 
@@ -254,6 +255,8 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
   Heavy Sniper user (326 ignored items).
 - **user_ivpyccljovcjne72**: CurseForge commenter (a name CurseForge generated; in-game name
   unknown). Asked for FB-066; closed with "Great addon."
+- **potado_guy_99**: CurseForge commenter (CurseForge name; in-game name unknown). Asked FB-068;
+  uses Point Blank Sniper.
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
   words.
@@ -3260,6 +3263,37 @@ Recorder's notes:
 Unknowns: none.
 
 Ask Tyler: none (passed in game and released in 0.9.0.1).
+
+### FB-068: Is one-button-buy compatible with Point Blank Sniper
+
+- Received: 2026-11-23 (comment posted 3 hours before screenshot)
+- From: potado_guy_99 (1 question)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-23-potado_guy_99-curseforge.md)
+- Version: unknown (0.9 released 2026-11-22)
+- Type: question
+- Area: Sniper / Buy bar
+- Severity: n/a
+- Status: new (answer and draft CurseForge reply below; Point Blank Sniper speed ideas logged in `docs/sniper-research-pointblanksniper.md`)
+- Proposed: answer on CurseForge; keep improving auxForever's own Sniper tab (0.10 Sniper speed pass)
+
+Said:
+> Is the 'one-button-buy' feature compatible with Point Blank Sniper?
+
+Steps / setup: player uses Point Blank Sniper (which lists Forever `Interface: 16001` in its TOC and requires Auctionator) and wants to know if auxForever's one-button-buy works with it.
+
+Tyler's notes: sent alongside the Point Blank Sniper GitHub/CurseForge links as research for improving auxForever's own Sniper tab.
+
+Recorder's notes:
+- Fact (`[Code]`, `auxForever/Bindings.xml` and `auxForever/gui/buy_bar.lua:741`): auxForever's one-click buy bar (0.8.2.1+) and buying keybinds (`Options > Keybindings > auxForever`, 0.9 `FB-063`) only act on auxForever's own Search and Sniper tabs. They do not hook or drive Point Blank Sniper's separate Buy frame inside Blizzard's / Auctionator's auction house window.
+- Fact (`[Outside]`, `TheMouseNest/PointBlankSniper`, `PointBlankSniper.toc` and `Source/Buy/Main.lua`): Point Blank Sniper lists `## Interface: 120100, 120105, 50503, 16001` and `## RequiredDeps: Auctionator`, and uses its own Buy frame (`PointBlankSniperBuyFrameMixin`).
+- Product signal (per Tyler's feedback rule): players on Forever are actively using Point Blank Sniper and are interested in auxForever's one-button buying. Making auxForever's built-in Sniper tab match Point Blank Sniper's best speed features (Price-Cap Early-Stop, streaming pages, `SearchForItemKeys` watch-list batches if E10 works, and opt-in "Stop & select on first deal" paired with `FB-063` keybinds) removes the need for a second sniper addon. See `docs/sniper-research-pointblanksniper.md`.
+- Draft reply for Tyler on CurseForge:
+  > No, auxForever's one-click buying and buying keybinds (`Options > Keybindings > auxForever`) only work inside auxForever's own Search and Sniper tabs, not inside Point Blank Sniper / Auctionator. auxForever does have its own built-in Sniper tab with Narrower Sniper filters (categories, minimum quality, and Search Favorites) plus one-click buying and Buy/Confirm/Cancel keybinds, and we are looking at adding faster Sniper modes next.
+
+Unknowns: whether they meant auxForever's one-click Buy button or the 0.9 Buy keybinds; the answer ("only inside auxForever's own tabs") covers both cleanly.
+
+Ask Tyler: none (reply drafted above if you want to post it on CurseForge).
 
 ## Before this log
 

@@ -1,9 +1,10 @@
 # Sniper Research: Point Blank Sniper (`TheMouseNest/PointBlankSniper`)
 
 Researched 2026-11-23 (Tyler's time) from [TheMouseNest/PointBlankSniper](https://github.com/TheMouseNest/PointBlankSniper)
-(last pushed 2026-10-14; retail WoW companion addon built on Auctionator and `C_AuctionHouse`).
-Every technique below from Point Blank Sniper is labeled **`[Outside]`** unless checked against
-Blizzard's Forever API (`[Code]`) or observed in game on Forever (`[Seen]`).
+(last pushed 2026-10-14; built on Auctionator and `C_AuctionHouse`, explicitly listing Forever
+`Interface: 16001` in `PointBlankSniper.toc`; related player question `FB-068` from `potado_guy_99`
+in `docs/feedback.md`). Every technique below from Point Blank Sniper is labeled **`[Outside]`**
+unless checked against Blizzard's Forever API (`[Code]`) or observed in game on Forever (`[Seen]`).
 
 ## Summary: top ideas worth adopting for auxForever
 
