@@ -49,6 +49,10 @@ A change that comes from a player's feedback credits them by in-game name at the
 - Post, Auctions and Bids moved one place to the right. With a gamepad, Y presses Search on the
   Upgrades tab, and with a row of its table in focus, Y buys that row: the first Y reads its price
   (the hint says "Y Get price"), the second buys it ("Y Buy").
+- Gamepad: down on the D-pad from the Req, iLvl or Item column header of the Upgrades table goes to
+  the first item under it. It went back to the slot buttons beside the table; the other headers
+  already worked. The same rule applies on every tab: a control that spans the gold frame's
+  position counts as straight below or above it.
 
 ## 0.9.1 (unreleased)
 

@@ -4182,7 +4182,9 @@ try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
   local function place(f, x, y)
     rawset(f, 'GetCenter', function() return x, y end)
     rawset(f, 'GetLeft', function() return x - 5 end)
+    rawset(f, 'GetRight', function() return x + 5 end)
     rawset(f, 'GetTop', function() return y + 5 end)
+    rawset(f, 'GetBottom', function() return y - 5 end)
     return f
   end
   local function typing(box)
@@ -4237,6 +4239,23 @@ try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
   check('gamepad nav: past the last row shown, down scrolls the list', aux_env.gamepad_focused() == r2 and value == 10)
   pad('up')
   check('gamepad nav: up goes back a row', aux_env.gamepad_focused() == r1)
+
+  -- down from a narrow column header at a table's left edge goes to the row under it, not to a
+  -- button of the panel beside the table (Upgrades tab: Req, iLvl and Item jumped back to the slot
+  -- grid, Ben 2026-11-23). A row is as wide as the table, so its center is far to the side.
+  local function span(f, left, right) rawset(f, 'GetLeft', function() return left end); rawset(f, 'GetRight', function() return right end); return f end
+  local wide = CreateFrame('Frame', nil, layout)
+  local header = span(place(CreateFrame('Button', nil, wide), 3010, 200), 3000, 3020)
+  local row_below = span(place(CreateFrame('Button', nil, wide), 3350, 170), 3000, 3700)
+  local slot_beside = span(place(CreateFrame('Button', nil, wide), 2950, 140), 2930, 2970)
+  aux_env.gamepad_set_focus(header)
+  pad('down')
+  check('gamepad nav: down from a narrow header at a table edge goes to the row under it', aux_env.gamepad_focused() == row_below)
+  aux_env.gamepad_set_focus(slot_beside)
+  pad('right')
+  check('gamepad nav: right from the panel beside a table still reaches the table', aux_env.gamepad_focused() == header or aux_env.gamepad_focused() == row_below)
+  wide:Hide()
+  aux_env.gamepad_set_focus(r1)
 
   -- LB and RB: tabs switch at once; past them come Settings, Full scan and Blizzard UI
   aux_env.set_tab(1)
@@ -4588,7 +4607,9 @@ try('gamepad: button hints', function()
   local function place(f, x, y)
     rawset(f, 'GetCenter', function() return x, y end)
     rawset(f, 'GetLeft', function() return x - 5 end)
+    rawset(f, 'GetRight', function() return x + 5 end)
     rawset(f, 'GetTop', function() return y + 5 end)
+    rawset(f, 'GetBottom', function() return y - 5 end)
     return f
   end
   local aux_frame = aux_env.frame

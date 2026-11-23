@@ -284,6 +284,17 @@ local function first_stop()
     return best
 end
 
+-- how far a point is to the side of a control: 0 when the control spans it, else the gap to its
+-- nearest edge. A table row is as wide as the table, so from a narrow column header at the table's
+-- left edge (Req, iLvl, Item) its center is far to the side, and measured center to center the pad
+-- went to a button beside the table instead (Upgrades tab, Ben, 2026-11-23). Falls back to the
+-- center when the edges are not known.
+local function gap(p, low, high, center)
+    if not low or not high or high <= low then return abs(p - center) end
+    if p < low then return low - p elseif p > high then return p - high end
+    return 0
+end
+
 -- the nearest control in a direction: mostly along it, little to the side
 local function nearest(from, direction)
     local x0, y0 = from:GetCenter()
@@ -293,10 +304,10 @@ local function nearest(from, direction)
             local x, y = f:GetCenter()
             local dx, dy = x - x0, y - y0
             local along, side
-            if direction == 'up' then along, side = dy, abs(dx)
-            elseif direction == 'down' then along, side = -dy, abs(dx)
-            elseif direction == 'left' then along, side = -dx, abs(dy)
-            else along, side = dx, abs(dy) end
+            if direction == 'up' then along, side = dy, gap(x0, f:GetLeft(), f:GetRight(), x)
+            elseif direction == 'down' then along, side = -dy, gap(x0, f:GetLeft(), f:GetRight(), x)
+            elseif direction == 'left' then along, side = -dx, gap(y0, f:GetBottom(), f:GetTop(), y)
+            else along, side = dx, gap(y0, f:GetBottom(), f:GetTop(), y) end
             if along > 1 then
                 local score = along + side * 2
                 if not best or score < best_score then best, best_score = f, score end

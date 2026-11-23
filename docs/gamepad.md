@@ -56,7 +56,10 @@ shown, and aux takes it again once it is hidden.
   corner, the close button and the top bar are left out. A visible frame in the `DIALOG` layer
   (Settings, quick searches, the Filter Builder menu, aux's dialog) keeps the focus inside it.
 - **Moving.** The nearest control in the pressed direction wins: distance along the direction plus
-  twice the distance across it. Up or down from a list row, when the nearest control is not a row
+  twice the distance across it. The distance across is measured to the control's nearest edge, so
+  it is 0 when the control spans the starting point (since 2026-11-23: a table row is as wide as
+  the table, and down from the Upgrades tab's Req, iLvl or Item header went to the slot buttons
+  beside the table). Up or down from a list row, when the nearest control is not a row
   of the same list, the list's scroll bar moves one row instead, while it can.
 - **Pressing.** A button with an `OnClick` gets `Click`; other frames get their mouse-down and
   mouse-up scripts. X does the same with the right button. Text boxes get `SetFocus`.

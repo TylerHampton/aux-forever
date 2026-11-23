@@ -145,6 +145,14 @@ Conflicts settled:
 Tests under LuaJIT: both looks 0 errors, 1773 checks. Lint and the `luac5.1` syntax check are not
 installed here (LuaJIT's syntax check passed); CI runs them. Next: steps 1 to 31 in game, step 14
 now in the right column of Settings.
+
+**2026-11-23, Claude, gamepad down from table headers** (Ben: on Upgrades, down from Req, iLvl or
+Item went back to the slot buttons; the other headers went down to the items). The D-pad scored a
+control by its center, and a table row's center is far to the side of a header at the table's
+left edge. It now measures the distance across to the control's nearest edge (`gap` in
+`gamepad.lua`). Test in `tests/load_test.lua` ("down from a narrow header"), checked to fail
+without the fix; the test layout's controls now have all four edges. Both looks 0 errors, 200 fuzz
+seeds clean. Not tried in game: `TESTING.md` step 32. Next: steps 1 to 32.
 **Saved for later (Tyler, 2026-11-16: "Just save the test for a later date :) and we will monitor
 feedback"):** the in-game check of buying through a row of many sellers (S-08; build 7 step 3,
 17 purchases of Linen Belt was too costly). A cheaper way when it is run: a hidden test command

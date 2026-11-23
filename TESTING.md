@@ -543,6 +543,14 @@ restart**. Have a few gold on you, and pick a cheap row to buy.
       endings the line ends with "A Full scan first skips this step". Take a screenshot of each.
       After a Full scan, neither appears; the line reads "Pick a slot and press Search".
 
+- [ ] 32. (Gamepad headers, added 2026-11-23.) `/reload` is enough. With a gamepad, on Upgrades,
+      search a slot that lists some items. Move the gold frame up to the **Req** column header
+      (the word "Req" above the first column of the table) and press **down** on the D-pad: the
+      gold frame is on the first item of the table, not on the slot buttons on the left. Do the
+      same from the **iLvl** and **Item** headers. Then on the Search tab, after any search, do the
+      same from its Req header, and on the Post tab press down from a few buttons to check the gold
+      frame still goes where you expect.
+
 ## Upgrades experiments (branch `search-upgrade-support`, before any code)
 
 Two short checks that decide how the Upgrades tab reads item stats and your spec
