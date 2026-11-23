@@ -97,6 +97,7 @@ used a claude.ai test page; its answers are in `docs/test-results/test-page-resu
 
 **Where the rest is:** everything Claude knew at the takeover in `docs/takeover-2026-11.md`, plans in
 `docs/roadmap.md` (0.9.1: Waylaid Crate Favor/Writs, shopping list + alt inventory, posting rules;
-0.10: granular scan ages & performance), player feedback in `docs/feedback.md`, facts about
+0.10: granular scan ages, Sniper speed pass & performance), Point Blank Sniper research in
+`docs/sniper-research-pointblanksniper.md`, player feedback in `docs/feedback.md`, facts about
 Forever's auction house in `docs/forever-auction-house.md`, older status notes in
 `docs/status-history.md`.

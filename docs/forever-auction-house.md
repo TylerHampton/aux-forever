@@ -368,7 +368,18 @@ page once carried them as build id `ah-facts-1`.
   2026-11-22 (build 4) probes printed `E10 send: false` and `E10: 0 false nil nil nil` (the build 4
   screenshot was initially misread as `true` due to chat image downscaling; corrected 2026-11-22
   after Tyler caught it). Because the throttle was not ready when Line 1 ran, `SearchForItemKeys`
-  remains **[Unknown]** until tested with `IsThrottledMessageSystemReady() == true`.
+  remains **[Unknown]** until tested with `IsThrottledMessageSystemReady() == true`. If it works,
+  it enables Point Blank Sniper-style 100-key single-request Watch List sniping
+  (`docs/sniper-research-pointblanksniper.md`).
+- **E11 Browse price sort order & mid-browse `SendSearchQuery` (2026-11-23, [Unknown]; from
+  `docs/sniper-research-pointblanksniper.md`).**
+  - **E11a (Price-Cap Early-Stop):** Confirm that `SendBrowseQuery` sorted by
+    `Enum.AuctionHouseSortOrder.Price` ascending actually delivers browse pages in ascending
+    `minPrice` order on Forever (so the Sniper can stop calling `RequestMoreBrowseResults()` once a
+    page's last `minPrice` passes a player-chosen max price cap).
+  - **E11b (Streaming browse + live check):** Confirm whether calling `SendSearchQuery` for one item
+    while `HasFullBrowseResults() == false` leaves the browse cursor intact for subsequent
+    `RequestMoreBrowseResults()` calls or resets it.
 - **Note on Blizzard's invisible `AuctionHouseFrame:OnShow` ([Code], 2026-11-21):** when a player
   has Blizzard AH favorites, opening the AH triggers `C_AuctionHouse.SearchForFavorites(sorts)`
   (`Blizzard_AuctionHouseFrame.lua:398-400`), using a throttle slot and firing

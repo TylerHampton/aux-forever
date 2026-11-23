@@ -139,8 +139,14 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
   rows on shortened scrolled lists, `gui/core.lua` unfocused right-click `block_focus`, `color.lua`
   `|cFF` alpha byte, slash commands refreshing Settings, tab lookup by name instead of index,
   Auctions tab `"Sold, money in the mail"` text, and splitting the monolithic `tests/load_test.lua`.
-- **Settle remaining Forever AH unknowns** (especially E1: exact 5% cut and sale mail delay; E4:
-  expired auction deposit).
+- **Sniper speed & workflow pass (from Point Blank Sniper research, 2026-11-23,
+  `docs/sniper-research-pointblanksniper.md`):** Price-Cap Early-Stop mode (whole-AH sniping under
+  a price cap in ~1 to 5s once E11a confirms ascending browse prices), streaming page-by-page
+  browse checks (pending E11b), `SearchForItemKeys` 100-item batch sniping for Search Favorites
+  (pending E10), opt-in "Stop & select on first deal" for 1-hotkey buying with `FB-063`, sorting
+  gear searches by `Buyout` (4) instead of `Price` (0), and "New" deal row highlights.
+- **Settle remaining Forever AH unknowns** (E1: exact 5% cut and sale mail delay; E4: expired
+  auction deposit; E10: `SearchForItemKeys`; E11: browse price order and mid-browse search).
 
 ## 1.0: exit beta (agreed with Tyler 2026-11-21)
 
