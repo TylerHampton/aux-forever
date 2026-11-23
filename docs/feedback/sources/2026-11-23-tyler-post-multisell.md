@@ -50,3 +50,9 @@ unrelated chat lines, character/bag title, gold, and action bars omitted):
   - Auction Buyout (per item) table row 2 shows the player's own listing in green: For sale `3`,
     Time Left `2h`, Buyout `3s 00c`, % of usual `95%`.
 - Open bag window: shows zero Rough Bronze Boots remaining in the bags.
+
+Third message (same date, no screenshot attached):
+
+```
+I was posting 8 auctions and it got through most, but on the last few it did this.
+```
