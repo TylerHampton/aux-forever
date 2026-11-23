@@ -1,7 +1,7 @@
 # Status
 
-Last updated 2026-11-23, Tyler's time (`0.9.0.1` build 1 hotfix for `FB-067` multi-item gear
-posting built on `gemini/0.9.0.1`, awaiting Tyler's in-game test to ship asap).
+Last updated 2026-11-23, Tyler's time (`0.9.0.1` build 1 hotfix for `FB-067` tested and passed in
+game on `gemini/0.9.0.1`; ready to merge and release on Tyler's go-ahead).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-20 and 0.9's
@@ -13,15 +13,16 @@ build-by-build log are there).
 bumped to `forever-0.9.0.1`). `gemini/0.9.1` also exists with 0.9.1 build 1 (Shopping List +
 opt-in Alt Inventory) and will pick up 0.9.0.1 once this hotfix merges to `main`.
 
-**Built, awaiting Tyler's in-game test (0.9.0.1 build 1, 2026-11-23):**
-- **Multi-item gear posting hotfix (`FB-067`, Tyler):** Fixes three bugs in `tabs/post/core.lua`:
-  (1) `AUCTION_MULTISELL_UPDATE` and `BAG_UPDATE` now wait until `bag_count <= bags_before - wanted`
-  instead of `< bags_before` (which ended every 2+ gear post 1 item early with `Posted (N-1) of N`
-  and left a ghost item); (2) intermediate multisell progress events reset the 5-second silence
-  timer so 8+ item batches do not time out mid-batch; (3) `BAG_UPDATE_DELAYED` syncs the Post tab
+**Tested and ready to release (0.9.0.1 build 1, `f851108`, tested 2026-11-23):**
+- **Multi-item gear posting hotfix (`FB-067`, Tyler):** Steps 1 (2 or 3 copies of gear) and 3
+  (single gear + partial trade good) passed in game on 2026-11-23; Steps 2 and 4 were not tested
+  in game and are covered by automated unit and slow-server tests. Fixes three bugs in
+  `tabs/post/core.lua`: (1) `AUCTION_MULTISELL_UPDATE` and `BAG_UPDATE` wait until
+  `bag_count <= bags_before - wanted` instead of `< bags_before`; (2) intermediate multisell
+  progress events reset the 5-second silence timer; (3) `BAG_UPDATE_DELAYED` syncs the Post tab
   bag list while open and idle (zero scans while closed), and `'gone'` posts refresh the bag list.
-  No new files; **`/reload` is enough** from 0.9. In-game steps are under "Current build: 0.9.0.1
-  build 1" in `TESTING.md`.
+  No new files; **`/reload` is enough** from 0.9. Waiting on Tyler's go-ahead to merge and release
+  `0.9.0.1`.
 
 **Released:** **0.9** on 2026-11-22 on `main` (tag `v0.9`, GitHub pre-release, CurseForge Beta
 upload). Full build-by-build log (builds 1 to 4, all tested in game by Tyler): `docs/status-history.md`
