@@ -8,7 +8,50 @@ saved is exported in `docs/test-results/test-page-results.md`.
 
 If BugSack shows an error at any point, copy its full text into that step's note.
 
-## Current build: 0.9 build 4 (tested 2026-11-22)
+## Current build: 0.9.0.1 build 1 (tested 2026-11-23)
+
+Built 2026-11-23 (Gemini Neon, commit `f851108`): hotfix for multi-item gear posting on the
+**Post** tab (`FB-067`). Fixes aux reporting `Posted 1 of 2` / `7 of 8` / `2 of 3` when all
+auctions posted, fixes 8+ item batches timing out after 5 seconds total, and keeps the Post tab bag
+list synced when your bags change while the tab is open.
+Zip `auxForever-0.9.0.1-build1.zip`; **`/reload` is enough** if you are already on 0.9 (no new
+files).
+
+- [x] 1. Post 2 or 3 copies of the same gear item (`FB-067`). On the **Post** tab, click a piece
+      of gear you have 2 or 3 of in your bags (for example Runed Copper Bracers or Rough Bronze
+      Boots), leave Count at all of them, and click **Post 2 items** (or **Post 3 items**).
+      Confirm all auctions post, the green line under Duration says `Posted 2 × Runed Copper
+      Bracers` (or `Posted 3 × Rough Bronze Boots`, not `Posted 1 of 2` in gold or chat), the item
+      disappears from the left bag list right away, and aux automatically selects the next item in
+      your bag list.
+- [ ] 2. Post a larger gear batch of 6 to 8+ copies (optional, if you have one handy). On the
+      **Post** tab, click a gear item you have 6 to 8+ of (for example 8 Runed Copper Gauntlets)
+      and click **Post 8 items**. Confirm aux stays on `Posting...` for the whole batch even if it
+      takes longer than 5 seconds, finishes with the green line `Posted 8 × Runed Copper Gauntlets`
+      (not `Posted 7 of 8`), and clears the item from the bag list with no `Not posted: the item
+      is no longer in your bags.` error.
+- [x] 3. Single gear item and partial trade good sanity check (`FB-067`). On the **Post** tab,
+      post 1 copy of a gear item, then post part of a trade good stack (for example 5 of a 20
+      stack of Rough Stone or Linen Cloth). Confirm both finish cleanly right away (no 5-second
+      hang) and update `in your bags` to the right remaining count.
+- [ ] 4. Live bag sync while Post tab is open (`FB-067`). With the **Post** tab open, click a
+      cheap single item in the left list (or a stack of trade goods) and drop, use, or move it out
+      of your bags without closing aux. Confirm the Post tab updates the count on the left list
+      and `in your bags` automatically (and moves off an item that hits 0) without closing and
+      reopening the Post tab.
+
+### Results (Tyler, 2026-11-23)
+
+1. Post 2 or 3 copies of the same gear item (`FB-067`): **Pass** (multi-item gear post finished
+   cleanly with the right count, cleared the bag list, and moved on to the next item; confirms
+   Forever's final `BAG_UPDATE` fires after `AUCTION_MULTISELL_UPDATE` with no 5-second hang).
+2. Post a larger gear batch of 6 to 8+ copies (optional): **Not tested** (covered by unit and
+   slow-server tests for an 8-item 6.4s+ batch).
+3. Single gear item and partial trade good sanity check (`FB-067`): **Pass**.
+4. Live bag sync while Post tab is open (`FB-067`): **Not tested** (unit-tested; `BAG_UPDATE_DELAYED`
+   also ran without issues after Steps 1 and 3).
+
+## 0.9 build 4 (tested 2026-11-22)
 
 Built 2026-11-22 (Gemini Neon, commit `79e40dc`): Phase 3 **Narrower Sniper** (`FB-055`: Option A
 slim Watch bar with quick chips, **More...** menu for Forever Categories + Search Favorites, and
