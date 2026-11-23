@@ -34,16 +34,19 @@ project page when convenient (updated for 0.9's Options > AddOns panel, Narrower
 and settings).
 
 **Next up for 0.9.1 build 2 (waiting on Tyler's picks):**
-1. **Posting rules based on usual price (`FB-031`, user_yt0k9lezehn1ukm993387):** interactive
-   mockup shown in session; awaiting Tyler's approval on default percentages, layout, and fallback
-   behavior.
-2. **Waylaid Crate Merchant's Favor & reward silver (`FB-059`, `FB-042`, `FB-043`) + Craftsman's
+1. **Waylaid Crate Merchant's Favor & reward silver (`FB-059`, `FB-042`, `FB-043`) + Craftsman's
    Writs (`FB-020`):** web research (`[Outside]`, Forever guides) completed on 2026-11-22; awaiting
    Tyler's in-game confirmation (especially Artisan crate Favor/silver) before mocking up.
-3. **Watch `FB-065`** (marcus4555 Sniper 0 deals report) if the player replies with diagnostic info.
+2. **Watch `FB-065`** (marcus4555 Sniper 0 deals report) if the player replies with diagnostic info.
+
+**Planned for 0.9.2 (Tyler, 2026-11-23):**
+- **Posting rules based on usual price (`FB-031`, user_yt0k9lezehn1ukm993387):** held back from
+  0.9.1 so we can design a sleeker UX for floor/normal/ceiling posting rules before building
+  (mockup first).
 
 **Planned for 0.10 (final beta):** granular scan-age timestamps & cleaner tooltip presentation
-(Tyler, 2026-11-21), Full scan speed/memory pass, and 1.0 readiness (`docs/roadmap.md`).
+(Tyler, 2026-11-21), Full scan speed/memory pass, Sniper speed pass (Point Blank Sniper research),
+and 1.0 readiness (`docs/roadmap.md`).
 
 **Takeover complete (2026-11-20):** Gemini Neon is the primary engineer and Claude Code the
 reviewer (`AGENTS.md`, "Roles"). H-012 in `docs/handoff.md` is closed. Claude-only tools are
@@ -96,8 +99,8 @@ Shift (since 0.9, tooltips show the full stack by default and Shift shows 1 item
 used a claude.ai test page; its answers are in `docs/test-results/test-page-results.md`.)
 
 **Where the rest is:** everything Claude knew at the takeover in `docs/takeover-2026-11.md`, plans in
-`docs/roadmap.md` (0.9.1: Waylaid Crate Favor/Writs, shopping list + alt inventory, posting rules;
-0.10: granular scan ages, Sniper speed pass & performance), Point Blank Sniper research in
-`docs/sniper-research-pointblanksniper.md`, player feedback in `docs/feedback.md`, facts about
-Forever's auction house in `docs/forever-auction-house.md`, older status notes in
+`docs/roadmap.md` (0.9.1: shopping list + opt-in alt inventory, Waylaid Crate Favor/Writs; 0.9.2:
+sleeker posting rules; 0.10: granular scan ages, Sniper speed pass & performance), Point Blank
+Sniper research in `docs/sniper-research-pointblanksniper.md`, player feedback in `docs/feedback.md`,
+facts about Forever's auction house in `docs/forever-auction-house.md`, older status notes in
 `docs/status-history.md`.

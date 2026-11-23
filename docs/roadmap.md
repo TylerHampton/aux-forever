@@ -39,9 +39,11 @@ From the player feedback logged on 2026-11-08 (FB-024 to FB-034, `docs/feedback.
   toggle (FB-061), right-click bag to sell default on (FB-062), default buy quantity 1 / Stack
   (FB-066), Fast green random-suffix search fix (FB-064), dungeon/tooltip hardening (FB-056), and
   the 2026-11-21 reliability foundation.
-- **0.9.1 (next, pushed from 0.9 by Tyler 2026-11-22):** Waylaid Crate Merchant's Favor and
-  Craftsman's Writs (FB-059, FB-042, FB-020), crafting shopping list and alt inventory tracking
-  (FB-023), and posting rules based on usual price (FB-031), mockup first for each.
+- **0.9.1 (active, pushed from 0.9 by Tyler 2026-11-22):** crafting shopping list and opt-in alt
+  inventory tracking (FB-023, built in build 1), plus Waylaid Crate Merchant's Favor and
+  Craftsman's Writs (FB-059, FB-042, FB-020), mockup first for each.
+- **0.9.2 (planned by Tyler 2026-11-23):** sleeker Posting Rules based on usual price (FB-031,
+  floor/normal/ceiling), mockup first.
 - Not placed yet: showing how many days a usual price rests on, and keeping more days (FB-030).
 
 ## 0.8: released 2026-11-08 (planned by Tyler, 2026-10-17)
@@ -115,12 +117,17 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
 - **Shopping list for crafting** (FB-023, Kortan): pick a recipe, type how many to craft, see
   what is still needed (bags counted, the bank once opened) and where each material is cheaper,
   auction house or vendor, then buy down the list. One recipe at a time (mockup first).
-- **What your other characters hold** (from FB-023, Kortan): each character, when logged in with
-  aux, records its bags, bank, and mail; the shopping list and tooltips then count them.
-- **Posting rules based on usual price, like TSM** (FB-031, user_yt0k9lezehn1ukm993387): floor,
-  normal, and ceiling rules for the Post tab (mockup first).
+- **What your other characters hold** (from FB-023, Kortan, built in 0.9.1 build 1): opt-in
+  per-character tracking (off by default) recording bags, bank (once opened), and mail (once
+  opened); the shopping list and tooltips count them when enabled.
 - **Candidate (not decided by Tyler):** a controller button to search (FB-053; first an experiment:
   can an addon bind the triggers).
+
+## 0.9.2: planned (Tyler, 2026-11-23)
+
+- **Posting rules based on usual price, like TSM** (FB-031, user_yt0k9lezehn1ukm993387): design a
+  sleeker way to handle floor, normal, and ceiling posting rules on the Post tab (mockup first;
+  deferred from 0.9.1 by Tyler on 2026-11-23).
 
 ## 0.10: final beta (deep performance, polish, and 1.0 readiness; agreed with Tyler 2026-11-21)
 

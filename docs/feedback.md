@@ -137,7 +137,7 @@ For whoever fixes or builds from it:
 | [FB-028](#fb-028-the-sniper-takes-over-30-seconds-from-its-sound-to-the-purchase) | 2026-11-08 | user_ayzkr6rhvrlna3ya | bug | Sniper | S2 | The Sniper takes over 30 seconds from its sound to the purchase | fixed 0.8.2 (released 2026-11-09) |
 | [FB-029](#fb-029-price-gear-with-a-random-ending-of-the-eagle-of-the-bear-separately) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Other | n/a | Price gear with a random ending ("of the Eagle", "of the Bear") separately | built 0.8 (released 2026-11-08) |
 | [FB-030](#fb-030-how-the--of-historical-value-works-keep-more-price-history) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | question | Other | n/a | How the % of historical value works; keep more price history | new |
-| [FB-031](#fb-031-posting-rules-based-on-historical-value-like-tsm) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Post | n/a | Posting rules based on historical value, like TSM | planned 0.9.1 |
+| [FB-031](#fb-031-posting-rules-based-on-historical-value-like-tsm) | 2026-11-08 | user_yt0k9lezehn1ukm993387 | request | Post | n/a | Posting rules based on historical value, like TSM | planned 0.9.2 |
 | [FB-032](#fb-032-start-a-full-scan-when-the-window-opens-if-the-15-minute-wait-is-over) | 2026-11-08 | Chawitsch | request | Settings | n/a | Start a full scan when the window opens, if the 15 minute wait is over | built 0.9 (released 2026-11-22) |
 | [FB-033](#fb-033-tooltip-prices-for-the-whole-stack-not-one-item) | 2026-11-08 | Chawitsch | ux | Other | n/a | Tooltip prices for the whole stack, not one item | wont-fix (Tyler: no Shift instructions in tooltips; Shift already works) |
 | [FB-034](#fb-034-opening-aux-moves-blizzards-professions-window-to-the-right) | 2026-11-08 | Chawitsch | bug | Window | S3 | Opening aux moves Blizzard's Professions window to the right | fixed 0.8.1 (released 2026-11-09) |
@@ -1702,8 +1702,8 @@ to keep? (Keeping more days costs memory per item; aux keeps one short line of t
 - Type: request
 - Area: Post
 - Severity: n/a
-- Status: planned 0.9.1 (moved from 0.9 by Tyler, 2026-11-22; mockup first)
-- Proposed: a later minor version (0.9 or after), mockup first
+- Status: planned 0.9.2 (deferred from 0.9.1 by Tyler, 2026-11-23: design a sleeker UX before building; mockup first)
+- Proposed: 0.9.2, mockup first
 
 Said:
 > 2. Would it be possible to get a feature where you can always decide what you want to sell items for, in relation to historical values? Like, what if I want to post all my items at [150%] historical value? Would be amazing with a setting that just automatically posts all items at a set value like that. This could also be something like "always undercut by [1c]" if people would want to post their items like that. Or something more advanced like "if [150%] historical value is lowest, post, but if [150%] historical value is higher than the lowest auction, undercut, but if lowest auction is under [80%] historical value, don't post at all", like how TradeSkillMaster would be able to do.
