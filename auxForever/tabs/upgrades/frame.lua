@@ -282,7 +282,7 @@ end
 
 -- Full scan tip (Ben, 2026-11-17: "running a full scan prior to looking for upgrades is highly
 -- recommended"). A Full scan saves the stats of every ending (core.lua), so a search here skips
--- most of its reading step (E11: 21 reads instead of 100+). Shown before a search and while the
+-- most of its reading step (E15: 21 reads instead of 100+). Shown before a search and while the
 -- tab reads endings, only when no Full scan was started in the last day. On the status line, not
 -- the left panel: the left panel has no room left at the smallest window.
 M.FULL_SCAN_TIP_AGE = 24 * 3600

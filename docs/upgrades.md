@@ -8,7 +8,7 @@ examples, not game data.
 ## What the player gets
 
 A tab after Sniper, **Upgrades**. The player picks a spec (their class's specs; the choice is
-saved per character, since Forever does not report talent trees, E9), a slot (Head ... Ranged)
+saved per character, since Forever does not report talent trees, E13), a slot (Head ... Ranged)
 and how far above their level to look, and presses Search. aux reads what they wear in that slot, searches the auction house for gear of that slot
 they can use, scores every item with the spec's stat weights and lists the ones that beat what
 they wear: the score, the gain over the worn item, the stats that change, and the price, best gain
@@ -46,7 +46,7 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
 
 ## Steps
 
-1. Experiments E12 and E9 in game (`TESTING.md`, "Upgrades experiments"): done 2026-11-16.
+1. Experiments E12 and E13 in game (`TESTING.md`, "Upgrades experiments"): done 2026-11-16.
 2. Mockup approved (the link above): approved by Ben, 2026-11-16.
 3. Stat reading and scoring, with tests: built 2026-11-16, `core/stats.lua` (`key_stats`,
    `link_stats`, `score`, `worn_score`, `compare`, `changes`), test `upgrades: stats, scores and
@@ -61,7 +61,7 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
    from each guide's Strength and Agility conversion (`docs/stat-priorities.md`, "Attack Power
    conversions"). Also 2026-11-16 (Ben): a "Per gold" column, score points gained per gold of the price
    (`per_gold` in `tabs/upgrades/core.lua`), after Gain; the table still sorts by Gain. The
-   game's stat names are Retail's until experiment E10 confirms Forever's.
+   game's stat names are Retail's until experiment E14 confirms Forever's.
 5. The tab: controls, search, results table, renumbering. Built 2026-11-16 (`tabs/upgrades/`),
    with tests; not tried in game yet (`TESTING.md`, "Upgrades tab, first build"). One change from
    the mockup: a row opens that exact item on the Search tab, which shows its auctions and buys it
@@ -75,7 +75,7 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
    name with the same stats). Saved for the account (`account_data.ending_stats`, Ben: "so they
    don't have to be looked up"), and read again after a game patch (another build number from
    `GetBuildInfo`), 30 days after each was read (a server-side fix that keeps the build), or when
-   the player presses Clear in Settings, Upgrades, "Saved item stats". Saved by item, item level
+   the player presses Clear in Settings, Upgrades (the "Stat weights" row since the 0.9.1 merge). Saved by item, item level
    and name, so each item level has its own. Left open (Ben, 2026-11-17, "leave it for now"):
    versions of one name at one item level (Ritual Belt of Arcane Protection, 14320 to 14323) share
    the first one read; if they differ in strength **[Unknown]**, keying by the version number reads
@@ -95,9 +95,9 @@ The tab informs, it does not decide (`AGENTS.md`): it shows the score and what i
    stats are read and saved, 50 names a frame. Each saved name gets the scan's date, so its 30
    days start again. Every level and class is saved, for the account's other characters. Not yet
    seen: that those links carry the ending's stats and that their item level matches the one the
-   tab looks up (E11 in `docs/forever-auction-house.md`, `TESTING.md` steps 28 and 29). If either
+   tab looks up (E15 in `docs/forever-auction-house.md`, `TESTING.md` steps 28 and 29). If either
    fails, the tab reads endings itself, as before.
-   Result the same day (Ben, E11): 11,354 names saved; Chest, Back and Wrist then read only 21
+   Result the same day (Ben, E15): 11,354 names saved; Chest, Back and Wrist then read only 21
    themselves, each seen by the scan but given no stats by the game at that moment. So names that
    come back empty are tried again every second, 5 times, after the first pass.
    2026-11-17 (Ben): the tab says a Full scan first is highly recommended. On the status line

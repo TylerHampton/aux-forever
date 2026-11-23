@@ -185,8 +185,9 @@ return function(env)
     set(G.C_Container, 'GetContainerItemLink', function(b, i) local s = b == 0 and server.bag[i]; return s and server:link(s.id, s.version) end)
     set(G.C_Container, 'GetContainerItemInfo', function(b, i)
       local s = b == 0 and server.bag[i]
-      return s and {stackCount = s.count, isLocked = s.locked or false, iconFileID = 1, hasLoot = false}
+      return s and {itemID = s.id, stackCount = s.count, isLocked = s.locked or false, iconFileID = 1, hasLoot = false}
     end)
+    set(G.C_Item, 'GetItemCount', function(id) return server:bag_count(item_id_of(id)) end)
     set(G.C_Container, 'GetContainerItemDurability', function() end)
     set(G.ItemLocation, 'CreateFromBagAndSlot', function(_, b, i)
       return {bag = b, slot = i, IsValid = function() return b == 0 and server.bag[i] ~= nil end}
@@ -312,6 +313,7 @@ return function(env)
       env.fire('AUCTION_HOUSE_AUCTION_CREATED', next_auction_id)
       next_auction_id = next_auction_id + 1
       env.fire('BAG_UPDATE', 0)
+      env.fire('BAG_UPDATE_DELAYED')
     end
     set(C, 'PostCommodity', function(location, duration, quantity, unit_price)
       local s = server.bag[location.slot]
@@ -320,7 +322,7 @@ return function(env)
       local post = {id = s.id, quantity = quantity, unit_price = unit_price, duration = duration}
       table.insert(server.posts, post)
       later(function() finish_post(post) end)
-      return true
+      return false
     end)
     set(C, 'PostItem', function(location, duration, quantity, bid, buyout)
       local s = server.bag[location.slot]
@@ -328,8 +330,27 @@ return function(env)
       sent('post')
       local post = {id = s.id, quantity = quantity, bid = bid, buyout = buyout, duration = duration, version = s.version}
       table.insert(server.posts, post)
-      later(function() finish_post(post) end)
-      return true
+      if quantity > 1 then
+        env.fire('AUCTION_MULTISELL_START', quantity)
+        local step = server.multisell_step or .8
+        local bag_lag = server.multisell_bag_lag or .2
+        for i = 1, quantity do
+          later(function()
+            add_listing(post.id, post.buyout or 0, 1, true, post.bid, post.version)
+            env.fire('AUCTION_HOUSE_AUCTION_CREATED', next_auction_id)
+            next_auction_id = next_auction_id + 1
+            env.fire('AUCTION_MULTISELL_UPDATE', i, quantity)
+            later(function()
+              take_from_bag(post.id, 1, post.version)
+              env.fire('BAG_UPDATE', 0)
+              env.fire('BAG_UPDATE_DELAYED')
+            end, bag_lag)
+          end, server.delay + (i - 1) * step)
+        end
+      else
+        later(function() finish_post(post) end)
+      end
+      return false
     end)
 
     -- buying a trade good: a quote first, then the purchase, each answered later

@@ -67,8 +67,10 @@ from aux on Classic:
   game always sells the cheapest units first. The buy bar offers quantities with their total cost,
   asks the server for the real price when you click Buy and buys only if it is no higher than the
   price on the button. If the price went up in the meantime, nothing is bought and the listings
-  are read again.
+  are read again. It starts at 1 by default (switch to a full stack in Settings or `/aux buy quantity`).
 - **Gear is bought one at a time** at the price on the button, and can still be bid on.
+- **One click buys.** For a second click first, turn on "Confirm before buying" in Settings
+  (`/aux buy confirm`): Buy then shows the price on a Confirm button, for trade goods and gear.
 - **Match the lowest price by default.** The Post tab starts at the cheapest listing's price, so
   prices do not slide one step lower with every new listing. On the modern auction house the newest
   listing at a price is said to sell first, which would make matching sell as fast as undercutting;
@@ -76,7 +78,7 @@ from aux on Classic:
   below when you want it.
 - **Gear with a random ending** ("of the Wolf") has its own price per ending, told apart by the
   item's name, as Blizzard's Sell window groups it.
-- **Full scans** are allowed once every 15 minutes.
+- **Full scans** are allowed once every 15 minutes (optional **Auto Full scan** on AH open in Settings).
 
 ## Features
 
@@ -85,8 +87,12 @@ from aux on Classic:
 - Completely independent replacement for the Blizzard auction house window, one click away from
   the unaltered Blizzard interface.
 - A resizable window that remembers its size and position.
-- Settings behind the gear: two themes (New, and Classic for the 0.5 look), background opacity,
-  window scale, the default auction length, and an on/off switch for each tooltip line.
+- Settings behind the gear at the auction house, and anywhere in the world under **Escape > Options >
+  AddOns > auxForever** (`/aux settings`): two themes (New, and Classic for the 0.5 look),
+  background opacity, window scale, default auction length, buying and posting toggles, Auto Full
+  scan, Professions cost line toggle, and an on/off switch for each tooltip line.
+- Optional buying keybinds under **Options > Keybindings > auxForever** for Buy, Confirm, Cancel,
+  and Buy or confirm (works on Search and Sniper).
 - Many convenient shortcuts.
 - Works with a controller in Forever's gamepad mode: the D-pad moves between controls, A presses,
   B goes back, X right-clicks, Y does the tab's main action (buy, post, start the Sniper), LB and
@@ -134,9 +140,11 @@ from aux on Classic:
 
 **Sniper**
 
-- Watches the whole auction house round after round and lists deals as they appear: items below
-  vendor price, or well under their usual price, with a minimum profit. You set the percentage and
-  the profit.
+- Watches the auction house round after round and lists deals as they appear: items below vendor
+  price, or well under their usual price, with a minimum profit. You set the percentage and profit.
+- Narrow the Watch bar to a single category (**Trade Goods**, **Consumables**, **Recipes**, or any
+  category in **More...**), any pinned **Search Favorite**, and a minimum **Quality** (**Common+**
+  to **Epic+**) for sub-second rounds.
 - Every deal is checked against the item's real auctions before it is shown, and bought from the
   same buy bar as on the Search tab.
 - Deals show up while a round is still running. A sound (at most once every 10 seconds) and a
@@ -170,7 +178,8 @@ from aux on Classic:
 
 - Gathers price history from every search and scan.
 - A single, simple but reliable historical value per item.
-- Tooltip with the historical value, vendor prices, disenchant value and more.
+- Tooltip with the full-stack historical value and vendor price by default (hold Shift for 1 item),
+  disenchant value and more.
 
 ## Slash commands
 
@@ -179,10 +188,16 @@ from aux on Classic:
 **General**
 
 - `/aux` lists the settings.
+- `/aux settings` (or `/aux config`, `/aux options`) opens Options > AddOns > auxForever anywhere.
 - `/aux scale factor` scales the window.
 - `/aux opacity N` sets the background opacity, from 50 to 100 percent.
 - `/aux undercut` explains undercutting on Forever; `/aux undercut on|off` sets undercut mode.
   It always starts off when the auction house opens.
+- `/aux buy confirm` turns the second Confirm click on or off before buying.
+- `/aux buy quantity 1|stack` sets whether the Search buy bar starts at 1 unit or a full stack.
+- `/aux right click post` controls whether right-clicking a bag item always opens the Post tab.
+- `/aux auto scan` toggles automatic Full scan when opening the auction house.
+- `/aux crafting cost` shows or hides the Materials and Profit line in the Professions window.
 - `/aux ignore owner` stops waiting for owner names when scanning.
 - `/aux action shortcuts` enables the Alt-click shortcuts for buyout, bid and cancel.
 - `/aux post bid` adds a bid price to the Post tab.
@@ -198,8 +213,9 @@ from aux on Classic:
 
 **Tooltip**
 
-The same lines can be turned on and off in Settings (the gear), under Tooltip lines (from 0.6).
+The same lines can be turned on and off in Settings (the gear or `/aux settings`), under Tooltip lines.
 
+- `/aux tooltip stack` (show full-stack prices by default, hold Shift for 1 item)
 - `/aux tooltip value`
 - `/aux tooltip daily`
 - `/aux tooltip disenchant value`
@@ -223,8 +239,9 @@ The same lines can be turned on and off in Settings (the gear), under Tooltip li
 **Search**
 
 - Tab accepts an autocompletion.
-- Right-click, Shift-click or Alt-click an item in your bags to search for it (from the Sniper,
-  Auctions or Bids tab too: aux switches to Search).
+- Shift-click or Alt-click an item in your bags to search for it (from the Sniper, Auctions or Bids
+  tab too: aux switches to Search). Right-clicking a bag item opens the Post tab by default
+  (turn off "Right-click bag to sell" in Settings if you prefer right-click to search).
 - The clock button next to the arrows opens your quick searches. Pin the ones you use often.
 - Alt-click a recipe in the profession window to search it with its materials.
 
@@ -256,10 +273,11 @@ Simon's [aux page](https://www.curseforge.com/wow/addons/aux) describes every fi
 
 - **Value** in tooltips is the market price from your latest look at an item (a Full scan or a
   search): the middle price of the cheapest twentieth of what was listed, so one odd cheap auction
-  does not set it. It shows when aux saw it ("seen today", "seen 3 days ago").
+  does not set it. It shows the full stack price by default (hold Shift for 1 item) with a compact
+  scan age (`today`, `3d`, dimmed when older).
 - **The usual price** is a median of up to 14 days, recent days counting more. The Sniper and the
-  % columns compare against it, and tooltips show it as "usually ..." when it is far from the
-  latest price.
+  % columns compare against it, and tooltips show it as a percent after Value ("Value: 2s (67%)"),
+  in the same colors as the % columns.
 - **For addon authors:** other addons can read these prices through `AuxForeverAPI`
   (`GetLatestPrice`, `GetUsualPrice`); how to use it is in
   [docs/api.md](https://github.com/TylerHampton/aux-forever/blob/main/docs/api.md).

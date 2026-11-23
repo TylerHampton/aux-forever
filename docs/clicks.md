@@ -177,11 +177,16 @@ Tyler approved the standard and the hover hint mockup on 2026-10-07 ("Everything
 - Not changed: Shift and Ctrl on rows, the Alt shortcuts, right-click on text boxes, the Sniper's
   hold (part of the Sniper rework, `docs/roadmap.md`).
 
-### For the session building 0.5
+### Built in 0.9 (2026-11-21)
 
-- Show Tyler the standard table above (and the hover hint mockup) for an OK before changing clicks.
-- `core/shortcut.lua` is where bag clicks go; right-click on a bag item is not a modified click,
-  so it needs Blizzard's bag click code checked first (FB-002).
-- Update the Usage section of `docs/curseforge-description.md` and `docs/curseforge.md` to match.
-- Tests: each click rule above that changes gets a test (the harness can call the handlers; see
-  AGENTS.md, Tests). In-game checks go into `TESTING.md`.
+- Right-click bag item to sell (`FB-062`, on by default since 0.9 build 3, Settings > Posting >
+  "Right-click bag to sell" or `/aux right click post`): when enabled, right-clicking a bag item
+  while aux is open switches to the Post tab (looked up by name) and loads the item, matching
+  Blizzard's default auction house habit. Shift-click and Alt-click stay tab-aware.
+- Keybinds (`FB-063`, `auxForever/Bindings.xml`, Options > Keybindings > auxForever): optional
+  keyboard or mousewheel bindings for **Buy**, **Confirm purchase**, **Cancel / decline purchase**,
+  and **Buy or confirm**. They act on whichever buy bar (Search or Sniper) is visible while aux is
+  open, ignore presses while typing in an edit box, and keep Buy and Confirm separate so mashing Buy
+  cannot accidentally confirm when "Confirm before buying" is enabled. Does not collide with
+  gamepad override bindings (`gamepad.lua`).
+

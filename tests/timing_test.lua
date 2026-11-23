@@ -580,9 +580,9 @@ return function(env)
     -- Settings: the count, and Clear
     local settings = module 'aux'
     settings.refresh_settings()
-    check('endings: Settings shows how many are saved', settings.endings_row.hint:GetText() == '2 endings')
+    check('endings: Settings shows how many are saved', settings.endings_row.hint:GetText() == '2 endings saved')
     settings.endings_clear_button.__scripts.OnClick(settings.endings_clear_button)
-    check('endings: Clear empties them', up.saved_stats_count() == 0 and settings.endings_row.hint:GetText() == '0 endings')
+    check('endings: Clear empties them', up.saved_stats_count() == 0 and settings.endings_row.hint:GetText() == '0 endings saved')
     check('endings: and the next search reads them again', reads_on_search() == 2)
 
     -- the lower edge (Ben, 2026-11-17): at level 60, endings of items under level 45 (25% below)
@@ -1662,5 +1662,419 @@ return function(env)
     check('leave post: the read ends without an error', env.errors() == errors_before)
     aux.set_tab(1)
     server:restore()
+  end)
+
+  -- 0.9 build 1: Forever's AH throttle can freeze (IsThrottledMessageSystemReady stuck false,
+  -- Seen 2026-11-20). wait_throttle times out cleanly with a message instead of hanging forever.
+  try('timing: 0.9 wait_throttle timeout ends scan cleanly instead of hanging', function()
+    local server = new_server(env)
+    local scan = loadstring("select(2, ...) 'aux.test.t_throttle'; return require 'aux.core.scan'")('auxForever', addon)
+    local post = module 'aux.tabs.post'
+    server.items[2835] = {name = 'Rough Stone', commodity = true, vendor = 1}
+    server.listings[2835] = {{price = 7, quantity = 10}}
+    server.bag = {{id = 2835, count = 5}}
+    server:install()
+    local real_ready = G.C_AuctionHouse.IsThrottledMessageSystemReady
+    rawset(G.C_AuctionHouse, 'IsThrottledMessageSystemReady', function() return false end)
+    local orig_timeout = scan.THROTTLE_TIMEOUT
+    local scan_mod = module 'aux.core.scan'
+    scan_mod.THROTTLE_TIMEOUT = 1
+    local printed, real_print = {}, aux.print
+    rawset(aux, 'print', function(msg) tinsert(printed, tostring(msg)) end)
+    local got_result
+    scan.start{
+      type = 'list',
+      queries = {{blizzard_query = {name = 'rough stone'}}},
+      on_complete = function(r) got_result = r end,
+    }
+    check('0.9 throttle: scan finishes after THROTTLE_TIMEOUT', server:wait(function() return got_result ~= nil end, 30))
+    check('0.9 throttle: result marks throttled and saw_everything is false', got_result and got_result.throttled == true and not scan.saw_everything(got_result))
+    local saw_msg = false
+    for _, line in ipairs(printed) do
+      if line == scan.THROTTLE_TEXT then saw_msg = true end
+    end
+    check('0.9 throttle: clear chat message printed', saw_msg)
+    rawset(aux, 'print', real_print)
+    scan_mod.THROTTLE_TIMEOUT = orig_timeout
+    rawset(G.C_AuctionHouse, 'IsThrottledMessageSystemReady', real_ready)
+    server:restore()
+  end)
+
+  -- 0.9 build 1: sync_bucket stops when the AH closes and times out if the throttle freezes
+  try('timing: 0.9 sync_bucket stops on AH close and throttle freeze', function()
+    local server = new_server(env)
+    local search = module 'aux.tabs.search'
+    local scan_mod = module 'aux.core.scan'
+    local bar = module 'aux.gui.buy_bar'
+    server.items[7010] = {name = 'Bucket Sword', commodity = false, vendor = 100}
+    server.listings[7010] = {{price = 500, quantity = 1}, {price = 500, quantity = 1}}
+    server:install()
+    aux.set_tab(1)
+    search.frame:Show()
+    search.update_mode(search.NORMAL_MODE)
+    local was_full = aux.account_data.full_search
+    search.set_full_search(true)
+    search.search_box:SetText('bucket sword')
+    search.execute(nil, false)
+    local s = search.current_search()
+    check('0.9 sync_bucket: search finds bucket sword', server:wait(function() return s.complete end, 100) and #s.records >= 1)
+    local rec = s.records[1]
+    rec.auction_count = 2
+    s.table:SetSelectedRecord(rec)
+    server:ticks(5)
+    -- Prevent cached bucket hit so sync_bucket enters its 1.5s wait + SendSearchQuery fallback
+    local sent_after_close = 0
+    local real_send = G.C_AuctionHouse.SendSearchQuery
+    local real_num = G.C_AuctionHouse.GetNumItemSearchResults
+    rawset(G.C_AuctionHouse, 'GetNumItemSearchResults', function() return 0 end)
+    rawset(G.C_AuctionHouse, 'SendSearchQuery', function(...)
+      sent_after_close = sent_after_close + 1
+      return real_send(...)
+    end)
+    -- Buy one, wait for purchase completion, then immediately close AH before 1.5s sync fallback
+    local prev_confirm = aux.account_data.buy_confirm
+    aux.account_data.buy_confirm = false
+    bar.primary_click()
+    check('0.9 sync_bucket: purchase lands and syncing starts', server:wait(function() return rec.syncing == true end, 50))
+    sent_after_close = 0
+    env.fire('AUCTION_HOUSE_CLOSED')
+    server:ticks(30)
+    check('0.9 sync_bucket: AH close clears syncing and sends no query after close', not rec.syncing and sent_after_close == 0)
+    -- Now test throttle freeze during sync_bucket
+    env.fire('AUCTION_HOUSE_SHOW')
+    aux.set_tab(1)
+    search.frame:Show()
+    rec.auction_count = 2
+    rec.auction_id = rec.auction_id + 100
+    local real_ready = G.C_AuctionHouse.IsThrottledMessageSystemReady
+    local real_bid = G.C_AuctionHouse.PlaceBid
+    local scan_exports = loadstring("select(2, ...) 'aux.test.t_sync'; return require 'aux.core.scan'")('auxForever', addon)
+    rawset(G.C_AuctionHouse, 'IsThrottledMessageSystemReady', function() return false end)
+    local orig_timeout = scan_mod.THROTTLE_TIMEOUT
+    scan_mod.THROTTLE_TIMEOUT = 1
+    rawset(scan_exports, 'THROTTLE_TIMEOUT', 1)
+    -- Trigger sync_bucket by running a second buy
+    rawset(G.C_AuctionHouse, 'PlaceBid', function(id) env.fire('AUCTION_HOUSE_PURCHASE_COMPLETED', id) end)
+    s.table:SetSelectedRecord()
+    server:ticks(1)
+    s.table:SetSelectedRecord(rec)
+    server:ticks(5) -- clear buy hold and show bar
+    bar.primary_click()
+    check('0.9 sync_bucket throttle: syncing starts', rec.syncing == true)
+    check('0.9 sync_bucket throttle: clears syncing after throttle timeout without calling SendSearchQuery',
+      server:wait(function() return not rec.syncing end, 60) and sent_after_close == 0)
+    scan_mod.THROTTLE_TIMEOUT = orig_timeout
+    rawset(scan_exports, 'THROTTLE_TIMEOUT', orig_timeout)
+    rawset(G.C_AuctionHouse, 'IsThrottledMessageSystemReady', real_ready)
+    rawset(G.C_AuctionHouse, 'GetNumItemSearchResults', real_num)
+    rawset(G.C_AuctionHouse, 'SendSearchQuery', real_send)
+    rawset(G.C_AuctionHouse, 'PlaceBid', real_bid)
+    aux.account_data.buy_confirm = prev_confirm
+    search.set_full_search(was_full)
+    s.records = {}
+    s.table:SetDatabase({})
+    bar.clear()
+    search.frame:Hide()
+    server:restore()
+  end)
+
+  -- 0.9 build 1: timed-out refresh_commodity, fast open_item, and Sniper refresh_deal keep rows intact
+  try('timing: 0.9 scan timeouts do not wipe Search rows or mark Sniper deals Sold', function()
+    local server = new_server(env)
+    local search = module 'aux.tabs.search'
+    local sniper = module 'aux.tabs.sniper'
+    local scan_mod = module 'aux.core.scan'
+    local scan_exports = loadstring("select(2, ...) 'aux.test.t_to'; return require 'aux.core.scan'")('auxForever', addon)
+    local bar = module 'aux.gui.buy_bar'
+    local al = module 'aux.gui.auction_listing'
+    server.items[2835] = {name = 'Rough Stone', commodity = true, vendor = 1000}
+    server.listings[2835] = {{price = 10, quantity = 20}}
+    server:install()
+    local orig_timeout = scan_mod.THROTTLE_TIMEOUT
+    scan_mod.THROTTLE_TIMEOUT = 0.5
+    rawset(scan_exports, 'THROTTLE_TIMEOUT', 0.5)
+    -- Freeze throttle so every read fails with result.throttled = true
+    local real_ready = G.C_AuctionHouse.IsThrottledMessageSystemReady
+    rawset(G.C_AuctionHouse, 'IsThrottledMessageSystemReady', function() return false end)
+
+    -- 1. Fast open_item timeout keeps fast row instead of deleting it and saying "Nothing left to buy"
+    aux.set_tab(1)
+    search.frame:Show()
+    local s = search.current_search()
+    local fast_rec = {
+      fast = true, item_id = 2835, suffix_id = 0, item_key = '2835:0', price_key = '2835:0',
+      name = 'Rough Stone', link = '[Rough Stone]', buyout_price = 10, unit_buyout_price = 10, bid_price = 10, count = 20,
+      auction_count = 1, duration = 3, search_signature = '2835:0:fast',
+      browse_key = {itemID = 2835, itemLevel = 0, itemSuffix = 0, battlePetSpeciesID = 0},
+    }
+    fast_rec.price_group = al.price_group(fast_rec)
+    s.records = {fast_rec}
+    s.table:SetDatabase(s.records)
+    search.open_item(s, fast_rec)
+    server:ticks(20)
+    check('0.9 timeout open_item: fast row kept intact', #s.records == 1 and s.records[1] == fast_rec)
+    check('0.9 timeout open_item: open flag cleared for retry', not (s.open and s.open['2835:0']))
+    local _, l2 = bar.lines()
+    check('0.9 timeout open_item: shows retry message, not sold', (l2 or ''):find('try again', 1, true) ~= nil)
+
+    -- 2. Sniper refresh_deal timeout keeps deal clickable instead of marking deal_gone / Sold
+    aux.set_tab(2)
+    local deal = {
+      item_id = 2835, suffix_id = 0, item_key = '2835:0', price_key = '2835:0', deal_key = '2835:0',
+      name = 'Rough Stone', link = '[Rough Stone]', texture = 'icon', quality = 1, commodity = true,
+      buyout_price = 10, unit_buyout_price = 10, commodity_unit_price = 10, bid_price = 10,
+      vendor_price = 1000, count = 20, auction_count = 1, duration = 3, search_signature = '2835:0:deal',
+      deal_item_key = {itemID = 2835, itemLevel = 0, itemSuffix = 0, battlePetSpeciesID = 0},
+      deal_read_at = 0, deal_profit = 500, deal_percent = 20, deal_reason = 'below usual', deal_found = G.GetTime(),
+    }
+    deal.price_group = al.price_group(deal)
+    sniper.clear_deals()
+    tinsert(sniper.deals, deal)
+    sniper.listing:SetDatabase(sniper.deals)
+    sniper.listing:SetSelectedRecord(deal)
+    sniper.update_selection()
+    server:ticks(20)
+    check('0.9 timeout refresh_deal: deal is NOT marked gone', not deal.deal_gone)
+    local _, sl2 = bar.lines()
+    check('0.9 timeout refresh_deal: bar asks to try again instead of Sold', (sl2 or ''):find('try again', 1, true) ~= nil)
+
+    sniper.listing:SetSelectedRecord()
+    sniper.update_selection()
+    sniper.clear_deals()
+    sniper.listing:SetDatabase({})
+    s.records = {}
+    s.table:SetDatabase({})
+    bar.clear()
+    scan_exports.abort()
+    scan_mod.THROTTLE_TIMEOUT = orig_timeout
+    rawset(scan_exports, 'THROTTLE_TIMEOUT', orig_timeout)
+    rawset(G.C_AuctionHouse, 'IsThrottledMessageSystemReady', real_ready)
+    search.frame:Hide()
+    aux.set_tab(1)
+    server:restore()
+  end)
+
+  -- 0.9 build 4 (FB-055): switching Sniper scope mid-round aborts the old Everything browse
+  -- immediately, sends the narrowed category browse filters to the server, and does not falsely
+  -- mark deals from another scope gone.
+  try('timing: 0.9 build 4 Narrower Sniper mid-round scope switch and scope-safe mark_gone', function()
+    local server = new_server(env)
+    local sniper = module 'aux.tabs.sniper'
+    local al = module 'aux.gui.auction_listing'
+    local queries_sent = {}
+    local real_browse = G.C_AuctionHouse.SendBrowseQuery
+    rawset(G.C_AuctionHouse, 'SendBrowseQuery', function(q)
+      tinsert(queries_sent, q)
+      return real_browse(q)
+    end)
+
+    aux.set_tab(2)
+    sniper.frame:Show()
+    sniper.clear_deals()
+    -- Seed an earlier Armor deal belonging to cat:armor:1
+    local armor_deal = {
+      item_id = 7001, suffix_id = 0, item_key = '7001:0', price_key = '7001:0', deal_key = '7001:0',
+      deal_scope = 'cat:armor:1',
+      name = 'Armor Deal', link = '[Armor Deal]', texture = 'icon', quality = 2, commodity = false,
+      buyout_price = 100, unit_buyout_price = 100, bid_price = 100, count = 1, auction_count = 1,
+      duration = 3, search_signature = '7001:0:armor',
+      deal_item_key = {itemID = 7001, itemLevel = 20, itemSuffix = 0},
+      deal_read_at = G.GetTime(), deal_profit = 500, deal_percent = 20, deal_reason = 'usual',
+      deal_history = 1000, deal_vendor = 10, deal_days = 3, deal_found = G.GetTime(),
+    }
+    armor_deal.price_group = al.price_group(armor_deal)
+    tinsert(sniper.deals, armor_deal)
+
+    -- Start Sniper on Everything; while round 1 browse is in flight, switch to Trade Goods!
+    sniper.set_scope({kind = 'all'})
+    sniper.set_quality(1)
+    sniper.start()
+    server:ticks(3)
+    check('FB-055 timing: first round sends unfiltered Everything query',
+      #queries_sent >= 1 and #(queries_sent[1].itemClassFilters or {}) == 0)
+
+    local before_switch = #queries_sent
+    sniper.set_scope({kind = 'category', name = 'Trade Goods'})
+    server:wait(function() return #queries_sent > before_switch and not sniper.active end, 60)
+    local narrowed = queries_sent[before_switch + 1]
+    check('FB-055 timing: switching scope mid-round restarts immediately with Trade Goods class filters',
+      narrowed ~= nil and #(narrowed.itemClassFilters or {}) > 0 and narrowed.itemClassFilters[1].classID == 7)
+    check('FB-055 timing: Trade Goods round does not falsely mark earlier Armor deal gone',
+      not armor_deal.deal_gone)
+
+    sniper.stop()
+    sniper.clear_deals()
+    sniper.set_scope({kind = 'all'})
+    sniper.set_quality(1)
+    sniper.frame:Hide()
+    rawset(G.C_AuctionHouse, 'SendBrowseQuery', real_browse)
+    aux.set_tab(1)
+    server:restore()
+  end)
+
+  -- 0.9.1 (FB-023, Kortan; Tyler 2026-11-22): Crafting Shopping List against the slow auction
+  -- house: recipe scan opens Shopping List, Craft count pre-fills exact Need across multiple
+  -- price tiers, buying verifies server.purchases, marks material Done, keeps "Bought ..." visible,
+  -- and auto-advances to the next unbought AH material.
+  try('timing: 0.9.1 FB-023 Shopping List 1-click buy loop and auto-advance', function()
+    local server = new_server(env)
+    local search = module 'aux.tabs.search'
+    local info = module 'aux.util.info'
+    local bar = module 'aux.gui.buy_bar'
+    local aux_frame = module('aux').frame
+    local function plain(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
+
+    -- Recipe: Runecloth Bag (output 14046) needing 6x Bolt (14048), 2x Leather (8170), 1x Thread (14341)
+    server.items[14046] = {name = 'Runecloth Bag', commodity = false, quality = 1, max_stack = 1}
+    server.items[14048] = {name = 'Bolt of Runecloth', commodity = true, quality = 1, max_stack = 20}
+    server.items[8170] = {name = 'Rugged Leather', commodity = true, quality = 1, max_stack = 20}
+    server.items[14341] = {name = 'Rune Thread', commodity = true, quality = 1, max_stack = 20}
+    server.listings[14046] = {{price = 50000, quantity = 1}}
+    server.listings[14048] = {{price = 100, quantity = 10}, {price = 150, quantity = 20}}
+    server.listings[8170] = {{price = 200, quantity = 20}}
+    server.listings[14341] = {{price = 1000, quantity = 20}}
+    server.bag = {{id = 14048, count = 4}} -- player already holds 4 Bolt of Runecloth in bags
+    server:install()
+
+    local aux_mod = module 'aux'
+    local old_mb = aux_mod.account_data.merchant_buy[14341]
+    aux_mod.account_data.merchant_buy[14341] = '500#0'
+    local orig_ts = rawget(G, 'C_TradeSkillUI')
+    G.C_TradeSkillUI = {
+      GetRecipeSchematic = function(id)
+        if id == 18445 then
+          return {
+            name = 'Runecloth Bag',
+            outputItemID = 14046,
+            quantityMin = 1,
+            reagentSlotSchematics = {
+              {required = true, quantityRequired = 6, reagents = {{itemID = 14048}}},
+              {required = true, quantityRequired = 2, reagents = {{itemID = 8170}}},
+              {required = true, quantityRequired = 1, reagents = {{itemID = 14341}}},
+            },
+          }
+        end
+      end,
+    }
+    local was_shown = aux_frame.__shown
+    aux_frame.__shown = true
+    aux.set_tab(1)
+    search.frame:Show()
+    search.update_mode(search.NORMAL_MODE)
+
+    search.search_recipe(18445)
+    local loaded = server:wait(function()
+      local s = search.shopping_state()
+      return s and s.complete and s.recipe and s.recipe.recipe_id == 18445
+    end, 200)
+    check('FB-023 timing: recipe search finishes and opens Shopping List',
+      loaded and search.frame.shopping.__shown == true)
+
+    -- Set Craft = 3: need 18 - 4 = 14 Bolt (10@100 + 4@150 = 1600c), 6 Leather (6@200 = 1200c), 3 Thread (vendor 5s)
+    search.set_shopping_craft_count(3)
+    local _, _, sel_id, plan = search.shopping_state()
+    check('FB-023 timing: auto-selected first AH material with pre-filled Need=14 and exact multi-tier price',
+      sel_id == 14048 and bar.other_input:GetText() == '14'
+      and plain(bar.primary_label()) == 'Buy 14 for 16s'
+      and plan.ah_remaining == 2 and plan.vendor_remaining == 1)
+
+    -- Click Buy (through enabled check) for Bolt of Runecloth
+    check('FB-023 timing: Buy button is enabled', bar.primary_button:IsEnabled() == true)
+    bar.primary_button:Click()
+    local bought_bolt = server:wait(function() return #server.purchases >= 1 end, 60)
+    check('FB-023 timing: server received exact 14x Bolt purchase for 16s',
+      bought_bolt and server.purchases[1].id == 14048 and server.purchases[1].quantity == 14 and server.purchases[1].total == 1600)
+
+    -- Verify Bolt is Done, selection auto-advanced to Rugged Leather (Need=6), and Bought banner stayed visible
+    _, _, sel_id, plan = search.shopping_state()
+    local l1 = bar.lines()
+    check('FB-023 timing: auto-advanced to Rugged Leather with Need=6 and kept Bought banner',
+      sel_id == 8170 and bar.other_input:GetText() == '6'
+      and plan.rows[1].best_source == 'done' and plan.ah_remaining == 1
+      and plain(l1):find('Bought 14', 1, true) ~= nil)
+
+    -- Wait past HOLD_SECONDS so Buy re-enables, then buy 6x Rugged Leather
+    server:ticks(5)
+    check('FB-023 timing: Buy re-enables for Rugged Leather at 12s',
+      bar.primary_button:IsEnabled() == true and plain(bar.primary_label()) == 'Buy 6 for 12s')
+    bar.primary_button:Click()
+    local bought_leather = server:wait(function() return #server.purchases >= 2 end, 60)
+    check('FB-023 timing: server received 6x Rugged Leather purchase for 12s',
+      bought_leather and server.purchases[2].id == 8170 and server.purchases[2].quantity == 6 and server.purchases[2].total == 1200)
+
+    _, _, _, plan = search.shopping_state()
+    check('FB-023 timing: all AH materials done, only 1 vendor material remains',
+      plan.ah_remaining == 0 and plan.vendor_remaining == 1
+      and plain(search.shopping_totals_right.__text):find('All AH materials ready', 1, true) ~= nil)
+
+    -- Cleanup
+    search.clear_shopping_list()
+    search.set_subtab(search.RESULTS)
+    search.frame:Hide()
+    aux_frame.__shown = was_shown
+    aux_mod.account_data.merchant_buy[14341] = old_mb
+    G.C_TradeSkillUI = orig_ts
+    server:restore()
+  end)
+
+  -- 0.9.0.1 (FB-067, Tyler): multi-item gear posts (2 bracers and 8 gauntlets) must wait for
+  -- every item to leave the bags (not finish on item 1) and must not hit the 5-second timeout
+  -- mid-batch on 8+ items.
+  try('timing: 0.9.0.1 FB-067 multi-item gear posting (2 and 8 items) waits for all items without timeout', function()
+    local server = new_server(env)
+    local post = module 'aux.tabs.post'
+    server.items[2853] = {name = 'Runed Copper Bracers', commodity = false, quality = 2, vendor = 100}
+    server.items[2854] = {name = 'Runed Copper Gauntlets', commodity = false, quality = 2, vendor = 100}
+    server.items[2855] = {name = 'Silver Ring', commodity = false, quality = 2, vendor = 100}
+    server.listings[2853] = {{price = 317, quantity = 1}}
+    server.listings[2854] = {{price = 450, quantity = 1}}
+    server.listings[2855] = {{price = 600, quantity = 1}}
+    server.bag = {
+      {id = 2853, count = 1}, {id = 2853, count = 1},
+      {id = 2854, count = 1}, {id = 2854, count = 1}, {id = 2854, count = 1}, {id = 2854, count = 1},
+      {id = 2854, count = 1}, {id = 2854, count = 1}, {id = 2854, count = 1}, {id = 2854, count = 1},
+      {id = 2855, count = 1},
+    }
+    server:install()
+    for _, box in ipairs{post.stack_size_input, post.stack_count_input} do
+      local n = 1
+      rawset(box, 'SetNumber', function(self, v) n = math.max(0, math.min(v, self.max_value or v)) end)
+      rawset(box, 'GetNumber', function() return n end)
+    end
+    rawset(post.duration_dropdown, 'GetIndex', function() return 1 end)
+    post.set_undercut_mode(false)
+    aux.set_tab(4) -- Post (3 before the Upgrades tab)
+    local function ready_for(key)
+      return function() return aux.status_bar.done and post.selected_item and post.selected_item.key == key end
+    end
+    post.select_item('2853:0')
+    check('FB-067 timing: bracers listings arrive', server:wait(ready_for('2853:0'), 80))
+    server:ticks(3)
+    check('FB-067 timing: bracers count defaults to 2', post.post_quantity() == 2)
+    check('FB-067 timing: Post 2 bracers clicked', click_post(post))
+    check('FB-067 timing: bracers post finishes after both leave bags', server:wait(function() return post.posting == nil and server:pending() == 0 end, 80))
+    server:ticks(3)
+    post.validate_parameters()
+    local msg1 = plain(post.post_message.__text)
+    check('FB-067 timing: 2 bracers reports Posted 2 (not 1 of 2), bags empty, advances to gauntlets',
+      msg1:find('Posted 2 × Runed Copper Bracers', 1, true) ~= nil
+      and server:bag_count(2853) == 0
+      and post.selected_item and post.selected_item.key == '2854:0')
+
+    -- Now post all 8 Runed Copper Gauntlets (takes ~6.8s > 5s total timeout!)
+    check('FB-067 timing: gauntlets listings arrive', server:wait(ready_for('2854:0'), 80))
+    server:ticks(3)
+    check('FB-067 timing: gauntlets count defaults to 8', post.post_quantity() == 8)
+    check('FB-067 timing: Post 8 gauntlets clicked', click_post(post))
+    check('FB-067 timing: gauntlets post finishes all 8 without 5s timeout', server:wait(function() return post.posting == nil and server:pending() == 0 end, 150))
+    server:ticks(3)
+    post.validate_parameters()
+    local msg2 = plain(post.post_message.__text)
+    check('FB-067 timing: 8 gauntlets reports Posted 8 (not 7 of 8), bags empty, advances to Silver Ring',
+      msg2:find('Posted 8 × Runed Copper Gauntlets', 1, true) ~= nil
+      and server:bag_count(2854) == 0
+      and post.selected_item and post.selected_item.key == '2855:0')
+
+    post_teardown(server, post)
   end)
 end

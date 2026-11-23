@@ -97,7 +97,7 @@ local methods = {
 	    -- Count rows from the current height and skip drawing until the frame has been laid out.
 	    local height = self:GetHeight() or 0
 	    if height > 0 then
-		    self.numRows = max(floor((height - HEAD_HEIGHT - HEAD_SPACE) / ROW_HEIGHT), 0)
+		    self.numRows = max(floor((height - HEAD_HEIGHT - HEAD_SPACE) / (self.rowHeight or ROW_HEIGHT)), 0)
 	    end
 	    if not self.contentFrame:GetRight() or not self.contentFrame:GetLeft() then
 		    return
@@ -157,7 +157,7 @@ local methods = {
 	    end
 	    
         if not self.rowData then return end
-        FauxScrollFrame_Update(self.scrollFrame, #self.rowData, self.numRows, ROW_HEIGHT)
+        FauxScrollFrame_Update(self.scrollFrame, #self.rowData, self.numRows, self.rowHeight or ROW_HEIGHT)
         local offset = FauxScrollFrame_GetOffset(self.scrollFrame)
         self.offset = offset
 
@@ -240,9 +240,10 @@ local methods = {
         cell.text = text
         text:SetFont(gui.font, ROW_TEXT_SIZE)
         text:SetJustifyV('MIDDLE')
-        text:SetPoint('TOPLEFT', 1, -1)
-        text:SetPoint('BOTTOMRIGHT', -1, 1)
-        cell:SetHeight(ROW_HEIGHT)
+        local pad = self.cellPad or 1
+        text:SetPoint('TOPLEFT', pad, -1)
+        text:SetPoint('BOTTOMRIGHT', -pad, 1)
+        cell:SetHeight(self.rowHeight or ROW_HEIGHT)
         cell.st = self
 
         if colNum == 1 then
@@ -254,8 +255,9 @@ local methods = {
     end,
 
     AddRow = function(self)
+        local row_h = self.rowHeight or ROW_HEIGHT
         local row = CreateFrame('Button', nil, self.contentFrame)
-        row:SetHeight(ROW_HEIGHT)
+        row:SetHeight(row_h)
         row:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
         for name, func in pairs(handlers) do
 	        row:SetScript(name, func)
@@ -265,8 +267,8 @@ local methods = {
             row:SetPoint('TOPLEFT', 0, -(self.headHeight + HEAD_SPACE))
             row:SetPoint('TOPRIGHT', 0, -(self.headHeight + HEAD_SPACE))
         else
-            row:SetPoint('TOPLEFT', 0, -(self.headHeight + HEAD_SPACE + (rowNum - 1) * ROW_HEIGHT))
-            row:SetPoint('TOPRIGHT', 0, -(self.headHeight + HEAD_SPACE + (rowNum - 1) * ROW_HEIGHT))
+            row:SetPoint('TOPLEFT', 0, -(self.headHeight + HEAD_SPACE + (rowNum - 1) * row_h))
+            row:SetPoint('TOPRIGHT', 0, -(self.headHeight + HEAD_SPACE + (rowNum - 1) * row_h))
         end
         gui.row_stripe(row, rowNum)
         row.highlight = gui.row_selection(row)
@@ -295,11 +297,13 @@ local methods = {
     end,
 }
 
-function M.new(parent)
+function M.new(parent, row_height)
     local st = CreateFrame('Frame', gui.unique_name(), parent)
     st:SetAllPoints()
 
-    st.numRows = max(floor((parent:GetHeight() - HEAD_HEIGHT - HEAD_SPACE) / ROW_HEIGHT), 0)
+    st.rowHeight = row_height or ROW_HEIGHT
+    st.cellPad = row_height and 6 or 1
+    st.numRows = max(floor((parent:GetHeight() - HEAD_HEIGHT - HEAD_SPACE) / st.rowHeight), 0)
     st:SetScript('OnSizeChanged', function(self)
         if self.colInfo then self:Update() end
     end)
@@ -323,7 +327,7 @@ function M.new(parent)
 
     local scrollFrame = CreateFrame('ScrollFrame', st:GetName() .. 'ScrollFrame', st, 'FauxScrollFrameTemplate')
     scrollFrame:SetScript('OnVerticalScroll', function(self, offset)
-        FauxScrollFrame_OnVerticalScroll(self, offset, ROW_HEIGHT, function() st:Update() end)
+        FauxScrollFrame_OnVerticalScroll(self, offset, st.rowHeight, function() st:Update() end)
     end)
     scrollFrame:SetAllPoints(contentFrame)
     st.scrollFrame = scrollFrame

@@ -10,7 +10,7 @@ select(2, ...) 'aux.core.weights'
 -- matters, since a spec is only compared with itself.
 --
 -- A weight is keyed by the names GetItemStats gives stats (core/stats.lua). The game knows these
--- names on Forever (E10, the global strings ITEM_MOD_*_SHORT printed in game, Ben 2026-11-16, Seen):
+-- names on Forever (E14, the global strings ITEM_MOD_*_SHORT printed in game, Ben 2026-11-16, Seen):
 -- for several stats it has more than one (Hit, Hit (Melee), Hit (Spell), Hit (Ranged)), so each of
 -- our stats lists every one of them. A real item gave Spell Power under ITEM_MOD_SPELL_POWER_SHORT
 -- only (Brutal War Axe of the Sorcerer, Seen); the names for Hit, Crit and MP5 on an item are not

@@ -164,7 +164,7 @@ end
 -- an item key, no link; the link aux's tooltip gives for a key has no ending (seen in game: Birchwood
 -- Maul of the Owl, of Healing, of Magic ... all scored as the plain maul), so GetItemStats left the
 -- ending's stats out. A real auction's link carries the ending (Seen: docs/forever-auction-house.md,
--- "A gear link's ending", and E10's Brutal War Axe of the Sorcerer). So after the item list, one
+-- "A gear link's ending", and E14's Brutal War Axe of the Sorcerer). So after the item list, one
 -- auction of each ending name is read (one request per name, all in one scan) and its link's stats
 -- stand for every version of that name (one case Seen: two versions of one name had the same
 -- stats).
@@ -294,7 +294,7 @@ scan.on_full_scan_end(function()
             end
             return missed
         end
-        -- Ben's first Full scan (2026-11-17, E11): 21 of 11,375 names got no stats on the first
+        -- Ben's first Full scan (2026-11-17, E15): 21 of 11,375 names got no stats on the first
         -- pass, then cost a request each on the tab. They are tried again every second, 5 times.
         local missed = pass(links)
         for _ = 1, FULL_SCAN_RETRIES do

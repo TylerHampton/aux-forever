@@ -8,7 +8,335 @@ saved is exported in `docs/test-results/test-page-results.md`.
 
 If BugSack shows an error at any point, copy its full text into that step's note.
 
-## Current build: 0.8.2.2 build 4
+## Current build: 0.9.1 build 1 (testing)
+
+Built 2026-11-22 (Gemini Neon): **Crafting Shopping List** (`FB-023`, Kortan: Option A 4th Search
+sub-tab, Craft count stepper, Vendor vs AH comparison, multi-tier pricing, 1-click buy loop with
+auto-advance) and **opt-in Alt Inventory tracking** (starts completely off by default; per-character
+`Owned` tooltips, `Count alts` switch, bank/account bank/mail snapshots, and **Clear inventory**
+button in Options). Includes the released `0.9.0.1` multi-item posting fix (`FB-067`).
+Zip `auxForever-0.9.1-build1.zip`; **full game restart required** (two new Lua files:
+`core/inventory.lua` and `tabs/search/shopping.lua`).
+
+- [ ] 1. Opt-in default state check (before turning anything on). After restarting the game and
+      logging in, open your bags and point the mouse at any item you own (without clicking). Confirm
+      there is **no** `Owned:` block in the tooltip yet. Then type `/aux settings` (or click the
+      Settings gear at the auction house) and look at the right column under **TOOLTIP LINES**:
+      confirm **Inventory counts** is present and switched **off**.
+- [ ] 2. Open Shopping List from Professions (`FB-023`). At the auction house, open your
+      Professions window, pick a craftable recipe with at least 2 materials (ideally one that uses
+      a vendor item like thread, dye, or vial if you have visited a vendor that sells it), and
+      click **Search in aux** (or Alt-click a recipe link). Confirm auxForever switches straight to
+      the new 4th **Shopping List** sub-tab, shows the recipe title, profit line, and all materials
+      cleanly without overlapping the Craft stepper, Count alts switch, or Refresh prices button.
+- [ ] 3. Craft count stepper and vendor vs AH check. On the Shopping List header, click **+** (or
+      type `3` into the Craft box and press Enter). Confirm the second column header updates to
+      `For 3`, **Need** subtracts what is already in your bags, and the buy bar at the bottom
+      pre-fills the exact **Need** quantity for the selected AH material. If the recipe has a
+      material marked **Vendor** (green), left-click that row: confirm the buy bar warns that it is
+      cheaper at a vendor while still leaving the **Buy** button clickable if AH listings exist.
+- [ ] 4. Right-click to inspect listings and return. Right-click any material row on the Shopping
+      List. Confirm it jumps to **Search Results** showing that item's exact listings. Then click
+      the **Shopping List** sub-tab button again and confirm your recipe and Craft count are still
+      intact.
+- [ ] 5. Buy loop and auto-advance (cheap test craft). Pick a cheap recipe where you need at least
+      2 AH materials (for example a Linen or Copper recipe, or 1 cheap reagent), make sure the
+      first AH material row is selected, and click **Buy** on the buy bar. Confirm the purchase
+      goes through, that row flips to green **Done** (`Ready`), the `"Bought ..."` message stays
+      visible in the buy bar, and the selection automatically moves to the next unbought AH
+      material with its exact **Need** pre-filled.
+- [ ] 6. Opt-in Alt Inventory tooltips, bank, and mail. Turn on **Count alts** on the Shopping List
+      (or turn on **Settings > Tooltip Lines > Inventory counts**). Point the mouse at an item in
+      your bags and confirm the per-character `Owned:` block appears showing `<Character> (You)`
+      with your bag count. Visit your bank once and your mailbox once (if you have any mail), then
+      close both and hover an item that sits in your bank or mail: confirm the tooltip now shows
+      `bags, bank, mail` accurately and keeps the bank/mail count after closing them. (Optional:
+      log onto an alt on the same realm and faction, log back, and confirm both characters appear
+      on separate class-colored lines and **Count alts** subtracts the alt's stock from **Need**.)
+- [ ] 7. Turning off + Clear inventory check. Open **Escape > Options > AddOns > auxForever** (or
+      `/aux settings`), click **Clear inventory** at the bottom, confirm the confirmation popup
+      appears, and click **Cancel** (or **Accept** if you want to wipe saved snapshots). Then turn
+      both **Inventory counts** and **Count alts** back off (if you want them off) and confirm the
+      `Owned:` lines disappear from tooltips right away.
+
+## 0.9.0.1 build 1 (tested 2026-11-23)
+
+Built 2026-11-23 (Gemini Neon, commit `f851108`): hotfix for multi-item gear posting on the
+**Post** tab (`FB-067`). Fixes aux reporting `Posted 1 of 2` / `7 of 8` / `2 of 3` when all
+auctions posted, fixes 8+ item batches timing out after 5 seconds total, and keeps the Post tab bag
+list synced when your bags change while the tab is open.
+Zip `auxForever-0.9.0.1-build1.zip`; **`/reload` is enough** if you are already on 0.9 (no new
+files).
+
+- [x] 1. Post 2 or 3 copies of the same gear item (`FB-067`). On the **Post** tab, click a piece
+      of gear you have 2 or 3 of in your bags (for example Runed Copper Bracers or Rough Bronze
+      Boots), leave Count at all of them, and click **Post 2 items** (or **Post 3 items**).
+      Confirm all auctions post, the green line under Duration says `Posted 2 × Runed Copper
+      Bracers` (or `Posted 3 × Rough Bronze Boots`, not `Posted 1 of 2` in gold or chat), the item
+      disappears from the left bag list right away, and aux automatically selects the next item in
+      your bag list.
+- [ ] 2. Post a larger gear batch of 6 to 8+ copies (optional, if you have one handy). On the
+      **Post** tab, click a gear item you have 6 to 8+ of (for example 8 Runed Copper Gauntlets)
+      and click **Post 8 items**. Confirm aux stays on `Posting...` for the whole batch even if it
+      takes longer than 5 seconds, finishes with the green line `Posted 8 × Runed Copper Gauntlets`
+      (not `Posted 7 of 8`), and clears the item from the bag list with no `Not posted: the item
+      is no longer in your bags.` error.
+- [x] 3. Single gear item and partial trade good sanity check (`FB-067`). On the **Post** tab,
+      post 1 copy of a gear item, then post part of a trade good stack (for example 5 of a 20
+      stack of Rough Stone or Linen Cloth). Confirm both finish cleanly right away (no 5-second
+      hang) and update `in your bags` to the right remaining count.
+- [ ] 4. Live bag sync while Post tab is open (`FB-067`). With the **Post** tab open, click a
+      cheap single item in the left list (or a stack of trade goods) and drop, use, or move it out
+      of your bags without closing aux. Confirm the Post tab updates the count on the left list
+      and `in your bags` automatically (and moves off an item that hits 0) without closing and
+      reopening the Post tab.
+
+### Results (Tyler, 2026-11-23)
+
+1. Post 2 or 3 copies of the same gear item (`FB-067`): **Pass** (multi-item gear post finished
+   cleanly with the right count, cleared the bag list, and moved on to the next item; confirms
+   Forever's final `BAG_UPDATE` fires after `AUCTION_MULTISELL_UPDATE` with no 5-second hang).
+2. Post a larger gear batch of 6 to 8+ copies (optional): **Not tested** (covered by unit and
+   slow-server tests for an 8-item 6.4s+ batch).
+3. Single gear item and partial trade good sanity check (`FB-067`): **Pass**.
+4. Live bag sync while Post tab is open (`FB-067`): **Not tested** (unit-tested; `BAG_UPDATE_DELAYED`
+   also ran without issues after Steps 1 and 3).
+
+## 0.9 build 4 (tested 2026-11-22)
+
+Built 2026-11-22 (Gemini Neon, commit `79e40dc`): Phase 3 **Narrower Sniper** (`FB-055`: Option A
+slim Watch bar with quick chips, **More...** menu for Forever Categories + Search Favorites, and
+**Quality** picker), **Default buy quantity** (`FB-066`: `1` vs `Stack` under Settings > Buying +
+`/aux buy quantity`), Fast tooltip-word search fix on random-suffix greens (`FB-064`, RushJet1), and
+right-column Settings hover tooltips anchored to the left so they stay inside the window.
+Zip `auxForever-0.9-build4.zip`; **`/reload` is enough** if you already installed Build 2 or 3 (a
+full game restart is only needed if upgrading from before Build 2 because of `Bindings.xml`).
+
+- [x] 1. Narrower Sniper Watch bar and fast category rounds (`FB-055`). Open the **Sniper** tab and
+      check that the new slim **Watch** bar sits cleanly below Start/Stop with **All**, **Trade
+      Goods**, **Consumables**, **Recipes**, **More... v**, and **Quality: Common+ v** (no overlap
+      with the Deals row or Buy bar). Click **Trade Goods** and click **Start**: confirm round 1
+      finishes in a few seconds instead of ~38s+. While Sniper is still running, click
+      **Consumables** (or pick **Rare+** under Quality): confirm it restarts right away instead of
+      waiting for the old round to finish.
+- [x] 2. Narrower Sniper with Search Favorites (`FB-055`). On the Search tab, make sure you have at
+      least one Favorite pinned (for example search `linen cloth/exact;copper ore/exact` and star/pin
+      it). Switch to the **Sniper** tab, click **More... v**, confirm both **CATEGORIES** and
+      **SEARCH FAVORITES** appear cleanly, click your Favorite, and confirm the button shows its
+      name and Sniper watches just that search.
+- [x] 3. Default buy quantity (`FB-066`) and right-column tooltip anchor. Open **Escape > Options >
+      AddOns > auxForever** (or type `/aux settings`). Point the mouse at **Stack prices by default**
+      on the right column: confirm the hover tooltip now opens to the left inside the window. Under
+      **BUYING**, confirm **Default quantity** shows `1` and `Stack` (`1` highlighted). Click
+      **Stack**, go to Search, search `linen cloth/exact`, click the row, and confirm the buy bar
+      starts at `20` (full stack). Click **1** in Settings (or type `/aux buy quantity 1`) and
+      confirm selecting another trade good starts at `1` again.
+- [x] 4. Fast tooltip-word search on generic green rings (`FB-064`). On the **Search** tab in
+      **Fast** mode, run `armor/miscellaneous/finger/spell` (or `armor/miscellaneous/finger/healing`).
+      Confirm generic green rings with `Equip:` spell/healing stats (such as `"of the Channeler"` or
+      `"of Healing"`) now appear in Fast mode.
+- [x] 5. Optional 0-gold `FB-064` sample-link diagnostic. Right after running
+      `armor/miscellaneous/finger` in Fast mode, paste this line in chat and share what `FB64:`
+      prints (checks the first random-suffix ring to tell us whether Forever populated
+      `GetItemKeySampleLink` or used our fallback):
+      `/run local C=C_AuctionHouse for _,x in ipairs(C.GetBrowseResults())do local k=x.itemKey if(k.itemSuffix or 0)~=0 then local i=C.GetItemKeyInfo(k)print('FB64:',i and i.itemName,C.GetItemKeySampleLink(k)~=nil)break end end`
+- [x] 6. Clean standalone E10 probe (0 gold, idle at AH). Make sure Sniper is **stopped** and no
+      Full scan is running, wait 2 seconds, paste Line 1 and press Enter:
+      `/run local C=C_AuctionHouse print('E10 send:',C.IsThrottledMessageSystemReady()) C.SearchForItemKeys({C.MakeItemKey(2589),C.MakeItemKey(2770),C.MakeItemKey(2447),C.MakeItemKey(2835)},{{sortOrder=0,reverseSort=false}})`
+      Wait 3 seconds, paste Line 2 and press Enter, and share `E10 send:` and `E10:`:
+      `/run local r=C_AuctionHouse.GetBrowseResults() print('E10:',#r,C_AuctionHouse.HasFullBrowseResults(),r[1] and r[1].itemKey.itemID,r[1] and r[1].minPrice,r[2] and r[2].itemKey.itemID)`
+
+### Results (Tyler, 2026-11-22)
+
+All 6 steps verified from Tyler's notes and screenshots (0 Lua errors):
+1. Narrower Sniper Watch bar and fast category rounds (`FB-055`): **Pass** (screenshot confirmed
+   clean Watch bar alignment with zero overlap against Deals or Buy bar; Trade Goods rounds ran
+   `491 items in 0.1s` to `0.2s`, reaching round 52 cleanly, compared to `37.7s` for the whole AH.
+   Zero usual-price deals appeared because the notice showed `2` days of Full scans so far after
+   Tyler's recent data wipe, needing 3 days).
+2. Narrower Sniper with Search Favorites (`FB-055`): **Pass** (screenshot confirmed `More... v`
+   popup renders cleanly above the table with all 9 Forever `CATEGORIES` and `SEARCH FAVORITES`
+   below).
+3. Default buy quantity (`FB-066`) and right-column Settings tooltip anchor: **Pass** (explicitly
+   marked Pass by Tyler).
+4. Fast tooltip-word search on generic green rings (`FB-064`): **Pass** (2 screenshots confirmed
+   Fast mode returned 30+ generic green rings with `Equip:` spell stats, including multiple
+   `"of the Channeler"`, `"of the Prophet"`, `"of the Sorcerer"`, and `"of the Hierophant"` rings,
+   with `Equip: Increases healing done by spells and effects...` visible in hover tooltips).
+5. Optional `FB-064` sample-link diagnostic: **Unconfirmed (screenshot too compressed)** (chat
+   printed `FB64: Marble Ring of Fire Protection ...`, but the 6-panel stitched PNG was downscaled
+   to 299px wide by chat, too blurry to read `true` vs `false` reliably; Step 4 confirmed the
+   user-facing `FB-064` fix works either way).
+6. Clean standalone E10 probe (`SearchForItemKeys`): **Inconclusive (still Unknown)** (pixel check
+   after Tyler caught the misread confirmed chat printed `E10 send: false` and `E10: 0 false nil
+   nil nil`, meaning the throttle was busy so `SearchForItemKeys` did not send; remains
+   **[Unknown]**).
+
+## 0.9 build 3 (tested 2026-11-22)
+
+Built 2026-11-22 (Gemini Neon): Phase 2 Blizzard **Options > AddOns > auxForever** settings panel
+and `/aux settings` (`FB-057`), plus Build 2's approved visual and UX follow-ups: minimalist Option
+B item tooltips (no `for N`, compact `today` / `3d` / dimmed `9d`), aligned Professions crafting
+hover tooltip (`today` and `(%)` before prices), **Right-click bag to sell** on by default
+(`FB-062`), approved UI wordiness trims (`T1` to `T6`), and extra bottom breathing room in the AH
+Settings gear popup.
+Zip `auxForever-0.9-build3.zip`; **`/reload` is enough** if you already installed Build 2 (a full
+game restart is only needed if upgrading directly from 0.8.2.2 or Build 1 because of
+`Bindings.xml`).
+
+- [x] 1. Minimalist item tooltips (Option B). Open your bags and point the mouse at a stack of more
+      than 1 item (for example a stack of Elixir of Wisdom or Linen Cloth) without holding Shift.
+      Confirm `for N` is gone from Vendor and Value, Value shows the full stack price with a compact
+      age (`today`, `1d`, `3d`, or darker `9d`), and holding Shift drops Vendor and Value to the
+      plain 1-item price.
+- [x] 2. Aligned Professions crafting hover tooltip (`T5`). Open a Professions window, pick a recipe
+      that uses multiple materials (for example Elixir of Wisdom or Rough Sharpening Stone), and
+      point the mouse at the **Materials** line under the reagents without clicking. Confirm the
+      subtitle reads `From your latest scans`, the age (`today`, `3d`, or `vendor`) and `(% )` sit
+      in front of each cost so all prices line up down the right edge, the output row shows the item
+      name without `sells for`, and the cut row reads `After 5% AH cut`.
+- [x] 3. Blizzard Options > AddOns > auxForever and `/aux settings` (`FB-057`). Away from the
+      auction house, type `/aux settings` in chat and press Enter. Confirm Blizzard's Options window
+      opens straight to **AddOns > auxForever** with the two-column layout, **Clear post prices**
+      and **Clear item cache** buttons at the bottom, and the keybinds note on the bottom left. Also
+      try opening it through **Escape > Options > AddOns > auxForever** and flipping a switch (for
+      example **Confirm before buying**): walk to the auction house, click the Settings gear (top
+      right), and confirm that same switch already matches (and that the bottom of the gear popup
+      has clean breathing room).
+- [x] 4. Maintenance Clear buttons with confirmation (`FB-057`). In **Options > AddOns >
+      auxForever**, click **Clear post prices** (or **Clear item cache**): confirm a Blizzard
+      confirmation popup appears first, click **Cancel**, and confirm nothing was cleared. (Only
+      click **Accept** if you actually want to wipe saved Post prices or the item cache; if you test
+      Accept on Clear item cache, names rebuild automatically as you play.)
+- [x] 5. Right-click bag to sell default on (`FB-062`) and UI trims (`T1` to `T6`). Check Settings
+      to confirm **Right-click bag to sell** starts on (note: if you toggled it off during Build 2,
+      your saved toggle is preserved; typing `/aux right click post on` turns it on). Glance at the
+      trimmed labels: on the Search tab with nothing selected, the buy bar reads `Gear: one at a
+      time. Trade goods: cheapest first.`; selecting gear reads `N at this price`; on the Post tab
+      the receipt reads `AH cut (5%)` and `Deposit`; on the Sniper tab while watching with no deals,
+      the shorter 2-line message appears.
+
+### Results (Tyler, 2026-11-22)
+
+All 5 steps passed in game:
+1. Minimalist item tooltips (Option B): Pass.
+2. Aligned Professions crafting hover tooltip: Pass.
+3. Blizzard Options > AddOns > auxForever and `/aux settings`: Pass (screenshot confirmed clean
+   two-column layout inside Blizzard Options, `auxForever 0.9` header, synced switches, keybinds
+   note, and Clear buttons; `Settings.RegisterCanvasLayoutCategory` / `Settings.OpenToCategory` now
+   confirmed **Seen** on Forever; noticed right-column hover tooltip uses `ANCHOR_RIGHT` and can
+   clip near the right edge of the window, worth flipping right-column rows to `ANCHOR_LEFT`).
+4. Maintenance Clear buttons with confirmation: Pass.
+5. Right-click bag to sell default on and UI trims `T1` to `T6`: Pass.
+
+## 0.9 build 2 (tested 2026-11-21)
+
+Built 2026-11-21 (Gemini Neon): Phase 1 QoL switches, keybinds, cleaner tooltip ages, and S-09.
+Adds full-stack tooltip prices by default with Shift for 1 item (`FB-058`), live Professions cost
+line toggle (`FB-061`), right-click bag item to always open Post (`FB-062`), Auto Full scan on AH
+open (`FB-032`), `Bindings.xml` buy/confirm/cancel keybinds (`FB-063`), removes `seen ` from
+tooltip ages, and hides bogus "Starting bids" totals on trade goods with no buyout (`S-09`).
+Zip `auxForever-0.9-build2.zip`; **full game restart required** (adds new file `auxForever/Bindings.xml`).
+
+- [x] 1. Full-stack tooltips by default and no `seen ` prefix (`FB-058`). Open your bags and point
+      the mouse at a stack of more than 1 item (for example a stack of Linen Cloth) WITHOUT holding
+      Shift: Vendor and Value show the stack total with `for N` and an age without `seen ` (for
+      example `today` or `1 day ago`). Now hold Shift on that same stack: Vendor and Value drop to
+      the plain single-item price (no `for N`).
+- [x] 2. Settings switches (`FB-061`, `FB-062`, `FB-032`). Open the auction house and click the
+      Settings gear (top right). Check that all rows fit cleanly inside the popup with no overlap:
+      Right-click bag to sell, Auto Full scan, Professions cost line on the left; Stack prices by
+      default on the right. Open a Professions window, flip **Professions cost line** off then back
+      on: the Materials and Profit line under reagents disappears and reappears immediately with no
+      `/reload`.
+- [x] 3. Right-click bag item to sell (`FB-062`). Turn **Right-click bag to sell** on in Settings,
+      click the Search tab, then right-click a sellable item in your bags: aux switches to the Post
+      tab and loads that item. Click back to Search and Shift-click a bag item: it still searches
+      on the Search tab instead of switching to Post.
+- [x] 4. Keybinds (`FB-063`, after full game restart). Press Escape > Options > Keybindings and
+      scroll to the **auxForever** section. Confirm all 4 bindings appear: **Buy**, **Confirm
+      purchase**, **Cancel / decline purchase**, and **Buy or confirm**. Bind one (for example Buy
+      to a spare key, or Confirm/Cancel with "Confirm before buying" on), open Search, search
+      `linen cloth/exact`, click the cheapest row, and test pressing your bound key. (If you turn
+      on Confirm before buying, pressing Buy twice should NOT confirm; pressing Cancel should
+      cancel without spending gold.)
+- [x] 5. Post receipt with no price (`S-09`). On the Post tab, click a trade good (like Linen
+      Cloth) in your bags, click the Price box, and delete the price so the box is blank: the
+      receipt on the right reads `Total, N items` with `-` for Total, Cut, and You get (never
+      `Starting bids` and no red vendor warning).
+- [ ] 6. Clean re-test of E9: 1-request gear lookup (0 gold). **Make sure Sniper is stopped and no
+      Full scan is running.** Put any piece of green gear with a random ending into the very first
+      slot of your backpack (top-left slot of bag 0). At the auction house, paste line 1 and press
+      Enter:
+      `/run local C=C_AuctionHouse local id=C_Container.GetContainerItemID(0,1) _G.E9=id and C.MakeItemKey(id) print('E9 send:',id,C.IsThrottledMessageSystemReady()) if E9 then C.SendSellSearchQuery(E9,{{sortOrder=0,reverseSort=false}},false) end`
+      Wait 3 seconds, paste line 2 and press Enter, and share both `E9 send:` and `E9:` lines (or
+      a chat screenshot):
+      `/run local C=C_AuctionHouse local n=C.GetNumItemSearchResults(E9) local r=C.GetItemSearchResultInfo(E9,1) print('E9:',E9.itemID,n,C.HasSearchResults(E9),r and r.itemLink,r and r.auctionID)`
+- [ ] 7. Clean re-test of E10: 1-request batch watch list (0 gold). Still idle at the auction house
+      (no Sniper, no Full scan), paste line 1 and press Enter:
+      `/run local C=C_AuctionHouse print('E10 send:',C.IsThrottledMessageSystemReady()) C.SearchForItemKeys({C.MakeItemKey(2589),C.MakeItemKey(2770),C.MakeItemKey(2447),C.MakeItemKey(2835)},{{sortOrder=0,reverseSort=false}})`
+      Wait 3 seconds, paste line 2 and press Enter, and share both `E10 send:` and `E10:` lines (or
+      a chat screenshot):
+      `/run local r=C_AuctionHouse.GetBrowseResults() print('E10:',#r,C_AuctionHouse.HasFullBrowseResults(),r[1] and r[1].itemKey.itemID,r[1] and r[1].minPrice,r[2] and r[2].itemKey.itemID)`
+
+### Results (Tyler, 2026-11-21)
+
+1. Pass (screenshot: Elixir of Wisdom stack of 13 shows `Vendor: 13  for 13` and `Value: 13 (93%)  for 13  today`; Tyler wants `"for 13"` removed and cleaner minimalist age styling, mockup first).
+2. Pass (2 screenshots: Settings popup fits cleanly, bottom-left row slightly tight to bottom border; Professions hover tooltip works; Tyler wants percentages in front of prices so cost numbers align down the right edge).
+3. Pass (Tyler: invert default to **on** so it welcomes players coming from Blizzard's default AH).
+4. Pass (`Bindings.xml` confirmed working in game after full restart).
+5. Pass (screenshot: Elixir of Minor Defense with `0c` shows `Total, 16 items -`, `Auction house cut 5% -`, `You get -`, `vendor pays 80c`, no `Starting bids`, no red warning).
+6. `E9 send: 4567 true`, `E9: 4567 0 true nil nil` (`HasSearchResults == true` confirmed server answered for item 4567 with 0 listings; still Unknown whether suffixed variants return when listed).
+7. `E10 send: false`, `E10: 0 false nil nil nil` (throttle was still busy right after E9, so E10 was not sent; remains Unknown).
+All 6 UI wordiness trims approved (`T1` to `T6`).
+
+## 0.9 build 1 (tested 2026-11-21)
+
+Built 2026-11-21 (Gemini Neon): 0.9 foundation pass. Fixes FB-056 (dungeon/tooltip Lua error
+hardening and 7 missing tooltip stack-count readers), adds a timeout for Forever's frozen AH
+throttle (`wait_throttle`), fixes Sniper duplicate K^2 gear requests and its wiped "Bought ..."
+message, fixes Search splitting one gear ending into two rows, fixes synchronous Buy/Post/Cancel
+events and multi-item Post hangs, prevents scan timeouts from wiping rows or marking Sniper deals
+"Sold", adds scan priority rules, and fixes Buy bar and Waylaid Crate caching quirks.
+Zip `auxForever-0.9-build1.zip`; `/reload` is enough (no new files).
+
+- [x] 1. Tooltip stack counts and no errors (FB-056). Open your mailbox (if you have mail with a
+      stacked item) or a vendor window, hold Shift, and point the mouse at a stack of items (for
+      example a stack of Linen Cloth). The tooltip shows Vendor and Value with `for N` (matching
+      the stack size), with no BugSack error. Also watch for any Lua errors if you run a dungeon
+      where someone makes conjured water.
+- [x] 2. Buy bar guard and Post check. On the Search tab, search `linen cloth/exact`, click the
+      cheapest row, click the QUANTITY box, delete the `1` so the box is empty, and press Enter:
+      nothing is bought. Then switch to the Post tab, pick an item you want to sell, and post one:
+      it posts cleanly with no 5-second hang.
+- [ ] 3. Sniper bought confirmation (optional: only if you see a cheap deal worth buying). On the
+      Sniper tab, click Start, click a deal you want, and click Buy. After the purchase finishes,
+      the bottom bar keeps the green "Bought 1 x ..." message on screen instead of immediately
+      flipping back to "Select a row to buy it", and the Buy button hides.
+- [ ] 4. Experiment E9: 1-request gear lookup (spends 0 gold). Put any piece of green gear with a
+      random ending (for example Merc Sword of the Owl or Ritual Belt of Healing) into the very
+      first slot of your backpack (top-left slot of bag 0). Open the auction house, paste line 1
+      into chat and press Enter:
+      `/run local C=C_AuctionHouse C.SendSellSearchQuery(C.MakeItemKey(C_Container.GetContainerItemID(0,1)),{{sortOrder=0,reverseSort=false}},true)`
+      Wait 2 seconds, paste line 2 into chat and press Enter, and copy the `E9:` line into your
+      reply:
+      `/run local C=C_AuctionHouse local k=C.MakeItemKey(C_Container.GetContainerItemID(0,1)) local n=C.GetNumItemSearchResults(k) local r=C.GetItemSearchResultInfo(k,1) print('E9:',n,r and r.itemLink,r and r.auctionID)`
+- [ ] 5. Experiment E10: 1-request batch watch list (spends 0 gold). Still at the auction house,
+      paste line 1 into chat and press Enter:
+      `/run local C=C_AuctionHouse C.SearchForItemKeys({C.MakeItemKey(2589),C.MakeItemKey(2770),C.MakeItemKey(2447),C.MakeItemKey(2835)},{{sortOrder=0,reverseSort=false}})`
+      Wait 2 seconds, paste line 2 into chat and press Enter, and copy the `E10:` line into your
+      reply:
+      `/run local r=C_AuctionHouse.GetBrowseResults() print('E10:',#r,r[1] and r[1].itemKey.itemID,r[1] and r[1].minPrice,r[2] and r[2].itemKey.itemID,r[2] and r[2].minPrice)`
+
+### Results (Tyler, 2026-11-21)
+
+1. Pass (stack counts show; asked for FB-058 full-stack default next). 2. Pass (empty Quantity box
++ Enter buys nothing). 3. Not tested (2 of 3 Full scan days recorded so far; screenshot confirmed
+scan priority kept an active Full scan running while Sniper stayed on Watching). 4 & 5. Both printed
+`0 nil nil` while Full scan and Sniper were active; inconclusive, carried to build 2 idle probes.
+Build 2 preferences chosen: FB-058 Shift label plain (`Value: 5s`), include `S-09` in build 2.
+
+## 0.8.2.2 build 4 (passed, Tyler, 2026-11-20)
 
 Built 2026-11-20 (Gemini Neon): adds build 3's quarter-second rest after buying (not tested yet) plus
 two contributor pull requests: gamepad item comparison beside aux's window (PR #41, nokkty) and
@@ -141,11 +469,14 @@ New files: **full game restart** (not `/reload`). Open the auction house and aux
       "Weights:" line on the tab shows "Hit 9" in gold. Search again: the scores change.
 - [ ] 13. Press **Reset to defaults**: Hit goes back to its number from the guide (5 for
       Enhancement), not gold. Close the window.
-- [ ] 14. Open Settings (the gear at the top right). The left column reads POSTING, then BUYING
-      ("Confirm before buying"), then UPGRADES with "Stat weights" and an Edit button, and "Saved
-      item stats" last, all inside the window with nothing overlapping. Edit opens the same window.
-      Then click the other theme under WINDOW (a "Reload now" button appears and the column moves
-      down): "Saved item stats" is still inside the window. Click the theme you use again.
+- [ ] 14. Open Settings (the gear at the top right). The right column ends, under TOOLTIP LINES,
+      with UPGRADES: one row "Stat weights" with a small gray line under it (for example
+      "0 endings saved") and two buttons, **Clear** and **Edit**, all inside the window with nothing
+      overlapping (changed 2026-11-23: 0.9 filled the left column). Edit opens the same window.
+      Then click the other theme under WINDOW (a "Reload now" button appears and the left column
+      moves down): the left column is still inside the window. Click the theme you use again.
+      Then press Escape, Options, AddOns, auxForever: the same UPGRADES row is at the bottom of the
+      right column, above the line with the Clear buttons. Take a screenshot.
 - [ ] 15. As Enhancement, the "Weights:" line includes "Attack Power 1.5", and in Change weights
       the Attack Power box shows 1.5 (not gold). Type 6 in the Strength box and click outside it:
       Attack Power shows 3.
@@ -181,10 +512,10 @@ restart**. Have a few gold on you, and pick a cheap row to buy.
 - [ ] 23. Press **Search** again. This time there is no "Reading the stats" step.
 - [ ] 24. Type `/reload`, open aux, Upgrades, Two-Hand, and press **Search**. Still no "Reading the
       stats" step: they were saved.
-- [ ] 25. Open Settings (the gear at the top right). Under UPGRADES, below "Stat weights", a row
-      "Saved item stats" says how many are saved, for example "20 endings", with a **Clear** button.
-      Point the mouse at the row's name: a tooltip explains it. Take a screenshot.
-- [ ] 26. Press **Clear**: it says "0 endings" and the button fades. Close Settings, search
+- [ ] 25. Open Settings (the gear at the top right). Under UPGRADES, the gray line under "Stat
+      weights" says how many endings are saved, for example "20 endings saved", next to a **Clear**
+      button. Point the mouse at the row's name: a tooltip explains it. Take a screenshot.
+- [ ] 26. Press **Clear**: it says "0 endings saved" and Clear fades. Close Settings, search
       Two-Hand again: the "Reading the stats of each ending" step is back.
 - [ ] 27. (Lower edge, added 2026-11-17.) Endings are now read only for items at least three
       quarters of your level (at level 60: level 45 and up; at level 20: 15 and up). Lower items
@@ -192,15 +523,15 @@ restart**. Have a few gold on you, and pick a cheap row to buy.
       **Clear** in Settings, then on Upgrades, Two-Hand, press **Search**. When it is done, the
       line above the table ends with, for example, "(14 below level 45 scored without their
       ending's stats)", the level being three quarters of yours. Take a screenshot of that line.
-- [ ] 28. (Full scan saves endings, added 2026-11-17.) Open Settings and press **Clear** under
-      "Saved item stats" (it says "0 endings"). Close Settings and press **Full scan** at the top of
+- [ ] 28. (Full scan saves endings, added 2026-11-17.) Open Settings and press **Clear** in the
+      UPGRADES row (it says "0 endings saved"). Close Settings and press **Full scan** at the top of
       aux (it lights up once every 15 minutes). Wait for "Full scan complete" in chat, then a few
-      seconds more. Open Settings again: "Saved item stats" now shows a big number, for example
-      "850 endings". Write it down.
+      seconds more. Open Settings again: the UPGRADES row now shows a big number, for example
+      "850 endings saved". Write it down.
 - [ ] 29. Close Settings, go to Upgrades, Two-Hand, and press **Search**. Tell me whether the
       "Reading the stats of each ending (3 of 20)..." line appears. If it does not appear, the Full
       scan saved them. If it does, write down its numbers (for example "3 of 20").
-- [ ] 30. (Retry, added 2026-11-17.) Press **Clear** under "Saved item stats", run a **Full scan**
+- [ ] 30. (Retry, added 2026-11-17.) Press **Clear** in Settings, UPGRADES, run a **Full scan**
       once the button lights up, wait for "Full scan complete" plus 10 seconds, and `/reload`. Then
       on Upgrades search **Chest**, **Back** and **Wrist** as last time. Write down the numbers on
       each "Reading the stats of each ending" line, or "none" if it does not appear (last time
@@ -215,7 +546,7 @@ restart**. Have a few gold on you, and pick a cheap row to buy.
 ## Upgrades experiments (branch `search-upgrade-support`, before any code)
 
 Two short checks that decide how the Upgrades tab reads item stats and your spec
-(`docs/upgrades.md`; E12 and E9 in `docs/forever-auction-house.md`). Paste each command into the chat
+(`docs/upgrades.md`; E12 and E13 in `docs/forever-auction-house.md`). Paste each command into the chat
 box and press Enter, then screenshot what the chat prints.
 
 Results 2026-11-16 (Ben): 1 worked, on a bag item and on a row's icon in aux's results; 2 was blocked by the game ("ForceTaint_Strong has been blocked
@@ -238,7 +569,7 @@ from an action only available to the Blizzard UI"), so aux will not use it; 3 pr
       It prints your class, then one line per talent tree. Screenshot it and say how many points
       you have in each tree, so we can match the numbers.
 
-- [x] 4. **The game's stat names (E10).** Done 2026-11-16: three screenshots of the list. The
+- [x] 4. **The game's stat names (E14).** Done 2026-11-16: three screenshots of the list. The
       second half: Brutal War Axe of the Sorcerer showed Intellect, Spell Power (one name), DPS and
       Stamina. An item with Hit, Crit or MP5 is still to check.
       Command was: Paste:

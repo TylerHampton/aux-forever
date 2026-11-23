@@ -345,6 +345,7 @@ function start_live_scan(query, search)
     local alerted
     scan.start {
         type = 'list',
+        priority = scan.PRIORITY_WATCH,
         sort_type = search.sort_type,
         queries = { query },
         fast = search.fast,
@@ -577,7 +578,9 @@ end
 -- back to normal on a new search, another search in the history, Clear, another sub tab or tab.
 function M.update_done()
     local search = current_search()
-    aux.status_bar:set_done(frame:IsShown() and frame.results:IsShown() and search and search.complete)
+    local on_results = frame.results:IsShown() and search and search.complete
+    local on_shopping = frame.shopping and frame.shopping:IsShown() and shopping_search_complete and shopping_search_complete()
+    aux.status_bar:set_done(frame:IsShown() and (on_results or on_shopping) and true or false)
 end
 
 -- auxForever: "Search Results 37" on the sub tab, and next to the sub tabs what the results hold:
@@ -672,7 +675,9 @@ do
             last_count = count
             search_results_button:SetText(count > 0 and 'Search Results  ' .. aux.color.accent.background(thousands(count)) or 'Search Results')
         end
-        local summary = frame.results:IsShown() and results_summary(search) or ''
+        local summary = frame.results:IsShown() and results_summary(search)
+            or (frame.shopping and frame.shopping:IsShown() and shopping_status_text and shopping_status_text())
+            or ''
         if summary ~= last_summary then
             last_summary = summary
             results_summary_label:SetText(summary)
@@ -736,6 +741,9 @@ function start_search(queries, continuation)
                 search.next_redraw = GetTime() + .25
                 search.redraw_due = nil
                 search.table:SetDatabase()
+                if on_shopping_search_update then
+                    on_shopping_search_update(search, false)
+                end
             else
                 search.redraw_due = true
             end
@@ -782,6 +790,10 @@ function start_search(queries, continuation)
             search.active = false
             update_start_stop()
 
+            if on_shopping_search_update then
+                on_shopping_search_update(search, true)
+            end
+
             -- fast mode: an item clicked while the list was loading, or the only item found
             if search.fast then
                 local pending = search.pending_open
@@ -812,6 +824,10 @@ function start_search(queries, continuation)
 
             search.active = false
             update_start_stop()
+
+            if on_shopping_search_update then
+                on_shopping_search_update(search, true)
+            end
         end,
     }
 end
@@ -929,7 +945,13 @@ function M.execute(_, resume, mode)
     current_search().active = true
     update_start_stop()
     search_box:ClearFocus()
-    set_subtab(RESULTS)
+    -- 0.9.1 (FB-023, Kortan; Tyler 2026-11-22): recipe searches open directly in the Shopping List
+    if search.recipe and not search.recipe.crate and load_shopping_search then
+        load_shopping_search(search)
+        set_subtab(SHOPPING)
+    else
+        set_subtab(RESULTS)
+    end
     if mode == LIVE_MODE then
         start_live_scan(queries[1])
     else
@@ -1024,6 +1046,7 @@ do
             local fresh = {}
             scan.start{
                 type = 'list',
+                priority = scan.PRIORITY_BACKGROUND,
                 quiet = true,
                 no_view = true, -- one version of an item is not a look at the whole item
                 queries = {{item_keys = {key}, validator = validator}},
@@ -1090,6 +1113,9 @@ do
         if i and #kept < REFILL_AT and search.folded[row] then
             refill(search, record)
         end
+        if on_shopping_search_update then
+            on_shopping_search_update(search, false)
+        end
     end
 
     local function same_bucket(result, record)
@@ -1121,14 +1147,17 @@ do
         search.table:SetDatabase()
         local key, old_id = record.item_search_key, record.auction_id
         aux.coro_thread(function()
-            local updated
+            local updated, closed
             local listener_id = aux.event_listener('ITEM_SEARCH_RESULTS_UPDATED', function(item_key)
                 if item_key and item_key.itemID == key.itemID then
                     updated = true
                 end
             end)
+            local close_id = aux.event_listener('AUCTION_HOUSE_CLOSED', function()
+                closed = true
+            end)
             local t0 = GetTime()
-            while not updated and GetTime() - t0 < 1.5 do
+            while not updated and not closed and GetTime() - t0 < 1.5 do
                 -- the update may already have arrived before this started listening
                 local bucket = find_bucket(record)
                 if bucket and bucket.auctionID ~= old_id then
@@ -1137,31 +1166,48 @@ do
                 end
                 aux.coro_wait()
             end
-            if not updated then
+            local timed_out
+            if not updated and not closed then
                 -- the client no longer holds this item's results; ask for them again, once any
                 -- search running now has ended (it used to be stopped, so a search started right
                 -- after buying was cut off; found with the slow test auction house). The row stays
                 -- busy meanwhile, so it cannot be bought at the old auction ID.
                 t0 = GetTime()
-                while scan.is_scanning() and GetTime() - t0 < 30 do
+                while not closed and scan.is_scanning() and GetTime() - t0 < 30 do
                     aux.coro_wait()
                 end
-                while not C_AuctionHouse.IsThrottledMessageSystemReady() do
-                    aux.coro_wait()
-                end
-                C_AuctionHouse.SendSearchQuery(key, {{sortOrder = Enum.AuctionHouseSortOrder.Price, reverseSort = false}}, true)
                 t0 = GetTime()
-                while not updated and GetTime() - t0 < 5 do
+                while not closed and not C_AuctionHouse.IsThrottledMessageSystemReady() do
+                    if GetTime() - t0 >= scan.THROTTLE_TIMEOUT then
+                        timed_out = true
+                        aux.print(scan.THROTTLE_TEXT)
+                        break
+                    end
                     aux.coro_wait()
+                end
+                if not closed and not timed_out then
+                    C_AuctionHouse.SendSearchQuery(key, {{sortOrder = Enum.AuctionHouseSortOrder.Price, reverseSort = false}}, true)
+                    t0 = GetTime()
+                    while not updated and not closed and GetTime() - t0 < 5 do
+                        aux.coro_wait()
+                    end
                 end
             end
             aux.kill_listener(listener_id)
-            local bucket = find_bucket(record)
+            aux.kill_listener(close_id)
             record.syncing = nil
+            if closed or timed_out then
+                search.table:SetDatabase()
+                return
+            end
+            local bucket = find_bucket(record)
             if bucket and (bucket.auctionID ~= old_id or updated) then
                 record.auction_id = bucket.auctionID
                 record.auction_count = max(1, bucket.quantity or 1)
                 search.table:SetDatabase()
+                if on_shopping_search_update then
+                    on_shopping_search_update(search, false)
+                end
             else
                 remove_record(search, record)
             end
@@ -1206,7 +1252,11 @@ do
             on_auction = function(record)
                 tinsert(fresh, record)
             end,
-            on_complete = function()
+            on_complete = function(result)
+                -- 0.9: do not wipe existing commodity rows if the refresh timed out or was throttled
+                if not scan.saw_everything(result) then
+                    return
+                end
                 for i = #search.records, 1, -1 do
                     if search.records[i].commodity and search.records[i].item_id == item_id then
                         tremove(search.records, i)
@@ -1216,9 +1266,21 @@ do
                     tinsert(search.records, record)
                 end
                 search.table:SetDatabase()
+                if on_shopping_search_update then
+                    on_shopping_search_update(search, true)
+                end
             end,
         }
     end
+
+    -- 0.9.1 (FB-023): shared by shopping.lua so Shopping List buys through the exact same
+    -- commodity and item purchase helpers without duplicating auction state updates
+    M.commodity_tiers_of = commodity_tiers
+    M.consume_commodity_of = consume_commodity
+    M.refresh_commodity_of = refresh_commodity
+    M.sync_bucket_of = sync_bucket
+    M.remove_record_of = remove_record
+    M.purchase_failure_of = failure
 
     local function show_commodity(search, record)
         local item_info = info.item(record.item_id)
@@ -1342,7 +1404,15 @@ do
             on_auction = function(auction_record)
                 tinsert(loaded, auction_record)
             end,
-            on_complete = function()
+            on_complete = function(result)
+                -- 0.9: a timed-out or throttled read must not delete the fast row and say it sold
+                if not scan.saw_everything(result) and #loaded == 0 then
+                    search.open[record.item_key] = nil
+                    if current_search() == search then
+                        buy_bar.show_note(record.name, 'The auction house did not answer in time. Click the row to try again.', aux.color.red)
+                    end
+                    return
+                end
                 replace_item(search, record, loaded)
             end,
         }
@@ -1351,6 +1421,10 @@ do
     function on_update()
         update_live()
         update_results_summary()
+        if not frame.results:IsShown() then
+            checked = nil
+            return
+        end
         local selection = current_search().table:GetSelection()
         if selection and selection.record ~= checked then
             find_auction(selection.record)

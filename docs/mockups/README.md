@@ -34,6 +34,7 @@ for a visual change, show a mockup first and build only once Tyler approves it (
 | `post-panel-2026-10-10/` | The Post tab's top panel: today, option A (three columns: setup, price, receipt), A with trade goods, B, C | Option A chosen and built (0.6) |
 | `waylaid-crate-2026-10-21/` | Waylaid Crate tooltip: A every bundle with the cheapest in gold, B one line; C Alt-click a crate to search its bundles | A and C chosen and built (0.8) |
 | `craft-profit-line-2026-11-09.html` | Profit on the Materials line under a recipe's reagents (FB-026): A cost and profit, B cost, selling price and profit, C two lines; the hover; five cases | Built in 0.8.1 (the craft profit line) |
+| `shopping-list-alt-inventory-2026-11-22.html` | Crafting Shopping List + Alt Inventory (FB-023): Option A (4th Search sub-tab) vs Option B (strip over Results), Craft count stepper, Vendor vs AH comparison, per-character vs compact Owned tooltips, Settings switch | Tyler (2026-11-22): Option A, open Shopping List from Professions button and Alt-click, per-character tooltips opt-in and off by default, direct recipe reagents only; built in 0.9.1 build 1 |
 
 Where each decision is recorded in more detail: `docs/status-history.md`, `docs/changelog.md`, and
 the feedback entries named above in `docs/feedback.md`.

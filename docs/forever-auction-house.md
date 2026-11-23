@@ -256,7 +256,14 @@ Other mails **[Code]**: "Auction expired: X" (item back), "Auction canceled: X",
 - Measured again after launch (Tyler, 2026-11-17, `/aux debug list`): 25,706 items in 37.7 seconds
   over 52 requests, about 0.73 s per request. **[Seen]** The same evening a Sniper round asked
   without gray items got 25,187 items, so grays were 519 (about 2%) **[Seen]**; that round took
-  153.8 s in all, most of it opening possible deals.
+  153.8 s in all, most of it opening possible deals. Narrowing Sniper to **Trade Goods** (Tyler,
+  2026-11-22, 0.9 build 4) returned **491 items in 0.1 s to 0.2 s** (1 request per round)
+  **[Seen]**.
+- Whether `C_AuctionHouse.GetItemKeySampleLink(key)` returns a non-nil sample link during browse on
+  Forever remains **[Unknown]**: the Build 4 Step 5 chat screenshot was downscaled too far to read
+  `true` vs `false` reliably (though Step 4 confirmed Fast search `armor/miscellaneous/finger/spell`
+  now finds `"of the Channeler"` and `"of the Prophet"` rings with `Equip:` spell stats **[Seen]**,
+  via either sample links or the `needs_suffix_tooltip` fallback).
 - Measured: the whole house's item list, 7,718 items in 8.5 seconds over 16 requests
   (2026-10-04); item searches about one every 0.4 seconds because of the game's request limit
   (`IsThrottledMessageSystemReady`), 335 items in 3m 13s (0.4). **[Seen]**
@@ -347,11 +354,60 @@ page once carried them as build id `ah-facts-1`.
   back read the late, empty answer as the new item's and said "None for sale". Same test in game:
   post an item, and right away pick a different one in the bag list.
 - **E8 Copper prices on gear (FB-044).** Settled 2026-11-16: gear takes copper prices (section 2).
-- **E9 Talents.** Result 2026-11-16 (Ben): the command printed "Shaman SHAMAN 7" and no talent tree
+- **E9 `SendSellSearchQuery` for gear (2026-11-21, [Code] / partial [Seen]).** Blizzard's Sell
+  window zeroes `itemLevel` and `itemSuffix` on a gear item key and calls
+  `C_AuctionHouse.SendSellSearchQuery` (`Blizzard_AuctionHouseUtil.lua`,
+  `Blizzard_AuctionHouseItemSellFrame.lua`, passing `separateOwnerItems = false`), returning all
+  versions of that item ID in 1 request (read via `GetNumItemSearchResults` /
+  `GetItemSearchResultInfo`). On 2026-11-21 (0.9 build 2), running idle on item 4567 printed
+  `E9 send: 4567 true` and `E9: 4567 0 true nil nil` (`HasSearchResults == true`, server answered
+  with 0 results for item 4567). Whether it returns suffixed variants when listed remains
+  **[Unknown]** until tested on a gear item ID that currently has suffixed auctions listed.
+- **E10 `SearchForItemKeys` batch browse (2026-11-21, [Code]).** `C_AuctionHouse.SearchForItemKeys(itemKeys, sorts)`
+  is documented on Forever (`AuctionHouseDocumentation.lua`). Both the 2026-11-21 (build 2) and
+  2026-11-22 (build 4) probes printed `E10 send: false` and `E10: 0 false nil nil nil` (the build 4
+  screenshot was initially misread as `true` due to chat image downscaling; corrected 2026-11-22
+  after Tyler caught it). Because the throttle was not ready when Line 1 ran, `SearchForItemKeys`
+  remains **[Unknown]** until tested with `IsThrottledMessageSystemReady() == true`. If it works,
+  it enables Point Blank Sniper-style 100-key single-request Watch List sniping
+  (`docs/sniper-research-pointblanksniper.md`).
+- **E11 Browse price sort order & mid-browse `SendSearchQuery` (2026-11-23, [Unknown]; from
+  `docs/sniper-research-pointblanksniper.md`).**
+  - **E11a (Price-Cap Early-Stop):** Confirm that `SendBrowseQuery` sorted by
+    `Enum.AuctionHouseSortOrder.Price` ascending actually delivers browse pages in ascending
+    `minPrice` order on Forever (so the Sniper can stop calling `RequestMoreBrowseResults()` once a
+    page's last `minPrice` passes a player-chosen max price cap).
+  - **E11b (Streaming browse + live check):** Confirm whether calling `SendSearchQuery` for one item
+    while `HasFullBrowseResults() == false` leaves the browse cursor intact for subsequent
+    `RequestMoreBrowseResults()` calls or resets it.
+- **Note on Blizzard's invisible `AuctionHouseFrame:OnShow` ([Code], 2026-11-21):** when a player
+  has Blizzard AH favorites, opening the AH triggers `C_AuctionHouse.SearchForFavorites(sorts)`
+  (`Blizzard_AuctionHouseFrame.lua:398-400`), using a throttle slot and firing
+  `AUCTION_HOUSE_BROWSE_RESULTS_UPDATED` right at `AUCTION_HOUSE_SHOW`. Keep in mind for Auto Full
+  Scan (FB-032) and initial searches.
+- Experiments E12 to E15 below are the Upgrades tab's (branch `search-upgrade-support`). E13 to E15
+  were E9 to E11 on that branch until 0.9 used those numbers for other experiments; renamed when 0.9.1
+  was merged into it (2026-11-23).
+- **E12 Item stats (Upgrades tab, `docs/upgrades.md`).** Results 2026-11-16 (Ben):
+  - A hovered item's link with `C_Item.GetItemStats` (or `GetItemStats`) prints its stats **[Seen]**.
+  - `C_TooltipInfo.GetItemKey` is blocked: run from chat, the game showed "*** ForceTaint_Strong ***
+    has been blocked from an action only available to the Blizzard UI" **[Seen]**. Addon code is
+    tainted the same way, so aux must not call it (it would show the same popup, with aux's name).
+  - The link of a row's icon in aux's results (a tooltip set with `SetItemKey`, then
+    `GameTooltip:GetItem()`) gives stats with `GetItemStats` too (Ben, 2026-11-16) **[Seen]**.
+  - But that link has no ending: on the Upgrades tab every version of Birchwood Maul (of Defense,
+    of Fire Protection, of the Owl, of Healing, ...) and of Spiked Club scored exactly the same,
+    "+2.8 DPS, -1 Strength" against the worn weapon (Ben, 2026-11-17, screenshot) **[Seen]**. So a
+    key's stats from `SetItemKey` are the plain item's. Whether the tooltip itself shows the
+    ending's stat lines **[Unknown]**. A real auction's link (an item search result's `itemLink`)
+    carries the ending (see "A gear link's ending" above, **[Seen]**); that its `GetItemStats`
+    includes the ending's stats is **[Inference]** from E14's Brutal War Axe of the Sorcerer, to be
+    confirmed by `TESTING.md` step 22.
+- **E13 Talents.** Result 2026-11-16 (Ben): the command printed "Shaman SHAMAN 7" and no talent tree
   lines, so `GetNumTalentTabs` gave 0 or is missing on Forever **[Seen]**. Whether another function
   (`GetSpecialization`) answers **[Unknown]**; the Upgrades tab can do without it (the player picks
   the spec once, saved per character).
-- **E10 Stat names.** Result 2026-11-16 (Ben), first part: the stat names the game knows, the
+- **E14 Stat names.** Result 2026-11-16 (Ben), first part: the stat names the game knows, the
   global strings `ITEM_MOD_*_SHORT`, printed in game **[Seen]**. Forever's client has the modern
   list, Retail's stats included (Versatility, Mastery, Leech), and more than one name for several
   stats: Hit, Hit (Melee), Hit (Spell), Hit (Ranged); Critical Strike with the same three; Spell
@@ -364,7 +420,7 @@ page once carried them as build id `ah-facts-1`.
   under one name only (not also `SPELL_DAMAGE_DONE`), weapon DPS as a decimal, and a random
   ending's stats (the Sorcerer's) included. Still open **[Unknown]**: the names an item with Hit,
   Crit or MP5 uses, so such a stat is not counted twice.
-- **E11 A Full scan's links and endings (Upgrades tab).** Since 2026-11-17 a Full scan saves the
+- **E15 A Full scan's links and endings (Upgrades tab).** Since 2026-11-17 a Full scan saves the
   stats of each ending from its listings' links (`GetReplicateItemLink`), filed by the item level
   `GetItemInfo` gives for the link; the Upgrades tab looks them up by the item level of the auction
   house item key. Two things not yet seen **[Unknown]**: that a Full scan link carries the
@@ -380,18 +436,3 @@ page once carried them as build id `ah-facts-1`.
   stats were saved for them. **[Inference]**: `GetItemStats` gave nothing for those links at that
   moment (the game had not loaded them yet), and aux does not try again. Since the same day aux
   tries those names again every second, 5 times (`TESTING.md` step 30).
-- **E12 Item stats (Upgrades tab, `docs/upgrades.md`).** Results 2026-11-16 (Ben):
-  - A hovered item's link with `C_Item.GetItemStats` (or `GetItemStats`) prints its stats **[Seen]**.
-  - `C_TooltipInfo.GetItemKey` is blocked: run from chat, the game showed "*** ForceTaint_Strong ***
-    has been blocked from an action only available to the Blizzard UI" **[Seen]**. Addon code is
-    tainted the same way, so aux must not call it (it would show the same popup, with aux's name).
-  - The link of a row's icon in aux's results (a tooltip set with `SetItemKey`, then
-    `GameTooltip:GetItem()`) gives stats with `GetItemStats` too (Ben, 2026-11-16) **[Seen]**.
-  - But that link has no ending: on the Upgrades tab every version of Birchwood Maul (of Defense,
-    of Fire Protection, of the Owl, of Healing, ...) and of Spiked Club scored exactly the same,
-    "+2.8 DPS, -1 Strength" against the worn weapon (Ben, 2026-11-17, screenshot) **[Seen]**. So a
-    key's stats from `SetItemKey` are the plain item's. Whether the tooltip itself shows the
-    ending's stat lines **[Unknown]**. A real auction's link (an item search result's `itemLink`)
-    carries the ending (see "A gear link's ending" above, **[Seen]**); that its `GetItemStats`
-    includes the ending's stats is **[Inference]** from E10's Brutal War Axe of the Sorcerer, to be
-    confirmed by `TESTING.md` step 22.
