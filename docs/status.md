@@ -1,7 +1,7 @@
 # Status
 
-Last updated 2026-11-22, Tyler's time (`0.9` released on `main`, 2026-11-22; next version `0.9.1`
-holds the remaining Waylaid Crate Favor/Writs, Shopping List + Alt Inventory, and Posting Rules).
+Last updated 2026-11-23, Tyler's time (`0.9` released on `main`, 2026-11-22; `0.9.1` branch active;
+`FB-067` multi-item gear posting bug logged 2026-11-23 with root cause found).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-20 and 0.9's
@@ -31,13 +31,18 @@ project page when convenient (updated for 0.9's Options > AddOns panel, Narrower
 and settings).
 
 **Next up for 0.9.1 build 2 (waiting on Tyler's picks):**
-1. **Posting rules based on usual price (`FB-031`, user_yt0k9lezehn1ukm993387):** interactive
+1. **Multi-item gear posting bug (`FB-067`, Tyler, 2026-11-23):** Posting 2+ gear items lists all
+   of them, but aux's 0.9 `AUCTION_MULTISELL_UPDATE` check (`bag_count < bags_before` instead of
+   `<= bags_before - wanted`) finishes as soon as item 1 leaves the bags, printing "Posted 1 of 2"
+   and leaving a stale item in the Post tab. Root cause confirmed; ready to fix in 0.9.1 build 2
+   (or a 0.9.0.1 hotfix if Tyler prefers).
+2. **Posting rules based on usual price (`FB-031`, user_yt0k9lezehn1ukm993387):** interactive
    mockup shown in session; awaiting Tyler's approval on default percentages, layout, and fallback
    behavior.
-2. **Waylaid Crate Merchant's Favor & reward silver (`FB-059`, `FB-042`, `FB-043`) + Craftsman's
+3. **Waylaid Crate Merchant's Favor & reward silver (`FB-059`, `FB-042`, `FB-043`) + Craftsman's
    Writs (`FB-020`):** web research (`[Outside]`, Forever guides) completed on 2026-11-22; awaiting
    Tyler's in-game confirmation (especially Artisan crate Favor/silver) before mocking up.
-3. **Watch `FB-065`** (marcus4555 Sniper 0 deals report) if the player replies with diagnostic info.
+4. **Watch `FB-065`** (marcus4555 Sniper 0 deals report) if the player replies with diagnostic info.
 
 **Planned for 0.10 (final beta):** granular scan-age timestamps & cleaner tooltip presentation
 (Tyler, 2026-11-21), Full scan speed/memory pass, and 1.0 readiness (`docs/roadmap.md`).

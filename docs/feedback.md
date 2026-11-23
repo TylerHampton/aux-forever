@@ -173,6 +173,7 @@ For whoever fixes or builds from it:
 | [FB-064](#fb-064-tooltip-word-search-ignores-stats-on-generic-green-random-suffix-gear) | 2026-11-22 | RushJet1 | bug | Search | S2 | Tooltip-word search ignores stats on generic green random-suffix gear ("of the Channeler") | fixed 0.9 (released 2026-11-22) |
 | [FB-065](#fb-065-sniper-stopped-showing-deals-even-after-changing-thresholds) | 2026-11-22 | marcus4555 | bug | Sniper | S1 | Sniper stopped showing deals even after changing thresholds | new |
 | [FB-066](#fb-066-setting-to-pick-default-buy-quantity-1-vs-full-stack) | 2026-11-22 | user_ivpyccljovcjne72 | request | Buy bar | n/a | Setting to pick default buy quantity (1 vs full stack) | built 0.9 (released 2026-11-22) |
+| [FB-067](#fb-067-posting-2-gear-items-lists-both-but-aux-reports-posted-1-of-2-and-leaves-1-in-the-post-tab) | 2026-11-23 | Tyler | bug | Post | S2 | Posting 2 gear items lists both but aux reports "Posted 1 of 2" and leaves 1 in the Post tab | confirmed (root cause found in 0.9 multisell handler) |
 
 ## Players
 
@@ -3217,6 +3218,47 @@ Recorder's notes:
 Unknowns: none.
 
 Ask Tyler: none (passed in game).
+
+### FB-067: Posting 2 gear items lists both but aux reports Posted 1 of 2 and leaves 1 in the Post tab
+
+- Received: 2026-11-23
+- From: Tyler (1 report)
+- Where: chat with Gemini Neon (with screenshot)
+- Source: [source](feedback/sources/2026-11-23-tyler-post-multisell.md)
+- Version: 0.9 or 0.9.1 build 1 (not stated; the bug was introduced in 0.9 commit `4c4d3a9` and is unchanged in 0.9.1 build 1)
+- Type: bug
+- Area: Post
+- Severity: S2 (both auctions post at the right price and no money is lost, but aux reports a partial post and leaves a ghost item in the Post tab whose next Post click fails)
+- Status: confirmed (root cause identified in `auxForever/tabs/post/core.lua`)
+- Proposed: fix in 0.9.1 build 2 (or 0.9.0.1 hotfix if Tyler wants it live before 0.9.1)
+
+Said:
+> log this bug I found. Aux sold both my bracers I was selling (2) but acted like it only sold one
+
+Steps / setup (from Tyler's screenshot, `[Seen]` 2026-11-23):
+1. On the Post tab, select Runed Copper Bracers (gear, 2 in bags) and click Post 2 items at 3s 17c for 2h.
+2. Chat prints `Auction created.` twice, immediately followed by `<auxForever> Posted 1 of 2 × Runed Copper Bracers`.
+3. The Auction Buyout (per item) table refreshes and shows 2 of the player's own auctions in green at 2h, 3s 17c (confirming both bracers posted).
+4. Despite both posting, the Post tab keeps `[Runed Copper Bracers]` in the bag list, shows `1 in your bags`, Count `1`, and `Post 1 item`.
+5. Clicking `Post 1 item` prints `<auxForever> Not posted: the item is no longer in your bags.` in chat and in red under Duration, while `[Runed Copper Bracers]` still remains in the Post tab bag list showing `1 in your bags`.
+
+Tyler's notes: none beyond the report and screenshot.
+
+Recorder's notes:
+- Fact (`[Code]`, `auxForever/tabs/post/core.lua:121-133`, introduced in 0.9 commit `4c4d3a9`): on `AUCTION_MULTISELL_UPDATE(count, total)`, when `count == total`, aux checks `if bag_count(post_state.item_key) < post_state.bags_before then finish_post_state() end`. For a multi-item post (`wanted > 1`), checking `< bags_before` only tests whether at least 1 item has left the bags, not whether all `wanted` items have left (`<= bags_before - wanted`).
+- Fact (`[Code]`, `auxForever/tabs/post/core.lua:111-115`): the `'single'` mode `BAG_UPDATE` listener uses the same `bag_count(post_state.item_key) < post_state.bags_before` check, so even if `AUCTION_MULTISELL_UPDATE` falls into the `else` branch (`post_state.mode = 'single'`), any `BAG_UPDATE` while fewer than `wanted` items have left still finishes the post early.
+- Fact (`[Code]`, `auxForever/tabs/post/core.lua:173, 551, 912`): `update_inventory_records()` is only called in `tab.OPEN()` and inside `complete_post()`. Neither `BAG_UPDATE` / `BAG_UPDATE_DELAYED` while the Post tab is open nor the `'gone'` early return in `post_auction()` (`core.lua:487-495`) refreshes `inventory_records`.
+- Fact (`[Code]`, `Blizzard_AuctionHouseItemSellFrame.lua`, Forever UI source): Blizzard's Sell frame listens to `AUCTION_MULTISELL_START`, `AUCTION_MULTISELL_UPDATE(numPosted, total)`, and `AUCTION_MULTISELL_FAILURE`, clearing `multisellInProgress` when `numPosted == total`.
+- Fact (`[Code]`, `tests/load_test.lua:7266-7280` and `tests/slow_server.lua:309-334`): existing multisell tests dropped all units from the bags at once before `AUCTION_MULTISELL_UPDATE(2, 2)`, never simulating item 1 leaving the bag before `AUCTION_MULTISELL_UPDATE(2, 2)` arrives while item 2 is still in the bag.
+- Inference (strong; explains every line in the screenshot): during a 2-item multisell on Forever, item 1 leaves the bags (`bag_count` drops from 2 to 1) before `AUCTION_MULTISELL_UPDATE(2, 2)` fires, while item 2's `BAG_UPDATE` has not cleared the 2nd bag slot yet when `AUCTION_MULTISELL_UPDATE(2, 2)` arrives. Because `1 < 2` is true, aux called `finish_post_state()` early; `complete_post()` ran on the next frame with `bag_count == 1`, computed `posted = 2 - 1 = 1`, printed `Posted 1 of 2 × Runed Copper Bracers`, and rebuilt `inventory_records` with `count = 1`. Once item 2's `BAG_UPDATE` arrived moments later, nothing refreshed `inventory_records`, leaving the ghost `1 in your bags` entry until reopening the Post tab, and clicking `Post 1 item` then hit `'gone'` without clearing the stale row.
+- Proposed fix:
+  1. Store `expected_bags = max(0, bags_before - wanted)` on `post_state`, and finish in both `AUCTION_MULTISELL_UPDATE(count == total)` and `'single'` `BAG_UPDATE` only once `bag_count(post_state.item_key) <= post_state.expected_bags` (partial failures still end immediately on `AUCTION_MULTISELL_FAILURE` or `AUCTION_HOUSE_SHOW_ERROR`, and the 5s timeout remains as a safety net).
+  2. Refresh `inventory_records` on `BAG_UPDATE_DELAYED` while the Post tab is shown and not mid-post (and when `post_auction()` hits `'gone'`), clearing or advancing `selected_item` if its bag count dropped to 0, so the bag list cannot stay out of sync with the player's bags.
+  3. Add unit and slow-server tests simulating staggered per-item bag removal during a 2+ item multisell (item 1 removed -> `AUCTION_MULTISELL_UPDATE(2, 2)` -> item 2 removed on later `BAG_UPDATE`) that fail without the fix.
+
+Unknowns: which exact build Tyler had loaded (0.9 vs 0.9.1 build 1); does not affect the fix since both share the exact same `AUCTION_MULTISELL_UPDATE` code from 0.9.
+
+Ask Tyler: fix this in 0.9.1 build 2 alongside the next 0.9.1 items, or ship a small 0.9.0.1 hotfix first?
 
 ## Before this log
 
