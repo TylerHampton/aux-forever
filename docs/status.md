@@ -1,13 +1,27 @@
 # Status
 
-Last updated 2026-11-22, Tyler's time (`0.9` released on `main`, 2026-11-22; next version `0.9.1`
-holds the remaining Waylaid Crate Favor/Writs, Shopping List + Alt Inventory, and Posting Rules).
+Last updated 2026-11-23, Tyler's time (`0.9.0.1` build 1 hotfix for `FB-067` multi-item gear
+posting built on `gemini/0.9.0.1`, awaiting Tyler's in-game test to ship asap).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-20 and 0.9's
 build-by-build log are there).
 
 ## Start here (next session)
+
+**Active branch:** `gemini/0.9.0.1` (hotfix branched from `main` at `4c4d3a9`; `auxForever.toc`
+bumped to `forever-0.9.0.1`). `gemini/0.9.1` also exists with 0.9.1 build 1 (Shopping List +
+opt-in Alt Inventory) and will pick up 0.9.0.1 once this hotfix merges to `main`.
+
+**Built, awaiting Tyler's in-game test (0.9.0.1 build 1, 2026-11-23):**
+- **Multi-item gear posting hotfix (`FB-067`, Tyler):** Fixes three bugs in `tabs/post/core.lua`:
+  (1) `AUCTION_MULTISELL_UPDATE` and `BAG_UPDATE` now wait until `bag_count <= bags_before - wanted`
+  instead of `< bags_before` (which ended every 2+ gear post 1 item early with `Posted (N-1) of N`
+  and left a ghost item); (2) intermediate multisell progress events reset the 5-second silence
+  timer so 8+ item batches do not time out mid-batch; (3) `BAG_UPDATE_DELAYED` syncs the Post tab
+  bag list while open and idle (zero scans while closed), and `'gone'` posts refresh the bag list.
+  No new files; **`/reload` is enough** from 0.9. In-game steps are under "Current build: 0.9.0.1
+  build 1" in `TESTING.md`.
 
 **Released:** **0.9** on 2026-11-22 on `main` (tag `v0.9`, GitHub pre-release, CurseForge Beta
 upload). Full build-by-build log (builds 1 to 4, all tested in game by Tyler): `docs/status-history.md`
@@ -18,12 +32,12 @@ game restart** for `Bindings.xml`.
 project page when convenient (updated for 0.9's Options > AddOns panel, Narrower Sniper, keybinds,
 and settings).
 
-**Next up: 0.9.1 (branch `gemini/0.9.1` from `main`, mockup first for each):**
+**Next up after 0.9.0.1 ships (on `gemini/0.9.1`):**
 1. **Waylaid Crate Merchant's Favor & reward silver (`FB-059`, `FB-042`, `FB-043`) + Craftsman's
    Writs (`FB-020`):** waiting on in-game screenshots of a Waylaid Crate turn-in reward window and a
    Craftsman's Writ tooltip from Tyler before mocking up.
-2. **Crafting Shopping List + Alt Inventory tracking (`FB-023`, Kortan):** ready to design a mockup
-   at the start of the next session even before crate/writ screenshots arrive.
+2. **Crafting Shopping List + Alt Inventory tracking (`FB-023`, Kortan):** built on `gemini/0.9.1`
+   as 0.9.1 build 1, awaiting in-game test after 0.9.0.1 ships.
 3. **Posting rules based on usual price (`FB-031`, user_yt0k9lezehn1ukm993387):** TSM-style
    floor/normal/ceiling rules for the Post tab (mockup first).
 4. **Watch `FB-065`** (marcus4555 Sniper 0 deals report) if the player replies with diagnostic info.
