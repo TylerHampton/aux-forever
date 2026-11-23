@@ -31,11 +31,12 @@ project page when convenient (updated for 0.9's Options > AddOns panel, Narrower
 and settings).
 
 **Next up for 0.9.1 build 2 (waiting on Tyler's picks):**
-1. **Multi-item gear posting bug (`FB-067`, Tyler, 2026-11-23):** Posting 2+ gear items lists all
-   of them, but aux's 0.9 `AUCTION_MULTISELL_UPDATE` check (`bag_count < bags_before` instead of
-   `<= bags_before - wanted`) finishes as soon as item 1 leaves the bags, printing "Posted 1 of 2"
-   and leaving a stale item in the Post tab. Root cause confirmed; ready to fix in 0.9.1 build 2
-   (or a 0.9.0.1 hotfix if Tyler prefers).
+1. **Multi-item gear posting bug (`FB-067`, Tyler, 2026-11-23):** Happens on 100% of multi-item
+   gear posts (`N >= 2`, reproduced 3 for 3: 1 of 2, 7 of 8, 2 of 3). All N items post, but aux's
+   0.9 `AUCTION_MULTISELL_UPDATE` check (`bag_count < bags_before` instead of
+   `<= bags_before - wanted`) finishes before the Nth item clears the bags, printing
+   `Posted (N-1) of N` and leaving 1 ghost item in the Post tab. Root cause confirmed; ready to
+   fix in a 0.9.0.1 hotfix or 0.9.1 build 2 (Tyler's call).
 2. **Posting rules based on usual price (`FB-031`, user_yt0k9lezehn1ukm993387):** interactive
    mockup shown in session; awaiting Tyler's approval on default percentages, layout, and fallback
    behavior.
