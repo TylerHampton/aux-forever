@@ -147,6 +147,13 @@ function M.on_full_scan_view(f)
     tinsert(view_handlers, f)
 end
 
+-- Code that wants every listing of a Full scan (the Upgrades tab's ending stats) registers
+-- f(record), called once per listing as it is read (keep it cheap: it runs tens of thousands of
+-- times), and f() at the end of a scan that finished.
+local record_handlers, end_handlers = {}, {}
+function M.on_full_scan_record(f) tinsert(record_handlers, f) end
+function M.on_full_scan_end(f) tinsert(end_handlers, f) end
+
 -- 0.8.2 (FB-037): a Full scan is running. Since launch the server can take minutes to answer one,
 -- so scans that start by themselves (Sniper rounds, the Auctions tab's price check) wait for it
 -- instead of stopping it.
@@ -888,6 +895,19 @@ function replicate()
     local on_auction, on_progress = state.params.on_auction, state.params.on_progress or pass
     local read = info.replicate_reader()
     local pending, waiting, done = {}, {}, 0
+    -- Upgrades tab (search-upgrade-support): listings of gear with a random ending go to
+    -- on_full_scan_record with what it reads (price key, link, item ID, name, item level). Only
+    -- those listings get the extra item lookup; every other listing stays on the fast read.
+    local function hand_on(record)
+        for _, f in ipairs(record_handlers) do f(record) end
+    end
+    local function hand_on_listing(key, item_id, link)
+        if not link or strsub(key, -2) == ':0' then return end
+        -- the link's item level, as GetItemInfo gives it (no auction record: R-08)
+        local _, _, _, item_level = GetItemInfo(link)
+        if (item_level or 0) <= 0 then item_level = nil end
+        hand_on({price_key = key, link = link, item_id = item_id, item_level = item_level, name = strmatch(link, '|h%[(.-)%]|h')})
+    end
     -- reads one listing; false while the game has not loaded it
     local function take(index, first)
         local item_id
@@ -896,17 +916,19 @@ function replicate()
             record, item_id = info.replicate_record(index)
             if record then
                 process_auction(record, nil, count, collector)
+                if #record_handlers > 0 then hand_on(record) end
                 done = done + 1
                 return true
             end
         else
-            local key, buyout, units
-            key, buyout, units, item_id = read(index)
+            local key, buyout, units, link
+            key, buyout, units, item_id, link = read(index)
             if key then
                 if buyout > 0 then
                     history.process_price(key, buyout, units)
                     history.collect_price(collector, key, ceil(buyout / units), units)
                 end
+                if #record_handlers > 0 then hand_on_listing(key, item_id, link) end
                 done = done + 1
                 return true
             end
@@ -973,6 +995,9 @@ function replicate()
         end
     end or nil)
     check_aborted(scan_state)
+    if state == scan_state then
+        for _, f in ipairs(end_handlers) do f() end
+    end
 end
 
 -- auxForever: /aux debug list. Times the item list of the whole auction house without opening any

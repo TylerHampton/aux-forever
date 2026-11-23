@@ -8,7 +8,9 @@
 return {
   -- GlobalAPI: functions of the game
   'ClearOverrideBindings', 'CreateFrame', 'GetBuybackItemInfo', 'GetCurrentKeyBoardFocus', 'GetGuildBankItemInfo', 'GetInboxItem',
-  'GetInboxNumItems', 'GetInventoryItemCount', 'GetLootSlotInfo', 'GetMerchantItemLink', 'GetMerchantNumItems', 'GetQuestItemInfo',
+  'GetInboxNumItems', 'GetInventoryItemCount',
+  'GetInventoryItemLink', -- the Upgrades tab's worn items; GlobalAPI, checked 2026-11-18
+  'GetLootSlotInfo', 'GetMerchantItemLink', 'GetMerchantNumItems', 'GetQuestItemInfo',
   'GetQuestLogChoiceInfo', 'GetQuestLogRewardInfo', 'GetSendMailItem', 'GetTradePlayerItemInfo',
   'GetTradeTargetItemInfo', 'InCombatLockdown', 'IsModifiedClick', 'PlaySound',
   'SetOverrideBindingClick', 'hooksecurefunc',

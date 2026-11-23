@@ -198,7 +198,8 @@ return function(env)
       -- switch tabs
       function()
         if not open then return end
-        tab = rnd(5)
+        -- every tab: Search 1, Sniper 2, Upgrades 3, Post 4, Auctions 5, Bids 6
+        tab = rnd(6)
         aux.set_tab(tab)
         say('tab ' .. tab)
       end,
@@ -240,8 +241,8 @@ return function(env)
       -- the Post tab
       function()
         if not open then return end
-        tab = 3
-        aux.set_tab(3)
+        tab = 4
+        aux.set_tab(4)
         local keys = {'2835:0', '7101:0', '7102:of the wolf', '2836:0'}
         post.select_item(keys[rnd(#keys)])
       end,
@@ -258,8 +259,8 @@ return function(env)
       end,
       press_post,
       press_post,
-      function() if open and tab == 3 and post.selected_item then post.refresh_button_click() end end,
-      function() if open and tab == 3 then post.set_undercut_mode(rnd(2) == 1) end end,
+      function() if open and tab == 4 and post.selected_item then post.refresh_button_click() end end,
+      function() if open and tab == 4 then post.set_undercut_mode(rnd(2) == 1) end end,
       -- the Sniper
       function()
         if not open then return end
@@ -346,8 +347,8 @@ return function(env)
     end
     local function sell()
       if not open then return end
-      tab = 3
-      aux.set_tab(3)
+      tab = 4
+      aux.set_tab(4)
       local keys = {'2835:0', '7101:0', '7102:of the wolf', '2836:0'}
       post.select_item(keys[rnd(#keys)])
       server:ticks(rnd(60))
@@ -358,8 +359,8 @@ return function(env)
     -- pressed when its button is lit, and must name an auction of your own.
     local function manage()
       if not open then return end
-      tab = 4
-      aux.set_tab(4)
+      tab = 5
+      aux.set_tab(5)
       server:ticks(rnd(40))
       local what = rnd(4)
       if what == 1 then
@@ -396,7 +397,7 @@ return function(env)
             open = false
             say('closed with the pad')
           end
-          tab = aux.get_tab() and ({Search = 1, Sniper = 2, Post = 3, Auctions = 4, Bids = 5})[aux.get_tab().name] or tab
+          tab = aux.get_tab() and ({Search = 1, Sniper = 2, Upgrades = 3, Post = 4, Auctions = 5, Bids = 6})[aux.get_tab().name] or tab
         end
       end
       -- a fight starts or ends

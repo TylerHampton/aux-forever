@@ -385,3 +385,54 @@ page once carried them as build id `ah-facts-1`.
   (`Blizzard_AuctionHouseFrame.lua:398-400`), using a throttle slot and firing
   `AUCTION_HOUSE_BROWSE_RESULTS_UPDATED` right at `AUCTION_HOUSE_SHOW`. Keep in mind for Auto Full
   Scan (FB-032) and initial searches.
+- Experiments E12 to E15 below are the Upgrades tab's (branch `search-upgrade-support`). E13 to E15
+  were E9 to E11 on that branch until 0.9 used those numbers for other experiments; renamed when 0.9.1
+  was merged into it (2026-11-23).
+- **E12 Item stats (Upgrades tab, `docs/upgrades.md`).** Results 2026-11-16 (Ben):
+  - A hovered item's link with `C_Item.GetItemStats` (or `GetItemStats`) prints its stats **[Seen]**.
+  - `C_TooltipInfo.GetItemKey` is blocked: run from chat, the game showed "*** ForceTaint_Strong ***
+    has been blocked from an action only available to the Blizzard UI" **[Seen]**. Addon code is
+    tainted the same way, so aux must not call it (it would show the same popup, with aux's name).
+  - The link of a row's icon in aux's results (a tooltip set with `SetItemKey`, then
+    `GameTooltip:GetItem()`) gives stats with `GetItemStats` too (Ben, 2026-11-16) **[Seen]**.
+  - But that link has no ending: on the Upgrades tab every version of Birchwood Maul (of Defense,
+    of Fire Protection, of the Owl, of Healing, ...) and of Spiked Club scored exactly the same,
+    "+2.8 DPS, -1 Strength" against the worn weapon (Ben, 2026-11-17, screenshot) **[Seen]**. So a
+    key's stats from `SetItemKey` are the plain item's. Whether the tooltip itself shows the
+    ending's stat lines **[Unknown]**. A real auction's link (an item search result's `itemLink`)
+    carries the ending (see "A gear link's ending" above, **[Seen]**); that its `GetItemStats`
+    includes the ending's stats is **[Inference]** from E14's Brutal War Axe of the Sorcerer, to be
+    confirmed by `TESTING.md` step 22.
+- **E13 Talents.** Result 2026-11-16 (Ben): the command printed "Shaman SHAMAN 7" and no talent tree
+  lines, so `GetNumTalentTabs` gave 0 or is missing on Forever **[Seen]**. Whether another function
+  (`GetSpecialization`) answers **[Unknown]**; the Upgrades tab can do without it (the player picks
+  the spec once, saved per character).
+- **E14 Stat names.** Result 2026-11-16 (Ben), first part: the stat names the game knows, the
+  global strings `ITEM_MOD_*_SHORT`, printed in game **[Seen]**. Forever's client has the modern
+  list, Retail's stats included (Versatility, Mastery, Leech), and more than one name for several
+  stats: Hit, Hit (Melee), Hit (Spell), Hit (Ranged); Critical Strike with the same three; Spell
+  Power and Spell Damage; "Mana Regeneration per 5 sec" and "Mana Per 5 Sec." (`POWER_REGEN0`);
+  Expertise, Haste, Spell Piercing (`SPELL_PENETRATION`), Spell Healing, Defense, Dodge, Parry,
+  Block, Bonus Armor, the weapon skills ("Daggers Skill") and school damage ("Fire Damage").
+  `core/weights.lua` lists every name of a stat. Second part, 2026-11-16 (Ben): Brutal War Axe of
+  the Sorcerer gave `ITEM_MOD_INTELLECT_SHORT` 8, `ITEM_MOD_SPELL_POWER_SHORT` 22,
+  `ITEM_MOD_DAMAGE_PER_SECOND_SHORT` 15.14 and `ITEM_MOD_STAMINA_SHORT` 6 **[Seen]**: spell power
+  under one name only (not also `SPELL_DAMAGE_DONE`), weapon DPS as a decimal, and a random
+  ending's stats (the Sorcerer's) included. Still open **[Unknown]**: the names an item with Hit,
+  Crit or MP5 uses, so such a stat is not counted twice.
+- **E15 A Full scan's links and endings (Upgrades tab).** Since 2026-11-17 a Full scan saves the
+  stats of each ending from its listings' links (`GetReplicateItemLink`), filed by the item level
+  `GetItemInfo` gives for the link; the Upgrades tab looks them up by the item level of the auction
+  house item key. Two things not yet seen **[Unknown]**: that a Full scan link carries the
+  ending's stats (seen only for an item search result's link), and that the two item levels are the
+  same number. `TESTING.md` step 28 checks both at once: after Clear and a Full scan, an Upgrades
+  search that has no "Reading the stats of each ending" step means both hold.
+  Result 2026-11-17 (Ben, saved variables read after a `/reload`) **[Seen]**: the Full scan
+  saved 11,354 ending names in about 4 seconds after it finished, so its links do carry the
+  ending's stats. Chest, Back and Wrist searches after it read only 21 names themselves (Chest had
+  read 100+ before). For each of the 21, the scan had saved other endings of the same item at the
+  same item level, so the two item levels match. The 21 names had a market price for that day,
+  which only a complete look such as the Full scan writes, so the scan saw those listings, but no
+  stats were saved for them. **[Inference]**: `GetItemStats` gave nothing for those links at that
+  moment (the game had not loaded them yet), and aux does not try again. Since the same day aux
+  tries those names again every second, 5 times (`TESTING.md` step 30).

@@ -6,6 +6,54 @@ CurseForge file's changelog box.
 A change that comes from a player's feedback credits them by in-game name at the end of its line:
 "(suggested by Darkhorse)" or "(reported by Darkhorse)". Who to credit is in `docs/feedback.md`.
 
+## Upgrades tab (not released yet, branch `search-upgrade-support`)
+
+### Upgrades tab (new)
+
+- A new tab after Sniper finds gear upgrades. Pick your spec and a slot (Head, Ring, Two-Hand and
+  so on) and press Search: aux looks at that slot's gear you can use, scores each item by your
+  spec's stat priority, and lists the ones that beat what you wear, with the gain and the stats that
+  change. Rings and trinkets are compared with the weaker of the two you wear, a two-hander with
+  both hands. Your spec, slot and level choice are remembered for each character.
+- The stat priorities come from Icy Veins' WoW Forever guides, one per spec. A stat higher in the
+  list counts more per point; Hit and Crit are counted per percent, like any other point, so they
+  may be undervalued.
+- Attack Power counts for physical specs, worth what the Strength or Agility that gives it is
+  worth (from each guide: a Warrior's Strength gives 2 Attack Power, a Rogue's Agility 1).
+- Random endings ("of the Bear", "of the Owl", ...) count: each ending's stats are read from one
+  of its auctions after the search (the item list alone gives only the plain item's stats, so
+  every ending scored the same). The first search of a slot takes a little longer while it reads
+  them; the line above the table shows "Reading the stats of each ending (5 of 20)". What it reads
+  is saved, so later searches, even after logging out, do not read it again. It is read again after
+  a game patch and after 30 days, and Settings, Upgrades, "Stat weights" has a Clear button.
+  Endings are read only for items at least three quarters of your level (at 60: level 45 and up),
+  so a high-level character's first search does not read hundreds of auctions for old gear. Lower
+  items are still listed and scored, without their ending, and the line above the table counts
+  them.
+- A Full scan saves the stats of every random ending it sees, for every level and class, and
+  refreshes the ones already saved. It asks the auction house for nothing extra (the scan already
+  has each listing's link) and reads them after "Full scan complete", a few at a time, so the scan
+  is no slower. After a Full scan, the Upgrades tab can skip its own reading step. Endings the
+  game had not loaded yet are tried again for a few seconds.
+- The Upgrades tab recommends a Full scan first when none ran in the last day: a gold tip above
+  the table before you search, and a note while it reads endings.
+- Buy right on the Upgrades tab: click a row and the buy bar under the table reads that item's
+  auctions and shows Buy with today's cheapest price (it can differ from the row's price, which was
+  the lowest when you searched; the row then shows the new price). Nothing is bought until you
+  click Buy. Right-click a row to open that item on the Search tab instead.
+- A Per gold column: how many score points you gain for each gold the item costs, so a cheap small
+  upgrade and an expensive big one can be compared.
+- Change the stat weights yourself: Settings, Upgrades, Stat weights, Edit (also in Escape,
+  Options, AddOns, auxForever while aux is open; or Change weights on the tab). One number per stat for each spec, kept for each character; your numbers show in gold,
+  and Reset to defaults brings back the guide's.
+- Post, Auctions and Bids moved one place to the right. With a gamepad, Y presses Search on the
+  Upgrades tab, and with a row of its table in focus, Y buys that row: the first Y reads its price
+  (the hint says "Y Get price"), the second buys it ("Y Buy").
+- Gamepad: down on the D-pad from the Req, iLvl or Item column header of the Upgrades table goes to
+  the first item under it. It went back to the slot buttons beside the table; the other headers
+  already worked. The same rule applies on every tab: a control that spans the gold frame's
+  position counts as straight below or above it.
+
 ## 0.9.1 (unreleased)
 
 **Full game restart required** when updating from 0.9 or 0.9.0.1 so the game loads the new Shopping

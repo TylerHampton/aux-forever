@@ -1,7 +1,7 @@
 # Status
 
 Last updated 2026-11-23, Tyler's time (`0.9.0.1` hotfix for `FB-067` released on `main`,
-2026-11-23; `gemini/0.9.1` active with `0.9.0.1` merged in).
+2026-11-23; `gemini/0.9.1` active with `0.9.0.1` merged in; 0.9.1 build 1 merged into the Upgrades branch `search-upgrade-support`).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-20 and 0.9's
@@ -53,6 +53,106 @@ reviewer (`AGENTS.md`, "Roles"). H-012 in `docs/handoff.md` is closed. Claude-on
 retired: mockups are in `docs/mockups/`, the old test page's saved answers in
 `docs/test-results/test-page-results.md`.
 
+**Being built: the Upgrades tab** (branch `search-upgrade-support`, not released). `main` up to
+0.8.2.1 merged into it on 2026-11-18, 0.8.2.2 build 4 (branch `claude/confident-bohr-vctz8g`) on
+2026-11-20, and 0.9.1 build 1 (branch `gemini/0.9.1`, with 0.9 and 0.9.0.1) on 2026-11-23 (see the
+last note). Notes, newest last:
+
+**2026-11-16, Claude, Upgrades tab plan** (branch `search-upgrade-support`, from `main` after
+0.8.2): a new tab after Sniper that finds gear upgrades by spec stat weights. Plan, open decisions
+and mockup link in `docs/upgrades.md`; nothing built. Experiments done (E12: `GetItemStats` on a link
+works, also a results row's icon link; `C_TooltipInfo.GetItemKey` is blocked for addons. E13: no
+talent trees, the player picks the spec). Mockup approved (Ben). Built: `core/stats.lua` (stats,
+scores, worn item), with tests, not used by a screen yet; new file, so a full game restart. Stat
+priorities of all 27 specs from Icy Veins' Forever pages (`docs/stat-priorities.md`), turned into
+ranked weights (option A, Ben) in `core/weights.lua`, tested. E14 seen (stat names; Spell Power
+under one name on a real item). The tab is built (`tabs/upgrades/`, tab 3; Post, Auctions and Bids
+are now 4, 5 and 6), with tests, not tried in game: `TESTING.md`, "Upgrades tab, first build". A
+row opens the item on the Search tab to buy it. Also built 2026-11-16: the weights editor (`tabs/upgrades/weights.lua`, own window, from Settings
+and the tab) and a Per gold column. Next: Ben's in-game test (`TESTING.md`, steps 1 to 14).
+
+**2026-11-17, Claude, buying on the Upgrades tab** (Ben: buy from the tab, mouse and gamepad, Y
+buys a highlighted item). Built on `search-upgrade-support`: the buy bar sits under the Upgrades
+table; a click reads that row's auctions and offers the cheapest at its real price; right-click
+opens it on the Search tab; gamepad Y on a row reads its price, the next Y buys (the game buys only
+inside a press). Tests in `tests/timing_test.lua` (slow auction house), checked to fail without
+the change. No new file. Not tried in game: `TESTING.md`, steps 16 to 21. Next: Ben's in-game
+test of steps 1 to 21.
+
+**2026-11-17, Claude, endings on the Upgrades tab.** Ben's screenshot: every "of the ..." version
+scored the same, because the link aux's tooltip gives for an item key has no ending. Now one
+auction of each ending name is read after the item list and its link's stats are used (cached for
+the session). Test in `tests/timing_test.lua`, checked to fail without the fix. No new file. Not
+tried in game: `TESTING.md`, steps 22 and 23 (step 22 also confirms that a real auction's link
+gives the ending's stats). Next: Ben's in-game test of steps 1 to 23.
+Later the same day: the ending stats are saved for the account (`account_data.ending_stats`), read
+again after a game patch (build number) or 30 days, with a Clear button in Settings, Upgrades,
+"Saved item stats". Tested with breaks for each rule. Steps 24 to 26. Next: steps 1 to 26.
+Later still (Ben): a lower edge for the ending reads. The search still covers level 1 up, but
+endings are read only for items whose required level is at least 75% of the player's
+(`ENDING_SHARE_BELOW = .25`, `ending_floor` in `tabs/upgrades/core.lua`; at 60 that is 45 up).
+Lower items are scored on their plain stats (or a saved ending) and counted in the status line.
+Test in `tests/timing_test.lua`, checked to fail without it. Step 27. Next: steps 1 to 27.
+Later still (Ben: "save all levels and classes"): a Full scan saves every ending's stats from its
+listings' links (no extra request; after the scan, 50 a frame; `on_full_scan_record` and
+`on_full_scan_end` in `core/scan.lua`, used in `tabs/upgrades/core.lua`). Test in
+`tests/load_test.lua`, checked to fail without it. Two Unknowns (E15 in
+`docs/forever-auction-house.md`), checked by steps 28 and 29. Next: steps 1 to 29.
+Result (Ben, E15): the scan saved 11,354 names, Chest, Back and Wrist read only 21 themselves,
+item levels match; the 21 got no stats from the game at that moment. Now retried every second,
+5 times (`FULL_SCAN_RETRIES`), test in `tests/load_test.lua`. Step 30. Next: steps 1 to 30.
+Also (Ben): a Full scan tip on the Upgrades status line when none ran in the last 24 hours,
+tested. Step 31. Next: steps 1 to 31.
+Note: under LuaJIT (this Mac has no lua5.1) "sniper memory: no growth" failed once and passed on
+three reruns; GitHub Actions runs real Lua 5.1.
+2026-11-18 (Ben): `main` (0.8.2.1) merged in. Conflicts settled: the Full scan keeps 0.8.2.1's
+fast read (no auction record per listing, R-08) and hands the Upgrades tab only the listings of
+gear with a random ending (`hand_on_listing` in `core/scan.lua`; the reader now also returns the
+link). The Upgrades item-stats experiment is now E12 (0.8.2.1 has its own E8, copper on gear).
+0.8.2.1's new tests used Post 3, Auctions 4: renumbered, and the random player (`fuzz_test.lua`)
+now visits all six tabs. A test of this branch left `GetInventoryItemLink` unset after it (a local
+named `saved` hid the saved functions); fixed. Lint: `GetInventoryItemLink` added to
+`known_globals.lua`; the global `GetItemStats`/`GetItemInfoInstant` fallbacks removed (Forever has
+only the `C_Item` ones). Both looks 0 errors under LuaJIT. Next: steps 1 to 31 in game, plus a
+Full scan to check the endings are still saved after the merge (step 28).
+
+**2026-11-20, Claude, 0.8.2.2 merged in.** Tyler's branch `claude/confident-bohr-vctz8g` (0.8.2.2
+build 4: Confirm before buying, the rest after buying, the faster Sniper and Live, gamepad item
+compare from PR #41, the Full scan polish from PR #37, and the Gemini Neon takeover docs) merged
+into this branch. Conflicts: Settings now has POSTING, BUYING, then UPGRADES in the left column, and
+the window is 386 high (was 358) so "Saved item stats" fits while a reload is waiting; the gamepad
+Y line names both Confirm and the Upgrades tab; changelog, `TESTING.md` and this file keep both
+sides. Tyler's new code uses only tab numbers 1 and 2, which did not move. Tests: both looks 0
+errors, 1566 checks (1497 here, 1440 on his branch before). Lint not run locally (no `luac5.1`);
+CI runs it. Step 14 now checks the new Settings column. Next: steps 1 to 31 in game.
+
+**2026-11-23, Claude, 0.9.1 merged in.** Tyler's active branch `gemini/0.9.1` (0.9 and 0.9.0.1 as
+released, plus 0.9.1 build 1: Shopping List and opt-in Alt Inventory) merged into this branch.
+Conflicts settled:
+- Settings: 0.9 builds the gear popup and the new Escape > Options > AddOns > auxForever panel from
+  one builder, and its left column is full (Posting, Buying, General). UPGRADES moved to the right
+  column under the tooltip lines, one row now: "Stat weights" with Clear and Edit, the hint counts
+  the saved endings ("120 endings saved"). Both views have it; Edit is faded while aux's window is
+  closed (the weights editor lives inside it). The gear popup is 502 high (446 or 474 in 0.9, still
+  inside the smallest window); the Options panel's bottom row moved down 24.
+- Experiments: 0.9 used E9 to E11 for its own. The Upgrades tab's E9 (talents), E10 (stat names)
+  and E11 (Full scan endings) are now E13, E14 and E15 in every file; E12 stays.
+- Tab numbers: 0.9's code finds Post by name, so nothing moved there; two new upstream tests used
+  Post 3 and were set to 4.
+- A test of this branch restored its globals with `pairs`, which skips one that was nil, so its
+  "blocked" `C_TooltipInfo` stayed and broke 0.9.1's crate code in a later test. Fixed (restored by
+  name).
+Tests under LuaJIT: both looks 0 errors, 1773 checks. Lint and the `luac5.1` syntax check are not
+installed here (LuaJIT's syntax check passed); CI runs them. Next: steps 1 to 31 in game, step 14
+now in the right column of Settings.
+
+**2026-11-23, Claude, gamepad down from table headers** (Ben: on Upgrades, down from Req, iLvl or
+Item went back to the slot buttons; the other headers went down to the items). The D-pad scored a
+control by its center, and a table row's center is far to the side of a header at the table's
+left edge. It now measures the distance across to the control's nearest edge (`gap` in
+`gamepad.lua`). Test in `tests/load_test.lua` ("down from a narrow header"), checked to fail
+without the fix; the test layout's controls now have all four edges. Both looks 0 errors, 200 fuzz
+seeds clean. Not tried in game: `TESTING.md` step 32. Next: steps 1 to 32.
 **Saved for later (Tyler, 2026-11-16: "Just save the test for a later date :) and we will monitor
 feedback"):** the in-game check of buying through a row of many sellers (S-08; build 7 step 3,
 17 purchases of Linen Belt was too costly). A cheaper way when it is run: a hidden test command

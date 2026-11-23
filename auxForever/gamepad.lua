@@ -20,9 +20,11 @@ local gui = require 'aux.gui'
 --          Sniper deal it then moves the focus to the buy bar's Buy button once it shows
 --   B      closes what is open: a dropdown, a text box, a popup (Settings, quick searches), then aux
 --   X      right-clicks the control (search from a bag item, remove a favorite, clear a text box)
---   Y      the tab's main action: Buy (then Confirm, with Confirm before buying on) on Search, Start or Stop on Sniper, Post on Post,
+--   Y      the tab's main action: Buy (then Confirm, with Confirm before buying on) on Search,
+--          Start or Stop on Sniper, Search on Upgrades (Buy on a row of its table: the first Y
+--          reads the row's price, the second buys), Post on Post,
 --          Cancel the selected auction on Auctions, Buyout the selected bid on Bids
---   LB/RB  step through the top bar: the five tabs (switched at once), then Settings, Full scan
+--   LB/RB  step through the top bar: the six tabs (switched at once), then Settings, Full scan
 --          and Blizzard UI (A presses them)
 -- Nothing runs every frame: the controls are found when a button is pressed.
 
@@ -282,6 +284,17 @@ local function first_stop()
     return best
 end
 
+-- how far a point is to the side of a control: 0 when the control spans it, else the gap to its
+-- nearest edge. A table row is as wide as the table, so from a narrow column header at the table's
+-- left edge (Req, iLvl, Item) its center is far to the side, and measured center to center the pad
+-- went to a button beside the table instead (Upgrades tab, Ben, 2026-11-23). Falls back to the
+-- center when the edges are not known.
+local function gap(p, low, high, center)
+    if not low or not high or high <= low then return abs(p - center) end
+    if p < low then return low - p elseif p > high then return p - high end
+    return 0
+end
+
 -- the nearest control in a direction: mostly along it, little to the side
 local function nearest(from, direction)
     local x0, y0 = from:GetCenter()
@@ -291,10 +304,10 @@ local function nearest(from, direction)
             local x, y = f:GetCenter()
             local dx, dy = x - x0, y - y0
             local along, side
-            if direction == 'up' then along, side = dy, abs(dx)
-            elseif direction == 'down' then along, side = -dy, abs(dx)
-            elseif direction == 'left' then along, side = -dx, abs(dy)
-            else along, side = dx, abs(dy) end
+            if direction == 'up' then along, side = dy, gap(x0, f:GetLeft(), f:GetRight(), x)
+            elseif direction == 'down' then along, side = -dy, gap(x0, f:GetLeft(), f:GetRight(), x)
+            elseif direction == 'left' then along, side = -dx, gap(y0, f:GetBottom(), f:GetTop(), y)
+            else along, side = dx, gap(y0, f:GetBottom(), f:GetTop(), y) end
             if along > 1 then
                 local score = along + side * 2
                 if not best or score < best_score then best, best_score = f, score end
@@ -391,19 +404,34 @@ local function press_right(f)
     if up then up(f, 'RightButton') end
 end
 
--- Y: the main action of the tab that is open, by tab number (Search 1, Sniper 2, Post 3, Auctions 4,
--- Bids 5). The buy
+-- Y: the main action of the tab that is open, by tab number (Search 1, Sniper 2, Upgrades 3, Post 4,
+-- Auctions 5, Bids 6). The buy
 -- bar's button is Buy; since 0.8.2.1 build 7 one press buys (Buy, then Confirm with Confirm before
 -- buying on, 0.8.2.2: the same button, so Y presses it twice).
 local QUICK_ACTIONS = {
     function() return require('aux.gui.buy_bar').primary_button end,
     function() return require('aux.tabs.sniper').run_button end,
+    function() return require('aux.tabs.upgrades').search_button end,
     function() return require('aux.tabs.post').post_button end,
     function() return require('aux.tabs.auctions').cancel_button end,
     function() return require('aux.tabs.bids').buyout_button end,
 }
 
+-- Upgrades (Ben, 2026-11-17): with a row of its table in focus, Y buys that row. A row only has a
+-- price once its auctions are read, and the game buys only inside a press, so a row not yet offered
+-- on the buy bar is selected (read) by the first Y and bought by the next.
+local function upgrades_row(f)
+    if tabs._selected ~= 3 or not usable(f) then return end
+    local list = require('aux.tabs.upgrades').upgrades_list
+    return list and inside(f, list) and f.record or nil
+end
+
 local function quick_action()
+    local row = upgrades_row(focused)
+    if row then
+        require('aux.tabs.upgrades').pad_buy(row)
+        return
+    end
     local find = QUICK_ACTIONS[tabs._selected or 0]
     local button = find and find()
     if button and button:IsVisible() and button:IsEnabled() then
@@ -785,8 +813,16 @@ end
 
 -- Y's name: the tab's action. On Search Buy (one press buys since 0.8.2.1 build 7); on Sniper,
 -- Start or Stop.
-local Y_NAMES = {'Buy', 'Start', 'Post', 'Cancel', 'Buyout'}
+local Y_NAMES = {'Buy', 'Start', 'Search', 'Post', 'Cancel', 'Buyout'}
 local function y_label()
+    local row = root() == frame and not menu_open() and upgrades_row(focused)
+    if row then
+        local upgrades = require('aux.tabs.upgrades')
+        if upgrades.reading_row(row) then return end
+        if not upgrades.offering(row) then return 'Get price' end
+        local buy = buy_button()
+        return buy and buy:IsVisible() and buy:IsEnabled() and 'Buy' or nil
+    end
     local button = quick_button()
     if not button then return end
     local text = button:GetText() or ''

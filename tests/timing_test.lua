@@ -50,7 +50,7 @@ return function(env)
     end
     rawset(post.duration_dropdown, 'GetIndex', function() return 2 end)
     post.set_undercut_mode(opts.undercut or false)
-    aux.set_tab(3) -- Search 1, Sniper 2, Post 3
+    aux.set_tab(4) -- Search 1, Sniper 2, Upgrades 3, Post 4
     return post
   end
 
@@ -361,6 +361,267 @@ return function(env)
     bar.clear()
   end)
 
+  -- The Upgrades tab buys (Ben, 2026-11-17). Its rows come from the item list (the lowest price, no
+  -- auction), so a selected row reads its auctions first and the buy bar then offers the cheapest.
+  -- Here the item list said 1g 50s, but the swords now sell at 2g (2 of them) and 2g 50s.
+  local function upgrades_setup(server)
+    local up = module 'aux.tabs.upgrades'
+    local bar = module 'aux.gui.buy_bar'
+    server.items[7001] = {name = 'Sword', commodity = false}
+    server.items[7002] = {name = 'Axe', commodity = false}
+    server.listings[7001] = {{price = 15000, quantity = 1}, {price = 20000, quantity = 2}, {price = 25000, quantity = 1}}
+    server.listings[7002] = {{price = 9000, quantity = 1}}
+    server:install()
+    -- the game: both are two-handers with Strength, nothing is worn (so both are upgrades)
+    local saved = {G.GetInventoryItemLink, G.C_Item.GetItemStats, G.C_Item.GetItemInfoInstant, rawget(G.AuxTooltip, 'SetItemKey'), rawget(G.AuxTooltip, 'GetItem')}
+    local shown_key
+    G.GetInventoryItemLink = function() end
+    G.C_Item.GetItemStats = function(link) return {ITEM_MOD_STRENGTH_SHORT = link == 'sword' and 20 or 10} end
+    G.C_Item.GetItemInfoInstant = function(id) return id, '', '', 'INVTYPE_2HWEAPON' end
+    rawset(G.AuxTooltip, 'SetItemKey', function(_, id) shown_key = id end)
+    rawset(G.AuxTooltip, 'GetItem', function() return 'x', shown_key == 7001 and 'sword' or 'axe' end)
+    -- the harness does not keep a new parent; the buy bar moves between tabs with SetParent
+    rawset(bar.frame, 'SetParent', function(self, parent) self.__parent = parent end)
+    local saved_choice = aux.character_data.upgrades
+    aux.character_data.upgrades = {spec = 'enhancement', slot = 15} -- Two-Hand
+    aux.set_tab(3)
+    up.search()
+    server:wait(function() local r = up.results(); return #r == 2 and not up.state().scoring end, 100)
+    -- the cheapest sword sells meanwhile: the list said 1g 50s, now the cheapest is 2g
+    table.remove(server.listings[7001], 1)
+    local rows = {}
+    for _, r in ipairs(up.results()) do rows[r.item_id == 7001 and 1 or 2] = r end
+    local function teardown()
+      aux.set_tab(1)
+      G.GetInventoryItemLink, G.C_Item.GetItemStats, G.C_Item.GetItemInfoInstant = saved[1], saved[2], saved[3]
+      rawset(G.AuxTooltip, 'SetItemKey', saved[4]); rawset(G.AuxTooltip, 'GetItem', saved[5])
+      rawset(bar.frame, 'SetParent', nil)
+      aux.character_data.upgrades = saved_choice
+      server:restore()
+      bar.clear()
+    end
+    return up, bar, rows, teardown
+  end
+
+  local function bought_total(server)
+    local total = 0
+    for _, p in ipairs(server.purchases) do total = total + p.total end
+    return total
+  end
+
+  try('timing: buying from the Upgrades tab, answered a second later', function()
+    local server = new_server(env)
+    local up, bar, rows, teardown = upgrades_setup(server)
+    local sword, axe = rows[1], rows[2]
+    check('upgrades buy: the search lists both, the sword at 1g 50s', sword and axe and sword.unit_buyout_price == 15000)
+    check('upgrades buy: the buy bar sits under the Upgrades table', bar.frame:GetParent() == up.frame.listing)
+
+    up.listing:SetSelectedRecord(sword) -- the player clicks the sword's row
+    server:ticks(1)
+    local l1, l2 = bar.lines()
+    check('upgrades buy: it reads the sword\'s auctions first', (l2 or ''):find('Reading', 1, true) ~= nil)
+    bar.primary_click() -- a click on the bar while its auctions are on their way
+    check('upgrades buy: the read reached the server', server:wait(function() return up.offering(sword) end, 40))
+    check('upgrades buy: nothing bought before the price was shown, or by the read itself', #server.purchases == 0)
+    check('upgrades buy: the bar shows today\'s cheapest, 2g, not the list\'s 1g 50s', plain(bar.primary_label()):find('2g', 1, true) ~= nil and sword.unit_buyout_price == 20000)
+
+    bar.primary_click()
+    bar.primary_click() -- a second click before the answer buys nothing more
+    server:ticks(20)
+    check('upgrades buy: bought one, at the price shown', #server.purchases == 1 and server.purchases[1].total == 20000)
+    check('upgrades buy: then reads it again and offers the next one', server:wait(function() return up.offering(sword) end, 60))
+    check('upgrades buy: still nothing more bought', #server.purchases == 1)
+
+    -- the player picks the sword, then the axe, before the sword's answer is in: the bar offers the axe
+    up.listing:SetSelectedRecord()
+    up.listing:SetSelectedRecord(sword)
+    server:ticks(2)
+    up.listing:SetSelectedRecord(axe)
+    check('upgrades buy: the axe is offered, not the sword', server:wait(function() return up.offering(axe) end, 40) and not up.offering(sword))
+    check('upgrades buy: at the axe\'s price', plain(bar.primary_label()):find('90s', 1, true) ~= nil)
+    bar.primary_click()
+    server:ticks(20)
+    check('upgrades buy: the axe bought, 90s', #server.purchases == 2 and server.purchases[2].total == 9000)
+    server:ticks(40)
+    local _, gone = bar.lines()
+    check('upgrades buy: the last axe gone, the bar says so and the row leaves the table', (gone or ''):find('Nothing left', 1, true) ~= nil and not up.listing:ContainsRecord(axe))
+
+    -- leaving the tab gives the bar back to the Search tab
+    aux.set_tab(1)
+    check('upgrades buy: the bar goes back under the Search results', bar.frame:GetParent() ~= up.frame.listing)
+    teardown()
+  end)
+
+  -- Y on a gamepad: with a row of the Upgrades table in focus, the first Y reads its price, the next
+  -- buys it (the game buys only inside a press). Elsewhere on the tab Y stays Search.
+  try('timing: Upgrades tab, Y on a row buys it', function()
+    local aux_env = module 'aux'
+    local aux_frame = aux_env.frame
+    local real = {G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown}
+    G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = function() end, function() end, function() return false end
+    G.InputUtil = {IsGamepadUIEnabled = function() return true end}
+    aux_frame:Hide(); aux_frame:Show()
+    local server = new_server(env)
+    local up, bar, rows, teardown = upgrades_setup(server)
+    local sword = rows[1]
+    local function y() local b = G.auxForeverPadY; b.__scripts.OnClick(b) end
+    local function y_hint() aux_env.update_hints(); local item = aux_env.gamepad_hints().items.Y; return item.label.__shown ~= false and item.label:GetText() end
+    -- the harness draws no table rows (no sizes): a row button of the table, showing the sword
+    local row = G.CreateFrame('Button', nil, up.upgrades_list)
+    row.record = sword
+    rawset(row, 'GetCenter', function() return 500, -300 end)
+    aux_env.gamepad_set_focus(row)
+
+    check('pad upgrades: Y on a row says Get price', y_hint() == 'Get price')
+    y()
+    server:ticks(2)
+    check('pad upgrades: the first Y selects the row, buys nothing', up.listing:GetSelection() and up.listing:GetSelection().record == sword and #server.posts == 0 and #server.purchases == 0)
+    y() -- pressed again while its auctions are on their way
+    check('pad upgrades: the price arrives', server:wait(function() return up.offering(sword) end, 40))
+    check('pad upgrades: a press before the price buys nothing', #server.purchases == 0)
+    check('pad upgrades: Y now says Buy', y_hint() == 'Buy')
+    y(); y()
+    server:ticks(20)
+    check('pad upgrades: Y buys one, at the price shown', #server.purchases == 1 and bought_total(server) == 20000)
+
+    -- Y with the focus on the left side is Search
+    local searched
+    rawset(up.search_button, 'Click', function() searched = true end)
+    rawset(up.search_button, 'IsVisible', function() return true end)
+    aux_env.gamepad_set_focus(up.weights_button)
+    y()
+    check('pad upgrades: Y elsewhere on the tab searches', searched)
+    rawset(up.search_button, 'Click', nil); rawset(up.search_button, 'IsVisible', nil)
+
+    teardown()
+    aux_frame:Hide()
+    G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = real[1], real[2], real[3]
+    G.InputUtil = nil
+    aux_frame:Show()
+  end)
+
+  -- Endings (Ben, 2026-11-17): every "of the ..." version scored as the plain item, because the
+  -- link aux's tooltip gives for an item key has no ending. A real auction's link has it, so one
+  -- auction of each ending is read after the item list.
+  try('timing: Upgrades tab scores each ending with its own stats', function()
+    local server = new_server(env)
+    local up = module 'aux.tabs.upgrades'
+    server.items[7101] = {name = 'Birchwood Maul', commodity = false, requirement = 50, versions = {[11] = 'of the Bear', [12] = 'of the Owl', [13] = 'of the Bear'}}
+    server.listings[7101] = {
+      {price = 900, quantity = 1, version = 11}, {price = 950, quantity = 2, version = 12}, {price = 990, quantity = 1, version = 13},
+    }
+    server:install()
+    local saved = {G.GetInventoryItemLink, G.C_Item.GetItemStats, G.C_Item.GetItemInfoInstant, rawget(G.AuxTooltip, 'SetItemKey'), rawget(G.AuxTooltip, 'GetItem')}
+    G.GetInventoryItemLink = function() end
+    -- the game: the tooltip's link for a key is the plain maul; an auction's link names its ending
+    G.C_Item.GetItemStats = function(link)
+      local s = {ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 3}
+      if link:find('of the Bear', 1, true) then s.ITEM_MOD_STRENGTH_SHORT = 5; s.ITEM_MOD_STAMINA_SHORT = 5 end
+      if link:find('of the Owl', 1, true) then s.ITEM_MOD_INTELLECT_SHORT = 5; s.ITEM_MOD_SPIRIT_SHORT = 5 end
+      return s
+    end
+    G.C_Item.GetItemInfoInstant = function(id) return id, '', '', 'INVTYPE_2HWEAPON' end
+    rawset(G.AuxTooltip, 'SetItemKey', function() end)
+    rawset(G.AuxTooltip, 'GetItem', function() return 'x', 'plain maul' end)
+    local saved_choice = aux.character_data.upgrades
+    aux.character_data.upgrades = {spec = 'enhancement', slot = 15} -- Two-Hand; Strength 3, Intellect 2
+    aux.set_tab(3)
+
+    local build = '70862'
+    local real_build = rawget(G, 'GetBuildInfo')
+    G.GetBuildInfo = function() return '1.60.1', build end
+    up.clear_saved_stats()
+    local before = #server.requests
+    up.search()
+    local done = server:wait(function() return #up.results() == 3 and not up.state().scoring and not up.state().endings end, 200)
+    check('endings: the search ends with all three listed', done)
+    local by_suffix = {}
+    for _, r in ipairs(up.results()) do by_suffix[r.browse_key.itemSuffix] = r end
+    local bear, owl, bear2 = by_suffix[11], by_suffix[12], by_suffix[13]
+    local base = 3 * 6 -- the plain maul: 3 DPS at Weapon DPS 6
+    check('endings: the Bear counts its Strength', bear and bear.upgrade.score > base and not bear.base_only)
+    check('endings: the Owl counts its Intellect, less than the Bear\'s Strength for Enhancement', owl and owl.upgrade.score > base and owl.upgrade.score < bear.upgrade.score)
+    check('endings: a second version of the Bear uses the same stats', bear2 and bear2.upgrade.score == bear.upgrade.score)
+    local searches = 0
+    for i = before + 1, #server.requests do if server.requests[i]:find('^search 7101') then searches = searches + 1 end end
+    check('endings: one read per ending name, not per version', searches == 2)
+    check('endings: the Changes column shows the ending', up.changes_text(bear.upgrade.changes):lower():find('strength', 1, true) ~= nil)
+
+    -- a new spec, or the next search, does not read them again
+    before = #server.requests
+    up.set_spec('elemental')
+    server:ticks(5)
+    up.search()
+    server:wait(function() return #up.results() > 0 and not up.state().scoring and not up.state().endings end, 200)
+    searches = 0
+    for i = before + 1, #server.requests do if server.requests[i]:find('^search') then searches = searches + 1 end end
+    check('endings: read once, then kept', searches == 0)
+
+    -- saved for the account (Ben, 2026-11-17), only the numbers, with when they were read
+    local ending_saved = aux.account_data.ending_stats
+    local entry = ending_saved.entries and ending_saved.entries['7101:0:birchwood maul of the bear']
+    check('endings: saved in the account data, by item, item level and name', entry and entry.stats.ITEM_MOD_STRENGTH_SHORT == 5 and type(entry.at) == 'number' and ending_saved.build == '70862')
+    check('endings: two names saved', up.saved_stats_count() == 2)
+
+    local function reads_on_search()
+      local from = #server.requests
+      up.search()
+      server:wait(function() return #up.results() > 0 and not up.state().scoring and not up.state().endings end, 200)
+      local n = 0
+      for i = from + 1, #server.requests do if server.requests[i]:find('^search 7101') then n = n + 1 end end
+      return n
+    end
+    -- 30 days later, an entry is read again
+    entry.at = entry.at - up.MAX_AGE - 1
+    check('endings: one read 30 days ago is read again, the other kept', reads_on_search() == 1)
+    -- a patch (another build) reads them all again
+    build = '71000'
+    check('endings: after a patch all are read again', reads_on_search() == 2 and ending_saved.build == '71000')
+    -- Settings: the count, and Clear
+    local settings = module 'aux'
+    settings.refresh_settings()
+    check('endings: Settings shows how many are saved', settings.endings_row.hint:GetText() == '2 endings saved')
+    settings.endings_clear_button.__scripts.OnClick(settings.endings_clear_button)
+    check('endings: Clear empties them', up.saved_stats_count() == 0 and settings.endings_row.hint:GetText() == '0 endings saved')
+    check('endings: and the next search reads them again', reads_on_search() == 2)
+
+    -- the lower edge (Ben, 2026-11-17): at level 60, endings of items under level 45 (25% below)
+    -- are not read; the item is still listed and scored on its plain stats, and counted
+    check('endings: the lower edge at level 60 is 45', up.ending_floor() == 45)
+    up.set_spec('enhancement')
+    server:ticks(5)
+    server.items[7102] = {name = 'Oak Club', commodity = false, requirement = 44, versions = {[21] = 'of the Bear', [22] = 'of the Owl'}}
+    server.listings[7102] = {{price = 500, quantity = 1, version = 21}, {price = 600, quantity = 1, version = 22}}
+    local from = #server.requests
+    up.search()
+    server:wait(function() return #up.results() == 5 and not up.state().scoring and not up.state().endings end, 200)
+    local low_reads, low = 0, 0
+    for i = from + 1, #server.requests do if server.requests[i]:find('^search 7102') then low_reads = low_reads + 1 end end
+    for _, r in ipairs(up.results()) do
+      if r.item_id == 7102 then low = low + 1; check('endings: a low item is scored on its plain stats', r.below_floor and not r.base_only and r.upgrade.score == base) end
+    end
+    check('endings: the endings of a level 44 item are not read', low_reads == 0)
+    check('endings: but both its versions are listed', low == 2)
+    check('endings: and counted for the status line', up.state().below_floor == 2 and up.state().floor == 45 and not up.state().base_only)
+    server.items[7102].requirement = 45
+    check('endings: an item at the edge is read', reads_on_search() == 0 and (function()
+      local n = 0
+      for _, r in ipairs(up.results()) do if r.item_id == 7102 and not r.below_floor then n = n + 1 end end
+      return n == 2
+    end)())
+    check('endings: at level 20 the edge is 15', (function()
+      local real = G.UnitLevel; G.UnitLevel = function() return 20 end
+      local f = up.ending_floor(); G.UnitLevel = real; return f == 15
+    end)())
+    G.GetBuildInfo = real_build
+
+    aux.set_tab(1)
+    G.GetInventoryItemLink, G.C_Item.GetItemStats, G.C_Item.GetItemInfoInstant = saved[1], saved[2], saved[3]
+    rawset(G.AuxTooltip, 'SetItemKey', saved[4]); rawset(G.AuxTooltip, 'GetItem', saved[5])
+    aux.character_data.upgrades = saved_choice
+    server:restore()
+  end)
+
   -- leaving the Post tab while a post waits for its answer, and the answer never comes: the Post
   -- tab must not stay on "Posting..." when the player comes back
   try('timing: leaving the Post tab during a post that is never answered', function()
@@ -374,7 +635,7 @@ return function(env)
     aux.set_tab(1)
     server:ticks(700) -- 70 seconds on another tab
     server.delay = 1
-    aux.set_tab(3)
+    aux.set_tab(4)
     post.select_item('2835:0')
     server:wait(listings_in(post), 50)
     server:ticks(3)
@@ -517,7 +778,7 @@ return function(env)
     check('closed mid-post: the post still went through', #server.posts == 1 and server:bag_count(2835) == 15)
     env.fire('AUCTION_HOUSE_SHOW')
     server:ticks(2)
-    aux.set_tab(3)
+    aux.set_tab(4)
     post.select_item('2835:0')
     server:wait(listings_in(post), 50)
     server:ticks(3)
@@ -622,7 +883,7 @@ return function(env)
     end
     rawset(post.duration_dropdown, 'GetIndex', function() return 2 end)
     post.set_undercut_mode(false)
-    aux.set_tab(3)
+    aux.set_tab(4)
     server:ticks(2)
     post.select_item('4575:of the bandit')
     check('gear: the Bandit staff is its own item in the bag list', post.selected_item and post.selected_item.key == '4575:of the bandit')
@@ -810,7 +1071,7 @@ return function(env)
     G.SetOverrideBindingClick, G.ClearOverrideBindings, G.InCombatLockdown = function() end, function() end, function() return false end
     G.InputUtil = {IsGamepadUIEnabled = function() return true end}
     aux_frame:Hide(); aux_frame:Show()
-    aux.set_tab(3)
+    aux.set_tab(4)
     -- as in the game: Post is faded while the addon has a reason (the harness's IsEnabled is always true)
     rawset(post.post_button, 'IsVisible', function() return true end)
     rawset(post.post_button, 'IsEnabled', function() return post.selected_item ~= nil and not post.disabled_reason() end)
@@ -907,7 +1168,7 @@ return function(env)
     end
     rawset(post.duration_dropdown, 'GetIndex', function() return 2 end)
     post.set_undercut_mode(false)
-    aux.set_tab(3)
+    aux.set_tab(4) -- Post
     server:ticks(2)
     post.select_item('4585:of the wolf')
     check('R-02 post: the Wolf staff is selected', post.selected_item and post.selected_item.key == '4585:of the wolf')
@@ -1391,7 +1652,7 @@ return function(env)
     server.listings[4590] = {{price = 11500, quantity = 1, version = 401}, {price = 15000, quantity = 1, version = 402}}
     server.bag = {{id = 4590, count = 1, version = 402}}
     server:install()
-    aux.set_tab(3)
+    aux.set_tab(4) -- Post
     server:ticks(2)
     post.select_item('4590:of the wolf')
     check('leave post: the staff is selected and its listings are on their way', post.selected_item ~= nil and server:pending() > 0)
@@ -1782,7 +2043,7 @@ return function(env)
     end
     rawset(post.duration_dropdown, 'GetIndex', function() return 1 end)
     post.set_undercut_mode(false)
-    aux.set_tab(3)
+    aux.set_tab(4) -- Post (3 before the Upgrades tab)
     local function ready_for(key)
       return function() return aux.status_bar.done and post.selected_item and post.selected_item.key == key end
     end

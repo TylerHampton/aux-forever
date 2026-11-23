@@ -16,8 +16,8 @@ Nothing in this file applies with mouse and keyboard: every part checks for game
 | A | Presses the control. A text box starts typing; a dropdown opens, then up and down walk its options and A picks one. On a Sniper deal, the gold frame then moves to the buy bar's Buy button once it shows. |
 | B | Closes what is open, in this order: a dropdown, typing in a text box, a popup (Settings, quick searches, the Filter Builder menu, aux's own popups), then aux. On the buy bar after a Sniper deal, B goes back to the deal. |
 | X | A right-click on the control: search from a bag item, add or remove a favorite, clear a text box. |
-| Y | The open tab's main action: Buy on Search (one press buys since 0.8.2.1 build 7; two, Buy then Confirm, with "Confirm before buying" on, 0.8.2.2), Start or Stop on Sniper, Post on Post, Cancel on Auctions, Buyout on Bids. |
-| LB / RB | Step through the top bar: the five tabs switch at once; after them come Settings, Full scan and Blizzard UI (A presses them). It wraps round at both ends. |
+| Y | The open tab's main action: Buy on Search (one press buys since 0.8.2.1 build 7; two, Buy then Confirm, with "Confirm before buying" on, 0.8.2.2), Start or Stop on Sniper, Search on Upgrades, Post on Post, Cancel on Auctions, Buyout on Bids. On Upgrades with a row of its table in focus: the first Y selects that row and reads its price (hint "Get price"), the next Y buys it (hint "Buy"); the game buys only inside a press, so the read cannot buy by itself. |
+| LB / RB | Step through the top bar: the six tabs switch at once; after them come Settings, Full scan and Blizzard UI (A presses them). It wraps round at both ends. |
 
 aux opens with the focus on the top-left control of the tab. The top bar is reached only with LB
 and RB, so the D-pad stays inside the tab. A strip under the window shows the buttons with the
@@ -56,7 +56,10 @@ shown, and aux takes it again once it is hidden.
   corner, the close button and the top bar are left out. A visible frame in the `DIALOG` layer
   (Settings, quick searches, the Filter Builder menu, aux's dialog) keeps the focus inside it.
 - **Moving.** The nearest control in the pressed direction wins: distance along the direction plus
-  twice the distance across it. Up or down from a list row, when the nearest control is not a row
+  twice the distance across it. The distance across is measured to the control's nearest edge, so
+  it is 0 when the control spans the starting point (since 2026-11-23: a table row is as wide as
+  the table, and down from the Upgrades tab's Req, iLvl or Item header went to the slot buttons
+  beside the table). Up or down from a list row, when the nearest control is not a row
   of the same list, the list's scroll bar moves one row instead, while it can.
 - **Pressing.** A button with an `OnClick` gets `Click`; other frames get their mouse-down and
   mouse-up scripts. X does the same with the right button. Text boxes get `SetFocus`.

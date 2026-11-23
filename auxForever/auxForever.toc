@@ -22,6 +22,8 @@ util\info.lua
 core\history.lua
 core\inventory.lua
 core\api.lua
+core\stats.lua
+core\weights.lua
 core\disenchant.lua
 util\filter.lua
 util\completion.lua
@@ -49,6 +51,10 @@ tabs\search\crate.lua
 
 tabs\sniper\core.lua
 tabs\sniper\frame.lua
+
+tabs\upgrades\core.lua
+tabs\upgrades\frame.lua
+tabs\upgrades\weights.lua
 
 tabs\post\core.lua
 tabs\post\frame.lua

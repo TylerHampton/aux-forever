@@ -433,6 +433,159 @@ files). Test page build id `0-8-2-2-build-1`. Steps 2, 4 and 5 spend a few coppe
       Type `/aux post bid off`: it says "post bid off". Type `/aux post bid yes`: it changes
       nothing and lists the choices (on, off, unit or stack).
 
+## Upgrades tab, first build (branch `search-upgrade-support`)
+
+New files: **full game restart** (not `/reload`). Open the auction house and aux.
+
+- [ ] 1. Look at the tabs at the top of aux. They read Search, Sniper, Upgrades, Post, Auctions,
+      Bids. Click **Upgrades**. On the left: Spec, a grid of 16 slot buttons, Required level,
+      a gold Search button, a "WEARING NOW" box and a "Weights:" line at the bottom. Take a
+      screenshot.
+- [ ] 2. In the Spec box, click and pick your spec (for a Shaman: Enhancement). The "Weights:" line
+      at the bottom changes to that spec's stats, for Enhancement "Weapon DPS 6, Hit 5, Expertise
+      4, Strength 3, Intellect 2, Spell Power 1".
+- [ ] 3. Click the **Two-Hand** slot button (or the slot of the weapon you use). It turns gold, and
+      "WEARING NOW" shows your weapon's name and "Score" with a number.
+- [ ] 4. Press **Search**. The bar at the bottom of aux moves, then the table fills with items that
+      beat your weapon, best gain first. The line above the table says, for example, "6 upgrades
+      among 214 Two-Hand items you can use, searched at 14:32". Take a screenshot.
+- [ ] 5. Point the mouse at a row's icon, without clicking. Its tooltip shows, with your weapon's
+      tooltip next to it. Check that the row's Changes column matches the difference (for example
+      "+3.1 DPS, +4 Strength").
+- [ ] 6. Right-click a row. aux switches to the Search tab and shows that exact item's auctions.
+      Go back to Upgrades (the search there is still listed).
+- [ ] 7. Back on Upgrades, click **Ring** and press Search. "WEARING NOW" shows the weaker of your
+      two rings. Then pick "Up to my level + 2" under Required level and search again: say whether
+      rows with a higher level (orange or red Req) appear. This tells us whether the auction house's
+      "usable" filter also hides items above your level.
+- [ ] 8. `/reload`, open Upgrades again: your spec, slot and level choice are still selected.
+- [ ] 9. With a gamepad: on the Upgrades tab, Y starts the search (the hint strip says "Y Search").
+- [ ] 10. After a search, look at the **Per gold** column, right of Gain. For a row costing 3g with
+      a Score 12 higher than yours, it says 4.0 (12 points / 3 gold). Click the "Per gold" title:
+      the cheapest gain per gold comes first, click again for the best first.
+- [ ] 11. Click **Change weights** at the bottom left. A window "SETTINGS / UPGRADE WEIGHTS" opens
+      with your spec and one box per stat (20 boxes, two columns). Take a screenshot.
+- [ ] 12. In the Hit box type `9`, then click anywhere outside the box. The 9 turns gold, and the
+      "Weights:" line on the tab shows "Hit 9" in gold. Search again: the scores change.
+- [ ] 13. Press **Reset to defaults**: Hit goes back to its number from the guide (5 for
+      Enhancement), not gold. Close the window.
+- [ ] 14. Open Settings (the gear at the top right). The right column ends, under TOOLTIP LINES,
+      with UPGRADES: one row "Stat weights" with a small gray line under it (for example
+      "0 endings saved") and two buttons, **Clear** and **Edit**, all inside the window with nothing
+      overlapping (changed 2026-11-23: 0.9 filled the left column). Edit opens the same window.
+      Then click the other theme under WINDOW (a "Reload now" button appears and the left column
+      moves down): the left column is still inside the window. Click the theme you use again.
+      Then press Escape, Options, AddOns, auxForever: the same UPGRADES row is at the bottom of the
+      right column, above the line with the Clear buttons. Take a screenshot.
+- [ ] 15. As Enhancement, the "Weights:" line includes "Attack Power 1.5", and in Change weights
+      the Attack Power box shows 1.5 (not gold). Type 6 in the Strength box and click outside it:
+      Attack Power shows 3.
+
+### Buying on the Upgrades tab (added 2026-11-17)
+
+`/reload` is enough if you already restarted the game for this build; otherwise a **full game
+restart**. Have a few gold on you, and pick a cheap row to buy.
+
+- [ ] 16. On Upgrades, after a search, look under the table: a bar that says "Select a row to buy
+      it". Take a screenshot.
+- [ ] 17. Click a row with a cheap Buyout. The bar shows the item's icon and name and "Reading its
+      auctions...", then a gold button "Buy for" and a price (for example "Buy for 1g 20s"). Nothing
+      is bought yet: check your gold did not change.
+- [ ] 18. Look at that row's Buyout column. Say whether it shows the same price as the gold button.
+      (If someone bought the cheapest one since your search, both now show the new, higher price.)
+- [ ] 19. Click **Buy for ...** once. The item arrives in your mailbox, and the bar then says
+      "Bought. Looking for another one..." and offers the next one, or "Nothing left to buy" and the
+      row leaves the table.
+- [ ] 20. With a gamepad: press the D-pad until the gold frame is on a row of the table. The hint
+      strip at the bottom says "Y Get price". Press Y: the row is selected and the bar shows "Buy
+      for" and a price; the hint now says "Y Buy". Press Y again only if you want to buy it.
+- [ ] 21. With a gamepad: move the gold frame to the Search button on the left. The hint says
+      "Y Search", and Y searches.
+
+### Endings count (added 2026-11-17)
+
+- [ ] 22. On Upgrades, Two-Hand, press **Search**. While it works, the line above the table reads
+      "Reading the stats of each ending (3 of 20)..." with the numbers going up. Then the table
+      fills. Birchwood Maul of the Owl, of Healing and of Magic now show different Scores, and
+      their Changes column names the ending's stats (for example "+3 Strength" on an "of the Bear").
+      Take a screenshot like your last one.
+- [ ] 23. Press **Search** again. This time there is no "Reading the stats" step.
+- [ ] 24. Type `/reload`, open aux, Upgrades, Two-Hand, and press **Search**. Still no "Reading the
+      stats" step: they were saved.
+- [ ] 25. Open Settings (the gear at the top right). Under UPGRADES, the gray line under "Stat
+      weights" says how many endings are saved, for example "20 endings saved", next to a **Clear**
+      button. Point the mouse at the row's name: a tooltip explains it. Take a screenshot.
+- [ ] 26. Press **Clear**: it says "0 endings saved" and Clear fades. Close Settings, search
+      Two-Hand again: the "Reading the stats of each ending" step is back.
+- [ ] 27. (Lower edge, added 2026-11-17.) Endings are now read only for items at least three
+      quarters of your level (at level 60: level 45 and up; at level 20: 15 and up). Lower items
+      are still listed, scored without their ending. On a character of level 20 or higher, press
+      **Clear** in Settings, then on Upgrades, Two-Hand, press **Search**. When it is done, the
+      line above the table ends with, for example, "(14 below level 45 scored without their
+      ending's stats)", the level being three quarters of yours. Take a screenshot of that line.
+- [ ] 28. (Full scan saves endings, added 2026-11-17.) Open Settings and press **Clear** in the
+      UPGRADES row (it says "0 endings saved"). Close Settings and press **Full scan** at the top of
+      aux (it lights up once every 15 minutes). Wait for "Full scan complete" in chat, then a few
+      seconds more. Open Settings again: the UPGRADES row now shows a big number, for example
+      "850 endings saved". Write it down.
+- [ ] 29. Close Settings, go to Upgrades, Two-Hand, and press **Search**. Tell me whether the
+      "Reading the stats of each ending (3 of 20)..." line appears. If it does not appear, the Full
+      scan saved them. If it does, write down its numbers (for example "3 of 20").
+- [ ] 30. (Retry, added 2026-11-17.) Press **Clear** in Settings, UPGRADES, run a **Full scan**
+      once the button lights up, wait for "Full scan complete" plus 10 seconds, and `/reload`. Then
+      on Upgrades search **Chest**, **Back** and **Wrist** as last time. Write down the numbers on
+      each "Reading the stats of each ending" line, or "none" if it does not appear (last time
+      there were 21 in all).
+- [ ] 31. (Full scan tip, added 2026-11-17.) This one only works when you have not run a Full scan
+      in the last 24 hours, so do it before step 30 or on another day. Open Upgrades before
+      searching. The line at the top right of the table reads, in gold, "Tip: run a Full scan
+      first (top right), then searches here are much faster". Press **Search**: while it reads
+      endings the line ends with "A Full scan first skips this step". Take a screenshot of each.
+      After a Full scan, neither appears; the line reads "Pick a slot and press Search".
+
+- [ ] 32. (Gamepad headers, added 2026-11-23.) `/reload` is enough. With a gamepad, on Upgrades,
+      search a slot that lists some items. Move the gold frame up to the **Req** column header
+      (the word "Req" above the first column of the table) and press **down** on the D-pad: the
+      gold frame is on the first item of the table, not on the slot buttons on the left. Do the
+      same from the **iLvl** and **Item** headers. Then on the Search tab, after any search, do the
+      same from its Req header, and on the Post tab press down from a few buttons to check the gold
+      frame still goes where you expect.
+
+## Upgrades experiments (branch `search-upgrade-support`, before any code)
+
+Two short checks that decide how the Upgrades tab reads item stats and your spec
+(`docs/upgrades.md`; E12 and E13 in `docs/forever-auction-house.md`). Paste each command into the chat
+box and press Enter, then screenshot what the chat prints.
+
+Results 2026-11-16 (Ben): 1 worked, on a bag item and on a row's icon in aux's results; 2 was blocked by the game ("ForceTaint_Strong has been blocked
+from an action only available to the Blizzard UI"), so aux will not use it; 3 printed "Shaman SHAMAN
+7" and no trees.
+
+- [x] 1. **Stats from an item link.** Paste this, press Enter, then within 4 seconds point the mouse
+      at an item with an ending, such as "of the Bear" (in your bags, on your character, or a row's
+      icon in aux's results):
+      `/run C_Timer.After(4,function() local n,l=GameTooltip:GetItem() print(n,l) local f=C_Item and C_Item.GetItemStats or GetItemStats local s=l and f and f(l) for k,v in pairs(s or {}) do print(k,v) end print(s and "end" or "no stats") end)`
+      It prints the item's name and link, then one line per stat (like `ITEM_MOD_STRENGTH_SHORT 4`)
+      and "end", or "no stats". Do it once for an item in your bags and once for a row's icon in
+      aux's search results.
+- [x] 2. **Stats without a tooltip.** With the auction house open, paste this twice (the first time
+      the game may still be loading the item):
+      `/run local d=C_TooltipInfo and C_TooltipInfo.GetItemKey and C_TooltipInfo.GetItemKey(14131,19,14320) print(d and #d.lines or "none") for _,x in ipairs(d and d.lines or {}) do print(x.leftText,x.rightText) end`
+      It prints a number and the lines of Ritual Belt of Arcane Protection's tooltip, or "none".
+- [x] 3. **Your talents.** Paste:
+      `/run print(UnitClass("player")) for i=1,(GetNumTalentTabs and GetNumTalentTabs() or 0) do print(i,GetTalentTabInfo(i)) end`
+      It prints your class, then one line per talent tree. Screenshot it and say how many points
+      you have in each tree, so we can match the numbers.
+
+- [x] 4. **The game's stat names (E14).** Done 2026-11-16: three screenshots of the list. The
+      second half: Brutal War Axe of the Sorcerer showed Intellect, Spell Power (one name), DPS and
+      Stamina. An item with Hit, Crit or MP5 is still to check.
+      Command was: Paste:
+      `/run for k,v in pairs(_G) do if type(k)=="string" and k:find("^ITEM_MOD_.*_SHORT$") then print(k,v) end end`
+      It prints a long list, one stat per line, like `ITEM_MOD_STRENGTH_SHORT Strength`. Scroll the
+      chat and screenshot all of it. Then do step 1 again on an item with Hit, Crit, Expertise or
+      Haste, so we see the name that item uses.
+
 ## 0.8.2.1 build 7 (released as 0.8.2.1 on 2026-11-16, with the crate heading renamed)
 
 Build 6 (a price row of many sellers keeps 20 auctions and counts the rest, review S-08) was not

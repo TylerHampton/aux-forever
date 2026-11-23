@@ -711,8 +711,39 @@ do
             tooltip_switches[i] = switch
         end
 
+        -- right column, under the tooltip lines: the Upgrades tab (Ben, 2026-11-17). Its stat
+        -- weights open in a window of their own (tabs/upgrades/weights.lua), which lives inside
+        -- aux's window, so Edit works only while that window is open. The stats of random
+        -- endings read from auctions are kept so they are not read again; Clear makes the next
+        -- search read them anew. Moved here from the left column in the 0.9 merge, where
+        -- Posting, Buying and General fill it.
+        section(parent, right_x, y - 4, 'UPGRADES')
+        local weights_row = row(parent, right_x, y - 20, 36, 'Stat weights', '',
+            {'How much each stat counts for each spec when the Upgrades tab looks for better gear. Kept for this character. Clear: the stats of "of the Bear" and other endings, read from auctions and kept so they are not read again, are read anew at the next search. They are also read anew after a game patch and after 30 days.'},
+            'ANCHOR_LEFT')
+        local weights_edit = gui.button(weights_row, gui.font_size.small)
+        gui.set_size(weights_edit, 56, 24)
+        weights_edit:SetPoint('RIGHT', 0, 0)
+        weights_edit:SetText('Edit')
+        weights_edit:SetScript('OnClick', function()
+            if settings_popup then settings_popup:Hide() end
+            require('aux.tabs.upgrades').open_weights()
+        end)
+        local endings_clear = gui.button(weights_row, gui.font_size.small)
+        gui.set_size(endings_clear, 56, 24)
+        endings_clear:SetPoint('RIGHT', weights_edit, 'LEFT', -3, 0)
+        endings_clear:SetText('Clear')
+        endings_clear:SetScript('OnClick', function()
+            require('aux.tabs.upgrades').clear_saved_stats()
+            refresh()
+        end)
+
         local function refresh_one()
             if not (account_data and character_data) then return end
+            local saved_endings = require('aux.tabs.upgrades').saved_stats_count()
+            weights_row.hint:SetText(saved_endings == 1 and '1 ending saved' or saved_endings .. ' endings saved')
+            if saved_endings > 0 then endings_clear:Enable() else endings_clear:Disable() end
+            if frame:IsShown() then weights_edit:Enable() else weights_edit:Disable() end
             local opacity = account_data.background_opacity
             opacity_value:SetText(percent(opacity))
             if opacity > gui.MIN_BACKGROUND_OPACITY + .001 then opacity_minus:Enable() else opacity_minus:Disable() end
@@ -743,7 +774,9 @@ do
             end
             if pending then reload_button:Show() else reload_button:Hide() end
             if resize_popup then
-                parent:SetHeight(pending and 474 or 446)
+                -- 502: the right column's tooltip lines and Upgrades (0.9 merge) set the height;
+                -- the left column ends at 474 while a reload is waiting
+                parent:SetHeight(502)
             end
             posting:ClearAllPoints()
             posting:SetPoint('TOPLEFT', left_x, pending and (top_y - 142) or (top_y - 114))
@@ -770,6 +803,9 @@ do
             auto_full_scan_switch = auto_scan_switch,
             crafting_cost_switch = crafting_switch,
             tooltip_boxes = tooltip_switches,
+            weights_edit_button = weights_edit,
+            endings_clear_button = endings_clear,
+            endings_row = weights_row,
         }
     end
 
@@ -778,8 +814,9 @@ do
     local popup = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
     gui.set_panel_style(popup)
     popup:SetFrameStrata('DIALOG')
-    -- 446 normally (474 when Theme reload is waiting): clean bottom margin inside MIN_HEIGHT = 549
-    gui.set_size(popup, WIDTH, 446)
+    -- 446 in 0.9 (474 when Theme reload is waiting); 502 since Upgrades joined the right column,
+    -- still inside MIN_HEIGHT = 549 under the gear
+    gui.set_size(popup, WIDTH, 502)
     popup:SetPoint('TOPRIGHT', btn, 'BOTTOMRIGHT', 0, -4)
     popup:EnableMouse(true)
     popup:Hide()
@@ -809,6 +846,9 @@ do
     M.auto_full_scan_switch = ah_view.auto_full_scan_switch
     M.crafting_cost_switch = ah_view.crafting_cost_switch
     M.tooltip_boxes = ah_view.tooltip_boxes
+    M.weights_edit_button = ah_view.weights_edit_button
+    M.endings_clear_button = ah_view.endings_clear_button
+    M.endings_row = ah_view.endings_row
 
     popup:SetScript('OnShow', function()
         refresh()
@@ -896,7 +936,7 @@ do
 
     local opt_divider = options_panel:CreateTexture(nil, 'ARTWORK')
     opt_divider:SetWidth(1)
-    opt_divider:SetHeight(430)
+    opt_divider:SetHeight(454) -- 430 in 0.9; Upgrades under the tooltip lines
     opt_divider:SetPoint('TOPLEFT', OPT_WIDTH / 2, -56)
     gui.texture_color(opt_divider, color.window.border)
 
@@ -905,17 +945,17 @@ do
     local bottom_rule = options_panel:CreateTexture(nil, 'ARTWORK')
     bottom_rule:SetHeight(1)
     bottom_rule:SetWidth(OPT_WIDTH - OPT_PAD * 2)
-    bottom_rule:SetPoint('TOPLEFT', OPT_PAD, -496)
+    bottom_rule:SetPoint('TOPLEFT', OPT_PAD, -520) -- -496 in 0.9
     gui.texture_color(bottom_rule, color.window.border)
 
     local keybind_note = gui.label(options_panel, gui.font_size.small)
-    keybind_note:SetPoint('TOPLEFT', OPT_PAD, -514)
+    keybind_note:SetPoint('TOPLEFT', OPT_PAD, -538)
     keybind_note:SetText('Keybinds: Options > Keybindings > auxForever')
     gui.text_color(keybind_note, color.label.enabled)
 
     local clear_cache_btn = gui.button(options_panel, gui.font_size.small)
     gui.set_size(clear_cache_btn, 108, 24)
-    clear_cache_btn:SetPoint('TOPRIGHT', options_panel, 'TOPLEFT', OPT_WIDTH - OPT_PAD, -506)
+    clear_cache_btn:SetPoint('TOPRIGHT', options_panel, 'TOPLEFT', OPT_WIDTH - OPT_PAD, -530)
     clear_cache_btn:SetText('Clear item cache')
     clear_cache_btn:SetScript('OnClick', function()
         (show_popup or StaticPopup_Show)('AUX_CLEAR_CACHE_CONFIRM')

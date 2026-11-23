@@ -147,7 +147,7 @@ G.ITEM_QUALITY_COLORS = setmetatable({}, {__index=function() return {r=1,g=1,b=1
 -- Forever's real category tree (Weapons, One-Handed, Daggers, ...), made from Blizzard's code by
 -- tests/tools/make_forever_categories.lua. An empty list here hid FB-010 (slots under weapons).
 G.AuctionCategories = dofile((arg and arg[0] or ''):gsub('[^/\\]*$', '') .. 'forever_categories.lua')
-G.GetRealmName = function() return 'R' end; G.UnitName = function() return 'P' end; G.UnitFactionGroup = function() return 'Horde' end; G.UnitGUID = function() return 'g' end; G.UnitLevel = function() return 60 end
+G.GetRealmName = function() return 'R' end; G.UnitName = function() return 'P' end; G.UnitFactionGroup = function() return 'Horde' end; G.UnitGUID = function() return 'g' end; G.UnitLevel = function() return 60 end; G.UnitClass = function() return 'Shaman', 'SHAMAN', 7 end; G.GetInventoryItemLink = function() end
 G.GetMoney = function() return 100000 end; G.GetItemInfo = function() end
 local clock = 0; G.GetTime = function() return clock end; G.time = os.time; G.date = os.date
 G.strmatch = string.match; G.strfind = string.find; G.strsub = string.sub; G.strlower = string.lower; G.strupper=string.upper; G.strlen=string.len; G.format=string.format; G.gsub=string.gsub; G.tinsert=table.insert; G.tremove=table.remove; G.sort=table.sort; G.floor=math.floor; G.ceil=math.ceil; G.max=math.max; G.min=math.min; G.abs=math.abs; G.mod=math.fmod; G.sin=math.sin
@@ -691,7 +691,7 @@ try('undercut mode', function()
   -- Tyler (2026-10-17, FB-018): once a player picks Undercut it stays for every post until the
   -- auction house closes, through other tabs and other items
   post.set_undercut_mode(true)
-  aux.set_tab(1); aux.set_tab(3); aux.set_tab(4); aux.set_tab(3)
+  aux.set_tab(1); aux.set_tab(4); aux.set_tab(5); aux.set_tab(4)
   check('undercut mode stays on through other tabs until the auction house closes', aux.account_data.post_undercut == true)
   fire('AUCTION_HOUSE_SHOW')
 
@@ -984,7 +984,7 @@ try('post auto price', function()
   check('loading the item again starts at the lowest again', post.get_unit_buyout_price() == 240)
 
   -- the status bar is gold once the listings are in, and back to normal on leaving the tab
-  aux.set_tab(3) -- Search, Sniper, Post
+  aux.set_tab(4) -- Search, Sniper, Upgrades, Post
   post.update_item(item)
   check('post: gold once the listings are in', aux.status_bar.done == true)
   local plain = function(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', ''):gsub('FONT_COLOR_CODE_CLOSE', '')) end
@@ -994,7 +994,7 @@ try('post auto price', function()
   C_AuctionHouse.CalculateCommodityDeposit = stub_deposit
   check('deposit shown as money going out', plain(post.deposit.__text):find('^%-') ~= nil and plain(post.deposit_label.__text):find('^Deposit') ~= nil)
   check('you get shown in green', post.net_summary.__text:upper():find(pick('4DCC66', '6FD39A'), 1, true) ~= nil)
-  aux.set_tab(4)
+  aux.set_tab(5)
   check('post: leaving the tab ends gold', aux.status_bar.done == false)
   post.selected_item = nil
   rawset(scan_exports, 'start', real_start)
@@ -2335,7 +2335,7 @@ try('auctions tab: undercut check', function()
   local real_sold = Enum.AuctionStatus
   rawset(Enum, 'AuctionStatus', {Active = 0, Sold = 1})
 
-  aux.set_tab(4) -- Search, Sniper, Post, Auctions
+  aux.set_tab(5) -- Search, Sniper, Upgrades, Post, Auctions
   check('auctions: fourth tab', auctions.frame.__shown)
   run(60)
   local by_id = {}
@@ -2362,12 +2362,12 @@ try('auctions tab: undercut check', function()
   check('auctions: tied and lowest auctions are left alone', #cancels == 1)
 
   -- opening the tab again soon does not read the prices again
-  aux.set_tab(1); aux.set_tab(4)
+  aux.set_tab(1); aux.set_tab(5)
   run(20)
   check('auctions: no new check within two minutes', searches == 3)
   -- an auction posted since then is checked when the tab opens, without waiting two minutes
   tinsert(owned, {auctionID = 9005, itemKey = {itemID = 104, itemSuffix = 0, itemLevel = 0}, itemLink = link(104, 'Native Robe'), status = 0, quantity = 1, timeLeft = 3, buyoutAmount = 3500})
-  aux.set_tab(1); aux.set_tab(4)
+  aux.set_tab(1); aux.set_tab(5)
   run(40)
   check('auctions: a newly posted auction is checked at once', searches == 7)
   aux.set_tab(1)
@@ -2401,7 +2401,7 @@ try('auctions tab: every auction on its own row, cancels the auction house confi
   local real_status = Enum.AuctionStatus
   rawset(Enum, 'AuctionStatus', {Active = 0, Sold = 1})
 
-  aux.set_tab(4)
+  aux.set_tab(5)
   run(60)
   local listing = auctions.listing
   check('auctions: five auctions, five rows', #listing.records == 5 and listing.rowInfo.numDisplayRows == 5)
@@ -3209,6 +3209,80 @@ try('price data 0.5: full scan', function()
   check('full scan: today\'s lowest', h.market_value('9101:0') == 5)
 end)
 
+-- Upgrades (Ben, 2026-11-17): a Full scan saves every ending's stats from the links it already
+-- has, no request, one read per name, after the scan's prices are recorded, a few names a frame
+try('upgrades: a Full scan saves the stats of every ending', function()
+  local scan = loadstring("select(2, ...) 'aux.test.upfull'; return require 'aux.core.scan'")('auxForever', addon)
+  local up = loadstring("select(2, ...) 'aux.tabs.upgrades'; return _M")('auxForever', addon)
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local endings = {'of the Bear', 'of the Owl'}
+  for i = 1, 118 do tinsert(endings, 'of Test ' .. i) end
+  tinsert(endings, 'of Never') -- the game never gives its stats
+  local list = {}
+  for i, ending in ipairs(endings) do
+    tinsert(list, {id = 7201, name = 'Oak Club ' .. ending, buyout = 1000 + i})
+    if i <= 2 then tinsert(list, {id = 7201, name = 'Oak Club ' .. ending, buyout = 2000 + i}) end
+  end
+  tinsert(list, {id = 9101, name = 'Peacebloom', buyout = 50})
+  local saved = {}
+  local function set(t, k, v) tinsert(saved, {t, k, rawget(t, k)}); rawset(t, k, v) end
+  local function link_of(x) return '|cff1eff00|Hitem:' .. x.id .. '::::::::20:::::|h[' .. x.name .. ']|h|r' end
+  set(C_AuctionHouse, 'ReplicateItems', function() end)
+  set(C_AuctionHouse, 'GetNumReplicateItems', function() return #list end)
+  set(C_AuctionHouse, 'GetReplicateItemInfo', function(i) local x = list[i + 1]; return x.name, 1, 1, 2, true, 15, nil, 0, 0, x.buyout, 0, false, nil, 'Seller', nil, 0, x.id, true end)
+  set(C_AuctionHouse, 'GetReplicateItemLink', function(i) return link_of(list[i + 1]) end)
+  set(G, 'GetItemInfo', function(x)
+    local id = type(x) == 'number' and x or tonumber(tostring(x):match('item:(%d+)'))
+    if id == 7201 then return 'Oak Club', '|cff1eff00|Hitem:7201::::::::20:::::|h[Oak Club]|h|r', 2, 20, 15, 'Weapon', 'Two-Handed Maces', 1, 'INVTYPE_2HWEAPON', 1, 1 end
+    if id == 9101 then return 'Peacebloom', '|cffffffff|Hitem:9101::::::0:0|h[Peacebloom]|h|r', 1, 1, 1, 'Trade Goods', 'Herb', 20, '', 1, 1 end
+  end)
+  local reads, owl_reads, never_reads = 0, 0, 0
+  set(C_Item, 'GetItemStats', function(link)
+    reads = reads + 1
+    if link:find('of the Bear', 1, true) then return {ITEM_MOD_STRENGTH_SHORT = 5} end
+    -- E15: the game gives nothing for some links at first (not loaded yet)
+    if link:find('of the Owl', 1, true) then owl_reads = owl_reads + 1; if owl_reads <= 2 then return nil end end
+    if link:find('of Never', 1, true) then never_reads = never_reads + 1; return nil end
+    if link:find('Peacebloom', 1, true) then return {} end
+    return {ITEM_MOD_STAMINA_SHORT = 1}
+  end)
+  local function full_scan()
+    local done
+    scan.start{type = 'list', queries = {{blizzard_query = {}}}, get_all = true, quiet = true, on_complete = function() done = true end}
+    for _ = 1, 10 do tick() end
+    fire('REPLICATE_ITEM_LIST_UPDATE')
+    for _ = 1, 80 do tick(); if done then break end end
+    return done
+  end
+  up.clear_saved_stats()
+  check('upgrades full scan: the scan finishes', full_scan())
+  local right_after = up.saved_stats_count()
+  for _ = 1, 10 do tick() end
+  check('upgrades full scan: a few names a frame, not all at once', right_after < 121)
+  check('upgrades full scan: one read per name, not per listing', reads == 121)
+  check('upgrades full scan: a name with no stats yet is not saved empty', up.saved_stats_count() == 119 and owl_reads == 1)
+  for _ = 1, 80 do tick() end
+  check('upgrades full scan: it is tried again and saved once the game has it', up.saved_stats_count() == 120 and owl_reads == 3)
+  check('upgrades full scan: every ending name saved, the herb not', a.account_data.ending_stats.entries['7201:20:oak club of the owl'] ~= nil and a.account_data.ending_stats.entries['9101:0:peacebloom'] == nil)
+  check('upgrades full scan: one that never loads is tried 5 more times, then left to the tab', never_reads == 6 and up.saved_stats_count() == 120)
+  local entries = a.account_data.ending_stats.entries
+  local bear = entries['7201:20:oak club of the bear']
+  check('upgrades full scan: by item, item level and name', bear and bear.stats.ITEM_MOD_STRENGTH_SHORT == 5)
+  -- the Upgrades tab finds them by the auction house key: no read of its own
+  local record = {item_id = 7201, name = 'Oak Club of the Bear', requirement = 15, browse_key = {itemID = 7201, itemLevel = 20, itemSuffix = 11}}
+  local found = up.record_stats(record)
+  check('upgrades full scan: the tab uses them', found and found.ITEM_MOD_STRENGTH_SHORT == 5 and not record.base_only)
+  -- the next Full scan refreshes them
+  bear.at = bear.at - up.MAX_AGE - 1
+  full_scan()
+  for _ = 1, 10 do tick() end
+  check('upgrades full scan: the next scan refreshes them', entries['7201:20:oak club of the bear'].at > time() - 60)
+
+  for i = #saved, 1, -1 do rawset(saved[i][1], saved[i][2], saved[i][3]) end
+  up.clear_saved_stats()
+  a.account_data.replicate_time = 0
+end)
+
 -- 0.5: a view that missed auctions (a request for more went unanswered) gives no market price
 try('price data 0.5: incomplete view', function()
   local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
@@ -3431,7 +3505,7 @@ try('clicks 0.5', function()
   local button = 'RightButton'
   set(G, 'GetMouseButtonClicked', function() return button end)
   local used
-  aux.set_tab(3) -- Post
+  aux.set_tab(4) -- Post
   local post_tab = aux.get_tab()
   local real_post_use = post_tab.USE_ITEM
   post_tab.USE_ITEM = function(id, suffix) used = id .. ':' .. suffix end
@@ -3446,7 +3520,7 @@ try('clicks 0.5', function()
   -- on the Auctions tab a right-click searches it when right_click_post is off
   local prev_rcp = aux.account_data.right_click_post
   aux.account_data.right_click_post = false
-  aux.set_tab(4) -- Auctions
+  aux.set_tab(5) -- Auctions
   executed = 0
   shortcut.on_post_item(location)
   check('FB-002: right-click a bag item on another tab searches it', aux.get_tab().name == 'Search' and executed == 1)
@@ -3480,7 +3554,7 @@ try('clicks 0.5', function()
   post.buyout_listing.handlers.OnClick(post.buyout_listing, data, nil, 'LeftButton')
   check('clicks: clicking the chosen price again lets go of it', post.get_buyout_selection() == nil)
   post.buyout_listing.handlers.OnClick(post.buyout_listing, data, nil, 'LeftButton')
-  aux.set_tab(3) -- Post
+  aux.set_tab(4) -- Post
   executed = 0
   post.buyout_listing.handlers.OnClick(post.buyout_listing, data, nil, 'RightButton')
   check('clicks: right-click a price row searches the item', aux.get_tab().name == 'Search' and search.search_box:GetText() == 'linen cloth/exact')
@@ -3595,7 +3669,7 @@ try('0.5 build 1 fixes', function()
 
   -- right-click a Post price row raised "attempt to index global 'selected_item'": leaving the Post
   -- tab clears it before the name was read
-  aux.set_tab(3)
+  aux.set_tab(4)
   post.selected_item = {key = '7101:0', item_id = 7101, name = 'Linen Cloth', quality = 1, count = 20, max_stack = 20, commodity = true}
   local ok, err = pcall(post.buyout_listing.handlers.OnClick, post.buyout_listing, {record = {unit_price = 12, count = 5}}, nil, 'RightButton')
   check('build 1: right-click a Post price row works from the Post tab', ok and aux.get_tab().name == 'Search' and search.search_box:GetText() == 'linen cloth/exact')
@@ -3711,7 +3785,7 @@ try('0.5 build 3 results', function()
   local link = '|cffffffff|Hitem:7101::::::0:0|h[Linen Cloth]|h|r'
   set(C_Item, 'GetItemLink', function() return link end)
   set(G, 'GetItemInfo', function(x) local id = tonumber(tostring(x):match('item:(%d+)') or x); if id == 7101 then return 'Linen Cloth', link, 1, 5, 1, 'Trade Goods', 'Cloth', 20, '', 1, 10 end end)
-  aux.set_tab(3)
+  aux.set_tab(4)
   shortcut.on_post_item({IsValid = function() return true end})
   check('build 3: the right-clicked item is taken back from Blizzard\'s Sell tab (unlocked)', cleared == 1)
 
@@ -4108,7 +4182,9 @@ try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
   local function place(f, x, y)
     rawset(f, 'GetCenter', function() return x, y end)
     rawset(f, 'GetLeft', function() return x - 5 end)
+    rawset(f, 'GetRight', function() return x + 5 end)
     rawset(f, 'GetTop', function() return y + 5 end)
+    rawset(f, 'GetBottom', function() return y - 5 end)
     return f
   end
   local function typing(box)
@@ -4164,6 +4240,23 @@ try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
   pad('up')
   check('gamepad nav: up goes back a row', aux_env.gamepad_focused() == r1)
 
+  -- down from a narrow column header at a table's left edge goes to the row under it, not to a
+  -- button of the panel beside the table (Upgrades tab: Req, iLvl and Item jumped back to the slot
+  -- grid, Ben 2026-11-23). A row is as wide as the table, so its center is far to the side.
+  local function span(f, left, right) rawset(f, 'GetLeft', function() return left end); rawset(f, 'GetRight', function() return right end); return f end
+  local wide = CreateFrame('Frame', nil, layout)
+  local header = span(place(CreateFrame('Button', nil, wide), 3010, 200), 3000, 3020)
+  local row_below = span(place(CreateFrame('Button', nil, wide), 3350, 170), 3000, 3700)
+  local slot_beside = span(place(CreateFrame('Button', nil, wide), 2950, 140), 2930, 2970)
+  aux_env.gamepad_set_focus(header)
+  pad('down')
+  check('gamepad nav: down from a narrow header at a table edge goes to the row under it', aux_env.gamepad_focused() == row_below)
+  aux_env.gamepad_set_focus(slot_beside)
+  pad('right')
+  check('gamepad nav: right from the panel beside a table still reaches the table', aux_env.gamepad_focused() == header or aux_env.gamepad_focused() == row_below)
+  wide:Hide()
+  aux_env.gamepad_set_focus(r1)
+
   -- LB and RB: tabs switch at once; past them come Settings, Full scan and Blizzard UI
   aux_env.set_tab(1)
   pad('RB')
@@ -4214,11 +4307,12 @@ try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
   pad('X')
   check('gamepad nav: X on a text box clears it, as a right-click does', box:GetText() == '')
 
-  -- Y: the tab's main action (Search 1: Buy, Sniper 2: Start, Post 3: Post)
+  -- Y: the tab's main action (Search 1: Buy, Sniper 2: Start, Upgrades 3: Search, Post 4: Post)
   local pressed = {}
   local quick = {
     require('aux.gui.buy_bar').primary_button,
     require('aux.tabs.sniper').run_button,
+    require('aux.tabs.upgrades').search_button,
     require('aux.tabs.post').post_button,
     require('aux.tabs.auctions').cancel_button,
     require('aux.tabs.bids').buyout_button,
@@ -4229,22 +4323,23 @@ try('gamepad: the D-pad, A, B, LB and RB move around aux', function()
     -- lit, as when there is something to buy, post or cancel (a stub button now knows when it is faded)
     rawset(b, 'IsEnabled', function() return true end)
   end
-  for i = 1, 5 do
+  for i = 1, 6 do
     aux_env.set_tab(i)
     pad('Y')
   end
-  check('gamepad nav: Y buys on Search, starts the Sniper, posts on Post', pressed[1] == 1 and pressed[2] == 1 and pressed[3] == 1)
-  check('gamepad nav: Y cancels on Auctions and buys out on Bids', pressed[4] == 1 and pressed[5] == 1)
-  aux_env.set_tab(3)
-  rawset(quick[3], 'IsVisible', function() return false end)
+  check('gamepad nav: Y buys on Search, starts the Sniper, posts on Post', pressed[1] == 1 and pressed[2] == 1 and pressed[4] == 1)
+  check('gamepad nav: Y searches on Upgrades', pressed[3] == 1)
+  check('gamepad nav: Y cancels on Auctions and buys out on Bids', pressed[5] == 1 and pressed[6] == 1)
+  aux_env.set_tab(4)
+  rawset(quick[4], 'IsVisible', function() return false end)
   pad('Y')
-  check('gamepad nav: Y does nothing when the action is not shown (no item picked)', pressed[3] == 1)
-  rawset(quick[3], 'IsVisible', function() return true end)
+  check('gamepad nav: Y does nothing when the action is not shown (no item picked)', pressed[4] == 1)
+  rawset(quick[4], 'IsVisible', function() return true end)
   local cover = CreateFrame('Frame', nil, layout)
   cover:SetFrameStrata('DIALOG')
   place(CreateFrame('Button', nil, cover), 2000, 300)
   pad('Y')
-  check('gamepad nav: Y does nothing while a popup is open', pressed[3] == 1)
+  check('gamepad nav: Y does nothing while a popup is open', pressed[4] == 1)
   cover:Hide()
   for _, b in ipairs(quick) do rawset(b, 'Click', nil); rawset(b, 'IsVisible', nil); rawset(b, 'IsEnabled', nil) end
   aux_env.set_tab(1)
@@ -4512,11 +4607,13 @@ try('gamepad: button hints', function()
   local function place(f, x, y)
     rawset(f, 'GetCenter', function() return x, y end)
     rawset(f, 'GetLeft', function() return x - 5 end)
+    rawset(f, 'GetRight', function() return x + 5 end)
     rawset(f, 'GetTop', function() return y + 5 end)
+    rawset(f, 'GetBottom', function() return y - 5 end)
     return f
   end
   local aux_frame = aux_env.frame
-  aux_env.set_tab(4)
+  aux_env.set_tab(5)
   aux_frame:Hide(); aux_frame:Show()
   local hints = aux_env.gamepad_hints()
   local function label(key) local item = hints.items[key] return item.label.__shown and item.label:GetText() or nil end
@@ -5725,7 +5822,7 @@ try('0.8.2: nothing stops a Full scan by itself', function()
   sniper.stop()
 
   -- the Auctions tab opens and would check prices
-  a.set_tab(4)
+  a.set_tab(5)
   for _ = 1, 100 do tick() end
   check('fb037: the Auctions tab\'s price check waits too', scan.is_full_scan() and auctions.checking == nil)
 
@@ -6186,6 +6283,337 @@ try('0.8.2 build 6: Full scan button and % of usual in crafting', function()
   check('b6: the % of usual switch turns it off there too', not table.concat(lines, '\n'):find('%)', 1, true))
   a.character_data.tooltip.usually = true
   h.data['7701:0'] = nil; h.data['7702:0'] = nil
+end)
+
+-- Upgrades tab (docs/upgrades.md): item stats by GetItemStats, scores by stat weights, and what an
+-- item would replace. Stats of an auction house row come through aux's hidden tooltip (SetItemKey,
+-- then its link); C_TooltipInfo.GetItemKey is blocked for addons in game (E12) and never called.
+try('upgrades: stats, scores and the worn item', function()
+  local stats = loadstring("select(2, ...) 'aux.test.upgrades'; return require")('auxForever', addon) 'aux.core.stats'
+  local saved = {}
+  for _, n in ipairs{'GetItemStats', 'GetInventoryItemLink', 'GetItemInfo', 'C_TooltipInfo'} do saved[n] = G[n] end
+  local saved_c = C_Item.GetItemStats
+  local tip = {}
+  for _, n in ipairs{'SetOwner', 'ClearLines', 'SetItemKey', 'GetItem', 'Hide'} do tip[n] = rawget(AuxTooltip, n) end
+
+  -- items: link -> stats and equip location
+  local items = {
+    worn_axe = {{ITEM_MOD_STRENGTH_SHORT = 15, ITEM_MOD_STAMINA_SHORT = 8, ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 28.9}, 'INVTYPE_2HWEAPON'},
+    ring_a = {{ITEM_MOD_STRENGTH_SHORT = 5}, 'INVTYPE_FINGER'},
+    ring_b = {{ITEM_MOD_STAMINA_SHORT = 4}, 'INVTYPE_FINGER'},
+    sword = {{ITEM_MOD_STRENGTH_SHORT = 3, ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 20}, 'INVTYPE_WEAPON'},
+    dagger = {{ITEM_MOD_AGILITY_SHORT = 2, ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 15}, 'INVTYPE_WEAPON'},
+    shield = {{ITEM_MOD_STAMINA_SHORT = 10, RESISTANCE0_NAME = 900}, 'INVTYPE_SHIELD'},
+    bear_belt = {{ITEM_MOD_STRENGTH_SHORT = 6, ITEM_MOD_STAMINA_SHORT = 6}, 'INVTYPE_WAIST'},
+  }
+  local reads = 0
+  C_Item.GetItemStats = function(link) reads = reads + 1; return items[link] and items[link][1] end
+  G.GetItemInfo = function(link) if items[link] then return link, link, 2, 40, 35, '', '', 1, items[link][2] end end
+  local worn = {}
+  G.GetInventoryItemLink = function(unit, slot) return unit == 'player' and worn[slot] or nil end
+  G.C_TooltipInfo = setmetatable({}, {__index = function() error('C_TooltipInfo is blocked for addons in game') end})
+
+  local weights = {ITEM_MOD_STRENGTH_SHORT = 1, ITEM_MOD_STAMINA_SHORT = .3, ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 3}
+
+  -- scores
+  check('upgrades: a score is each stat times its weight', math.abs(stats.score(items.worn_axe[1], weights) - (15 + 8 * .3 + 28.9 * 3)) < 1e-9)
+  check('upgrades: a stat the weights do not name counts 0', stats.score({ITEM_MOD_SPIRIT_SHORT = 20}, weights) == 0)
+  check('upgrades: no stats, score 0', stats.score(nil, weights) == 0)
+
+  -- a listed version: the hidden tooltip's link, read once per version
+  local shown = {}
+  rawset(AuxTooltip, 'SetItemKey', function(_, id, level, suffix) shown = {id, level, suffix} end)
+  rawset(AuxTooltip, 'GetItem', function() if shown[3] == 14320 then return 'Ritual Belt', 'bear_belt' end end)
+  local key = {itemID = 14131, itemLevel = 19, itemSuffix = 14320}
+  local s = stats.key_stats(key)
+  check('upgrades: a listed version\'s stats come from its link', s and s.ITEM_MOD_STRENGTH_SHORT == 6 and shown[1] == 14131 and shown[2] == 19)
+  local before = reads
+  shown = {}
+  check('upgrades: read once per version', stats.key_stats(key) == s and reads == before and shown[1] == nil)
+  check('upgrades: a version not loaded yet gives nil', stats.key_stats{itemID = 14131, itemLevel = 19, itemSuffix = 999} == nil)
+  rawset(AuxTooltip, 'GetItem', function() return 'Ritual Belt', 'bear_belt' end)
+  check('upgrades: and is asked again later', stats.key_stats{itemID = 14131, itemLevel = 19, itemSuffix = 999} ~= nil)
+
+  -- what an item would replace
+  worn[16] = 'worn_axe'
+  local c = stats.compare(items.sword[1], 'INVTYPE_2HWEAPON', weights)
+  check('upgrades: a two-hander is compared with the worn two-hander', c.worn == stats.score(items.worn_axe[1], weights) and c.worn_link == 'worn_axe' and c.ready)
+  check('upgrades: gain and percent', math.abs(c.gain - (c.score - c.worn)) < 1e-9 and math.abs(c.percent - c.gain / c.worn * 100) < 1e-9)
+  worn[16], worn[17] = 'sword', 'shield'
+  c = stats.compare(items.worn_axe[1], 'INVTYPE_2HWEAPON', weights)
+  check('upgrades: a two-hander replaces both hands', math.abs(c.worn - (stats.score(items.sword[1], weights) + stats.score(items.shield[1], weights))) < 1e-9 and c.worn_link == nil)
+  c = stats.compare(items.dagger[1], 'INVTYPE_WEAPON', weights)
+  check('upgrades: a one-hander is not compared with a shield', c.worn_link == 'sword')
+  worn[17] = 'dagger'
+  c = stats.compare(items.sword[1], 'INVTYPE_WEAPON', weights)
+  check('upgrades: with two weapons, a one-hander replaces the weaker', c.worn_link == 'dagger')
+  worn[11], worn[12] = 'ring_a', 'ring_b'
+  c = stats.compare({ITEM_MOD_STRENGTH_SHORT = 2}, 'INVTYPE_FINGER', weights)
+  check('upgrades: a ring replaces the weaker ring', c.worn_link == 'ring_b' and math.abs(c.worn - 1.2) < 1e-9)
+  c = stats.compare(items.bear_belt[1], 'INVTYPE_WAIST', weights)
+  check('upgrades: an empty slot scores 0, and the gain has no percent', c.worn == 0 and c.percent == nil and c.gain > 0)
+  worn[6] = 'not_loaded'
+  check('upgrades: a worn item not loaded yet is flagged', stats.compare(items.bear_belt[1], 'INVTYPE_WAIST', weights).ready == false)
+  check('upgrades: not gear, nothing to compare', stats.compare({}, 'INVTYPE_BAG', weights) == nil)
+
+  -- the stats that change, biggest weighted change first
+  local list = stats.changes(items.bear_belt[1], {ITEM_MOD_STRENGTH_SHORT = 2, ITEM_MOD_AGILITY_SHORT = 3}, weights)
+  check('upgrades: changes, biggest first', #list == 3 and list[1].name == 'ITEM_MOD_STRENGTH_SHORT' and list[1].diff == 4 and list[2].name == 'ITEM_MOD_STAMINA_SHORT')
+  check('upgrades: a stat lost shows as minus', list[3].name == 'ITEM_MOD_AGILITY_SHORT' and list[3].diff == -3)
+
+  C_Item.GetItemStats = saved_c
+  -- by name, not pairs(saved): a global that was nil (C_TooltipInfo) has no entry there, so its
+  -- blocking stub stayed and broke later tests that read it (the 0.9.1 crate lines)
+  for _, n in ipairs{'GetItemStats', 'GetInventoryItemLink', 'GetItemInfo', 'C_TooltipInfo'} do G[n] = saved[n] end
+  for n, v in pairs(tip) do rawset(AuxTooltip, n, v) end
+  for _, n in ipairs{'SetOwner', 'ClearLines', 'SetItemKey', 'GetItem', 'Hide'} do if tip[n] == nil then rawset(AuxTooltip, n, nil) end end
+end)
+
+-- Upgrades tab: each spec's stat priority (Icy Veins, WoW Forever; docs/stat-priorities.md) as
+-- ranked weights (option A, Ben 2026-11-16): first of n is worth n per point, the last 1
+try('upgrades: stat priorities and ranked weights', function()
+  local require = loadstring("select(2, ...) 'aux.test.weights'; return require")('auxForever', addon)
+  local weights, stats = require 'aux.core.weights', require 'aux.core.stats'
+  local classes = {'DRUID', 'HUNTER', 'MAGE', 'PALADIN', 'PRIEST', 'ROGUE', 'SHAMAN', 'WARLOCK', 'WARRIOR'}
+  local count, unknown, ids_ok = 0, {}, true
+  for _, class in ipairs(classes) do
+    local seen = {}
+    for _, s in ipairs(weights.specs(class)) do
+      count = count + 1
+      if seen[s.id] then ids_ok = false end
+      seen[s.id] = true
+      for _, name in ipairs(s.priority) do
+        if not weights.STATS[name] then tinsert(unknown, class .. '/' .. s.id .. ':' .. name) end
+      end
+    end
+  end
+  check('weights: every class has its specs (27 pages, 30 lists)', count == 30)
+  check('weights: spec ids are unique within a class', ids_ok)
+  check('weights: every stat in a priority has game names: ' .. table.concat(unknown, ', '), #unknown == 0)
+  check('weights: no specs for an unknown class', #weights.specs('MONK') == 0 and #weights.specs(nil) == 0)
+
+  local enh = weights.spec('SHAMAN', 'enhancement')
+  local r = weights.ranks(enh)
+  check('weights: ranked, first of 6 is 6, last is 1', r.weapon_dps == 6 and r.hit == 5 and r.spell_power == 1 and r.agility == nil)
+  local w = weights.weights(enh)
+  check('weights: by the game\'s stat names', w.ITEM_MOD_DAMAGE_PER_SECOND_SHORT == 6 and w.ITEM_MOD_STRENGTH_SHORT == 3 and w.ITEM_MOD_AGILITY_SHORT == nil)
+  check('weights: a score with them', stats.score({ITEM_MOD_STRENGTH_SHORT = 10, ITEM_MOD_AGILITY_SHORT = 10, ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 2}, w) == 10 * 3 + 2 * 6)
+  local tank = weights.weights(weights.spec('WARRIOR', 'protection_survival'))
+  check('weights: avoidance counts dodge, parry and block', tank.ITEM_MOD_DODGE_RATING_SHORT == 2 and tank.ITEM_MOD_PARRY_RATING_SHORT == 2 and tank.ITEM_MOD_BLOCK_RATING_SHORT == 2)
+  check('weights: an unknown spec id', weights.spec('SHAMAN', 'tank') == nil)
+  -- Forever's names (E14, seen in game): Hit (Spell), Spell Damage, Mana Per 5 Sec. count too
+  local shadow = weights.weights(weights.spec('PRIEST', 'shadow'))
+  check('weights: Forever\'s other names count', shadow.ITEM_MOD_HIT_SPELL_RATING_SHORT == 5 and shadow.ITEM_MOD_SPELL_DAMAGE_DONE_SHORT == 4 and shadow.ITEM_MOD_SPELL_PENETRATION_SHORT == 2)
+  check('weights: and MP5 under both names', weights.weights(weights.spec('PRIEST', 'holy')).ITEM_MOD_POWER_REGEN0_SHORT == 4)
+end)
+
+-- The Upgrades tab (tab 3, docs/upgrades.md): pick a spec and a slot, search the slot's gear the
+-- character can use, list what beats the worn item by the spec's ranked weights
+try('upgrades tab: search, score and list upgrades', function()
+  local aux_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local require = loadstring("select(2, ...) 'aux.test.upgrades_tab'; return require")('auxForever', addon)
+  local up = require 'aux.tabs.upgrades'
+  local up_env = loadstring("select(2, ...) 'aux.tabs.upgrades'; return _M")('auxForever', addon)
+  local filter_util = require 'aux.util.filter'
+  local scan_exports = require 'aux.core.scan'
+
+  check('upgrades tab: tab 3, between Sniper and Post', aux_env.tab_info[2].name == 'Sniper' and aux_env.tab_info[3].name == 'Upgrades' and aux_env.tab_info[4].name == 'Post' and #aux_env.tab_info == 6)
+
+  -- every slot's search text is valid in aux's search language, with a category and "usable"
+  local bad = {}
+  for _, slot in ipairs(up.SLOTS) do
+    local queries = filter_util.queries(up_env.filter_string(slot, 42))
+    local ok = queries and #queries == #slot.searches
+    for _, q in ipairs(queries or {}) do
+      local b = q.blizzard_query
+      ok = ok and b and b.class and b.subclass and b.usable and b.max_level == 42 and b.min_level == 1
+    end
+    if not ok then tinsert(bad, slot.name) end
+  end
+  check('upgrades tab: every slot searches valid categories: ' .. table.concat(bad, ', '), #bad == 0 and #up.SLOTS == 16)
+  local head = filter_util.queries(up_env.filter_string(up.SLOTS[1], 60))
+  check('upgrades tab: armor slots search each armor type with its slot', #head == 4 and head[1].blizzard_query.slot ~= nil)
+
+  -- choices are saved for this character; the spec starts on the class's first
+  local saved_upgrades = aux_env.character_data.upgrades
+  aux_env.character_data.upgrades = {spec = 'not a spec', slot = 99}
+  check('upgrades tab: a missing or old choice falls back to the first spec and slot', up_env.current_spec().id == 'elemental' and up_env.current_slot().name == 'Head')
+
+  aux_env.set_tab(3)
+  up.set_spec('enhancement')
+  up.set_slot(15) -- Two-Hand
+  check('upgrades tab: the choices are kept', aux_env.character_data.upgrades.spec == 'enhancement' and aux_env.character_data.upgrades.slot == 15)
+  check('upgrades tab: the spec dropdown shows it', up.spec_dropdown:GetIndex() == 2)
+
+  -- the game: worn two-hander, items' equip locations and stats
+  local saved = {GetInventoryItemLink = G.GetInventoryItemLink, GetItemStats = C_Item.GetItemStats, GetItemInfoInstant = C_Item.GetItemInfoInstant}
+  local tip = {SetItemKey = rawget(AuxTooltip, 'SetItemKey'), GetItem = rawget(AuxTooltip, 'GetItem')}
+  local item_stats = {
+    worn = {ITEM_MOD_STRENGTH_SHORT = 15, ITEM_MOD_STAMINA_SHORT = 8, ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 28.9},
+    better = {ITEM_MOD_STRENGTH_SHORT = 19, ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 32},
+    worse = {ITEM_MOD_STRENGTH_SHORT = 5, ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 20},
+    dagger = {ITEM_MOD_AGILITY_SHORT = 30, ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 40},
+  }
+  local location = {[101] = 'INVTYPE_2HWEAPON', [102] = 'INVTYPE_2HWEAPON', [103] = 'INVTYPE_WEAPON', [104] = 'INVTYPE_2HWEAPON'}
+  local link_of = {[101] = 'better', [102] = 'worse', [103] = 'dagger'}
+  G.GetInventoryItemLink = function(_, slot) return slot == 16 and 'worn' or nil end
+  C_Item.GetItemStats = function(link) return item_stats[link] end
+  C_Item.GetItemInfoInstant = function(id) return id, '', '', location[id] end
+  local shown_key
+  rawset(AuxTooltip, 'SetItemKey', function(_, id) shown_key = id end)
+  rawset(AuxTooltip, 'GetItem', function() return 'x', link_of[shown_key] end)
+
+  -- the game's stat labels (global strings, seen in game E14)
+  local labels = {ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 'damage per second', ITEM_MOD_STRENGTH_SHORT = 'Strength', ITEM_MOD_STAMINA_SHORT = 'Stamina'}
+  for k, v in pairs(labels) do rawset(G, k, v) end
+  local params
+  local real_start = scan_exports.start
+  rawset(scan_exports, 'start', function(p) params = p end)
+  up.search()
+  check('upgrades tab: a fast search of two-handers you can use', params and params.fast and #params.queries == 1 and params.queries[1].blizzard_query.usable)
+  local function row(id, name, price) return {item_id = id, name = name, browse_key = {itemID = id, itemLevel = 40, itemSuffix = 0}, unit_buyout_price = price, buyout_price = price, auction_count = 1, requirement = 40, search_signature = 'up' .. id, sale_status = 0} end
+  params.on_auction(row(101, 'Better Axe', 30000))
+  params.on_auction(row(102, 'Worse Axe', 10000))
+  params.on_auction(row(103, 'Dagger', 5000))
+  params.on_auction(row(104, 'Unloaded Maul', 9000))
+  params.on_complete()
+  for _ = 1, 3 do tick() end
+  local results = up.results()
+  check('upgrades tab: only what beats the worn item is listed', #results == 1 and results[1].name == 'Better Axe')
+  local u = results[1] and results[1].upgrade
+  check('upgrades tab: with its score and gain', u and math.abs(u.score - (19 * 3 + 32 * 6)) < 1e-9 and u.percent and u.percent > 0)
+  local text = up.changes_text(u and u.changes)
+  check('upgrades tab: the changes, DPS first', text:find('+3.1 DPS', 1, true) and text:find('+4 Strength', 1, true) and text:find('-8 Stamina', 1, true))
+  check('upgrades tab: the gain as a percent', up.gain_text({percent = 16.84, gain = 2}) == '+16.8%' and up.gain_text({gain = 12}) == '+12.0')
+  check('upgrades tab: gain per gold of the price (3g)', u and math.abs(u.per_gold - u.gain / 3) < 1e-9)
+  for _ = 1, 60 do tick() end
+  local state = up.state()
+  check('upgrades tab: counts what it looked at, and what did not load', state.considered == 2 and state.unloaded == 1)
+
+  -- a new spec scores the same list again, without a new search
+  params = nil
+  up.set_spec('elemental')
+  for _ = 1, 3 do tick() end
+  check('upgrades tab: another spec rescores without searching', params == nil and #up.results() == 0)
+
+  -- a click selects a row to buy it here (tests/timing_test.lua); a right-click opens that exact
+  -- item on the Search tab, as in every table (docs/clicks.md)
+  params = nil
+  aux_env.set_tab(3)
+  up.listing.handlers.OnClick({record = {name = 'Better Axe of the Bear'}}, 'LeftButton')
+  check('upgrades tab: a click stays on the tab', aux_env.tabs._selected == 3)
+  up.listing.handlers.OnClick({record = {name = 'Better Axe of the Bear'}}, 'RightButton')
+  check('upgrades tab: a right-click opens the item on the Search tab', aux_env.tabs._selected == 1 and params and params.queries[1].blizzard_query.name ~= nil)
+
+  rawset(scan_exports, 'start', real_start)
+  for k in pairs(labels) do rawset(G, k, nil) end
+  rawset(AuxTooltip, 'SetItemKey', tip.SetItemKey); rawset(AuxTooltip, 'GetItem', tip.GetItem)
+  G.GetInventoryItemLink, C_Item.GetItemStats, C_Item.GetItemInfoInstant = saved.GetInventoryItemLink, saved.GetItemStats, saved.GetItemInfoInstant
+  aux_env.character_data.upgrades = saved_upgrades
+  aux_env.set_tab(1)
+end)
+
+-- The weights editor (Settings / Upgrade weights) and the Per gold column (Ben, 2026-11-16)
+-- Ben, 2026-11-17: the tab says a Full scan first is highly recommended, until one ran in the last day
+try('upgrades tab: recommends a Full scan', function()
+  local f = loadstring("select(2, ...) 'aux.tabs.upgrades'; return _M")('auxForever', addon)
+  local a = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local plain = function(t) return ((t or ''):gsub('|c%x%x%x%x%x%x%x%x', ''):gsub('|r', '')) end
+  local slot = {name = 'Chest'}
+  local was = a.account_data.replicate_time
+  a.account_data.replicate_time = 0
+  check('full scan tip: before a search, with no Full scan', plain(f.status_text({}, slot)):find('run a Full scan first', 1, true) ~= nil)
+  check('full scan tip: while reading endings', plain(f.status_text({endings = {done = 3, total = 20}}, slot)) == 'Reading the stats of each ending (3 of 20)... A Full scan first skips this step')
+  a.account_data.replicate_time = time() - 3600
+  check('full scan tip: gone after a Full scan this hour', f.status_text({}, slot) == 'Pick a slot and press Search')
+  check('full scan tip: and while reading', f.status_text({endings = {done = 3, total = 20}}, slot) == 'Reading the stats of each ending (3 of 20)...')
+  a.account_data.replicate_time = time() - f.FULL_SCAN_TIP_AGE - 1
+  check('full scan tip: back a day later', plain(f.status_text({}, slot)):find('run a Full scan first', 1, true) ~= nil)
+  a.account_data.replicate_time = was
+end)
+
+try('upgrades tab: weights editor and gain per gold', function()
+  local aux_env = loadstring("select(2, ...) 'aux'; return _M")('auxForever', addon)
+  local require = loadstring("select(2, ...) 'aux.test.upgrades_weights'; return require")('auxForever', addon)
+  local up = require 'aux.tabs.upgrades'
+  local weights = require 'aux.core.weights'
+  local saved_upgrades = aux_env.character_data.upgrades
+  aux_env.character_data.upgrades = {spec = 'enhancement', slot = 15}
+  local enh = weights.spec('SHAMAN', 'enhancement')
+
+  -- the player's numbers over the guide's
+  local r = weights.ranks(enh, {hit = 9, spell_power = 0, agility = 1.5, nonsense = 4})
+  check('weights: own numbers replace the guide\'s', r.hit == 9 and r.weapon_dps == 6)
+  check('weights: 0 leaves a stat out, a new stat can be added', r.spell_power == nil and r.agility == 1.5 and r.nonsense == nil)
+  check('weights: and reach the game\'s names', weights.weights(enh, {hit = 9}).ITEM_MOD_HIT_SPELL_RATING_SHORT == 9)
+  check('weights: every stat is in the editor\'s list', #weights.STAT_ORDER == 20)
+  local named = true
+  for _, name in ipairs(weights.STAT_ORDER) do named = named and weights.STATS[name] ~= nil and weights.STAT_NAMES[name] ~= nil end
+  check('weights: each one known and named', named)
+
+  -- kept per character and spec; only numbers that differ from the guide's
+  up.set_weight('enhancement', 'hit', 9)
+  up.set_weight('enhancement', 'strength', 3) -- the guide's number: nothing kept
+  check('weights: an own number is kept for this character', aux_env.character_data.upgrades.weights.enhancement.hit == 9 and aux_env.character_data.upgrades.weights.enhancement.strength == nil)
+  check('weights: the tab scores with it', up.spec_weights(enh).ITEM_MOD_HIT_MELEE_RATING_SHORT == 9)
+  check('weights: other specs keep the guide\'s', up.overrides('elemental').hit == nil)
+  up.set_weight('enhancement', 'hit', nil)
+  check('weights: an empty box brings back the guide\'s', aux_env.character_data.upgrades.weights.enhancement == nil)
+  up.set_weight('enhancement', 'agility', 2)
+  up.reset_weights('enhancement')
+  check('weights: Reset brings back all of the guide\'s', up.overrides('enhancement').agility == nil)
+
+  -- what can be typed
+  check('weights: a number, a decimal, empty, or rejected', up.parse_weight(' 2 ') == 2 and up.parse_weight('2.5') == 2.5 and up.parse_weight('') == nil and up.parse_weight('abc') == false and up.parse_weight('-1') == false)
+
+  -- the editor: opens on the tab's spec, a box commits when it loses focus
+  up.open_weights()
+  check('weights editor: opens in the dialog layer', up.weights_popup.__shown and up.weights_popup:GetFrameStrata() == 'DIALOG')
+  local hit_box
+  for _, box in ipairs(up.weight_boxes) do if box.stat == 'hit' then hit_box = box end end
+  check('weights editor: shows the guide\'s number', hit_box and hit_box:GetText() == '5')
+  hit_box:SetText('7')
+  hit_box.focus_loss(hit_box)
+  check('weights editor: a typed number is kept', up.overrides('enhancement').hit == 7)
+  hit_box:SetText('lots')
+  hit_box.focus_loss(hit_box)
+  check('weights editor: text that is not a number changes nothing', up.overrides('enhancement').hit == 7 and hit_box:GetText() == '7')
+  up.reset_button.__scripts.OnClick(up.reset_button)
+  check('weights editor: Reset to defaults', up.overrides('enhancement').hit == nil and hit_box:GetText() == '5')
+  up.weights_popup:Hide()
+
+  -- Settings has a way in
+  aux_env.weights_edit_button.__scripts.OnClick(aux_env.weights_edit_button)
+  check('weights editor: opened from Settings', up.weights_popup.__shown)
+  up.weights_popup:Hide()
+
+  -- gain per gold
+  check('per gold: points for each gold of the price', up.per_gold(12, 30000) == 4 and up.per_gold(5, 0) == nil and up.per_gold(nil, 100) == nil)
+  check('per gold: shown with sensible decimals', up.per_gold_text(42.4) == '42' and up.per_gold_text(4) == '4.0' and up.per_gold_text(.126) == '0.13' and up.per_gold_text(nil) == '?')
+  check('per gold: a column after Gain, and Gain still sorts the table', up.columns[up.PER_GOLD_COLUMN].title == 'Per gold' and up.columns[up.GAIN_COLUMN].title == 'Gain' and up.listing.sorts[1].index == up.GAIN_COLUMN and up.listing.sorts[1].descending)
+
+  aux_env.character_data.upgrades = saved_upgrades
+end)
+
+-- Attack Power counts for the physical specs whose list does not name it (Ben, 2026-11-16): worth
+-- what the stats that give it are worth per point given, by each guide's conversion
+try('weights: attack power from each guide\'s conversion', function()
+  local require = loadstring("select(2, ...) 'aux.test.weights_ap'; return require")('auxForever', addon)
+  local weights = require 'aux.core.weights'
+  local function ap(class, id, own) return weights.ranks(weights.spec(class, id), own).attack_power end
+  check('ap: Enhancement, Strength 3 gives 2 Attack Power each: 1.5', ap('SHAMAN', 'enhancement') == 1.5)
+  check('ap: and it reaches the game\'s names', weights.weights(weights.spec('SHAMAN', 'enhancement')).ITEM_MOD_ATTACK_POWER_SHORT == 1.5 and weights.weights(weights.spec('SHAMAN', 'enhancement')).ITEM_MOD_MELEE_ATTACK_POWER_SHORT == 1.5)
+  check('ap: Arms and Fury, Strength 1: 0.5', ap('WARRIOR', 'arms') == .5 and ap('WARRIOR', 'fury') == .5)
+  check('ap: Agility gives Warriors none, Protection goes by Strength 2: 1', ap('WARRIOR', 'protection') == 1)
+  check('ap: Rogues, 1 per Agility: Agility\'s weight', ap('ROGUE', 'assassination') == 3 and ap('ROGUE', 'combat') == 3 and ap('ROGUE', 'subtlety') == 1)
+  check('ap: Feral, the most of Strength and Agility in Cat Form', ap('DRUID', 'feral') == 2)
+  check('ap: Retribution 1, Protection Paladin 1 per Strength', ap('PALADIN', 'retribution') == 1 and ap('PALADIN', 'protection') == 1)
+  check('ap: hunters keep the guide\'s own Attack Power', ap('HUNTER', 'beast_mastery') == 1 and ap('HUNTER', 'survival') == 1)
+  check('ap: casters and healers get none', ap('SHAMAN', 'elemental') == nil and ap('PRIEST', 'holy') == nil and ap('MAGE', 'fire') == nil)
+  check('ap: a spec without Strength or Agility in its list gets none', ap('PALADIN', 'retribution_shock') == nil and ap('DRUID', 'feral_tank') == nil)
+  check('ap: it follows the player\'s Strength', ap('SHAMAN', 'enhancement', {strength = 6}) == 3)
+  check('ap: unless they set it themselves', ap('SHAMAN', 'enhancement', {strength = 6, attack_power = 4}) == 4 and ap('SHAMAN', 'enhancement', {attack_power = 0}) == nil)
+  check('ap: a score counts it', require('aux.core.stats').score({ITEM_MOD_ATTACK_POWER_SHORT = 20}, weights.weights(weights.spec('SHAMAN', 'enhancement'))) == 30)
 end)
 
 -- Outside review of 2026-11-10 (docs/reviews/2026-11-10-outside-review.md), 0.8.2.1
@@ -7452,7 +7880,7 @@ try('0.9 build 2: FB-062 right-click bag item to Post (and tab_index_by_name)', 
   local shortcut = loadstring("select(2, ...) 'aux.core.shortcut'; return _M")('auxForever', addon)
   local post = loadstring("select(2, ...) 'aux.tabs.post'; return _M")('auxForever', addon)
   local search = loadstring("select(2, ...) 'aux.tabs.search'; return _M")('auxForever', addon)
-  check('FB-062: tab_index_by_name finds Post and Search', a.tab_index_by_name('Search') == 1 and a.tab_index_by_name('Post') == 3)
+  check('FB-062: tab_index_by_name finds Post and Search', a.tab_index_by_name('Search') == 1 and a.tab_index_by_name('Post') == 4)
   local was_shown = a.frame.__shown
   a.frame.__shown = true
   local real_btn = G.GetMouseButtonClicked
@@ -7746,9 +8174,10 @@ try('0.9 build 3: Option B tooltips, aligned crafting hover, and T1-T6 wording',
   local popup_h
   rawset(a.settings_popup, 'SetHeight', function(_, v) popup_h = v end)
   a.refresh_settings()
-  check('0.9b3: AH Settings popup height is 446 normally', popup_h == 446)
+  -- 502 since the Upgrades row joined the right column (0.9 merge); the same with a reload waiting
+  check('0.9b3: AH Settings popup height is 502 normally', popup_h == 502)
   a.look_buttons[other].__scripts.OnClick(a.look_buttons[other])
-  check('0.9b3: AH Settings popup height is 474 with Theme reload waiting', popup_h == 474)
+  check('0.9b3: AH Settings popup height is 502 with Theme reload waiting', popup_h == 502)
   a.look_buttons[THEME].__scripts.OnClick(a.look_buttons[THEME])
   rawset(a.settings_popup, 'SetHeight', nil)
 end)

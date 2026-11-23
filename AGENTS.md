@@ -251,7 +251,10 @@ Load order is the TOC (`auxForever/auxForever.toc`).
   `history.record_view`; single auctions feed `process_auction` (today's lowest only).
   `/aux price <item>` prints what was recorded. `core/api.lua` (0.7): `AuxForeverAPI`, the only
   global other addons may call (prices by item link or ID; `docs/api.md`). Its names and meanings
-  are a promise: add functions, never change or remove one.
+  are a promise: add functions, never change or remove one. `core/stats.lua` (Upgrades tab, in
+  progress, `docs/upgrades.md`): gear stats by `GetItemStats` (a listed version's through
+  `AuxTooltip`'s link), scores by stat weights, and what an item would replace. `core/weights.lua`: each spec's stat
+  priority (Icy Veins, WoW Forever, `docs/stat-priorities.md`) as ranked weights.
 - `util/filter.lua`: aux's search language: parsing, the post filters and their validators.
 - `gui/auction_listing.lua`: the result tables (columns Req, iLvl, Item, For sale, ...; Tyler,
   0.7: Req always first, and the units for sale never sit next to another column of plain numbers). Since 0.7
@@ -275,6 +278,11 @@ Load order is the TOC (`auxForever/auxForever.toc`).
   `docs/clicks.md`; row click hints come from `gui.add_click_hint`.
 - `tabs/sniper/`: the Sniper tab (0.3): `core.lua` (rounds over the whole item list, the deal
   rule `judge`, checking a candidate's real auctions, buying), `frame.lua` (controls and table).
+- `tabs/upgrades/` (in progress, `docs/upgrades.md`): the Upgrades tab. `core.lua` (slots and their
+  searches, the fast search, scoring with `core/stats.lua` and `core/weights.lua`, choices saved per
+  character in `character_data.upgrades`, the player's own weights), `frame.lua` (spec, slot grid,
+  level, worn item, table with Gain and Per gold), `weights.lua` (the weights editor, also opened
+  from Settings). A row opens that exact item on the Search tab, which buys it.
 - `tabs/post/`: posting (auto price, undercut mode, deposit, "You get"). Since 0.6 the top panel is
   three columns (`frame.lua`, option A of the mockup): setup, price (with `price_layout`, checked
   by a test at the smallest window), and a receipt with the red vendor warning (`vendor_warning`,
@@ -370,8 +378,9 @@ aux runs inside the game; every frame it spends time in costs the player frame r
 - Tables sort by column number (`listing:SetSort(2, 8)`; the last number is the main sort). Adding
   a column shifts the numbers after it: update every `SetSort` of that table (0.7, a test checks
   the main sort of each tab).
-- Tabs by number: Search 1, Sniper 2, Post 3, Auctions 4, Bids 5. A test that switches to the wrong
-  number passes for the wrong reason (this hid a Post tab error in 0.5).
+- Tabs by number: Search 1, Sniper 2, Upgrades 3, Post 4, Auctions 5, Bids 6 (Upgrades added on
+  2026-11-16; Post was 3 before). A test that switches to the wrong number passes for the wrong
+  reason (this hid a Post tab error in 0.5).
 - Leaving the Post tab clears `selected_item` (its `CLOSE`): read what you need from it before
   `aux.set_tab`.
 - `aux.split` only works with one-character separators.

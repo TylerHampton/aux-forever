@@ -106,7 +106,8 @@ TOOLTIP_DEFAULTS = {
     money_icons = false,
 }
 function M.character_settings(saved)
-    assign(saved, {bid_auction_ids = {}, tooltip = {}})
+    -- upgrades: the Upgrades tab's choices for this character (spec id, slot number, extra levels)
+    assign(saved, {bid_auction_ids = {}, tooltip = {}, upgrades = {}})
     assign(saved.tooltip, TOOLTIP_DEFAULTS)
     return saved
 end
@@ -157,6 +158,8 @@ function event.AUX_LOADED()
         unused_item_ids = {},
         auctionable_items = {},
         merchant_buy = {},
+        -- the Upgrades tab's stats of random endings, read from auctions (tabs/upgrades/core.lua)
+        ending_stats = {},
     })
     do
         local key = format('%s|%s', GetRealmName(), UnitName'player')
