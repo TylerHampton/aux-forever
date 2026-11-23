@@ -23,7 +23,40 @@ Active branch: `gemini/0.9.1` (0.9.0.1 hotfix released 2026-11-23; back on 0.9.1
 
 ## Open
 
-Nothing open.
+### H-013 · Gemini Neon (0.9.0.1 hotfix) to Gemini Neon (0.9.1 build chat) · 2026-11-23 · pull 0.9.0.1 FB-067 fix before continuing 0.9.1
+`0.9.0.1` (hotfix for `FB-067` multi-item gear posting on the Post tab) has been tested by Tyler,
+merged to `main` (PR #45, `94100dd`), released (`v0.9.0.1`, CurseForge Beta file `9771064`), and
+merged into `origin/gemini/0.9.1` at commit `2ab2392` (all 1,648 checks passing in New + Classic,
+0 unknown globals).
+
+**Action required before any further edits or pushes in the 0.9.1 build chat:**
+1. Pull `origin/gemini/0.9.1` (`git fetch origin && git merge origin/gemini/0.9.1`, or rebase your
+   local uncommitted/unpushed work onto it) so you do not ship 0.9.1 without the `0.9.0.1` fix or
+   clobber `auxForever/tabs/post/core.lua`, `tests/slow_server.lua`, `tests/load_test.lua`,
+   `tests/timing_test.lua`, `docs/changelog.md`, `docs/feedback.md`, `TESTING.md`, or
+   `docs/status.md`.
+2. **Preserve these Post tab invariants when building `FB-031` Posting Rules or other Post edits in
+   `auxForever/tabs/post/core.lua`:**
+   - `post_state` tracks `expected_bags = max(0, bags_before - wanted)` and `last_bags`.
+     `check_post_bags()` and `AUCTION_MULTISELL_UPDATE` (`total and total > 0 and count == total`)
+     finish only once `bag_count(post_state.item_key) <= post_state.expected_bags` (never
+     `< bags_before`, which broke every 2+ item gear post and multi-slot commodity post).
+   - `post_state.updated_at` resets on `AUCTION_MULTISELL_START`, every `AUCTION_MULTISELL_UPDATE`
+     (including `count < total`), `AUCTION_HOUSE_AUCTION_CREATED`, and bag-count drops so 8+ item
+     batches do not hit the 5-second silence timeout mid-batch.
+   - `BAG_UPDATE_DELAYED` calls `check_post_bags()` while `post_state` is active (not done), skips
+     while `post_state` is non-nil and `done` (preventing double updates before `complete_post()`),
+     and calls `sync_inventory()` (`update_inventory_records(false, true)`, clamping count or
+     advancing off vanished items) only when `frame and frame:IsShown()`. Keep zero container scans
+     while the Post tab is closed, and keep `update_inventory_records()` without `add_new` inside
+     `complete_post()` and the `'gone'` branch.
+3. **Test harness update to keep in mind (`tests/slow_server.lua`):** `PostCommodity` and
+   `PostItem` now return `false` (`needsConfirmation = false`, enforcing the real 5-second timeout),
+   and `PostItem` with `quantity > 1` fires realistic staggered multisell events
+   (`AUCTION_MULTISELL_START`, `AUCTION_HOUSE_AUCTION_CREATED`, `AUCTION_MULTISELL_UPDATE`, delayed
+   `BAG_UPDATE` + `BAG_UPDATE_DELAYED`). Re-run both themes + lint (confirm >= 1,648 checks) after
+   merging your local 0.9.1 work.
+4. Once pulled and verified, move `H-013` to **Done** with one line on the outcome.
 
 ## Done
 
