@@ -367,9 +367,205 @@ Two real-world options were investigated:
 
 ---
 
-## 6. Experiment added to `docs/forever-auction-house.md` (0 Gold)
+## 6. Experiments updated in `docs/forever-auction-house.md` (0 Gold)
 
+- **E12 (expanded for Forever surnames & Portal CVar):** Alongside `GetRealmName()`,
+  `GetCurrentRegionName()`, and `C_GameRules.IsGameRuleActive` (`HardcoreRuleset`, `PvPRuleset`,
+  `RPRuleset`), also check `select(2, UnitName("player"))`,
+  `Constants.CharacterNameSeparatorConsts`, and `GetCVar("Portal")`.
 - **E13 (`C_EncodingUtil` live check on Forever):** Confirm Blizzard's documented C++
   `C_EncodingUtil` (`EncodeBase64`/`DecodeBase64`, `CompressString`/`DecompressString`,
   `SerializeCBOR`/`DeserializeCBOR`, `SerializeJSON`/`DeserializeJSON`) works at runtime on Forever
   without restriction, as used by `LibBonusId/DataForever.lua`.
+
+---
+
+## 7. Part 2: Deep dive into TSM 4.15.9 addon internals (WoW: Forever)
+
+On 2026-11-24 we also studied the installed `TradeSkillMaster` `4.15.9` addon source (`## Interface: 120105, 50504, 20506, 16001, 11509`) strictly for technical architecture and WoW: Forever API
+research. TSM is **All Rights Reserved**: no TSM code, text, or artwork is copied into `auxForever`
+or stored in this repository. Everything learned from TSM's addon files is labeled **`[Outside]`**
+unless independently verified in Blizzard's Forever source (**`[Code]`**) or observed in game
+(**`[Seen]`**).
+
+### 7.1 Actual embedded libraries (settling the CurseForge dependency list) `[Outside]`
+- `TradeSkillMaster.toc` lists only six third-party embeds (`## X-Embeds`): `Ace3`,
+  `LibDataBroker-1.1`, `LibDBIcon-1.0`, `LibDeflate`, `LibSerialize`, and `LibAHTab` (plus TSM's
+  own `LibTSM*` modules and `LibBonusId`).
+- Three libraries still displayed on CurseForge's Relations tab (`LibAuctionScan-1.0`,
+  `lib-ScrollingTable`, and `LibCompress`) are leftover legacy metadata from TSM 1/2/3 and are not
+  present in TSM 4.15.9 at all.
+
+### 7.2 Question 1: Forever realm/ruleset keys (`FB-065`), character surnames, and Neutral AH
+- **Ruleset-based realm key (`[Outside]`, `SessionInfo.lua`):** On Forever, TSM completely ignores
+  `GetRealmName()` and derives its realm label from `C_GameRules.IsGameRuleActive(...)`:
+  1. `Enum.GameRule.HardcoreRuleset` -> `"Hardcore"`
+  2. `Enum.GameRule.RPRuleset` and `Enum.GameRule.PvPRuleset` -> `"Roleplay PvP"`
+  3. `Enum.GameRule.RPRuleset` -> `"Roleplay"`
+  4. `Enum.GameRule.PvPRuleset` -> `"PvP"`
+  5. Otherwise -> `"Normal"`
+  Region comes from `GetCVar("Portal")` (normalizing `"public-test"` to `"PTR"`), and faction from
+  `UnitFactionGroup("player")`. This aligns closely with our planned `FB-065` fix (`Region|Ruleset|Faction`).
+- **RP vs RP-PvP character migration pitfall (`[Outside]`, `AddonSettings.lua` v155):** TSM had to
+  ship a migration merging duplicate character entries between `"Roleplay PvP"` and `"Roleplay"`,
+  indicating players on RP rulesets can hit overlapping or shifting RP/PvP flags. Keep a clean
+  fallback/migration check in mind when designing our `FB-065` migration.
+- **Forever character surnames (`[Outside]`, `SessionInfo.lua:16-19`, needs E12 check):** On
+  Forever, TSM reads `local surname = select(2, UnitName("player"))` and, when non-nil, joins first
+  name and surname using `Constants.CharacterNameSeparatorConsts.CHARACTERNAME_SURNAME_SEPARATOR`
+  for character keys (and skips appending `-Realm` to character names). `auxForever` currently reads
+  only the first return of `UnitName("player")` (`aux-addon.lua`, `core/inventory.lua`,
+  `core/cache.lua`, `util/info.lua`). Added to Experiment **E12** so we verify in game whether
+  Forever characters carry surnames and avoid collisions between alts sharing a first name.
+- **Neutral Auction House (`[Outside]`):** TSM 4.15.9 contains **zero** Neutral AH detection,
+  separate Neutral market keys, or 15% cut logic anywhere in its codebase; it hardcodes the 5%
+  auction cut (`vendorSellPrice / 0.95`) and keys markets solely by `UnitFactionGroup("player")`.
+  This confirms Blizzard's Forever `C_AuctionHouse` offers no hidden neutral-house API, so our
+  planned Experiment **E2** (`UnitName("npc")` / `UnitFactionGroup("npc")` / zone check) is the
+  right path for `0.10`, and `auxForever` can beat TSM on Neutral AH support.
+
+### 7.3 Question 2: `C_AuctionHouse` scanning, Sniper, Full scan, and posting/buying quirks
+- **100-per-minute search throttle (`[Code]` + `[Outside]`):** Confirmed in Blizzard's Forever
+  `AuctionHouseDocumentation.lua` (`SendSearchQuery` and `SendSellSearchQuery` both state: *"Search
+  queries are restricted to 100 calls per minute. These should not be used to query the entire
+  auction house. See ReplicateItems"*). TSM tracks a rolling 60-second client-side window across
+  both calls via `hooksecurefunc`.
+- **`BrowseNoScan` + `SendSellSearchQuery` shortcut (`[Code]` + `[Outside]`, `Query.lua`, `Row.lua`):**
+  - When scanning a known list of fewer than 500 items (Shopping List, Post Scan, Cancel Scan), TSM
+    skips `SendBrowseQuery` altogether and builds `C_AuctionHouse.MakeItemKey(itemID, 0)` directly.
+  - For **commodities**, TSM calls `C_AuctionHouse.SendSearchQuery(itemKey)` directly without a
+    prior browse.
+  - For **non-commodity gear** without browse results, TSM calls
+    `C_AuctionHouse.SendSellSearchQuery(itemKey, {}, true)` with `itemKey.itemLevel = 0` (Blizzard's
+    Forever `AuctionHouseDocumentation.lua` confirms `[Code]`: *"ItemKey should have its iLVL and
+    suffix cleared before calling"*). TSM notes that `SendSellSearchQuery` does not work for
+    commodities or pets.
+  - **Takeaway for auxForever:** Once Experiment **E9** confirms suffixed gear results on Forever,
+    `SendSellSearchQuery` lets our Shopping List (`0.9.1`), Post tab, Batch Post Scan (`0.9.2`),
+    and Auctions undercut check fetch every listing of a gear item in 1 request with no browse step.
+- **`SearchForItemKeys` & `AUCTION_HOUSE_NEW_RESULTS_RECEIVED` (`[Outside]`):** TSM wraps
+  `SearchForItemKeys` only to observe other addons' hooks (it never calls it) and registers
+  `AUCTION_HOUSE_NEW_RESULTS_RECEIVED` only as an unused debug logger. Experiment **E10**
+  (`SearchForItemKeys`) remains worthwhile for a Point Blank Sniper-style Watch List in `0.10`.
+- **TSM Sniper vs auxForever Sniper on Forever (`[Outside]`, `Sniper.lua`, `Buyout.lua`, `Bid.lua`):**
+  - TSM's **Bid Sniper is disabled on Forever** (`assert(IsVanillaClassic() or IsBCClassic())`).
+  - TSM's **Buyout Sniper on Forever** sends an empty `SendBrowseQuery`, paginates the full house,
+    filters browse rows by `minPrice <= maxPrice`, calls `SendSearchQuery` on matches, and then
+    **sleeps a flat 30 seconds** before starting the next pass.
+  - **Verdict:** `auxForever`'s Sniper is already ahead of TSM 4.15.9 on Forever (same browse ->
+    filter -> `read_item` pipeline, plus Narrower Sniper Watch for 0.2 s Trade Goods rounds,
+    crash-wall `market_now` protection, and continuous pacing without a 30-second stall).
+- **Full Scan (`ReplicateItems`) disabled in TSM on Forever (`[Outside]`, `FullScan.lua`):** TSM
+  skips `ReplicateItems` on Forever and relies strictly on its Desktop App for AuctionDB data.
+  `auxForever`'s built-in Full Scan is a clear advantage for players who want standalone local price
+  history with no companion app.
+- **Multi-item posting & commodity buying verification (`[Code]` + `[Outside]`):**
+  - TSM waits for `AUCTION_HOUSE_AUCTION_CREATED` when `quantity <= 1` and `AUCTION_MULTISELL_UPDATE`
+    (`createdCount == totalToCreate`) when `quantity > 1`, independently validating our `0.9.0.1`
+    (`FB-067`) hotfix.
+  - TSM's `COMMODITY_PRICE_UPDATED` check keeps 1-copper precision on Forever (vs 1-silver rounding
+    on Retail).
+  - Checked Blizzard's Forever `AuctionHouseDocumentation.lua` (`[Code]`): `ConfirmCommoditiesPurchase`
+    takes exactly 2 arguments (`itemID`, `quantity`), confirming `auxForever`'s calls in
+    `gui/buy_bar.lua` are exact.
+- **Quieting hidden `AuctionHouseFrame` notifications (`[Outside]`, `AuctionHouse.lua:741`):**
+  When TSM replaces Blizzard's AH window, it unregisters `AUCTION_HOUSE_AUCTION_CREATED`,
+  `AUCTION_HOUSE_SHOW_NOTIFICATION`, `AUCTION_HOUSE_SHOW_FORMATTED_NOTIFICATION`, and
+  `AUCTION_HOUSE_SHOW_COMMODITY_WON_NOTIFICATION` from `AuctionHouseFrame` on `OnShow` to stop the
+  hidden default frame from doing duplicate work.
+
+### 7.4 Question 3: Accounting / Ledger & Mailbox Invoices (`FB-069`) `[Outside]`
+Reading `API/Inbox.lua`, `Ledger/Mail.lua`, `Auction/Internal/SaleHint.lua`, `Ledger/Auctions.lua`,
+`Ledger/Transactions.lua`, and `Accounting.lua` reveals the exact mechanics needed for a clean,
+accurate lite ledger in `auxForever`:
+- **Mail classification (`Inbox.GetMailType`):** Inspect `GetInboxInvoiceInfo(index)` first
+  (`"seller"` = completed sale, `"seller_temp_invoice"` = pending sale ignored until gold arrives,
+  `"buyer"` = won purchase), then match expired/cancelled/outbid mail subjects against WoW's
+  localized globals (`AUCTION_EXPIRED_MAIL_SUBJECT`, `AUCTION_REMOVED_MAIL_SUBJECT`,
+  `AUCTION_OUTBID_MAIL_SUBJECT`).
+- **Preventing double-recording on failed loots:** Pre-hook `TakeInboxItem`, `TakeInboxMoney`, and
+  `AutoLootMailItem`, and check gold cap, free bag slots, and unique-item limits *before* inserting
+  a ledger row so a failed loot never records twice.
+- **Solving the "sale mail has no item link" problem (`SaleHint.lua`):** Gold-only `"seller"` mails
+  only return `itemName` (a string), which is ambiguous for random-suffix gear or same-name items.
+  TSM stores lightweight 33-day sale hints `(itemName, itemKey, stackSize, unitPrice)` whenever you
+  post an item or scan owned auctions, then matches `(itemName, unitPrice)` when the sale gold is
+  collected.
+- **Commodity purchase quantity quirk on Forever (`Ledger/Mail.lua:190-192`):** On `"buyer"` mails,
+  TSM sums the actual attachment stack counts (`GetInboxItem` across `1..ATTACHMENTS_MAX_RECEIVE`)
+  instead of relying solely on `GetInboxInvoiceInfo`'s count field, avoiding split-attachment bugs.
+- **`SmartAvgBuy` (`Accounting.lua:304-311`, `Transactions.lua:355-370`):** Read your current total
+  inventory count `N` for the item, walk your newest purchase rows backwards accumulating `N` units,
+  and compute their weighted average cost. Only ~20 lines of Lua once a buy log exists, and far
+  more accurate for flipping than an all-time average.
+- **Personal `SaleRate` & `NumExpires` + 180-day auto-trimming:** Track cancels and expires from
+  returned mail (`SaleRate = sold / (sold + cancelled + expired)` over 180 days; `NumExpires` =
+  expires since last sale timestamp) and roll off entries older than 180 days on save so
+  SavedVariables stay small.
+
+### 7.5 Question 4: Visual Post Scan, Forever inventory/bank, tooltip safety, and AppHelper format
+- **TSM 4.15 Visual Post Scan design (`[Outside]`, `ExistingAuctionsList.lua`, `AuctioningPostDetails.lua`):**
+  - Renders existing listings sorted by unit price with **your pending post inserted right inside
+    the table as a highlighted row/pill**, alongside **inline horizontal divider lines** for
+    `Min Price`, `Normal Price`, and `Max Price`.
+  - Double-clicking any listing (or dragging the pending post row above a listing) immediately sets
+    your price to undercut that listing.
+  - **Direct takeaway for `auxForever` `0.9.2` (`FB-031`):** Putting a highlighted `"Your post"`
+    preview row plus subtle `Floor` / `Normal` / `Ceiling` reference lines directly inside our
+    existing Post tab listings table gives players TSM 4.15's best visual feature with zero group
+    or formula complexity.
+- **Forever bags, bank tabs, and Warbank (`[Code]` + `[Outside]`, `Container.lua`, `BagIndexConstantsDocumentation.lua`):**
+  - Confirmed `[Code]` in Forever's `BagIndexConstantsDocumentation.lua`: Forever defines
+    `BagIndex.ReagentBag = 5`, `CharacterBankTab_1..9 = 6..14`, and `AccountBankTab_1..9 = 15..23`.
+  - TSM uses `Constants.InventoryConstants.NumReagentBagSlots` and `NumCharacterBankSlots`, never
+    reads legacy `BANK_CONTAINER` on Forever, and **disables Warbank bags on Forever**
+    (`IsWarbankBag` / `CanAccessWarbank` return `false` unless `IsRetail()`, and Forever's simple
+    inventory tooltip shows `player, alts, guild, AH` without `warbank`). Confirms `auxForever`'s
+    `0.9.1` `core/inventory.lua` bank-tab layout is aligned with Forever.
+- **Forever tooltip, combat, chat, and table-extension quirks (`[Outside]`):**
+  - **Secret-value checks (`issecretvalue`):** TSM guards `UI_ERROR_MESSAGE`, chat/friend messages,
+    and extra tooltip geometry anchors with `issecretvalue(...)` on Forever.
+  - **Recipe tooltip `GetItem()` mismatch (`TooltipWrapper.lua:138`):** On Retail and Forever,
+    `tooltip:GetItem()` can return a link whose item ID does not match `data.id` on recipes; TSM
+    checks `not strmatch(item, "item:"..data.id..":")` and falls back to `data.id`. Worth keeping in
+    mind if any Forever recipe tooltip ever shows the wrong price.
+  - **Combat guards:** TSM prints a placeholder in combat instead of evaluating complex tooltip
+    strings, and marks `ProfessionsFrame` as combat-locked on Forever (`Move.lua:104`).
+  - **Chat filter API (`ChatFrame.lua:63`):** Forever uses `ChatFrameUtil.AddMessageEventFilter`
+    instead of legacy `ChatFrame_AddMessageEventFilter`.
+  - **Native table helpers (`LibTSMUtil/Lua/Table.lua:16`):** TSM enables WoW's C table extensions
+    (`table.removevalue`, `table.getcountinfo`) on Forever just like Retail.
+- **Forever item strings & bonus IDs (`[Outside]`, `ItemString.lua:363`):** TSM runs its
+  Retail-style bonus-ID filter (`LibBonusId` + `DataForever.lua`) on Forever. `auxForever`'s
+  `info.price_key` (`"itemID:suffix name"`) already handles Forever's random-suffix gear cleanly
+  without shipping a DBC bonus table in the addon.
+- **`AppHelper` / `AuctionDB` storage format (`[Outside]`, `AppHelper.lua`, `AuctionDB.lua`):**
+  TSM writes region keys `"Forever-US"` / `"Forever-HC-US"` and realm keys `"Normal-Alliance"`,
+  `"PvP-Horde"`, etc., packing per-item metrics as base-32 comma-separated strings unpacked lazily
+  on first lookup (splitting >32-bit copper numbers across 6-char chunks). For `auxForever`'s future
+  Desktop App, `C_EncodingUtil` (Base64 + Deflate + CBOR, Experiment **E13**) is cleaner and decodes
+  natively in C++ without custom base-32 Lua parsing.
+
+### 7.6 Actionable summary of what TSM 4.15.9 changes for auxForever
+1. **Immediate (`FB-065`, next build/hotfix):** Confirm **E12** in game (including Forever surnames
+   and `GetCVar("Portal")`), then migrate `aux.character`, `aux.realm`, and `aux.faction` off
+   `GetRealmName()` onto `Region|Ruleset` (and surname-safe character keys if Forever uses surnames).
+2. **`0.9.1` follow-up (tiny):** Add active AH listings per alt in `core/inventory.lua` (`bags,
+   bank, AH, mail`) so alt inventory matches TSM's coverage.
+3. **`0.9.2` (`FB-031` + `FB-069`):**
+   - Design `FB-031` around a **TSM 4.15-style live price ladder** in the Post tab (highlighted
+     `"Your post"` preview row + inline `Floor` / `Normal` / `Ceiling` markers + optional Bag Post
+     Scan queue, with zero Groups or formula scripting).
+   - Design `FB-069` (Lite Accounting Ledger) using TSM's proven mailbox patterns (`GetInboxInvoiceInfo`
+     + pre-loot capacity check + 33-day sale hints + multi-attachment quantity sum + `SmartAvgBuy` +
+     180-day auto-trimming), after **E1** / **E4** confirm Forever's mail formats.
+   - Add `"Underpriced (repost higher)"` flag and bid protection to the Auctions tab.
+4. **`0.10` (speed & Neutral AH):**
+   - Test **E9** (`SendSellSearchQuery` for gear) to skip browse queries on known gear lists.
+   - Test **E2** and build Neutral AH detection + 15% cut support (something TSM 4.15.9 lacks).
+   - Expose supply (`record.units`) and granular scan age in tooltips, and add a gold/percent
+     threshold option to "Confirm before buying".
+5. **Post-1.0 (Desktop App):** Build our own lightweight `auxForever_AppData` companion using
+   Blizzard's Forever Game Data API + `C_EncodingUtil` (pending **E13**) and keep in-game Full Scan
+   as a first-class standalone feature (an advantage over TSM on Forever).
+

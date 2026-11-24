@@ -1,7 +1,8 @@
 # Status
 
 Last updated 2026-11-24, Tyler's time (`0.9.0.1` hotfix for `FB-067` released on `main`,
-2026-11-23; `gemini/0.9.1` active with `0.9.0.1` merged in and TSM 4.15 research logged).
+2026-11-23; `gemini/0.9.1` active with `0.9.0.1` merged in and TSM 4.15.9 public + internals
+research logged in `docs/tsm-research-4.15.md`).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-20 and 0.9's
@@ -39,8 +40,9 @@ and settings).
    backend subrealm names per region + ruleset (`aux-addon.lua` keys `aux.character`, `aux.realm`,
    and `aux.faction` by `GetRealmName()`). Every player who upgraded or switched subrealms landed
    on empty tables (breaking Sniper `MIN_DAYS = 3`, Post prices, searches, and risking cross-ruleset
-   collisions). Needs Experiment **E12** `/run` check in game and Tyler's call on shipping as a
-   **0.9.0.2** hotfix vs **0.9.1 build 2**.
+   collisions). TSM 4.15.9 also reads Forever character surnames via `select(2, UnitName("player"))`
+   (`[Outside]`). Needs expanded Experiment **E12** `/run` check in game and Tyler's call on
+   shipping as a **0.9.0.2** hotfix vs **0.9.1 build 2**.
 2. **Waylaid Crate Merchant's Favor & reward silver (`FB-059`, `FB-042`, `FB-043`) + Craftsman's
    Writs (`FB-020`):** web research (`[Outside]`, Forever guides) completed on 2026-11-22; awaiting
    Tyler's in-game confirmation (especially Artisan crate Favor/silver) before mocking up.

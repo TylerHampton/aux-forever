@@ -376,9 +376,12 @@ page once carried them as build id `ah-facts-1`.
 - **E9 `SendSellSearchQuery` for gear (2026-11-21, [Code] / partial [Seen]).** Blizzard's Sell
   window zeroes `itemLevel` and `itemSuffix` on a gear item key and calls
   `C_AuctionHouse.SendSellSearchQuery` (`Blizzard_AuctionHouseUtil.lua`,
-  `Blizzard_AuctionHouseItemSellFrame.lua`, passing `separateOwnerItems = false`), returning all
-  versions of that item ID in 1 request (read via `GetNumItemSearchResults` /
-  `GetItemSearchResultInfo`). On 2026-11-21 (0.9 build 2), running idle on item 4567 printed
+  `Blizzard_AuctionHouseItemSellFrame.lua`, passing `separateOwnerItems = false`; Blizzard's
+  Forever `AuctionHouseDocumentation.lua` also notes *"ItemKey should have its iLVL and suffix
+  cleared before calling"* **[Code]**), returning all versions of that item ID in 1 request (read
+  via `GetNumItemSearchResults` / `GetItemSearchResultInfo`). TSM 4.15.9 also uses
+  `SendSellSearchQuery(itemKey, {}, true)` for non-commodity gear when skipping browse queries
+  (**[Outside]**). On 2026-11-21 (0.9 build 2), running idle on item 4567 printed
   `E9 send: 4567 true` and `E9: 4567 0 true nil nil` (`HasSearchResults == true`, server answered
   with 0 results for item 4567). Whether it returns suffixed variants when listed remains
   **[Unknown]** until tested on a gear item ID that currently has suffixed auctions listed.
@@ -399,11 +402,15 @@ page once carried them as build id `ah-facts-1`.
   - **E11b (Streaming browse + live check):** Confirm whether calling `SendSearchQuery` for one item
     while `HasFullBrowseResults() == false` leaves the browse cursor intact for subsequent
     `RequestMoreBrowseResults()` calls or resets it.
-- **E12 Realm name, region, and `C_GameRules` ruleset API (`FB-065`, 2026-11-23, [Unknown]).**
+- **E12 Realm name, region, `C_GameRules` ruleset API, and character surnames (`FB-065`, 2026-11-23,
+  expanded 2026-11-24, [Unknown]).**
   Confirm in game on Forever build `71037`+ what `GetRealmName()`, `GetCurrentRegionName()`,
-  `GetCurrentRegion()`, and `C_GameRules.IsGameRuleActive` (`HardcoreRuleset`, `PvPRuleset`,
-  `RPRuleset`) return:
-  `/run local g=Enum.GameRule or {} print('realm:', format('%q', tostring(GetRealmName())), 'reg:', GetCurrentRegionName(), GetCurrentRegion(), 'hc:', g.HardcoreRuleset and C_GameRules.IsGameRuleActive(g.HardcoreRuleset), 'pvp:', g.PvPRuleset and C_GameRules.IsGameRuleActive(g.PvPRuleset), 'rp:', g.RPRuleset and C_GameRules.IsGameRuleActive(g.RPRuleset))`
+  `GetCurrentRegion()`, `GetCVar("Portal")`, `C_GameRules.IsGameRuleActive` (`HardcoreRuleset`,
+  `PvPRuleset`, `RPRuleset`), `select(2, UnitName("player"))` (character surname), and
+  `Constants.CharacterNameSeparatorConsts` return (TSM 4.15.9 uses `C_GameRules` for rulesets,
+  `GetCVar("Portal")` for region, and joins `UnitName("player")`'s second return with
+  `CHARACTERNAME_SURNAME_SEPARATOR` **[Outside]**):
+  `/run local g=Enum.GameRule or {} local n,s=UnitName('player') local sep=Constants and Constants.CharacterNameSeparatorConsts and Constants.CharacterNameSeparatorConsts.CHARACTERNAME_SURNAME_SEPARATOR print('realm:', format('%q', tostring(GetRealmName())), 'reg:', GetCurrentRegionName(), GetCurrentRegion(), GetCVar('Portal'), 'hc:', g.HardcoreRuleset and C_GameRules.IsGameRuleActive(g.HardcoreRuleset), 'pvp:', g.PvPRuleset and C_GameRules.IsGameRuleActive(g.PvPRuleset), 'rp:', g.RPRuleset and C_GameRules.IsGameRuleActive(g.RPRuleset), 'name:', n, 'sur:', tostring(s), 'sep:', tostring(sep))`
 - **E13 `C_EncodingUtil` CBOR / Deflate / Base64 on Forever (2026-11-24, [Code]; from
   `docs/tsm-research-4.15.md`).** `EncodingUtilDocumentation.lua` on Forever (`Gethe/wow-ui-source`,
   branch `forever`) documents `CompressString`, `DecompressString`, `EncodeBase64`, `DecodeBase64`,
