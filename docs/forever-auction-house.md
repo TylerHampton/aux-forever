@@ -404,6 +404,13 @@ page once carried them as build id `ah-facts-1`.
   `GetCurrentRegion()`, and `C_GameRules.IsGameRuleActive` (`HardcoreRuleset`, `PvPRuleset`,
   `RPRuleset`) return:
   `/run local g=Enum.GameRule or {} print('realm:', format('%q', tostring(GetRealmName())), 'reg:', GetCurrentRegionName(), GetCurrentRegion(), 'hc:', g.HardcoreRuleset and C_GameRules.IsGameRuleActive(g.HardcoreRuleset), 'pvp:', g.PvPRuleset and C_GameRules.IsGameRuleActive(g.PvPRuleset), 'rp:', g.RPRuleset and C_GameRules.IsGameRuleActive(g.RPRuleset))`
+- **E13 `C_EncodingUtil` CBOR / Deflate / Base64 on Forever (2026-11-24, [Code]; from
+  `docs/tsm-research-4.15.md`).** `EncodingUtilDocumentation.lua` on Forever (`Gethe/wow-ui-source`,
+  branch `forever`) documents `CompressString`, `DecompressString`, `EncodeBase64`, `DecodeBase64`,
+  `SerializeCBOR`, `DeserializeCBOR`, `SerializeJSON`, and `DeserializeJSON`, and TSM 4.15's
+  `LibBonusId/DataForever.lua` decodes Forever data with them (`[Outside]`). Confirm at runtime
+  (0 gold):
+  `/run local e=C_EncodingUtil local s=e and e.EncodeBase64(e.CompressString(e.SerializeCBOR({ok=true,n=42}))) local t=s and e.DeserializeCBOR(e.DecompressString(e.DecodeBase64(s))) print('E13:', type(e), s and #s, t and t.ok, t and t.n)`
 - **Note on Blizzard's invisible `AuctionHouseFrame:OnShow` ([Code], 2026-11-21):** when a player
   has Blizzard AH favorites, opening the AH triggers `C_AuctionHouse.SearchForFavorites(sorts)`
   (`Blizzard_AuctionHouseFrame.lua:398-400`), using a throttle slot and firing

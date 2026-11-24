@@ -1,7 +1,7 @@
 # Status
 
-Last updated 2026-11-23, Tyler's time (`0.9.0.1` hotfix for `FB-067` released on `main`,
-2026-11-23; `gemini/0.9.1` active with `0.9.0.1` merged in).
+Last updated 2026-11-24, Tyler's time (`0.9.0.1` hotfix for `FB-067` released on `main`,
+2026-11-23; `gemini/0.9.1` active with `0.9.0.1` merged in and TSM 4.15 research logged).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-20 and 0.9's
@@ -117,6 +117,6 @@ used a claude.ai test page; its answers are in `docs/test-results/test-page-resu
 **Where the rest is:** everything Claude knew at the takeover in `docs/takeover-2026-11.md`, plans in
 `docs/roadmap.md` (0.9.1: shopping list + opt-in alt inventory, Waylaid Crate Favor/Writs; 0.9.2:
 sleeker posting rules; 0.10: granular scan ages, Sniper speed pass & performance), Point Blank
-Sniper research in `docs/sniper-research-pointblanksniper.md`, player feedback in `docs/feedback.md`,
-facts about Forever's auction house in `docs/forever-auction-house.md`, older status notes in
-`docs/status-history.md`.
+Sniper research in `docs/sniper-research-pointblanksniper.md`, TSM 4.15 & Desktop App research in
+`docs/tsm-research-4.15.md`, player feedback in `docs/feedback.md`, facts about Forever's auction
+house in `docs/forever-auction-house.md`, older status notes in `docs/status-history.md`.
