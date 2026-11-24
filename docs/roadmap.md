@@ -120,6 +120,12 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
 - **What your other characters hold** (from FB-023, Kortan, built in 0.9.1 build 1): opt-in
   per-character tracking (off by default) recording bags, bank (once opened), and mail (once
   opened); the shopping list and tooltips count them when enabled.
+- **Parent realm / ruleset SavedVariables key fix (`FB-065`, marcus4555; urgent):** Forever
+  changed `GetRealmName()` to return `""` in build `1.60.1.71037` (Nov 20) and previously exposed
+  changing backend subrealms under the same region + ruleset. Key saved data by `Region|Ruleset`
+  (`GetCurrentRegionName()` + `C_GameRules.IsGameRuleActive(...)`) instead of `GetRealmName()`,
+  with safe one-time migration from existing subrealm tables (once Experiment E12 confirms API
+  values in game; candidate for a `0.9.0.2` hotfix or `0.9.1`).
 - **Candidate (not decided by Tyler):** a controller button to search (FB-053; first an experiment:
   can an addon bind the triggers).
 
@@ -128,6 +134,9 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
 - **Posting rules based on usual price, like TSM** (FB-031, user_yt0k9lezehn1ukm993387): design a
   sleeker way to handle floor, normal, and ceiling posting rules on the Post tab (mockup first;
   deferred from 0.9.1 by Tyler on 2026-11-23).
+- **Candidate (not decided by Tyler):** **Buy and sell ledger / transaction history (`FB-069`,
+  slobbylimulator6900):** track purchases, sales, deposits, and net profit per item and overall
+  (mockup first; also depends on Experiment E1 invoice mail format).
 
 ## 0.10: final beta (deep performance, polish, and 1.0 readiness; agreed with Tyler 2026-11-21)
 

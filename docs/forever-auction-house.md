@@ -58,10 +58,24 @@ date and who saw it.
   contradictory answers). Settled by **E2**.
 - There are no realms in the usual sense: one house per ruleset and faction in each region (six in
   the US, six in Europe). **[Outside]** (AHledger summary). WOW4E_AH_Trader keeps its data per region
-  and per "connected realms reported by the client". Not checked.
-- aux keeps price history per realm name and faction (`docs/price-data.md`). If the faction houses
-  are separate, that is right; prices from a neutral house are mixed into the faction's history
-  today. **[Unknown]**, depends on E2.
+  and per "connected realms reported by the client". Earlier client builds exposed backend subrealm
+  names via `GetRealmName()` (e.g. `CAMWOW US1 Realm 1 PvE`, `CAMWOW US1 Realm 2 PvE`) under the
+  same region and ruleset (**[Outside]**, Blizzard forums, `r/wowaddons`, `FB-065`).
+- **Build `1.60.1.71037` (2026-11-20) blanks realm names/IDs for addons:** Blizzard's Forever UI
+  code (`Blizzard_FriendsFrame/Camelot/FriendsFrame.lua`, commit `734f065`) removed `GetRealmName()`
+  and `realmID ~= 0` checks in favor of `C_BattleNet.IsGameAccountOnSameRealm` and `hasRealmInfo`
+  **[Code]**. Addon authors report (`r/wowaddons`, `AltStable`, `TitanLayer`, 2026-11-20/21) that
+  since build `71037`, `GetRealmName()` and `GetNormalizedRealmName()` return `""` and `GetRealmID()`
+  returns `0` **[Outside]**, settled in game by **E12**.
+- **Ruleset and region APIs:** Forever's generated documentation includes
+  `C_GameRules.IsGameRuleActive(gameRule)` (`GameRulesDocumentation.lua`) and `Enum.GameRule` with
+  `HardcoreRuleset = 10`, `PvPRuleset = 213`, and `RPRuleset = 214` (`LuaEnum.lua`, branch `forever`),
+  alongside `GetCurrentRegionName()` / `GetCurrentRegion()` **[Code]**. Settled by **E12**.
+- aux currently keeps price history, saved post prices, searches, character settings, and alt
+  inventory keyed by `GetRealmName()` (`docs/price-data.md`, `auxForever/aux-addon.lua`). Switching
+  between backend subrealms or receiving `""` from `GetRealmName()` sends players to an empty
+  table (`FB-065`) and risks colliding different rulesets in the same region/faction. **[Code]** /
+  **[Outside]**; neutral vs faction houses remain **[Unknown]**, depends on E2.
 
 ## 2. Two kinds of goods
 
@@ -380,6 +394,11 @@ page once carried them as build id `ah-facts-1`.
   - **E11b (Streaming browse + live check):** Confirm whether calling `SendSearchQuery` for one item
     while `HasFullBrowseResults() == false` leaves the browse cursor intact for subsequent
     `RequestMoreBrowseResults()` calls or resets it.
+- **E12 Realm name, region, and `C_GameRules` ruleset API (`FB-065`, 2026-11-23, [Unknown]).**
+  Confirm in game on Forever build `71037`+ what `GetRealmName()`, `GetCurrentRegionName()`,
+  `GetCurrentRegion()`, and `C_GameRules.IsGameRuleActive` (`HardcoreRuleset`, `PvPRuleset`,
+  `RPRuleset`) return:
+  `/run local g=Enum.GameRule or {} print('realm:', format('%q', tostring(GetRealmName())), 'reg:', GetCurrentRegionName(), GetCurrentRegion(), 'hc:', g.HardcoreRuleset and C_GameRules.IsGameRuleActive(g.HardcoreRuleset), 'pvp:', g.PvPRuleset and C_GameRules.IsGameRuleActive(g.PvPRuleset), 'rp:', g.RPRuleset and C_GameRules.IsGameRuleActive(g.RPRuleset))`
 - **Note on Blizzard's invisible `AuctionHouseFrame:OnShow` ([Code], 2026-11-21):** when a player
   has Blizzard AH favorites, opening the AH triggers `C_AuctionHouse.SearchForFavorites(sorts)`
   (`Blizzard_AuctionHouseFrame.lua:398-400`), using a throttle slot and firing

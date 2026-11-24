@@ -171,10 +171,12 @@ For whoever fixes or builds from it:
 | [FB-062](#fb-062-option-for-right-clicking-a-bag-item-to-always-open-the-post-tab) | 2026-11-20 | rokstar8872, deep_structure, bubbledn42 | request | Post | n/a | Option for right-clicking a bag item to always open the Post tab (like default AH) | built 0.9 (released 2026-11-22) |
 | [FB-063](#fb-063-keybinds-for-buying-confirming-and-declining) | 2026-11-20 | khorrs | request | Buy bar | n/a | Keybinds for buying, confirming and declining | built 0.9 (released 2026-11-22) |
 | [FB-064](#fb-064-tooltip-word-search-ignores-stats-on-generic-green-random-suffix-gear) | 2026-11-22 | RushJet1 | bug | Search | S2 | Tooltip-word search ignores stats on generic green random-suffix gear ("of the Channeler") | fixed 0.9 (released 2026-11-22) |
-| [FB-065](#fb-065-sniper-stopped-showing-deals-even-after-changing-thresholds) | 2026-11-22 | marcus4555 | bug | Sniper | S1 | Sniper stopped showing deals even after changing thresholds | new |
+| [FB-065](#fb-065-sniper-stopped-showing-deals-even-after-changing-thresholds) | 2026-11-22 (follow-up 2026-11-23) | marcus4555 | bug | Sniper / Overall (SavedVariables) | S1 | Sniper stopped showing deals even after changing thresholds (`GetRealmName()` subrealm/blanking split) | confirmed (needs E12 in-game API check + hotfix approval) |
 | [FB-066](#fb-066-setting-to-pick-default-buy-quantity-1-vs-full-stack) | 2026-11-22 | user_ivpyccljovcjne72 | request | Buy bar | n/a | Setting to pick default buy quantity (1 vs full stack) | built 0.9 (released 2026-11-22) |
 | [FB-067](#fb-067-posting-2-gear-items-lists-both-but-aux-reports-posted-1-of-2-and-leaves-1-in-the-post-tab) | 2026-11-23 | Tyler | bug | Post | S2 | Posting 2+ gear items lists all of them but aux reports "Posted (N-1) of N" and leaves 1 in the Post tab | fixed 0.9.0.1 (released 2026-11-23) |
 | [FB-068](#fb-068-is-one-button-buy-compatible-with-point-blank-sniper) | 2026-11-23 | potado_guy_99 | question | Sniper | n/a | Is the "one-button-buy" feature compatible with Point Blank Sniper? | new (reply drafted; Sniper research logged) |
+| [FB-069](#fb-069-a-buy-and-sell-ledger-for-tracking-investments) | 2026-11-23 | slobbylimulator6900 | request | Other | n/a | A buy and sell ledger (transaction history) for tracking investments | new (reply drafted) |
+| [FB-070](#fb-070-item-tracking-across-characters-in-the-tooltip-like-tsm) | 2026-11-23 | deep_structure | request | Other | n/a | Item tracking across characters in the tooltip (how many and which character) | built 0.9.1 build 1 (with FB-023; awaiting testing) |
 
 ## Players
 
@@ -211,7 +213,8 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
   FB-064. Writes search text by hand (`armor/mail/chest/usable/strength`,
   `armor/miscellaneous/finger/spell`).
 - **deep_structure**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for
-  FB-026 and FB-035, reported FB-037, seconded FB-062. Uses the Sniper and crafts.
+  FB-026, FB-035 and FB-070, reported FB-037, seconded FB-062, praised 0.9 changes ("mate youve
+  made some insane changes"). Uses the Sniper, crafts, and previously used TSM.
 - **blackmyin**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-038.
 - **Swiftwren**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-036
   (two comments, the second with an example: Invoker's Cord). Uses the Sniper, buys deals and
@@ -251,12 +254,15 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
 - **rokstar8872**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-062.
 - **bubbledn42**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-062
   (specifically from the Auctions tab).
-- **marcus4555**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-065.
-  Heavy Sniper user (326 ignored items).
+- **marcus4555**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-065 and
+  diagnosed the `GetRealmName()` subrealm SavedVariables split. Heavy Sniper user (326 ignored
+  items) who inspected `SavedVariables`.
 - **user_ivpyccljovcjne72**: CurseForge commenter (a name CurseForge generated; in-game name
   unknown). Asked for FB-066; closed with "Great addon."
 - **potado_guy_99**: CurseForge commenter (CurseForge name; in-game name unknown). Asked FB-068;
   uses Point Blank Sniper.
+- **slobbylimulator6900**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for
+  FB-069 (a buy and sell ledger for investments).
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
   words.
@@ -3145,44 +3151,83 @@ Ask Tyler: none (passed in game).
 
 ### FB-065: Sniper stopped showing deals even after changing thresholds
 
-- Received: 2026-11-22 (posted 19 hours before Tyler's screenshot)
+- Received: 2026-11-22 (posted 19 hours before Tyler's screenshot); follow-up 2026-11-23 (`marcus4555`
+  reply posted 14 hours before Tyler's screenshot)
 - From: marcus4555 (1 report)
 - Where: CurseForge comment on the auxForever project page
-- Source: [source](feedback/sources/2026-11-22-curseforge-comments.md)
-- Version: likely 0.8.2.2 (released 2026-11-20; "as of today")
+- Source: [2026-11-22](feedback/sources/2026-11-22-curseforge-comments.md), [2026-11-23](feedback/sources/2026-11-23-curseforge-comments.md)
+- Version: likely 0.8.2.2 (released 2026-11-20; "as of today" on 2026-11-21)
 - Type: bug
-- Area: Sniper
-- Severity: S1 (Sniper shows zero deals for this player)
-- Status: new (needs diagnostic details from player)
-- Proposed: investigate once player answers; check against 0.9 Build 1 throttle-timeout fix
+- Area: Sniper / Overall (SavedVariables realm key)
+- Severity: S1 (Sniper shows zero deals for this player; affects SavedVariables history, post
+  prices, favorites/recent searches, character settings, and alt inventory across all players)
+- Status: confirmed (root cause identified; needs Experiment E12 `/run` check in game + Tyler's
+  approval for 0.9.0.2 hotfix vs 0.9.1)
+- Proposed: urgent hotfix (`0.9.0.2`) or `0.9.1` once E12 confirms Forever's `C_GameRules` /
+  region values in game
 
-Said:
+Said (2026-11-22):
 > Recently, as of today, the "Sniper" functionality has broke for me. I have ignore 326 items, but that shouldnt prevent all items to show as deals with different parameters / threshold for "at most" and "profit of at least".
 
-Steps / setup: Sniper running with 326 ignored items; changing "at most" and "profit at least"
-still produces no deals.
+Said (follow-up 2026-11-23, in reply to `@tyehampton investigating.`):
+> @tyehampton The issue seems to be with what this Aux addon determines the realm to be as with getRealmName. In Forever there are several subrealms under the same region + playtype. So my subrealm had changed from data to savedvariables and thus fetching an empty table each time. A fix would be to treat all of the subrealms as one parent realm.
 
-Tyler's notes: none yet.
+Steps / setup: Sniper running with 326 ignored items; changing "at most" and "profit at least"
+still produces no deals. Player inspected `SavedVariables` and saw their data stored under an older
+subrealm while `GetRealmName()` resolved to a different/empty table.
+
+Tyler's notes: replied `@marcus4555 investigating.` on CurseForge (2026-11-22); passed the follow-up
+screenshot on 2026-11-23.
 
 Recorder's notes:
-- Fact (code, `v0.8.2.1..v0.8.2.2` diff): the only Sniper browsing changes in 0.8.2.2 were
-  `queries = {{blizzard_query = {quality = 1}}}` (skipping gray items; tested in game by Tyler in
-  0.8.2.2 build 2, returning 25,187 items and 70 deals) and `ROUND_PAUSE = 1`.
-- Fact (code, `tabs/sniper/core.lua:507-516`): ignored entries are matched by exact version key or
-  exact `price_key` (`itemID:ending`), so 326 entries cannot block unrelated items.
-- Fact (code, `core/scan.lua` in 0.8.2.2 vs 0.9 Build 1): in 0.8.2.2, `wait_throttle()` had no
-  timeout when Forever's `IsThrottledMessageSystemReady()` froze (**Seen** by Tyler on 2026-11-20/21),
-  which left Sniper silently stuck on "first round, reading the item list..." forever with 0 deals
-  even when thresholds were edited. Fixed in 0.9 Build 1 (10-second `THROTTLE_TIMEOUT`).
-- Other possible causes on 0.8.2.2 (inference, unconfirmed without player details): fewer than 3
-  days of Full scans on the current realm/faction (`MIN_DAYS = 3`, though that shows a notice under
-  Start), a Lua error aborting the round, or `AUCTION_HOUSE_BROWSE_FAILURE` / empty browse result.
+- Fact (`[Code]`, `auxForever/aux-addon.lua:161-182`): auxForever keys `aux.character`, `aux.realm`,
+  and `aux.faction` directly by `GetRealmName()`:
+  - `aux.character[format('%s|%s', GetRealmName(), UnitName'player')]`
+  - `aux.realm[GetRealmName()]` (`characters`, `recent_searches`, `favorite_searches`)
+  - `aux.faction[format('%s|%s', GetRealmName(), UnitFactionGroup 'player')]` (`history`, `post`,
+    `inventory`)
+- Fact (`[Code]`, `Gethe/wow-ui-source`, branch `forever`, commit `734f065`, build `1.60.1.71037` on
+  2026-11-20): Blizzard updated `Blizzard_FriendsFrame/Camelot/FriendsFrame.lua` to remove
+  `playerRealmName = GetRealmName()` and `realmID ~= 0` checks in favor of
+  `C_BattleNet.IsGameAccountOnSameRealm` / `hasRealmInfo`.
+- Fact (`[Outside]`, `r/wowaddons`, `AltStable` #412/#413, `TitanLayer` 1.3.0, 2026-11-20/21):
+  since Forever build `1.60.1.71037` (Nov 20, to block targeted layer-swapping addons),
+  `GetRealmName()` and `GetNormalizedRealmName()` return `""` (empty string) and `GetRealmID()`
+  returns `0`. Previously, Forever used multiple backend subrealm names per region + ruleset (such
+  as `CAMWOW US1 Realm 1 PvE`, `CAMWOW US1 Realm 2 PvE`) that share one auction house.
+- Why this broke Sniper (and SavedVariables) for `marcus4555` and other players:
+  1. When `GetRealmName()` changed (either across subrealms before Nov 20, or to `""` on Nov 20),
+     `aux.faction` switched from `"<subrealm>|Faction"` to `"|Faction"` (a brand-new empty table),
+     so `history` had fewer than `MIN_DAYS = 3` days of scans and Sniper showed 0 deals.
+  2. It also leaves `aux.realm` (`recent_searches`, `favorite_searches`), `aux.faction` (`post`
+     prices, `inventory`), and `aux.character` (`bid_auction_ids`, tooltip settings) stranded under
+     the old subrealm key.
+  3. Worse, with `GetRealmName() == ""`, characters in the same region and faction across **different**
+     rulesets (e.g. PvE Horde and PvP Horde or Hardcore) collide into the exact same `""` and
+     `"|Horde"` tables, mixing separate auction houses.
+- Fact (`[Code]`, `Gethe/wow-ui-source` `GameRulesDocumentation.lua` and `Ketho/BlizzardInterfaceResources`
+  `LuaEnum.lua`, branch `forever`): Forever exposes `C_GameRules.IsGameRuleActive(rule)` and
+  `Enum.GameRule` (`HardcoreRuleset = 10`, `PvPRuleset = 213`, `RPRuleset = 214`), alongside
+  `GetCurrentRegionName()` / `GetCurrentRegion()`.
+- Proposed fix:
+  1. Key Forever's parent "realm" by `Region|Ruleset` (e.g. `US|PvE`, `US|PvP`, `US|RP`, `US|RPPvP`,
+     `US|Hardcore`) via `GetCurrentRegionName()` + `C_GameRules.IsGameRuleActive(...)` (with safe
+     fallbacks if any API is unavailable), keeping character/realm/faction data unified across all
+     backend subrealms while keeping rulesets strictly separate.
+  2. One-time safe migration in `AUX_LOADED` so players keep their existing `history`, `post`
+     prices, `favorite_searches`, `recent_searches`, `inventory`, and `character_data` from prior
+     subrealm keys without blindly merging two different rulesets if an account played multiple
+     rulesets in the same region.
 
-Unknowns: what Sniper's status line next to Start/Stop says while running, whether any Full-scan
-notice shows under Start, and whether any Lua error appears.
+Unknowns: exact return values of `GetRealmName()`, `GetCurrentRegionName()`, `GetCurrentRegion()`,
+and `C_GameRules.IsGameRuleActive` on Tyler's live Forever client (Experiment E12 in
+`docs/forever-auction-house.md`), and whether any character data in `""` (`|Horde` / `|Alliance`)
+already mixed multiple rulesets since Nov 20.
 
-Ask Tyler: reply asking those three quick diagnostic questions and note 0.9 already fixes the AH
-throttle freeze.
+Ask Tyler:
+1. Run the one-line Experiment E12 `/run` command in game to confirm `[Seen]` values.
+2. Confirm whether to ship this as an urgent `0.9.0.2` hotfix (and merge into `0.9.1`) or build it
+   into `0.9.1 build 2`.
 
 ### FB-066: Setting to pick default buy quantity (1 vs full stack)
 
@@ -3294,6 +3339,83 @@ Recorder's notes:
 Unknowns: whether they meant auxForever's one-click Buy button or the 0.9 Buy keybinds; the answer ("only inside auxForever's own tabs") covers both cleanly.
 
 Ask Tyler: none (reply drafted above if you want to post it on CurseForge).
+
+### FB-069: A buy and sell ledger for tracking investments
+
+- Received: 2026-11-23 (comment posted 7 hours before screenshot)
+- From: slobbylimulator6900 (1 request)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-23-curseforge-comments.md)
+- Version: unknown
+- Type: request
+- Area: Other (Ledger / transaction history)
+- Severity: n/a
+- Status: new (reply drafted; candidate for `0.9.2` or `0.10`+)
+- Proposed: later (`0.9.2` or post-beta, mockup first)
+
+Said:
+> Can we get a ledger/buy and sell history, as in a full on ledger? That would go a long way to helping the add function better for investments. Apologies if I've missed this feature and it is already there.
+
+Steps / setup: player wants a full buy and sell ledger / transaction history inside auxForever to
+track investments (cost basis, sales, net profit).
+
+Tyler's notes: none yet.
+
+Recorder's notes:
+- Fact (`[Code]`): auxForever currently tracks market price history (`core/history.lua`) and saved
+  post prices (`tabs/post/core.lua`), but has no buy/sell transaction ledger or accounting log.
+- What a ledger covers (design notes for later, mockup first):
+  - Purchases recorded on `COMMODITY_PURCHASE_SUCCEEDED` and item buyout/won auction mail.
+  - Sales recorded from `Auction successful` mail / `AUCTION_HOUSE_AUCTION_CREATED` (and cancelled /
+    expired deposits once Experiment E1/E4 settle Forever's invoice mail format).
+  - Per-item average buy/sell price (with optional tooltip summary) and a searchable/filterable
+    Ledger view showing total spent, earned, net profit, and recent trades.
+  - Note: depends on settling `FB-065` (stable `Region|Ruleset|Faction` SavedVariables key) and
+    Experiment E1 (Forever's `"Auction successful"` mail invoice format) so ledger data is never
+    orphaned across subrealms.
+- Draft reply for Tyler on CurseForge:
+  > You didn't miss it, a buy/sell ledger isn't in auxForever yet! That's a great suggestion for tracking flips and investments, and I've logged it on the roadmap for a future update.
+
+Unknowns: whether the player wants only a table of buys/sells or also average purchase cost in
+tooltips and profit-over-time totals; a mockup before building will settle the scope.
+
+Ask Tyler: whether to plan this for `0.9.2` (alongside Posting rules `FB-031`) or after `0.10`.
+
+### FB-070: Item tracking across characters in the tooltip (like TSM)
+
+- Received: 2026-11-23 (comment posted 11 hours before screenshot)
+- From: deep_structure (1 request; also praise: "mate youve made some insane changes.")
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-23-curseforge-comments.md)
+- Version: unknown (0.9.x)
+- Type: request (also praise)
+- Area: Other (Tooltips / Alt Inventory)
+- Severity: n/a
+- Status: built 0.9.1 build 1 (with `FB-023`; awaiting Tyler's in-game testing)
+- Proposed: `0.9.1` (already built in `0.9.1 build 1`)
+
+Said:
+> mate youve made some insane changes. would it even be possible at all to add an item tracking feature like tsm that tells you how many of an item youve got and on what char it is  in the tooltip? id have 0 use for tsm ever again if that was possible but understand if it is not.
+
+Tyler's notes (reply in screenshot, "Just now"):
+> @deep_structure How funny you would mention that ;)
+>
+> Literally working on it as we speak, be on the lookout for it.
+
+Recorder's notes:
+- Fact (`[Code]`, `gemini/0.9.1` `0.9.1 build 1`): already built alongside `FB-023` in
+  `auxForever/core/inventory.lua` and `auxForever/core/tooltip.lua`. When opted in via
+  **Settings > Tooltip Lines > Inventory counts** (or **Count alts** on the Shopping List /
+  `/aux inventory on`), tooltips show a per-character `Owned:` block listing each character on the
+  same realm and faction with `bags, bank, mail` counts (plus Account Bank).
+- Note: like price history, `core/inventory.lua` stores into `aux.faction_data.inventory`, so the
+  `FB-065` `Region|Ruleset|Faction` SavedVariables key fix will keep alt inventory working across
+  Forever's subrealms and separate across rulesets.
+
+Unknowns: none.
+
+Ask Tyler: credit `deep_structure` alongside `Kortan` on the Alt Inventory line in `docs/changelog.md`
+for `0.9.1`?
 
 ## Before this log
 

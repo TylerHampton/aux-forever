@@ -33,16 +33,24 @@ Hotfix for `FB-067` multi-item gear posting on the Post tab; tested in game by T
 project page when convenient (updated for 0.9's Options > AddOns panel, Narrower Sniper, keybinds,
 and settings).
 
-**Next up for 0.9.1 build 2 (waiting on Tyler's picks):**
-1. **Waylaid Crate Merchant's Favor & reward silver (`FB-059`, `FB-042`, `FB-043`) + Craftsman's
+**Next up (waiting on Tyler's picks):**
+1. **Urgent bug (`FB-065`, marcus4555, S1):** Root cause confirmed (`[Code]`/`[Outside]`): Forever
+   build `1.60.1.71037` (Nov 20) blanked `GetRealmName()` to `""`, and prior builds rotated
+   backend subrealm names per region + ruleset (`aux-addon.lua` keys `aux.character`, `aux.realm`,
+   and `aux.faction` by `GetRealmName()`). Every player who upgraded or switched subrealms landed
+   on empty tables (breaking Sniper `MIN_DAYS = 3`, Post prices, searches, and risking cross-ruleset
+   collisions). Needs Experiment **E12** `/run` check in game and Tyler's call on shipping as a
+   **0.9.0.2** hotfix vs **0.9.1 build 2**.
+2. **Waylaid Crate Merchant's Favor & reward silver (`FB-059`, `FB-042`, `FB-043`) + Craftsman's
    Writs (`FB-020`):** web research (`[Outside]`, Forever guides) completed on 2026-11-22; awaiting
    Tyler's in-game confirmation (especially Artisan crate Favor/silver) before mocking up.
-2. **Watch `FB-065`** (marcus4555 Sniper 0 deals report) if the player replies with diagnostic info.
 
 **Planned for 0.9.2 (Tyler, 2026-11-23):**
 - **Posting rules based on usual price (`FB-031`, user_yt0k9lezehn1ukm993387):** held back from
   0.9.1 so we can design a sleeker UX for floor/normal/ceiling posting rules before building
   (mockup first).
+- **Candidate (`FB-069`, slobbylimulator6900):** Buy and sell ledger / investment history (mockup
+  first).
 
 **Planned for 0.10 (final beta):** granular scan-age timestamps & cleaner tooltip presentation
 (Tyler, 2026-11-21), Full scan speed/memory pass, Sniper speed pass (Point Blank Sniper research),
@@ -75,14 +83,21 @@ Protection" tooltips (FB-045, not tried).
   one part each of R-16 and R-20 (review file).
 
 **Open questions for Tyler:**
-1. FB-054 (jebbush, "cannot sort by bag slots"): does he know which screen they meant? Likely the
+1. **`FB-065` / Experiment E12 (urgent):** run the one-line `/run` check in game so we confirm
+   `GetRealmName()`, `GetCurrentRegionName()`, and `C_GameRules.IsGameRuleActive` as `[Seen]`, and
+   say whether to ship the `Region|Ruleset` SavedVariables fix as a **0.9.0.2** hotfix or in
+   **0.9.1**.
+2. **`FB-069` & `FB-070` (CurseForge batch 2026-11-23):** whether to plan the buy/sell ledger
+   (`FB-069`, draft reply in `docs/feedback.md`) for `0.9.2` or later, and whether to credit
+   `deep_structure` (`FB-070`) alongside `Kortan` on the Alt Inventory changelog line for `0.9.1`.
+3. FB-054 (jebbush, "cannot sort by bag slots"): does he know which screen they meant? Likely the
    Post tab's bag list, sorted by name. FB-053: whether Forever's gamepad mode lets an addon use
    the triggers (an experiment before building). FB-052: a reply for joker2206 is in its entry.
-2. FB-046: does he use Bagnon? FB-042 / FB-059: a screenshot of a Waylaid Crate's turn-in reward and
+4. FB-046: does he use Bagnon? FB-042 / FB-059: a screenshot of a Waylaid Crate's turn-in reward and
    a Craftsman's Writ tooltip.
-3. R-27: one sale and a screenshot of its "Auction successful" mail (experiment E1) settles the 5%
+5. R-27: one sale and a screenshot of its "Auction successful" mail (experiment E1) settles the 5%
    cut aux shows as fact; one auction left to expire (E4) settles "kept if the auction expires".
-4. Replies to the players of the 2026-11-08 and 2026-11-16 feedback batches are not written; does
+6. Replies to the players of the 2026-11-08 and 2026-11-16 feedback batches are not written; does
    he want them?
 
 **Roles (Tyler, 2026-11-19):** Gemini Neon is the primary engineer; Claude Code gives second
