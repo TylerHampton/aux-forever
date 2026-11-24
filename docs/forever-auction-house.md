@@ -347,8 +347,13 @@ page once carried them as build id `ah-facts-1`.
   "Delivered in"; open the mailbox for the "Sale Pending" mail; note when the "Auction successful"
   mail arrives and screenshot it. Settles: the delay, the 5% cut, the deposit coming back.
 - **E2 Neutral house.** At a neutral auctioneer (Booty Bay, Gadgetzan or Everlook): search an item
-  you also see at your faction's house and compare; sell something cheap there and screenshot the
-  "Auction successful" mail. Settles: shared or separate listings, the 15% cut.
+  you also see at your faction's house and compare; check a deposit on the Post tab; sell something
+  cheap there and screenshot the "Auction successful" mail; and while the auction house is open, run
+  `/run print("NPC:", UnitName("npc"), "| Faction:", tostring(UnitFactionGroup("npc")), "| Zone:", GetRealZoneText(), "| Sub:", GetSubZoneText())`.
+  Settles: shared or separate listings, neutral deposit calculation, the 15% cut, and how aux can
+  detect a neutral auctioneer. (Checked 2026-11-23 **[Code]**: Forever's `C_AuctionHouse` has no
+  neutral/cut API, Classic's `GetAuctionHouseDepositRate` does not exist in `GlobalAPI.lua`, and
+  `Blizzard_AuctionHouseFrame.lua` reads the `"npc"` unit token on `OnShow`.)
 - **E3 Cancel.** Post something cheap, note the deposit, cancel it from Blizzard's Auctions tab and
   screenshot the dialog; note your gold before and after and when the item comes back by mail.
 - **E4 Expiry.** Post something cheap at a high price for the shortest duration; after it expires,

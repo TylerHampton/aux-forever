@@ -53,8 +53,9 @@ and settings).
   first).
 
 **Planned for 0.10 (final beta):** granular scan-age timestamps & cleaner tooltip presentation
-(Tyler, 2026-11-21), Full scan speed/memory pass, Sniper speed pass (Point Blank Sniper research),
-and 1.0 readiness (`docs/roadmap.md`).
+(Tyler, 2026-11-21), neutral auction house support (Tyler, 2026-11-23, pending E2), Full scan
+speed/memory pass, Sniper speed pass (Point Blank Sniper research), and 1.0 readiness
+(`docs/roadmap.md`).
 
 **Takeover complete (2026-11-20):** Gemini Neon is the primary engineer and Claude Code the
 reviewer (`AGENTS.md`, "Roles"). H-012 in `docs/handoff.md` is closed. Claude-only tools are

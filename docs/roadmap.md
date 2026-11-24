@@ -161,8 +161,15 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
   browse checks (pending E11b), `SearchForItemKeys` 100-item batch sniping for Search Favorites
   (pending E10), opt-in "Stop & select on first deal" for 1-hotkey buying with `FB-063`, sorting
   gear searches by `Buyout` (4) instead of `Price` (0), and "New" deal row highlights.
-- **Settle remaining Forever AH unknowns** (E1: exact 5% cut and sale mail delay; E4: expired
-  auction deposit; E10: `SearchForItemKeys`; E11: browse price order and mid-browse search).
+- **Neutral auction house support (Booty Bay, Gadgetzan, Everlook; Tyler, 2026-11-23):** detect
+  when the player is at a neutral goblin auctioneer (pending Experiment E2 in-game check of the
+  `"npc"` unit token and zone; `C_AuctionHouse` has no neutral/cut API and `GetAuctionHouseDepositRate`
+  does not exist on Forever **[Code]**), keep neutral scans out of faction price history (separate
+  neutral history or skip recording), separate remembered Post prices, and use the neutral 15% cut
+  in the Post receipt and Sniper profit math (once E2 confirms 15% in game).
+- **Settle remaining Forever AH unknowns** (E1: exact 5% cut and sale mail delay; E2: neutral
+  auction house listings, 15% cut, and `"npc"` detection; E4: expired auction deposit; E10:
+  `SearchForItemKeys`; E11: browse price order and mid-browse search).
 
 ## 1.0: exit beta (agreed with Tyler 2026-11-21)
 
