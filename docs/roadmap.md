@@ -119,13 +119,17 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
   auction house or vendor, then buy down the list. One recipe at a time (mockup first).
 - **What your other characters hold** (from FB-023, Kortan, built in 0.9.1 build 1): opt-in
   per-character tracking (off by default) recording bags, bank (once opened), and mail (once
-  opened); the shopping list and tooltips count them when enabled.
+  opened); the shopping list and tooltips count them when enabled. Small follow-up from TSM 4.15
+  research: also record each character's active AH listings on `OWNED_AUCTIONS_UPDATED` (`bags,
+  bank, AH, mail`).
 - **Parent realm / ruleset SavedVariables key fix (`FB-065`, marcus4555; urgent):** Forever
   changed `GetRealmName()` to return `""` in build `1.60.1.71037` (Nov 20) and previously exposed
   changing backend subrealms under the same region + ruleset. Key saved data by `Region|Ruleset`
-  (`GetCurrentRegionName()` + `C_GameRules.IsGameRuleActive(...)`) instead of `GetRealmName()`,
-  with safe one-time migration from existing subrealm tables (once Experiment E12 confirms API
-  values in game; candidate for a `0.9.0.2` hotfix or `0.9.1`).
+  (`GetCurrentRegionName()` / `GetCVar("Portal")` + `C_GameRules.IsGameRuleActive(...)`) instead of
+  `GetRealmName()`, with safe one-time migration from existing subrealm tables (and check Forever
+  character surnames via `select(2, UnitName("player"))` plus RP/RP-PvP overlap, learned from TSM
+  4.15.9 `[Outside]`, once expanded Experiment E12 confirms values in game; candidate for a
+  `0.9.0.2` hotfix or `0.9.1`).
 - **Candidate (not decided by Tyler):** a controller button to search (FB-053; first an experiment:
   can an addon bind the triggers).
 
@@ -133,19 +137,29 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
 
 - **Posting rules based on usual price, like TSM** (FB-031, user_yt0k9lezehn1ukm993387): design a
   sleeker way to handle floor, normal, and ceiling posting rules on the Post tab (mockup first;
-  deferred from 0.9.1 by Tyler on 2026-11-23).
+  deferred from 0.9.1 by Tyler on 2026-11-23). Informed by TSM 4.15 research
+  (`docs/tsm-research-4.15.md`): render a live price ladder inside the Post tab's existing listings
+  table (highlighted "Your post" row + inline `Floor`, `Normal`, and `Ceiling` markers, click any
+  listing to override) plus an optional Bag Post Scan queue, with zero Groups or formula syntax.
 - **Candidate (not decided by Tyler):** **Buy and sell ledger / transaction history (`FB-069`,
-  slobbylimulator6900):** track purchases, sales, deposits, and net profit per item and overall
-  (mockup first; also depends on Experiment E1 invoice mail format).
+  slobbylimulator6900):** track purchases, sales, cancels, expires, and net profit per item and
+  overall, plus `Smart Avg Buy` (average cost of the units you currently own) and 180-day
+  auto-trimming (mockup first; depends on `FB-065` and Experiment E1/E4 mail formats; mailbox edge
+  cases documented in `docs/tsm-research-4.15.md` Section 7.4).
+- **Auctions tab polish (from TSM 4.15 research):** flag your lowest auctions that can be cancelled
+  and reposted significantly higher ("Underpriced"), plus an optional guard against cancelling
+  auctions that already have bids.
 
 ## 0.10: final beta (deep performance, polish, and 1.0 readiness; agreed with Tyler 2026-11-21)
 
 - **Granular scan-age timestamps and cleaner tooltip presentation (Tyler, 2026-11-21):** replace
   coarse day-only scan ages (`today`, `3d`, `9d`) with finer intervals (such as minutes and hours
-  from the real scan timestamp) and a cleaner visual presentation in tooltips (mockup first).
+  from the real scan timestamp), optional active supply count (`record.units`, like TSM 4.15's
+  `DBNumAuctions`), and a cleaner visual presentation in tooltips (mockup first).
 - **Full scan speed and memory pass:** direct history serializer/parser replacing generic
   `persistence.read`/`write` on the hot path, skip per-auction `process_price` during Full scans,
-  skip `GetReplicateItemLink` on non-gear, and share the sorted price array with Sniper.
+  skip `GetReplicateItemLink` on non-gear, share the sorted price array with Sniper, and test
+  `SendSellSearchQuery` (Experiment E9) to skip browse queries on known gear lists.
 - **Zero-cost idle UI and combat/background cleanup:** dirty-flag Search results summary and cached
   `GetSelection()`, dirty-flag Post validation and skip bag tooltip scans when the AH is open,
   skip empty midnight rollovers in `core/history.lua`, table-chain `libs/package.lua` `__index`,
@@ -154,7 +168,8 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
 - **Remaining Tier 2 polish fixes:** vendor scan `hasExtendedCost`/0c guard, `gui/listing.lua` stale
   rows on shortened scrolled lists, `gui/core.lua` unfocused right-click `block_focus`, `color.lua`
   `|cFF` alpha byte, slash commands refreshing Settings, tab lookup by name instead of index,
-  Auctions tab `"Sold, money in the mail"` text, and splitting the monolithic `tests/load_test.lua`.
+  Auctions tab `"Sold, money in the mail"` text, optional gold/percent threshold for "Confirm
+  before buying" (from TSM 4.15 research), and splitting the monolithic `tests/load_test.lua`.
 - **Sniper speed & workflow pass (from Point Blank Sniper research, 2026-11-23,
   `docs/sniper-research-pointblanksniper.md`):** Price-Cap Early-Stop mode (whole-AH sniping under
   a price cap in ~1 to 5s once E11a confirms ascending browse prices), streaming page-by-page
@@ -163,13 +178,15 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
   gear searches by `Buyout` (4) instead of `Price` (0), and "New" deal row highlights.
 - **Neutral auction house support (Booty Bay, Gadgetzan, Everlook; Tyler, 2026-11-23):** detect
   when the player is at a neutral goblin auctioneer (pending Experiment E2 in-game check of the
-  `"npc"` unit token and zone; `C_AuctionHouse` has no neutral/cut API and `GetAuctionHouseDepositRate`
-  does not exist on Forever **[Code]**), keep neutral scans out of faction price history (separate
-  neutral history or skip recording), separate remembered Post prices, and use the neutral 15% cut
-  in the Post receipt and Sniper profit math (once E2 confirms 15% in game).
+  `"npc"` unit token and zone; `C_AuctionHouse` has no neutral/cut API, `GetAuctionHouseDepositRate`
+  does not exist on Forever **[Code]**, and TSM 4.15.9 has zero neutral AH support **[Outside]**),
+  keep neutral scans out of faction price history (separate neutral history or skip recording),
+  separate remembered Post prices, and use the neutral 15% cut in the Post receipt and Sniper
+  profit math (once E2 confirms 15% in game).
 - **Settle remaining Forever AH unknowns** (E1: exact 5% cut and sale mail delay; E2: neutral
-  auction house listings, 15% cut, and `"npc"` detection; E4: expired auction deposit; E10:
-  `SearchForItemKeys`; E11: browse price order and mid-browse search).
+  auction house listings, 15% cut, and `"npc"` detection; E4: expired auction deposit; E9:
+  `SendSellSearchQuery` suffixed gear; E10: `SearchForItemKeys`; E11: browse price order and
+  mid-browse search; E13: `C_EncodingUtil`).
 
 ## 1.0: exit beta (agreed with Tyler 2026-11-21)
 
@@ -177,8 +194,14 @@ Only these three (Tyler, 2026-10-20): gamepad support, Waylaid crates, gear vers
   `.github/scripts/curseforge.sh` from prerelease/beta to full release, refresh CurseForge page
   copy and screenshots, and ship 1.0.
 
-## Future ideas (outside auxForever)
+## Future ideas (post-1.0 / outside auxForever)
 
+- **auxForever Desktop Companion App (Tyler, 2026-11-24; post-1.0, strictly optional):** cross-platform
+  tray app that polls hourly Blizzard WoW: Forever Game Data API snapshots via a small static CDN
+  worker, writes compact prices into a companion `auxForever_AppData/AppData.lua` (using native
+  `C_EncodingUtil` CBOR+Deflate+Base64 once Experiment E13 confirms it), and automatically backs up
+  `auxForever.lua` SavedVariables. Core `auxForever` remains 100% standalone with its built-in Full
+  Scan. Full technical blueprint: `docs/tsm-research-4.15.md` (Section 5).
 - **Best items to farm / GoldScout-style companion addon** (FB-060, XtreamCoder; Tyler, 2026-11-20:
   do not build into auxForever, keep in mind for a potential separate addon later with `auxForever`
   as an optional dependency reading prices through `AuxForeverAPI`).

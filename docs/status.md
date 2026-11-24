@@ -47,12 +47,33 @@ and settings).
    Writs (`FB-020`):** web research (`[Outside]`, Forever guides) completed on 2026-11-22; awaiting
    Tyler's in-game confirmation (especially Artisan crate Favor/silver) before mocking up.
 
+**TSM 4.15.9 & Desktop App research complete (2026-11-24, `docs/tsm-research-4.15.md`):**
+- Studied all 9 active public `TradeSkillMaster` GitHub repos AND TSM 4.15.9's Forever addon
+  internals (strictly research only; no TSM code, text, or assets copied into this repo).
+- **Key Forever catches for the 0.9.1 / 0.9.2 chat:**
+  - `FB-065`: TSM ignores `GetRealmName()` on Forever, derives ruleset from `C_GameRules`
+    (`Hardcore`, `Roleplay PvP`, `Roleplay`, `PvP`, `Normal`) + `GetCVar("Portal")`, handles
+    Forever character surnames via `select(2, UnitName("player"))` +
+    `Constants.CharacterNameSeparatorConsts.CHARACTERNAME_SURNAME_SEPARATOR`, and had to merge
+    RP/RP-PvP duplicates (`[Outside]`). Run the expanded **E12** `/run` command in
+    `docs/forever-auction-house.md` before coding `FB-065`.
+  - **Where auxForever is already ahead of TSM on Forever (`[Outside]`):** Sniper (TSM has no Bid
+    Sniper on Forever and sleeps 30s between buyout passes), standalone Full Scan (TSM disables
+    `ReplicateItems` on Forever), and planned Neutral AH (TSM has zero Neutral AH or 15% cut logic).
+  - **Lite upgrades mapped to roadmap (`docs/roadmap.md`):** `0.9.1` follow-up (add alt AH count in
+    `core/inventory.lua`); `0.9.2` (TSM 4.15-style Visual Post Ladder inside Post listings for
+    `FB-031`, Lite Accounting Ledger with `SmartAvgBuy` + 33-day sale hints + 180-day auto-trim for
+    `FB-069`, Auctions "Underpriced / repost higher" flag + bid guard); `0.10` (`SendSellSearchQuery`
+    for gear pending **E9**, supply count in tooltips, threshold Buy confirm); post-1.0 (optional
+    `auxForever_AppData` Desktop App via Blizzard Forever Game Data API + `C_EncodingUtil` pending
+    **E13**).
+
 **Planned for 0.9.2 (Tyler, 2026-11-23):**
 - **Posting rules based on usual price (`FB-031`, user_yt0k9lezehn1ukm993387):** held back from
   0.9.1 so we can design a sleeker UX for floor/normal/ceiling posting rules before building
-  (mockup first).
+  (mockup first; TSM 4.15 visual price ladder notes in `docs/tsm-research-4.15.md`).
 - **Candidate (`FB-069`, slobbylimulator6900):** Buy and sell ledger / investment history (mockup
-  first).
+  first; mailbox invoice & `SmartAvgBuy` notes in `docs/tsm-research-4.15.md`).
 
 **Planned for 0.10 (final beta):** granular scan-age timestamps & cleaner tooltip presentation
 (Tyler, 2026-11-21), neutral auction house support (Tyler, 2026-11-23, pending E2), Full scan
