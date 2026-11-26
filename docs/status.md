@@ -1,8 +1,8 @@
 # Status
 
-Last updated 2026-11-24, Tyler's time (`0.9.0.1` hotfix for `FB-067` released on `main`,
-2026-11-23; `gemini/0.9.1` active with `0.9.0.1` merged in and TSM 4.15.9 public + internals
-research logged in `docs/tsm-research-4.15.md`).
+Last updated 2026-11-25, Tyler's time (`0.9.0.1` hotfix for `FB-067` released on `main`,
+2026-11-23; `gemini/0.9.1` active with `0.9.0.1` merged in, TSM 4.15.9 research logged, and
+CurseForge feedback `FB-071` and `FB-072` logged).
 
 Keep this file short: where things stand, the next step, open questions. When a version is
 released, move its notes to `docs/status-history.md` (everything before 2026-11-20 and 0.9's
@@ -43,7 +43,18 @@ and settings).
    collisions). TSM 4.15.9 also reads Forever character surnames via `select(2, UnitName("player"))`
    (`[Outside]`). Needs expanded Experiment **E12** `/run` check in game and Tyler's call on
    shipping as a **0.9.0.2** hotfix vs **0.9.1 build 2**.
-2. **Waylaid Crate Merchant's Favor & reward silver (`FB-059`, `FB-042`, `FB-043`) + Craftsman's
+2. **Waylaid Crate tooltip bug (`FB-072`, sarrathsilentstrider, S3, logged 2026-11-25):**
+   `Waylaid Crate: Apprentice Curiosities` missing `"Cheapest fill price"` in bag and AH tooltips.
+   Two `[Code]` causes found in `tabs/search/crate.lua`: `plain(text)` does not strip named color
+   tags (`|cnIQ1:`, seen in Forever item data `[Outside]`), and `bundles_of[item_id]` can lock in
+   `false` for the whole session after a bag hover before spell text loads. Ready to fix in
+   `0.9.1 build 2` (or `0.9.0.2`).
+3. **Post tab partial quantity & single-item listing (`FB-071`, user_xfnva6wai40ziruy, logged
+   2026-11-25):** after posting a partial quantity (e.g. `1` of `20`), `complete_post()` resets the
+   box back to Max instead of keeping the typed quantity, and the stepper has `Max` but no `1`
+   button (right-click sets `1`, unlabeled). Awaiting Tyler's decision on keeping partial quantity
+   and/or adding a `1` button.
+4. **Waylaid Crate Merchant's Favor & reward silver (`FB-059`, `FB-042`, `FB-043`) + Craftsman's
    Writs (`FB-020`):** web research (`[Outside]`, Forever guides) completed on 2026-11-22; awaiting
    Tyler's in-game confirmation (especially Artisan crate Favor/silver) before mocking up.
 
@@ -111,17 +122,21 @@ Protection" tooltips (FB-045, not tried).
    `GetRealmName()`, `GetCurrentRegionName()`, and `C_GameRules.IsGameRuleActive` as `[Seen]`, and
    say whether to ship the `Region|Ruleset` SavedVariables fix as a **0.9.0.2** hotfix or in
    **0.9.1**.
-2. **`FB-069` & `FB-070` (CurseForge batch 2026-11-23):** whether to plan the buy/sell ledger
+2. **`FB-071` & `FB-072` (CurseForge batch 2026-11-25):** whether to keep typed partial quantity on
+   the Post tab after posting (and whether to add a quick `1` button or Default post quantity
+   setting for `FB-071`), and whether to fold the `FB-072` Waylaid Crate tooltip fix into `0.9.1
+   build 2` (or `0.9.0.2`).
+3. **`FB-069` & `FB-070` (CurseForge batch 2026-11-23):** whether to plan the buy/sell ledger
    (`FB-069`, draft reply in `docs/feedback.md`) for `0.9.2` or later, and whether to credit
    `deep_structure` (`FB-070`) alongside `Kortan` on the Alt Inventory changelog line for `0.9.1`.
-3. FB-054 (jebbush, "cannot sort by bag slots"): does he know which screen they meant? Likely the
+4. FB-054 (jebbush, "cannot sort by bag slots"): does he know which screen they meant? Likely the
    Post tab's bag list, sorted by name. FB-053: whether Forever's gamepad mode lets an addon use
    the triggers (an experiment before building). FB-052: a reply for joker2206 is in its entry.
-4. FB-046: does he use Bagnon? FB-042 / FB-059: a screenshot of a Waylaid Crate's turn-in reward and
+5. FB-046: does he use Bagnon? FB-042 / FB-059: a screenshot of a Waylaid Crate's turn-in reward and
    a Craftsman's Writ tooltip.
-5. R-27: one sale and a screenshot of its "Auction successful" mail (experiment E1) settles the 5%
+6. R-27: one sale and a screenshot of its "Auction successful" mail (experiment E1) settles the 5%
    cut aux shows as fact; one auction left to expire (E4) settles "kept if the auction expires".
-6. Replies to the players of the 2026-11-08 and 2026-11-16 feedback batches are not written; does
+7. Replies to the players of the 2026-11-08 and 2026-11-16 feedback batches are not written; does
    he want them?
 
 **Roles (Tyler, 2026-11-19):** Gemini Neon is the primary engineer; Claude Code gives second

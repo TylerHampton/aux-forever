@@ -177,6 +177,8 @@ For whoever fixes or builds from it:
 | [FB-068](#fb-068-is-one-button-buy-compatible-with-point-blank-sniper) | 2026-11-23 | potado_guy_99 | question | Sniper | n/a | Is the "one-button-buy" feature compatible with Point Blank Sniper? | new (reply drafted; Sniper research logged) |
 | [FB-069](#fb-069-a-buy-and-sell-ledger-for-tracking-investments) | 2026-11-23 | slobbylimulator6900 | request | Other | n/a | A buy and sell ledger (transaction history) for tracking investments | new (reply drafted) |
 | [FB-070](#fb-070-item-tracking-across-characters-in-the-tooltip-like-tsm) | 2026-11-23 | deep_structure | request | Other | n/a | Item tracking across characters in the tooltip (how many and which character) | built 0.9.1 build 1 (with FB-023; awaiting testing) |
+| [FB-071](#fb-071-single-item-listing-button-and-keeping-post-quantity-from-resetting-to-max) | 2026-11-25 | user_xfnva6wai40ziruy | request | Post | n/a | Button to list a single item and stop Post quantity resetting back to Max after posting | new (reply drafted; ask Tyler) |
+| [FB-072](#fb-072-waylaid-crate-apprentice-curiosities-missing-cheapest-fill-price-in-tooltip) | 2026-11-25 | sarrathsilentstrider | bug | Other | S3 | Waylaid Crate: Apprentice Curiosities missing "Cheapest fill price" in bag and AH tooltips | new (2 code causes found; ready to fix) |
 
 ## Players
 
@@ -204,8 +206,8 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
 - **daland**: CurseForge commenter (CurseForge name; in-game name unknown). Reported FB-014, FB-015
   and FB-016 in three comments the same day. Also uses Auctionator and compares aux with it.
 - **sarrathsilentstrider**: CurseForge commenter (CurseForge name; in-game name unknown).
-  Reported FB-017, asked for FB-018, praised in FB-019, reported FB-021, FB-022 and FB-044, asked
-  for FB-059. Plays in the Classic theme.
+  Reported FB-017, asked for FB-018, praised in FB-019, reported FB-021, FB-022, FB-044 and
+  FB-072, asked for FB-059. Plays in the Classic theme.
 - **Kortan**: told Tyler directly (Tyler's retelling, not his own words). Asked for FB-023. Knows
   TSM well, including its alt inventory data. Spelling of the in-game name not yet confirmed.
 - **Harro22**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for FB-020.
@@ -263,6 +265,9 @@ Who gives feedback, so a reader can weigh it. Add a player the first time they a
   uses Point Blank Sniper.
 - **slobbylimulator6900**: CurseForge commenter (CurseForge name; in-game name unknown). Asked for
   FB-069 (a buy and sell ledger for investments).
+- **user_xfnva6wai40ziruy**: CurseForge commenter (a name CurseForge generated; in-game name
+  unknown). Used original aux since 2017 on Elysium/Light's Hope. Asked for FB-071 (single-item
+  listing and keeping post quantity from resetting back to Max).
 - **Garsterson**: Tyler's brother. Found the gear posting error fixed in 0.1.1 (earlier docs call
   him "Tyler's brother"). His feedback so far reaches the log as Tyler's retelling, not his own
   words.
@@ -3416,6 +3421,129 @@ Unknowns: none.
 
 Ask Tyler: credit `deep_structure` alongside `Kortan` on the Alt Inventory line in `docs/changelog.md`
 for `0.9.1`?
+
+### FB-071: Single-item listing button and keeping Post quantity from resetting to Max
+
+- Received: 2026-11-25 (comment posted 10 hours before Tyler's screenshot)
+- From: user_xfnva6wai40ziruy (1 request; also praise: "Thank you for breathing new life into an addon I've been using since 2017 on Elysium/Light's Hope." / "Keep up the great work!")
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-25-curseforge-comments.md)
+- Version: unknown
+- Type: request
+- Area: Post
+- Severity: n/a
+- Status: new (reply drafted; awaiting Tyler's decision on keeping partial quantity / adding a `1` button)
+- Proposed: `0.9.1` (small Post tab UX fix: preserve typed quantity after a partial post instead of resetting to Max, plus optional `1` quick button or default post quantity) or `wont-fix` if treated as Classic stack posting like `FB-009`
+
+Said:
+> Thank you for breathing new life into an addon I've been using since 2017 on Elysium/Light's Hope. There is just one major feature missing. A button to list a single item; right now you have to manually change the stack size to 1 and press "list", and then the stack size automatically changes back to 20 again, leading to a lot of repetitive clicking to list things individually. I would be grateful if you could return the single item listing functionality - and also prevent the stack size resetting back to 20 after listing it. Keep up the great work!
+
+Steps / setup: on the Post tab with a stack of 20 items in the bags, manually changes Count/Quantity
+to `1`, posts it, and aux immediately resets Count/Quantity back to all remaining items instead of
+keeping `1`. Wants a quick way to list 1 item and wants the quantity not to jump back to Max after
+posting.
+
+Tyler's notes: none yet.
+
+Recorder's notes:
+- Fact (`[Code]`, `auxForever/tabs/post/core.lua:626-628` and `932-955`): when a partial post
+  finishes and the player still has copies of `selected_item` in their bags, `complete_post()` calls
+  `update_item(selected_item)`, which calls `quantity_update(true)`. That resets `stack_count_input`
+  back to `max_stack_count` (all remaining items) every time instead of keeping the player's chosen
+  quantity clamped to remaining stock.
+- Fact (`[Code]`, `auxForever/tabs/post/frame.lua:247-266` and `gui/core.lua:689-693`): the Post tab
+  quantity stepper has `[-] [ N ] [+] [Max]`. There is no `1` button. Right-clicking the number box
+  does reset it to `1` (`editbox.reset_text = '1'`), which is hidden and not labeled anywhere.
+- Related (`FB-009`, Maggew): Forever's auction house pools trade goods (commodities) by unit price
+  with no Classic stacks (`docs/forever-auction-house.md`). Buyers can already buy 1 unit from a
+  listing of 20. If the player is posting trade goods 1 at a time out of Classic 2017 habits, they
+  do not need to split stacks on Forever.
+- Inference: unlike `FB-009` ("post 20 stacks of 5"), resetting a partial quantity back to Max after
+  posting is still a real UX snag on Forever for legitimate partial posting (listing 1 item at a
+  time at staggered prices, keeping personal stock in bags, or posting duplicate gear one by one),
+  and carries accidental-post risk if a player clicks Post twice expecting `1` and posts all 19
+  remaining instead.
+- Two small, clean improvements (no redesign needed):
+  1. In `complete_post()` (`tabs/post/core.lua:626-628`), when `not all_posted`, keep the player's
+     typed quantity clamped to remaining bag count (`min(prev_count, max_stack_count)`) instead of
+     resetting to Max via `quantity_update(true)`.
+  2. Optional: add a small `1` button next to `Max` (or a `Default post quantity: All / 1` setting
+     like `FB-066` did for Buying, or document right-click to set `1`).
+- Draft reply for Tyler on CurseForge (adjust once Tyler decides whether to ship the quantity fix):
+  > Thanks for the kind words! One quick heads-up on WoW Forever's auction house: for trade goods (like cloth, ore, herbs, potions), Forever uses the modern pooled auction house with no fixed stacks, so if you post 20 at once, buyers can already buy 1 at a time from your listing. That said, resetting the quantity box back to Max right after a partial post is still annoying if you want to post one at a time or ladder prices (and right now only right-clicking the quantity box sets it to 1, which isn't obvious). I've logged keeping your typed quantity after posting and making single-item posting easier.
+
+Unknowns: whether the player is listing trade goods thinking Forever still uses Classic stacks, or
+intentionally posting 1 item at a time at staggered prices / for non-commodities. Keeping typed
+quantity after a partial post plus clarifying Forever's pooled AH handles both cases.
+
+Ask Tyler:
+1. Keep typed quantity after a partial post (`complete_post` clamping instead of resetting to Max)?
+2. Also add a quick `1` button on the Post tab (or a Default post quantity `All` / `1` setting like
+   `FB-066`), or leave it at keeping the typed quantity?
+
+### FB-072: Waylaid Crate: Apprentice Curiosities missing Cheapest fill price in tooltip
+
+- Received: 2026-11-25 (comment posted 1 day before Tyler's screenshot)
+- From: sarrathsilentstrider (1 report)
+- Where: CurseForge comment on the auxForever project page
+- Source: [source](feedback/sources/2026-11-25-curseforge-comments.md)
+- Version: unknown (`0.9` or `0.9.0.1`)
+- Type: bug
+- Area: Other (crate tooltip)
+- Severity: S3 (missing tooltip lines for one crate; no money lost and other crates still work)
+- Status: new (two code bugs found in `tabs/search/crate.lua`; ready to fix with tests)
+- Proposed: `0.9.1 build 2` (or `0.9.0.2` if a hotfix ships for `FB-065`)
+
+Said:
+> Waylaid Crate: Apprentice Curiosities does not seem to be displaying the "Cheapest Fill" info at the bottom of the tool tip.  Highlighting it in my bag I noticed this and then check the AH and it does not show on the tooltip from the AH either, but every other Crate on the AH seems to be fine, including the higher tier Curiosities.
+
+Steps / setup: hovered `Waylaid Crate: Apprentice Curiosities` in bags; the `"Cheapest fill price"`
+block did not appear at the bottom of the tooltip. Checked the auction house and hovered the same
+crate there; still missing, while every other Waylaid Crate on the AH (including higher-tier
+Curiosities) displayed normally.
+
+Tyler's notes: none yet.
+
+Recorder's notes:
+- Fact (`[Outside]`, `foreverchanges.pro/item/248685` on Forever `1.60.1.70959`,
+  `metabot.gg` on `1.60.1.71037`, and `wowforever.gameslantern.com`): `Waylaid Crate: Apprentice
+  Curiosities` (item ID `248685`) has the raw Use text:
+  `Use: Fill the crate with any bundle from the following list:|cnIQ1:` followed by `- 20 Strange Dust`,
+  `- 4 Greater Magic Essence`, `- 6 Small Glimmering Shard`, `- 2 Large Glimmering Shard`.
+- Fact (`[Code]`, `auxForever/tabs/search/crate.lua:22-24`): `plain(text)` only strips hex color
+  codes (`|c%x%x%x%x%x%x%x%x`) and `|r`, **not** WoW's named color escape sequences (`|cn[^:]+:`,
+  such as `|cnIQ1:`). Any bundle line starting with `|cnIQ1:` fails the row pattern
+  `^%s*%-%s*(%d+)%s+(.-)%s*$`, dropping that bundle (or all bundles if every row carries a named
+  color prefix or sits on the same line after `|cnIQ1:`).
+- Fact (`[Code]`, `auxForever/tabs/search/crate.lua:53-104`, `pending_seen` added in `0.9`):
+  `crate_bundles(item_id, texts)` caches `bundles_of[item_id] = false` permanently for the whole
+  session as soon as `info.item(item_id)` is truthy and `use_text_pending` returns `false`.
+  In `0.9`, `use_text_pending` allows only one retry (`pending_seen[item_id]`) when a tooltip has no
+  `Use:` line yet, and returns `false` immediately if `C_Item.GetItemSpell(item_id)` returns `nil`.
+  While hovering an item in a bag, `GameTooltip` refreshes every ~0.2s, burning the 1 retry before
+  spell text loads (or caching `false` if a bag crate is partially filled or its Use spell wasn't
+  loaded yet). Because `bundles_of` is keyed by `item_id` globally, caching `bundles_of[248685] =
+  false` in the bag also suppresses `"Cheapest fill price"` for that crate on the AH until `/reload`,
+  while every other crate hovered on the AH works normally.
+- Fact (`[Code]`, `auxForever/tabs/search/crate.lua:115-125`): `tooltip_texts(tooltip, data)` uses
+  `elseif` between `data.lines` and `tooltip:NumLines()`, so if `data.lines` is a table that omits
+  the spell description, aux never falls back to reading the rendered `GameTooltipTextLeftN` lines.
+- Defensive fix (handles all three causes without needing follow-up from the player):
+  1. Update `plain(text)` in `crate.lua` to also strip named color escapes (`|cn[^:]+:`).
+  2. Never permanently cache `bundles_of[item_id] = false` when the item's name starts with
+     `Waylaid Crate` (zero cost on normal items; guarantees a crate whose spell text loaded late or
+     was hovered in a bag never gets locked out for the session).
+  3. If `data.lines` yields no bundles, fall back to reading the rendered tooltip lines
+     (`GameTooltipTextLeftN`) before giving up.
+- Draft reply for Tyler on CurseForge:
+  > Good catch, thanks for reporting this! Looking at our crate tooltip code, aux caches "not a crate" for the rest of the session if a crate gets hovered before its bundle text finishes loading (which would hide it on the AH too until a `/reload`), and our parser was only stripping hex color codes rather than named color tags. We'll tighten both in the next update, and a `/reload` may bring it back in the meantime.
+
+Unknowns: whether `sarrathsilentstrider`'s bag crate was partially filled, hit the 1-retry cache
+race on login/bag hover, or had a live client wording tweak on build `71037`+. The defensive fix
+covers the cache race, named color tags, and `data.lines` fallback; checking one `Apprentice
+Curiosities` crate on the AH in game will also confirm the live tooltip text (`[Seen]`).
+
+Ask Tyler: fold this `crate.lua` fix into `0.9.1 build 2` (or `0.9.0.2` alongside `FB-065`)?
 
 ## Before this log
 
