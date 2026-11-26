@@ -171,7 +171,7 @@ For whoever fixes or builds from it:
 | [FB-062](#fb-062-option-for-right-clicking-a-bag-item-to-always-open-the-post-tab) | 2026-11-20 | rokstar8872, deep_structure, bubbledn42 | request | Post | n/a | Option for right-clicking a bag item to always open the Post tab (like default AH) | built 0.9 (released 2026-11-22) |
 | [FB-063](#fb-063-keybinds-for-buying-confirming-and-declining) | 2026-11-20 | khorrs | request | Buy bar | n/a | Keybinds for buying, confirming and declining | built 0.9 (released 2026-11-22) |
 | [FB-064](#fb-064-tooltip-word-search-ignores-stats-on-generic-green-random-suffix-gear) | 2026-11-22 | RushJet1 | bug | Search | S2 | Tooltip-word search ignores stats on generic green random-suffix gear ("of the Channeler") | fixed 0.9 (released 2026-11-22) |
-| [FB-065](#fb-065-sniper-stopped-showing-deals-even-after-changing-thresholds) | 2026-11-22 (follow-up 2026-11-23) | marcus4555 | bug | Sniper / Overall (SavedVariables) | S1 | Sniper stopped showing deals even after changing thresholds (`GetRealmName()` subrealm/blanking split) | confirmed (needs E12 in-game API check + hotfix approval) |
+| [FB-065](#fb-065-sniper-stopped-showing-deals-even-after-changing-thresholds) | 2026-11-22 (follow-up 2026-11-23) | marcus4555 | bug | Sniper / Overall (SavedVariables) | S1 | Sniper stopped showing deals even after changing thresholds (`GetRealmName()` subrealm/blanking split) | confirmed (E12 Seen 2026-11-25; ready to build) |
 | [FB-066](#fb-066-setting-to-pick-default-buy-quantity-1-vs-full-stack) | 2026-11-22 | user_ivpyccljovcjne72 | request | Buy bar | n/a | Setting to pick default buy quantity (1 vs full stack) | built 0.9 (released 2026-11-22) |
 | [FB-067](#fb-067-posting-2-gear-items-lists-both-but-aux-reports-posted-1-of-2-and-leaves-1-in-the-post-tab) | 2026-11-23 | Tyler | bug | Post | S2 | Posting 2+ gear items lists all of them but aux reports "Posted (N-1) of N" and leaves 1 in the Post tab | fixed 0.9.0.1 (released 2026-11-23) |
 | [FB-068](#fb-068-is-one-button-buy-compatible-with-point-blank-sniper) | 2026-11-23 | potado_guy_99 | question | Sniper | n/a | Is the "one-button-buy" feature compatible with Point Blank Sniper? | new (reply drafted; Sniper research logged) |
@@ -3214,25 +3214,26 @@ Recorder's notes:
   `LuaEnum.lua`, branch `forever`): Forever exposes `C_GameRules.IsGameRuleActive(rule)` and
   `Enum.GameRule` (`HardcoreRuleset = 10`, `PvPRuleset = 213`, `RPRuleset = 214`), alongside
   `GetCurrentRegionName()` / `GetCurrentRegion()`.
+- Fact (`[Seen]`, 2026-11-25, Experiment E12 in `docs/forever-auction-house.md`): live Forever
+  returns a blank string from `GetRealmName()`, `"US"` / `1` / `"US"` from `GetCurrentRegionName()` /
+  `GetCurrentRegion()` / `GetCVar("Portal")`, working booleans from `C_GameRules.IsGameRuleActive`
+  for `HardcoreRuleset`, `PvPRuleset`, and `RPRuleset`, a non-nil second return (surname) from
+  `UnitName("player")`, and a non-nil whitespace `CHARACTERNAME_SURNAME_SEPARATOR`.
 - Proposed fix:
-  1. Key Forever's parent "realm" by `Region|Ruleset` (e.g. `US|PvE`, `US|PvP`, `US|RP`, `US|RPPvP`,
-     `US|Hardcore`) via `GetCurrentRegionName()` + `C_GameRules.IsGameRuleActive(...)` (with safe
-     fallbacks if any API is unavailable), keeping character/realm/faction data unified across all
-     backend subrealms while keeping rulesets strictly separate.
+  1. Key Forever's parent "realm" by `Region|Ruleset` (e.g. `US|Normal`, `US|PvP`, `US|RP`, `US|RPPvP`,
+     `US|Hardcore`) via `GetCurrentRegionName()` / `GetCVar("Portal")` +
+     `C_GameRules.IsGameRuleActive(...)` (with safe fallbacks), and include character surnames when
+     present (`select(2, UnitName("player"))` joined with `CHARACTERNAME_SURNAME_SEPARATOR`) so alts
+     sharing a first name do not collide.
   2. One-time safe migration in `AUX_LOADED` so players keep their existing `history`, `post`
      prices, `favorite_searches`, `recent_searches`, `inventory`, and `character_data` from prior
-     subrealm keys without blindly merging two different rulesets if an account played multiple
-     rulesets in the same region.
+     subrealm and blank-realm keys without blindly merging two different rulesets.
 
-Unknowns: exact return values of `GetRealmName()`, `GetCurrentRegionName()`, `GetCurrentRegion()`,
-and `C_GameRules.IsGameRuleActive` on Tyler's live Forever client (Experiment E12 in
-`docs/forever-auction-house.md`), and whether any character data in `""` (`|Horde` / `|Alliance`)
-already mixed multiple rulesets since Nov 20.
+Unknowns: whether any character data written under the blank realm key since Nov 20 already mixed
+multiple rulesets, and whether `C_AuctionHouse` `owners` strings include character surnames.
 
-Ask Tyler:
-1. Run the one-line Experiment E12 `/run` command in game to confirm `[Seen]` values.
-2. Confirm whether to ship this as an urgent `0.9.0.2` hotfix (and merge into `0.9.1`) or build it
-   into `0.9.1 build 2`.
+Ask Tyler: confirm whether to ship this as an urgent `0.9.0.2` hotfix (and merge into `0.9.1`) or
+build it into `0.9.1 build 2`.
 
 ### FB-066: Setting to pick default buy quantity (1 vs full stack)
 

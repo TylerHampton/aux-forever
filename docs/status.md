@@ -35,14 +35,13 @@ project page when convenient (updated for 0.9's Options > AddOns panel, Narrower
 and settings).
 
 **Next up (waiting on Tyler's picks):**
-1. **Urgent bug (`FB-065`, marcus4555, S1):** Root cause confirmed (`[Code]`/`[Outside]`): Forever
-   build `1.60.1.71037` (Nov 20) blanked `GetRealmName()` to `""`, and prior builds rotated
-   backend subrealm names per region + ruleset (`aux-addon.lua` keys `aux.character`, `aux.realm`,
-   and `aux.faction` by `GetRealmName()`). Every player who upgraded or switched subrealms landed
-   on empty tables (breaking Sniper `MIN_DAYS = 3`, Post prices, searches, and risking cross-ruleset
-   collisions). TSM 4.15.9 also reads Forever character surnames via `select(2, UnitName("player"))`
-   (`[Outside]`). Needs expanded Experiment **E12** `/run` check in game and Tyler's call on
-   shipping as a **0.9.0.2** hotfix vs **0.9.1 build 2**.
+1. **Urgent bug (`FB-065`, marcus4555, S1):** Root cause confirmed **`[Seen]`** (2026-11-25,
+   Experiment **E12** settled in `docs/forever-auction-house.md`): `GetRealmName()` returns a blank
+   string on live Forever, while `GetCurrentRegionName()`, `GetCVar("Portal")`, and
+   `C_GameRules.IsGameRuleActive` (`HardcoreRuleset`, `PvPRuleset`, `RPRuleset`) all work cleanly,
+   and `select(2, UnitName("player"))` returns Forever character surnames with a whitespace
+   `CHARACTERNAME_SURNAME_SEPARATOR`. Ready to build; awaiting Tyler's call on shipping as a
+   **0.9.0.2** hotfix vs **0.9.1 build 2**.
 2. **Waylaid Crate tooltip bug (`FB-072`, sarrathsilentstrider, S3, logged 2026-11-25):**
    `Waylaid Crate: Apprentice Curiosities` missing `"Cheapest fill price"` in bag and AH tooltips.
    Two `[Code]` causes found in `tabs/search/crate.lua`: `plain(text)` does not strip named color
@@ -66,8 +65,8 @@ and settings).
     (`Hardcore`, `Roleplay PvP`, `Roleplay`, `PvP`, `Normal`) + `GetCVar("Portal")`, handles
     Forever character surnames via `select(2, UnitName("player"))` +
     `Constants.CharacterNameSeparatorConsts.CHARACTERNAME_SURNAME_SEPARATOR`, and had to merge
-    RP/RP-PvP duplicates (`[Outside]`). Run the expanded **E12** `/run` command in
-    `docs/forever-auction-house.md` before coding `FB-065`.
+    RP/RP-PvP duplicates (`[Outside]`). Experiment **E12** confirmed all of these APIs **`[Seen]`**
+    on 2026-11-25.
   - **Where auxForever is already ahead of TSM on Forever (`[Outside]`):** Sniper (TSM has no Bid
     Sniper on Forever and sleeps 30s between buyout passes), standalone Full Scan (TSM disables
     `ReplicateItems` on Forever), and planned Neutral AH (TSM has zero Neutral AH or 15% cut logic).
@@ -118,14 +117,13 @@ Protection" tooltips (FB-045, not tried).
   one part each of R-16 and R-20 (review file).
 
 **Open questions for Tyler:**
-1. **`FB-065` / Experiment E12 (urgent):** run the one-line `/run` check in game so we confirm
-   `GetRealmName()`, `GetCurrentRegionName()`, and `C_GameRules.IsGameRuleActive` as `[Seen]`, and
-   say whether to ship the `Region|Ruleset` SavedVariables fix as a **0.9.0.2** hotfix or in
-   **0.9.1**.
+1. **`FB-065` (urgent, E12 confirmed `[Seen]` 2026-11-25):** ship the `Region|Ruleset` + surname
+   SavedVariables fix as a **0.9.0.2** hotfix (with `FB-072`, `/reload` only) or fold it into
+   **0.9.1 build 2**?
 2. **`FB-071` & `FB-072` (CurseForge batch 2026-11-25):** whether to keep typed partial quantity on
    the Post tab after posting (and whether to add a quick `1` button or Default post quantity
-   setting for `FB-071`), and whether to fold the `FB-072` Waylaid Crate tooltip fix into `0.9.1
-   build 2` (or `0.9.0.2`).
+   setting for `FB-071`), and whether to fold the `FB-072` Waylaid Crate tooltip fix into `0.9.0.2`
+   or `0.9.1 build 2`.
 3. **`FB-069` & `FB-070` (CurseForge batch 2026-11-23):** whether to plan the buy/sell ledger
    (`FB-069`, draft reply in `docs/feedback.md`) for `0.9.2` or later, and whether to credit
    `deep_structure` (`FB-070`) alongside `Kortan` on the Alt Inventory changelog line for `0.9.1`.

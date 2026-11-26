@@ -402,15 +402,19 @@ page once carried them as build id `ah-facts-1`.
   - **E11b (Streaming browse + live check):** Confirm whether calling `SendSearchQuery` for one item
     while `HasFullBrowseResults() == false` leaves the browse cursor intact for subsequent
     `RequestMoreBrowseResults()` calls or resets it.
-- **E12 Realm name, region, `C_GameRules` ruleset API, and character surnames (`FB-065`, 2026-11-23,
-  expanded 2026-11-24, [Unknown]).**
-  Confirm in game on Forever build `71037`+ what `GetRealmName()`, `GetCurrentRegionName()`,
-  `GetCurrentRegion()`, `GetCVar("Portal")`, `C_GameRules.IsGameRuleActive` (`HardcoreRuleset`,
-  `PvPRuleset`, `RPRuleset`), `select(2, UnitName("player"))` (character surname), and
-  `Constants.CharacterNameSeparatorConsts` return (TSM 4.15.9 uses `C_GameRules` for rulesets,
-  `GetCVar("Portal")` for region, and joins `UnitName("player")`'s second return with
-  `CHARACTERNAME_SURNAME_SEPARATOR` **[Outside]**):
-  `/run local g=Enum.GameRule or {} local n,s=UnitName('player') local sep=Constants and Constants.CharacterNameSeparatorConsts and Constants.CharacterNameSeparatorConsts.CHARACTERNAME_SURNAME_SEPARATOR print('realm:', format('%q', tostring(GetRealmName())), 'reg:', GetCurrentRegionName(), GetCurrentRegion(), GetCVar('Portal'), 'hc:', g.HardcoreRuleset and C_GameRules.IsGameRuleActive(g.HardcoreRuleset), 'pvp:', g.PvPRuleset and C_GameRules.IsGameRuleActive(g.PvPRuleset), 'rp:', g.RPRuleset and C_GameRules.IsGameRuleActive(g.RPRuleset), 'name:', n, 'sur:', tostring(s), 'sep:', tostring(sep))`
+- **E12 Realm name, region, `C_GameRules` ruleset API, and character surnames (`FB-065`, settled
+  2026-11-25, `[Seen]`):**
+  Confirmed in game with two short `/run` lines (under WoW's 255-character chat limit):
+  - `GetRealmName()` returns a blank string (`""` / whitespace) on live Forever (`[Seen]`).
+  - `GetCurrentRegionName()` returns the region string (e.g. `"US"`), `GetCurrentRegion()` returns
+    the region number (`1`), and `GetCVar("Portal")` returns the portal string (`"US"`) (`[Seen]`).
+  - `C_GameRules.IsGameRuleActive` works on Forever with `Enum.GameRule.HardcoreRuleset`,
+    `Enum.GameRule.PvPRuleset`, and `Enum.GameRule.RPRuleset`, returning booleans (`[Seen]`).
+  - `select(2, UnitName("player"))` returns a non-nil surname on Forever, and
+    `Constants.CharacterNameSeparatorConsts.CHARACTERNAME_SURNAME_SEPARATOR` is non-nil (whitespace
+    separator; chat displays two-word names separated by a space) (`[Seen]`).
+  - Still `[Unknown]`: whether `C_AuctionHouse` `owners` strings include the surname or only the
+    first name.
 - **E13 `C_EncodingUtil` CBOR / Deflate / Base64 on Forever (2026-11-24, [Code]; from
   `docs/tsm-research-4.15.md`).** `EncodingUtilDocumentation.lua` on Forever (`Gethe/wow-ui-source`,
   branch `forever`) documents `CompressString`, `DecompressString`, `EncodeBase64`, `DecodeBase64`,
